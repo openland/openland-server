@@ -37,6 +37,7 @@ type Organization {
 
     betaPublicRooms: [SharedRoom!]!
     status: String!
+    membersCount: Int!
 }
 
 extend type Query {

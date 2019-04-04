@@ -53,7 +53,8 @@ export default {
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
 
         betaPublicRooms: resolveOrganizationRooms,
-        status: async (src: Organization) => src.status
+        status: async (src: Organization) => src.status,
+        membersCount: async (src: Organization, args: {}, ctx: AppContext) => await Modules.Orgs.organizationMembersCount(ctx, src.id)
     },
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: AppContext) => {
