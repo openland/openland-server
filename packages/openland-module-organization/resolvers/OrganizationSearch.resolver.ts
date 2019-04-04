@@ -36,10 +36,12 @@ export default {
         alphaComunityPrefixSearch: withAny(async (ctx, args) => {
             let clauses: any[] = [];
             clauses.push({ term: { kind: 'community' } });
-            clauses.push({ term: { listed: true } });
+            // clauses.push({ term: { listed: true } });
             clauses.push({ term: { status: 'activated' } });
             if (args.query && args.query.length > 0) {
                 clauses.push({ match_phrase_prefix: { name: args.query } });
+            } else {
+                clauses.push({ term: { featured: true } });
             }
 
             let hits = await Modules.Search.elastic.client.search({
