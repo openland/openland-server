@@ -34,7 +34,6 @@ export default {
             return res[0];
         }),
         alphaComunityPrefixSearch: withAny(async (ctx, args) => {
-
             let clauses: any[] = [];
             clauses.push({ term: { kind: 'community' } });
             clauses.push({ term: { listed: true } });
