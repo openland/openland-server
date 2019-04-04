@@ -37,6 +37,7 @@ export default {
             let clauses: any[] = [];
             clauses.push({ term: { kind: 'community' } });
             clauses.push({ term: { listed: true } });
+            clauses.push({ term: { status: 'activated' } });
             if (args.query && args.query.length > 0) {
                 clauses.push({ match_phrase_prefix: { name: args.query } });
             }
@@ -119,6 +120,7 @@ export default {
                 clauses.push({ term: { listed: true } });
             }
             clauses.push({ term: { kind: 'organization' } });
+            clauses.push({ term: { status: 'activated' } });
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
