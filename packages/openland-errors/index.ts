@@ -69,6 +69,11 @@ export function errorHandler(error: { message: string, originalError: any }, inf
             message: error.message,
             uuid: uuid,
         };
+    } else if ((error as any).extensions) {
+        return {
+            message: error.message,
+            uuid: uuid,
+        };
     }
     // Raven.captureException(error.originalError);
     console.warn('unexpected_error', uuid, error.originalError, error);
