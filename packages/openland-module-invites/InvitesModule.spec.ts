@@ -1,4 +1,4 @@
-import { testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
+import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { FDB } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
@@ -31,7 +31,8 @@ describe('RoomMediator', () => {
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
+        let room = await mediator.createRoom(ctx, 'public', oid, USER_ID, [], { title: 'Room' });
         expect(room.kind).toEqual('room');
         let profile = (await FDB.ConversationRoom.findById(ctx, room.id))!;
         expect(profile).not.toBeNull();
@@ -49,11 +50,11 @@ describe('RoomMediator', () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
-        let USER_ID = (await users.createUser(ctx, 'user111', 'email111')).id;
+        let USER_ID = (await randomTestUser(ctx)).uid;
         let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
-        let room = await mediator.createRoom(ctx, 'group', 1, USER_ID, [], { title: 'Room' });
+        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
+        let room = await mediator.createRoom(ctx, 'group', oid, USER_ID, [], { title: 'Room' });
         await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
         expect(members.length).toBe(1);

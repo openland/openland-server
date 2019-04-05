@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { InvitesRoomRepository } from 'openland-module-invites/repositories/InvitesRoomRepository';
-import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
+import { testEnvironmentStart, testEnvironmentEnd, randomTestUser } from 'openland-modules/testEnvironment';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { container } from 'openland-modules/Modules.container';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
@@ -44,15 +44,15 @@ describe('InvitesMediator', () => {
 
     it('should add to channel via invite', async () => {
         let ctx = createEmptyContext();
-        let USER_ID = (await users.createUser(ctx, 'user111', 'email111')).id;
+        let USER_ID = (await randomTestUser(ctx)).uid;
         let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
+        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
 
         let USER2_ORG_ID = (await orgs.createOrganization(ctx, USER2_ID, { name: 'ACME' })).id;
 
         let roomMediator = container.get<RoomMediator>('RoomMediator');
-        let channel = await roomMediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'channel' });
+        let channel = await roomMediator.createRoom(ctx, 'public', oid, USER_ID, [], { title: 'channel' });
 
         let repo = container.get<InvitesRoomRepository>('InvitesRoomRepository');
         let invite = await repo.createRoomInviteLink(ctx, channel.id, USER_ID);

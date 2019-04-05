@@ -1,4 +1,4 @@
-import { testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
+import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomMediator } from './RoomMediator';
 import { FDB } from 'openland-module-db/FDB';
@@ -37,10 +37,9 @@ describe('RoomMediator', () => {
     it('should create room', async () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
-        let users = container.get<UsersModule>(UsersModule);
-        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await randomTestUser(ctx)).uid;
+        let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
+        let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         expect(room.kind).toEqual('room');
         let profile = (await FDB.ConversationRoom.findById(ctx, room.id))!;
         expect(profile).not.toBeNull();

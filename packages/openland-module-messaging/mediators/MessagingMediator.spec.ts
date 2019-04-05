@@ -1,4 +1,4 @@
-import { testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
+import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomMediator } from './RoomMediator';
 import { FDB } from 'openland-module-db/FDB';
@@ -13,6 +13,7 @@ import { UserRepository } from 'openland-module-users/repositories/UserRepositor
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { MessageAttachmentInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createUrlInfoService } from '../workers/UrlInfoService';
+import { Modules } from '../../openland-modules/Modules';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -35,7 +36,8 @@ describe('MessagingMediator', () => {
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
+        let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
         let message = (await FDB.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!))!;
@@ -49,11 +51,10 @@ describe('MessagingMediator', () => {
     it('should set and reset reaction', async () => {
         let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
-        let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await randomTestUser(ctx)).uid;
+        let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
+        let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!;
@@ -74,11 +75,10 @@ describe('MessagingMediator', () => {
     it('should edit message', async () => {
         let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
-        let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await randomTestUser(ctx)).uid;
+        let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
+        let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).mid!;
 
@@ -97,11 +97,10 @@ describe('MessagingMediator', () => {
     it('should delete url augmentation', async () => {
         let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
-        let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await randomTestUser(ctx)).uid;
+        let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
+        let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let service = createUrlInfoService();
         let urlInfo = await service.fetchURLInfo('openland.com');
@@ -146,10 +145,9 @@ describe('MessagingMediator', () => {
         let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let users = container.get<UsersModule>(UsersModule);
-        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await randomTestUser(ctx)).uid;
+        let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
+        let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         for (let i = 0; i < 4; i++) {
             await FDB.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: i.toString() })).mid!);

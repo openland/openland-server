@@ -104,8 +104,8 @@ describe('Emails', () => {
         let ctx = createEmptyContext();
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
-
-        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', 1, uid, [], { title: '' });
+        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let event = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
         let message = (await FDB.Message.findById(ctx, event.mid!))!;
 
@@ -122,7 +122,8 @@ describe('Emails', () => {
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
 
-        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', 1, uid, [], { title: '' });
+        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let messages: Message[] = [];
         let event = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
         messages.push((await FDB.Message.findById(ctx, event.mid!))!);
@@ -293,8 +294,9 @@ describe('Emails', () => {
         let {uid} = await randomUser(ctx);
         let {email: email2} = await randomUser(ctx);
 
-        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', 1, uid, [], { title: '' });
-        let chat2 = await Modules.Messaging.room.createRoom(ctx, 'public', 1, uid, [], { title: '' });
+        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
+        let chat2 = await Modules.Messaging.room.createRoom(ctx, 'public', org.id, uid, [], { title: '' });
 
         await Modules.Invites.createRoomInvite(ctx, chat.id, uid, email2);
         await Modules.Invites.createRoomInvite(ctx, chat2.id, uid, email2);
@@ -314,7 +316,8 @@ describe('Emails', () => {
         let {uid, email} = await randomUser(ctx);
         let {uid: uid2, email: email2} = await randomUser(ctx);
 
-        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', 1, uid, [], { title: '' });
+        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
 
         let invite = await Modules.Invites.createRoomInvite(ctx, chat.id, uid, email2);
 
