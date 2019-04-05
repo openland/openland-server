@@ -32,6 +32,14 @@ export class RoomMediator {
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
+            if (oid) {
+                let isMember = await Modules.Orgs.isUserMember(ctx, uid, oid);
+                let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+
+                if (!isMember && !isSuperAdmin) {
+                    throw new AccessDeniedError();
+                }
+            }
             // Create room
             let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel);
             // Send initial messages
@@ -42,7 +50,7 @@ export class RoomMediator {
                 isService: true,
             });
             if (message) {
-                await this.messaging.sendMessage(ctx, uid, res.id, {message: message});
+                await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
             return res;
         });
