@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd48bc9d4ec930485473c2a3afb5c9622';
+export const GQL_SPEC_VERSION = '2af98f11265eb5344bdbed4ecd301d28';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -476,6 +476,7 @@ export namespace GQL {
         event: string;
         params: Nullable<string>;
     }
+    export type EventPlatform = 'Android' | 'iOS' | 'WEB';
     export interface ModernMessage {
         id: string;
         date: Date;
@@ -1378,6 +1379,8 @@ export namespace GQL {
     export interface MutationTrackArgs {
         did: string;
         events: Event[];
+        platform: OptionalNullable<EventPlatform>;
+        isProd: OptionalNullable<boolean>;
     }
     export interface MutationSendMessageArgs {
         chatId: string;

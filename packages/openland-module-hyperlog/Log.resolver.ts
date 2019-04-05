@@ -3,7 +3,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { createHyperlogger } from './createHyperlogEvent';
 import { inTx } from 'foundation-orm/inTx';
 
-const trackEvent = createHyperlogger<{ id: string, name: string, args: any, uid?: number, tid?: string, did: string }>('track');
+const trackEvent = createHyperlogger<{ id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean }>('track');
 
 export default {
     Mutation: {
@@ -16,7 +16,9 @@ export default {
                         name: i.event,
                         args: i.params ? JSON.parse(i.params) : undefined,
                         uid: ctx.auth.uid,
-                        tid: ctx.auth.tid
+                        tid: ctx.auth.tid,
+                        platform: args.platform || 'WEB',
+                        isProd: (args.isProd === undefined || args.isProd === null) ? true : args.isProd
                     });
                 }
             });

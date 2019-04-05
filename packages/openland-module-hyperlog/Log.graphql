@@ -3,6 +3,13 @@ input Event {
     event: String!
     params: String
 }
+
+enum EventPlatform {
+    Android,
+    iOS,
+    WEB
+}
+
 extend type Mutation {
-    track(did: String!, events: [Event!]!): String!
+    track(did: String!, events: [Event!]!, platform: EventPlatform, isProd: Boolean): String!
 }
