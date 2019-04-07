@@ -123,7 +123,7 @@ export class InvitesMediator {
             if (orgInvite) {
                 orgInvite.joined = true;
             }
-            await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
+            // await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
 
             return IDs.Organization.serialize(invite.oid);
 
