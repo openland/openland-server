@@ -53,6 +53,19 @@ export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: numb
     };
 }
 
+export function withActivatedUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
+    return async function (_: any, args: T, ctx: AppContext) {
+        if (!ctx.auth.uid) {
+            throw new AccessDeniedError(ErrorText.permissionDenied);
+        }
+        let user = await FDB.User.findById(ctx, ctx.auth.uid);
+        if (!user || user.status !== 'activated') {
+            throw new AccessDeniedError(ErrorText.permissionDenied);
+        }
+        return resolver(ctx, args, ctx.auth.uid);
+    };
+}
+
 export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {

@@ -4,7 +4,7 @@ import {
     OrganizationInviteLink,
     OrganizationPublicInviteLink
 } from 'openland-module-db/schema';
-import { withUser, withAny, withAccount } from 'openland-module-api/Resolvers';
+import { withUser, withAny, withAccount, withActivatedUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
@@ -99,7 +99,7 @@ export default {
                 inviter: inviter,
             };
         }),
-        appInvite: withUser(async (ctx, args, uid) => {
+        appInvite: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(ctx, uid);
         }),
         // deperecated
