@@ -4,7 +4,7 @@ import {
     TEMPLATE_ACTIVATEED,
     TEMPLATE_DEACTIVATED,
     TEMPLATE_INVITE,
-    TEMPLATE_MEMBER_JOINED,
+    // TEMPLATE_MEMBER_JOINED,
     TEMPLATE_MEMBER_REMOVED,
     TEMPLATE_MEMBERSHIP_LEVEL_CHANGED,
     TEMPLATE_PRIVATE_ROOM_INVITE,
@@ -241,34 +241,34 @@ describe('Emails', () => {
         expect(args.to).toBe(email2);
     });
 
-    it('should send member joined email', async () => {
-        let ctx = createEmptyContext();
-        let {uid, email} = await randomUser(ctx);
-        let {uid: uid2, email: email2} = await randomUser(ctx);
-
-        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
-        await Modules.Orgs.activateOrganization(ctx, org.id, false);
-
-        let invite = await Modules.Invites.createOrganizationInvite(ctx, org.id, uid, { email: email2 });
-
-        let spy = getSpy();
-        await Modules.Invites.joinOrganizationInvite(ctx, uid2, invite!.id, true);
-
-        expect(spy.mock.calls.length).toBe(2);
-        //
-        //  Welcome email
-        //
-        let args: EmailTask = spy.mock.calls[0][1];
-        expect(args.templateId).toBe(TEMPLATE_WELCOME);
-        expect(args.to).toBe(email2);
-
-        //
-        // Invitation accepted email
-        //
-        let args2: EmailTask = spy.mock.calls[1][1];
-        expect(args2.templateId).toBe(TEMPLATE_MEMBER_JOINED);
-        expect(args2.to).toBe(email);
-    });
+    // it('should send member joined email', async () => {
+    //     let ctx = createEmptyContext();
+    //     let {uid, email} = await randomUser(ctx);
+    //     let {uid: uid2, email: email2} = await randomUser(ctx);
+    //
+    //     let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
+    //     await Modules.Orgs.activateOrganization(ctx, org.id, false);
+    //
+    //     let invite = await Modules.Invites.createOrganizationInvite(ctx, org.id, uid, { email: email2 });
+    //
+    //     let spy = getSpy();
+    //     await Modules.Invites.joinOrganizationInvite(ctx, uid2, invite!.id, true);
+    //
+    //     expect(spy.mock.calls.length).toBe(2);
+    //     //
+    //     //  Welcome email
+    //     //
+    //     let args: EmailTask = spy.mock.calls[0][1];
+    //     expect(args.templateId).toBe(TEMPLATE_WELCOME);
+    //     expect(args.to).toBe(email2);
+    //
+    //     //
+    //     // Invitation accepted email
+    //     //
+    //     let args2: EmailTask = spy.mock.calls[1][1];
+    //     expect(args2.templateId).toBe(TEMPLATE_MEMBER_JOINED);
+    //     expect(args2.to).toBe(email);
+    // });
 
     it('should send activation code email', async () => {
         let ctx = createEmptyContext();
