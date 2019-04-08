@@ -3,6 +3,8 @@ import { AllEntities } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
 import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
+import { Modules } from '../../openland-modules/Modules';
+import { buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 
 let log = createLogger('call-repo');
 
@@ -82,6 +84,15 @@ export class CallRepository {
                     ice2: []
                 });
                 // }
+            }
+
+            let activeMembers = await this.findActiveMembers(ctx, cid);
+            if (activeMembers.length === 1) {
+                let fullName = await Modules.Users.getUserFullName(ctx, uid);
+                await Modules.Messaging.sendMessage(ctx, cid, uid, {
+                    ... buildMessage(userMention(fullName, uid), ' has started a call'),
+                    isService: true
+                });
             }
 
             await this.bumpVersion(ctx, cid);
