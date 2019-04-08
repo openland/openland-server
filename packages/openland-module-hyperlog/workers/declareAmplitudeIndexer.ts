@@ -44,8 +44,8 @@ export function declareAmplitudeIndexer() {
                 };
             };
 
-            let eventsProd = items.filter(i => i.body.isProd === true).map(mapEvent);
-            let eventsTest = items.filter(i => i.body.isProd === false).map(mapEvent);
+            let eventsProd = items.filter(i => i.body.isProd === true).map(i => mapEvent(i.body));
+            let eventsTest = items.filter(i => i.body.isProd === false).map(i => mapEvent(i.body));
 
             await saveEvents(eventsProd, true);
             await saveEvents(eventsTest, false);
