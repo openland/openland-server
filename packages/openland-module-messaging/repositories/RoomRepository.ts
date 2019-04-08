@@ -1,4 +1,4 @@
-import { AllEntities, User, ConversationRoom } from 'openland-module-db/schema';
+import { AllEntities, User, ConversationRoom, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
@@ -11,6 +11,8 @@ import { Context } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { MessagingRepository } from './MessagingRepository';
+import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
+import { MessageAttachmentFile } from '../MessageInput';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -269,6 +271,39 @@ export class RoomRepository {
             await this.entities.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
+            });
+            let userName = await Modules.Users.getUserFullName(ctx, uid);
+
+            const getMessageContent: (msg: Message) => Promise<string> = async (msg: Message) => {
+                let messageContent = 'DELETED';
+
+                if (msg.text) {
+                    if (msg.text.length > 30) {
+                        messageContent = msg.text.slice(0, 30) + '...';
+                    } else {
+                        messageContent = msg.text;
+                    }
+                } else if (msg.attachmentsModern) {
+                    let file = msg.attachmentsModern.find(a => a.type === 'file_attachment') as MessageAttachmentFile;
+                    if (file && file.fileMetadata && file.fileMetadata.isImage) {
+                        messageContent = 'Image';
+                    } else if (file && file.fileMetadata) {
+                        messageContent = 'Document';
+                    }
+                } else if (msg.replyMessages && msg.replyMessages.length > 0) {
+                    let replyMsg = await this.entities.Message.findById(ctx, msg.replyMessages[0]);
+
+                    if (replyMsg) {
+                        return getMessageContent(replyMsg);
+                    }
+                }
+
+                return messageContent;
+            };
+
+            await Modules.Messaging.sendMessage(ctx, cid, uid, {
+                ... buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
+                isService: true
             });
             return true;
         });
