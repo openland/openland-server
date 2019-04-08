@@ -135,7 +135,7 @@ export function createUrlInfoService() {
     let service = new UrlInfoService();
 
     service
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
             let [, , , , _userId] = data;
             let { hostname } = URL.parse(url);
 
@@ -145,7 +145,7 @@ export function createUrlInfoService() {
 
             return await getURLAugmentationForUser({ hostname, url, userId, user });
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?(o|c)\/(.*)/, false, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(directory\/)?(o|c)\/(.*)/, false, async (url, data) => {
             let [, , , , , _orgId] = data;
 
             let orgId = IDs.Organization.parse(_orgId);
@@ -169,7 +169,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
             };
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
             let ctx = createEmptyContext();
@@ -198,9 +198,9 @@ export function createUrlInfoService() {
                 iconInfo: null,
             };
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/joinChannel\/(.*)/, false, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(joinChannel|invite)\/(.*)/, false, async (url, data) => {
             let ctx = createEmptyContext();
-            let [, , , _invite] = data;
+            let [, , , , _invite] = data;
 
             let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
 
@@ -236,7 +236,7 @@ export function createUrlInfoService() {
                 dynamic: true
             };
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(.*)/, false, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(.*)/, false, async (url, data) => {
             let [, , , _shortname] = data;
 
             let { hostname } = URL.parse(url);
