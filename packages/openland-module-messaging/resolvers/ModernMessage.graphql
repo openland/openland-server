@@ -54,6 +54,7 @@ type GeneralMessage implements ModernMessage {
 
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
+    message(messageId: ID!): ModernMessage
 }
 
 extend type Mutation {

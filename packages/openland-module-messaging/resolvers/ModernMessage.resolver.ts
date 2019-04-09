@@ -593,6 +593,17 @@ export default {
             }
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
         }),
+        message: withUser(async (ctx, args, uid) => {
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+            let msg = await FDB.Message.findById(ctx, messageId);
+            if (!msg) {
+                return null;
+            }
+
+            await Modules.Messaging.room.checkAccess(ctx, uid, msg.cid);
+
+            return msg;
+        })
     },
 
     Mutation: {
