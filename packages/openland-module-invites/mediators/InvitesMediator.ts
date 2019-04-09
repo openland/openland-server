@@ -123,10 +123,25 @@ export class InvitesMediator {
             if (orgInvite) {
                 orgInvite.joined = true;
             }
+
+            let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, invite.uid);
+            let name1 = await Modules.Users.getUserFullName(ctx, uid);
+            let name2 = await Modules.Users.getUserFullName(ctx, invite.uid);
+
+            let supportUserId = await Modules.Users.getSupportUserId(ctx);
+
+            if (supportUserId) {
+                await Modules.Messaging.sendMessage(
+                    ctx,
+                    chat.id,
+                    supportUserId,
+                    { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
+                    true
+                );
+            }
             // await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
 
             return IDs.Organization.serialize(invite.oid);
-
         });
     }
 
