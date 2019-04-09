@@ -185,20 +185,21 @@ export class RoomMediator {
 
             // Kick from group
             if (await this.repo.kickFromRoom(ctx, cid, kickedUid)) {
-
-                // Send message
-                let cickerName = await Modules.Users.getUserFullName(parent, uid);
-                let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
-                await this.messaging.sendMessage(ctx, uid, cid, {
-                    ...buildMessage(userMention(cickerName, uid), ' kicked ', userMention(cickedName, kickedUid)),
-                    isService: true,
-                    isMuted: true,
-                    serviceMetadata: {
-                        type: 'user_kick',
-                        userId: kickedUid,
-                        kickedById: uid
-                    },
-                }, true);
+                if (!conv.isChannel) {
+                    // Send message
+                    let cickerName = await Modules.Users.getUserFullName(parent, uid);
+                    let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
+                    await this.messaging.sendMessage(ctx, uid, cid, {
+                        ...buildMessage(userMention(cickerName, uid), ' kicked ', userMention(cickedName, kickedUid)),
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'user_kick',
+                            userId: kickedUid,
+                            kickedById: uid
+                        },
+                    }, true);
+                }
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(ctx, kickedUid, cid);
