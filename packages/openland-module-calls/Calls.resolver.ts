@@ -7,6 +7,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
+import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 export default {
     Conference: {
@@ -134,6 +135,14 @@ export default {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
             let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000);
+            let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
+            if (activeMembers.length === 1) {
+                let fullName = await Modules.Users.getUserFullName(ctx, uid);
+                await Modules.Messaging.sendMessage(ctx, cid, uid, {
+                    ... buildMessage(userMention(fullName, uid), ' has started a call'),
+                    isService: true
+                });
+            }
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),
                 conference: Modules.Calls.repo.getOrCreateConference(ctx, cid)
