@@ -6851,7 +6851,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
             { name: 'enabled', type: 'boolean' },
         ],
         indexes: [
-            { name: 'channel', type: 'range', fields: ['createdAt', 'channelId'] },
+            { name: 'channel', type: 'range', fields: ['channelId', 'createdAt'] },
         ],
     };
 
@@ -6870,7 +6870,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         super(connection,
             new FNamespace('entity', 'channelLink'),
             { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)],
+            [new FEntityIndex('channel', ['channelId', 'createdAt'], false)],
             'ChannelLink'
         );
     }
@@ -6887,23 +6887,23 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
-    async allFromChannelAfter(ctx: Context, createdAt: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'channel', createdAt], after);
+    async allFromChannelAfter(ctx: Context, channelId: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'channel', channelId], after);
     }
-    async rangeFromChannelAfter(ctx: Context, createdAt: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'channel', createdAt], after, limit, reversed);
+    async rangeFromChannelAfter(ctx: Context, channelId: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'channel', channelId], after, limit, reversed);
     }
-    async rangeFromChannel(ctx: Context, createdAt: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'channel', createdAt], limit, reversed);
+    async rangeFromChannel(ctx: Context, channelId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'channel', channelId], limit, reversed);
     }
-    async rangeFromChannelWithCursor(ctx: Context, createdAt: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'channel', createdAt], limit, after, reversed);
+    async rangeFromChannelWithCursor(ctx: Context, channelId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'channel', channelId], limit, after, reversed);
     }
-    async allFromChannel(ctx: Context, createdAt: number) {
-        return await this._findAll(ctx, ['__indexes', 'channel', createdAt]);
+    async allFromChannel(ctx: Context, channelId: number) {
+        return await this._findAll(ctx, ['__indexes', 'channel', channelId]);
     }
-    createChannelStream(ctx: Context, createdAt: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'channelLink', '__indexes', 'channel', createdAt], limit, after); 
+    createChannelStream(ctx: Context, channelId: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'channelLink', '__indexes', 'channel', channelId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ChannelLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');

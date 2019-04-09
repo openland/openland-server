@@ -771,7 +771,7 @@ const Schema = declareSchema(() => {
         field('creatorId', 'number');
         field('channelId', 'number');
         field('enabled', 'boolean');
-        rangeIndex('channel', ['createdAt', 'channelId']);
+        rangeIndex('channel', ['channelId', 'createdAt']);
         enableVersioning();
         enableTimestamps();
     });
