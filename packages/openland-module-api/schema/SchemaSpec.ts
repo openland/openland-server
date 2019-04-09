@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2af98f11265eb5344bdbed4ecd301d28';
+export const GQL_SPEC_VERSION = 'a38130e5f5e4e1a295919437189ce757';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -801,6 +801,7 @@ export namespace GQL {
         id: string;
         comment: GeneralMessage;
         parentComment: Nullable<CommentEntry>;
+        childComments: CommentEntry[];
     }
     export interface ConversationUpdateSingle {
         seq: number;
@@ -2453,7 +2454,7 @@ export interface GQLResolver {
     CommentUpdated?: ComplexTypedResolver<GQL.CommentUpdated, GQLRoots.CommentUpdatedRoot, {comment: GQLRoots.CommentEntryRoot}, {}>;
     CommentUpdateContainer?: UnionTypeResolver<GQLRoots.CommentUpdateContainerRoot, 'CommentUpdateSingle' | 'CommentUpdateBatch'>;
     CommentsPeer?: ComplexTypedResolver<GQL.CommentsPeer, GQLRoots.CommentsPeerRoot, {state: GQLRoots.CommentUpdatesStateRoot, comments: GQLRoots.CommentEntryRoot[]}, {}>;
-    CommentEntry?: ComplexTypedResolver<GQL.CommentEntry, GQLRoots.CommentEntryRoot, {comment: GQLRoots.GeneralMessageRoot, parentComment: Nullable<GQLRoots.CommentEntryRoot>}, {}>;
+    CommentEntry?: ComplexTypedResolver<GQL.CommentEntry, GQLRoots.CommentEntryRoot, {comment: GQLRoots.GeneralMessageRoot, parentComment: Nullable<GQLRoots.CommentEntryRoot>, childComments: GQLRoots.CommentEntryRoot[]}, {}>;
     ConversationUpdateSingle?: ComplexTypedResolver<GQL.ConversationUpdateSingle, GQLRoots.ConversationUpdateSingleRoot, {update: GQLRoots.ConversationUpdateRoot}, {}>;
     ConversationUpdateBatch?: ComplexTypedResolver<GQL.ConversationUpdateBatch, GQLRoots.ConversationUpdateBatchRoot, {updates: GQLRoots.ConversationUpdateRoot[]}, {}>;
     ConversationUpdateContainer?: UnionTypeResolver<GQLRoots.ConversationUpdateContainerRoot, 'ConversationUpdateSingle' | 'ConversationUpdateBatch'>;

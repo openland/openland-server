@@ -9,6 +9,7 @@ type CommentEntry {
     id: ID!
     comment: GeneralMessage!
     parentComment: CommentEntry
+    childComments: [CommentEntry!]!
 }
 
 extend type Query {

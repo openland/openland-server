@@ -23,7 +23,8 @@ export default {
     CommentEntry: {
         id: src => IDs.Comment.serialize(src.id),
         comment: src => src,
-        parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!)
+        parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
+        childComments: async (src, args, ctx) => await FDB.Comment.allFromChild(ctx, src.id)
     },
 
     Mutation: {
