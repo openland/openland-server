@@ -600,6 +600,11 @@ const Schema = declareSchema(() => {
         field('uid', 'number');
 
         field('text', 'string').nullable().secure();
+        jsonField('reactions', jVec(json(() => {
+            jField('userId', jNumber());
+            jField('reaction', jString());
+        }))).nullable();
+
         field('deleted', 'boolean').nullable();
         field('edited', 'boolean').nullable();
 

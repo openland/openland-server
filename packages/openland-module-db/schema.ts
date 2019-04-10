@@ -5065,6 +5065,7 @@ export interface CommentShape {
     parentCommentId?: number| null;
     uid: number;
     text?: string| null;
+    reactions?: ({ userId: number, reaction: string, })[]| null;
     deleted?: boolean| null;
     edited?: boolean| null;
 }
@@ -5121,6 +5122,17 @@ export class Comment extends FEntity {
         this._value.text = value;
         this.markDirty();
     }
+    get reactions(): ({ userId: number, reaction: string, })[] | null {
+        let res = this._value.reactions;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set reactions(value: ({ userId: number, reaction: string, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.reactions) { return; }
+        this._value.reactions = value;
+        this.markDirty();
+    }
     get deleted(): boolean | null {
         let res = this._value.deleted;
         if (res !== null && res !== undefined) { return res; }
@@ -5158,6 +5170,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
             { name: 'parentCommentId', type: 'number' },
             { name: 'uid', type: 'number' },
             { name: 'text', type: 'string', secure: true },
+            { name: 'reactions', type: 'json' },
             { name: 'deleted', type: 'boolean' },
             { name: 'edited', type: 'boolean' },
         ],
@@ -5178,6 +5191,10 @@ export class CommentFactory extends FEntityFactory<Comment> {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.isString('text', src.text);
+        validators.isJson('reactions', src.reactions, jVec(json(() => {
+            jField('userId', jNumber());
+            jField('reaction', jString());
+        })));
         validators.isBoolean('deleted', src.deleted);
         validators.isBoolean('edited', src.edited);
     }

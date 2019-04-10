@@ -54,4 +54,8 @@ export class CommentsMediator {
     async getMessageCommentsCount(parent: Context, messageId: number) {
         return (await this.repo.getCommentsState(parent, 'message', messageId)).commentsCount;
     }
+
+    async setReaction(parent: Context, commentId: number, uid: number, reaction: string, reset: boolean = false) {
+        return this.repo.setReaction(parent, commentId, uid, reaction, reset);
+    }
 }

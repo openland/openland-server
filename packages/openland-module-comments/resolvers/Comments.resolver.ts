@@ -43,6 +43,17 @@ export default {
             await Modules.Comments.editComment(ctx, commentId, uid, { message: args.message }, true);
             return true;
         }),
+
+        commentReactionAdd: withUser(async (ctx, args, uid) => {
+            let commentId = IDs.Comment.parse(args.commentId);
+            await Modules.Comments.setReaction(ctx, commentId, uid, args.reaction, false);
+            return true;
+        }),
+        commentReactionRemove: withUser(async (ctx, args, uid) => {
+            let commentId = IDs.Comment.parse(args.commentId);
+            await Modules.Comments.setReaction(ctx, commentId, uid, args.reaction, false);
+            return true;
+        }),
     },
 
     Query: {

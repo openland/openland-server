@@ -290,7 +290,7 @@ export default {
         date: src => src.createdAt,
         sender: src => src.uid,
         edited: src => src.edited || false,
-        reactions: src => src instanceof Comment ? [] : src.reactions || [],
+        reactions: src => src.reactions || [],
 
         //
         //  Content

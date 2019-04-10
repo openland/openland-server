@@ -25,4 +25,8 @@ export class CommentsModule {
     async getMessageCommentsCount(ctx: Context, messageId: number) {
         return this.mediator.getMessageCommentsCount(ctx, messageId);
     }
+
+    async setReaction(ctx: Context, commentId: number, uid: number, reaction: string, reset: boolean = false) {
+        return this.mediator.setReaction(ctx, commentId, uid, reaction, reset);
+    }
 }

@@ -103,6 +103,42 @@ export class CommentsRepository {
         });
     }
 
+    async setReaction(parent: Context, commentId: number, uid: number, reaction: string, reset: boolean = false) {
+        return await inTx(parent, async (ctx) => {
+            let comment = await this.entities.Comment.findById(ctx, commentId);
+            if (!comment || comment.deleted) {
+                throw new NotFoundError();
+            }
+
+            //
+            // Update message
+            //
+
+            let reactions = comment.reactions ? [...comment.reactions] : [];
+            if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
+                if (reset) {
+                    reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
+                } else {
+                    return;
+                }
+            } else {
+                reactions.push({ userId: uid, reaction });
+            }
+            comment.reactions = reactions;
+
+            //
+            // Create event
+            //
+            let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
+            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+                uid: comment.uid,
+                commentId,
+                kind: 'comment_updated'
+            });
+            return comment;
+        });
+    }
+
     private async fetchNextCommentId(parent: Context) {
         return await inTx(parent, async (ctx) => {
             let ex = await this.entities.Sequence.findById(ctx, 'comment-id');
