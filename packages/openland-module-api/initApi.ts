@@ -178,7 +178,7 @@ export async function initApi(isTest: boolean) {
                 subscribe,
                 keepAlive: 10000,
                 onConnect: async (args: any, webSocket: any) => {
-                    if (Object.keys(args).length === 0) {
+                    if (Object.keys(args).length === 0 && webSocket.upgradeReq.headers.cookie && webSocket.upgradeReq.headers.cookie.length > 0) {
                         let cookies = parseCookies(webSocket.upgradeReq.headers.cookie);
                         args = {
                             'x-openland-token': cookies['x-openland-token']
