@@ -317,9 +317,9 @@ export class RoomMediator {
             }
 
             //
-            //  Anyone can edit secret group
+            //  Anyone can edit secret group (but not channel)
             //
-            if (conv.kind === 'group') {
+            if (conv.kind === 'group' && !conv.isChannel) {
                 return true;
             }
 
