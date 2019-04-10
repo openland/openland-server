@@ -51,7 +51,7 @@ export default {
         }),
         commentReactionRemove: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.commentId);
-            await Modules.Comments.setReaction(ctx, commentId, uid, args.reaction, false);
+            await Modules.Comments.setReaction(ctx, commentId, uid, args.reaction, true);
             return true;
         }),
     },
