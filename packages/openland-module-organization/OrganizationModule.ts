@@ -145,7 +145,10 @@ export class OrganizationModule {
                         }
                     } else if (org.kind === 'community') {
                         if (!profile.primaryOrganization && userOrgs.length > 0) {
-                            profile.primaryOrganization = userOrgs[0]!.id;
+                            let primaryOrg = userOrgs.find(o => o!.id !== org.id);
+                            if (primaryOrg) {
+                                profile.primaryOrganization = primaryOrg.id;
+                            }
                         }
                     }
                 }
