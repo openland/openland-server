@@ -62,7 +62,6 @@ export class CommentsRepository {
             // Update state
             //
             let state = await this.getCommentsState(ctx, peerType, peerId);
-            console.log(state);
             state.commentsCount++;
 
             //
