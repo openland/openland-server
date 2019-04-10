@@ -303,6 +303,9 @@ export default {
         },
         spans: async (src, args, ctx) => {
             if (src instanceof Comment) {
+                if (src.spans) {
+                    return src.spans;
+                }
                 return [];
             }
             //

@@ -5066,6 +5066,7 @@ export interface CommentShape {
     uid: number;
     text?: string| null;
     reactions?: ({ userId: number, reaction: string, })[]| null;
+    spans?: ({ type: 'link', offset: number, length: number, url: string, })[]| null;
     deleted?: boolean| null;
     edited?: boolean| null;
 }
@@ -5133,6 +5134,17 @@ export class Comment extends FEntity {
         this._value.reactions = value;
         this.markDirty();
     }
+    get spans(): ({ type: 'link', offset: number, length: number, url: string, })[] | null {
+        let res = this._value.spans;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set spans(value: ({ type: 'link', offset: number, length: number, url: string, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.spans) { return; }
+        this._value.spans = value;
+        this.markDirty();
+    }
     get deleted(): boolean | null {
         let res = this._value.deleted;
         if (res !== null && res !== undefined) { return res; }
@@ -5171,6 +5183,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
             { name: 'uid', type: 'number' },
             { name: 'text', type: 'string', secure: true },
             { name: 'reactions', type: 'json' },
+            { name: 'spans', type: 'json' },
             { name: 'deleted', type: 'boolean' },
             { name: 'edited', type: 'boolean' },
         ],
@@ -5195,6 +5208,14 @@ export class CommentFactory extends FEntityFactory<Comment> {
             jField('userId', jNumber());
             jField('reaction', jString());
         })));
+        validators.isJson('spans', src.spans, jVec(jEnum(
+            json(() => {
+                jField('type', jString('link'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('url', jString());
+            })
+        )));
         validators.isBoolean('deleted', src.deleted);
         validators.isBoolean('edited', src.edited);
     }

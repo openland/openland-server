@@ -604,6 +604,14 @@ const Schema = declareSchema(() => {
             jField('userId', jNumber());
             jField('reaction', jString());
         }))).nullable();
+        jsonField('spans', jVec(jEnum(
+            json(() => {
+                jField('type', jString('link'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('url', jString());
+            }),
+        ))).nullable();
 
         field('deleted', 'boolean').nullable();
         field('edited', 'boolean').nullable();

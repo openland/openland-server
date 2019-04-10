@@ -4,6 +4,13 @@ import { AllEntities } from '../openland-module-db/schema';
 import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { LinkSpan } from '../openland-module-messaging/MessageInput';
+import linkify from 'linkify-it';
+import tlds from 'tlds';
+
+const linkifyInstance = linkify()
+    .tlds(tlds)
+    .tlds('onion', true);
 
 export interface CommentInput {
     message?: string | null;
@@ -30,6 +37,15 @@ export class CommentsRepository {
             }
 
             //
+            // Parse links
+            //
+            let spans = [];
+            let links = this.parseLinks(commentInput.message || '');
+            if (links.length > 0) {
+                spans.push(...links);
+            }
+
+            //
             //  Create comment
             //
             let commentId = await this.fetchNextCommentId(ctx);
@@ -39,6 +55,7 @@ export class CommentsRepository {
                 parentCommentId: commentInput.replyToComment,
                 uid,
                 text: commentInput.message || null,
+                spans
             });
 
             //
@@ -67,6 +84,20 @@ export class CommentsRepository {
             let comment = await this.entities.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
+            }
+
+            //
+            // Parse links
+            //
+            let spans: LinkSpan[] | null = null;
+
+            if (newComment.message) {
+                spans = [];
+                let links = this.parseLinks(newComment.message || '');
+                if (links.length > 0) {
+                    spans.push(...links);
+                }
+                comment.spans = spans;
             }
 
             //
@@ -165,5 +196,33 @@ export class CommentsRepository {
             }
             return seq;
         });
+    }
+
+    private parseLinks(message: string): LinkSpan[] {
+        let urls = linkifyInstance.match(message);
+
+        if (!urls) {
+            return [];
+        }
+
+        let offsets = new Set<number>();
+
+        function getOffset(str: string, n: number = 0): number {
+            let offset = message.indexOf(str, n);
+
+            if (offsets.has(offset)) {
+                return getOffset(str, n + 1);
+            }
+
+            offsets.add(offset);
+            return offset;
+        }
+
+        return urls.map(url => ({
+            type: 'link',
+            offset: getOffset(url.raw),
+            length: url.raw.length,
+            url: url.url,
+        } as LinkSpan));
     }
 }
