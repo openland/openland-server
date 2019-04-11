@@ -297,6 +297,9 @@ export default {
         //
         message: src => {
             if (src.deleted) {
+                if (src instanceof Comment) {
+                    return 'This comment was deleted';
+                }
                 return null;
             }
             if (src instanceof Message && src.type && src.type === 'POST') {
