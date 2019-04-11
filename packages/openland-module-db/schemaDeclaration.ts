@@ -606,10 +606,33 @@ const Schema = declareSchema(() => {
         }))).nullable();
         jsonField('spans', jVec(jEnum(
             json(() => {
+                jField('type', jString('user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('user', jNumber());
+            }),
+            json(() => {
+                jField('type', jString('multi_user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('users', jVec(jNumber()));
+            }),
+            json(() => {
+                jField('type', jString('room_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('room', jNumber());
+            }),
+            json(() => {
                 jField('type', jString('link'));
                 jField('offset', jNumber());
                 jField('length', jNumber());
                 jField('url', jString());
+            }),
+            json(() => {
+                jField('type', jString('bold_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
             }),
         ))).nullable();
 

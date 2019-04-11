@@ -4,7 +4,7 @@ import { AllEntities } from '../openland-module-db/schema';
 import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import { LinkSpan } from '../openland-module-messaging/MessageInput';
+import { LinkSpan, MessageSpan } from '../openland-module-messaging/MessageInput';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 
@@ -15,6 +15,7 @@ const linkifyInstance = linkify()
 export interface CommentInput {
     message?: string | null;
     replyToComment?: number | null;
+    spans?: MessageSpan[] | null;
 }
 
 export type CommentPeerType = 'message';
@@ -39,7 +40,7 @@ export class CommentsRepository {
             //
             // Parse links
             //
-            let spans = [];
+            let spans = commentInput.spans ? [...commentInput.spans] : [];
             let links = this.parseLinks(commentInput.message || '');
             if (links.length > 0) {
                 spans.push(...links);
@@ -88,10 +89,10 @@ export class CommentsRepository {
             //
             // Parse links
             //
-            let spans: LinkSpan[] | null = null;
+            let spans: MessageSpan[] | null = null;
 
             if (newComment.message) {
-                spans = [];
+                spans = newComment.spans ? [...newComment.spans] : [];
                 let links = this.parseLinks(newComment.message || '');
                 if (links.length > 0) {
                     spans.push(...links);

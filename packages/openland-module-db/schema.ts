@@ -5066,7 +5066,7 @@ export interface CommentShape {
     uid: number;
     text?: string| null;
     reactions?: ({ userId: number, reaction: string, })[]| null;
-    spans?: ({ type: 'link', offset: number, length: number, url: string, })[]| null;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[]| null;
     deleted?: boolean| null;
     edited?: boolean| null;
 }
@@ -5134,12 +5134,12 @@ export class Comment extends FEntity {
         this._value.reactions = value;
         this.markDirty();
     }
-    get spans(): ({ type: 'link', offset: number, length: number, url: string, })[] | null {
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[] | null {
         let res = this._value.spans;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set spans(value: ({ type: 'link', offset: number, length: number, url: string, })[] | null) {
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[] | null) {
         this._checkIsWritable();
         if (value === this._value.spans) { return; }
         this._value.spans = value;
@@ -5210,10 +5210,33 @@ export class CommentFactory extends FEntityFactory<Comment> {
         })));
         validators.isJson('spans', src.spans, jVec(jEnum(
             json(() => {
+                jField('type', jString('user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('user', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('multi_user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('users', jVec(jNumber()));
+            }), 
+            json(() => {
+                jField('type', jString('room_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('room', jNumber());
+            }), 
+            json(() => {
                 jField('type', jString('link'));
                 jField('offset', jNumber());
                 jField('length', jNumber());
                 jField('url', jString());
+            }), 
+            json(() => {
+                jField('type', jString('bold_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
             })
         )));
         validators.isBoolean('deleted', src.deleted);

@@ -17,8 +17,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    addMessageComment(messageId: ID!, message: String, replyComment: ID): Boolean!
-    editComment(id: ID!, message: String): Boolean!
+    addMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!]): Boolean!
+    editComment(id: ID!, message: String, mentions: [MentionInput!]): Boolean!
 
     commentReactionAdd(commentId: ID!, reaction: MessageReactionType!): Boolean!
     commentReactionRemove(commentId: ID!, reaction: MessageReactionType!): Boolean!
