@@ -5067,6 +5067,7 @@ export interface CommentShape {
     text?: string| null;
     reactions?: ({ userId: number, reaction: string, })[]| null;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[]| null;
+    attachments?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, })[]| null;
     deleted?: boolean| null;
     edited?: boolean| null;
 }
@@ -5145,6 +5146,17 @@ export class Comment extends FEntity {
         this._value.spans = value;
         this.markDirty();
     }
+    get attachments(): ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, })[] | null {
+        let res = this._value.attachments;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set attachments(value: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.attachments) { return; }
+        this._value.attachments = value;
+        this.markDirty();
+    }
     get deleted(): boolean | null {
         let res = this._value.deleted;
         if (res !== null && res !== undefined) { return res; }
@@ -5184,6 +5196,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
             { name: 'text', type: 'string', secure: true },
             { name: 'reactions', type: 'json' },
             { name: 'spans', type: 'json' },
+            { name: 'attachments', type: 'json' },
             { name: 'deleted', type: 'boolean' },
             { name: 'edited', type: 'boolean' },
         ],
@@ -5237,6 +5250,24 @@ export class CommentFactory extends FEntityFactory<Comment> {
                 jField('type', jString('bold_text'));
                 jField('offset', jNumber());
                 jField('length', jNumber());
+            })
+        )));
+        validators.isJson('attachments', src.attachments, jVec(jEnum(
+            json(() => {
+                jField('type', jString('file_attachment'));
+                jField('fileId', jString());
+                jField('filePreview', jString()).nullable();
+                jField('fileMetadata', json(() => {
+                jField('isImage', jBool());
+                jField('isStored', jBool());
+                jField('imageWidth', jNumber()).nullable();
+                jField('imageHeight', jNumber()).nullable();
+                jField('imageFormat', jString()).nullable();
+                jField('mimeType', jString());
+                jField('name', jString());
+                jField('size', jNumber());
+            })).nullable();
+                jField('id', jString());
             })
         )));
         validators.isBoolean('deleted', src.deleted);

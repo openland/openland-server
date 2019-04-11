@@ -635,6 +635,15 @@ const Schema = declareSchema(() => {
                 jField('length', jNumber());
             }),
         ))).nullable();
+        jsonField('attachments', jVec(jEnum(
+            json(() => {
+                jField('type', jString('file_attachment'));
+                jField('fileId', jString());
+                jField('filePreview', jString()).nullable();
+                jField('fileMetadata', FileInfo).nullable();
+                jField('id', jString());
+            }),
+        ))).nullable();
 
         field('deleted', 'boolean').nullable();
         field('edited', 'boolean').nullable();

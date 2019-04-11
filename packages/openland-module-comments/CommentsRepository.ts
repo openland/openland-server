@@ -4,7 +4,11 @@ import { AllEntities } from '../openland-module-db/schema';
 import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import { LinkSpan, MessageSpan } from '../openland-module-messaging/MessageInput';
+import {
+    LinkSpan, MessageAttachmentFile,
+    MessageAttachmentFileInput,
+    MessageSpan
+} from '../openland-module-messaging/MessageInput';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 
@@ -16,6 +20,7 @@ export interface CommentInput {
     message?: string | null;
     replyToComment?: number | null;
     spans?: MessageSpan[] | null;
+    attachments?: MessageAttachmentFileInput[] | null;
 }
 
 export type CommentPeerType = 'message';
@@ -47,6 +52,11 @@ export class CommentsRepository {
             }
 
             //
+            // Prepare attachments
+            //
+            let attachments: MessageAttachmentFile[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
+
+            //
             //  Create comment
             //
             let commentId = await this.fetchNextCommentId(ctx);
@@ -56,7 +66,8 @@ export class CommentsRepository {
                 parentCommentId: commentInput.replyToComment,
                 uid,
                 text: commentInput.message || null,
-                spans
+                spans,
+                attachments
             });
 
             //
@@ -105,6 +116,9 @@ export class CommentsRepository {
             //
             if (newComment.message) {
                 comment.text = newComment.message;
+            }
+            if (newComment.attachments) {
+                comment.attachments = await this.prepateAttachments(ctx, newComment.attachments || []);
             }
             if (markEdited) {
                 comment.edited = true;
@@ -224,5 +238,20 @@ export class CommentsRepository {
             length: url.raw.length,
             url: url.url,
         } as LinkSpan));
+    }
+
+    private async prepateAttachments(parent: Context, attachments: MessageAttachmentFileInput[]): Promise<MessageAttachmentFile[]> {
+        return await inTx(parent, async (ctx) => {
+            let res: MessageAttachmentFile[] = [];
+
+            for (let attachInput of attachments) {
+                res.push({
+                    ...attachInput,
+                    id: await this.entities.connection.nextRandomId()
+                });
+            }
+
+            return res;
+        });
     }
 }

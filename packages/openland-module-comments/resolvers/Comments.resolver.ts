@@ -3,7 +3,10 @@ import { withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
-import { MessageSpan } from '../../openland-module-messaging/MessageInput';
+import {
+    MessageAttachmentFileInput,
+    MessageSpan
+} from '../../openland-module-messaging/MessageInput';
 
 export default {
     CommentsPeer: {
@@ -69,9 +72,32 @@ export default {
                 spans.push(...mentions);
             }
 
+            //
+            // File attachments
+            //
+            let attachments: MessageAttachmentFileInput[] = [];
+            if (args.fileAttachments) {
+                for (let fileInput of args.fileAttachments) {
+                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
+                    let filePreview: string | null = null;
+
+                    if (fileMetadata.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
+                    }
+
+                    attachments.push({
+                        type: 'file_attachment',
+                        fileId: fileInput.fileId,
+                        fileMetadata: fileMetadata || null,
+                        filePreview: filePreview || null
+                    });
+                }
+            }
+
             await Modules.Comments.addMessageComment(ctx, messageId, uid, {
                 message: args.message,
                 replyToComment,
+                attachments,
                 spans
             });
             return true;
@@ -113,7 +139,34 @@ export default {
 
                 spans.push(...mentions);
             }
-            await Modules.Comments.editComment(ctx, commentId, uid, { message: args.message, spans }, true);
+
+            //
+            // File attachments
+            //
+            let attachments: MessageAttachmentFileInput[] = [];
+            if (args.fileAttachments) {
+                for (let fileInput of args.fileAttachments) {
+                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
+                    let filePreview: string | null = null;
+
+                    if (fileMetadata.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
+                    }
+
+                    attachments.push({
+                        type: 'file_attachment',
+                        fileId: fileInput.fileId,
+                        fileMetadata: fileMetadata || null,
+                        filePreview: filePreview || null
+                    });
+                }
+            }
+
+            await Modules.Comments.editComment(ctx, commentId, uid, {
+                message: args.message,
+                spans,
+                attachments
+            }, true);
             return true;
         }),
 

@@ -332,7 +332,7 @@ export default {
         },
         attachments: async (src, args, ctx) => {
             if (src instanceof Comment) {
-                return [];
+                return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
             }
 
             let attachments: { attachment: MessageAttachment, message: Message }[] = [];
