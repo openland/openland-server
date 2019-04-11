@@ -288,7 +288,7 @@ export default {
         //
         id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
-        sender: src => src.uid,
+        sender: async (src, args, ctx) => src.deleted ? await Modules.Users.getDeletedUserId(ctx) : src.uid,
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
 

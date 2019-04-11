@@ -108,4 +108,8 @@ export class UsersModule {
     async getSupportUserId(ctx: Context) {
         return await Modules.Super.getEnvVar<number>(ctx, 'support-user-id');
     }
+
+    async getDeletedUserId(ctx: Context) {
+        return await Modules.Super.getEnvVar<number>(ctx, 'deleted-user-id');
+    }
 }
