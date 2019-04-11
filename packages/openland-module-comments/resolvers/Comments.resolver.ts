@@ -195,7 +195,7 @@ export default {
             let comments = await FDB.Comment.allFromPeer(ctx, 'message', messageId);
 
             for (let comment of comments) {
-                if (comment.parentCommentId) {
+                if (comment.parentCommentId && !comment.deleted) {
                     haveChildComments.set(comment.parentCommentId, true);
                 }
             }
