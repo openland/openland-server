@@ -51,6 +51,33 @@ export class CommentsMediator {
         });
     }
 
+    async deleteComment(parent: Context, commentId: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let comment = await this.entities.Comment.findById(ctx, commentId);
+            if (!comment || comment.deleted) {
+                throw new NotFoundError();
+            }
+            if (comment.uid !== uid) {
+                throw new AccessDeniedError();
+            }
+
+            let res = this.repo.deleteComment(ctx, commentId);
+
+            if (comment.peerType === 'message') {
+                let message = await this.entities.Message.findById(ctx, comment.peerId);
+
+                if (message) {
+                    //
+                    // Send message updated event
+                    //
+                    await Modules.Messaging.markMessageUpdated(ctx, message.id);
+                }
+            }
+
+            return res;
+        });
+    }
+
     async getMessageCommentsCount(parent: Context, messageId: number) {
         return (await this.repo.getCommentsState(parent, 'message', messageId)).commentsCount;
     }

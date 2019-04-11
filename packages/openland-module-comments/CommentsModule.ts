@@ -22,6 +22,10 @@ export class CommentsModule {
         return this.mediator.editComment(ctx, commentId, uid, commentInput, markEdited);
     }
 
+    async deleteComment(ctx: Context, commentId: number, uid: number) {
+        return this.mediator.deleteComment(ctx, commentId, uid);
+    }
+
     async getMessageCommentsCount(ctx: Context, messageId: number) {
         return this.mediator.getMessageCommentsCount(ctx, messageId);
     }

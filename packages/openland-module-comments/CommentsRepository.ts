@@ -137,6 +137,34 @@ export class CommentsRepository {
         });
     }
 
+    async deleteComment(parent: Context, commentId: number) {
+        return await inTx(parent, async (ctx) => {
+            let comment = await this.entities.Comment.findById(ctx, commentId);
+            if (!comment || comment.deleted) {
+                throw new NotFoundError();
+            }
+
+            comment.deleted = true;
+
+            //
+            // Update state
+            //
+            let state = await this.getCommentsState(ctx, comment.peerType, comment.peerId);
+            state.commentsCount--;
+
+            //
+            // Create event
+            //
+            let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
+            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+                uid: comment.uid,
+                commentId,
+                kind: 'comment_updated'
+            });
+            return comment;
+        });
+    }
+
     async getCommentsState(parent: Context, peerType: CommentPeerType, peerId: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.CommentState.findById(ctx, peerType, peerId);

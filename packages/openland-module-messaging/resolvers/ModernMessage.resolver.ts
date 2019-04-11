@@ -296,12 +296,18 @@ export default {
         //  Content
         //
         message: src => {
+            if (src.deleted) {
+                return null;
+            }
             if (src instanceof Message && src.type && src.type === 'POST') {
                 return null;
             }
             return src.text;
         },
         spans: async (src, args, ctx) => {
+            if (src.deleted) {
+                return [];
+            }
             if (src instanceof Comment) {
                 if (src.spans) {
                     return src.spans;
@@ -331,6 +337,9 @@ export default {
             return spans;
         },
         attachments: async (src, args, ctx) => {
+            if (src.deleted) {
+                return [];
+            }
             if (src instanceof Comment) {
                 return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
             }
@@ -424,6 +433,9 @@ export default {
             return attachments;
         },
         quotedMessages: async (src, args, ctx) => {
+            if (src.deleted) {
+                return [];
+            }
             if (src instanceof Comment) {
                 return [];
             }

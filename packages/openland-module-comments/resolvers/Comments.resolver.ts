@@ -26,6 +26,7 @@ export default {
     },
     CommentEntry: {
         id: src => IDs.Comment.serialize(src.id),
+        deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
         childComments: async (src, args, ctx) => await FDB.Comment.allFromChild(ctx, src.id)
@@ -169,6 +170,11 @@ export default {
             }, true);
             return true;
         }),
+        deleteComment: withUser(async (ctx, args, uid) => {
+            let commentId = IDs.Comment.parse(args.id);
+            await Modules.Comments.deleteComment(ctx, commentId, uid);
+            return true;
+        }),
 
         commentReactionAdd: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.commentId);
@@ -185,8 +191,19 @@ export default {
     Query: {
         messageComments: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
+            let haveChildComments = new Map<number, boolean>();
+            let comments = await FDB.Comment.allFromPeer(ctx, 'message', messageId);
+
+            for (let comment of comments) {
+                if (comment.parentCommentId) {
+                    haveChildComments.set(comment.parentCommentId, true);
+                }
+            }
+
+            let res = comments.filter(c => !c.deleted || (c.deleted && haveChildComments.get(c.id) === true));
+
             return {
-                comments: await FDB.Comment.allFromPeer(ctx, 'message', messageId),
+                comments: res,
                 peerType: 'message',
                 peerId: messageId
             };

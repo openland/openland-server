@@ -7,6 +7,7 @@ type CommentsPeer {
 
 type CommentEntry {
     id: ID!
+    deleted: Boolean!
     comment: GeneralMessage!
     parentComment: CommentEntry
     childComments: [CommentEntry!]!
@@ -19,6 +20,7 @@ extend type Query {
 extend type Mutation {
     addMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
     editComment(id: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
+    deleteComment(id: ID!): Boolean!
 
     commentReactionAdd(commentId: ID!, reaction: MessageReactionType!): Boolean!
     commentReactionRemove(commentId: ID!, reaction: MessageReactionType!): Boolean!
