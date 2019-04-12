@@ -349,23 +349,25 @@ export default {
         //
         // Room mgmt
         //
-        betaRoomCreate: withAccount(async (ctx, args, uid, oid) => {
-            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-            await validate({
-                title: optional(stringNotEmpty('Title can\'t be empty')),
-                kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))
-            }, args);
-            let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
-            if (imageRef) {
-                await Modules.Media.saveFile(ctx, imageRef.uuid);
-            }
-            let room = await Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
-                title: args.title!,
-                description: args.description,
-                image: imageRef
-            }, args.message || '', args.listed || undefined, args.channel || undefined);
+        betaRoomCreate: withAccount(async (parent, args, uid, oid) => {
+            return inTx(parent, async (ctx) => {
+                oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
+                await validate({
+                    title: optional(stringNotEmpty('Title can\'t be empty')),
+                    kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))
+                }, args);
+                let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
+                if (imageRef) {
+                    await Modules.Media.saveFile(ctx, imageRef.uuid);
+                }
+                let room = await Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
+                    title: args.title!,
+                    description: args.description,
+                    image: imageRef
+                }, args.message || '', args.listed || undefined, args.channel || undefined);
 
-            return room;
+                return room;
+            });
         }),
         betaRoomUpdate: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
