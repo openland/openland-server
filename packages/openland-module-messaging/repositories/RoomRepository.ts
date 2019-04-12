@@ -54,21 +54,23 @@ export class RoomRepository {
                 description: profile.description,
                 socialImage: profile.socialImage
             });
-            await this.entities.RoomParticipant.create(ctx, id, uid, {
+            let owener = await this.entities.RoomParticipant.create(ctx, id, uid, {
                 role: 'owner',
                 invitedBy: uid,
                 status: 'joined'
             });
+            await owener.flush();
             await this.onRoomJoin(ctx, id, uid, uid);
             for (let m of members) {
                 if (m === uid) {
                     continue; // Just in case of bad input
                 }
-                await this.entities.RoomParticipant.create(ctx, id, m, {
+                let participant = await this.entities.RoomParticipant.create(ctx, id, m, {
                     role: 'member',
                     invitedBy: uid,
                     status: 'joined'
                 });
+                await participant.flush();
                 await this.onRoomJoin(ctx, id, uid, uid);
             }
 
@@ -94,11 +96,12 @@ export class RoomRepository {
                     return true;
                 }
             } else {
-                await this.entities.RoomParticipant.create(ctx, cid, uid, {
+                let participant = await this.entities.RoomParticipant.create(ctx, cid, uid, {
                     status: 'joined',
                     invitedBy: by,
                     role: 'member'
                 });
+                await participant.flush();
                 await this.onRoomJoin(ctx, cid, uid, by);
                 return true;
             }
@@ -171,11 +174,12 @@ export class RoomRepository {
                     return true;
                 }
             } else {
-                await this.entities.RoomParticipant.create(ctx, cid, uid, {
+                let participant = await this.entities.RoomParticipant.create(ctx, cid, uid, {
                     status: targetStatus,
                     role: 'member',
                     invitedBy: uid
                 });
+                await participant.flush();
                 await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
@@ -302,7 +306,7 @@ export class RoomRepository {
             };
 
             await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                ... buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
+                ...buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
                 isService: true
             });
             return true;
