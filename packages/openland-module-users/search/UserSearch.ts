@@ -60,8 +60,6 @@ export class UserSearch {
                 }
             }
 
-            console.dir(mainQuery, {depth: null});
-
             return await tracer.trace(ctx, 'elastic', async () => {
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'user_profile',
