@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a0bf8d0c1e40ea3cfbc97af003e21516';
+export const GQL_SPEC_VERSION = 'd678766079b985173cd783981ee683cd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -932,6 +932,7 @@ export namespace GQL {
     }
     export interface Conference {
         id: string;
+        startTime: Nullable<Date>;
         peers: ConferencePeer[];
         iceServers: ICEServer[];
     }
