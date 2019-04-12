@@ -6,6 +6,7 @@ type ICEServer {
 
 type Conference {
     id: ID!
+    startTime: Date
     peers: [ConferencePeer!]!
     iceServers: [ICEServer!]!
 }

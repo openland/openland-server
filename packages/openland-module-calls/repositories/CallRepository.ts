@@ -32,6 +32,14 @@ export class CallRepository {
             //     throw Error('Unable to find room');
             // }
 
+            // bump startTime if its initiator of call
+            let confPeers = await this.entities.ConferencePeer.allFromConference(ctx, cid);
+            if (confPeers.length === 0) {
+                let conf = await this.getOrCreateConference(ctx, cid);
+                conf.startTime = Date.now();
+                await conf.flush();
+            }
+
             // Disable existing for this auth
             let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
             if (existing) {
@@ -52,7 +60,6 @@ export class CallRepository {
             });
 
             // Create connections
-            let confPeers = await this.entities.ConferencePeer.allFromConference(ctx, cid);
             for (let cp of confPeers) {
                 if (cp.id === id) {
                     continue;

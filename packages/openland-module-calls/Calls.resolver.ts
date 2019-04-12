@@ -12,6 +12,7 @@ import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 export default {
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
+        startTime: (src: ConferenceRoom) => src.startTime,
         peers: async (src: ConferenceRoom, args: {}, ctx: Context) => {
             let res = (await Modules.Calls.repo.findActiveMembers(ctx, src.id));
             res.sort((a, b) => a.createdAt - b.createdAt);
@@ -139,7 +140,7 @@ export default {
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);
                 await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                    ... buildMessage(userMention(fullName, uid), ' has started a call'),
+                    ...buildMessage(userMention(fullName, uid), ' has started a call'),
                     isService: true
                 });
             }
