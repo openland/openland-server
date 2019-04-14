@@ -115,8 +115,7 @@ export default {
         organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => profile && profile.description),
-        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) =>
-            await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, typeof root === 'number' ? root : root.id),
+        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, typeof root === 'number' ? root : root.id),
 
         pinnedMessage: withRoomProfile((ctx, profile) => profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage)),
 

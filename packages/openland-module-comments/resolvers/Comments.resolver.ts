@@ -29,7 +29,7 @@ export default {
         deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
-        childComments: async (src, args, ctx) => await FDB.Comment.allFromChild(ctx, src.id)
+        childComments: async (src, args, ctx) => (await FDB.Comment.allFromChild(ctx, src.id)).filter(c => !c.deleted)
     },
 
     Mutation: {
