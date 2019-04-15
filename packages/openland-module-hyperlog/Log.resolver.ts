@@ -3,7 +3,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { createHyperlogger } from './createHyperlogEvent';
 import { inTx } from 'foundation-orm/inTx';
 
-const trackEvent = createHyperlogger<{ id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean }>('track');
+export const trackEvent = createHyperlogger<{ id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean }>('track');
 
 export default {
     Mutation: {

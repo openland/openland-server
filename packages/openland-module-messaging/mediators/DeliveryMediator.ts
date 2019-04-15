@@ -10,8 +10,11 @@ import { inTx } from 'foundation-orm/inTx';
 import { RoomMediator } from './RoomMediator';
 import { Context } from 'openland-utils/Context';
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
+import { uuid } from '../../openland-utils/uuid';
 
 const tracer = createTracer('message-delivery');
+const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 @injectable()
 export class DeliveryMediator {
@@ -137,6 +140,8 @@ export class DeliveryMediator {
         await inTx(parent, async (ctx) => {
             let res = await this.counters.onMessageReceived(ctx, uid, mid);
             await this.repo.deliverMessageToUser(ctx, uid, mid);
+            await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd });
+
             if (res.setMention) {
                 let message = (await this.entities.Message.findById(ctx, mid));
                 await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
