@@ -47,6 +47,8 @@ export function declareAmplitudeIndexer() {
                 };
 
                 const addUserProps = async (event: any) => {
+                    let userProperties: any = {};
+
                     if (event.user_id) {
                         let profile = await FDB.UserProfile.findById(ctx, event.user_id);
                         if (profile) {
@@ -64,12 +66,14 @@ export function declareAmplitudeIndexer() {
                             let month = date.getUTCMonth() + 1;
                             let year = date.getFullYear();
 
-                            event.cohort_day = day;
-                            event.cohort_week = week;
-                            event.cohort_month = month;
-                            event.cohort_year = year;
+                            userProperties.cohort_day = day;
+                            userProperties.cohort_week = week;
+                            userProperties.cohort_month = month;
+                            userProperties.cohort_year = year;
                         }
                     }
+
+                    event.user_properties = userProperties;
 
                     return event;
                 };
