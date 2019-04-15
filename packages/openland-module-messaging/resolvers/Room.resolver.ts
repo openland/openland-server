@@ -22,12 +22,12 @@ import { MessageMention } from '../MessageInput';
 
 type RoomRoot = Conversation | number;
 
-function withConverationId(handler: (ctx: AppContext, src: number) => any) {
-    return async (src: RoomRoot, args: {}, ctx: AppContext) => {
+function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T) => any) {
+    return async (src: RoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
-            return handler(ctx, src);
+            return handler(ctx, src, args);
         } else {
-            return handler(ctx, src.id);
+            return handler(ctx, src.id, args);
         }
     };
 }
@@ -122,7 +122,17 @@ export default {
         membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
         role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
-        members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
+        members: withConverationId(async (ctx, id, args) => {
+            let afterMember: RoomParticipant | null = null;
+            if (args.after) {
+                afterMember = await FDB.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
+            }
+            if (afterMember) {
+                return await FDB.RoomParticipant.rangeFromActiveAfter(ctx, id, afterMember.uid, args.first || 1000);
+            }
+
+            return await FDB.RoomParticipant.rangeFromActive(ctx, id, args.first || 1000);
+        }),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
         canEdit: async (root, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, (typeof root === 'number' ? root : root.id), ctx.auth.uid!)
@@ -326,9 +336,16 @@ export default {
                     status: 'joined',
                 }));
             } else {
-                return await FDB.RoomParticipant.allFromActive(ctx, roomId);
-            }
+                let afterMember: RoomParticipant | null = null;
+                if (args.after) {
+                    afterMember = await FDB.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
+                }
+                if (afterMember) {
+                    return await FDB.RoomParticipant.rangeFromActiveAfter(ctx, roomId, afterMember.uid, args.first || 1000);
+                }
 
+                return await FDB.RoomParticipant.rangeFromActive(ctx, roomId, args.first || 1000);
+            }
         }),
 
         betaRoomSearch: withUser(async (ctx, args, uid) => {

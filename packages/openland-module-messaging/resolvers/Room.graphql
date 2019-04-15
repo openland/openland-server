@@ -46,7 +46,7 @@ type SharedRoom {
     organization: Organization
   
     membersCount: Int
-    members: [RoomMember!]!
+    members(first: Int, after: ID): [RoomMember!]!
     requests: [RoomMember!]
 
     membership: SharedRoomMembershipStatus!
@@ -150,7 +150,7 @@ extend type Query {
     room(id: ID!): Room
     roomSuper(id: ID!): RoomSuper
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
-    roomMembers(roomId: ID!): [RoomMember!]!
+    roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!
     betaRoomSearch(
         query: String,
         first: Int!,
