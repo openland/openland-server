@@ -341,6 +341,7 @@ export default {
                 let convOrg = await FDB.ConversationOrganization.findById(ctx, roomId);
                 let members = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', convOrg!.oid);
                 return members.map(m => ({
+                    cid: roomId,
                     uid: m.uid,
                     role: 'member',
                     status: 'joined',
