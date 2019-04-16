@@ -552,10 +552,11 @@ export class RoomMediator {
             if (uids.length === 2) {
                 let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
                 let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
-                return buildMessage(emoji, userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]));
+                return buildMessage(emoji, userMention(name1, uids[0]), ' joined the group along with ', userMention(name2, uids[1]));
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
-                return buildMessage(emoji, userMention(name, uids[0]), ' along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
+
+                return buildMessage(emoji, userMention(name, uids[0]), ' joined the group along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
             }
         }
 
