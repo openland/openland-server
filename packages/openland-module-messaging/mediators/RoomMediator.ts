@@ -93,7 +93,8 @@ export class RoomMediator {
                         let uids: number[] = prevMessage.serviceMetadata.userIds;
                         uids.push(uid);
 
-                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, invited ? null : uid), false);
+                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, invited ? null : uid, true), false);
+                        await this.messaging.bumpDialog(ctx, uid, cid);
                     } else {
                         await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
                     }
@@ -127,20 +128,22 @@ export class RoomMediator {
 
                 // Send message about joining the room
                 if (res.length > 0) {
-
-                    // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-                    //
-                    // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                    //     let uids: number[] = prevMessage.serviceMetadata.userIds;
-                    //     uids.push(...res);
-                    //
-                    //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
-                    // } else {
-                    //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));
-                    // }
                     let shouldSendJoinMessage = !conv.isChannel;
                     if (shouldSendJoinMessage) {
-                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                        let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+
+                        if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                            let uids: number[] = prevMessage.serviceMetadata.userIds;
+                            uids.push(...res);
+
+                            await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, uid, true), false);
+                            for (let u of res) {
+                                await this.messaging.bumpDialog(ctx, u, cid);
+                            }
+                        } else {
+                            await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                        }
+                        // await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
                     } else {
                         // message not sent to new members, move room up in dialog list other way
                         for (let u of res) {
@@ -541,9 +544,20 @@ export class RoomMediator {
         return await this.repo.findAvailableRooms(ctx, uid);
     }
 
-    private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null) {
+    private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {
         let emojies = ['🖖', '🖐️', '✋', '🙌', '👏', '👋'];
         let emoji = emojies[Math.floor(Math.random() * emojies.length)] + ' ';
+
+        if (isUpdate) {
+            if (uids.length === 2) {
+                let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
+                let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
+                return buildMessage(emoji, userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]));
+            } else {
+                let name = await Modules.Users.getUserFullName(parent, uids[0]);
+                return buildMessage(emoji, userMention(name, uids[0]), ' along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
+            }
+        }
 
         if (uids.length === 1) {
             if (invitedBy && invitedBy !== uids[0]) {
@@ -569,9 +583,9 @@ export class RoomMediator {
         }
     }
 
-    private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null): Promise<MessageInput> {
+    private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null, isUpdate: boolean = false): Promise<MessageInput> {
         return {
-            ...await this.roomJoinMessageText(parent, room, uids, invitedBy),
+            ...await this.roomJoinMessageText(parent, room, uids, invitedBy, isUpdate),
             isService: true,
             isMuted: true,
             serviceMetadata: {
