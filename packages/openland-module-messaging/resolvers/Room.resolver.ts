@@ -320,6 +320,16 @@ export default {
 
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
         }),
+        roomMember: withUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.roomId);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
+            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            if (!conversation) {
+                throw new Error('Room not found');
+            }
+
+            return await FDB.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.memberId));
+        }),
         roomMembers: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
