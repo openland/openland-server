@@ -85,20 +85,19 @@ export class RoomMediator {
 
             // Join room
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
-
-                // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-                //
-                // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                //     let uids: number[] = prevMessage.serviceMetadata.userIds;
-                //     uids.push(uid);
-                //
-                //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
-                // } else {
-                //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
-                // }
                 let shouldSendJoinMessage = !conv.isChannel;
                 if (shouldSendJoinMessage) {
-                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
+                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+
+                    if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                        let uids: number[] = prevMessage.serviceMetadata.userIds;
+                        uids.push(uid);
+
+                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, invited ? null : uid), false);
+                    } else {
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
+                    }
+                    // await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
                 } else {
                     // message not sent to new members, move room up in dialog list other way
                     await this.messaging.bumpDialog(ctx, uid, cid);
