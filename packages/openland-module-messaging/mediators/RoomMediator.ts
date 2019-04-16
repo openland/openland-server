@@ -133,9 +133,7 @@ export class RoomMediator {
                         let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
 
                         if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                            let uids: number[] = prevMessage.serviceMetadata.userIds;
-                            uids.push(...res);
-
+                            let uids: number[] = [...prevMessage.serviceMetadata.userIds, ...res];
                             await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, uid, true), false);
                             for (let u of res) {
                                 await this.messaging.bumpDialog(ctx, u, cid);
@@ -556,7 +554,7 @@ export class RoomMediator {
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
 
-                return buildMessage(emoji, userMention(name, uids[0]), ' joined the group along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
+                return buildMessage(emoji, userMention(name, uids[0]), ' joined the group along with ', usersMention(`${uids.length - 1} others`, uids.slice(1)));
             }
         }
 
