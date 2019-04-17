@@ -30,7 +30,7 @@ type Organization {
     superAccountId: ID!
     alphaIsOwner: Boolean!
     alphaOrganizationMembers(first: Int, after: ID): [OrganizationJoinedMember!]!
-    alphaOrganizationAdminMembers: [OrganizationJoinedMember!]!
+    alphaOrganizationAdminMembers(first: Int, after: ID): [OrganizationJoinedMember!]!
     alphaOrganizationMemberRequests: [OrganizationRequestedMember!]!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!

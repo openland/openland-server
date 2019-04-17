@@ -46,8 +46,8 @@ export default {
         // Refactor?
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
         alphaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
-        alphaOrganizationMembers: async (src: Organization, args: { after: string, first: number }, ctx: AppContext) => await resolveOrganizationJoinedMembers(ctx, args, src.id),
-        alphaOrganizationAdminMembers: async (src: Organization, args: { after: string, first: number }, ctx: AppContext) => await resolveOrganizationJoinedAdminMembers(ctx, args, src.id),
+        alphaOrganizationMembers: async (src, args, ctx) => await resolveOrganizationJoinedMembers(ctx, args, src.id),
+        alphaOrganizationAdminMembers: async (src, args, ctx) => await resolveOrganizationJoinedAdminMembers(ctx, args, src.id),
         alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
