@@ -37,10 +37,10 @@ export async function resolveOrganizationJoinedMembers(
             ctx,
             orgId,
             afterMember.uid,
-            args.first || 2,
+            args.first || 10,
         );
     } else {
-        members = await FDB.OrganizationMember.rangeFromIds(ctx, orgId, args.first || 2);
+        members = await FDB.OrganizationMember.rangeFromIds(ctx, orgId, args.first || 10);
     }
 
     let roles = await resolveRoleInOrganization(ctx, orgId, members);
