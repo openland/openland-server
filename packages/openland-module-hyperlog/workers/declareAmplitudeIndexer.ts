@@ -70,6 +70,13 @@ export function declareAmplitudeIndexer() {
                             userProperties.cohort_week = week;
                             userProperties.cohort_month = month;
                             userProperties.cohort_year = year;
+
+                            let userMessagingState = await FDB.UserMessagingState.findById(ctx, profile.id);
+
+                            if (userMessagingState) {
+                                userProperties.messages_sent = userMessagingState.messagesSent;
+                                userProperties.messages_received = userMessagingState.messagesReceived;
+                            }
                         }
                     }
 
