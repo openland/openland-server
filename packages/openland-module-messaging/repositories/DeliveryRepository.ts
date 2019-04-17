@@ -30,6 +30,15 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             local.date = message.createdAt;
             global.seq++;
+
+            if (message.uid !== uid) {
+                if (!global.messagesReceived) {
+                    global.messagesReceived = 1;
+                } else {
+                    global.messagesReceived++;
+                }
+            }
+
             await global.flush(); // Fix for delivery crashing
 
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {

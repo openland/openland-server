@@ -5,17 +5,18 @@ import {
     MessageAttachmentInput,
     MessageInput,
 } from 'openland-module-messaging/MessageInput';
-import { injectable, inject } from 'inversify';
+import { injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { UserStateRepository } from './UserStateRepository';
 
 @injectable()
 export class MessagingRepository {
-    readonly entities: AllEntities;
-
-    constructor(@inject('FDB') entities: AllEntities) {
-        this.entities = entities;
-    }
+    @lazyInject('FDB')
+    private readonly entities!: AllEntities;
+    @lazyInject('UserStateRepository')
+    private readonly userState!: UserStateRepository;
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
         return await inTx(parent, async (ctx) => {
@@ -61,6 +62,17 @@ export class MessagingRepository {
                 uid: uid,
                 mid: mid
             });
+
+            //
+            // Update user counter
+            //
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            if (!global.messagesSent) {
+                global.messagesSent = 1;
+            } else {
+                global.messagesSent++;
+            }
+
             return {
                 event: res,
                 message: msg

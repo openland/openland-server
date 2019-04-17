@@ -61,4 +61,5 @@ extend type Mutation {
     debugDeleteUrlInfoCache(url: String!): Boolean
     debugDeleteUrlInfoCacheAll: Boolean
     debugSuperNotifications(type: SuperNotificationType!): Boolean!
+    debugCalcUsersMessagingStats: Boolean!
 }

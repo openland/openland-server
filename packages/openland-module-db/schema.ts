@@ -6297,6 +6297,8 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
 export interface UserMessagingStateShape {
     seq: number;
     unread: number;
+    messagesSent?: number| null;
+    messagesReceived?: number| null;
 }
 
 export class UserMessagingState extends FEntity {
@@ -6320,6 +6322,28 @@ export class UserMessagingState extends FEntity {
         this._value.unread = value;
         this.markDirty();
     }
+    get messagesSent(): number | null {
+        let res = this._value.messagesSent;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set messagesSent(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.messagesSent) { return; }
+        this._value.messagesSent = value;
+        this.markDirty();
+    }
+    get messagesReceived(): number | null {
+        let res = this._value.messagesReceived;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set messagesReceived(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.messagesReceived) { return; }
+        this._value.messagesReceived = value;
+        this.markDirty();
+    }
 }
 
 export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
@@ -6332,6 +6356,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         fields: [
             { name: 'seq', type: 'number' },
             { name: 'unread', type: 'number' },
+            { name: 'messagesSent', type: 'number' },
+            { name: 'messagesReceived', type: 'number' },
         ],
         indexes: [
             { name: 'hasUnread', type: 'range', fields: [] },
@@ -6345,6 +6371,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         validators.isNumber('seq', src.seq);
         validators.notNull('unread', src.unread);
         validators.isNumber('unread', src.unread);
+        validators.isNumber('messagesSent', src.messagesSent);
+        validators.isNumber('messagesReceived', src.messagesReceived);
     }
 
     constructor(connection: FConnection) {

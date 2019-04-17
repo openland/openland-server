@@ -760,6 +760,8 @@ const Schema = declareSchema(() => {
         primaryKey('uid', 'number');
         field('seq', 'number');
         field('unread', 'number');
+        field('messagesSent', 'number').nullable();
+        field('messagesReceived', 'number').nullable();
         rangeIndex('hasUnread', []).withCondition((src) => src.unread && src.unread > 0);
         enableVersioning();
         enableTimestamps();
