@@ -643,6 +643,26 @@ const Schema = declareSchema(() => {
                 jField('fileMetadata', FileInfo).nullable();
                 jField('id', jString());
             }),
+            json(() => {
+                jField('type', jString('rich_attachment'));
+                jField('title', jString()).nullable();
+                jField('subTitle', jString()).nullable();
+                jField('titleLink', jString()).nullable();
+                jField('text', jString()).nullable();
+                jField('icon', ImageRef).nullable();
+                jField('image', ImageRef).nullable();
+                jField('iconInfo', FileInfo).nullable();
+                jField('imageInfo', FileInfo).nullable();
+                jField('titleLinkHostname', jString()).nullable();
+                jField('keyboard', json(() => {
+                    jField('buttons', jVec(jVec(json(() => {
+                        jField('title', jString());
+                        jField('style', jEnumString('DEFAULT', 'LIGHT'));
+                        jField('url', jString()).nullable();
+                    }))));
+                })).nullable();
+                jField('id', jString());
+            }),
         ))).nullable();
 
         field('deleted', 'boolean').nullable();
