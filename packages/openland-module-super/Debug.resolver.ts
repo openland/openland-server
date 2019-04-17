@@ -8,6 +8,7 @@ import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
 import { inTx } from '../foundation-orm/inTx';
+import { Context, createEmptyContext } from '../openland-utils/Context';
 
 const URLInfoService = createUrlInfoService();
 
@@ -218,43 +219,43 @@ export default {
             return true;
         }),
         debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
-            return await inTx(parent, async (ctx) => {
-                const calculateForUser = async (uid: number) => {
-                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
-                    let totalSent = 0;
-                    let totalReceived = 0;
+            const calculateForUser = async (ctx: Context, uid: number) => {
+                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let totalSent = 0;
+                let totalReceived = 0;
 
-                    for (let a of all) {
-                        let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
-                        if (!conv) {
-                            continue;
-                        }
-
-                        if (conv.kind === 'room') {
-                            let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
-                            if (!pat || pat.status !== 'joined') {
-                                a.unread = 0;
-                                continue;
-                            }
-                        }
-                        let messages = await FDB.Message.allFromChat(ctx, a.cid);
-                        for (let message of messages) {
-                            if (message.uid === uid) {
-                                totalSent++;
-                            } else {
-                                totalReceived++;
-                            }
-                        }
+                for (let a of all) {
+                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                    if (!conv) {
+                        continue;
                     }
 
-                    return { totalSent, totalReceived };
-                };
+                    if (conv.kind === 'room') {
+                        let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
+                        if (!pat || pat.status !== 'joined') {
+                            a.unread = 0;
+                            continue;
+                        }
+                    }
+                    let messages = await FDB.Message.allFromChat(ctx, a.cid);
+                    for (let message of messages) {
+                        if (message.uid === uid) {
+                            totalSent++;
+                        } else {
+                            totalReceived++;
+                        }
+                    }
+                }
 
-                let users = await FDB.User.findAll(ctx);
+                return { totalSent, totalReceived };
+            };
 
-                for (let user of users) {
+            let users = await FDB.User.findAll(parent);
+
+            for (let user of users) {
+                await inTx(createEmptyContext(), async (ctx) => {
                     try {
-                        let {totalSent, totalReceived} = await calculateForUser(user.id);
+                        let {totalSent, totalReceived} = await calculateForUser(ctx, user.id);
 
                         let existing = await FDB.UserMessagingState.findById(ctx, user.id);
                         if (!existing) {
@@ -268,10 +269,10 @@ export default {
                     } catch (e) {
                         console.log('debugCalcUsersMessagingStatsError', e);
                     }
-                }
+                });
+            }
 
-                return true;
-            });
+            return true;
         }),
     }
 } as GQLResolver;
