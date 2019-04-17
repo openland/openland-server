@@ -2,6 +2,7 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
+import { IDs } from 'openland-module-api/IDs';
 
 async function resolveRoleInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
     let org = (await FDB.Organization.findById(ctx, oid))!;
@@ -20,8 +21,27 @@ async function resolveRoleInOrganization(ctx: Context, oid: number, members: Org
     return roles;
 }
 
-export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: number) {
-    let members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
+export async function resolveOrganizationJoinedMembers(
+    ctx: Context,
+    args: { after?: string | null; first?: number | null },
+    orgId: number,
+) {
+    let afterMember: OrganizationMember | null = null;
+    if (args.after) {
+        afterMember = await FDB.OrganizationMember.findById(ctx, orgId, IDs.User.parse(args.after));
+    }
+
+    let members;
+    if (afterMember) {
+        members = await FDB.OrganizationMember.rangeFromIdsAfter(
+            ctx,
+            orgId,
+            afterMember.uid,
+            args.first || 2,
+        );
+    } else {
+        members = await FDB.OrganizationMember.rangeFromIds(ctx, orgId, args.first || 2);
+    }
 
     let roles = await resolveRoleInOrganization(ctx, orgId, members);
 
@@ -35,15 +55,15 @@ export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: numb
             joinedAt: members[i].createdAt,
             email: member.email,
             showInContacts: false,
-            role: roles[i]
+            role: roles[i],
         });
     }
 
     return result;
 }
 
-export async function resolveOrganizationJoinedAdminMembers(ctx: Context, orgId: number) {
-    let members = await resolveOrganizationJoinedMembers(ctx, orgId);
+export async function resolveOrganizationJoinedAdminMembers(ctx: Context, args: { after?: string | null; first?: number | null }, orgId: number) {
+    let members = await resolveOrganizationJoinedMembers(ctx, args, orgId);
 
     return members.filter((organizationJoinedMember: any) => {
         const role = organizationJoinedMember.role;

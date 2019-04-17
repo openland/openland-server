@@ -314,7 +314,7 @@ const Schema = declareSchema(() => {
         enumField('role', ['admin', 'member']);
         enumField('status', ['requested', 'joined', 'left']);
 
-        uniqueIndex('ids', ['oid', 'uid']);
+        uniqueIndex('ids', ['oid', 'uid']).withRange();
         rangeIndex('organization', ['status', 'oid', 'uid']).withDisplayName('usersFromOrganization');
         rangeIndex('user', ['status', 'uid', 'oid']).withDisplayName('organizationsFromUser');
 

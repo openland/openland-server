@@ -25,11 +25,11 @@ type Organization {
     betaIsOwner: Boolean!
     betaIsAdmin: Boolean!
     betaIsPrimary: Boolean!
-    
+
     ## Refactor?
     superAccountId: ID!
     alphaIsOwner: Boolean!
-    alphaOrganizationMembers: [OrganizationJoinedMember!]!
+    alphaOrganizationMembers(first: Int, after: ID): [OrganizationJoinedMember!]!
     alphaOrganizationAdminMembers: [OrganizationJoinedMember!]!
     alphaOrganizationMemberRequests: [OrganizationRequestedMember!]!
     alphaFeatured: Boolean!
