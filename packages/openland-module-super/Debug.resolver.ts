@@ -2,7 +2,7 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { FDB } from '../openland-module-db/FDB';
-import { Message } from '../openland-module-db/schema';
+import { Message, Organization } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
@@ -89,7 +89,26 @@ export default {
                 }
             }
             return res;
-        })
+        }),
+
+        organizationChatsStats: withPermission('super-admin', async (ctx, args) => {
+            let chats = await FDB.ConversationOrganization.findAll(ctx);
+
+            let res: { org: Organization, chat: number, messagesCount: number, lastMessageDate: string }[] = [];
+
+            for (let chat of chats) {
+                let messages = await FDB.Message.allFromChat(ctx, chat.id);
+                res.push({
+                    org: (await FDB.Organization.findById(ctx, chat.oid))!,
+                    chat: chat.id,
+                    messagesCount: messages.length,
+                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].createdAt).toString() : ''
+                });
+            }
+
+            console.log(res);
+            return res;
+        }),
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {
