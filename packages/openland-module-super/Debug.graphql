@@ -30,12 +30,21 @@ type DebugUserPresence {
     active: Boolean
 }
 
+type OrganizationChatStats {
+    org: Organization!
+    chat: SharedRoom!
+    messagesCount: Int!
+    lastMessageDate: String!
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
     debugUrlInfo(url: String!): UrlAugmentation
     userPresence(uid: ID!, lastSeenFiveMinute: Boolean): [DebugUserPresence!]!
     debugValidateMessages: String!
+
+    organizationChatsStats: [OrganizationChatStats!]!
 }
 
 enum SuperNotificationType {

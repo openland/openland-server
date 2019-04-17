@@ -231,6 +231,7 @@ export namespace GQLRoots {
     export type DebugIDRoot = any;
     export type DebugUserPresenceRoot = Presence;
     export type EnvVarRoot = EnvironmentVariable;
+    export type OrganizationChatStatsRoot = any;
 
     //
     //  Comments
