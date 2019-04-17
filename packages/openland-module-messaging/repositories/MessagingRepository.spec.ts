@@ -3,11 +3,13 @@ import { container } from 'openland-modules/Modules.container';
 import { MessagingRepository } from './MessagingRepository';
 import { AllEntities } from 'openland-module-db/schema';
 import { createEmptyContext } from 'openland-utils/Context';
+import { UserStateRepository } from './UserStateRepository';
 
 describe('MessagingRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('messaging-repo');
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+        container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();
