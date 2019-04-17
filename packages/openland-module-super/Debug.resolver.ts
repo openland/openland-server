@@ -253,16 +253,20 @@ export default {
                 let users = await FDB.User.findAll(ctx);
 
                 for (let user of users) {
-                    let {totalSent, totalReceived} = await calculateForUser(user.id);
+                    try {
+                        let {totalSent, totalReceived} = await calculateForUser(user.id);
 
-                    let existing = await FDB.UserMessagingState.findById(ctx, user.id);
-                    if (!existing) {
-                        let created = await FDB.UserMessagingState.create(ctx, user.id, { seq: 0, unread: 0, messagesReceived: totalReceived, messagesSent: totalSent });
-                        await created.flush();
-                    } else {
-                        existing.messagesSent = totalSent;
-                        existing.messagesReceived = totalReceived;
-                        await existing.flush();
+                        let existing = await FDB.UserMessagingState.findById(ctx, user.id);
+                        if (!existing) {
+                            let created = await FDB.UserMessagingState.create(ctx, user.id, { seq: 0, unread: 0, messagesReceived: totalReceived, messagesSent: totalSent });
+                            await created.flush();
+                        } else {
+                            existing.messagesSent = totalSent;
+                            existing.messagesReceived = totalReceived;
+                            await existing.flush();
+                        }
+                    } catch (e) {
+                        console.log('debugCalcUsersMessagingStatsError', e);
                     }
                 }
 
