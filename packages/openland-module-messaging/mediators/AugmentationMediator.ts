@@ -54,7 +54,14 @@ export class AugmentationMediator {
                     return { result: 'ok' };
                 }
 
-                if (urlInfo.title || urlInfo.type !== 'url') {
+                if (!urlInfo.title && !urlInfo.description && !urlInfo.imageInfo) {
+                    return { result: 'ok' };
+                }
+
+                if (
+                    (urlInfo.title && urlInfo.description) ||
+                    urlInfo.type !== 'url'
+                ) {
                     let richAttachment: MessageRichAttachmentInput = {
                         type: 'rich_attachment',
                         title: urlInfo.title || null,
