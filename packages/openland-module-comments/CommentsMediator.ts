@@ -56,7 +56,7 @@ export class CommentsMediator {
             let res = this.repo.editComment(ctx, commentId, newComment, markEdited);
 
             if (!newComment.ignoreAugmentation) {
-                await this.augmentation.onNewComment(ctx, comment);
+                await this.augmentation.onCommentUpdated(ctx, comment);
             }
 
             return res;

@@ -127,7 +127,7 @@ export class MessagingMediator {
 
             if (!newMessage.ignoreAugmentation) {
                 // Augment
-                await this.augmentation.onNewMessage(ctx, message);
+                await this.augmentation.onMessageUpdated(ctx, message);
             }
 
             return res;
