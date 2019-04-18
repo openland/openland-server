@@ -789,6 +789,22 @@ export default {
             return await Modules.Messaging.room.unpinMessage(ctx, cid, uid);
         }),
 
+        betaPinMessage: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            let mid = IDs.ConversationMessage.parse(args.messageId);
+
+            await Modules.Messaging.room.pinMessage(ctx, cid, uid, mid);
+
+            return cid;
+        }),
+        betaUnpinMessage: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+
+            await Modules.Messaging.room.unpinMessage(ctx, cid, uid);
+
+            return cid;
+        }),
+
         messageReactionAdd: withUser(async (ctx, args, uid) => {
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction);
             return true;
