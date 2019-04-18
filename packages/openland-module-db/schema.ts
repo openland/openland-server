@@ -2817,6 +2817,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
             { name: 'ids', type: 'unique', fields: ['oid', 'uid'] },
             { name: 'organization', type: 'range', fields: ['status', 'oid', 'uid'], displayName: 'usersFromOrganization' },
             { name: 'user', type: 'range', fields: ['status', 'uid', 'oid'], displayName: 'organizationsFromUser' },
+            { name: 'uniqueUser', type: 'unique', fields: ['status', 'oid', 'uid'] },
         ],
     };
 
@@ -2836,7 +2837,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         super(connection,
             new FNamespace('entity', 'organizationMember'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('ids', ['oid', 'uid'], true), new FEntityIndex('organization', ['status', 'oid', 'uid'], false), new FEntityIndex('user', ['status', 'uid', 'oid'], false)],
+            [new FEntityIndex('ids', ['oid', 'uid'], true), new FEntityIndex('organization', ['status', 'oid', 'uid'], false), new FEntityIndex('user', ['status', 'uid', 'oid'], false), new FEntityIndex('uniqueUser', ['status', 'oid', 'uid'], true)],
             'OrganizationMember'
         );
     }
@@ -2909,6 +2910,27 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     }
     createUserStream(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
+    }
+    async findFromUniqueUser(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'uniqueUser', status, oid, uid]);
+    }
+    async allFromUniqueUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'uniqueUser', status, oid], after);
+    }
+    async rangeFromUniqueUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'uniqueUser', status, oid], after, limit, reversed);
+    }
+    async rangeFromUniqueUser(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'uniqueUser', status, oid], limit, reversed);
+    }
+    async rangeFromUniqueUserWithCursor(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'uniqueUser', status, oid], limit, after, reversed);
+    }
+    async allFromUniqueUser(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number) {
+        return await this._findAll(ctx, ['__indexes', 'uniqueUser', status, oid]);
+    }
+    createUniqueUserStream(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'uniqueUser', status, oid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationMember(ctx, this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');

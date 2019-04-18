@@ -666,6 +666,14 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '49-reindex-organization-members',
+    migration: async (root, log) => {
+        await reindexAllEntityWithTwoPrimaryKeys(root, log, FDB.OrganizationMember, 100);
+        await reindexAllEntityWithOnePrimaryKey(root, log, FDB.Organization, 100);
+    }
+});
+
 //
 // !! Run only on entities with one primary key !!
 //
@@ -682,6 +690,27 @@ async function reindexAllEntityWithOnePrimaryKey<T extends FEntity>(parent: Cont
                     log.warn(ctx, 'no entity found! ' + JSON.stringify(k));
                 } else {
                     r.markDirty();
+                }
+            }
+        });
+    }
+}
+
+async function reindexAllEntityWithTwoPrimaryKeys<T extends FEntity>(parent: Context, log: SLog, entity: FEntityFactory<T>, batchSize: number) {
+    let allKeys = await entity.findAllKeys(parent);
+    let keyBatches = batch(allKeys, batchSize);
+    for (let kb of keyBatches) {
+        await inTx(parent, async (ctx) => {
+            for (let a of kb) {
+                let k = FKeyEncoding.decodeKey(a);
+                k.splice(0, 2);
+                if (k.length === 2) {
+                    let r = await ((entity as any).findById(ctx, k[0] as number, k[1] as number));
+                    if (!r) {
+                        log.warn(ctx, 'no entity found! ' + JSON.stringify(k));
+                    } else {
+                        r.markDirty();
+                    }
                 }
             }
         });

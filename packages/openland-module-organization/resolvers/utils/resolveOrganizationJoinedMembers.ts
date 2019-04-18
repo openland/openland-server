@@ -32,8 +32,9 @@ export async function resolveOrganizationJoinedMembers(
 
     let members;
     if (afterMember) {
-        members = await FDB.OrganizationMember.rangeFromIdsAfter(
+        members = await FDB.OrganizationMember.rangeFromUniqueUserAfter(
             ctx,
+            'joined',
             orgId,
             afterMember.uid,
             args.first || 10,
@@ -42,7 +43,7 @@ export async function resolveOrganizationJoinedMembers(
         if (!args.first) {
             members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
         } else {
-            members = await FDB.OrganizationMember.rangeFromIds(ctx, orgId, args.first);
+            members = await FDB.OrganizationMember.rangeFromUniqueUser(ctx, 'joined', orgId, args.first);
         }
     }
 
