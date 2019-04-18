@@ -305,7 +305,7 @@ export class RoomRepository {
                 ... buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
                 isService: true
             });
-            return cid;
+            return true;
         });
     }
 
@@ -316,7 +316,7 @@ export class RoomRepository {
                 throw new NotFoundError();
             }
             if (!profile.pinnedMessage) {
-                return cid;
+                return false;
             } else {
                 profile.pinnedMessage = null;
                 await profile.flush();
@@ -325,7 +325,7 @@ export class RoomRepository {
                     kind: 'chat_updated',
                     uid
                 });
-                return cid;
+                return true;
             }
         });
     }
