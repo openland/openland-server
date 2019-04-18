@@ -140,7 +140,7 @@ export class DeliveryMediator {
         await inTx(parent, async (ctx) => {
             let res = await this.counters.onMessageReceived(ctx, uid, mid);
             await this.repo.deliverMessageToUser(ctx, uid, mid);
-            await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd });
+            await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
 
             if (res.setMention) {
                 let message = (await this.entities.Message.findById(ctx, mid));
