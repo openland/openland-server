@@ -35,14 +35,15 @@ export function declareAmplitudeIndexer() {
         updateReader('amplitude-indexer', 2, FDB.HyperLog.createUserEventsStream(createEmptyContext(), 50), async (items) => {
             await inTx(createEmptyContext(), async (ctx) => {
                 const mapEvent = (body: any) => {
-                    let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean };
+                    let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean, time: number };
                     return {
                         user_id: event.uid,
                         device_id: event.did,
                         event_type: event.name,
                         event_properties: event.args,
                         insert_id: event.id,
-                        platform: event.platform
+                        platform: event.platform,
+                        time: event.time
                     };
                 };
 
