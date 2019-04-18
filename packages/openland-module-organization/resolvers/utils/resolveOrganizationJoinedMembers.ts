@@ -39,7 +39,11 @@ export async function resolveOrganizationJoinedMembers(
             args.first || 10,
         );
     } else {
-        members = await FDB.OrganizationMember.rangeFromIds(ctx, orgId, args.first || 10);
+        if (!args.first) {
+            members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
+        } else {
+            members = await FDB.OrganizationMember.rangeFromIds(ctx, orgId, args.first);
+        }
     }
 
     let roles = await resolveRoleInOrganization(ctx, orgId, members);
