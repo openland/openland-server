@@ -3,14 +3,17 @@ import { lazyInject } from '../openland-modules/Modules.container';
 import { CommentInput } from './CommentsRepository';
 import { Context } from '../openland-utils/Context';
 import { CommentsMediator } from './CommentsMediator';
+import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 
 @injectable()
 export class CommentsModule {
     @lazyInject('CommentsMediator')
     private readonly mediator!: CommentsMediator;
+    @lazyInject('CommentAugmentationMediator')
+    private readonly augmentation!: CommentAugmentationMediator;
 
     start = () => {
-
+        this.augmentation.start();
         // Nothing to do
     }
 

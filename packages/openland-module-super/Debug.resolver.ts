@@ -7,6 +7,8 @@ import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
+import { inTx } from '../foundation-orm/inTx';
+import { Context, createEmptyContext } from '../openland-utils/Context';
 
 const URLInfoService = createUrlInfoService();
 
@@ -214,6 +216,62 @@ export default {
             } else if (args.type === 'ON_ORG_SUSPEND') {
                 await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
             }
+            return true;
+        }),
+        debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
+            const calculateForUser = async (ctx: Context, uid: number) => {
+                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let totalSent = 0;
+                let totalReceived = 0;
+
+                for (let a of all) {
+                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                    if (!conv) {
+                        continue;
+                    }
+
+                    if (conv.kind === 'room') {
+                        let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
+                        if (!pat || pat.status !== 'joined') {
+                            a.unread = 0;
+                            continue;
+                        }
+                    }
+                    let messages = await FDB.Message.allFromChat(ctx, a.cid);
+                    for (let message of messages) {
+                        if (message.uid === uid) {
+                            totalSent++;
+                        } else {
+                            totalReceived++;
+                        }
+                    }
+                }
+
+                return { totalSent, totalReceived };
+            };
+
+            let users = await FDB.User.findAll(parent);
+
+            for (let user of users) {
+                await inTx(createEmptyContext(), async (ctx) => {
+                    try {
+                        let {totalSent, totalReceived} = await calculateForUser(ctx, user.id);
+
+                        let existing = await FDB.UserMessagingState.findById(ctx, user.id);
+                        if (!existing) {
+                            let created = await FDB.UserMessagingState.create(ctx, user.id, { seq: 0, unread: 0, messagesReceived: totalReceived, messagesSent: totalSent });
+                            await created.flush();
+                        } else {
+                            existing.messagesSent = totalSent;
+                            existing.messagesReceived = totalReceived;
+                            await existing.flush();
+                        }
+                    } catch (e) {
+                        console.log('debugCalcUsersMessagingStatsError', e);
+                    }
+                });
+            }
+
             return true;
         }),
     }

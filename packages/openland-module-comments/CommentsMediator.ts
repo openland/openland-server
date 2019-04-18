@@ -7,6 +7,7 @@ import { AllEntities } from '../openland-module-db/schema';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Modules } from '../openland-modules/Modules';
+import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 
 @injectable()
 export class CommentsMediator {
@@ -14,6 +15,8 @@ export class CommentsMediator {
     private readonly repo!: CommentsRepository;
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
+    @lazyInject('CommentAugmentationMediator')
+    private readonly augmentation!: CommentAugmentationMediator;
 
     async addMessageComment(parent: Context, messageId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
@@ -26,12 +29,16 @@ export class CommentsMediator {
             //
             // Create comment
             //
-            let res =  this.repo.createComment(ctx, 'message', messageId, uid, commentInput);
+            let res = await this.repo.createComment(ctx, 'message', messageId, uid, commentInput);
 
             //
             // Send message updated event
             //
             await Modules.Messaging.markMessageUpdated(ctx, message.id);
+
+            if (!commentInput.ignoreAugmentation) {
+                await this.augmentation.onNewComment(ctx, res);
+            }
 
             return res;
         });
@@ -46,8 +53,13 @@ export class CommentsMediator {
             if (comment.uid !== uid) {
                 throw new AccessDeniedError();
             }
+            let res = this.repo.editComment(ctx, commentId, newComment, markEdited);
 
-            return this.repo.editComment(ctx, commentId, newComment, markEdited);
+            if (!newComment.ignoreAugmentation) {
+                await this.augmentation.onNewComment(ctx, comment);
+            }
+
+            return res;
         });
     }
 

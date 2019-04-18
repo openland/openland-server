@@ -51,7 +51,7 @@ export class UserStateRepository {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserMessagingState.findById(ctx, uid);
             if (!existing) {
-                let created = await this.entities.UserMessagingState.create(ctx, uid, { seq: 0, unread: 0 });
+                let created = await this.entities.UserMessagingState.create(ctx, uid, { seq: 0, unread: 0, messagesReceived: 0, messagesSent: 0 });
                 await created.flush();
                 return created;
             } else {

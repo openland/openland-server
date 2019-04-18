@@ -5,8 +5,7 @@ import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
-    LinkSpan, MessageAttachmentFile,
-    MessageAttachmentFileInput,
+    LinkSpan, MessageAttachment, MessageAttachmentInput,
     MessageSpan
 } from '../openland-module-messaging/MessageInput';
 import linkify from 'linkify-it';
@@ -20,7 +19,8 @@ export interface CommentInput {
     message?: string | null;
     replyToComment?: number | null;
     spans?: MessageSpan[] | null;
-    attachments?: MessageAttachmentFileInput[] | null;
+    attachments?: MessageAttachmentInput[] | null;
+    ignoreAugmentation?: boolean | null;
 }
 
 export type CommentPeerType = 'message';
@@ -29,66 +29,6 @@ export type CommentPeerType = 'message';
 export class CommentsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
-
-    async createComment(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, commentInput: CommentInput) {
-        return await inTx(parent, async (ctx) => {
-            //
-            // Check reply comment exists
-            //
-            if (commentInput.replyToComment) {
-                let replyComment = await this.entities.Comment.findById(ctx, commentInput.replyToComment);
-                if (!replyComment || replyComment.deleted || replyComment.peerType !== peerType || replyComment.peerId !== peerId) {
-                    throw new NotFoundError();
-                }
-            }
-
-            //
-            // Parse links
-            //
-            let spans = commentInput.spans ? [...commentInput.spans] : [];
-            let links = this.parseLinks(commentInput.message || '');
-            if (links.length > 0) {
-                spans.push(...links);
-            }
-
-            //
-            // Prepare attachments
-            //
-            let attachments: MessageAttachmentFile[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
-
-            //
-            //  Create comment
-            //
-            let commentId = await this.fetchNextCommentId(ctx);
-            let comment = await this.entities.Comment.create(ctx, commentId, {
-                peerId,
-                peerType,
-                parentCommentId: commentInput.replyToComment,
-                uid,
-                text: commentInput.message || null,
-                spans,
-                attachments
-            });
-
-            //
-            // Update state
-            //
-            let state = await this.getCommentsState(ctx, peerType, peerId);
-            state.commentsCount++;
-
-            //
-            // Create event
-            //
-            let eventSec = await this.fetchNextEventSeq(ctx, peerType, peerId);
-            await this.entities.CommentEvent.create(ctx, peerType, peerId, eventSec, {
-                uid,
-                commentId,
-                kind: 'comment_received'
-            });
-
-            return comment;
-        });
-    }
 
     async editComment(parent: Context, commentId: number, newComment: CommentInput, markEdited: boolean) {
         return await inTx(parent, async (ctx) => {
@@ -123,6 +63,7 @@ export class CommentsRepository {
             if (markEdited) {
                 comment.edited = true;
             }
+            await comment.flush();
 
             //
             // Create event
@@ -133,6 +74,66 @@ export class CommentsRepository {
                 commentId,
                 kind: 'comment_updated'
             });
+            return comment;
+        });
+    }
+
+    async createComment(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, commentInput: CommentInput) {
+        return await inTx(parent, async (ctx) => {
+            //
+            // Check reply comment exists
+            //
+            if (commentInput.replyToComment) {
+                let replyComment = await this.entities.Comment.findById(ctx, commentInput.replyToComment);
+                if (!replyComment || replyComment.deleted || replyComment.peerType !== peerType || replyComment.peerId !== peerId) {
+                    throw new NotFoundError();
+                }
+            }
+
+            //
+            // Parse links
+            //
+            let spans = commentInput.spans ? [...commentInput.spans] : [];
+            let links = this.parseLinks(commentInput.message || '');
+            if (links.length > 0) {
+                spans.push(...links);
+            }
+
+            //
+            // Prepare attachments
+            //
+            let attachments: MessageAttachment[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
+
+            //
+            //  Create comment
+            //
+            let commentId = await this.fetchNextCommentId(ctx);
+            let comment = await this.entities.Comment.create(ctx, commentId, {
+                peerId,
+                peerType,
+                parentCommentId: commentInput.replyToComment,
+                uid,
+                text: commentInput.message || null,
+                spans,
+                attachments
+            });
+
+            //
+            // Update state
+            //
+            let state = await this.getCommentsState(ctx, peerType, peerId);
+            state.commentsCount++;
+
+            //
+            // Create event
+            //
+            let eventSec = await this.fetchNextEventSeq(ctx, peerType, peerId);
+            await this.entities.CommentEvent.create(ctx, peerType, peerId, eventSec, {
+                uid,
+                commentId,
+                kind: 'comment_received'
+            });
+
             return comment;
         });
     }
@@ -268,9 +269,9 @@ export class CommentsRepository {
         } as LinkSpan));
     }
 
-    private async prepateAttachments(parent: Context, attachments: MessageAttachmentFileInput[]): Promise<MessageAttachmentFile[]> {
+    private async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
         return await inTx(parent, async (ctx) => {
-            let res: MessageAttachmentFile[] = [];
+            let res: MessageAttachment[] = [];
 
             for (let attachInput of attachments) {
                 res.push({

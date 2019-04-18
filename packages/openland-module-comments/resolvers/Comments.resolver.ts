@@ -4,9 +4,10 @@ import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
 import {
-    MessageAttachmentFileInput,
+    MessageAttachmentFileInput, MessageAttachmentInput,
     MessageSpan
 } from '../../openland-module-messaging/MessageInput';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
 
 export default {
     CommentsPeer: {
@@ -173,6 +174,29 @@ export default {
         deleteComment: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.id);
             await Modules.Comments.deleteComment(ctx, commentId, uid);
+            return true;
+        }),
+        deleteCommentAugmentation: withUser(async (ctx, args, uid) => {
+            let commentId = IDs.Comment.parse(args.id);
+
+            let comment = await FDB.Comment.findById(ctx, commentId);
+            if (!comment || comment.deleted) {
+                throw new NotFoundError();
+            }
+
+            let newAttachments: MessageAttachmentInput[] = [];
+
+            if (comment.attachments) {
+                newAttachments = comment.attachments.filter(a => a.type !== 'rich_attachment').map(a => {
+                    delete a.id;
+                    return a;
+                });
+            }
+
+            await Modules.Comments.editComment(ctx, commentId, uid, {
+                attachments: newAttachments,
+                ignoreAugmentation: true,
+            }, true);
             return true;
         }),
 
