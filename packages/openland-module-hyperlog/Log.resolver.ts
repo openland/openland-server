@@ -8,6 +8,7 @@ export const trackEvent = createHyperlogger<{ id: string, name: string, args: an
 export default {
     Mutation: {
         track: withAny(async (ctx, args) => {
+            console.dir(args, {depth: null});
             await inTx(ctx, async (ctx2) => {
                 for (let i of args.events) {
                     await trackEvent.event(ctx2, {
