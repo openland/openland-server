@@ -41,7 +41,7 @@ input InviteRequest {
 }
 
 extend type Query {
-    alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
+    alphaOrganizationMembers(orgId: ID!, first: Int, after: ID): [OrganizationMember!]!
     alphaOrganizationInviteLink(organizationId: ID): Invite
     # deprecated
     alphaOrganizationPublicInvite(organizationId: ID): Invite

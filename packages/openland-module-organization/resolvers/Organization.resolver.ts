@@ -46,8 +46,18 @@ export default {
         // Refactor?
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
         alphaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
-        alphaOrganizationMembers: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationJoinedMembers(ctx, src.id),
-        alphaOrganizationAdminMembers: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationJoinedAdminMembers(ctx, src.id),
+        alphaOrganizationMembers: async (src, args, ctx) => {
+            return await resolveOrganizationJoinedMembers(ctx, { 
+                afterMemberId: args.after ? IDs.User.parse(args.after) : undefined, 
+                first: args.first
+            }, src.id);
+        },
+        alphaOrganizationAdminMembers: async (src, args, ctx) => {
+            return await resolveOrganizationJoinedAdminMembers(ctx, { 
+                afterMemberId: args.after ? IDs.User.parse(args.after) : undefined, 
+                first: args.first
+            }, src.id);
+        },
         alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',

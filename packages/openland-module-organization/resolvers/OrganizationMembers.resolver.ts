@@ -28,7 +28,7 @@ export default {
 
             let result: any[] = [];
 
-            result.push(... await resolveOrganizationJoinedMembers(ctx, targetOrgId));
+            result.push(... await resolveOrganizationJoinedMembers(ctx, args, targetOrgId));
 
             let invites = await Modules.Invites.orgInvitesRepo.getOrganizationInvitesForOrganization(ctx, targetOrgId);
 

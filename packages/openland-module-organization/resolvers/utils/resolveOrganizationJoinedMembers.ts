@@ -20,8 +20,32 @@ async function resolveRoleInOrganization(ctx: Context, oid: number, members: Org
     return roles;
 }
 
-export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: number) {
-    let members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
+export async function resolveOrganizationJoinedMembers(
+    ctx: Context,
+    args: { afterMemberId?: number | null; first?: number | null },
+    orgId: number,
+) {
+    let afterMember: OrganizationMember | null = null;
+    if (args.afterMemberId) {
+        afterMember = await FDB.OrganizationMember.findById(ctx, orgId, args.afterMemberId);
+    }
+
+    let members;
+    if (afterMember) {
+        members = await FDB.OrganizationMember.rangeFromOrganizationAfter(
+            ctx,
+            'joined',
+            orgId,
+            afterMember.uid,
+            args.first || 10,
+        );
+    } else {
+        if (!args.first) {
+            members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
+        } else {
+            members = await FDB.OrganizationMember.rangeFromOrganization(ctx, 'joined', orgId, args.first);
+        }
+    }
 
     let roles = await resolveRoleInOrganization(ctx, orgId, members);
 
@@ -35,15 +59,15 @@ export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: numb
             joinedAt: members[i].createdAt,
             email: member.email,
             showInContacts: false,
-            role: roles[i]
+            role: roles[i],
         });
     }
 
     return result;
 }
 
-export async function resolveOrganizationJoinedAdminMembers(ctx: Context, orgId: number) {
-    let members = await resolveOrganizationJoinedMembers(ctx, orgId);
+export async function resolveOrganizationJoinedAdminMembers(ctx: Context, args: { afterMemberId?: number | null; first?: number | null }, orgId: number) {
+    let members = await resolveOrganizationJoinedMembers(ctx, args, orgId);
 
     return members.filter((organizationJoinedMember: any) => {
         const role = organizationJoinedMember.role;
