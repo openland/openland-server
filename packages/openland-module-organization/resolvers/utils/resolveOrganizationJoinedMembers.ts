@@ -2,7 +2,6 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
-import { IDs } from 'openland-module-api/IDs';
 
 async function resolveRoleInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
     let org = (await FDB.Organization.findById(ctx, oid))!;
@@ -23,12 +22,12 @@ async function resolveRoleInOrganization(ctx: Context, oid: number, members: Org
 
 export async function resolveOrganizationJoinedMembers(
     ctx: Context,
-    args: { after?: string | null; first?: number | null },
+    args: { afterMemberId?: number | null; first?: number | null },
     orgId: number,
 ) {
     let afterMember: OrganizationMember | null = null;
-    if (args.after) {
-        afterMember = await FDB.OrganizationMember.findById(ctx, orgId, IDs.User.parse(args.after));
+    if (args.afterMemberId) {
+        afterMember = await FDB.OrganizationMember.findById(ctx, orgId, args.afterMemberId);
     }
 
     let members;
@@ -62,7 +61,7 @@ export async function resolveOrganizationJoinedMembers(
     return result;
 }
 
-export async function resolveOrganizationJoinedAdminMembers(ctx: Context, args: { after?: string | null; first?: number | null }, orgId: number) {
+export async function resolveOrganizationJoinedAdminMembers(ctx: Context, args: { afterMemberId?: number | null; first?: number | null }, orgId: number) {
     let members = await resolveOrganizationJoinedMembers(ctx, args, orgId);
 
     return members.filter((organizationJoinedMember: any) => {
