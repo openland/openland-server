@@ -19,7 +19,7 @@ export default {
                         tid: ctx.auth && ctx.auth.tid,
                         platform: args.platform || 'WEB',
                         isProd: (args.isProd === undefined || args.isProd === null) ? true : args.isProd,
-                        time: i.time || Date.now()
+                        time: i.time ? i.time.getTime() : Date.now()
                     });
                 }
             });
