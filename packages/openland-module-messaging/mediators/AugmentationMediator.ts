@@ -54,14 +54,10 @@ export class AugmentationMediator {
                     return { result: 'ok' };
                 }
 
-                if (!urlInfo.title && !urlInfo.description && !urlInfo.imageInfo) {
-                    return { result: 'ok' };
-                }
+                let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
+                let isImage = !urlInfo.title && !urlInfo.description && urlInfo.imageInfo;
 
-                if (
-                    (urlInfo.title && urlInfo.description) ||
-                    urlInfo.type !== 'url'
-                ) {
+                if (haveContent || urlInfo.type !== 'url') {
                     let richAttachment: MessageRichAttachmentInput = {
                         type: 'rich_attachment',
                         title: urlInfo.title || null,
@@ -82,7 +78,7 @@ export class AugmentationMediator {
                         { attachments: [richAttachment] },
                         false
                     );
-                } else if (urlInfo.imageInfo) {
+                } else if (isImage) {
                     let fileAttachment: MessageAttachmentFileInput = {
                         type: 'file_attachment',
                         fileId: urlInfo.photo!.uuid,
