@@ -112,6 +112,7 @@ export async function initApi(isTest: boolean) {
     const Server = new ApolloServer({
         schema: Schema(),
         introspection: true,
+        tracing: process.env.NODE_ENV !== 'production',
         formatError: (err: any) => {
             console.warn(err);
             return {
