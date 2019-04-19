@@ -14,6 +14,7 @@ import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { LinkSpan, MessageAttachment, MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
+import { Texts } from '../texts';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -226,6 +227,57 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
+async function fetchFallback(message: Message|Comment): Promise<string> {
+    const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
+        if (!mime) {
+            return Texts.Notifications.DOCUMENT_ATTACH;
+        } else if (mime === 'image/gif') {
+            return Texts.Notifications.GIF_ATTACH;
+        } else if (isImage) {
+            return Texts.Notifications.IMAGE_ATTACH;
+        } else if (mime.startsWith('video/')) {
+            return Texts.Notifications.VIDEO_ATTACH;
+        } else {
+            return Texts.Notifications.DOCUMENT_ATTACH;
+        }
+    };
+
+    let fallback: string[] = [];
+
+    if (message.text) {
+        fallback.push(message.text);
+    }
+    if (message instanceof Message && message.fileMetadata) {
+        fallback.push(attachFallback(message.fileMetadata && message.fileMetadata.mimeType, message.fileMetadata && message.fileMetadata.isImage));
+    }
+    let attachments = message instanceof Message ? message.attachmentsModern : message.attachments;
+    if (attachments) {
+        for (let attach of attachments) {
+            if (attach.type === 'file_attachment') {
+                fallback.push(attachFallback(attach.fileMetadata && attach.fileMetadata.mimeType, attach.fileMetadata && attach.fileMetadata.isImage));
+            } else if (attach.type === 'rich_attachment') {
+                if (attach.title) {
+                    fallback.push(attach.title);
+                }
+                if (attach.subTitle) {
+                    fallback.push(attach.subTitle);
+                }
+                if (attach.text) {
+                    fallback.push(attach.text);
+                }
+                if (attach.titleLink) {
+                    fallback.push(attach.titleLink);
+                }
+                if (attach.imageInfo) {
+                    fallback.push(attachFallback(attach.imageInfo.mimeType, attach.imageInfo.isImage));
+                }
+            }
+        }
+    }
+
+    return fallback.join('\n');
+}
+
 export default {
     ModernMessage: {
       __resolveType(src: Message | Comment) {
@@ -280,7 +332,7 @@ export default {
 
             return null;
         },
-        fallback: src => 'unsupported message'
+        fallback: src => fetchFallback(src)
     },
     GeneralMessage: {
         //
@@ -459,7 +511,7 @@ export default {
 
             return await Modules.Comments.getMessageCommentsCount(ctx, src.id);
         },
-        fallback: src => 'unsupported message'
+        fallback: src => fetchFallback(src)
     },
 
     ModernMessageReaction: {

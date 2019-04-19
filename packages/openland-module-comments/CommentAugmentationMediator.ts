@@ -49,7 +49,10 @@ export class CommentAugmentationMediator {
                     return { result: 'ok' };
                 }
 
-                if (urlInfo.title || urlInfo.type !== 'url') {
+                let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
+                let isImage = !urlInfo.title && !urlInfo.description && urlInfo.imageInfo;
+
+                if (haveContent || urlInfo.type !== 'url') {
                     let richAttachment: MessageRichAttachmentInput = {
                         type: 'rich_attachment',
                         title: urlInfo.title || null,
@@ -70,7 +73,7 @@ export class CommentAugmentationMediator {
                         { attachments: [richAttachment] },
                         false
                     );
-                } else if (urlInfo.imageInfo) {
+                } else if (isImage) {
                     let fileAttachment: MessageAttachmentFileInput = {
                         type: 'file_attachment',
                         fileId: urlInfo.photo!.uuid,

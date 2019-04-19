@@ -2,6 +2,7 @@ input Event {
     id: String!
     event: String!
     params: String
+    time: Date
 }
 
 enum EventPlatform {

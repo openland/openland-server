@@ -1,4 +1,4 @@
-import { GraphQLScalarType } from 'graphql';
+import { GraphQLScalarType, Kind } from 'graphql';
 
 export const Resolvers = {
     Date: new GraphQLScalarType({
@@ -27,6 +27,21 @@ export const Resolvers = {
             } else {
                 throw Error('Unknown date type (' + src + ')');
             }
+        },
+        parseLiteral: ast => {
+            if (ast.kind !== Kind.STRING && ast.kind !== Kind.INT) {
+                throw Error('Date input should be string');
+            }
+            if (typeof ast.value === 'string') {
+                return new Date(parseInt(ast.value, 10));
+            } else if (typeof ast.value === 'number') {
+                return new Date(ast.value);
+            }
+
+            throw Error('Date input should be string');
+        },
+        parseValue: value => {
+            return new Date(parseInt(value, 10));
         }
     })
 };
