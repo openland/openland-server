@@ -64,6 +64,9 @@ extend type Mutation {
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
     unpinMessage(chatId: ID!): Boolean!
 
+    betaPinMessage(chatId: ID!, messageId: ID!): SharedRoom!
+    betaUnpinMessage(chatId: ID!): SharedRoom!
+
     messageReactionAdd(messageId: ID!, reaction: MessageReactionType!): Boolean!
     messageReactionRemove(messageId: ID!, reaction: MessageReactionType!): Boolean!
 }
