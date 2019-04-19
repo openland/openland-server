@@ -140,7 +140,7 @@ export default {
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);
                 await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                    ...buildMessage(userMention(fullName, uid), ' has started a call'),
+                    ...buildMessage('📞 ', userMention(fullName, uid), ' has started a call'),
                     isService: true
                 });
             }
