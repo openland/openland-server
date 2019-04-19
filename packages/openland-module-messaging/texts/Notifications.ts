@@ -3,7 +3,7 @@ import { templated } from './util';
 export const Notifications = {
     NEW_MESSAGE_ANONYMOUS: 'New message',
     FILE_ATTACH: '<file>',
-    IMAGE_ATTACH: '🏞 Photo',
+    IMAGE_ATTACH: '🏞 Image',
     VIDEO_ATTACH: '🎬 Video',
     GIF_ATTACH: '🎥 GIF',
     DOCUMENT_ATTACH: '📎 Document',
