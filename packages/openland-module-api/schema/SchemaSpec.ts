@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0155a99b0eee5a746afe455ebcf33c09';
+export const GQL_SPEC_VERSION = '55aeddf26d4fb7c4e8163a33f1e2910a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
