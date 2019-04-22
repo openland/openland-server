@@ -88,7 +88,7 @@ export class UserStateRepository {
                         messagingState.directChatsCount++;
                     }
                 }
-                messagingState.flush();
+                await messagingState.flush();
 
                 await created.flush();
                 return created;
