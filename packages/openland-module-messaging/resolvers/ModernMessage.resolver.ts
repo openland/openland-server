@@ -275,7 +275,7 @@ async function fetchFallback(message: Message|Comment): Promise<string> {
         }
     }
 
-    if (message instanceof Message && message.replyMessages) {
+    if (message instanceof Message && message.replyMessages && message.replyMessages.length > 0) {
         fallback.push(Texts.Notifications.REPLY_ATTACH);
     }
 
