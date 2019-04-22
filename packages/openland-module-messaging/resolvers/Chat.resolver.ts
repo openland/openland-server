@@ -256,19 +256,19 @@ export default {
         iconRef: (src: URLAugmentation) => src.iconRef,
         iconInfo: (src: URLAugmentation) => src.iconInfo,
         hostname: (src: URLAugmentation) => src.hostname,
-        type: (src: URLAugmentation) => src.type,
+        type: (src: URLAugmentation) => 'url',
         extra: async (src: URLAugmentation, args: {}, ctx: AppContext) => {
-            if (src.type === 'url') {
-                return null;
-            } else if (src.type === 'user') {
-                return FDB.User.findById(ctx, src.extra);
-            } else if (src.type === 'org') {
-                return FDB.Organization.findById(ctx, src.extra);
-            } else if (src.type === 'channel') {
-                return FDB.Conversation.findById(ctx, src.extra);
-            } else if (src.type === 'intro') {
-                return FDB.User.findById(ctx, src.extra);
-            }
+            // if (src.type === 'url') {
+            //     return null;
+            // } else if (src.type === 'user') {
+            //     return FDB.User.findById(ctx, src.extra);
+            // } else if (src.type === 'org') {
+            //     return FDB.Organization.findById(ctx, src.extra);
+            // } else if (src.type === 'channel') {
+            //     return FDB.Conversation.findById(ctx, src.extra);
+            // } else if (src.type === 'intro') {
+            //     return FDB.User.findById(ctx, src.extra);
+            // }
 
             return null;
         },

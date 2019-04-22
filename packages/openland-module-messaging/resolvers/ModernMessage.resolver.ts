@@ -429,7 +429,10 @@ export default {
             if (src.augmentation) {
                 let augmentation: URLAugmentation = src.augmentation;
                 if (augmentation.dynamic) {
-                    augmentation = await urlInfoService.fetchURLInfo(augmentation.url, false);
+                    let newAugmentation = await urlInfoService.fetchURLInfo(augmentation.url, false);
+                    if (newAugmentation) {
+                        augmentation = newAugmentation;
+                    }
                 }
 
                 attachments.push({

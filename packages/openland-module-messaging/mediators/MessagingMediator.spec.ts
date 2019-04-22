@@ -103,7 +103,7 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let service = createUrlInfoService();
-        let urlInfo = await service.fetchURLInfo('openland.com');
+        let urlInfo = (await service.fetchURLInfo('openland.com'))!;
         let richAttachment: MessageRichAttachmentInput = {
             type: 'rich_attachment',
             title: urlInfo.title || null,

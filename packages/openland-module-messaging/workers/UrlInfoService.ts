@@ -16,21 +16,14 @@ export interface URLAugmentation {
     title: string | null;
     subtitle: string | null;
     description: string | null;
-    imageInfo: FileInfo | null;
     photo: ImageRef | null;
+    imageInfo: FileInfo | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
     hostname: string | null;
     keyboard?: MessageKeyboard;
     dynamic?: boolean;
-
-    //
-    // deprecated
-    //
-    imageURL: string | null;
-    type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
-    extra?: any;
-    deleted?: boolean;
+    internal?: boolean;
 }
 
 export class UrlInfoService {
@@ -38,7 +31,7 @@ export class UrlInfoService {
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
-    public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation> {
+    public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation|null> {
         let ctx = createEmptyContext();
         let existing = await this.cache.read(ctx, url);
         let creationTime = await this.cache.getCreationTime(ctx, url);
@@ -51,6 +44,7 @@ export class UrlInfoService {
             if (specialUrl.regexp.test(url)) {
                 let info = await specialUrl.handler(url, specialUrl.regexp.exec(url)!);
                 if (info) {
+                    info = { ...info, internal: true };
                     if (specialUrl.cache) {
                         await this.cache.write(ctx, url, info);
                     }
@@ -62,29 +56,15 @@ export class UrlInfoService {
         try {
             let info = await fetchURLInfo(url);
 
-            await this.cache.write(ctx, url, {
-                ...info,
-                type: 'url',
-            });
+            if (!info) {
+                return null;
+            }
 
-            return {
-                ...info,
-                type: 'url',
-            };
+            await this.cache.write(ctx, url, { ...info });
+
+            return { ...info };
         } catch (e) {
-            return {
-                url,
-                title: null,
-                subtitle: null,
-                description: null,
-                imageURL: null,
-                imageInfo: null,
-                photo: null,
-                hostname: null,
-                iconRef: null,
-                iconInfo: null,
-                type: 'none',
-            };
+            return null;
         }
     }
 
@@ -114,12 +94,9 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
         title: user!.firstName + ' ' + user!.lastName,
         subtitle: org ? org.name : null,
         description: user!.about || null,
-        imageURL: null,
         imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
         photo: user!.picture,
         hostname: null,
-        type: 'user',
-        extra: userId,
         iconRef: null,
         iconInfo: null,
         keyboard: {
@@ -159,12 +136,9 @@ export function createUrlInfoService() {
                 title: org!.name || null,
                 subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                 description: org!.about || null,
-                imageURL: null,
                 imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
                 photo: org!.photo || null,
                 hostname: null,
-                type: 'org',
-                extra: orgId,
                 iconRef: null,
                 iconInfo: null,
             };
@@ -188,12 +162,9 @@ export function createUrlInfoService() {
                 title: profile!.title || null,
                 subtitle: profile!.title || null,
                 description: profile!.description || null,
-                imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
                 photo: profile!.image,
                 hostname: null,
-                type: 'channel',
-                extra: channelId,
                 iconRef: null,
                 iconInfo: null,
             };
@@ -221,11 +192,9 @@ export function createUrlInfoService() {
                 title: profile!.title || null,
                 subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
                 description: profile!.description || null,
-                imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
                 photo: profile!.image,
                 hostname: null,
-                type: 'url',
                 iconRef: null,
                 iconInfo: null,
                 keyboard: {
@@ -265,12 +234,9 @@ export function createUrlInfoService() {
                     title: org!.name || null,
                     subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                     description: org!.about || null,
-                    imageURL: null,
                     imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
                     photo: org!.photo || null,
                     hostname: null,
-                    type: 'org',
-                    extra: orgId,
                     iconRef: null,
                     iconInfo: null,
                 };

@@ -45,14 +45,14 @@ export class CommentAugmentationMediator {
                 let firstUrl = urls[0];
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
 
-                if (urlInfo.type === 'none') {
+                if (!urlInfo) {
                     return { result: 'ok' };
                 }
 
                 let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
                 let isImage = !urlInfo.title && !urlInfo.description && urlInfo.imageInfo;
 
-                if (haveContent || urlInfo.type !== 'url') {
+                if (haveContent || urlInfo.internal) {
                     let richAttachment: MessageRichAttachmentInput = {
                         type: 'rich_attachment',
                         title: urlInfo.title || null,

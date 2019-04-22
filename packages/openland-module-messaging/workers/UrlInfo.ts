@@ -12,16 +12,15 @@ export interface URLInfo {
     title: string | null;
     subtitle: string | null;
     description: string | null;
-    imageURL: string | null;
-    imageInfo: FileInfo | null;
     photo: ImageRef | null;
-    hostname: string | null;
+    imageInfo: FileInfo | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
+    hostname: string | null;
     keyboard?: MessageKeyboard;
 }
 
-export async function fetchURLInfo(url: string): Promise<URLInfo> {
+export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
     let { hostname } = URL.parse(url);
 
     if (hostname && hostname.endsWith('linkedin.com')) {
@@ -36,18 +35,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     });
 
     if (res.status !== 200) {
-        return {
-            url,
-            title: null,
-            subtitle: null,
-            description: null,
-            imageURL: null,
-            imageInfo: null,
-            photo: null,
-            hostname: null,
-            iconRef: null,
-            iconInfo: null
-        };
+        return null;
     }
 
     let contentType = res.headers.get('content-type');
@@ -69,7 +57,6 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
             title: null,
             subtitle: null,
             description: null,
-            imageURL: null,
             imageInfo: imgInfo,
             photo: imgRef,
             hostname: null,
@@ -144,7 +131,6 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         title,
         subtitle: null,
         description,
-        imageURL,
         imageInfo: Modules.Media.sanitizeFileInfo(imageInfo),
         photo: imageRef,
         hostname: hostname || null,
