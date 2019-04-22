@@ -277,5 +277,50 @@ export default {
 
             return true;
         }),
+        debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
+            const calculateForUser = async (ctx: Context, uid: number) => {
+                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let chatsCount = 0;
+                let directChatsCount = 0;
+
+                for (let a of all) {
+                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                    if (!conv) {
+                        continue;
+                    }
+
+                    chatsCount++;
+                    if (conv.kind === 'private') {
+                        directChatsCount++;
+                    }
+                }
+
+                return { chatsCount, directChatsCount };
+            };
+
+            let users = await FDB.User.findAll(parent);
+
+            for (let user of users) {
+                await inTx(createEmptyContext(), async (ctx) => {
+                    try {
+                        let {chatsCount, directChatsCount} = await calculateForUser(ctx, user.id);
+
+                        let existing = await FDB.UserMessagingState.findById(ctx, user.id);
+                        if (!existing) {
+                            let created = await FDB.UserMessagingState.create(ctx, user.id, { seq: 0, unread: 0, messagesReceived: 0, messagesSent: 0, chatsCount, directChatsCount });
+                            await created.flush();
+                        } else {
+                            existing.chatsCount = chatsCount;
+                            existing.directChatsCount = directChatsCount;
+                            await existing.flush();
+                        }
+                    } catch (e) {
+                        console.log('debugCalcUsersChatsStats', e);
+                    }
+                });
+            }
+
+            return true;
+        }),
     }
 } as GQLResolver;
