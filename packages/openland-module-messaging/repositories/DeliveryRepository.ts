@@ -169,6 +169,15 @@ export class DeliveryRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
+            if (global.chatsCount) {
+                global.chatsCount--;
+            }
+            let chat = await this.entities.Conversation.findById(ctx, cid);
+            if (chat && chat.kind === 'private') {
+                if (global.directChatsCount) {
+                    global.directChatsCount--;
+                }
+            }
             await global.flush(); // Fix for delivery crashing
             local.date = null;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {

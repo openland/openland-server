@@ -6353,6 +6353,8 @@ export interface UserMessagingStateShape {
     unread: number;
     messagesSent?: number| null;
     messagesReceived?: number| null;
+    chatsCount?: number| null;
+    directChatsCount?: number| null;
 }
 
 export class UserMessagingState extends FEntity {
@@ -6398,6 +6400,28 @@ export class UserMessagingState extends FEntity {
         this._value.messagesReceived = value;
         this.markDirty();
     }
+    get chatsCount(): number | null {
+        let res = this._value.chatsCount;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set chatsCount(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.chatsCount) { return; }
+        this._value.chatsCount = value;
+        this.markDirty();
+    }
+    get directChatsCount(): number | null {
+        let res = this._value.directChatsCount;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set directChatsCount(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.directChatsCount) { return; }
+        this._value.directChatsCount = value;
+        this.markDirty();
+    }
 }
 
 export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
@@ -6412,6 +6436,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
             { name: 'unread', type: 'number' },
             { name: 'messagesSent', type: 'number' },
             { name: 'messagesReceived', type: 'number' },
+            { name: 'chatsCount', type: 'number' },
+            { name: 'directChatsCount', type: 'number' },
         ],
         indexes: [
             { name: 'hasUnread', type: 'range', fields: [] },
@@ -6427,6 +6453,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         validators.isNumber('unread', src.unread);
         validators.isNumber('messagesSent', src.messagesSent);
         validators.isNumber('messagesReceived', src.messagesReceived);
+        validators.isNumber('chatsCount', src.chatsCount);
+        validators.isNumber('directChatsCount', src.directChatsCount);
     }
 
     constructor(connection: FConnection) {

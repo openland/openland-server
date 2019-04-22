@@ -140,7 +140,7 @@ export class UserRepository {
         return await inTx(parent, async (ctx) => {
             let email = `test-user-${key}@openland.com`;
             let user = await this.createUser(ctx, 'test-user|' + key, email);
-            await this.createUserProfile(ctx, user.id, {firstName: name, email});
+            await this.createUserProfile(ctx, user.id, { firstName: name, email });
             await this.activateUser(ctx, user.id);
             return user.id;
         });

@@ -782,6 +782,9 @@ const Schema = declareSchema(() => {
         field('unread', 'number');
         field('messagesSent', 'number').nullable();
         field('messagesReceived', 'number').nullable();
+        field('chatsCount', 'number').nullable();
+        field('directChatsCount', 'number').nullable();
+
         rangeIndex('hasUnread', []).withCondition((src) => src.unread && src.unread > 0);
         enableVersioning();
         enableTimestamps();
