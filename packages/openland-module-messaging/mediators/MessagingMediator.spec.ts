@@ -14,6 +14,8 @@ import { SuperModule } from 'openland-module-super/SuperModule';
 import { MessageAttachmentInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createUrlInfoService } from '../workers/UrlInfoService';
 import { Modules } from '../../openland-modules/Modules';
+import { MediaModule } from '../../openland-module-media/MediaModule';
+import { IDs } from '../../openland-module-api/IDs';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -23,6 +25,7 @@ describe('MessagingMediator', () => {
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
+        container.bind(MediaModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
     afterAll(() => {
@@ -103,7 +106,7 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let service = createUrlInfoService();
-        let urlInfo = (await service.fetchURLInfo('openland.com'))!;
+        let urlInfo = (await service.fetchURLInfo('https://openland.com/directory/u/' + IDs.User.serialize(USER_ID)))!;
         let richAttachment: MessageRichAttachmentInput = {
             type: 'rich_attachment',
             title: urlInfo.title || null,
