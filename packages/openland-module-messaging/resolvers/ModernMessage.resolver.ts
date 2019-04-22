@@ -275,6 +275,10 @@ async function fetchFallback(message: Message|Comment): Promise<string> {
         }
     }
 
+    if (message instanceof Message && message.replyMessages) {
+        fallback.push(Texts.Notifications.REPLY_ATTACH);
+    }
+
     return fallback.join('\n');
 }
 
