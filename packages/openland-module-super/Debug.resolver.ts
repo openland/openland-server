@@ -191,8 +191,11 @@ export default {
 
             return true;
         }),
-        debugCreateTestUser: withPermission('super-admin', async (ctx, args) => {
-            return await Modules.Users.createTestUser(ctx, args.key, args.name);
+        debugCreateTestUser: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let id = await Modules.Users.createTestUser(ctx, args.key, args.name);
+                return await FDB.User.findById(ctx, id);
+            });
         }),
         debugDeleteUrlInfoCache: withPermission('super-admin', async (ctx, args) => {
             await URLInfoService.deleteURLInfoCache(args.url);

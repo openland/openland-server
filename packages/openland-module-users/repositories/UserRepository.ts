@@ -136,11 +136,14 @@ export class UserRepository {
         return user.id;
     }
 
-    async createTestUser(ctx: Context, key: string, name: string) {
-        let user = await this.createUser(ctx, 'test-user|' + key, 'hello@openland.com');
-        await this.createUserProfile(ctx, user.id, { firstName: name, email: 'hello@openland.com' });
-        await this.activateUser(ctx, user.id);
-        return user.id;
+    async createTestUser(parent: Context, key: string, name: string) {
+        return await inTx(parent, async (ctx) => {
+            let email = `test-user-${key}@openland.com`;
+            let user = await this.createUser(ctx, 'test-user|' + key, email);
+            await this.createUserProfile(ctx, user.id, {firstName: name, email});
+            await this.activateUser(ctx, user.id);
+            return user.id;
+        });
     }
 
     /*
