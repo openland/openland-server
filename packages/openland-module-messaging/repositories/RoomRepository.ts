@@ -116,7 +116,6 @@ export class RoomRepository {
                 return false;
             }
             participant.status = 'kicked';
-            console.log(`chat_leave_${uid}_${cid}`);
             await EventBus.publish(`chat_leave_${uid}_${cid}`, { uid, cid });
             return true;
         });
