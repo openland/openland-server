@@ -479,6 +479,15 @@ export class RoomMediator {
                     await this.delivery.onDialogDelete(ctx, member, cid);
                 }
             }
+
+            //
+            // No one will receive this message, but it will cause active subscribes to receive ChatLostAccess
+            //
+            let userName = await Modules.Users.getUserFullName(parent, uid);
+            await this.messaging.sendMessage(ctx, uid, cid, {
+                ...buildMessage(userMention(userName, uid), ` deleted chat`),
+                isService: true,
+            }, true);
         });
     }
 
