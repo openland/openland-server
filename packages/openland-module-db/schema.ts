@@ -3618,6 +3618,7 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
 }
 export interface ConversationShape {
     kind: 'private' | 'organization' | 'room';
+    deleted?: boolean| null;
 }
 
 export class Conversation extends FEntity {
@@ -3632,6 +3633,17 @@ export class Conversation extends FEntity {
         this._value.kind = value;
         this.markDirty();
     }
+    get deleted(): boolean | null {
+        let res = this._value.deleted;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set deleted(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
 }
 
 export class ConversationFactory extends FEntityFactory<Conversation> {
@@ -3643,6 +3655,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         ],
         fields: [
             { name: 'kind', type: 'enum', enumValues: ['private', 'organization', 'room'] },
+            { name: 'deleted', type: 'boolean' },
         ],
         indexes: [
         ],
@@ -3653,6 +3666,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         validators.isNumber('id', src.id);
         validators.notNull('kind', src.kind);
         validators.isEnum('kind', src.kind, ['private', 'organization', 'room']);
+        validators.isBoolean('deleted', src.deleted);
     }
 
     constructor(connection: FConnection) {

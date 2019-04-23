@@ -461,6 +461,27 @@ export class RoomMediator {
         return await this.repo.moveRoom(ctx, cid, uid, toOrg);
     }
 
+    async deleteRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!room) {
+                throw new NotFoundError();
+            }
+            if (!(await this.repo.userHaveAdminPermissionsInChat(ctx, room, uid)) && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+                throw new AccessDeniedError();
+            }
+
+            if (await this.repo.deleteRoom(ctx, cid)) {
+                let members = await this.findConversationMembers(ctx, cid);
+
+                for (let member of members) {
+                    await this.repo.kickFromRoom(ctx, cid, member);
+                    await this.delivery.onDialogDelete(ctx, member, cid);
+                }
+            }
+        });
+    }
+
     //
     // Queries
     //

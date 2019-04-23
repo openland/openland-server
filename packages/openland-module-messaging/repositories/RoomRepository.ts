@@ -116,6 +116,7 @@ export class RoomRepository {
                 return false;
             }
             participant.status = 'kicked';
+            console.log(`chat_leave_${uid}_${cid}`);
             await EventBus.publish(`chat_leave_${uid}_${cid}`, { uid, cid });
             return true;
         });
@@ -360,6 +361,25 @@ export class RoomRepository {
             room.oid = toOrg;
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
+        });
+    }
+
+    async deleteRoom(parent: Context, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+
+            if (!room) {
+                throw new NotFoundError();
+            }
+
+            let conv = await this.entities.Conversation.findById(ctx, cid);
+            if (conv!.deleted) {
+                return false;
+            }
+            conv!.deleted = true;
+            await conv!.flush();
+
+            return true;
         });
     }
 
@@ -662,6 +682,14 @@ export class RoomRepository {
     }
 
     async userHaveAdminPermissionsInChat(ctx: Context, conv: ConversationRoom, uid: number) {
+        //
+        // No one have access to deleted chat
+        //
+        let conversation = await this.entities.Conversation.findById(ctx, conv.id);
+        if (conversation && conversation.deleted) {
+            return false;
+        }
+
         //
         //  Super-admin can do everything (but not now)
         //

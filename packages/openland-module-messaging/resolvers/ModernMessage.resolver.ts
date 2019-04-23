@@ -872,5 +872,11 @@ export default {
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction, true);
             return true;
         }),
+
+        deleteChat: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.room.deleteRoom(ctx, cid, uid);
+            return true;
+        }),
     }
 } as GQLResolver;

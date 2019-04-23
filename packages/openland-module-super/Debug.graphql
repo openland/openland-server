@@ -63,4 +63,5 @@ extend type Mutation {
     debugSuperNotifications(type: SuperNotificationType!): Boolean!
     debugCalcUsersMessagingStats: Boolean!
     debugCalcUsersChatsStats: Boolean!
+    debugConvertOrgChatToNormal(orgId: ID!): Boolean!
 }

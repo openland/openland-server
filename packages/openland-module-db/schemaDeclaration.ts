@@ -394,6 +394,7 @@ const Schema = declareSchema(() => {
     entity('Conversation', () => {
         primaryKey('id', 'number');
         enumField('kind', ['private', 'organization', 'room']);
+        field('deleted', 'boolean').nullable();
         enableVersioning();
         enableTimestamps();
     });

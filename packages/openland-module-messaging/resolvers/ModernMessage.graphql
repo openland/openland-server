@@ -69,6 +69,8 @@ extend type Mutation {
 
     messageReactionAdd(messageId: ID!, reaction: MessageReactionType!): Boolean!
     messageReactionRemove(messageId: ID!, reaction: MessageReactionType!): Boolean!
+
+    deleteChat(chatId: ID!): Boolean!
 }
 
 #

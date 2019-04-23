@@ -322,5 +322,14 @@ export default {
 
             return true;
         }),
+        debugConvertOrgChatToNormal: withPermission('super-admin', async (ctx, args) => {
+            let orgId = IDs.Organization.parse(args.orgId);
+
+            let chat = await FDB.Conversation.findById(ctx, orgId);
+
+            console.log(chat);
+
+            return true;
+        }),
     }
 } as GQLResolver;
