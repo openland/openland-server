@@ -40,10 +40,10 @@ export default {
         }
     },
     CommentReceived: {
-        comment: async (src, args, ctx) => ({ comment: await FDB.Comment.findById(ctx, src.commentId!), showComment: () => true })
+        comment: (src, args, ctx) => FDB.Comment.findById(ctx, src.commentId!)
     },
     CommentUpdated: {
-        comment: async (src, args, ctx) => ({ comment: await FDB.Comment.findById(ctx, src.commentId!), showComment: () => true })
+        comment: (src, args, ctx) => FDB.Comment.findById(ctx, src.commentId!)
     },
 
     Subscription: {

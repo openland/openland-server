@@ -668,6 +668,7 @@ const Schema = declareSchema(() => {
 
         field('deleted', 'boolean').nullable();
         field('edited', 'boolean').nullable();
+        field('visible', 'boolean').nullable();
 
         rangeIndex('peer', ['peerType', 'peerId', 'id']);
         rangeIndex('child', ['parentCommentId', 'id']);

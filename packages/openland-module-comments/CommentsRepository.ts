@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
-import { AllEntities } from '../openland-module-db/schema';
+import { AllEntities, Comment } from '../openland-module-db/schema';
 import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -116,7 +116,8 @@ export class CommentsRepository {
                 uid,
                 text: commentInput.message || null,
                 spans,
-                attachments
+                attachments,
+                visible: true
             });
 
             //
@@ -147,6 +148,36 @@ export class CommentsRepository {
             }
 
             comment.deleted = true;
+
+            let childs = await this.entities.Comment.allFromChild(ctx, comment.id);
+
+            // Mark visible if comment have visible sub-comments
+            if (childs.find(c => c.visible || false)) {
+                comment.visible = true;
+            } else {
+                comment.visible = false;
+            }
+
+            // Handle parent visibility if we are not visible anymore
+            if (!comment.visible && comment.parentCommentId) {
+                let comm: Comment|undefined = comment;
+                while (comm && comm.parentCommentId) {
+                    let parentComment: Comment|null = await this.entities.Comment.findById(ctx, comm.parentCommentId);
+
+                    if (!parentComment!.deleted) {
+                        break;
+                    }
+
+                    let parentChilds = await this.entities.Comment.allFromChild(ctx, comm.parentCommentId);
+
+                    if (!parentChilds.find(c => c.id !== comment!.id && (c.visible || false))) {
+                        parentComment!.visible = false;
+                        comm = parentComment!;
+                    } else {
+                        break;
+                    }
+                }
+            }
 
             //
             // Update state

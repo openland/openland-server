@@ -8,7 +8,6 @@ import {
     MessageSpan
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { Comment } from '../../openland-module-db/schema';
 
 export default {
     CommentsPeer: {
@@ -24,14 +23,14 @@ export default {
             return {state: tail};
         },
         count: src => src.comments.length,
-        comments: src => src.comments.map(c => ({ comment: c, showComment: src.showComment })),
+        comments: src => src.comments,
     },
     CommentEntry: {
-        id: src => IDs.Comment.serialize(src.comment.id),
-        deleted: src => src.comment.deleted !== null ? src.comment.deleted : false,
-        comment: src => src.comment,
-        parentComment: async (src, args, ctx) => src.comment.parentCommentId ? { comment: await FDB.Comment.findById(ctx, src.comment.parentCommentId!), showComment: src.showComment } : null,
-        childComments: async (src, args, ctx) => (await FDB.Comment.allFromChild(ctx, src.comment.id)).filter(c => !c.deleted || (c.deleted && src.showComment(c.id))).map(c => ({ comment: c, showComment: src.showComment }))
+        id: src => IDs.Comment.serialize(src.id),
+        deleted: src => src.deleted !== null ? src.deleted : false,
+        comment: src => src,
+        parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
+        childComments: async (src, args, ctx) => (await FDB.Comment.allFromChild(ctx, src.id)).filter(c => c.visible)
     },
 
     Mutation: {
@@ -218,37 +217,36 @@ export default {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let comments = await FDB.Comment.allFromPeer(ctx, 'message', messageId);
 
-            let id2Comment = new Map<number, Comment>();
-            for (let comment of comments) {
-                id2Comment.set(comment.id, comment);
-            }
-
-            let commentVisible = new Map<number, boolean>();
-
-            for (let comment of comments) {
-                if (comment.deleted) {
-                    continue;
-                }
-
-                commentVisible.set(comment.id, true);
-                let c: Comment|undefined = comment;
-                while (c && c.parentCommentId) {
-                    if (commentVisible.get(c.parentCommentId)) {
-                        break;
-                    }
-
-                    commentVisible.set(c.parentCommentId, true);
-                    c = id2Comment.get(c.parentCommentId);
-                }
-            }
-
-            let res = comments.filter(c => commentVisible.get(c.id));
+            // let id2Comment = new Map<number, Comment>();
+            // for (let comment of comments) {
+            //     id2Comment.set(comment.id, comment);
+            // }
+            //
+            // let commentVisible = new Map<number, boolean>();
+            //
+            // for (let comment of comments) {
+            //     if (comment.deleted) {
+            //         continue;
+            //     }
+            //
+            //     commentVisible.set(comment.id, true);
+            //     let c: Comment|undefined = comment;
+            //     while (c && c.parentCommentId) {
+            //         if (commentVisible.get(c.parentCommentId)) {
+            //             break;
+            //         }
+            //
+            //         commentVisible.set(c.parentCommentId, true);
+            //         c = id2Comment.get(c.parentCommentId);
+            //     }
+            // }
+            //
+            // let res = comments.filter(c => commentVisible.get(c.id));
 
             return {
-                comments: res,
+                comments: comments.filter(c => c.visible),
                 peerType: 'message',
                 peerId: messageId,
-                showComment: (id: number) => commentVisible.get(id) || false
             };
         }),
     },

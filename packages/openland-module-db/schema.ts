@@ -5084,6 +5084,7 @@ export interface CommentShape {
     attachments?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[]| null;
     deleted?: boolean| null;
     edited?: boolean| null;
+    visible?: boolean| null;
 }
 
 export class Comment extends FEntity {
@@ -5193,6 +5194,17 @@ export class Comment extends FEntity {
         this._value.edited = value;
         this.markDirty();
     }
+    get visible(): boolean | null {
+        let res = this._value.visible;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set visible(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.visible) { return; }
+        this._value.visible = value;
+        this.markDirty();
+    }
 }
 
 export class CommentFactory extends FEntityFactory<Comment> {
@@ -5213,6 +5225,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
             { name: 'attachments', type: 'json' },
             { name: 'deleted', type: 'boolean' },
             { name: 'edited', type: 'boolean' },
+            { name: 'visible', type: 'boolean' },
         ],
         indexes: [
             { name: 'peer', type: 'range', fields: ['peerType', 'peerId', 'id'] },
@@ -5340,6 +5353,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
         )));
         validators.isBoolean('deleted', src.deleted);
         validators.isBoolean('edited', src.edited);
+        validators.isBoolean('visible', src.visible);
     }
 
     constructor(connection: FConnection) {
