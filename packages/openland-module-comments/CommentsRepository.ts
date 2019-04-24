@@ -154,8 +154,10 @@ export class CommentsRepository {
             // Mark visible if comment have visible sub-comments
             if (childs.find(c => c.visible || false)) {
                 comment.visible = true;
+                await comment.flush();
             } else {
                 comment.visible = false;
+                await comment.flush();
             }
 
             // Handle parent visibility if we are not visible anymore
@@ -172,6 +174,7 @@ export class CommentsRepository {
 
                     if (!parentChilds.find(c => c.id !== comment!.id && (c.visible || false))) {
                         parentComment!.visible = false;
+                        await parentComment!.flush();
                         comm = parentComment!;
                     } else {
                         break;
