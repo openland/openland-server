@@ -236,8 +236,8 @@ export namespace GQLRoots {
     //
     //  Comments
     //
-    export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[] };
-    export type CommentEntryRoot = Comment;
+    export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[], showComment: (id: number) => boolean };
+    export type CommentEntryRoot = { comment: Comment, showComment: (id: number) => boolean };
     export type CommentUpdateContainerRoot = FLiveStreamItem<CommentEvent>;
     export type CommentUpdateSingleRoot = FLiveStreamItem<CommentEvent>;
     export type CommentUpdateBatchRoot = FLiveStreamItem<CommentEvent>;
