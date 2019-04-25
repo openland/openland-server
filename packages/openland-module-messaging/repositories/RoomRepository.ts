@@ -372,11 +372,11 @@ export class RoomRepository {
 
     async deleteRoom(parent: Context, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
-
-            if (!room) {
-                throw new NotFoundError();
-            }
+            // let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            //
+            // if (!room) {
+            //     throw new NotFoundError();
+            // }
 
             let conv = await this.entities.Conversation.findById(ctx, cid);
             if (conv!.deleted) {
@@ -553,6 +553,9 @@ export class RoomRepository {
         } else if (conv.kind === 'room') {
             return (await this.entities.RoomParticipant.rangeFromActive(ctx, cid, 1000)).map((v) => v.uid);
         } else if (conv.kind === 'organization') {
+            if (conv.deleted) {
+                return [];
+            }
             let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
             return (await this.entities.OrganizationMember.allFromOrganization(ctx, 'joined', org.oid)).map((v) => v.uid);
         } else {
@@ -779,6 +782,9 @@ export class RoomRepository {
         } else if (conv.kind === 'organization') {
             let org = await this.entities.ConversationOrganization.findById(ctx, cid);
             if (!org) {
+                throw new AccessDeniedError();
+            }
+            if (conv.deleted) {
                 throw new AccessDeniedError();
             }
             let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);

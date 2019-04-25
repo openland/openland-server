@@ -463,19 +463,29 @@ export class RoomMediator {
 
     async deleteRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
-            if (!room) {
+            let conv = await this.entities.Conversation.findById(ctx, cid);
+            if (!conv || (conv.kind !== 'room' && conv.kind !== 'organization')) {
                 throw new NotFoundError();
             }
-            if (!(await this.repo.userHaveAdminPermissionsInChat(ctx, room, uid)) && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+
+            if (conv.kind === 'room') {
+                let room = await this.entities.ConversationRoom.findById(ctx, cid);
+                if (!room) {
+                    throw new NotFoundError();
+                }
+                if (!(await this.repo.userHaveAdminPermissionsInChat(ctx, room, uid)) && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+                    throw new AccessDeniedError();
+                }
+            } else if (conv.kind === 'organization' && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
                 throw new AccessDeniedError();
             }
 
+            let members = await this.findConversationMembers(ctx, cid);
             if (await this.repo.deleteRoom(ctx, cid)) {
-                let members = await this.findConversationMembers(ctx, cid);
-
                 for (let member of members) {
-                    await this.repo.kickFromRoom(ctx, cid, member);
+                    if (conv.kind === 'room') {
+                        await this.repo.kickFromRoom(ctx, cid, member);
+                    }
                     await this.delivery.onDialogDelete(ctx, member, cid);
                 }
 

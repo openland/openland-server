@@ -64,6 +64,7 @@ extend type Mutation {
     debugCalcUsersMessagingStats: Boolean!
     debugCalcUsersChatsStats: Boolean!
     debugConvertOrgChatToNormal(orgId: ID!): Boolean!
+    debugDeleteEmptyOrgChats: Boolean!
     debugFixCommentsVisibility: Boolean!
     debugSetCommentVisibility(commentId: ID!, visible: Boolean!): Boolean!
 }

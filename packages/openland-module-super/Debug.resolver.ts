@@ -368,6 +368,18 @@ export default {
                 return true;
             });
         }),
+        debugDeleteEmptyOrgChats: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                let chats = await FDB.ConversationOrganization.findAll(ctx);
+                for (let chat of chats) {
+                    let messages = await FDB.Message.allFromChat(ctx, chat.id);
+                    if (messages.length <= 1) {
+                        await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
+                    }
+                }
+                return true;
+            });
+        }),
         debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let commentSeqs = await FDB.CommentSeq.findAll(ctx);
