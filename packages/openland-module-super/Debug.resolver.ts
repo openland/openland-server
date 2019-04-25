@@ -322,14 +322,51 @@ export default {
 
             return true;
         }),
-        debugConvertOrgChatToNormal: withPermission('super-admin', async (ctx, args) => {
-            let orgId = IDs.Organization.parse(args.orgId);
+        debugConvertOrgChatToNormal: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                let orgId = IDs.Organization.parse(args.orgId);
 
-            let chat = await FDB.Conversation.findById(ctx, orgId);
+                let chat = await Modules.Messaging.room.resolveOrganizationChat(ctx, orgId);
 
-            console.log(chat);
+                if (!chat || chat.kind !== 'organization') {
+                    return false;
+                }
 
-            return true;
+                let org = await FDB.Organization.findById(ctx, orgId);
+                let orgProfile = await FDB.OrganizationProfile.findById(ctx, orgId);
+
+                if (!org || !orgProfile) {
+                    return false;
+                }
+
+                chat.kind = 'room';
+                await chat.flush();
+
+                await FDB.ConversationRoom.create(ctx, chat.id, {
+                    kind: 'public',
+                    ownerId: org.ownerId,
+                    oid: orgId,
+                    featured: false,
+                    listed: false,
+                    isChannel: false,
+                });
+                await FDB.RoomProfile.create(ctx, chat.id, {
+                    title: orgProfile.name,
+                    image: orgProfile.photo,
+                    description: orgProfile.about,
+                });
+
+                let orgMembers = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', orgId);
+                for (let member of orgMembers) {
+                    await FDB.RoomParticipant.create(ctx, chat.id, member.uid, {
+                        role: member.uid === org.ownerId ? 'owner' : 'member',
+                        invitedBy: org.ownerId,
+                        status: 'joined'
+                    });
+                }
+
+                return true;
+            });
         }),
         debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
