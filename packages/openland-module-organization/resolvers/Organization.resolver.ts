@@ -18,6 +18,10 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
     let roomsFull: { room: ConversationRoom, membersCount: number }[] = [];
     let rooms = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
     for (let room of rooms) {
+        let conv = await FDB.Conversation.findById(ctx, room.id);
+        if (conv && conv.deleted) {
+            continue;
+        }
         roomsFull.push({ room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) });
     }
     roomsFull.sort((a, b) => b.membersCount - a.membersCount);
