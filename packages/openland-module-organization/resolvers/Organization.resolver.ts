@@ -19,7 +19,7 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
     let rooms = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
     for (let room of rooms) {
         let conv = await FDB.Conversation.findById(ctx, room.id);
-        if (conv && conv.deleted) {
+        if (conv && (conv.deleted || conv.archived)) {
             continue;
         }
         roomsFull.push({ room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) });
