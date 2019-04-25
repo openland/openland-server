@@ -22,8 +22,7 @@ export class CommentsMediator {
         return await inTx(parent, async (ctx) => {
             // TODO: check access
             let message = await this.entities.Message.findById(ctx, messageId);
-            // if (!message || message.deleted) {
-            if (!message) {
+            if (!message || message.deleted) {
                 throw new NotFoundError();
             }
 

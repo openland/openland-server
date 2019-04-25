@@ -85,8 +85,7 @@ export class CommentsRepository {
             //
             if (commentInput.replyToComment) {
                 let replyComment = await this.entities.Comment.findById(ctx, commentInput.replyToComment);
-                // if (!replyComment || replyComment.deleted || replyComment.peerType !== peerType || replyComment.peerId !== peerId) {
-                if (!replyComment || replyComment.peerType !== peerType || replyComment.peerId !== peerId) {
+                if (!replyComment || replyComment.peerType !== peerType || replyComment.peerId !== peerId || replyComment.visible === false) {
                     throw new NotFoundError();
                 }
             }
