@@ -278,10 +278,17 @@ export class RoomRepository {
                 let messageContent = 'DELETED';
 
                 if (msg.text) {
-                    if (msg.text.length > 30) {
-                        messageContent = msg.text.slice(0, 30) + '...';
+                    let text = msg.text;
+                    let parts = msg.text.split('\n');
+                    let isMultiline = parts.length > 1;
+
+                    if (isMultiline) {
+                        text = parts[0];
+                    }
+                    if (text.length > 30) {
+                        messageContent = text.slice(0, 30) + '...';
                     } else {
-                        messageContent = msg.text;
+                        messageContent = text + (isMultiline ? '...' : '');
                     }
                 } else if (msg.attachmentsModern) {
                     let file = msg.attachmentsModern.find(a => a.type === 'file_attachment') as MessageAttachmentFile;
