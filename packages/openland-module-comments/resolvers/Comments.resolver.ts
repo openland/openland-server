@@ -217,32 +217,6 @@ export default {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let comments = await FDB.Comment.allFromPeer(ctx, 'message', messageId);
 
-            // let id2Comment = new Map<number, Comment>();
-            // for (let comment of comments) {
-            //     id2Comment.set(comment.id, comment);
-            // }
-            //
-            // let commentVisible = new Map<number, boolean>();
-            //
-            // for (let comment of comments) {
-            //     if (comment.deleted) {
-            //         continue;
-            //     }
-            //
-            //     commentVisible.set(comment.id, true);
-            //     let c: Comment|undefined = comment;
-            //     while (c && c.parentCommentId) {
-            //         if (commentVisible.get(c.parentCommentId)) {
-            //             break;
-            //         }
-            //
-            //         commentVisible.set(c.parentCommentId, true);
-            //         c = id2Comment.get(c.parentCommentId);
-            //     }
-            // }
-
-            // let res = comments.filter(c => commentVisible.get(c.id));
-
             return {
                 comments: comments.filter(c => c.visible),
                 peerType: 'message',
