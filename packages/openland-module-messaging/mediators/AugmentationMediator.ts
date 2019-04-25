@@ -75,7 +75,7 @@ export class AugmentationMediator {
                     await this.messaging.editMessage(
                         createEmptyContext(),
                         item.messageId,
-                        { attachments: [richAttachment] },
+                        { attachments: [richAttachment], appendAttachments: true },
                         false
                     );
                 } else if (isImage) {
@@ -89,7 +89,7 @@ export class AugmentationMediator {
                     await this.messaging.editMessage(
                         createEmptyContext(),
                         item.messageId,
-                        { attachments: [fileAttachment] },
+                        { attachments: [fileAttachment], appendAttachments: true },
                         false
                     );
                 }

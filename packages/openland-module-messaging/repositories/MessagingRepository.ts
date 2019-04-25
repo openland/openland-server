@@ -101,7 +101,11 @@ export class MessagingRepository {
                 message.edited = true;
             }
             if (newMessage.attachments) {
-                message.attachmentsModern = await this.prepateAttachments(ctx, newMessage.attachments || []);
+                if (newMessage.appendAttachments) {
+                    message.attachmentsModern = [...(message.attachmentsModern || []), ...await this.prepateAttachments(ctx, newMessage.attachments || [])];
+                } else {
+                    message.attachmentsModern = await this.prepateAttachments(ctx, newMessage.attachments || []);
+                }
             }
             if (newMessage.spans) {
                 message.spans = newMessage.spans;

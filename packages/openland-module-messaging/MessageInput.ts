@@ -101,4 +101,7 @@ export interface MessageInput {
     spans?: MessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
+
+    // appends attachments instead of replacing them in editMessage
+    appendAttachments?: boolean | null;
 }

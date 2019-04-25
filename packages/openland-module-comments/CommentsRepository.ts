@@ -21,6 +21,9 @@ export interface CommentInput {
     spans?: MessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
+
+    // appends attachments instead of replacing them in editComment
+    appendAttachments?: boolean | null;
 }
 
 export type CommentPeerType = 'message';
@@ -58,7 +61,11 @@ export class CommentsRepository {
                 comment.text = newComment.message;
             }
             if (newComment.attachments) {
-                comment.attachments = await this.prepateAttachments(ctx, newComment.attachments || []);
+                if (newComment.appendAttachments) {
+                    comment.attachments = [...(comment.attachments || []), ...await this.prepateAttachments(ctx, newComment.attachments || [])];
+                } else {
+                    comment.attachments = await this.prepateAttachments(ctx, newComment.attachments || []);
+                }
             }
             if (markEdited) {
                 comment.edited = true;

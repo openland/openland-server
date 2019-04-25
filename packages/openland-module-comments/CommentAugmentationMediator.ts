@@ -70,7 +70,7 @@ export class CommentAugmentationMediator {
                     await this.comments.editComment(
                         createEmptyContext(),
                         item.commentId,
-                        { attachments: [richAttachment] },
+                        { attachments: [richAttachment], appendAttachments: true },
                         false
                     );
                 } else if (isImage) {
@@ -84,7 +84,7 @@ export class CommentAugmentationMediator {
                     await this.comments.editComment(
                         createEmptyContext(),
                         item.commentId,
-                        { attachments: [fileAttachment] },
+                        { attachments: [fileAttachment], appendAttachments: true },
                         false
                     );
                 }
