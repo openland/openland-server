@@ -71,6 +71,7 @@ extend type Mutation {
     messageReactionRemove(messageId: ID!, reaction: MessageReactionType!): Boolean!
 
     deleteChat(chatId: ID!): Boolean!
+    archiveChat(chatId: ID!): Boolean!
 }
 
 #

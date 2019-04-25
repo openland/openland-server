@@ -389,6 +389,31 @@ export class RoomRepository {
         });
     }
 
+    async archiveRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+
+            if (!room) {
+                throw new NotFoundError();
+            }
+
+            let conv = await this.entities.Conversation.findById(ctx, cid);
+            if (conv!.archived) {
+                return false;
+            }
+            conv!.archived = true;
+            await conv!.flush();
+
+            let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
+            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+                kind: 'chat_updated',
+                uid
+            });
+
+            return true;
+        });
+    }
+
     //
     // Editorial
     //

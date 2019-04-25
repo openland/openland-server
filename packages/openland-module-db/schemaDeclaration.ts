@@ -395,6 +395,7 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         enumField('kind', ['private', 'organization', 'room']);
         field('deleted', 'boolean').nullable();
+        field('archived', 'boolean').nullable();
         enableVersioning();
         enableTimestamps();
     });

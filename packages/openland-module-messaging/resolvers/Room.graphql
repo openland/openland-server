@@ -55,6 +55,7 @@ type SharedRoom {
     settings: RoomUserNotificaionSettings!
     canEdit: Boolean!
     canSendMessage: Boolean!
+    archived: Boolean!
 }
 
 type RoomSuper {

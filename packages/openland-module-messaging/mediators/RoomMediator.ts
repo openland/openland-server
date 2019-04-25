@@ -478,16 +478,36 @@ export class RoomMediator {
                     await this.repo.kickFromRoom(ctx, cid, member);
                     await this.delivery.onDialogDelete(ctx, member, cid);
                 }
+
+                //
+                // No one will receive this message, but it will cause active subscribes to receive ChatLostAccess
+                //
+                let userName = await Modules.Users.getUserFullName(parent, uid);
+                await this.messaging.sendMessage(ctx, uid, cid, {
+                    ...buildMessage(userMention(userName, uid), ` deleted chat`),
+                    isService: true,
+                }, true);
+            }
+        });
+    }
+
+    async archiveRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!room) {
+                throw new NotFoundError();
+            }
+            if (!(await this.repo.userHaveAdminPermissionsInChat(ctx, room, uid)) && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+                throw new AccessDeniedError();
             }
 
-            //
-            // No one will receive this message, but it will cause active subscribes to receive ChatLostAccess
-            //
-            let userName = await Modules.Users.getUserFullName(parent, uid);
-            await this.messaging.sendMessage(ctx, uid, cid, {
-                ...buildMessage(userMention(userName, uid), ` deleted chat`),
-                isService: true,
-            }, true);
+            if (await this.repo.archiveRoom(ctx, cid, uid)) {
+                let userName = await Modules.Users.getUserFullName(parent, uid);
+                await this.messaging.sendMessage(ctx, uid, cid, {
+                    ...buildMessage(userMention(userName, uid), ` archived chat`),
+                    isService: true,
+                }, true);
+            }
         });
     }
 

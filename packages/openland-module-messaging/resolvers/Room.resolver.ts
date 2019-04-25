@@ -135,7 +135,15 @@ export default {
         }),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
-        canEdit: async (root, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, (typeof root === 'number' ? root : root.id), ctx.auth.uid!)
+        canEdit: async (root, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, (typeof root === 'number' ? root : root.id), ctx.auth.uid!),
+        archived: withConverationId(async (ctx, id, args) => {
+            let conv = await FDB.Conversation.findById(ctx, id);
+            if (conv && conv.archived) {
+                return true;
+            } else {
+                return false;
+            }
+        }),
     },
     RoomMessage: {
         id: (src: Message) => {

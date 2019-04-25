@@ -49,6 +49,9 @@ export class MessagingMediator {
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
                 let conv = await this.entities.Conversation.findById(ctx, cid);
+                if (conv && conv.archived) {
+                    throw new AccessDeniedError();
+                }
                 if (conv && conv.kind === 'room' && !(await this.room.checkCanSendMessage(ctx, cid, uid))) {
                     throw new AccessDeniedError();
                 }

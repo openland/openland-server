@@ -878,5 +878,10 @@ export default {
             await Modules.Messaging.room.deleteRoom(ctx, cid, uid);
             return true;
         }),
+        archiveChat: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.room.archiveRoom(ctx, cid, uid);
+            return true;
+        }),
     }
 } as GQLResolver;
