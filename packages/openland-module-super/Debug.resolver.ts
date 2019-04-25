@@ -2,7 +2,7 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { FDB } from '../openland-module-db/FDB';
-import { Message, Organization } from '../openland-module-db/schema';
+import { Comment, Message, Organization } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
@@ -331,5 +331,53 @@ export default {
 
             return true;
         }),
+        debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let commentSeqs = await FDB.CommentSeq.findAll(ctx);
+
+                for (let state of commentSeqs) {
+                    let comments = await FDB.Comment.allFromPeer(ctx, state.peerType as any, state.peerId);
+
+                    let id2Comment = new Map<number, Comment>();
+                    for (let comment of comments) {
+                        id2Comment.set(comment.id, comment);
+                    }
+
+                    let commentVisible = new Map<number, boolean>();
+
+                    for (let comment of comments) {
+                        if (comment.deleted) {
+                            continue;
+                        }
+
+                        commentVisible.set(comment.id, true);
+                        let c: Comment | undefined = comment;
+                        while (c && c.parentCommentId) {
+                            if (commentVisible.get(c.parentCommentId)) {
+                                break;
+                            }
+
+                            commentVisible.set(c.parentCommentId, true);
+                            c = id2Comment.get(c.parentCommentId);
+                        }
+                    }
+
+                    for (let comment of comments) {
+                        comment.visible = commentVisible.get(comment.id) || false;
+                    }
+                }
+
+                return true;
+            });
+        }),
+        debugSetCommentVisibility: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let comment = await FDB.Comment.findById(ctx, IDs.Comment.parse(args.commentId));
+                if (comment) {
+                    comment.visible = args.visible;
+                }
+                return true;
+            });
+        })
     }
 } as GQLResolver;

@@ -240,7 +240,7 @@ export default {
             //         c = id2Comment.get(c.parentCommentId);
             //     }
             // }
-            //
+
             // let res = comments.filter(c => commentVisible.get(c.id));
 
             return {
