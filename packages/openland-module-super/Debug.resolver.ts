@@ -386,7 +386,7 @@ export default {
                 let chats = await FDB.ConversationOrganization.findAll(ctx);
                 let i = 0;
                 for (let chat of chats) {
-                    let room = await FDB.ConversationRoom.findById(ctx, chat.id);
+                    let room = await FDB.RoomProfile.findById(ctx, chat.id);
                     if (room) {
                         // ignore converted chats
                         continue;
