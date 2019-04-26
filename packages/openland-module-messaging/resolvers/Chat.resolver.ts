@@ -628,7 +628,7 @@ export default {
             return await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.messageId), uid, {
                 attachments: newAttachments,
                 ignoreAugmentation: true,
-            }, true);
+            }, false);
         }),
         alphaDeleteMessage: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);

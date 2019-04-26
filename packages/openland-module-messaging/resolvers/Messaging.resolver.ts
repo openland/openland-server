@@ -116,7 +116,7 @@ export default {
             await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.mid), uid, {
                 attachments: newAttachments,
                 ignoreAugmentation: true,
-            }, true);
+            }, false);
             return true;
         }),
 

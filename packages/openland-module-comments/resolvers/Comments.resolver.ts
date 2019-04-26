@@ -196,7 +196,7 @@ export default {
             await Modules.Comments.editComment(ctx, commentId, uid, {
                 attachments: newAttachments,
                 ignoreAugmentation: true,
-            }, true);
+            }, false);
             return true;
         }),
 
