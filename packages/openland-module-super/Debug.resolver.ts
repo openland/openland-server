@@ -400,16 +400,13 @@ export default {
                             return;
                         }
 
-                        let messages = await FDB.Message.allFromChat(ctx, chat.id);
-                        if (messages.length <= 1) {
-                            console.log('debugDeleteEmptyOrgChats', chat.id, i);
-                            try {
-                                await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
-                                i++;
-                            } catch (e) {
-                                console.log('debugDeleteEmptyOrgChatsError', e);
-                                console.log(e);
-                            }
+                        console.log('debugDeleteEmptyOrgChats', chat.id, i);
+                        try {
+                            await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
+                            i++;
+                        } catch (e) {
+                            console.log('debugDeleteEmptyOrgChatsError', e);
+                            console.log(e);
                         }
                     });
                 }
