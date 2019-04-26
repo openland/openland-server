@@ -382,16 +382,24 @@ export default {
             });
         }),
         debugDeleteEmptyOrgChats: withPermission('super-admin', async (parent, args) => {
-            try {
-                return inTx(parent, async ctx => {
-                    let chats = await FDB.ConversationOrganization.findAll(ctx);
-                    let i = 0;
-                    for (let chat of chats) {
+                let chats = await FDB.ConversationOrganization.findAll(parent);
+                let i = 0;
+                for (let chat of chats) {
+                    await inTx(createEmptyContext(), async ctx => {
                         let room = await FDB.RoomProfile.findById(ctx, chat.id);
                         if (room) {
-                            // ignore converted chats
-                            continue;
+                            // ignore already converted chats
+                            i++;
+                            return;
                         }
+                        let conv = await FDB.Conversation.findById(ctx, chat.id);
+                        if (conv && conv.deleted) {
+                            // ignore already deleted chats
+                            console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
+                            i++;
+                            return;
+                        }
+
                         let messages = await FDB.Message.allFromChat(ctx, chat.id);
                         if (messages.length <= 1) {
                             console.log('debugDeleteEmptyOrgChats', chat.id, i);
@@ -403,14 +411,9 @@ export default {
                                 console.log(e);
                             }
                         }
-                    }
-                    return true;
-                });
-            } catch (e) {
-                console.log('debugDeleteEmptyOrgChats', e);
-                console.log(e);
-                return false;
-            }
+                    });
+                }
+                return true;
         }),
         debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
