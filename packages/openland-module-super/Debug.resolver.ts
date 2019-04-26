@@ -382,30 +382,36 @@ export default {
             });
         }),
         debugDeleteEmptyOrgChats: withPermission('super-admin', async (parent, args) => {
-            return inTx(parent, async ctx => {
-                let chats = await FDB.ConversationOrganization.findAll(ctx);
-                let i = 0;
-                for (let chat of chats) {
-                    let room = await FDB.RoomProfile.findById(ctx, chat.id);
-                    if (room) {
-                        // ignore converted chats
-                        continue;
+            try {
+                return inTx(parent, async ctx => {
+                    let chats = await FDB.ConversationOrganization.findAll(ctx);
+                    let i = 0;
+                    for (let chat of chats) {
+                        let room = await FDB.RoomProfile.findById(ctx, chat.id);
+                        if (room) {
+                            // ignore converted chats
+                            continue;
+                        }
+                        // let seq = await FDB.ConversationSeq.findById(ctx, chat.id);
+                        // if (seq && seq.seq <= 2) {
+                        //     console.log('debugDeleteEmptyOrgChats', chat.id, i);
+                        //     await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
+                        //     i++;
+                        // }
+                        let messages = await FDB.Message.allFromChat(ctx, chat.id);
+                        if (messages.length <= 1) {
+                            console.log('debugDeleteEmptyOrgChats', chat.id, i);
+                            await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
+                            i++;
+                        }
                     }
-                    // let seq = await FDB.ConversationSeq.findById(ctx, chat.id);
-                    // if (seq && seq.seq <= 2) {
-                    //     console.log('debugDeleteEmptyOrgChats', chat.id, i);
-                    //     await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
-                    //     i++;
-                    // }
-                    let messages = await FDB.Message.allFromChat(ctx, chat.id);
-                    if (messages.length <= 1) {
-                        console.log('debugDeleteEmptyOrgChats', chat.id, i);
-                        await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
-                        i++;
-                    }
-                }
-                return true;
-            });
+                    return true;
+                });
+            } catch (e) {
+                console.log('debugDeleteEmptyOrgChats', e);
+                console.log(e);
+                return false;
+            }
         }),
         debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
