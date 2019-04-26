@@ -342,14 +342,27 @@ export default {
                 chat.kind = 'room';
                 await chat.flush();
 
-                await FDB.ConversationRoom.create(ctx, chat.id, {
-                    kind: 'public',
-                    ownerId: org.ownerId,
-                    oid: orgId,
-                    featured: false,
-                    listed: false,
-                    isChannel: false,
-                });
+                let room = await FDB.ConversationRoom.findById(ctx, chat.id);
+                if (room) {
+                    // in some cases org chats already have room, i donn't know why
+                    room.kind = 'public';
+                    room.ownerId = org.ownerId;
+                    room.oid = orgId;
+                    room.featured = false;
+                    room.listed = false;
+                    room.isChannel = false;
+                    await room.flush();
+                } else {
+                    await FDB.ConversationRoom.create(ctx, chat.id, {
+                        kind: 'public',
+                        ownerId: org.ownerId,
+                        oid: orgId,
+                        featured: false,
+                        listed: false,
+                        isChannel: false,
+                    });
+                }
+
                 await FDB.RoomProfile.create(ctx, chat.id, {
                     title: orgProfile.name,
                     image: orgProfile.photo,
