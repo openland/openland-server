@@ -372,6 +372,11 @@ export default {
             return inTx(parent, async ctx => {
                 let chats = await FDB.ConversationOrganization.findAll(ctx);
                 for (let chat of chats) {
+                    let room = await FDB.ConversationRoom.findById(ctx, chat.id);
+                    if (room) {
+                        // ignore converted chats
+                        continue;
+                    }
                     let messages = await FDB.Message.allFromChat(ctx, chat.id);
                     if (messages.length <= 1) {
                         await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
