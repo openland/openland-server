@@ -386,16 +386,16 @@ export default {
                 let i = 0;
                 for (let chat of chats) {
                     await inTx(createEmptyContext(), async ctx => {
-                        let room = await FDB.RoomProfile.findById(ctx, chat.id);
-                        if (room) {
-                            // ignore already converted chats
-                            i++;
-                            return;
-                        }
                         let conv = await FDB.Conversation.findById(ctx, chat.id);
                         if (conv && conv.deleted) {
                             // ignore already deleted chats
                             console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
+                            i++;
+                            return;
+                        }
+                        if (conv && conv.kind !== 'organization') {
+                            // ignore already converted chats
+                            console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore already converted');
                             i++;
                             return;
                         }
