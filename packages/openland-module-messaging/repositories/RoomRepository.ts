@@ -285,8 +285,8 @@ export class RoomRepository {
                     if (isMultiline) {
                         text = parts[0];
                     }
-                    if (text.length > 30) {
-                        messageContent = text.slice(0, 30) + '...';
+                    if (text.length > 20) {
+                        messageContent = text.slice(0, 20) + '...';
                     } else {
                         messageContent = text + (isMultiline ? '...' : '');
                     }
