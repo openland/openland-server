@@ -392,17 +392,16 @@ export default {
                             // ignore converted chats
                             continue;
                         }
-                        // let seq = await FDB.ConversationSeq.findById(ctx, chat.id);
-                        // if (seq && seq.seq <= 2) {
-                        //     console.log('debugDeleteEmptyOrgChats', chat.id, i);
-                        //     await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
-                        //     i++;
-                        // }
                         let messages = await FDB.Message.allFromChat(ctx, chat.id);
                         if (messages.length <= 1) {
                             console.log('debugDeleteEmptyOrgChats', chat.id, i);
-                            await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
-                            i++;
+                            try {
+                                await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
+                                i++;
+                            } catch (e) {
+                                console.log('debugDeleteEmptyOrgChatsError', e);
+                                console.log(e);
+                            }
                         }
                     }
                     return true;
