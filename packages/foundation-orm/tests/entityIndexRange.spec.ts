@@ -310,6 +310,12 @@ describe('FEntity with range index', () => {
 
             range = (await testEntities.ComplexRangeTest.rangeFromUniqueAfter(ctx, 1, 6, 1)).map(e => e.subId2);
             expect(range[0]).toBe(7);
+
+            range = (await testEntities.ComplexRangeTest.rangeFromNonUniqueAfter(ctx, 1, 7, 1, true)).map(e => e.subId2);
+            expect(range[0]).toBe(6);
+
+            range = (await testEntities.ComplexRangeTest.rangeFromUniqueAfter(ctx, 1, 7, 1, true)).map(e => e.subId2);
+            expect(range[0]).toBe(6);
         });
     });
 });
