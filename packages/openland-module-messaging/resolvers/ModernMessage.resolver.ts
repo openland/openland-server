@@ -10,11 +10,10 @@ import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
 import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
-import linkify from 'linkify-it';
-import tlds from 'tlds';
 import { LinkSpan, MessageAttachment, MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
 import { Texts } from '../texts';
+import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -193,9 +192,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     return spans;
 }
 
-const linkifyInstance = linkify()
-    .tlds(tlds)
-    .tlds('onion', true);
+const linkifyInstance = createLinkifyInstance();
 
 export function parseLinks(message: string): MessageSpan[] {
     let urls = linkifyInstance.match(message);

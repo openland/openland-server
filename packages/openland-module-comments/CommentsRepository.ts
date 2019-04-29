@@ -8,12 +8,9 @@ import {
     LinkSpan, MessageAttachment, MessageAttachmentInput,
     MessageSpan
 } from '../openland-module-messaging/MessageInput';
-import linkify from 'linkify-it';
-import tlds from 'tlds';
+import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
 
-const linkifyInstance = linkify()
-    .tlds(tlds)
-    .tlds('onion', true);
+const linkifyInstance = createLinkifyInstance();
 
 export interface CommentInput {
     message?: string | null;

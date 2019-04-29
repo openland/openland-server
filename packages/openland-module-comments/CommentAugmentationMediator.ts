@@ -6,13 +6,10 @@ import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { Context, createEmptyContext } from '../openland-utils/Context';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
-import linkify from 'linkify-it';
-import tlds from 'tlds';
 import { CommentsRepository } from './CommentsRepository';
+import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
 
-const linkifyInstance = linkify()
-    .tlds(tlds)
-    .tlds('onion', true);
+const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class CommentAugmentationMediator {

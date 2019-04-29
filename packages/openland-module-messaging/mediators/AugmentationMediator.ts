@@ -1,6 +1,4 @@
 import { injectable } from 'inversify';
-import linkify from 'linkify-it';
-import tlds from 'tlds';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { AllEntities, Message } from 'openland-module-db/schema';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -9,10 +7,9 @@ import { MessagingRepository } from 'openland-module-messaging/repositories/Mess
 import { lazyInject } from 'openland-modules/Modules.container';
 import { createEmptyContext, Context } from 'openland-utils/Context';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../MessageInput';
+import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 
-const linkifyInstance = linkify()
-    .tlds(tlds)
-    .tlds('onion', true);
+const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class AugmentationMediator {

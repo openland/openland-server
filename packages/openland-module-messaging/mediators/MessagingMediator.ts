@@ -13,13 +13,10 @@ import { Context } from 'openland-utils/Context';
 import { createTracer } from 'openland-log/createTracer';
 import { UserError } from '../../openland-errors/UserError';
 import { currentTime } from 'openland-utils/timer';
-import linkify from 'linkify-it';
-import tlds from 'tlds';
+import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 
 const trace = createTracer('messaging');
-const linkifyInstance = linkify()
-    .tlds(tlds)
-    .tlds('onion', true);
+const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class MessagingMediator {
