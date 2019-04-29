@@ -16,7 +16,7 @@ export class UserSearch {
                         { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
                     ] : [],
                     must_not: options && options.uid ? [
-                        { match: { _id: options.uid } },
+                        // { match: { _id: options.uid } },
                         { match: { status: 'deleted' } },
                         { match: { status: 'suspended' } },
                         { match: { status: 'pending' } },
