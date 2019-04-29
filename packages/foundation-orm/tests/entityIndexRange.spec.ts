@@ -287,4 +287,29 @@ describe('FEntity with range index', () => {
             expect(range[0]).toBe(554);
         });
     });
+
+    it('paging in unique range and non-unique ranges should work correctly', async () => {
+        let parent = createEmptyContext();
+        await inTx(parent, async (ctx) => {
+            await testEntities.ComplexRangeTest.create(ctx, 550, { key: '1', subId1: 1, subId2: 2 });
+            await testEntities.ComplexRangeTest.create(ctx, 551, { key: '1', subId1: 1, subId2: 3 });
+            await testEntities.ComplexRangeTest.create(ctx, 552, { key: '1', subId1: 1, subId2: 4 });
+            await testEntities.ComplexRangeTest.create(ctx, 553, { key: '1', subId1: 1, subId2: 5 });
+            await testEntities.ComplexRangeTest.create(ctx, 554, { key: '1', subId1: 1, subId2: 6 });
+            await testEntities.ComplexRangeTest.create(ctx, 555, { key: '1', subId1: 1, subId2: 7 });
+            await testEntities.ComplexRangeTest.create(ctx, 556, { key: '1', subId1: 1, subId2: 8 });
+            await testEntities.ComplexRangeTest.create(ctx, 557, { key: '1', subId1: 1, subId2: 9 });
+            await testEntities.ComplexRangeTest.create(ctx, 558, { key: '1', subId1: 1, subId2: 10 });
+            await testEntities.ComplexRangeTest.create(ctx, 559, { key: '1', subId1: 1, subId2: 11 });
+            await testEntities.ComplexRangeTest.create(ctx, 560, { key: '1', subId1: 1, subId2: 12 });
+        });
+
+        await inTx(parent, async (ctx) => {
+            let range = (await testEntities.ComplexRangeTest.rangeFromNonUniqueAfter(ctx, 1, 6, 1)).map(e => e.subId2);
+            expect(range[0]).toBe(7);
+
+            range = (await testEntities.ComplexRangeTest.rangeFromUniqueAfter(ctx, 1, 6, 1)).map(e => e.subId2);
+            expect(range[0]).toBe(7);
+        });
+    });
 });

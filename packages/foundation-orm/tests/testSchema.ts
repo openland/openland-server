@@ -684,6 +684,137 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         return new RangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
     }
 }
+export interface ComplexRangeTestShape {
+    key: string;
+    subId1: number;
+    subId2: number;
+}
+
+export class ComplexRangeTest extends FEntity {
+    readonly entityName: 'ComplexRangeTest' = 'ComplexRangeTest';
+    get id(): number { return this._value.id; }
+    get key(): string {
+        return this._value.key;
+    }
+    set key(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+    get subId1(): number {
+        return this._value.subId1;
+    }
+    set subId1(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.subId1) { return; }
+        this._value.subId1 = value;
+        this.markDirty();
+    }
+    get subId2(): number {
+        return this._value.subId2;
+    }
+    set subId2(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.subId2) { return; }
+        this._value.subId2 = value;
+        this.markDirty();
+    }
+}
+
+export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
+    static schema: FEntitySchema = {
+        name: 'ComplexRangeTest',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'key', type: 'string' },
+            { name: 'subId1', type: 'number' },
+            { name: 'subId2', type: 'number' },
+        ],
+        indexes: [
+            { name: 'nonUnique', type: 'range', fields: ['subId1', 'subId2'] },
+            { name: 'unique', type: 'unique', fields: ['subId1', 'subId2'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+        validators.notNull('subId1', src.subId1);
+        validators.isNumber('subId1', src.subId1);
+        validators.notNull('subId2', src.subId2);
+        validators.isNumber('subId2', src.subId2);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'complexRangeTest'),
+            { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('nonUnique', ['subId1', 'subId2'], false), new FEntityIndex('unique', ['subId1', 'subId2'], true)],
+            'ComplexRangeTest'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: ComplexRangeTestShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromNonUniqueAfter(ctx: Context, subId1: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'nonUnique', subId1], after);
+    }
+    async rangeFromNonUniqueAfter(ctx: Context, subId1: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'nonUnique', subId1], after, limit, reversed);
+    }
+    async rangeFromNonUnique(ctx: Context, subId1: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'nonUnique', subId1], limit, reversed);
+    }
+    async rangeFromNonUniqueWithCursor(ctx: Context, subId1: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'nonUnique', subId1], limit, after, reversed);
+    }
+    async allFromNonUnique(ctx: Context, subId1: number) {
+        return await this._findAll(ctx, ['__indexes', 'nonUnique', subId1]);
+    }
+    createNonUniqueStream(ctx: Context, subId1: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'complexRangeTest', '__indexes', 'nonUnique', subId1], limit, after); 
+    }
+    async findFromUnique(ctx: Context, subId1: number, subId2: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'unique', subId1, subId2]);
+    }
+    async allFromUniqueAfter(ctx: Context, subId1: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'unique', subId1], after);
+    }
+    async rangeFromUniqueAfter(ctx: Context, subId1: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'unique', subId1], after, limit, reversed);
+    }
+    async rangeFromUnique(ctx: Context, subId1: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'unique', subId1], limit, reversed);
+    }
+    async rangeFromUniqueWithCursor(ctx: Context, subId1: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'unique', subId1], limit, after, reversed);
+    }
+    async allFromUnique(ctx: Context, subId1: number) {
+        return await this._findAll(ctx, ['__indexes', 'unique', subId1]);
+    }
+    createUniqueStream(ctx: Context, subId1: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'complexRangeTest', '__indexes', 'unique', subId1], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ComplexRangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ComplexRangeTest');
+    }
+}
 export interface JsonTestShape {
     test: { type: 'link', offset: number, length: number, url: string, };
 }
@@ -764,6 +895,7 @@ export interface AllEntities {
     readonly IndexedPartialEntity: IndexedPartialEntityFactory;
     readonly NullableEntity: NullableEntityFactory;
     readonly RangeTest: RangeTestFactory;
+    readonly ComplexRangeTest: ComplexRangeTestFactory;
     readonly JsonTest: JsonTestFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
@@ -776,6 +908,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         IndexedPartialEntityFactory.schema,
         NullableEntityFactory.schema,
         RangeTestFactory.schema,
+        ComplexRangeTestFactory.schema,
         JsonTestFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
@@ -787,6 +920,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     IndexedPartialEntity: IndexedPartialEntityFactory;
     NullableEntity: NullableEntityFactory;
     RangeTest: RangeTestFactory;
+    ComplexRangeTest: ComplexRangeTestFactory;
     JsonTest: JsonTestFactory;
 
     constructor(connection: FConnection) {
@@ -807,6 +941,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.NullableEntity);
         this.RangeTest = new RangeTestFactory(connection);
         this.allEntities.push(this.RangeTest);
+        this.ComplexRangeTest = new ComplexRangeTestFactory(connection);
+        this.allEntities.push(this.ComplexRangeTest);
         this.JsonTest = new JsonTestFactory(connection);
         this.allEntities.push(this.JsonTest);
     }
@@ -838,6 +974,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get RangeTest(): RangeTestFactory {
         return this.resolver().RangeTest;
+    }
+    get ComplexRangeTest(): ComplexRangeTestFactory {
+        return this.resolver().ComplexRangeTest;
     }
     get JsonTest(): JsonTestFactory {
         return this.resolver().JsonTest;

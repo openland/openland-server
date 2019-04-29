@@ -61,6 +61,16 @@ const Schema = declareSchema(() => {
         rangeIndex('default', ['key', 'id']);
     });
 
+    entity('ComplexRangeTest', () => {
+        primaryKey('id', 'number');
+        field('key', 'string');
+        field('subId1', 'number');
+        field('subId2', 'number');
+
+        rangeIndex('nonUnique', ['subId1', 'subId2']);
+        uniqueIndex('unique', ['subId1', 'subId2']).withRange();
+    });
+
     entity('JsonTest', () => {
         primaryKey('id', 'number');
         jsonField('test', () => {

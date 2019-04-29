@@ -52,7 +52,7 @@ export abstract class FBaseTransaction implements FContext {
         return await tracer.trace(parent, 'rangeAfter', async (ctx) => {
             this.log.debug(ctx, 'get-range-after');
             let reversed = (options && options.reverse) ? true : false;
-            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
+            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.lastKeyInSubspace(afterKey));
             let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options);
             return res.map((v) => ({ item: v[1] as any, key: v[0] }));
