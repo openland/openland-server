@@ -19,6 +19,7 @@ extend type Query {
 
 extend type Mutation {
     addMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
+    betaAddMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): CommentEntry!
     editComment(id: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
     deleteComment(id: ID!): Boolean!
     deleteCommentAugmentation(id: ID!): Boolean!
