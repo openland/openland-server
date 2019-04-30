@@ -116,7 +116,7 @@ export class RoomRepository {
                 return false;
             }
             participant.status = 'kicked';
-            await EventBus.publish(`chat_leave_${uid}_${cid}`, { uid, cid });
+            await this.onRoomLeave(ctx, cid, uid);
             return true;
         });
     }
@@ -147,7 +147,7 @@ export class RoomRepository {
                 return false;
             }
             p.status = 'left';
-            await EventBus.publish(`chat_leave_${uid}_${cid}`, { uid, cid });
+            await this.onRoomLeave(ctx, cid, uid);
             return true;
         });
     }
@@ -934,6 +934,7 @@ export class RoomRepository {
     //
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
+            await EventBus.publish(`chat_join_${cid}`, { uid, cid });
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
 
             if (!room) {
@@ -963,5 +964,9 @@ export class RoomRepository {
                 }
             }
         });
+    }
+
+    private async onRoomLeave(parent: Context, cid: number, uid: number) {
+        await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
     }
 }

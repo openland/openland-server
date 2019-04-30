@@ -98,7 +98,6 @@ export namespace GQLRoots {
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
-    export type OnlineEventRoot = any;
     export type SuperAccountRoot = Organization;
     export type SuperAdminRoot = any;
     export type PageInfoRoot = any;
@@ -245,4 +244,10 @@ export namespace GQLRoots {
     export type CommentReceivedRoot = CommentEvent;
     export type CommentUpdatedRoot = CommentEvent;
     export type CommentUpdatesStateRoot = { state: string };
+
+    //
+    //  Presence
+    //
+    export type OnlineEventRoot = any;
+    export type ChatOnlineEventRoot = any;
 }

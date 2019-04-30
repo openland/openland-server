@@ -109,8 +109,10 @@ export default {
 
                 let generator = FDB.ConversationEvent.createUserLiveStream(ctx, chatId, 20, args.fromState || undefined);
                 let haveAccess = true;
-                let subscription = EventBus.subscribe(`chat_leave_${uid}_${chatId}`, (ev: { uid: number, cid: number }) => {
-                    haveAccess = false;
+                let subscription = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
+                    if (ev.uid === uid) {
+                        haveAccess = false;
+                    }
                 });
 
                 for await (let event of generator) {

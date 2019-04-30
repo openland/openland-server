@@ -9,6 +9,7 @@ import { injectable } from 'inversify';
 import { createLogger } from 'openland-log/createLogger';
 import { Context, createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../openland-modules/Modules';
+import { EventBus } from '../openland-module-pubsub/EventBus';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -151,6 +152,56 @@ export class PresenceModule {
         }
 
         return iterator;
+    }
+
+    public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
+        let ctx = createEmptyContext();
+        await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
+        let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId)); // .filter(m => m !== uid);
+
+        let joinSub: PubsubSubcription;
+        let leaveSub: PubsubSubcription;
+        let subscriptions = new Map<number, PubsubSubcription>();
+
+        let iterator = createIterator<OnlineEvent>(() => {
+            subscriptions.forEach(s => s.cancel());
+            joinSub.cancel();
+            leaveSub.cancel();
+        });
+
+        joinSub = EventBus.subscribe(`chat_join_${chatId}`, async (ev: { uid: number, cid: number }) => {
+            let online = await FDB.Online.findById(ctx, ev.uid);
+            iterator.push({ userId: ev.uid, timeout: 0, online: online && online.lastSeen > Date.now() || false });
+            await this.subscribeOnlineChange(uid);
+            subscriptions.set(ev.uid, await this.localSub.subscribe(uid.toString(10), iterator.push));
+        });
+        leaveSub = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
+            iterator.push({ userId: ev.uid, timeout: 0, online: false });
+            subscriptions.get(ev.uid)!.cancel();
+        });
+
+        for (let member of members) {
+            let online = await FDB.Online.findById(ctx, member);
+            iterator.push({ userId: member, timeout: 0, online: online && online.lastSeen > Date.now() || false });
+            await this.subscribeOnlineChange(member);
+            subscriptions.set(member, await this.localSub.subscribe(member.toString(10), iterator.push));
+        }
+
+        return iterator;
+    }
+
+    public async * createChatOnlineCountStream(uid: number, chatId: number): AsyncIterable<{ onlineMembers: number }> {
+        let stream = await this.createChatPresenceStream(uid, chatId);
+        let onlineMembers = new Set<number>();
+
+        for await (let event of stream) {
+            if (event.online) {
+                onlineMembers.add(event.userId);
+            } else {
+                onlineMembers.delete(event.userId);
+            }
+            yield { onlineMembers: onlineMembers.size };
+        }
     }
 
     private async handleOnlineChange(uid: number) {

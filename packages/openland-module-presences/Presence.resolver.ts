@@ -86,6 +86,17 @@ export default {
 
                 return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
             }
+        },
+        chatOnlinesCount: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async (r, args, ctx) => {
+                if (!ctx.auth.uid) {
+                    throw Error('Not logged in');
+                }
+                return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
+            }
         }
     }
 } as GQLResolver;
