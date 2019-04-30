@@ -157,7 +157,7 @@ export class PresenceModule {
     public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
         let ctx = createEmptyContext();
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
-        let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId)); // .filter(m => m !== uid);
+        let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId));
 
         let joinSub: PubsubSubcription;
         let leaveSub: PubsubSubcription;
@@ -181,8 +181,8 @@ export class PresenceModule {
         });
 
         for (let member of members) {
-            let online = await FDB.Online.findById(ctx, member);
-            iterator.push({ userId: member, timeout: 0, online: online && online.lastSeen > Date.now() || false });
+            // let online = await FDB.Online.findById(ctx, member);
+            // iterator.push({ userId: member, timeout: 0, online: online && online.lastSeen > Date.now() || false });
             await this.subscribeOnlineChange(member);
             subscriptions.set(member, await this.localSub.subscribe(member.toString(10), iterator.push));
         }
@@ -191,8 +191,23 @@ export class PresenceModule {
     }
 
     public async * createChatOnlineCountStream(uid: number, chatId: number): AsyncIterable<{ onlineMembers: number }> {
+        let ctx = createEmptyContext();
+        await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
+        let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId));
         let stream = await this.createChatPresenceStream(uid, chatId);
         let onlineMembers = new Set<number>();
+        let prevValue = 0;
+
+        for (let member of members) {
+            let online = await FDB.Online.findById(ctx, member);
+            if (online && online.lastSeen > Date.now()) {
+                onlineMembers.add(online.uid);
+            }
+        }
+
+        // send initial state
+        yield { onlineMembers: onlineMembers.size };
+        prevValue = onlineMembers.size;
 
         for await (let event of stream) {
             if (event.online) {
@@ -200,7 +215,10 @@ export class PresenceModule {
             } else {
                 onlineMembers.delete(event.userId);
             }
-            yield { onlineMembers: onlineMembers.size };
+            if (prevValue !== onlineMembers.size) {
+                yield { onlineMembers: onlineMembers.size };
+                prevValue = onlineMembers.size;
+            }
         }
     }
 
