@@ -199,12 +199,14 @@ export class PresenceModule {
         let onlineMembers = new Set<number>();
         let prevValue = 0;
 
-        for (let member of members) {
-            let online = await FDB.Online.findById(ctx, member);
-            if (online && online.lastSeen > Date.now()) {
-                onlineMembers.add(online.uid);
+        await perf('presence_init_state', async () => {
+            for (let member of members) {
+                let online = await FDB.Online.findById(ctx, member);
+                if (online && online.lastSeen > Date.now()) {
+                    onlineMembers.add(online.uid);
+                }
             }
-        }
+        });
 
         // send initial state
         yield { onlineMembers: onlineMembers.size };
