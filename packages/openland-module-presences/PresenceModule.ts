@@ -200,8 +200,8 @@ export class PresenceModule {
         let prevValue = 0;
 
         await perf('presence_init_state', async () => {
-            for (let member of members) {
-                let online = await FDB.Online.findById(ctx, member);
+            let membersOnline = await Promise.all(members.map(m => FDB.Online.findById(ctx, m)));
+            for (let online of membersOnline) {
                 if (online && online.lastSeen > Date.now()) {
                     onlineMembers.add(online.uid);
                 }
