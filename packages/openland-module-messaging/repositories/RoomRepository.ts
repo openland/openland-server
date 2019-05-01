@@ -551,7 +551,7 @@ export class RoomRepository {
             let p = (await this.entities.ConversationPrivate.findById(ctx, cid))!;
             return [p.uid1, p.uid2];
         } else if (conv.kind === 'room') {
-            return (await this.entities.RoomParticipant.rangeFromActive(ctx, cid, 1000)).map((v) => v.uid);
+            return (await this.entities.RoomParticipant.allFromActive(ctx, cid)).map((v) => v.uid);
         } else if (conv.kind === 'organization') {
             if (conv.deleted) {
                 return [];

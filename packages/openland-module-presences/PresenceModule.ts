@@ -10,6 +10,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { Context, createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
+import { perf } from '../openland-utils/perf';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -157,7 +158,7 @@ export class PresenceModule {
     public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
         let ctx = createEmptyContext();
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
-        let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId));
+        let members = await perf('presence_members', async () => (await Modules.Messaging.room.findConversationMembers(ctx, chatId)));
 
         let joinSub: PubsubSubcription;
         let leaveSub: PubsubSubcription;

@@ -37,3 +37,17 @@ export class Perf {
         console.log(text);
     }
 }
+
+export async function perf<T>(name: string, cb: () => Promise<T>): Promise<T> {
+    let start = Date.now();
+    let res = await cb();
+    console.log(`perf ${name}: ${Date.now() - start} ms`);
+    return res;
+}
+
+export function perfSync<T>(name: string, cb: () => T): T {
+    let start = Date.now();
+    let res = cb();
+    console.log(`perf ${name}: ${Date.now() - start}`);
+    return res;
+}
