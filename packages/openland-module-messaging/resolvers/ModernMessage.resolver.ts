@@ -544,6 +544,14 @@ export default {
                 return 'MessageSpanMultiUserMention';
             } else if (src.type === 'bold_text') {
                 return 'MessageSpanBold';
+            }  else if (src.type === 'italic_text') {
+                return 'MessageSpanItalic';
+            }  else if (src.type === 'irony_text') {
+                return 'MessageSpanIrony';
+            }  else if (src.type === 'inline_code_text') {
+                return 'MessageSpanInlineCode';
+            }  else if (src.type === 'code_block_text') {
+                return 'MessageSpanCodeBlock';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -721,6 +729,25 @@ export default {
             }
 
             //
+            //  Spans
+            //
+            if (args.spans) {
+                for (let span of args.spans) {
+                    if (span.type === 'Bold') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
+                    } else if (span.type === 'Italic') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
+                    } else if (span.type === 'InlineCode') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
+                    } else if (span.type === 'CodeBlock') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
+                    } else if (span.type === 'Irony') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                    }
+                }
+            }
+
+            //
             // File attachments
             //
             let attachments: MessageAttachmentInput[] = [];
@@ -795,6 +822,25 @@ export default {
                 }
 
                 spans.push(...mentions);
+            }
+
+            //
+            //  Spans
+            //
+            if (args.spans) {
+                for (let span of args.spans) {
+                    if (span.type === 'Bold') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
+                    } else if (span.type === 'Italic') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
+                    } else if (span.type === 'InlineCode') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
+                    } else if (span.type === 'CodeBlock') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
+                    } else if (span.type === 'Irony') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                    }
+                }
             }
 
             //

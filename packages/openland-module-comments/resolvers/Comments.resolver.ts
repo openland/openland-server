@@ -5,9 +5,9 @@ import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
 import {
     MessageAttachmentFileInput, MessageAttachmentInput,
-    MessageSpan
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { CommentSpan } from '../CommentsRepository';
 
 export default {
     CommentsPeer: {
@@ -38,13 +38,13 @@ export default {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
 
-            let spans: MessageSpan[] = [];
+            let spans: CommentSpan[] = [];
 
             //
             // Mentions
             //
             if (args.mentions) {
-                let mentions: MessageSpan[] = [];
+                let mentions: CommentSpan[] = [];
 
                 for (let mention of args.mentions) {
                     if (mention.userId) {
@@ -108,13 +108,13 @@ export default {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
 
-            let spans: MessageSpan[] = [];
+            let spans: CommentSpan[] = [];
 
             //
             // Mentions
             //
             if (args.mentions) {
-                let mentions: MessageSpan[] = [];
+                let mentions: CommentSpan[] = [];
 
                 for (let mention of args.mentions) {
                     if (mention.userId) {
@@ -175,13 +175,13 @@ export default {
         }),
         editComment: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.id);
-            let spans: MessageSpan[] = [];
+            let spans: CommentSpan[] = [];
 
             //
             // Mentions
             //
             if (args.mentions) {
-                let mentions: MessageSpan[] = [];
+                let mentions: CommentSpan[] = [];
 
                 for (let mention of args.mentions) {
                     if (mention.userId) {

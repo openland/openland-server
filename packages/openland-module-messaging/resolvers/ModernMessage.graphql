@@ -58,8 +58,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    sendMessage(chatId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], repeatKey: String): Boolean!
-    editMessage(messageId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
+    sendMessage(chatId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): Boolean!
+    editMessage(messageId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
 
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
     unpinMessage(chatId: ID!): Boolean!
@@ -194,21 +194,59 @@ type MessageSpanRoomMention implements MessageSpan {
     room: Room!
 }
 
-type MessageSpanLink implements MessageSpan {
-    offset: Int!
-    length: Int!
-    url: String!
-}
-
-type MessageSpanBold implements MessageSpan {
-    offset: Int!
-    length: Int!
-}
-
 input MentionInput {
     chatId: ID
     userId: ID
     userIds: [ID!]
     offset: Int!
     length: Int!
+}
+
+type MessageSpanLink implements MessageSpan {
+    offset: Int!
+    length: Int!
+    url: String!
+}
+
+#
+#   Markdown
+#
+
+type MessageSpanBold implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanItalic implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanIrony implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanInlineCode implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanCodeBlock implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+enum MessageSpanType {
+    Bold,
+    Italic,
+    Irony,
+    InlineCode,
+    CodeBlock
+}
+
+input MessageSpanInput {
+    offset: Int!
+    length: Int!
+    type: MessageSpanType!
 }

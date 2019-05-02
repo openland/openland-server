@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '057dccc35a7a5a1961debaf0b85341a7';
+export const GQL_SPEC_VERSION = 'f1714ece7c880fe3571f41a790ade014';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -594,6 +594,13 @@ export namespace GQL {
         length: number;
         room: Room;
     }
+    export interface MentionInput {
+        chatId: Nullable<string>;
+        userId: Nullable<string>;
+        userIds: Nullable<string[]>;
+        offset: number;
+        length: number;
+    }
     export interface MessageSpanLink extends MessageSpan {
         offset: number;
         length: number;
@@ -603,12 +610,27 @@ export namespace GQL {
         offset: number;
         length: number;
     }
-    export interface MentionInput {
-        chatId: Nullable<string>;
-        userId: Nullable<string>;
-        userIds: Nullable<string[]>;
+    export interface MessageSpanItalic extends MessageSpan {
         offset: number;
         length: number;
+    }
+    export interface MessageSpanIrony extends MessageSpan {
+        offset: number;
+        length: number;
+    }
+    export interface MessageSpanInlineCode extends MessageSpan {
+        offset: number;
+        length: number;
+    }
+    export interface MessageSpanCodeBlock extends MessageSpan {
+        offset: number;
+        length: number;
+    }
+    export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock';
+    export interface MessageSpanInput {
+        offset: number;
+        length: number;
+        type: MessageSpanType;
     }
     export interface PageInfo {
         hasNextPage: boolean;
@@ -1423,6 +1445,7 @@ export namespace GQL {
         replyMessages: OptionalNullable<string[]>;
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
         repeatKey: OptionalNullable<string>;
     }
     export interface MutationEditMessageArgs {
@@ -1431,6 +1454,7 @@ export namespace GQL {
         replyMessages: OptionalNullable<string[]>;
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
     }
     export interface MutationPinMessageArgs {
         chatId: string;
@@ -2524,6 +2548,10 @@ export interface GQLResolver {
     MessageSpanRoomMention?: ComplexTypedResolver<GQL.MessageSpanRoomMention, GQLRoots.MessageSpanRoomMentionRoot, {room: GQLRoots.RoomRoot}, {}>;
     MessageSpanLink?: ComplexTypedResolver<GQL.MessageSpanLink, GQLRoots.MessageSpanLinkRoot, {}, {}>;
     MessageSpanBold?: ComplexTypedResolver<GQL.MessageSpanBold, GQLRoots.MessageSpanBoldRoot, {}, {}>;
+    MessageSpanItalic?: ComplexTypedResolver<GQL.MessageSpanItalic, GQLRoots.MessageSpanItalicRoot, {}, {}>;
+    MessageSpanIrony?: ComplexTypedResolver<GQL.MessageSpanIrony, GQLRoots.MessageSpanIronyRoot, {}, {}>;
+    MessageSpanInlineCode?: ComplexTypedResolver<GQL.MessageSpanInlineCode, GQLRoots.MessageSpanInlineCodeRoot, {}, {}>;
+    MessageSpanCodeBlock?: ComplexTypedResolver<GQL.MessageSpanCodeBlock, GQLRoots.MessageSpanCodeBlockRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;

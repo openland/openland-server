@@ -529,6 +529,26 @@ const Schema = declareSchema(() => {
                 jField('offset', jNumber());
                 jField('length', jNumber());
             }),
+            json(() => {
+                jField('type', jString('italic_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }),
+            json(() => {
+                jField('type', jString('irony_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }),
+            json(() => {
+                jField('type', jString('inline_code_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }),
+            json(() => {
+                jField('type', jString('code_block_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }),
         ))).nullable();
         jsonField('attachmentsModern', jVec(jEnum(
             json(() => {

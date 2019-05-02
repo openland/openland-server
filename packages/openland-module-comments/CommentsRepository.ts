@@ -5,17 +5,24 @@ import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
-    LinkSpan, MessageAttachment, MessageAttachmentInput,
-    MessageSpan
+    BoldTextSpan,
+    LinkSpan, MessageAttachment, MessageAttachmentInput, MultiUserMentionSpan, RoomMentionSpan, UserMentionSpan
 } from '../openland-module-messaging/MessageInput';
 import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
 
 const linkifyInstance = createLinkifyInstance();
 
+export type CommentSpan =
+    UserMentionSpan |
+    MultiUserMentionSpan |
+    RoomMentionSpan |
+    LinkSpan |
+    BoldTextSpan;
+
 export interface CommentInput {
     message?: string | null;
     replyToComment?: number | null;
-    spans?: MessageSpan[] | null;
+    spans?: CommentSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
 
@@ -40,7 +47,7 @@ export class CommentsRepository {
             //
             // Parse links
             //
-            let spans: MessageSpan[] | null = null;
+            let spans: CommentSpan[] | null = null;
 
             if (newComment.message) {
                 spans = newComment.spans ? [...newComment.spans] : [];
@@ -165,9 +172,9 @@ export class CommentsRepository {
 
             // Handle parent visibility if we are not visible anymore
             if (!comment.visible && comment.parentCommentId) {
-                let comm: Comment|undefined = comment;
+                let comm: Comment | undefined = comment;
                 while (comm && comm.parentCommentId) {
-                    let parentComment: Comment|null = await this.entities.Comment.findById(ctx, comm.parentCommentId);
+                    let parentComment: Comment | null = await this.entities.Comment.findById(ctx, comm.parentCommentId);
 
                     if (!parentComment!.deleted) {
                         break;
@@ -210,7 +217,7 @@ export class CommentsRepository {
             if (existing) {
                 return existing;
             } else {
-                return await this.entities.CommentState.create(ctx, peerType, peerId, { commentsCount: 0 });
+                return await this.entities.CommentState.create(ctx, peerType, peerId, {commentsCount: 0});
             }
         });
     }
@@ -234,7 +241,7 @@ export class CommentsRepository {
                     return;
                 }
             } else {
-                reactions.push({ userId: uid, reaction });
+                reactions.push({userId: uid, reaction});
             }
             comment.reactions = reactions;
 

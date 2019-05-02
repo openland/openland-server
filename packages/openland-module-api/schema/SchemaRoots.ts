@@ -9,7 +9,7 @@ import {
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
-    BoldTextSpan,
+    BoldTextSpan, CodeBlockTextSpan, InlineCodeTextSpan, IronyTextSpan, ItalicTextSpan,
     LinkSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
     MessageMention, MessageRichAttachment,
     MessageSpan,
@@ -199,6 +199,10 @@ export namespace GQLRoots {
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
     export type MessageSpanLinkRoot = LinkSpan;
     export type MessageSpanBoldRoot = BoldTextSpan;
+    export type MessageSpanItalicRoot = ItalicTextSpan;
+    export type MessageSpanIronyRoot = IronyTextSpan;
+    export type MessageSpanInlineCodeRoot = InlineCodeTextSpan;
+    export type MessageSpanCodeBlockRoot = CodeBlockTextSpan;
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;

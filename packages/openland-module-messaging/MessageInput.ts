@@ -22,7 +22,21 @@ export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number,
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
 export type BoldTextSpan = { type: 'bold_text', offset: number, length: number };
-export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan | BoldTextSpan;
+export type ItalicTextSpan = { type: 'italic_text', offset: number, length: number };
+export type IronyTextSpan = { type: 'irony_text', offset: number, length: number };
+export type InlineCodeTextSpan = { type: 'inline_code_text', offset: number, length: number };
+export type CodeBlockTextSpan = { type: 'code_block_text', offset: number, length: number };
+
+export type MessageSpan =
+    UserMentionSpan |
+    MultiUserMentionSpan |
+    RoomMentionSpan |
+    LinkSpan |
+    BoldTextSpan |
+    ItalicTextSpan |
+    IronyTextSpan |
+    InlineCodeTextSpan |
+    CodeBlockTextSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,
