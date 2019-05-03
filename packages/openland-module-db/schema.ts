@@ -4555,7 +4555,7 @@ export interface MessageShape {
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
-    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, })[]| null;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, } | { type: 'insane_text', offset: number, length: number, } | { type: 'loud_text', offset: number, length: number, } | { type: 'rotating_text', offset: number, length: number, })[]| null;
     attachmentsModern?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[]| null;
     fileId?: string| null;
     fileMetadata?: { isStored: boolean | undefined, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, }| null;
@@ -4686,12 +4686,12 @@ export class Message extends FEntity {
         this._value.deleted = value;
         this.markDirty();
     }
-    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, })[] | null {
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, } | { type: 'insane_text', offset: number, length: number, } | { type: 'loud_text', offset: number, length: number, } | { type: 'rotating_text', offset: number, length: number, })[] | null {
         let res = this._value.spans;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, })[] | null) {
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, } | { type: 'insane_text', offset: number, length: number, } | { type: 'loud_text', offset: number, length: number, } | { type: 'rotating_text', offset: number, length: number, })[] | null) {
         this._checkIsWritable();
         if (value === this._value.spans) { return; }
         this._value.spans = value;
@@ -4938,6 +4938,21 @@ export class MessageFactory extends FEntityFactory<Message> {
             }), 
             json(() => {
                 jField('type', jString('code_block_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('insane_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('loud_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('rotating_text'));
                 jField('offset', jNumber());
                 jField('length', jNumber());
             })

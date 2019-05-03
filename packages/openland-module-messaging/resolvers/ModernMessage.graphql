@@ -237,12 +237,30 @@ type MessageSpanCodeBlock implements MessageSpan {
     length: Int!
 }
 
+type MessageSpanInsane implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanLoud implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanRotating implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
 enum MessageSpanType {
     Bold,
     Italic,
     Irony,
     InlineCode,
-    CodeBlock
+    CodeBlock,
+    Insane,
+    Loud,
+    Rotating
 }
 
 input MessageSpanInput {

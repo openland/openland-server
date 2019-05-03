@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f1714ece7c880fe3571f41a790ade014';
+export const GQL_SPEC_VERSION = '0a94200eb52267fcf548b0c9b1e225c1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -626,7 +626,19 @@ export namespace GQL {
         offset: number;
         length: number;
     }
-    export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock';
+    export interface MessageSpanInsane extends MessageSpan {
+        offset: number;
+        length: number;
+    }
+    export interface MessageSpanLoud extends MessageSpan {
+        offset: number;
+        length: number;
+    }
+    export interface MessageSpanRotating extends MessageSpan {
+        offset: number;
+        length: number;
+    }
+    export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating';
     export interface MessageSpanInput {
         offset: number;
         length: number;
@@ -2552,6 +2564,9 @@ export interface GQLResolver {
     MessageSpanIrony?: ComplexTypedResolver<GQL.MessageSpanIrony, GQLRoots.MessageSpanIronyRoot, {}, {}>;
     MessageSpanInlineCode?: ComplexTypedResolver<GQL.MessageSpanInlineCode, GQLRoots.MessageSpanInlineCodeRoot, {}, {}>;
     MessageSpanCodeBlock?: ComplexTypedResolver<GQL.MessageSpanCodeBlock, GQLRoots.MessageSpanCodeBlockRoot, {}, {}>;
+    MessageSpanInsane?: ComplexTypedResolver<GQL.MessageSpanInsane, GQLRoots.MessageSpanInsaneRoot, {}, {}>;
+    MessageSpanLoud?: ComplexTypedResolver<GQL.MessageSpanLoud, GQLRoots.MessageSpanLoudRoot, {}, {}>;
+    MessageSpanRotating?: ComplexTypedResolver<GQL.MessageSpanRotating, GQLRoots.MessageSpanRotatingRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;

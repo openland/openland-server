@@ -17,15 +17,20 @@ export type MessageKeyboard = {
     buttons: MessageButton[][]
 };
 
+type BasicSpan<T> = { type: T, offset: number, length: number };
+
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
 export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number, length: number, users: number[] };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
-export type BoldTextSpan = { type: 'bold_text', offset: number, length: number };
-export type ItalicTextSpan = { type: 'italic_text', offset: number, length: number };
-export type IronyTextSpan = { type: 'irony_text', offset: number, length: number };
-export type InlineCodeTextSpan = { type: 'inline_code_text', offset: number, length: number };
-export type CodeBlockTextSpan = { type: 'code_block_text', offset: number, length: number };
+export type BoldTextSpan = BasicSpan<'bold_text'>;
+export type ItalicTextSpan = BasicSpan<'italic_text'>;
+export type IronyTextSpan = BasicSpan<'irony_text'>;
+export type InlineCodeTextSpan = BasicSpan<'inline_code_text'>;
+export type CodeBlockTextSpan = BasicSpan<'code_block_text'>;
+export type InsaneTextSpan = BasicSpan<'insane_text'>;
+export type LoudTextSpan = BasicSpan<'loud_text'>;
+export type RotatingTextSpan = BasicSpan<'rotating_text'>;
 
 export type MessageSpan =
     UserMentionSpan |
@@ -36,7 +41,10 @@ export type MessageSpan =
     ItalicTextSpan |
     IronyTextSpan |
     InlineCodeTextSpan |
-    CodeBlockTextSpan;
+    CodeBlockTextSpan |
+    InsaneTextSpan |
+    LoudTextSpan |
+    RotatingTextSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,

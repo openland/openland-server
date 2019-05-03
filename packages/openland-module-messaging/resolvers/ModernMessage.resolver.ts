@@ -552,6 +552,12 @@ export default {
                 return 'MessageSpanInlineCode';
             }  else if (src.type === 'code_block_text') {
                 return 'MessageSpanCodeBlock';
+            }  else if (src.type === 'insane_text') {
+                return 'MessageSpanInsane';
+            }  else if (src.type === 'loud_text') {
+                return 'MessageSpanLoud';
+            }  else if (src.type === 'rotating_text') {
+                return 'MessageSpanRotating';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -743,6 +749,12 @@ export default {
                         spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
                         spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                    } else if (span.type === 'Insane') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
+                    } else if (span.type === 'Loud') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
+                    } else if (span.type === 'Rotating') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -839,6 +851,12 @@ export default {
                         spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
                         spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                    } else if (span.type === 'Insane') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
+                    } else if (span.type === 'Loud') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
+                    } else if (span.type === 'Rotating') {
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }

@@ -43,6 +43,12 @@ const FileInfo = json(() => {
     jField('size', jNumber());
 });
 
+const basicSpan = (type: string) => json(() => {
+    jField('type', jString(type));
+    jField('offset', jNumber());
+    jField('length', jNumber());
+});
+
 const Schema = declareSchema(() => {
 
     entity('Environment', () => {
@@ -524,31 +530,14 @@ const Schema = declareSchema(() => {
                 jField('length', jNumber());
                 jField('url', jString());
             }),
-            json(() => {
-                jField('type', jString('bold_text'));
-                jField('offset', jNumber());
-                jField('length', jNumber());
-            }),
-            json(() => {
-                jField('type', jString('italic_text'));
-                jField('offset', jNumber());
-                jField('length', jNumber());
-            }),
-            json(() => {
-                jField('type', jString('irony_text'));
-                jField('offset', jNumber());
-                jField('length', jNumber());
-            }),
-            json(() => {
-                jField('type', jString('inline_code_text'));
-                jField('offset', jNumber());
-                jField('length', jNumber());
-            }),
-            json(() => {
-                jField('type', jString('code_block_text'));
-                jField('offset', jNumber());
-                jField('length', jNumber());
-            }),
+            basicSpan('bold_text'),
+            basicSpan('italic_text'),
+            basicSpan('irony_text'),
+            basicSpan('inline_code_text'),
+            basicSpan('code_block_text'),
+            basicSpan('insane_text'),
+            basicSpan('loud_text'),
+            basicSpan('rotating_text')
         ))).nullable();
         jsonField('attachmentsModern', jVec(jEnum(
             json(() => {

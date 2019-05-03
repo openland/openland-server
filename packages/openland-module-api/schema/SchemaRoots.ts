@@ -9,11 +9,11 @@ import {
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
-    BoldTextSpan, CodeBlockTextSpan, InlineCodeTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
+    BoldTextSpan, CodeBlockTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
+    LinkSpan, LoudTextSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
     MessageMention, MessageRichAttachment,
     MessageSpan,
-    MultiUserMentionSpan, RoomMentionSpan,
+    MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
     UserMentionSpan
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
@@ -203,6 +203,9 @@ export namespace GQLRoots {
     export type MessageSpanIronyRoot = IronyTextSpan;
     export type MessageSpanInlineCodeRoot = InlineCodeTextSpan;
     export type MessageSpanCodeBlockRoot = CodeBlockTextSpan;
+    export type MessageSpanInsaneRoot = InsaneTextSpan;
+    export type MessageSpanLoudRoot = LoudTextSpan;
+    export type MessageSpanRotatingRoot = RotatingTextSpan;
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
