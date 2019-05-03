@@ -152,7 +152,14 @@ export default {
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.removePeer(ctx, pid);
+
+            let chat = await FDB.Conversation.findById(ctx, coid);
+            if (chat && chat.kind === 'private') {
+                await Modules.Calls.repo.endConference(ctx, coid);
+            } else {
+                await Modules.Calls.repo.removePeer(ctx, pid);
+            }
+
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         conferenceKeepAlive: withUser(async (ctx, args, uid) => {

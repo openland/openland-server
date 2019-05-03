@@ -96,6 +96,15 @@ export class CallRepository {
         });
     }
 
+    endConference = async (parent: Context, cid: number) => {
+        await inTx(parent, async (ctx) => {
+            let members = await this.findActiveMembers(ctx, cid);
+            for (let m of members) {
+                await this.removePeer(ctx, m.id);
+            }
+        });
+    }
+
     removePeer = async (parent: Context, pid: number) => {
         await inTx(parent, async (ctx) => {
 
