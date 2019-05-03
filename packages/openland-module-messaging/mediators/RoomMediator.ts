@@ -375,7 +375,7 @@ export class RoomMediator {
 
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    ...buildMessage(userMention(userName, uid), ` changed group photo`),
+                    ...buildMessage(userMention(userName, uid), ` changed ${conv.isChannel ? 'channel' : 'group'} photo`),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
@@ -390,7 +390,7 @@ export class RoomMediator {
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    ...buildMessage(userMention(userName, uid), ` changed group name to `, boldString(roomProfile.title)),
+                    ...buildMessage(userMention(userName, uid), ` changed ${conv.isChannel ? 'channel' : 'group'} name to `, boldString(roomProfile.title)),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
