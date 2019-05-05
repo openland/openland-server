@@ -22,22 +22,26 @@ import { MessageMention } from '../MessageInput';
 
 type RoomRoot = Conversation | number;
 
-function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T) => any) {
+function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => any) {
     return async (src: RoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
-            return handler(ctx, src, args);
+            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
+            return handler(ctx, src, args, showPlaceholder);
         } else {
-            return handler(ctx, src.id, args);
+            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
+            return handler(ctx, src.id, args, showPlaceholder);
         }
     };
 }
 
-function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null) => any) {
+function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, showPlaceholder: boolean) => any) {
     return async (src: RoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src)));
+            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
+            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src)), showPlaceholder);
         } else {
-            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id)));
+            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
+            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id)), showPlaceholder);
         }
     };
 }
@@ -108,21 +112,24 @@ export default {
             let room = await FDB.ConversationRoom.findById(ctx, id);
             return !!(room && room.isChannel);
         }),
-        canSendMessage: withConverationId(async (ctx, id) => !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
-        title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
-        photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
-        socialImage: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
-        organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
+        canSendMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
+        title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
+        photo: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'ph://1' : Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
+        socialImage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
+        organization: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
-        description: withRoomProfile((ctx, profile) => profile && profile.description),
-        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, typeof root === 'number' ? root : root.id),
+        description: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.description)),
+        welcomeMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, id)),
 
-        pinnedMessage: withRoomProfile((ctx, profile) => profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage)),
+        pinnedMessage: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage))),
 
-        membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
-        role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
-        membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
-        members: withConverationId(async (ctx, id, args) => {
+        membership: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')),
+        role: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
+        membersCount: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 0 : (await FDB.RoomParticipant.allFromActive(ctx, id)).length),
+        members: withConverationId(async (ctx, id, args, showPlaceholder) => {
+            if (showPlaceholder) {
+                return [];
+            }
             let afterMember: RoomParticipant | null = null;
             if (args.after) {
                 afterMember = await FDB.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
@@ -135,7 +142,7 @@ export default {
         }),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
-        canEdit: async (root, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, (typeof root === 'number' ? root : root.id), ctx.auth.uid!),
+        canEdit: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)),
         archived: withConverationId(async (ctx, id, args) => {
             let conv = await FDB.Conversation.findById(ctx, id);
             if (conv && conv.archived) {
@@ -294,7 +301,11 @@ export default {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Conversation) {
-                await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
+                if (await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, uid, id.id as number)) {
+                    return id.id;
+                } else {
+                    await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
+                }
                 return id.id;
             } else if (id.type === IDs.User) {
                 return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);

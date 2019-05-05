@@ -849,6 +849,34 @@ export class RoomRepository {
         }
     }
 
+    async userWasCickedOrLeavedRoom(ctx: Context, uid: number, cid: number) {
+        let conv = await this.entities.Conversation.findById(ctx, cid);
+        if (!conv || (conv.kind !== 'room' && conv.kind !== 'organization')) {
+            return false;
+        }
+
+        if (conv.kind === 'organization') {
+            let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
+            let orgMember = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+
+            if (orgMember && orgMember.status === 'left') {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (conv.kind === 'room') {
+            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+
+            if (member && (member.status === 'left' || member.status === 'kicked')) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        throw new NotFoundError();
+    }
+
     //
     //  Returns chats available to user
     //
