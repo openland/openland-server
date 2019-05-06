@@ -11,7 +11,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
-const userActivated = createHyperlogger<{ uid: number }>('user_created');
+const userActivated = createHyperlogger<{ uid: number }>('user_activated');
 const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_created');
 
 @injectable()
