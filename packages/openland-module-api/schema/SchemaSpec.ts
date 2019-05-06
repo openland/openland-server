@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0a94200eb52267fcf548b0c9b1e225c1';
+export const GQL_SPEC_VERSION = '8a557af035a2c4f3f311224c4bd040a4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -637,6 +637,11 @@ export namespace GQL {
     export interface MessageSpanRotating extends MessageSpan {
         offset: number;
         length: number;
+    }
+    export interface MessageSpanDate extends MessageSpan {
+        offset: number;
+        length: number;
+        date: Date;
     }
     export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating';
     export interface MessageSpanInput {
@@ -2567,6 +2572,7 @@ export interface GQLResolver {
     MessageSpanInsane?: ComplexTypedResolver<GQL.MessageSpanInsane, GQLRoots.MessageSpanInsaneRoot, {}, {}>;
     MessageSpanLoud?: ComplexTypedResolver<GQL.MessageSpanLoud, GQLRoots.MessageSpanLoudRoot, {}, {}>;
     MessageSpanRotating?: ComplexTypedResolver<GQL.MessageSpanRotating, GQLRoots.MessageSpanRotatingRoot, {}, {}>;
+    MessageSpanDate?: ComplexTypedResolver<GQL.MessageSpanDate, GQLRoots.MessageSpanDateRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;

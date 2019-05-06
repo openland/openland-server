@@ -14,6 +14,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { UserError } from '../../openland-errors/UserError';
 import { currentTime } from 'openland-utils/timer';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
+import * as Chrono from 'chrono-node';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -54,13 +55,21 @@ export class MessagingMediator {
                 }
             }
 
+            let spans = message.spans ? [...message.spans] : [];
             //
             // Parse links
             //
-            let spans = message.spans ? [...message.spans] : [];
             let links = this.parseLinks(message.message || '');
             if (links.length > 0) {
                 spans.push(...links);
+            }
+
+            //
+            // Parse dates
+            //
+            let dates = this.parseDates(message.message || '');
+            if (dates.length > 0) {
+                spans.push(...dates);
             }
 
             // Create
@@ -105,16 +114,25 @@ export class MessagingMediator {
                 }
             }
 
-            //
-            // Parse links
-            //
             let spans: MessageSpan[] | null = null;
 
             if (newMessage.message) {
                 spans = newMessage.spans ? [...newMessage.spans] : [];
+
+                //
+                // Parse links
+                //
                 let links = this.parseLinks(newMessage.message || '');
                 if (links.length > 0) {
                     spans.push(...links);
+                }
+
+                //
+                // Parse dates
+                //
+                let dates = this.parseDates(newMessage.message || '');
+                if (dates.length > 0) {
+                    spans.push(...dates);
                 }
             }
 
@@ -234,5 +252,18 @@ export class MessagingMediator {
             length: url.raw.length,
             url: url.url,
         } as LinkSpan));
+    }
+
+    private parseDates(message: string): MessageSpan[] {
+        let parsed = Chrono.parse(message, new Date());
+
+        return parsed.map(part => {
+            return {
+                type: 'date_text',
+                offset: part.index,
+                length: part.text.length,
+                date: part.ref.getTime()
+            };
+        });
     }
 }

@@ -31,6 +31,7 @@ export type CodeBlockTextSpan = BasicSpan<'code_block_text'>;
 export type InsaneTextSpan = BasicSpan<'insane_text'>;
 export type LoudTextSpan = BasicSpan<'loud_text'>;
 export type RotatingTextSpan = BasicSpan<'rotating_text'>;
+export type DateTextSpan = { type: 'date_text', offset: number, length: number, date: number };
 
 export type MessageSpan =
     UserMentionSpan |
@@ -44,7 +45,8 @@ export type MessageSpan =
     CodeBlockTextSpan |
     InsaneTextSpan |
     LoudTextSpan |
-    RotatingTextSpan;
+    RotatingTextSpan |
+    DateTextSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,

@@ -537,7 +537,13 @@ const Schema = declareSchema(() => {
             basicSpan('code_block_text'),
             basicSpan('insane_text'),
             basicSpan('loud_text'),
-            basicSpan('rotating_text')
+            basicSpan('rotating_text'),
+            json(() => {
+                jField('type', jString('date_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('date', jNumber());
+            }),
         ))).nullable();
         jsonField('attachmentsModern', jVec(jEnum(
             json(() => {

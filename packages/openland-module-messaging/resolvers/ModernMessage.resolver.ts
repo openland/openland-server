@@ -44,6 +44,7 @@ export async function prepareLegacyMentionsInput(ctx: Context, messageText: stri
             offsets.add(offset);
             return offset;
         }
+
         for (let mention of mentions) {
             let userName = await Modules.Users.getUserFullName(ctx, mention);
             let mentionText = '@' + userName;
@@ -79,7 +80,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     //
     if (message.mentions) {
         for (let m of message.mentions) {
-            intermediateMentions.push({ type: 'user', user: m });
+            intermediateMentions.push({type: 'user', user: m});
         }
     }
 
@@ -89,9 +90,9 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     if (message.complexMentions) {
         for (let m of message.complexMentions) {
             if (m.type === 'User') {
-                intermediateMentions.push({ type: 'user', user: m.id });
+                intermediateMentions.push({type: 'user', user: m.id});
             } else if (m.type === 'SharedRoom') {
-                intermediateMentions.push({ type: 'room', room: m.id });
+                intermediateMentions.push({type: 'room', room: m.id});
             } else {
                 throw new Error('Unknown mention type: ' + m.type);
             }
@@ -224,7 +225,7 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
-async function fetchFallback(message: Message|Comment): Promise<string> {
+async function fetchFallback(message: Message | Comment): Promise<string> {
     const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
         if (!mime) {
             return Texts.Notifications.DOCUMENT_ATTACH;
@@ -281,15 +282,15 @@ async function fetchFallback(message: Message|Comment): Promise<string> {
 
 export default {
     ModernMessage: {
-      __resolveType(src: Message | Comment) {
-          if (src instanceof Comment) {
-              return 'GeneralMessage';
-          } else if (src.isService) {
-              return 'ServiceMessage';
-          } else {
-              return 'GeneralMessage';
-          }
-      }
+        __resolveType(src: Message | Comment) {
+            if (src instanceof Comment) {
+                return 'GeneralMessage';
+            } else if (src.isService) {
+                return 'ServiceMessage';
+            } else {
+                return 'GeneralMessage';
+            }
+        }
     },
     ServiceMessage: {
         //
@@ -397,7 +398,7 @@ export default {
                 return [];
             }
             if (src instanceof Comment) {
-                return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
+                return src.attachments ? src.attachments.map(a => ({message: src, attachment: a})) : [];
             }
 
             let attachments: { attachment: MessageAttachment, message: Message }[] = [];
@@ -486,7 +487,7 @@ export default {
                 }
             }
             if (src.attachmentsModern) {
-                attachments.push(...(src.attachmentsModern.map(a => ({ message: src, attachment: a }))));
+                attachments.push(...(src.attachmentsModern.map(a => ({message: src, attachment: a}))));
             }
 
             return attachments;
@@ -544,20 +545,22 @@ export default {
                 return 'MessageSpanMultiUserMention';
             } else if (src.type === 'bold_text') {
                 return 'MessageSpanBold';
-            }  else if (src.type === 'italic_text') {
+            } else if (src.type === 'italic_text') {
                 return 'MessageSpanItalic';
-            }  else if (src.type === 'irony_text') {
+            } else if (src.type === 'irony_text') {
                 return 'MessageSpanIrony';
-            }  else if (src.type === 'inline_code_text') {
+            } else if (src.type === 'inline_code_text') {
                 return 'MessageSpanInlineCode';
-            }  else if (src.type === 'code_block_text') {
+            } else if (src.type === 'code_block_text') {
                 return 'MessageSpanCodeBlock';
-            }  else if (src.type === 'insane_text') {
+            } else if (src.type === 'insane_text') {
                 return 'MessageSpanInsane';
-            }  else if (src.type === 'loud_text') {
+            } else if (src.type === 'loud_text') {
                 return 'MessageSpanLoud';
-            }  else if (src.type === 'rotating_text') {
+            } else if (src.type === 'rotating_text') {
                 return 'MessageSpanRotating';
+            } else if (src.type === 'date_text') {
+                return 'MessageSpanDate';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -592,7 +595,7 @@ export default {
     //  Attachments
     //
     Image: {
-        url: src => buildBaseImageUrl({ uuid: src.uuid, crop: null }),
+        url: src => buildBaseImageUrl({uuid: src.uuid, crop: null}),
         metadata: src => {
             if (src.metadata) {
                 return {
@@ -648,8 +651,8 @@ export default {
         titleLink: src => src.attachment.titleLink,
         titleLinkHostname: src => src.attachment.titleLinkHostname,
         text: src => src.attachment.text,
-        icon: src => src.attachment.icon && { uuid: src.attachment.icon.uuid, metadata: src.attachment.iconInfo },
-        image: src => src.attachment.image && { uuid: src.attachment.image.uuid, metadata: src.attachment.imageInfo },
+        icon: src => src.attachment.icon && {uuid: src.attachment.icon.uuid, metadata: src.attachment.iconInfo},
+        image: src => src.attachment.image && {uuid: src.attachment.image.uuid, metadata: src.attachment.imageInfo},
         fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
         keyboard: src => {
             if (!src.attachment.keyboard) {
@@ -740,21 +743,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
                     } else if (span.type === 'Italic') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
                     } else if (span.type === 'InlineCode') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
                     } else if (span.type === 'Irony') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
                     } else if (span.type === 'Insane') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
                     } else if (span.type === 'Loud') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
                     } else if (span.type === 'Rotating') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
                     }
                 }
             }
@@ -842,21 +845,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
                     } else if (span.type === 'Italic') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
                     } else if (span.type === 'InlineCode') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
                     } else if (span.type === 'Irony') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
                     } else if (span.type === 'Insane') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
                     } else if (span.type === 'Loud') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
                     } else if (span.type === 'Rotating') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
                     }
                 }
             }

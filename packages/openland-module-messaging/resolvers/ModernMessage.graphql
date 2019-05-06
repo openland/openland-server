@@ -252,6 +252,12 @@ type MessageSpanRotating implements MessageSpan {
     length: Int!
 }
 
+type MessageSpanDate implements MessageSpan {
+    offset: Int!
+    length: Int!
+    date: Date!
+}
+
 enum MessageSpanType {
     Bold,
     Italic,
