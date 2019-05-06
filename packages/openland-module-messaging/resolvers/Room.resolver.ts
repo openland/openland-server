@@ -25,10 +25,10 @@ type RoomRoot = Conversation | number;
 function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => any) {
     return async (src: RoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
+            let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, src, args, showPlaceholder);
         } else {
-            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
+            let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id) : false;
             return handler(ctx, src.id, args, showPlaceholder);
         }
     };
@@ -37,10 +37,10 @@ function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T, s
 function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, showPlaceholder: boolean) => any) {
     return async (src: RoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
+            let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, (await FDB.RoomProfile.findById(ctx, src)), showPlaceholder);
         } else {
-            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
+            let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id) : false;
             return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id)), showPlaceholder);
         }
     };
@@ -540,8 +540,8 @@ export default {
                 let cid = IDs.Conversation.parse(args.roomId);
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
-                    settings.mute = args.settings.mute;
                     await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
+                    settings.mute = args.settings.mute;
                 }
                 return settings;
             });
