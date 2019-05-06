@@ -11,6 +11,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
+const userActivated = createHyperlogger<{ uid: number }>('user_created');
 const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_created');
 
 @injectable()
@@ -52,6 +53,7 @@ export class UserRepository {
                 user.status = 'activated';
                 await user.flush();
                 await this.markForUndexing(ctx, uid);
+                await userActivated.event(ctx, { uid });
                 return true;
             } else {
                 return false;
