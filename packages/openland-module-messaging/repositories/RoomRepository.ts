@@ -849,7 +849,7 @@ export class RoomRepository {
         }
     }
 
-    async userWasCickedOrLeavedRoom(ctx: Context, uid: number, cid: number) {
+    async userWasKickedOrLeavedRoom(ctx: Context, uid: number, cid: number) {
         let conv = await this.entities.Conversation.findById(ctx, cid);
         if (!conv || (conv.kind !== 'room' && conv.kind !== 'organization')) {
             return false;

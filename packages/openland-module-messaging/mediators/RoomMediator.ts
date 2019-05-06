@@ -565,8 +565,8 @@ export class RoomMediator {
         return await this.repo.checkCanUserSeeChat(ctx, uid, cid);
     }
 
-    async userWasCickedOrLeavedRoom(ctx: Context, uid: number, cid: number) {
-        return await this.repo.userWasCickedOrLeavedRoom(ctx, uid, cid);
+    async userWasKickedOrLeavedRoom(ctx: Context, uid: number, cid: number) {
+        return await this.repo.userWasKickedOrLeavedRoom(ctx, uid, cid);
     }
 
     async setFeatured(ctx: Context, cid: number, featued: boolean) {

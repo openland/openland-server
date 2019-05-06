@@ -25,10 +25,10 @@ type RoomRoot = Conversation | number;
 function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => any) {
     return async (src: RoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
+            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
             return handler(ctx, src, args, showPlaceholder);
         } else {
-            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
+            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
             return handler(ctx, src.id, args, showPlaceholder);
         }
     };
@@ -37,10 +37,10 @@ function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T, s
 function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, showPlaceholder: boolean) => any) {
     return async (src: RoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
+            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src);
             return handler(ctx, (await FDB.RoomProfile.findById(ctx, src)), showPlaceholder);
         } else {
-            let showPlaceholder = await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
+            let showPlaceholder = await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, ctx.auth!.uid!, src.id);
             return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id)), showPlaceholder);
         }
     };
@@ -301,7 +301,7 @@ export default {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Conversation) {
-                if (await Modules.Messaging.room.userWasCickedOrLeavedRoom(ctx, uid, id.id as number)) {
+                if (await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, uid, id.id as number)) {
                     return id.id;
                 } else {
                     await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
