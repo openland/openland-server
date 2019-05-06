@@ -114,6 +114,7 @@ export class CallRepository {
                 throw Error('Unable to find peer: ' + pid);
             }
             existing.enabled = false;
+            await existing.flush();
 
             // Kill all connections
             let connections = await this.entities.ConferenceConnection.allFromConference(ctx, existing.cid);
