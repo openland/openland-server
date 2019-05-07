@@ -5,13 +5,17 @@ import { CountersRepository } from './CountersRepository';
 import { MessagingRepository } from './MessagingRepository';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
+import { Modules } from '../../openland-modules/Modules';
+import { loadMessagingTestModule } from '../Messaging.container.test';
+import { inTx } from '../../foundation-orm/inTx';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('counters');
-        container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
-        container.bind('CountersRepository').to(CountersRepository).inSingletonScope();
-        container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+        loadMessagingTestModule();
+        // container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
+        // container.bind('CountersRepository').to(CountersRepository).inSingletonScope();
+        // container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
     });
     afterAll(() => {
@@ -211,5 +215,129 @@ describe('CountersRepository', () => {
         let receiverState = await urepo.getUserDialogState(ctx, R_UID, CID);
         expect(receiverState.unread).toBe(0);
         expect(receiverState.haveMention).toBe(false);
+    });
+
+    it('should not increment global counter for muted chat', async () => {
+        await inTx(createEmptyContext(), async ctx => {
+            let urepo = container.get<UserStateRepository>('UserStateRepository');
+            let mrepo = container.get<MessagingRepository>('MessagingRepository');
+            let repo = container.get<CountersRepository>('CountersRepository');
+
+            const muteChat = async (uid: number, cid: number) => {
+                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
+                await repo.onDialogMuteChange(ctx, uid, cid, true);
+                settings.mute = true;
+                await settings.flush();
+            };
+            let UID = 77;
+
+            let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            expect((await repo.onMessageReceived(ctx, UID, mid1)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid2)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid3)).delta).toBe(1);
+
+            let receiverState = await urepo.getUserDialogState(ctx, UID, 1);
+            let receiverGlobal = await urepo.getUserMessagingState(ctx, UID);
+
+            expect(receiverState.unread).toBe(3);
+            expect(receiverGlobal.unread).toBe(3);
+
+            await muteChat(UID, 1);
+
+            let mid4 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid5 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid6 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            expect((await repo.onMessageReceived(ctx, UID, mid4)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid5)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid6)).delta).toBe(1);
+
+            receiverState = await urepo.getUserDialogState(ctx, UID, 1);
+            receiverGlobal = await urepo.getUserMessagingState(ctx, UID);
+            expect(receiverState.unread).toBe(6);
+            expect(receiverGlobal.unread).toBe(0);
+        });
+    });
+
+    it('should decrease global unread on dialog mute', async () => {
+        await inTx(createEmptyContext(), async ctx => {
+            let urepo = container.get<UserStateRepository>('UserStateRepository');
+            let mrepo = container.get<MessagingRepository>('MessagingRepository');
+            let repo = container.get<CountersRepository>('CountersRepository');
+
+            const muteChat = async (uid: number, cid: number) => {
+                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
+                await repo.onDialogMuteChange(ctx, uid, cid, true);
+                settings.mute = true;
+                await settings.flush();
+            };
+            let UID = 78;
+
+            let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            expect((await repo.onMessageReceived(ctx, UID, mid1)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid2)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid3)).delta).toBe(1);
+
+            let receiverState = await urepo.getUserDialogState(ctx, UID, 1);
+            let receiverGlobal = await urepo.getUserMessagingState(ctx, UID);
+
+            expect(receiverState.unread).toBe(3);
+            expect(receiverGlobal.unread).toBe(3);
+
+            await muteChat(UID, 1);
+
+            receiverState = await urepo.getUserDialogState(ctx, UID, 1);
+            receiverGlobal = await urepo.getUserMessagingState(ctx, UID);
+            expect(receiverState.unread).toBe(3);
+            expect(receiverGlobal.unread).toBe(0);
+        });
+    });
+
+    it('should increase global unread on dialog unmute', async () => {
+        await inTx(createEmptyContext(), async ctx => {
+            let urepo = container.get<UserStateRepository>('UserStateRepository');
+            let mrepo = container.get<MessagingRepository>('MessagingRepository');
+            let repo = container.get<CountersRepository>('CountersRepository');
+
+            const muteChat = async (uid: number, cid: number) => {
+                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
+                await repo.onDialogMuteChange(ctx, uid, cid, true);
+                settings.mute = true;
+                await settings.flush();
+            };
+            let UID = 79;
+
+            const unMuteChat = async (uid: number, cid: number) => {
+                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
+                await repo.onDialogMuteChange(ctx, uid, cid, false);
+                settings.mute = false;
+                await settings.flush();
+            };
+
+            await muteChat(UID, 1);
+
+            let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+            expect((await repo.onMessageReceived(ctx, UID, mid1)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid2)).delta).toBe(1);
+            expect((await repo.onMessageReceived(ctx, UID, mid3)).delta).toBe(1);
+
+            let receiverState = await urepo.getUserDialogState(ctx, UID, 1);
+            let receiverGlobal = await urepo.getUserMessagingState(ctx, UID);
+
+            expect(receiverState.unread).toBe(3);
+            expect(receiverGlobal.unread).toBe(0);
+
+            await unMuteChat(UID, 1);
+
+            receiverState = await urepo.getUserDialogState(ctx, UID, 1);
+            receiverGlobal = await urepo.getUserMessagingState(ctx, UID);
+            expect(receiverState.unread).toBe(3);
+            expect(receiverGlobal.unread).toBe(3);
+        });
     });
 });

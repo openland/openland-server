@@ -145,7 +145,8 @@ export class DeliveryRepository {
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_mute_changed',
                 cid,
-                mute
+                mute,
+                allUnread: global.unread
             });
         });
     }
@@ -209,6 +210,21 @@ export class DeliveryRepository {
                     allUnread: global.unread
                 });
             }
+        });
+    }
+
+    async deliverCurrentCountersToUser(parent: Context, uid: number, cid: number) {
+        await inTx(parent, async (ctx) => {
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, cid);
+            global.seq++;
+            await global.flush(); // Fix for delivery crashing
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'message_read',
+                cid: cid,
+                unread: local.unread,
+                allUnread: global.unread
+            });
         });
     }
 }

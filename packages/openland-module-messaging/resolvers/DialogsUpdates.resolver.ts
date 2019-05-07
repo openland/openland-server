@@ -116,6 +116,7 @@ export default {
     DialogMuteChanged: {
         cid: src => IDs.Conversation.serialize(src.cid!),
         mute: src => src.mute,
+        globalUnread: src => src.allUnread
     },
     DialogMentionedChanged: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),

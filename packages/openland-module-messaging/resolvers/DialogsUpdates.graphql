@@ -73,6 +73,7 @@ type DialogBump {
 type DialogMuteChanged {
     cid: ID!
     mute: Boolean!
+    globalUnread: Int!
 }
 
 type DialogMentionedChanged {

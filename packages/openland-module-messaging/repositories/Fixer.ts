@@ -32,14 +32,21 @@ export class FixerRepository {
                         continue;
                     }
                 }
+                let settings = await this.entities.UserDialogSettings.findById(ctx, uid, a.cid);
+                let isMuted = (settings && settings.mute) || false;
+
                 if (a.readMessageId) {
                     let total = Math.max(0, (await this.entities.Message.allFromChatAfter(ctx, a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length - 1);
-                    totalUnread += total;
+                    if (!isMuted) {
+                        totalUnread += total;
+                    }
                     logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
                     a.unread = total;
                 } else {
                     let total = Math.max(0, (await this.entities.Message.allFromChat(ctx, a.cid)).filter((v) => v.uid !== uid).length);
-                    totalUnread += total;
+                    if (!isMuted) {
+                        totalUnread += total;
+                    }
                     logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
                     a.unread = total;
                 }
