@@ -13,7 +13,11 @@ export default {
         betaFixCountersForAll: withPermission('super-admin', async (ctx, args) => {
             let users = await FDB.User.findAll(createEmptyContext());
             for (let user of users) {
-                await Modules.Messaging.fixer.fixForUser(createEmptyContext(), user.id);
+                try {
+                    await Modules.Messaging.fixer.fixForUser(createEmptyContext(), user.id);
+                } catch (e) {
+                    console.log('betaFixCountersForAll_error', e);
+                }
             }
             return true;
         }),
