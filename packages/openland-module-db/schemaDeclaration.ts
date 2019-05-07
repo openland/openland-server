@@ -651,6 +651,12 @@ const Schema = declareSchema(() => {
                 jField('offset', jNumber());
                 jField('length', jNumber());
             }),
+            json(() => {
+                jField('type', jString('date_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('date', jNumber());
+            }),
         ))).nullable();
         jsonField('attachments', jVec(jEnum(
             json(() => {

@@ -5,10 +5,16 @@ import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
-    BoldTextSpan,
-    LinkSpan, MessageAttachment, MessageAttachmentInput, MultiUserMentionSpan, RoomMentionSpan, UserMentionSpan
+    BoldTextSpan, DateTextSpan,
+    LinkSpan,
+    MessageAttachment,
+    MessageAttachmentInput,
+    MultiUserMentionSpan,
+    RoomMentionSpan,
+    UserMentionSpan
 } from '../openland-module-messaging/MessageInput';
 import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
+import * as Chrono from 'chrono-node';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -17,7 +23,8 @@ export type CommentSpan =
     MultiUserMentionSpan |
     RoomMentionSpan |
     LinkSpan |
-    BoldTextSpan;
+    BoldTextSpan |
+    DateTextSpan;
 
 export interface CommentInput {
     message?: string | null;
@@ -36,58 +43,6 @@ export type CommentPeerType = 'message';
 export class CommentsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
-
-    async editComment(parent: Context, commentId: number, newComment: CommentInput, markEdited: boolean) {
-        return await inTx(parent, async (ctx) => {
-            let comment = await this.entities.Comment.findById(ctx, commentId);
-            if (!comment || comment.deleted) {
-                throw new NotFoundError();
-            }
-
-            //
-            // Parse links
-            //
-            let spans: CommentSpan[] | null = null;
-
-            if (newComment.message) {
-                spans = newComment.spans ? [...newComment.spans] : [];
-                let links = this.parseLinks(newComment.message || '');
-                if (links.length > 0) {
-                    spans.push(...links);
-                }
-                comment.spans = spans;
-            }
-
-            //
-            //  Update comment
-            //
-            if (newComment.message) {
-                comment.text = newComment.message;
-            }
-            if (newComment.attachments) {
-                if (newComment.appendAttachments) {
-                    comment.attachments = [...(comment.attachments || []), ...await this.prepateAttachments(ctx, newComment.attachments || [])];
-                } else {
-                    comment.attachments = await this.prepateAttachments(ctx, newComment.attachments || []);
-                }
-            }
-            if (markEdited) {
-                comment.edited = true;
-            }
-            await comment.flush();
-
-            //
-            // Create event
-            //
-            let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
-                uid: comment.uid,
-                commentId,
-                kind: 'comment_updated'
-            });
-            return comment;
-        });
-    }
 
     async createComment(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
@@ -108,6 +63,13 @@ export class CommentsRepository {
             let links = this.parseLinks(commentInput.message || '');
             if (links.length > 0) {
                 spans.push(...links);
+            }
+            //
+            // Parse dates
+            //
+            let dates = this.parseDates(commentInput.message || '');
+            if (dates.length > 0) {
+                spans.push(...dates);
             }
 
             //
@@ -146,6 +108,65 @@ export class CommentsRepository {
                 kind: 'comment_received'
             });
 
+            return comment;
+        });
+    }
+
+    async editComment(parent: Context, commentId: number, newComment: CommentInput, markEdited: boolean) {
+        return await inTx(parent, async (ctx) => {
+            let comment = await this.entities.Comment.findById(ctx, commentId);
+            if (!comment || comment.deleted) {
+                throw new NotFoundError();
+            }
+
+            let spans: CommentSpan[] | null = null;
+
+            if (newComment.message) {
+                spans = newComment.spans ? [...newComment.spans] : [];
+                //
+                // Parse links
+                //
+                let links = this.parseLinks(newComment.message || '');
+                if (links.length > 0) {
+                    spans.push(...links);
+                }
+                //
+                // Parse dates
+                //
+                let dates = this.parseDates(newComment.message || '');
+                if (dates.length > 0) {
+                    spans.push(...dates);
+                }
+                comment.spans = spans;
+            }
+
+            //
+            //  Update comment
+            //
+            if (newComment.message) {
+                comment.text = newComment.message;
+            }
+            if (newComment.attachments) {
+                if (newComment.appendAttachments) {
+                    comment.attachments = [...(comment.attachments || []), ...await this.prepateAttachments(ctx, newComment.attachments || [])];
+                } else {
+                    comment.attachments = await this.prepateAttachments(ctx, newComment.attachments || []);
+                }
+            }
+            if (markEdited) {
+                comment.edited = true;
+            }
+            await comment.flush();
+
+            //
+            // Create event
+            //
+            let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
+            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+                uid: comment.uid,
+                commentId,
+                kind: 'comment_updated'
+            });
             return comment;
         });
     }
@@ -312,6 +333,19 @@ export class CommentsRepository {
             length: url.raw.length,
             url: url.url,
         } as LinkSpan));
+    }
+
+    private parseDates(message: string): DateTextSpan[] {
+        let parsed = Chrono.parse(message, new Date());
+
+        return parsed.map(part => {
+            return {
+                type: 'date_text',
+                offset: part.index,
+                length: part.text.length,
+                date: part.start.date().getTime()
+            };
+        });
     }
 
     private async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
