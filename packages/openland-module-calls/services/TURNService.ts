@@ -22,7 +22,7 @@ export async function resolveTurnServices() {
             username: v.username,
             credential: v.credential
         }));
-        iceServerExpire = now + (parseInt(res.ttl, 10)) / 2;
+        iceServerExpire = now + ((parseInt(res.ttl, 10)) * 1000 / 2);
         return iceServers;
     }
     return [{
