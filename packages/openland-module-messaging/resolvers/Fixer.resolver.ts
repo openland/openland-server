@@ -19,6 +19,7 @@ export default {
                     console.log('betaFixCountersForAll_error', e);
                 }
             }
+            console.log('betaFixCountersForAll_done');
             return true;
         }),
     }
