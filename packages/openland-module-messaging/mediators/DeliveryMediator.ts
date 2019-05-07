@@ -73,9 +73,9 @@ export class DeliveryMediator {
     }
 
     onDialogMuteChanged = async (ctx: Context, uid: number, cid: number, mute: boolean) => {
-        await this.counters.onDialogMuteChange(ctx, uid, cid, mute);
+        // await this.counters.onDialogMuteChange(ctx, uid, cid, mute);
         await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
-        await this.repo.deliverCurrentCountersToUser(ctx, uid, cid);
+        // await this.repo.deliverCurrentCountersToUser(ctx, uid, cid);
     }
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
