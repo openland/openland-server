@@ -5,9 +5,7 @@ import { CountersRepository } from './CountersRepository';
 import { MessagingRepository } from './MessagingRepository';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
-import { Modules } from '../../openland-modules/Modules';
 import { loadMessagingTestModule } from '../Messaging.container.test';
-import { inTx } from '../../foundation-orm/inTx';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
