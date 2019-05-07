@@ -153,13 +153,13 @@ export default {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
 
-            // let chat = await FDB.Conversation.findById(ctx, coid);
+            let chat = await FDB.Conversation.findById(ctx, coid);
             await Modules.Calls.repo.removePeer(ctx, pid);
-            // if (chat && chat.kind === 'private') {
-            //     await Modules.Calls.repo.endConference(ctx, coid);
-            // } else {
-            //     await Modules.Calls.repo.removePeer(ctx, pid);
-            // }
+            if (chat && chat.kind === 'private') {
+                await Modules.Calls.repo.endConference(ctx, coid);
+            } else {
+                await Modules.Calls.repo.removePeer(ctx, pid);
+            }
 
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
