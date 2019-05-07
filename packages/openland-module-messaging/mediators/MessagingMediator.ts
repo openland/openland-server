@@ -262,7 +262,7 @@ export class MessagingMediator {
                 type: 'date_text',
                 offset: part.index,
                 length: part.text.length,
-                date: part.ref.getTime()
+                date: part.start.date().getTime()
             };
         });
     }
