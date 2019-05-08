@@ -2,6 +2,7 @@ import { Modules } from '../openland-modules/Modules';
 import { createEmptyContext } from './Context';
 
 export function debugTask(uid: number, name: string, handler: (log: (str: string) => Promise<void>) => Promise<string>) {
+    // tslint:disable-next-line:no-floating-promises
     (async () => {
         let key = (Math.random() * Math.pow(2, 55)).toString(16);
         let superNotificationsAppId = await Modules.Super.getEnvVar<number>(createEmptyContext(), 'super-notifications-app-id');
