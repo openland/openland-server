@@ -3,20 +3,27 @@ import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
 import { Context } from 'openland-utils/Context';
 import { injectable, inject } from 'inversify';
+import { UserStateRepository } from './UserStateRepository';
 
 const logger = createLogger('fixer');
 
 @injectable()
 export class FixerRepository {
     private readonly entities: AllEntities;
+    private readonly userState: UserStateRepository;
 
-    constructor(@inject('FDB') entities: AllEntities) {
+    constructor(
+        @inject('FDB') entities: AllEntities,
+        @inject('UserStateRepository') userState: UserStateRepository
+    ) {
         this.entities = entities;
+        this.userState = userState;
     }
 
     async fixForUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
+            let processedIds: number[] = [];
             let all = await this.entities.UserDialog.allFromUser(ctx, uid);
             let totalUnread = 0;
             for (let a of all) {
@@ -32,24 +39,20 @@ export class FixerRepository {
                         continue;
                     }
                 }
-                // let settings = await this.entities.UserDialogSettings.findById(ctx, uid, a.cid);
-                // let isMuted = (settings && settings.mute) || false;
 
                 if (a.readMessageId) {
-                    let total = Math.max(0, (await this.entities.Message.allFromChatAfter(ctx, a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length - 1);
-                    // if (!isMuted) {
+                    let total = Math.max(0, (await this.entities.Message.allFromChatAfter(ctx, a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length);
                     totalUnread += total;
-                    // }
                     logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
                     a.unread = total;
                 } else {
                     let total = Math.max(0, (await this.entities.Message.allFromChat(ctx, a.cid)).filter((v) => v.uid !== uid).length);
-                    // if (!isMuted) {
                     totalUnread += total;
-                    // }
                     logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
                     a.unread = total;
                 }
+
+                processedIds.push(a.cid);
             }
             let ex = await this.entities.UserMessagingState.findById(ctx, uid);
             if (ex) {
@@ -57,6 +60,22 @@ export class FixerRepository {
                 ex.unread = totalUnread;
             } else {
                 await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
+            }
+
+            //
+            // Deliver new counters
+            //
+            for (let cid of processedIds) {
+                let global = await this.userState.getUserMessagingState(ctx, uid);
+                let local = await this.userState.getUserDialogState(ctx, uid, cid);
+                global.seq++;
+                await global.flush();
+                await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                    kind: 'message_read',
+                    cid: cid,
+                    unread: local.unread,
+                    allUnread: global.unread
+                });
             }
             return true;
         });
