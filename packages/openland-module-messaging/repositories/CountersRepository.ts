@@ -56,7 +56,6 @@ export class CountersRepository {
                 global.unread++;
                 // }
 
-                console.log(77777777777, local.unread, global.unread);
                 return { delta: 1, setMention };
             }
             return { delta: 0, setMention: false };
