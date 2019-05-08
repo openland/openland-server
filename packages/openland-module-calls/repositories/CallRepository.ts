@@ -257,6 +257,33 @@ export class CallRepository {
         });
     }
 
+    streamFailed = async (parent: Context, id: number, peerId: number) => {
+        await inTx(parent, async (ctx) => {
+            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            if (!peer || !peer.enabled) {
+                return;
+            }
+            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            if (!stream) {
+                throw Error('Unable to find stream');
+            }
+
+            stream.state = 'completed';
+
+            await this.entities.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
+                kind: 'direct',
+                peer1: stream.peer1,
+                peer2: stream.peer2,
+                cid: stream.cid,
+                state: 'wait-offer',
+                ice1: [],
+                ice2: []
+            });
+
+            await this.bumpVersion(ctx, stream!.cid);
+        });
+    }
+
     streamCandidate = async (parent: Context, id: number, peerId: number, candidate: string) => {
         await inTx(parent, async (ctx) => {
             let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
