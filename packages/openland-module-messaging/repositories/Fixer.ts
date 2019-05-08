@@ -58,10 +58,10 @@ export class FixerRepository {
             if (ex) {
                 logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + ex.unread + ', updated: ' + totalUnread);
                 ex.unread = totalUnread;
+                await ex.flush();
             } else {
                 await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
             }
-
             //
             // Deliver new counters
             //

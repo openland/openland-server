@@ -50,12 +50,13 @@ export class CountersRepository {
                 }
 
                 // let isMuted = (await this.userState.getRoomSettings(ctx, uid, message.cid)).mute;
-
                 // Update Counters
                 local.unread++;
                 // if (!isMuted) {
                 global.unread++;
                 // }
+
+                console.log(77777777777, local.unread, global.unread);
                 return { delta: 1, setMention };
             }
             return { delta: 0, setMention: false };
