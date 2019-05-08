@@ -268,17 +268,19 @@ export class CallRepository {
                 throw Error('Unable to find stream');
             }
 
-            stream.state = 'completed';
+            if (stream.state !== 'completed') {
+                stream.state = 'completed';
 
-            await this.entities.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
-                kind: 'direct',
-                peer1: stream.peer1,
-                peer2: stream.peer2,
-                cid: stream.cid,
-                state: 'wait-offer',
-                ice1: [],
-                ice2: []
-            });
+                await this.entities.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
+                    kind: 'direct',
+                    peer1: stream.peer1,
+                    peer2: stream.peer2,
+                    cid: stream.cid,
+                    state: 'wait-offer',
+                    ice1: [],
+                    ice2: []
+                });
+            }
 
             await this.bumpVersion(ctx, stream!.cid);
         });
