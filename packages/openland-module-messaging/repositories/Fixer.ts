@@ -23,7 +23,7 @@ export class FixerRepository {
     async fixForUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
-            let processedIds: number[] = [];
+            let processed: {cid: number, unread: number}[] = [];
             let all = await this.entities.UserDialog.allFromUser(ctx, uid);
             let totalUnread = 0;
             for (let a of all) {
@@ -52,7 +52,7 @@ export class FixerRepository {
                     a.unread = total;
                 }
 
-                processedIds.push(a.cid);
+                processed.push({ cid: a.cid, unread: a.unread });
             }
             let ex = await this.entities.UserMessagingState.findById(ctx, uid);
             if (ex) {
@@ -65,16 +65,15 @@ export class FixerRepository {
             //
             // Deliver new counters
             //
-            for (let cid of processedIds) {
+            for (let chat of processed) {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
-                let local = await this.userState.getUserDialogState(ctx, uid, cid);
                 global.seq++;
                 await global.flush();
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
-                    cid: cid,
-                    unread: local.unread,
-                    allUnread: global.unread
+                    cid: chat.cid,
+                    unread: chat.unread,
+                    allUnread: totalUnread
                 });
             }
             return true;
