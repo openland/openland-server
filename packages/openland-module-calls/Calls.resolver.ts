@@ -178,6 +178,14 @@ export default {
             return { id: cid, peerId: pid };
         }),
 
+        mediaStreamNegotiationNeeded: withUser(async (ctx, args, uid) => {
+            let mid = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid);
+            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            return { id: cid, peerId: pid };
+        }),
+
         mediaStreamAnswer: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);

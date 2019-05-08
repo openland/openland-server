@@ -70,6 +70,7 @@ extend type Mutation {
     conferenceLeave(id: ID!, peerId: ID!): Conference!
 
     mediaStreamOffer(id: ID!, peerId: ID!, offer: String!): ConferenceMedia!
+    mediaStreamNegotiationNeeded(id: ID!, peerId: ID!): ConferenceMedia!
     mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!): ConferenceMedia!
     mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
 
