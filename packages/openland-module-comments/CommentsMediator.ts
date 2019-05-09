@@ -69,7 +69,7 @@ export class CommentsMediator {
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
-            if (comment.uid !== uid) {
+            if (comment.uid !== uid && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
                 throw new AccessDeniedError();
             }
 
