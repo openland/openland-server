@@ -309,7 +309,7 @@ export class RoomRepository {
             };
 
             await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                ... buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
+                ...buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
                 isService: true
             });
             return true;
@@ -877,7 +877,53 @@ export class RoomRepository {
         throw new NotFoundError();
     }
 
-    //
+    async userAvailableRooms(parent: Context, uid: number, limit: number, after?: number) {
+        let userOrgs = await Modules.Orgs.findUserOrganizations(parent, uid);
+
+        let availableRooms = new Set<number>();
+        //
+        //  Find all communities
+        //
+        let allCommunities = await this.entities.Organization.allFromCommunity(parent);
+
+        let organizations = [...userOrgs, ...allCommunities.map(c => c.id)];
+
+        //
+        //  Rooms from orgs & communities
+        //
+        for (let orgId of organizations) {
+            let org = await this.entities.Organization.findById(parent, orgId);
+
+            if (!org) {
+                continue;
+            }
+
+            let isUserMember = userOrgs.indexOf(orgId) > -1;
+
+            //
+            //  Add all rooms from communities
+            //
+            if (org.kind === 'community') {
+                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
+                rooms.map(r => availableRooms.add(r.id));
+            } else if (isUserMember) {
+                //
+                //  Add rooms from org if user is member
+                //
+                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
+                for (let room of rooms) {
+                    if (room.kind === 'public') {
+                        availableRooms.add(room.id);
+                    }
+                }
+            }
+        }
+
+        let res = [...availableRooms];
+        let start = after !== undefined ? res.findIndex(r => r === after) + 1 : 0;
+        return res.slice(start, start + limit);
+    }
+
     //  Returns chats available to user
     //
     async findAvailableRooms(parent: Context, uid: number) {

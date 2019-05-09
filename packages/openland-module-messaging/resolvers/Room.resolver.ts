@@ -390,6 +390,12 @@ export default {
         betaAvailableRooms: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.findAvailableRooms(ctx, uid);
         }),
+        betaUserRooms: withUser(async (ctx, args, uid) => {
+            return await Modules.Messaging.room.userRooms(ctx, uid, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
+        }),
+        betaUserAvailableRooms: withUser(async (ctx, args, uid) => {
+            return await Modules.Messaging.room.userAvailableRooms(ctx, uid, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
+        }),
     },
     Mutation: {
         //
