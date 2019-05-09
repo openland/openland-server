@@ -920,7 +920,7 @@ export class RoomRepository {
         }
 
         // uxcude already joined rooms
-        let userRooms = (await this.entities.RoomParticipant.allFromActive(parent, uid)).map(p => p.cid);
+        let userRooms = (await this.entities.RoomParticipant.allFromUserActive(parent, uid)).map(p => p.cid);
         let res = [...availableRooms].filter(id => userRooms.indexOf(id) === -1);
 
         let start = after !== undefined ? res.findIndex(r => r === after) + 1 : 0;
