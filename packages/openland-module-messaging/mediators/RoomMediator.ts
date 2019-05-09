@@ -606,6 +606,18 @@ export class RoomMediator {
         return await this.repo.findAvailableRooms(ctx, uid);
     }
 
+    async userRooms(parent: Context, uid: number, limit?: number, after?: number) {
+        if (after !== undefined) {
+            return (await this.entities.RoomParticipant.rangeFromUserActiveAfter(parent, uid, limit || 10000, after)).map(p => p.cid);
+        } else {
+            return (await this.entities.RoomParticipant.rangeFromUserActive(parent, uid, limit || 10000)).map(p => p.cid);
+        }
+    }
+
+    async userAvailableRooms(ctx: Context, uid: number, limit?: number, after?: number) {
+        return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, after);
+    }
+
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {
         let emojies = ['🖖', '🖐️', '✋', '🙌', '👏', '👋'];
         let emoji = emojies[Math.floor(Math.random() * emojies.length)] + ' ';
