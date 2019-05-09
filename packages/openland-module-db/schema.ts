@@ -9163,6 +9163,161 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         return new UserStorageRecord(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
     }
 }
+export interface DebugEventShape {
+    key?: string| null;
+}
+
+export class DebugEvent extends FEntity {
+    readonly entityName: 'DebugEvent' = 'DebugEvent';
+    get uid(): number { return this._value.uid; }
+    get seq(): number { return this._value.seq; }
+    get key(): string | null {
+        let res = this._value.key;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set key(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+}
+
+export class DebugEventFactory extends FEntityFactory<DebugEvent> {
+    static schema: FEntitySchema = {
+        name: 'DebugEvent',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+            { name: 'seq', type: 'number' },
+        ],
+        fields: [
+            { name: 'key', type: 'string' },
+        ],
+        indexes: [
+            { name: 'user', type: 'range', fields: ['uid', 'seq'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isString('key', src.key);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'debugEvent'),
+            { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, hasLiveStreams: true },
+            [new FEntityIndex('user', ['uid', 'seq'], false)],
+            'DebugEvent'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(ctx: Context, uid: number, seq: number) {
+        return await this._findById(ctx, [uid, seq]);
+    }
+    async create(ctx: Context, uid: number, seq: number, shape: DebugEventShape) {
+        return await this._create(ctx, [uid, seq], { uid, seq, ...shape });
+    }
+    watch(ctx: Context, uid: number, seq: number, cb: () => void) {
+        return this._watch(ctx, [uid, seq], cb);
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+    }
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 
+    }
+    createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, ['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new DebugEvent(ctx, this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
+    }
+}
+export interface DebugEventStateShape {
+    seq: number;
+}
+
+export class DebugEventState extends FEntity {
+    readonly entityName: 'DebugEventState' = 'DebugEventState';
+    get uid(): number { return this._value.uid; }
+    get seq(): number {
+        return this._value.seq;
+    }
+    set seq(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.seq) { return; }
+        this._value.seq = value;
+        this.markDirty();
+    }
+}
+
+export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
+    static schema: FEntitySchema = {
+        name: 'DebugEventState',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'seq', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'debugEventState'),
+            { enableVersioning: true, enableTimestamps: true, validator: DebugEventStateFactory.validate, hasLiveStreams: false },
+            [],
+            'DebugEventState'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0] };
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+    async create(ctx: Context, uid: number, shape: DebugEventStateShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new DebugEventState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -9237,6 +9392,8 @@ export interface AllEntities {
     readonly AppHook: AppHookFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
+    readonly DebugEvent: DebugEventFactory;
+    readonly DebugEventState: DebugEventStateFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -9311,6 +9468,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         AppHookFactory.schema,
         UserStorageNamespaceFactory.schema,
         UserStorageRecordFactory.schema,
+        DebugEventFactory.schema,
+        DebugEventStateFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Environment: EnvironmentFactory;
@@ -9384,6 +9543,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     AppHook: AppHookFactory;
     UserStorageNamespace: UserStorageNamespaceFactory;
     UserStorageRecord: UserStorageRecordFactory;
+    DebugEvent: DebugEventFactory;
+    DebugEventState: DebugEventStateFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -9529,6 +9690,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.UserStorageNamespace);
         this.UserStorageRecord = new UserStorageRecordFactory(connection);
         this.allEntities.push(this.UserStorageRecord);
+        this.DebugEvent = new DebugEventFactory(connection);
+        this.allEntities.push(this.DebugEvent);
+        this.DebugEventState = new DebugEventStateFactory(connection);
+        this.allEntities.push(this.DebugEventState);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -9747,6 +9912,12 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserStorageRecord(): UserStorageRecordFactory {
         return this.resolver().UserStorageRecord;
+    }
+    get DebugEvent(): DebugEventFactory {
+        return this.resolver().DebugEvent;
+    }
+    get DebugEventState(): DebugEventStateFactory {
+        return this.resolver().DebugEventState;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

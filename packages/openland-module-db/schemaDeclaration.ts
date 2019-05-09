@@ -1064,6 +1064,25 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    //
+    //  Debug
+    //
+    entity('DebugEvent', () => {
+        primaryKey('uid', 'number');
+        primaryKey('seq', 'number');
+        field('key', 'string').nullable();
+        rangeIndex('user', ['uid', 'seq']).withStreaming();
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('DebugEventState', () => {
+        primaryKey('uid', 'number');
+        field('seq', 'number');
+        enableVersioning();
+        enableTimestamps();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

@@ -1,11 +1,23 @@
 import {
-    Conversation, ConversationRoom, FeatureFlag,
+    Conversation,
+    ConversationRoom,
+    FeatureFlag,
     Message,
     Organization,
-    User, UserDialogEvent,
+    User,
+    UserDialogEvent,
     UserDialogSettings,
     UserProfile,
-    FeedEvent, AuthToken, ConversationEvent, AppHook, Presence, EnvironmentVariable, Comment, CommentEvent, UserStorageRecord
+    FeedEvent,
+    AuthToken,
+    ConversationEvent,
+    AppHook,
+    Presence,
+    EnvironmentVariable,
+    Comment,
+    CommentEvent,
+    UserStorageRecord,
+    DebugEvent
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
@@ -258,4 +270,10 @@ export namespace GQLRoots {
     //
     export type OnlineEventRoot = any;
     export type ChatOnlineEventRoot = any;
+
+    //
+    //  Debug
+    //
+    export type DebugEventRoot = DebugEvent;
+    export type DebugEventsStateRoot = { state: string };
 }

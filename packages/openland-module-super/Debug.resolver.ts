@@ -1,4 +1,4 @@
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { FDB } from '../openland-module-db/FDB';
@@ -10,8 +10,31 @@ import { jBool, jField, jNumber, json, jString, validateJson } from '../openland
 import { inTx } from '../foundation-orm/inTx';
 import { Context, createEmptyContext } from '../openland-utils/Context';
 import * as Chrono from 'chrono-node';
+import { AppContext } from '../openland-modules/AppContext';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { delay } from '../openland-utils/timer';
+import { randomInt } from '../openland-utils/random';
 
 const URLInfoService = createUrlInfoService();
+
+const nextDebugSeq = async (ctx: Context, uid: number) => {
+    let state = await FDB.DebugEventState.findById(ctx, uid!);
+    if (!state) {
+        await FDB.DebugEventState.create(ctx, uid!, { seq: 1 });
+        return 1;
+    } else {
+        state.seq++;
+        await state.flush();
+        return state.seq;
+    }
+};
+
+const createDebugEvent = async (parent: Context, uid: number, key: string) => {
+    return inTx(parent, async (ctx) => {
+        let seq = await nextDebugSeq(ctx, uid);
+        await FDB.DebugEvent.create(ctx, uid!, seq, { key });
+    });
+};
 
 export default {
     DebugUserPresence: {
@@ -21,6 +44,10 @@ export default {
         lastSeenTimeout: src => src.lastSeenTimeout,
         platform: src => src.platform,
         active: src => src.active,
+    },
+    DebugEvent: {
+        seq: src => src.seq,
+        key: src => src.key
     },
     Query: {
         debugParseID: withPermission('super-admin', async (ctx, args) => {
@@ -113,6 +140,10 @@ export default {
 
             console.log(res);
             return res;
+        }),
+        debugEventsState: withPermission('super-admin', async (ctx, args) => {
+            let tail = await FDB.DebugEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
+            return { state: tail };
         }),
     },
     Mutation: {
@@ -463,5 +494,40 @@ export default {
                 return true;
             });
         })
+    },
+    Subscription: {
+        debugEvents: {
+            resolve: async msg => {
+                return msg;
+            },
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+
+                if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+                    throw new AccessDeniedError();
+                }
+
+                // tslint:disable-next-line:no-floating-promises
+                (async () => {
+                    for (let i = 0; i < args.eventsCount; i++) {
+                        // tslint:disable-next-line:no-floating-promises
+                        (async () => {
+                            if (args.randomDelays) {
+                                await delay(randomInt(0, 5000));
+                            }
+                            await createDebugEvent(createEmptyContext(), uid!, args.seed + ':' + i.toString(10));
+                        })();
+                    }
+                })();
+
+                let generator = FDB.DebugEvent.createUserLiveStream(ctx, uid, 20, args.fromState || undefined);
+
+                for await (let event of generator) {
+                    for (let item of event.items)  {
+                        yield item;
+                    }
+                }
+            }
+        }
     }
 } as GQLResolver;
