@@ -181,6 +181,7 @@ export class CommentsRepository {
             comment.deleted = true;
 
             let childs = await this.entities.Comment.allFromChild(ctx, comment.id);
+            let numberOfCommentsMarkedInvisible = 0;
 
             // Mark visible if comment have visible sub-comments
             if (childs.find(c => c.visible || false)) {
@@ -188,6 +189,7 @@ export class CommentsRepository {
                 await comment.flush();
             } else {
                 comment.visible = false;
+                numberOfCommentsMarkedInvisible++;
                 await comment.flush();
             }
 
@@ -205,6 +207,7 @@ export class CommentsRepository {
 
                     if (!parentChilds.find(c => c.id !== comment!.id && (c.visible || false))) {
                         parentComment!.visible = false;
+                        numberOfCommentsMarkedInvisible++;
                         await parentComment!.flush();
                         comm = parentComment!;
                     } else {
@@ -217,7 +220,8 @@ export class CommentsRepository {
             // Update state
             //
             let state = await this.getCommentsState(ctx, comment.peerType, comment.peerId);
-            state.commentsCount--;
+            // state.commentsCount--;
+            state.commentsCount -= numberOfCommentsMarkedInvisible;
 
             //
             // Create event
