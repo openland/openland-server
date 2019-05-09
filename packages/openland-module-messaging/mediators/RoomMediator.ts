@@ -608,7 +608,7 @@ export class RoomMediator {
 
     async userRooms(parent: Context, uid: number, limit?: number, after?: number) {
         if (after !== undefined) {
-            return (await this.entities.RoomParticipant.rangeFromUserActiveAfter(parent, uid, limit || 10000, after)).map(p => p.cid);
+            return (await this.entities.RoomParticipant.rangeFromUserActiveAfter(parent, uid, after, limit || 10000)).map(p => p.cid);
         } else {
             return (await this.entities.RoomParticipant.rangeFromUserActive(parent, uid, limit || 10000)).map(p => p.cid);
         }
