@@ -513,7 +513,7 @@ export default {
                         // tslint:disable-next-line:no-floating-promises
                         (async () => {
                             if (args.randomDelays) {
-                                await delay(randomInt(0, 5000));
+                                await delay(randomInt(0, 10000));
                             }
                             await createDebugEvent(createEmptyContext(), uid!, args.seed + ':' + i.toString(10));
                         })();
