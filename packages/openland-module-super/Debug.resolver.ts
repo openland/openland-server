@@ -504,7 +504,7 @@ export default {
                         await inTx(createEmptyContext(), async _ctx => {
                             let all = await FDB.UserDialog.allFromUser(_ctx, user.id);
                             for (let dialog of all) {
-                                let conv = (await FDB.Conversation.findById(ctx, dialog.cid))!;
+                                let conv = (await FDB.Conversation.findById(_ctx, dialog.cid))!;
                                 if (!conv || conv.deleted) {
                                     await Modules.Messaging.room.onDialogDelete(_ctx, dialog.cid, user.id);
                                 }
