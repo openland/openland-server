@@ -21,7 +21,7 @@ const URLInfoService = createUrlInfoService();
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await FDB.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await FDB.DebugEventState.create(ctx, uid!, { seq: 1 });
+        await FDB.DebugEventState.create(ctx, uid!, {seq: 1});
         return 1;
     } else {
         state.seq++;
@@ -33,7 +33,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await FDB.DebugEvent.create(ctx, uid!, seq, { key });
+        await FDB.DebugEvent.create(ctx, uid!, seq, {key});
     });
 };
 
@@ -144,8 +144,9 @@ export default {
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
             let tail = await FDB.DebugEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
-            return { state: tail };
+            return {state: tail};
         }),
+        lifecheck: () => `i'm ok`
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {
@@ -208,11 +209,11 @@ export default {
             } else if (type === 'PUBLIC_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx'} as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'PRIVATE_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx'} as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'ROOM_INVITE_ACCEPTED') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
@@ -248,11 +249,15 @@ export default {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType: 'APP', inviteOwner: uid });
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, {
+                    type: 'BY_INVITE',
+                    inviteType: 'APP',
+                    inviteOwner: uid
+                });
             } else if (args.type === 'ON_ORG_SUSPEND') {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             }
             return true;
         }),
@@ -285,7 +290,7 @@ export default {
                     }
                 }
 
-                return { totalSent, totalReceived };
+                return {totalSent, totalReceived};
             };
 
             let users = await FDB.User.findAll(parent);
@@ -297,7 +302,12 @@ export default {
 
                         let existing = await FDB.UserMessagingState.findById(ctx, user.id);
                         if (!existing) {
-                            let created = await FDB.UserMessagingState.create(ctx, user.id, { seq: 0, unread: 0, messagesReceived: totalReceived, messagesSent: totalSent });
+                            let created = await FDB.UserMessagingState.create(ctx, user.id, {
+                                seq: 0,
+                                unread: 0,
+                                messagesReceived: totalReceived,
+                                messagesSent: totalSent
+                            });
                             await created.flush();
                         } else {
                             existing.messagesSent = totalSent;
@@ -330,7 +340,7 @@ export default {
                     }
                 }
 
-                return { chatsCount, directChatsCount };
+                return {chatsCount, directChatsCount};
             };
 
             let users = await FDB.User.findAll(parent);
@@ -342,7 +352,14 @@ export default {
 
                         let existing = await FDB.UserMessagingState.findById(ctx, user.id);
                         if (!existing) {
-                            let created = await FDB.UserMessagingState.create(ctx, user.id, { seq: 0, unread: 0, messagesReceived: 0, messagesSent: 0, chatsCount, directChatsCount });
+                            let created = await FDB.UserMessagingState.create(ctx, user.id, {
+                                seq: 0,
+                                unread: 0,
+                                messagesReceived: 0,
+                                messagesSent: 0,
+                                chatsCount,
+                                directChatsCount
+                            });
                             await created.flush();
                         } else {
                             existing.chatsCount = chatsCount;
@@ -417,35 +434,35 @@ export default {
             });
         }),
         debugDeleteEmptyOrgChats: withPermission('super-admin', async (parent, args) => {
-                let chats = await FDB.ConversationOrganization.findAll(parent);
-                let i = 0;
-                for (let chat of chats) {
-                    await inTx(createEmptyContext(), async ctx => {
-                        let conv = await FDB.Conversation.findById(ctx, chat.id);
-                        if (conv && conv.deleted) {
-                            // ignore already deleted chats
-                            console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
-                            i++;
-                            return;
-                        }
-                        if (conv && conv.kind !== 'organization') {
-                            // ignore already converted chats
-                            console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore already converted');
-                            i++;
-                            return;
-                        }
+            let chats = await FDB.ConversationOrganization.findAll(parent);
+            let i = 0;
+            for (let chat of chats) {
+                await inTx(createEmptyContext(), async ctx => {
+                    let conv = await FDB.Conversation.findById(ctx, chat.id);
+                    if (conv && conv.deleted) {
+                        // ignore already deleted chats
+                        console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
+                        i++;
+                        return;
+                    }
+                    if (conv && conv.kind !== 'organization') {
+                        // ignore already converted chats
+                        console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore already converted');
+                        i++;
+                        return;
+                    }
 
-                        console.log('debugDeleteEmptyOrgChats', chat.id, i);
-                        try {
-                            await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
-                            i++;
-                        } catch (e) {
-                            console.log('debugDeleteEmptyOrgChatsError', e);
-                            console.log(e);
-                        }
-                    });
-                }
-                return true;
+                    console.log('debugDeleteEmptyOrgChats', chat.id, i);
+                    try {
+                        await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
+                        i++;
+                    } catch (e) {
+                        console.log('debugDeleteEmptyOrgChatsError', e);
+                        console.log(e);
+                    }
+                });
+            }
+            return true;
         }),
         debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
@@ -523,6 +540,7 @@ export default {
             });
             return true;
         }),
+        lifecheck: () => `i'm still ok`
     },
     Subscription: {
         debugEvents: {
@@ -552,11 +570,23 @@ export default {
                 let generator = FDB.DebugEvent.createUserLiveStream(ctx, uid, 20, args.fromState || undefined);
 
                 for await (let event of generator) {
-                    for (let item of event.items)  {
+                    for (let item of event.items) {
                         yield item;
                     }
                 }
             }
-        }
+        },
+        lifecheck: {
+            resolve: async msg => {
+                return msg;
+            },
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+                while (true) {
+                    console.log('send lifecheck');
+                    yield 'pong ' + Date.now();
+                    await delay(1000);
+                }
+            }
+        },
     }
 } as GQLResolver;

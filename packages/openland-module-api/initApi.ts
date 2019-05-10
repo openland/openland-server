@@ -26,6 +26,7 @@ import { callContextMiddleware } from './handlers/context';
 import * as http from 'http';
 import { TokenChecker } from '../openland-module-auth/authV2';
 import { parseCookies } from '../openland-utils/parseCookies';
+// import { createMTProtoWSServer } from '../openland-mtproto3';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -247,6 +248,17 @@ export async function initApi(isTest: boolean) {
 
         // Starting server
         const httpServer = http.createServer(app);
+        // await createMTProtoWSServer({
+        //     server: httpServer,
+        //     path: '/mtproto3',
+        //     executableSchema: Schema(),
+        //     onAuth: async params => {
+        //         return await fetchWebSocketParameters(params, null);
+        //     },
+        //     context: async params => {
+        //         return buildWebSocketContext(params || {});
+        //     }
+        // });
         Server.applyMiddleware({ app, path: '/graphql' });
         Server.applyMiddleware({ app, path: '/api' });
         // Server.installSubscriptionHandlers(httpServer);

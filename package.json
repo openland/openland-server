@@ -135,7 +135,8 @@
     "typescript": "^3.4.1",
     "uuid": "^3.2.1",
     "web-push": "^3.3.2",
-    "winston": "^3.1.0"
+    "winston": "^3.1.0",
+    "ws": "^7.0.0"
   },
   "scripts": {
     "geoIP": "yarn cpx \"./packages/openland-server/utils/geoIp/*.json\" ./build/openland-server/utils/geoIp/",
