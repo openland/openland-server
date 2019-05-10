@@ -220,7 +220,6 @@ export class CommentsRepository {
             // Update state
             //
             let state = await this.getCommentsState(ctx, comment.peerType, comment.peerId);
-            // state.commentsCount--;
             state.commentsCount -= numberOfCommentsMarkedInvisible;
 
             //

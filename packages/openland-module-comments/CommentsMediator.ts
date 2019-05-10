@@ -69,7 +69,16 @@ export class CommentsMediator {
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
-            if (comment.uid !== uid && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+            let haveSpecialRights = false;
+
+            if (comment.peerType === 'message') {
+                let message = await this.entities.Message.findById(ctx, comment.peerId);
+                if (message) {
+                    haveSpecialRights = await Modules.Messaging.room.canEditRoom(ctx, message.cid, uid);
+                }
+            }
+
+            if (comment.uid !== uid && !((await Modules.Super.superRole(ctx, uid)) === 'super-admin') && !haveSpecialRights) {
                 throw new AccessDeniedError();
             }
 
