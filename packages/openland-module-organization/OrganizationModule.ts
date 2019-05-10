@@ -145,7 +145,7 @@ export class OrganizationModule {
                         }
                     } else if (org.kind === 'community') {
                         if (!profile.primaryOrganization && userOrgs.length > 0) {
-                            let primaryOrg = userOrgs.find(o => o!.id !== org.id);
+                            let primaryOrg = userOrgs.find(o => o!.id !== org.id && o!.kind === 'organization');
                             if (primaryOrg) {
                                 profile.primaryOrganization = primaryOrg.id;
                             }
