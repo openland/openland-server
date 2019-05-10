@@ -501,6 +501,10 @@ export class RoomMediator {
         });
     }
 
+    async onDialogDelete(parent: Context, cid: number, uid: number) {
+        await this.delivery.onDialogDelete(parent, uid, cid);
+    }
+
     async archiveRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let room = await this.entities.ConversationRoom.findById(ctx, cid);

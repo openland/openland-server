@@ -77,6 +77,7 @@ extend type Mutation {
     debugDeleteEmptyOrgChats: Boolean!
     debugFixCommentsVisibility: Boolean!
     debugSetCommentVisibility(commentId: ID!, visible: Boolean!): Boolean!
+    debugRemoveDeletedDialogs: Boolean!
 }
 
 extend type Subscription {

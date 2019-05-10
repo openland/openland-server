@@ -14,6 +14,7 @@ import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
+import { debugTask } from '../openland-utils/debugTask';
 
 const URLInfoService = createUrlInfoService();
 
@@ -493,7 +494,35 @@ export default {
                 }
                 return true;
             });
-        })
+        }),
+        debugRemoveDeletedDialogs: withPermission('super-admin', async (ctx, args) => {
+            debugTask(ctx.auth.uid!, 'debugRemoveDeletedDialogs', async (log) => {
+                let users = await FDB.User.findAll(createEmptyContext());
+                let i = 0;
+                for (let user of users) {
+                    try {
+                        await inTx(createEmptyContext(), async _ctx => {
+                            let all = await FDB.UserDialog.allFromUser(_ctx, user.id);
+                            for (let dialog of all) {
+                                let conv = (await FDB.Conversation.findById(ctx, dialog.cid))!;
+                                if (!conv || conv.deleted) {
+                                    await Modules.Messaging.room.onDialogDelete(_ctx, dialog.cid, user.id);
+                                }
+                            }
+                        });
+
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                    i++;
+                }
+                return 'done';
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
