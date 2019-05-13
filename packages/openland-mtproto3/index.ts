@@ -130,6 +130,7 @@ async function handleMessage(params: MTProtoServerParams, socket: WebSocket, req
 
             if (isSubscription) {
                 let working = true;
+                // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     let iterator = await subscribe({
                         schema: params.executableSchema,
