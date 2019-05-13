@@ -5,12 +5,12 @@ import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
-    BoldTextSpan, DateTextSpan,
-    LinkSpan,
+    BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
+    LinkSpan, LoudTextSpan,
     MessageAttachment,
     MessageAttachmentInput,
     MultiUserMentionSpan,
-    RoomMentionSpan,
+    RoomMentionSpan, RotatingTextSpan,
     UserMentionSpan
 } from '../openland-module-messaging/MessageInput';
 import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
@@ -24,6 +24,13 @@ export type CommentSpan =
     RoomMentionSpan |
     LinkSpan |
     BoldTextSpan |
+    ItalicTextSpan |
+    IronyTextSpan |
+    InlineCodeTextSpan |
+    CodeBlockTextSpan |
+    InsaneTextSpan |
+    LoudTextSpan |
+    RotatingTextSpan |
     DateTextSpan;
 
 export interface CommentInput {

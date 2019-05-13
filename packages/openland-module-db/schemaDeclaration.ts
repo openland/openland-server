@@ -646,11 +646,14 @@ const Schema = declareSchema(() => {
                 jField('length', jNumber());
                 jField('url', jString());
             }),
-            json(() => {
-                jField('type', jString('bold_text'));
-                jField('offset', jNumber());
-                jField('length', jNumber());
-            }),
+            basicSpan('bold_text'),
+            basicSpan('italic_text'),
+            basicSpan('irony_text'),
+            basicSpan('inline_code_text'),
+            basicSpan('code_block_text'),
+            basicSpan('insane_text'),
+            basicSpan('loud_text'),
+            basicSpan('rotating_text'),
             json(() => {
                 jField('type', jString('date_text'));
                 jField('offset', jNumber());

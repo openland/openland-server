@@ -96,6 +96,31 @@ export default {
                 }
             }
 
+            //
+            //  Spans
+            //
+            if (args.spans) {
+                for (let span of args.spans) {
+                    if (span.type === 'Bold') {
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                    } else if (span.type === 'Italic') {
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                    } else if (span.type === 'InlineCode') {
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                    } else if (span.type === 'CodeBlock') {
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                    } else if (span.type === 'Irony') {
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                    } else if (span.type === 'Insane') {
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                    } else if (span.type === 'Loud') {
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                    } else if (span.type === 'Rotating') {
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                    }
+                }
+            }
+
             await Modules.Comments.addMessageComment(ctx, messageId, uid, {
                 message: args.message,
                 replyToComment,
@@ -166,6 +191,31 @@ export default {
                 }
             }
 
+            //
+            //  Spans
+            //
+            if (args.spans) {
+                for (let span of args.spans) {
+                    if (span.type === 'Bold') {
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                    } else if (span.type === 'Italic') {
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                    } else if (span.type === 'InlineCode') {
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                    } else if (span.type === 'CodeBlock') {
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                    } else if (span.type === 'Irony') {
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                    } else if (span.type === 'Insane') {
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                    } else if (span.type === 'Loud') {
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                    } else if (span.type === 'Rotating') {
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                    }
+                }
+            }
+
             return await Modules.Comments.addMessageComment(ctx, messageId, uid, {
                 message: args.message,
                 replyToComment,
@@ -230,6 +280,31 @@ export default {
                         fileMetadata: fileMetadata || null,
                         filePreview: filePreview || null
                     });
+                }
+            }
+
+            //
+            //  Spans
+            //
+            if (args.spans) {
+                for (let span of args.spans) {
+                    if (span.type === 'Bold') {
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                    } else if (span.type === 'Italic') {
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                    } else if (span.type === 'InlineCode') {
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                    } else if (span.type === 'CodeBlock') {
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                    } else if (span.type === 'Irony') {
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                    } else if (span.type === 'Insane') {
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                    } else if (span.type === 'Loud') {
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                    } else if (span.type === 'Rotating') {
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                    }
                 }
             }
 
