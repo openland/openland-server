@@ -27,6 +27,7 @@ import * as http from 'http';
 import { TokenChecker } from '../openland-module-auth/authV2';
 import { parseCookies } from '../openland-utils/parseCookies';
 // import { createMTProtoWSServer } from '../openland-mtproto3';
+// import { randomKey } from '../openland-utils/random';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -250,14 +251,19 @@ export async function initApi(isTest: boolean) {
         const httpServer = http.createServer(app);
         // await createMTProtoWSServer({
         //     server: httpServer,
-        //     path: '/mtproto3',
+        //     path: '/api',
         //     executableSchema: Schema(),
-        //     onAuth: async params => {
+        //     onAuth: async (params, req) => {
+        //         if (Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
+        //             let cookies = parseCookies(req.headers.cookie);
+        //             return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
+        //         }
         //         return await fetchWebSocketParameters(params, null);
         //     },
         //     context: async params => {
         //         return buildWebSocketContext(params || {});
-        //     }
+        //     },
+        //     genSessionId: async authParams => randomKey()
         // });
         Server.applyMiddleware({ app, path: '/graphql' });
         Server.applyMiddleware({ app, path: '/api' });
