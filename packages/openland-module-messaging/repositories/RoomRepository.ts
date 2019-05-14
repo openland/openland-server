@@ -923,6 +923,17 @@ export class RoomRepository {
         let userRooms = (await this.entities.RoomParticipant.allFromUserActive(parent, uid)).map(p => p.cid);
         let res = [...availableRooms].filter(id => userRooms.indexOf(id) === -1);
 
+        // sort/remove deleted
+        let toSort: { rid: number, count: number }[] = [];
+        for (let rid of res) {
+            let conv = await this.entities.Conversation.findById(parent, rid);
+            if (conv && !conv.deleted) {
+                let members = (await this.entities.RoomParticipant.allFromActive(parent, rid));
+                toSort.push({ rid, count: members.length });
+            }
+        }
+        res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
+
         let start = after !== undefined ? res.findIndex(r => r === after) + 1 : 0;
         return res.slice(start, start + limit);
     }
