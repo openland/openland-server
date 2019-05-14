@@ -223,7 +223,7 @@ export namespace GQLRoots {
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
-    export type ImageRoot = { uuid: string, metadata?: FileInfo };
+    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number }  };
 
     //
     //  Chat updates

@@ -595,7 +595,7 @@ export default {
     //  Attachments
     //
     Image: {
-        url: src => buildBaseImageUrl({uuid: src.uuid, crop: null}),
+        url: src => buildBaseImageUrl({ uuid: src.uuid, crop: src.crop || null }),
         metadata: src => {
             if (src.metadata) {
                 return {
@@ -651,8 +651,8 @@ export default {
         titleLink: src => src.attachment.titleLink,
         titleLinkHostname: src => src.attachment.titleLinkHostname,
         text: src => src.attachment.text,
-        icon: src => src.attachment.icon && {uuid: src.attachment.icon.uuid, metadata: src.attachment.iconInfo},
-        image: src => src.attachment.image && {uuid: src.attachment.image.uuid, metadata: src.attachment.imageInfo},
+        icon: src => src.attachment.icon && { uuid: src.attachment.icon.uuid, metadata: src.attachment.iconInfo, crop: src.attachment.icon.crop },
+        image: src => src.attachment.image && { uuid: src.attachment.image.uuid, metadata: src.attachment.imageInfo, crop: src.attachment.image.crop },
         fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
         keyboard: src => {
             if (!src.attachment.keyboard) {

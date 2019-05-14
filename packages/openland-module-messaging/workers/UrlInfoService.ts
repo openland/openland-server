@@ -89,6 +89,7 @@ export class UrlInfoService {
 
 const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
     let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization!);
+
     return {
         url,
         title: user!.firstName + ' ' + user!.lastName,
