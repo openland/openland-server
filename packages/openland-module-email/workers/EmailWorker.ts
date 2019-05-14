@@ -4,6 +4,7 @@ import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent'
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createEmptyContext } from 'openland-utils/Context';
+import { createLogger } from '../../openland-log/createLogger';
 
 export const SENDGRID_KEY = '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';
 
@@ -22,6 +23,7 @@ let devTeamEmails = [
 
 const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
 const emailFailed = createHyperlogger<{ to: string, templateId: string }>('email_failed');
+const log = createLogger('sendgrid', true);
 
 export function createEmailWorker() {
     let queue = new WorkQueue<EmailTask, { result: string }>('emailSender');
@@ -40,13 +42,18 @@ export function createEmailWorker() {
                 }
 
                 try {
-                    await SendGrid.send({
+                    let res = await SendGrid.send({
                         to: args.to,
                         from: { name: 'Openland', email: 'support@openland.com' },
                         templateId: args.templateId,
                         substitutions: args.args,
                         subject: args.subject
                     });
+                    let statusCode = res[0].statusCode;
+
+                    if (statusCode !== 202) {
+                        log.debug(createEmptyContext(), 'bad status code: ', statusCode, args);
+                    }
                 } catch (e) {
                     await emailFailed.event(createEmptyContext(), { templateId: args.templateId, to: args.to });
                     throw e;
