@@ -5,6 +5,13 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Message } from '../../openland-module-db/schema';
 
+const Delays = {
+    '15min': 15 * 60 * 1000,
+    '1hour': 60 * 60 * 1000,
+    '24hour': 24 * 60 * 60 * 1000,
+    '1week': 7 * 24 * 60 * 60 * 1000,
+};
+
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
@@ -21,13 +28,13 @@ export function startEmailNotificationWorker() {
                     return;
                 }
 
-                // // Ignore online or never-online users
-                // if (lastSeen === null) {
-                //     return;
-                // }
+                // Ignore never online
+                if (lastSeen === 'never_online') {
+                    return;
+                }
 
                 // Ignore recently online users
-                if (lastSeen > now - 5 * 60 * 1000) {
+                if (lastSeen === 'online' || (lastSeen > now - 5 * 60 * 1000)) {
                     return;
                 }
 
@@ -47,80 +54,69 @@ export function startEmailNotificationWorker() {
                 }
 
                 let settings = await Modules.Users.getUserSettings(ctx, u.uid);
-                console.log(settings.emailFrequency);
-                if (settings.emailFrequency !== 'never') {
 
-                    // Read email timeouts
-                    let delta = 0;
+                if (settings.emailFrequency === 'never') {
+                    return;
+                }
 
-                    if (settings.emailFrequency === '1hour') {
-                        delta = 60 * 60 * 1000;
-                    } else if (settings.emailFrequency === '15min') {
-                        delta = 15 * 60 * 1000;
-                    } else if (settings.emailFrequency === '24hour') {
-                        delta = 24 * 60 * 60 * 1000;
-                    } else if (settings.emailFrequency === '1week') {
-                        delta = 7 * 24 * 60 * 60 * 1000;
+                // Read email timeouts
+                let delta = Delays[settings.emailFrequency];
+
+                // Do not send emails more than one in an hour
+                if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
+                    return;
+                }
+
+                // Fetch pending updates
+                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
+                let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+
+                let hasNonMuted = false;
+                let msgs: Message[] = [];
+
+                for (let m of messages) {
+                    let message = await FDB.Message.findById(ctx, m.mid!);
+                    if (!message) {
+                        continue;
                     }
 
-                    // Do not send emails more than one in an hour
-                    if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
-                        return;
+                    if (message.uid === u.uid) {
+                        continue;
                     }
 
-                    // Fetch pending updates
-                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq + 1 : 0, state.readSeq));
-                    let messages = remainingUpdates
-                        .filter((v) => v.kind === 'message_received');
-                        // .filter((v) => v.uid !== u.uid);
-
-                    let hasNonMuted = false;
-                    let msgs: Message[] = [];
-
-                    for (let m of messages) {
-                        let message = await FDB.Message.findById(ctx, m.mid!);
-                        if (!message) {
+                    // disable email notificaitons for channels
+                    let conversation = (await FDB.Conversation.findById(ctx, message.cid))!;
+                    if (conversation.kind === 'room') {
+                        if ((await FDB.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
                             continue;
                         }
-
-                        if (message.uid === u.uid) {
-                            continue;
-                        }
-
-                        // disable email notificaitons for channels
-                        let conversation = (await FDB.Conversation.findById(ctx, message.cid))!;
-                        if (conversation.kind === 'room') {
-                            if ((await FDB.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
-                                continue;
-                            }
-                        }
-
-                        // Ignore service messages for big rooms
-                        if (message.isService) {
-                            if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
-                                continue;
-                            }
-                        }
-
-                        let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
-
-                        if (conversationSettings.mute) {
-                            continue;
-                        }
-
-                        if (!message.isMuted) {
-                            hasNonMuted = true;
-                        }
-
-                        msgs.push(message);
                     }
 
-                    // Send email notification if there are some
-                    if (hasNonMuted) {
-                        console.log(tag, 'new_email_notification');
-                        await Emails.sendUnreadMessages(ctx, u.uid, msgs);
-                        state.lastEmailNotification = Date.now();
+                    // Ignore service messages for big rooms
+                    if (message.isService) {
+                        if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
+                            continue;
+                        }
                     }
+
+                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
+
+                    if (conversationSettings.mute) {
+                        continue;
+                    }
+
+                    if (!message.isMuted) {
+                        hasNonMuted = true;
+                    }
+
+                    msgs.push(message);
+                }
+
+                // Send email notification if there are some
+                if (hasNonMuted) {
+                    console.log(tag, 'new_email_notification');
+                    await Emails.sendUnreadMessages(ctx, u.uid, msgs);
+                    state.lastEmailNotification = Date.now();
                 }
 
                 // Save state
