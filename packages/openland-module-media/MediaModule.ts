@@ -121,9 +121,13 @@ export class MediaModule {
     }
 
     async uploadFromUrl(ctx: Context, url: string) {
-        let data = await (await fetch(url)).buffer();
+        let data = await (await fetch(url));
 
-        return this.upload(ctx, data, (extname(url).length > 0) ? extname(url) : undefined);
+        if (data.status !== 200) {
+            throw new Error('Can\'t download file');
+        }
+
+        return this.upload(ctx, await data.buffer(), (extname(url).length > 0) ? extname(url) : undefined);
     }
 
     private async call(ctx: Context, path: string, method: string = 'GET'): Promise<any> {

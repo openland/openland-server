@@ -30,8 +30,10 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
     let res = await fetch(encodeURI(url), {
         timeout: 5000,
         headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; openlandShare;)'
-        }
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-us'
+        },
     });
 
     if (res.status !== 200) {
@@ -123,7 +125,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
         iconRef = { uuid: file, crop: null };
         iconInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
     } catch (e) {
-        console.warn('Cant fetch image ' + imageURL);
+        console.warn('Cant fetch image ' + iconUrl);
     }
 
     return {
