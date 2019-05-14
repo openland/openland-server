@@ -43,7 +43,7 @@ export function declareAmplitudeIndexer() {
                         event_properties: event.args,
                         insert_id: event.id,
                         platform: event.platform,
-                        os_name: event.platform === 'WEB' ? 'Chrome' : event.platform,
+                        os_name: event.platform,
                         time: event.time
                     };
                 };
