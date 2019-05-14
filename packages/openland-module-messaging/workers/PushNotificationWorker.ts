@@ -130,7 +130,7 @@ export function startPushNotificationWorker() {
                         }
                     }
 
-                    let userMentioned = message.mentions && (message.mentions as number[]).indexOf(u.uid) > -1;
+                    let userMentioned = message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === u.uid) || (s.type === 'multi_user_mention' && s.users.indexOf(u.uid) > -1));
 
                     let sendDesktop = settings.desktopNotifications !== 'none';
                     let sendMobile = settings.mobileNotifications !== 'none';
