@@ -4,6 +4,7 @@ type PrivateRoom {
     id: ID!
     user: User!
     settings: RoomUserNotificaionSettings!
+    pinnedMessage: ModernMessage
 }
 
 enum SharedRoomKind {

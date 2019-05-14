@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3cdf4c0a200c81519a34021043618a72';
+export const GQL_SPEC_VERSION = '37ebd99d684e00da11d8d48fc1b359cb';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2415,6 +2415,7 @@ export namespace GQL {
         id: string;
         user: User;
         settings: RoomUserNotificaionSettings;
+        pinnedMessage: Nullable<ModernMessage>;
     }
     export type SharedRoomKind = 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type SharedRoomMembershipStatus = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
@@ -2707,7 +2708,7 @@ export interface GQLResolver {
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, GQLRoots.UserConnectionRoot, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     Room?: UnionTypeResolver<GQLRoots.RoomRoot, 'PrivateRoom' | 'SharedRoom'>;
-    PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, GQLRoots.PrivateRoomRoot, {user: GQLRoots.UserRoot, settings: GQLRoots.RoomUserNotificaionSettingsRoot}, {}>;
+    PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, GQLRoots.PrivateRoomRoot, {user: GQLRoots.UserRoot, settings: GQLRoots.RoomUserNotificaionSettingsRoot, pinnedMessage: Nullable<GQLRoots.ModernMessageRoot>}, {}>;
     WelcomeMessage?: ComplexTypedResolver<GQL.WelcomeMessage, GQLRoots.WelcomeMessageRoot, {sender: Nullable<GQLRoots.UserRoot>}, {}>;
     SharedRoom?: ComplexTypedResolver<GQL.SharedRoom, GQLRoots.SharedRoomRoot, {pinnedMessage: Nullable<GQLRoots.ModernMessageRoot>, welcomeMessage: Nullable<GQLRoots.WelcomeMessageRoot>, organization: Nullable<GQLRoots.OrganizationRoot>, members: GQLRoots.RoomMemberRoot[], requests: Nullable<GQLRoots.RoomMemberRoot[]>, settings: GQLRoots.RoomUserNotificaionSettingsRoot}, {members: GQL.SharedRoomMembersArgs}>;
     RoomSuper?: ComplexTypedResolver<GQL.RoomSuper, GQLRoots.RoomSuperRoot, {}, {}>;

@@ -257,16 +257,31 @@ export class RoomRepository {
 
     async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
         return await inTx(parent, async (ctx) => {
-            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            let conv = await this.entities.Conversation.findById(ctx, cid);
             let message = await this.entities.Message.findById(ctx, mid);
-            if (!message || !profile || message.deleted) {
+            if (!message || !conv || message.deleted) {
                 throw new NotFoundError();
             }
             if (message.cid !== cid) {
                 throw new AccessDeniedError();
             }
-            profile.pinnedMessage = mid;
-            await profile.flush();
+
+            if (conv.kind === 'private') {
+                let privateConv = await this.entities.ConversationPrivate.findById(ctx, cid);
+                if (!privateConv) {
+                    throw new NotFoundError();
+                }
+                privateConv.pinnedMessage = mid;
+                await privateConv.flush();
+            } else if (conv.kind === 'room') {
+                let profile = await this.entities.RoomProfile.findById(ctx, cid);
+                if (!profile) {
+                    throw new NotFoundError();
+                }
+                profile.pinnedMessage = mid;
+                await profile.flush();
+            }
+
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
             await this.entities.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
@@ -318,22 +333,40 @@ export class RoomRepository {
 
     async unpinMessage(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let profile = await this.entities.RoomProfile.findById(ctx, cid);
-            if (!profile) {
+            let conv = await this.entities.Conversation.findById(ctx, cid);
+            if (!conv) {
                 throw new NotFoundError();
             }
-            if (!profile.pinnedMessage) {
-                return false;
-            } else {
+            if (conv.kind === 'room') {
+                let profile = await this.entities.RoomProfile.findById(ctx, cid);
+                if (!profile) {
+                    throw new NotFoundError();
+                }
+                if (!profile.pinnedMessage) {
+                    return false;
+                }
+
                 profile.pinnedMessage = null;
                 await profile.flush();
-                let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-                await this.entities.ConversationEvent.create(ctx, cid, seq, {
-                    kind: 'chat_updated',
-                    uid
-                });
-                return true;
+            } else if (conv.kind === 'private') {
+                let privateConv = await this.entities.ConversationPrivate.findById(ctx, cid);
+                if (!privateConv) {
+                    throw new NotFoundError();
+                }
+                if (!privateConv.pinnedMessage) {
+                    return false;
+                }
+
+                privateConv.pinnedMessage = null;
+                await privateConv.flush();
             }
+
+            let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
+            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+                kind: 'chat_updated',
+                uid
+            });
+            return true;
         });
     }
 

@@ -3711,6 +3711,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
 export interface ConversationPrivateShape {
     uid1: number;
     uid2: number;
+    pinnedMessage?: number| null;
 }
 
 export class ConversationPrivate extends FEntity {
@@ -3734,6 +3735,17 @@ export class ConversationPrivate extends FEntity {
         this._value.uid2 = value;
         this.markDirty();
     }
+    get pinnedMessage(): number | null {
+        let res = this._value.pinnedMessage;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set pinnedMessage(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.pinnedMessage) { return; }
+        this._value.pinnedMessage = value;
+        this.markDirty();
+    }
 }
 
 export class ConversationPrivateFactory extends FEntityFactory<ConversationPrivate> {
@@ -3746,6 +3758,7 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         fields: [
             { name: 'uid1', type: 'number' },
             { name: 'uid2', type: 'number' },
+            { name: 'pinnedMessage', type: 'number' },
         ],
         indexes: [
             { name: 'users', type: 'unique', fields: ['uid1', 'uid2'] },
@@ -3759,6 +3772,7 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         validators.isNumber('uid1', src.uid1);
         validators.notNull('uid2', src.uid2);
         validators.isNumber('uid2', src.uid2);
+        validators.isNumber('pinnedMessage', src.pinnedMessage);
     }
 
     constructor(connection: FConnection) {

@@ -50,7 +50,7 @@ export class RoomMediator {
                 isService: true,
             });
             if (message) {
-                await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
+                await this.messaging.sendMessage(ctx, uid, res.id, {message: message});
             }
             return res;
         });
@@ -420,14 +420,32 @@ export class RoomMediator {
 
     async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
         return await inTx(parent, async (ctx) => {
-            await this.checkCanEditChat(ctx, cid, uid);
+            let conv = await this.entities.Conversation.findById(ctx, cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
+
+            if (conv.kind === 'private') {
+                await this.checkAccess(ctx, uid, cid);
+            } else if (conv.kind === 'room') {
+                await this.checkCanEditChat(ctx, cid, uid);
+            }
             return await this.repo.pinMessage(ctx, cid, uid, mid);
         });
     }
 
     async unpinMessage(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            await this.checkCanEditChat(ctx, cid, uid);
+            let conv = await this.entities.Conversation.findById(ctx, cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
+
+            if (conv.kind === 'private') {
+                await this.checkAccess(ctx, uid, cid);
+            } else if (conv.kind === 'room') {
+                await this.checkCanEditChat(ctx, cid, uid);
+            }
             return await this.repo.unpinMessage(ctx, cid, uid);
         });
     }

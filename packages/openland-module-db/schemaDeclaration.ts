@@ -410,6 +410,8 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('uid1', 'number');
         field('uid2', 'number');
+        field('pinnedMessage', 'number').nullable();
+
         uniqueIndex('users', ['uid1', 'uid2']);
         enableVersioning();
         enableTimestamps();

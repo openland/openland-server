@@ -77,7 +77,15 @@ export default {
                 }
             });
         },
-        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        pinnedMessage: async (root, args, ctx) => {
+            let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
+            if (proom.pinnedMessage) {
+                return await FDB.Message.findById(ctx, proom.pinnedMessage);
+            } else {
+                return null;
+            }
+        }
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
