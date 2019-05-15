@@ -3,7 +3,6 @@ import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
-import { createEmptyContext } from 'openland-utils/Context';
 import { createLogger } from '../../openland-log/createLogger';
 
 export const SENDGRID_KEY = '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';
@@ -30,7 +29,7 @@ export function createEmailWorker() {
     SendGrid.setApiKey(SENDGRID_KEY);
     let isTesting = process.env.TESTING === 'true';
     if (serverRoleEnabled('workers')) {
-        queue.addWorker(async (args, uid) => {
+        queue.addWorker(async (args, ctx) => {
             if (!isTesting) {
                 // Filter for non-production envrionments
                 if (process.env.APP_ENVIRONMENT !== 'production') {
@@ -50,12 +49,12 @@ export function createEmailWorker() {
                         subject: args.subject
                     });
                     let statusCode = res[0].statusCode;
-                    log.debug(createEmptyContext(), 'response code: ', statusCode, args);
+                    log.debug(ctx, 'response code: ', statusCode, args);
                 } catch (e) {
-                    await emailFailed.event(createEmptyContext(), { templateId: args.templateId, to: args.to });
+                    await emailFailed.event(ctx, { templateId: args.templateId, to: args.to });
                     throw e;
                 }
-                await emailSent.event(createEmptyContext(), { templateId: args.templateId, to: args.to });
+                await emailSent.event(ctx, { templateId: args.templateId, to: args.to });
             }
             return {
                 result: 'ok'
