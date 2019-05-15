@@ -50,7 +50,7 @@ export function createEmailWorker() {
                         subject: args.subject
                     });
                     let statusCode = res[0].statusCode;
-                    log.debug(createEmptyContext(), 'bad status code: ', statusCode, args);
+                    log.debug(createEmptyContext(), 'response code: ', statusCode, args);
                 } catch (e) {
                     await emailFailed.event(createEmptyContext(), { templateId: args.templateId, to: args.to });
                     throw e;
