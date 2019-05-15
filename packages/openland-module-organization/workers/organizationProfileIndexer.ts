@@ -29,6 +29,9 @@ export function organizationProfileIndexer() {
             },
             status: {
                 type: 'text'
+            },
+            membersCount: {
+                type: 'integer'
             }
         })
         .start(async (item) => {
@@ -37,6 +40,7 @@ export function organizationProfileIndexer() {
             let profile = (await (FDB.OrganizationProfile.findById(ctx, item.id)))!;
             let editorial = (await FDB.OrganizationEditorial.findById(ctx, item.id))!;
             let shortname = await Modules.Shortnames.findOrganizationShortname(ctx, item.id);
+            let membersCount = await Modules.Orgs.organizationMembersCount(ctx, item.id);
 
             return {
                 id: item.id,
@@ -48,7 +52,8 @@ export function organizationProfileIndexer() {
                     createdAt: item.createdAt,
                     updatedAt: item.updatedAt,
                     shortname: shortname ? shortname.shortname : null,
-                    status: org.status
+                    status: org.status,
+                    membersCount
                 }
             };
         });

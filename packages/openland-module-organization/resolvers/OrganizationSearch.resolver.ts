@@ -131,7 +131,7 @@ export default {
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
-                    sort: sort,
+                    sort: sort || [{ membersCount: 'desc' }],
                     query: { bool: { must: clauses } }
                 }
             });
