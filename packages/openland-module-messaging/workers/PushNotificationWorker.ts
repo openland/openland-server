@@ -6,7 +6,8 @@ import { createLogger } from 'openland-log/createLogger';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
-import { MessageAttachmentFile } from '../MessageInput';
+import { MessageAttachmentFile, MessageMention } from '../MessageInput';
+import { Message } from '../../openland-module-db/schema';
 
 const Delays = {
     'none': 10 * 1000,
@@ -15,6 +16,19 @@ const Delays = {
 };
 
 const log = createLogger('push');
+
+function hasMention(message: Message, uid: number) {
+    if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
+        return true;
+    } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
+        return true;
+    } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
+        return true;
+    } else if (message.text && message.text.includes('@all')) {
+        return true;
+    }
+    return false;
+}
 
 export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
@@ -130,7 +144,7 @@ export function startPushNotificationWorker() {
                         }
                     }
 
-                    let userMentioned = message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === u.uid) || (s.type === 'multi_user_mention' && s.users.indexOf(u.uid) > -1));
+                    let userMentioned = hasMention(message, u.uid);
 
                     let sendDesktop = settings.desktopNotifications !== 'none';
                     let sendMobile = settings.mobileNotifications !== 'none';

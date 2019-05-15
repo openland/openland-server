@@ -199,6 +199,8 @@ export class CountersRepository {
             return true;
         } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
             return true;
+        } else if (message.text && message.text.includes('@all')) {
+            return true;
         }
         return false;
     }
