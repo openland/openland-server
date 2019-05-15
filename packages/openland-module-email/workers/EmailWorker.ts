@@ -49,7 +49,7 @@ export function createEmailWorker() {
                         subject: args.subject
                     });
                     let statusCode = res[0].statusCode;
-                    log.debug(ctx, 'response code: ', statusCode, args);
+                    log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
                 } catch (e) {
                     await emailFailed.event(ctx, { templateId: args.templateId, to: args.to });
                     throw e;
