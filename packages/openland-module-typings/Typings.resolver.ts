@@ -17,6 +17,7 @@ export default {
         type: (src: TypingEvent) => src.type,
         cancel: (src: TypingEvent) => src.cancel,
         conversation: (src: TypingEvent, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.conversationId),
+        chat: (src: TypingEvent, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.conversationId),
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {

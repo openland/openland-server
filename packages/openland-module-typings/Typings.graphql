@@ -1,5 +1,6 @@
 type TypingEvent {
     conversation: Conversation!
+    chat: Room!
     user: User!
     type: TypingType!
     cancel: Boolean!
