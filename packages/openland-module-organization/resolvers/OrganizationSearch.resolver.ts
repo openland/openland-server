@@ -109,18 +109,19 @@ export default {
                     clauses.push(elasticQuery);
                 }
 
-                if (args.prefix && args.prefix.length > 0) {
-                    clauses.push({ match_phrase_prefix: { name: args.prefix } });
-                }
-
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
                 }
             }
 
+            if (args.prefix && args.prefix.length > 0) {
+                clauses.push({ match_phrase_prefix: { name: args.prefix } });
+            }
+
             if (!args.all) {
                 clauses.push({ term: { listed: true } });
             }
+
             clauses.push({ term: { kind: 'organization' } });
             clauses.push({ term: { status: 'activated' } });
 

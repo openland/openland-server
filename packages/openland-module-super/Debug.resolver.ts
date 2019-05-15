@@ -540,7 +540,29 @@ export default {
             });
             return true;
         }),
-        lifecheck: () => `i'm still ok`
+        lifecheck: () => `i'm still ok`,
+        debugReindexOrgs: withPermission('super-admin', async (ctx, args) => {
+            debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
+                let orgs = await FDB.Organization.findAll(createEmptyContext());
+                let i = 0;
+                for (let org of orgs) {
+                    try {
+                        await inTx(createEmptyContext(), async _ctx => {
+                            await Modules.Orgs.markForUndexing(_ctx, org.id);
+                        });
+
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                    i++;
+                }
+                return 'done';
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
