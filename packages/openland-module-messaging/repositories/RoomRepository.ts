@@ -952,25 +952,27 @@ export class RoomRepository {
             }
         }
 
-        // uxcude already joined rooms
-        let userRooms = (await this.entities.RoomParticipant.allFromUserActive(parent, uid)).map(p => p.cid);
-        let res = [...availableRooms].filter(id => userRooms.indexOf(id) === -1);
-
-        // sort/remove deleted
         let toSort: { rid: number, count: number }[] = [];
-        for (let rid of res) {
+        for (let rid of availableRooms) {
             let conv = await this.entities.Conversation.findById(parent, rid);
-            if (conv && !conv.deleted) {
-                let members = (await this.entities.RoomParticipant.allFromActive(parent, rid));
-                toSort.push({ rid, count: members.length });
+            let userAsMember = (await this.entities.RoomParticipant.findById(parent, rid, uid));
+            if (
+                (!conv || conv.archived || conv.deleted) ||
+                (userAsMember && (userAsMember.status === 'left' || userAsMember.status === 'kicked' || userAsMember.status === 'joined'))
+            ) {
+                continue;
             }
+
+            let members = (await this.entities.RoomParticipant.allFromActive(parent, rid));
+            toSort.push({ rid, count: members.length });
         }
-        res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
+        let res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
 
         let start = after !== undefined ? res.findIndex(r => r === after) + 1 : 0;
         return res.slice(start, start + limit);
     }
 
+    //
     //  Returns chats available to user
     //
     async findAvailableRooms(parent: Context, uid: number) {
