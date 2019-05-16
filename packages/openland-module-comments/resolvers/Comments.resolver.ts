@@ -13,7 +13,7 @@ export default {
     CommentsPeer: {
         id: src => {
             if (src.peerType === 'message') {
-                return IDs.ConversationMessage.serialize(src.peerId);
+                return IDs.CommentMessagePeer.serialize(src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
