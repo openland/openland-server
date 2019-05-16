@@ -545,10 +545,20 @@ export default {
             debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
                 let orgs = await FDB.Organization.findAll(createEmptyContext());
                 let i = 0;
-                for (let org of orgs) {
+                for (let o of orgs) {
                     try {
                         await inTx(createEmptyContext(), async _ctx => {
-                            await Modules.Orgs.markForUndexing(_ctx, org.id);
+                            let org = await FDB.Organization.findById(_ctx, o.id);
+                            let editorial = await FDB.OrganizationEditorial.findById(_ctx, o.id);
+
+                            if (!org || !editorial) {
+                                return;
+                            }
+                            if (org.status === 'activated') {
+                                editorial.listed = true;
+                            }
+                            await editorial.flush();
+                            await Modules.Orgs.markForUndexing(_ctx, o.id);
                         });
 
                         if ((i % 100) === 0) {
