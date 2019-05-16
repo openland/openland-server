@@ -198,6 +198,7 @@ input MentionInput {
     chatId: ID
     userId: ID
     userIds: [ID!]
+    all: Boolean
     offset: Int!
     length: Int!
 }
@@ -256,6 +257,11 @@ type MessageSpanDate implements MessageSpan {
     offset: Int!
     length: Int!
     date: Date!
+}
+
+type MessageSpanAllMention implements MessageSpan {
+    offset: Int!
+    length: Int!
 }
 
 enum MessageSpanType {

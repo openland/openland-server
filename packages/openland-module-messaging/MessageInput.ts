@@ -32,6 +32,7 @@ export type InsaneTextSpan = BasicSpan<'insane_text'>;
 export type LoudTextSpan = BasicSpan<'loud_text'>;
 export type RotatingTextSpan = BasicSpan<'rotating_text'>;
 export type DateTextSpan = { type: 'date_text', offset: number, length: number, date: number };
+export type AllMentionSpan = BasicSpan<'all_mention'>;
 
 export type MessageSpan =
     UserMentionSpan |
@@ -46,7 +47,8 @@ export type MessageSpan =
     InsaneTextSpan |
     LoudTextSpan |
     RotatingTextSpan |
-    DateTextSpan;
+    DateTextSpan |
+    AllMentionSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,

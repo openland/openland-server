@@ -561,6 +561,8 @@ export default {
                 return 'MessageSpanRotating';
             } else if (src.type === 'date_text') {
                 return 'MessageSpanDate';
+            } else if (src.type === 'all_mention') {
+                return 'MessageSpanAllMention';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -731,6 +733,12 @@ export default {
                             length: mention.length,
                             users: mention.userIds.map(id => IDs.User.parse(id))
                         });
+                    } else if (mention.all) {
+                        mentions.push({
+                            type: 'all_mention',
+                            offset: mention.offset,
+                            length: mention.length,
+                        });
                     }
                 }
 
@@ -832,6 +840,12 @@ export default {
                             offset: mention.offset,
                             length: mention.length,
                             users: mention.userIds.map(id => IDs.User.parse(id))
+                        });
+                    } else if (mention.all) {
+                        mentions.push({
+                            type: 'all_mention',
+                            offset: mention.offset,
+                            length: mention.length,
                         });
                     }
                 }

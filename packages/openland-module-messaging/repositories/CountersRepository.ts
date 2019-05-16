@@ -195,11 +195,11 @@ export class CountersRepository {
     private hasMention(message: Message, uid: number) {
         if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
             return true;
+        } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
+            return true;
         } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
             return true;
         } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-            return true;
-        } else if (message.text && message.text.includes('@all')) {
             return true;
         }
         return false;

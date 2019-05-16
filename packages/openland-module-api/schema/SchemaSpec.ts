@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9934267c652f5112743c7e72f4a67189';
+export const GQL_SPEC_VERSION = '067df8aaf15d09523419a5389cf1c6d4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -605,6 +605,7 @@ export namespace GQL {
         chatId: Nullable<string>;
         userId: Nullable<string>;
         userIds: Nullable<string[]>;
+        all: Nullable<boolean>;
         offset: number;
         length: number;
     }
@@ -649,6 +650,10 @@ export namespace GQL {
         offset: number;
         length: number;
         date: Date;
+    }
+    export interface MessageSpanAllMention extends MessageSpan {
+        offset: number;
+        length: number;
     }
     export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating';
     export interface MessageSpanInput {
@@ -2618,6 +2623,7 @@ export interface GQLResolver {
     MessageSpanLoud?: ComplexTypedResolver<GQL.MessageSpanLoud, GQLRoots.MessageSpanLoudRoot, {}, {}>;
     MessageSpanRotating?: ComplexTypedResolver<GQL.MessageSpanRotating, GQLRoots.MessageSpanRotatingRoot, {}, {}>;
     MessageSpanDate?: ComplexTypedResolver<GQL.MessageSpanDate, GQLRoots.MessageSpanDateRoot, {}, {}>;
+    MessageSpanAllMention?: ComplexTypedResolver<GQL.MessageSpanAllMention, GQLRoots.MessageSpanAllMentionRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;

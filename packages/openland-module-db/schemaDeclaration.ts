@@ -546,6 +546,7 @@ const Schema = declareSchema(() => {
                 jField('length', jNumber());
                 jField('date', jNumber());
             }),
+            basicSpan('all_mention'),
         ))).nullable();
         jsonField('attachmentsModern', jVec(jEnum(
             json(() => {
@@ -662,6 +663,7 @@ const Schema = declareSchema(() => {
                 jField('length', jNumber());
                 jField('date', jNumber());
             }),
+            basicSpan('all_mention'),
         ))).nullable();
         jsonField('attachments', jVec(jEnum(
             json(() => {

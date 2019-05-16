@@ -5,6 +5,7 @@ import { Context } from '../openland-utils/Context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
+    AllMentionSpan,
     BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
     LinkSpan, LoudTextSpan,
     MessageAttachment,
@@ -31,7 +32,8 @@ export type CommentSpan =
     InsaneTextSpan |
     LoudTextSpan |
     RotatingTextSpan |
-    DateTextSpan;
+    DateTextSpan |
+    AllMentionSpan;
 
 export interface CommentInput {
     message?: string | null;

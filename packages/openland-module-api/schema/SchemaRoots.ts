@@ -219,6 +219,7 @@ export namespace GQLRoots {
     export type MessageSpanLoudRoot = LoudTextSpan;
     export type MessageSpanRotatingRoot = RotatingTextSpan;
     export type MessageSpanDateRoot = DateTextSpan;
+    export type MessageSpanAllMentionRoot = DateTextSpan;
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
