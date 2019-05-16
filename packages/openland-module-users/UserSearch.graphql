@@ -8,8 +8,20 @@ type UserConnection {
     pageInfo: PageInfo!
 }
 
+type ChatUserEdge {
+    node: User!
+    isMember: Boolean!
+    cursor: String!
+}
+
+type ChatUserConnection {
+    edges: [ChatUserEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     userSearch(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth
+    userSearchForChat(chatId: ID!, query: String, first: Int!, after: String, page: Int, sort: String): ChatUserConnection! @withAuth
 
     # Deprecated
     alphaProfiles(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth

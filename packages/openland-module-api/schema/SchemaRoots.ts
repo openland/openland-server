@@ -161,6 +161,8 @@ export namespace GQLRoots {
     export type UserRoot = User | UserProfile | number;
     export type UserEdgeRoot = any;
     export type UserConnectionRoot = any;
+    export type ChatUserEdgeRoot = any;
+    export type ChatUserConnectionRoot = any;
     export type RoomRoot = any;
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
