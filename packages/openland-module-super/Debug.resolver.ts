@@ -464,44 +464,61 @@ export default {
             }
             return true;
         }),
-        debugFixCommentsVisibility: withPermission('super-admin', async (parent, args) => {
-            return await inTx(parent, async (ctx) => {
+        debugFixCommentsVisibility: withPermission('super-admin', async (ctx, args) => {
+            debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
                 let commentSeqs = await FDB.CommentSeq.findAll(ctx);
+                let i = 0;
 
                 for (let state of commentSeqs) {
-                    let comments = await FDB.Comment.allFromPeer(ctx, state.peerType as any, state.peerId);
+                    await inTx(createEmptyContext(), async _ctx => {
+                        let comments = await FDB.Comment.allFromPeer(_ctx, state.peerType as any, state.peerId);
 
-                    let id2Comment = new Map<number, Comment>();
-                    for (let comment of comments) {
-                        id2Comment.set(comment.id, comment);
-                    }
-
-                    let commentVisible = new Map<number, boolean>();
-
-                    for (let comment of comments) {
-                        if (comment.deleted) {
-                            continue;
+                        let id2Comment = new Map<number, Comment>();
+                        for (let comment of comments) {
+                            id2Comment.set(comment.id, comment);
                         }
 
-                        commentVisible.set(comment.id, true);
-                        let c: Comment | undefined = comment;
-                        while (c && c.parentCommentId) {
-                            if (commentVisible.get(c.parentCommentId)) {
-                                break;
+                        let commentVisible = new Map<number, boolean>();
+
+                        for (let comment of comments) {
+                            if (comment.deleted) {
+                                continue;
                             }
 
-                            commentVisible.set(c.parentCommentId, true);
-                            c = id2Comment.get(c.parentCommentId);
+                            commentVisible.set(comment.id, true);
+                            let c: Comment | undefined = comment;
+                            while (c && c.parentCommentId) {
+                                if (commentVisible.get(c.parentCommentId)) {
+                                    break;
+                                }
+
+                                commentVisible.set(c.parentCommentId, true);
+                                c = id2Comment.get(c.parentCommentId);
+                            }
                         }
-                    }
 
-                    for (let comment of comments) {
-                        comment.visible = commentVisible.get(comment.id) || false;
-                    }
+                        let visibleCount = 0;
+                        for (let comment of comments) {
+                            comment.visible = commentVisible.get(comment.id) || false;
+                            if (commentVisible.get(comment.id)) {
+                                visibleCount++;
+                            }
+                        }
+
+                        let existing = await FDB.CommentState.findById(_ctx, state.peerType, state.peerId);
+                        if (existing) {
+                            existing.commentsCount = visibleCount;
+                        }
+
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
                 }
-
-                return true;
+                return 'done';
             });
+            return true;
         }),
         debugSetCommentVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
