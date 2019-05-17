@@ -34,6 +34,7 @@ export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
         log.debug(parent, 'unread users: ' + unreadUsers.length);
+        let workDone = false;
         for (let u of unreadUsers) {
             await inTx(parent, async (ctx) => {
                 ctx = withLogContext(ctx, ['user', '' + u.uid]);
@@ -238,6 +239,7 @@ export function startPushNotificationWorker() {
 
                     log.debug(ctx, 'new_push', JSON.stringify(push));
                     await Modules.Push.worker.pushWork(ctx, push);
+                    workDone = true;
                 }
 
                 // Save state
@@ -250,6 +252,6 @@ export function startPushNotificationWorker() {
                 state.lastPushSeq = u.seq;
             });
         }
-        return true;
+        return workDone;
     });
 }
