@@ -9,7 +9,6 @@ import { createUrlInfoService } from '../openland-module-messaging/workers/UrlIn
 import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
 import { inTx } from '../foundation-orm/inTx';
 import { Context, createEmptyContext } from '../openland-utils/Context';
-import * as Chrono from 'chrono-node';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { delay } from '../openland-utils/timer';
@@ -60,9 +59,7 @@ export default {
             };
         }),
         debugCrashQuery: () => {
-            console.dir(Chrono.parse('An appointment on Sep 12-13\nSecond ap on Sep 12-15'), {depth: null});
-            return '';
-            // throw new Error('Test crash!');
+            throw new Error('Test crash!');
         },
         debugUrlInfo: withPermission('super-admin', async (ctx, args) => {
             return URLInfoService.fetchURLInfo(args.url, false);
