@@ -250,6 +250,6 @@ export function startPushNotificationWorker() {
                 state.lastPushSeq = u.seq;
             });
         }
-        return false;
+        return true;
     });
 }
