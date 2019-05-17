@@ -4,6 +4,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { createIterator } from '../openland-utils/asyncIterator';
 
 export default {
     OnlineEvent: {
@@ -59,19 +60,23 @@ export default {
                 return msg;
             },
             subscribe: async (r, args, ctx) => {
-                let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
+                // let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
 
-                let uids: number[] = [];
+                // let uids: number[] = [];
+                //
+                // for (let chatId of conversationIds) {
+                //     uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
+                // }
+                //
+                // return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
 
-                for (let chatId of conversationIds) {
-                    uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
-                }
-
-                return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
+                return createIterator(() => {
+                    // do nothing
+                });
             }
         },
         alphaSubscribeOnline: {
