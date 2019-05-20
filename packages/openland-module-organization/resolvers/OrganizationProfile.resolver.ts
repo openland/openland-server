@@ -29,6 +29,7 @@ export default {
         alphaEditorial: (src: Organization) => src.editorial,
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
+        alphaIsPrivate: (src: Organization) => src.private || false,
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: AppContext) => {

@@ -16,6 +16,7 @@ type OrganizationProfile {
     alphaEditorial: Boolean!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
+    alphaIsPrivate: Boolean!
 }
 
 input CreateOrganizationInput {

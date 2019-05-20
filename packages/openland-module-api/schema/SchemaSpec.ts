@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a694780913688930fe53d7a5ed333955';
+export const GQL_SPEC_VERSION = '0d7440b8632a2d5f0359b616c770c31f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1932,6 +1932,7 @@ export namespace GQL {
         alphaEditorial: boolean;
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
+        alphaIsPrivate: boolean;
         shortname: Nullable<string>;
     }
     export interface CreateOrganizationInput {
