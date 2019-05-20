@@ -194,7 +194,11 @@ export class OrganizationModule {
             if (await this.findUserOrganizations(ctx, uid)) {
                 let orgs = await this.repo.findUserOrganizations(ctx, uid);
                 if (orgs.length === 1) {
-                    throw new UserError('You cannot leave your only organization');
+                    if (uid === by) {
+                        throw new UserError('You cannot leave your only organization');
+                    } else {
+                        throw new UserError('You cannot kick user from their only organization');
+                    }
                 }
             }
 
