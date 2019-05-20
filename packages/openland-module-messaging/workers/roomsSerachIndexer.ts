@@ -38,7 +38,9 @@ export function roomsSearchIndexer() {
 
             let membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
 
-            let isListed = room.kind === 'public' && (room.oid && (await FDB.Organization.findById(ctx, room.oid))!.kind === 'community');
+            let org = (await FDB.Organization.findById(ctx, room.oid!))!;
+
+            let isListed = room.kind === 'public' && org.kind === 'community' && !org.private;
 
             return {
                 id: item.id,

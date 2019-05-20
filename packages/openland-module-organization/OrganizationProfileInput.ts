@@ -8,4 +8,5 @@ export interface OrganizatinProfileInput {
     photoRef?: ImageRef | null | undefined;
     about?: string | null | undefined;
     isCommunity?: boolean | null | undefined;
+    isPrivate?: boolean | null | undefined;
 }

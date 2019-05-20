@@ -2351,6 +2351,7 @@ export interface OrganizationShape {
     status: 'pending' | 'activated' | 'suspended' | 'deleted';
     kind: 'organization' | 'community';
     editorial: boolean;
+    private?: boolean| null;
 }
 
 export class Organization extends FEntity {
@@ -2392,6 +2393,17 @@ export class Organization extends FEntity {
         this._value.editorial = value;
         this.markDirty();
     }
+    get private(): boolean | null {
+        let res = this._value.private;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set private(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.private) { return; }
+        this._value.private = value;
+        this.markDirty();
+    }
 }
 
 export class OrganizationFactory extends FEntityFactory<Organization> {
@@ -2406,6 +2418,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
             { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended', 'deleted'] },
             { name: 'kind', type: 'enum', enumValues: ['organization', 'community'] },
             { name: 'editorial', type: 'boolean' },
+            { name: 'private', type: 'boolean' },
         ],
         indexes: [
             { name: 'community', type: 'range', fields: [] },
@@ -2423,6 +2436,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         validators.isEnum('kind', src.kind, ['organization', 'community']);
         validators.notNull('editorial', src.editorial);
         validators.isBoolean('editorial', src.editorial);
+        validators.isBoolean('private', src.private);
     }
 
     constructor(connection: FConnection) {

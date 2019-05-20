@@ -34,6 +34,7 @@ type Organization {
     alphaOrganizationMemberRequests: [OrganizationRequestedMember!]!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
+    alphaIsPrivate: Boolean!
 
     betaPublicRooms: [SharedRoom!]!
     status: String!

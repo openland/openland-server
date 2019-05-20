@@ -26,6 +26,7 @@ input CreateOrganizationInput {
     photoRef: ImageRefInput
     about: String
     isCommunity: Boolean
+    isPrivate: Boolean
 }
 
 input UpdateOrganizationProfileInput {
@@ -44,6 +45,7 @@ input UpdateOrganizationProfileInput {
     alphaPublished: Boolean
     alphaEditorial: Boolean
     alphaFeatured: Boolean
+    alphaIsPrivate: Boolean
 }
 
 input ContactPersonInput {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bb3c7bb516fafa12ab8ff658ad504548';
+export const GQL_SPEC_VERSION = 'a694780913688930fe53d7a5ed333955';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1902,6 +1902,7 @@ export namespace GQL {
         alphaOrganizationMemberRequests: OrganizationRequestedMember[];
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
+        alphaIsPrivate: boolean;
         betaPublicRooms: SharedRoom[];
         status: string;
         membersCount: number;
@@ -1941,6 +1942,7 @@ export namespace GQL {
         photoRef: Nullable<ImageRefInput>;
         about: Nullable<string>;
         isCommunity: Nullable<boolean>;
+        isPrivate: Nullable<boolean>;
     }
     export interface UpdateOrganizationProfileInput {
         name: Nullable<string>;
@@ -1956,6 +1958,7 @@ export namespace GQL {
         alphaPublished: Nullable<boolean>;
         alphaEditorial: Nullable<boolean>;
         alphaFeatured: Nullable<boolean>;
+        alphaIsPrivate: Nullable<boolean>;
     }
     export interface ContactPersonInput {
         name: string;

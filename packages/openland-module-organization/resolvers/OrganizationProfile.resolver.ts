@@ -67,9 +67,11 @@ export default {
 
             return await inTx(parent, async (ctx) => {
                 let existing = await FDB.Organization.findById(ctx, orgId);
+
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }
+                let isMemberOwner = uid === existing.ownerId;
 
                 let profile = (await FDB.OrganizationProfile.findById(ctx, orgId))!;
 
@@ -103,6 +105,9 @@ export default {
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
+                if (args.input.alphaIsPrivate !== undefined && isMemberOwner) {
+                    existing.private = args.input.alphaIsPrivate;
+                }
 
                 let editorial = (await FDB.OrganizationEditorial.findById(ctx, orgId))!;
 
@@ -120,6 +125,14 @@ export default {
 
                 // Schedule indexing
                 await Modules.Orgs.markForUndexing(ctx, profile.id);
+                // Index rooms
+                let orgRooms = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
+                let profiles = await Promise.all(orgRooms.map(room => FDB.RoomProfile.findById(ctx, room.id)));
+                for (let roomProfile of profiles) {
+                    if (roomProfile) {
+                        await roomProfile!.flush();
+                    }
+                }
 
                 // Call hook
                 await editorial.flush();
