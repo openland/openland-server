@@ -12,6 +12,7 @@ import { Context } from 'openland-utils/Context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
+import { PushNotificationMediator } from './PushNotificationMediator';
 
 const tracer = createTracer('message-delivery');
 const isProd = process.env.APP_ENVIRONMENT === 'production';
@@ -24,6 +25,7 @@ export class DeliveryMediator {
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
+    @lazyInject('PushNotificationMediator') private readonly pushNotificationMediator!: PushNotificationMediator;
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
@@ -96,6 +98,8 @@ export class DeliveryMediator {
                     await this.deliverMessageToUser(ctx, m, mid);
                 }));
             }
+            // Notifications
+            await this.pushNotificationMediator.onNewMessage(ctx, mid);
         });
     }
 

@@ -31,6 +31,7 @@ function hasMention(message: Message, uid: number) {
 }
 
 export function startPushNotificationWorker() {
+    return;
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
         log.debug(parent, 'unread users: ' + unreadUsers.length);

@@ -15,6 +15,7 @@ import { Context } from 'openland-utils/Context';
 import { messagesIndexer } from './workers/messagesIndexer';
 import { FixerRepository } from './repositories/Fixer';
 import { roomsSearchIndexer } from './workers/roomsSerachIndexer';
+import { PushNotificationMediator } from './mediators/PushNotificationMediator';
 
 @injectable()
 export class MessagingModule {
@@ -22,6 +23,7 @@ export class MessagingModule {
     readonly search: RoomSearch = new RoomSearch();
     readonly fixer: FixerRepository;
     private readonly delivery: DeliveryMediator;
+    private readonly pushNotificationMediator: PushNotificationMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
@@ -32,9 +34,11 @@ export class MessagingModule {
         @inject('FixerRepository') fixer: FixerRepository,
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
         @inject('DeliveryMediator') delivery: DeliveryMediator,
+        @inject('PushNotificationMediator') pushNotificationMediator: PushNotificationMediator,
         @inject('RoomMediator') room: RoomMediator,
     ) {
         this.delivery = delivery;
+        this.pushNotificationMediator = pushNotificationMediator;
         this.userState = userState;
         this.messaging = messaging;
         this.room = room;
@@ -48,6 +52,7 @@ export class MessagingModule {
     start = () => {
         this.augmentation.start();
         this.delivery.start();
+        this.pushNotificationMediator.start();
         if (serverRoleEnabled('workers')) {
             startEmailNotificationWorker();
         }
