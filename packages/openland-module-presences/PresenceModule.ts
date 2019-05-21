@@ -363,7 +363,7 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
     }
 
     public async setOffline(parent: Context, uid: number) {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let online = await this.FDB.Online.findById(ctx, uid);
             if (online) {
                 online.lastSeen = Date.now();
