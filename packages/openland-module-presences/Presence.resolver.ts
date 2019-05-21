@@ -4,6 +4,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { createIterator } from '../openland-utils/asyncIterator';
 
 export default {
     OnlineEvent: {
@@ -99,7 +100,10 @@ export default {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
-                return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
+                return createIterator(() => {
+                    // do nothing
+                });
+                // return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
             }
         }
     }
