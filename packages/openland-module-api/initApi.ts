@@ -118,8 +118,7 @@ export async function initApi(isTest: boolean) {
     //
     app.post('/graphanaAlerts', bodyParser.json(), (async (req, res) => {
         let authRaw = req.headers.authorization;
-        let auth = decode(authRaw!);
-        if (auth !== 'grfana:d138df93-758a-4e8c-be8f-e46ecf09eeb4') {
+        if (!authRaw || decode(authRaw!.split(' ')[1]) !== 'grfana:d138df93-758a-4e8c-be8f-e46ecf09eeb4') {
             throw new AccessDeniedError();
         }
         await inTx(createEmptyContext(), async (ctx) => {
