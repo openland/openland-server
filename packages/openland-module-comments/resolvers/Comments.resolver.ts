@@ -26,7 +26,7 @@ export default {
         comments: src => src.comments,
     },
     CommentEntry: {
-        id: src => IDs.Comment.serialize(src.id),
+        id: src => IDs.CommentEntry.serialize(src.id),
         deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
