@@ -26,6 +26,8 @@ import { callContextMiddleware } from './handlers/context';
 import * as http from 'http';
 import { TokenChecker } from '../openland-module-auth/authV2';
 import { parseCookies } from '../openland-utils/parseCookies';
+import { decode } from 'openland-utils/base64';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 // import { createMTProtoWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -106,6 +108,26 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
+                await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
+            }
+        });
+    }));
+
+    //
+    // Graphana alerts
+    //
+    app.post('/graphanaAlerts', bodyParser.json(), (async (req, res) => {
+        let authRaw = req.headers.authorization;
+        if (!authRaw || decode(authRaw!.split(' ')[1]) !== 'grfana:d138df93-758a-4e8c-be8f-e46ecf09eeb4') {
+            throw new AccessDeniedError();
+        }
+        await inTx(createEmptyContext(), async (ctx) => {
+            let chatId = IDs.Conversation.parse('M6Pl7R30rECQn7a9OP4MHrqYdo');
+            let botId = IDs.User.parse('LOaDEWDjZQfjVm3P7Ro4CYgMAD');
+            let data = req.body;
+
+            if (data.state === 'alerting') {
+                let text = data.title + '\n' + data.message + (data.imageUrl ? '\n' + data.imageUrl : '');
                 await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
             }
         });
@@ -224,7 +246,7 @@ export async function initApi(isTest: boolean) {
                         ...params,
                         context: ctx,
                         formatResponse: (value: any) => {
-                            let errors: any[]|undefined;
+                            let errors: any[] | undefined;
                             if (value.errors) {
                                 let info: QueryInfo = {
                                     uid: ctx && ctx.auth && ctx.auth.uid,
