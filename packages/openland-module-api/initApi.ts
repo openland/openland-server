@@ -126,10 +126,8 @@ export async function initApi(isTest: boolean) {
             let botId = IDs.User.parse('LOaDEWDjZQfjVm3P7Ro4CYgMAD');
             let data = req.body;
 
-            if (data.state === 'alerting') {
-                let text = data.title + '\n' + data.message + (data.imageUrl ? '\n' + data.imageUrl : '');
-                await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
-            }
+            let text = data.title + '\n' + data.message + (data.imageUrl ? '\n' + data.imageUrl : '') + (data.state === 'ok' ? '\nОтпустило кажется' : '');
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
         });
     }));
 
