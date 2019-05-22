@@ -3,21 +3,21 @@ import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
 import { Context } from 'openland-utils/Context';
 import { injectable, inject } from 'inversify';
-import { UserStateRepository } from './UserStateRepository';
+// import { UserStateRepository } from './UserStateRepository';
 
 const logger = createLogger('fixer');
 
 @injectable()
 export class FixerRepository {
     private readonly entities: AllEntities;
-    private readonly userState: UserStateRepository;
+    // private readonly userState: UserStateRepository;
 
     constructor(
         @inject('FDB') entities: AllEntities,
-        @inject('UserStateRepository') userState: UserStateRepository
+        // @inject('UserStateRepository') userState: UserStateRepository
     ) {
         this.entities = entities;
-        this.userState = userState;
+        // this.userState = userState;
     }
 
     async fixForUser(parent: Context, uid: number) {
@@ -66,17 +66,17 @@ export class FixerRepository {
                 //
                 // Deliver new counters
                 //
-                for (let chat of processed) {
-                    let global = await this.userState.getUserMessagingState(ctx, uid);
-                    global.seq++;
-                    await global.flush();
-                    await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
-                        kind: 'message_read',
-                        cid: chat.cid,
-                        unread: chat.unread,
-                        allUnread: totalUnread
-                    });
-                }
+                // for (let chat of processed) {
+                //     let global = await this.userState.getUserMessagingState(ctx, uid);
+                //     global.seq++;
+                //     await global.flush();
+                //     await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                //         kind: 'message_read',
+                //         cid: chat.cid,
+                //         unread: chat.unread,
+                //         allUnread: totalUnread
+                //     });
+                // }
                 return true;
             } catch (e) {
                 console.log('counter_fix_error', e);
