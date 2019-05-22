@@ -44,8 +44,8 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             socket.close();
             return;
         }
+        session.setWaitingConnect();
         session.waitAuth = (async () => {
-            session.setWaitingConnect();
             session.authParams = await params.onAuth(message.payload, req);
             session.send({ type: 'connection_ack' });
             session.waitAuth = Promise.resolve();
