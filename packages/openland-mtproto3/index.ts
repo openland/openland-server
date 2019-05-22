@@ -33,7 +33,6 @@ class FuckApolloSession {
     }
 
     send(data: any) {
-        console.log('send', data);
         this.socket.send(JSON.stringify(data));
     }
 }
