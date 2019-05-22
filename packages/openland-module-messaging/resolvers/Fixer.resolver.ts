@@ -9,7 +9,12 @@ import { debugTask } from '../../openland-utils/debugTask';
 export default {
     Mutation: {
         betaFixCounter: withPermission('super-admin', async (ctx, args) => {
-            return await Modules.Messaging.fixer.fixForUser(ctx, IDs.User.parse(args.uid));
+            try {
+                return await Modules.Messaging.fixer.fixForUser(ctx, IDs.User.parse(args.uid));
+            } catch (e) {
+                console.log('betaFixCounter_error', e);
+                return false;
+            }
         }),
         betaFixCountersForAll: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'fix-counters-for-all', async (log) => {
