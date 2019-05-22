@@ -3,28 +3,27 @@ import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
 import { Context } from 'openland-utils/Context';
 import { injectable, inject } from 'inversify';
-// import { UserStateRepository } from './UserStateRepository';
+import { UserStateRepository } from './UserStateRepository';
 
 const logger = createLogger('fixer');
 
 @injectable()
 export class FixerRepository {
     private readonly entities: AllEntities;
-    // private readonly userState: UserStateRepository;
+    private readonly userState: UserStateRepository;
 
     constructor(
         @inject('FDB') entities: AllEntities,
-        // @inject('UserStateRepository') userState: UserStateRepository
+        @inject('UserStateRepository') userState: UserStateRepository
     ) {
         this.entities = entities;
-        // this.userState = userState;
+        this.userState = userState;
     }
 
     async fixForUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             try {
                 logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
-                let processed: {cid: number, unread: number}[] = [];
                 let all = await this.entities.UserDialog.allFromUser(ctx, uid);
                 let totalUnread = 0;
                 for (let a of all) {
@@ -52,8 +51,6 @@ export class FixerRepository {
                         logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
                         a.unread = total;
                     }
-
-                    processed.push({ cid: a.cid, unread: a.unread });
                 }
                 let ex = await this.entities.UserMessagingState.findById(ctx, uid);
                 if (ex) {
@@ -63,20 +60,7 @@ export class FixerRepository {
                 } else {
                     await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
                 }
-                //
-                // Deliver new counters
-                //
-                // for (let chat of processed) {
-                //     let global = await this.userState.getUserMessagingState(ctx, uid);
-                //     global.seq++;
-                //     await global.flush();
-                //     await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
-                //         kind: 'message_read',
-                //         cid: chat.cid,
-                //         unread: chat.unread,
-                //         allUnread: totalUnread
-                //     });
-                // }
+
                 return true;
             } catch (e) {
                 console.log('counter_fix_error', e);
@@ -94,6 +78,26 @@ export class FixerRepository {
             }
 
             return true;
+        });
+    }
+
+    async deliverUserCounters(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let all = await this.entities.UserDialog.allFromUser(ctx, uid);
+            //
+            // Deliver new counters
+            //
+            for (let dialog of all) {
+                let global = await this.userState.getUserMessagingState(ctx, uid);
+                global.seq++;
+                await global.flush();
+                await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                    kind: 'message_read',
+                    cid: dialog.cid,
+                    unread: dialog.unread,
+                    allUnread: global.unread
+                });
+            }
         });
     }
 } 

@@ -18,6 +18,7 @@ export default {
                 for (let user of users) {
                     try {
                         await Modules.Messaging.fixer.fixForUser(createEmptyContext(), user.id);
+                        await Modules.Messaging.fixer.deliverUserCounters(createEmptyContext(), user.id);
                         if ((i % 100) === 0) {
                             await log('done: ' + i);
                         }
