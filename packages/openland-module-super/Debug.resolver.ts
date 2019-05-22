@@ -636,8 +636,9 @@ export default {
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
                 while (true) {
-                    console.log('send lifecheck');
-                    yield 'pong ' + Date.now();
+                    let data = 'pong ' + Date.now();
+                    console.log('send lifecheck', data);
+                    yield data;
                     await delay(1000);
                 }
             }

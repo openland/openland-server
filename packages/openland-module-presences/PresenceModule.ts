@@ -445,6 +445,11 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
             await this.subscribeOnlineChange(userId);
 
             subscriptions.push(await this.localSub.subscribe(userId.toString(10), iterator.push));
+
+            // subscriptions.push(await this.localSub.subscribe(userId.toString(10), (event) => {
+            //     iterator.push(event);
+            //     console.log('send presence');
+            // }));
         }
 
         return iterator;

@@ -28,7 +28,10 @@ import { TokenChecker } from '../openland-module-auth/authV2';
 import { parseCookies } from '../openland-utils/parseCookies';
 import { decode } from 'openland-utils/base64';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-// import { createMTProtoWSServer } from '../openland-mtproto3';
+import { createFuckApolloWSServer } from '../openland-mtproto3';
+import { randomKey } from '../openland-utils/random';
+import * as url from 'url';
+// import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
 const logger = createLogger('ws');
@@ -184,7 +187,7 @@ export async function initApi(isTest: boolean) {
         };
 
         function createWebSocketServer(server: HttpServer) {
-            new SubscriptionServer({
+            return new SubscriptionServer({
                 schema: Schema(),
                 execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
@@ -264,32 +267,56 @@ export async function initApi(isTest: boolean) {
                 validationRules: [
                     // disableIntrospection(undefined) // any introspection over WS is disabled
                 ]
-            }, { server: server, path: '/api' });
+            }, {
+                // server: server,
+                // path: '/api'
+                noServer: true,
+            });
         }
 
         // Starting server
         const httpServer = http.createServer(app);
-        // await createMTProtoWSServer({
-        //     server: httpServer,
-        //     path: '/api',
-        //     executableSchema: Schema(),
-        //     onAuth: async (params, req) => {
-        //         if (Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
-        //             let cookies = parseCookies(req.headers.cookie);
-        //             return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
-        //         }
-        //         return await fetchWebSocketParameters(params, null);
-        //     },
-        //     context: async params => {
-        //         return buildWebSocketContext(params || {});
-        //     },
-        //     genSessionId: async authParams => randomKey()
-        // });
+
         Server.applyMiddleware({ app, path: '/graphql' });
         Server.applyMiddleware({ app, path: '/api' });
+
+        let apolloWS = createWebSocketServer(httpServer);
+        let fuckApolloWS = await createFuckApolloWSServer({
+            server:  undefined, // httpServer ,
+            path: '/api',
+            executableSchema: Schema(),
+            onAuth: async (params, req) => {
+                if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
+                    let cookies = parseCookies(req.headers.cookie || '');
+                    return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
+                }
+                return await fetchWebSocketParameters(params, null);
+            },
+            context: async params => {
+                return buildWebSocketContext(params || {});
+            },
+            genSessionId: async authParams => randomKey()
+        });
+
+        httpServer.on('upgrade', (request, socket, head)  => {
+            const pathname = url.parse(request.url).pathname;
+
+            if (pathname === '/api') {
+                apolloWS.server.handleUpgrade(request, socket, head, (_ws) => {
+                    apolloWS.server.emit('connection', _ws, request);
+                });
+            } else if (pathname === '/gql_ws') {
+                fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
+                    fuckApolloWS.emit('connection', _ws, request);
+                });
+            } else {
+                socket.destroy();
+            }
+        });
+
         // Server.installSubscriptionHandlers(httpServer);
         httpServer.listen(dport);
-        createWebSocketServer(httpServer);
+        // createWebSocketServer(httpServer);
 
     } else {
         await new Promise((resolver) => app.listen(0, () => resolver()));
