@@ -11,6 +11,7 @@ import { Context, createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
+import { resolveContext } from '../foundation-orm/utils/contexts';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -326,6 +327,10 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
 
     public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
         await inTx(parent, async (ctx) => {
+            resolveContext(ctx).afterTransaction(() => {
+                EventBus.publish(`online_change_${uid}`, { });
+            });
+
             let expires = Date.now() + timeout;
             let ex = await this.FDB.Presence.findById(ctx, uid, tid);
             if (ex) {
@@ -359,11 +364,14 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
 
             await presenceEvent.event(ctx, { uid, online: true });
         });
-        await EventBus.publish(`online_change_${uid}`, { });
     }
 
     public async setOffline(parent: Context, uid: number) {
         await inTx(parent, async (ctx) => {
+            resolveContext(ctx).afterTransaction(() => {
+                EventBus.publish(`online_change_${uid}`, { });
+            });
+
             let online = await this.FDB.Online.findById(ctx, uid);
             if (online) {
                 online.lastSeen = Date.now();
@@ -371,7 +379,6 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
             }
             await presenceEvent.event(ctx, { uid, online: false });
         });
-        await EventBus.publish(`online_change_${uid}`, { });
     }
 
     public async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
