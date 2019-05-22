@@ -77,7 +77,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
         getMeta(doc, 'title') ||
         getHTMLTitle(doc) ||
         null;
-
+    
     let description =
         getMeta(doc, 'og:description') ||
         getMeta(doc, 'vk:description') ||

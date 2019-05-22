@@ -79,7 +79,7 @@ extend type Mutation {
     debugSetCommentVisibility(commentId: ID!, visible: Boolean!): Boolean!
     debugRemoveDeletedDialogs: Boolean!
 
-    debugReindexOrgs: Boolean!
+    debugReindexOrgs(marActivatedOrgsListed: Boolean!): Boolean!
 }
 
 extend type Subscription {

@@ -562,17 +562,25 @@ export default {
                 for (let o of orgs) {
                     try {
                         await inTx(createEmptyContext(), async _ctx => {
-                            let org = await FDB.Organization.findById(_ctx, o.id);
-                            let editorial = await FDB.OrganizationEditorial.findById(_ctx, o.id);
+                            if (args.marActivatedOrgsListed) {
+                                let org = await FDB.Organization.findById(_ctx, o.id);
+                                let editorial = await FDB.OrganizationEditorial.findById(_ctx, o.id);
 
-                            if (!org || !editorial) {
-                                return;
+                                if (!org || !editorial) {
+                                    return;
+                                }
+                                if (org.status === 'activated') {
+                                    editorial.listed = true;
+                                }
+                                await editorial.flush();
+                                await Modules.Orgs.markForUndexing(_ctx, o.id);
+                            } else {
+                                let org = await FDB.Organization.findById(_ctx, o.id);
+                                if (!org) {
+                                    return;
+                                }
+                                await Modules.Orgs.markForUndexing(_ctx, o.id);
                             }
-                            if (org.status === 'activated') {
-                                editorial.listed = true;
-                            }
-                            await editorial.flush();
-                            await Modules.Orgs.markForUndexing(_ctx, o.id);
                         });
 
                         if ((i % 100) === 0) {

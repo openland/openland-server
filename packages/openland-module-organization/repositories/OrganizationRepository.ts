@@ -80,6 +80,9 @@ export class OrganizationRepository {
                 });
             // }
 
+            // Mark for indexing
+            await this.markForUndexing(ctx, orgId);
+
             return organization;
         });
     }
