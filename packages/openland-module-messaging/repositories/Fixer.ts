@@ -22,61 +22,66 @@ export class FixerRepository {
 
     async fixForUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
-            let processed: {cid: number, unread: number}[] = [];
-            let all = await this.entities.UserDialog.allFromUser(ctx, uid);
-            let totalUnread = 0;
-            for (let a of all) {
-                let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
-                if (!conv) {
-                    a.unread = 0;
-                    continue;
-                }
-                if (conv.kind === 'room') {
-                    let pat = await this.entities.RoomParticipant.findById(ctx, a.cid, uid);
-                    if (!pat || pat.status !== 'joined') {
+            try {
+                logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
+                let processed: {cid: number, unread: number}[] = [];
+                let all = await this.entities.UserDialog.allFromUser(ctx, uid);
+                let totalUnread = 0;
+                for (let a of all) {
+                    let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
+                    if (!conv) {
                         a.unread = 0;
                         continue;
                     }
-                }
+                    if (conv.kind === 'room') {
+                        let pat = await this.entities.RoomParticipant.findById(ctx, a.cid, uid);
+                        if (!pat || pat.status !== 'joined') {
+                            a.unread = 0;
+                            continue;
+                        }
+                    }
 
-                if (a.readMessageId) {
-                    let total = Math.max(0, (await this.entities.Message.allFromChatAfter(ctx, a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length);
-                    totalUnread += total;
-                    logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
-                    a.unread = total;
+                    if (a.readMessageId) {
+                        let total = Math.max(0, (await this.entities.Message.allFromChatAfter(ctx, a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length);
+                        totalUnread += total;
+                        logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
+                        a.unread = total;
+                    } else {
+                        let total = Math.max(0, (await this.entities.Message.allFromChat(ctx, a.cid)).filter((v) => v.uid !== uid).length);
+                        totalUnread += total;
+                        logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
+                        a.unread = total;
+                    }
+
+                    processed.push({ cid: a.cid, unread: a.unread });
+                }
+                let ex = await this.entities.UserMessagingState.findById(ctx, uid);
+                if (ex) {
+                    logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + ex.unread + ', updated: ' + totalUnread);
+                    ex.unread = totalUnread;
+                    await ex.flush();
                 } else {
-                    let total = Math.max(0, (await this.entities.Message.allFromChat(ctx, a.cid)).filter((v) => v.uid !== uid).length);
-                    totalUnread += total;
-                    logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
-                    a.unread = total;
+                    await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
                 }
-
-                processed.push({ cid: a.cid, unread: a.unread });
+                //
+                // Deliver new counters
+                //
+                for (let chat of processed) {
+                    let global = await this.userState.getUserMessagingState(ctx, uid);
+                    global.seq++;
+                    await global.flush();
+                    await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                        kind: 'message_read',
+                        cid: chat.cid,
+                        unread: chat.unread,
+                        allUnread: totalUnread
+                    });
+                }
+                return true;
+            } catch (e) {
+                console.log('counter_fix_error', e);
+                return false;
             }
-            let ex = await this.entities.UserMessagingState.findById(ctx, uid);
-            if (ex) {
-                logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + ex.unread + ', updated: ' + totalUnread);
-                ex.unread = totalUnread;
-                await ex.flush();
-            } else {
-                await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
-            }
-            //
-            // Deliver new counters
-            //
-            for (let chat of processed) {
-                let global = await this.userState.getUserMessagingState(ctx, uid);
-                global.seq++;
-                await global.flush();
-                await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
-                    kind: 'message_read',
-                    cid: chat.cid,
-                    unread: chat.unread,
-                    allUnread: totalUnread
-                });
-            }
-            return true;
         });
     }
 
