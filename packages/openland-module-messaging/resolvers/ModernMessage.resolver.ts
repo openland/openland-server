@@ -309,7 +309,7 @@ export default {
             //  Modern spans
             //
             if (src.spans) {
-                return src.spans;
+                return src.spans.filter(s => s.type !== 'all_mention');
             }
 
             let uid = ctx.auth.uid!;
@@ -375,7 +375,7 @@ export default {
             //  Modern spans
             //
             if (src.spans) {
-                return src.spans;
+                return src.spans.filter(s => s.type !== 'all_mention');
             }
 
             let uid = ctx.auth.uid!;
