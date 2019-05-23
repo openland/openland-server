@@ -6,7 +6,9 @@ import { withLogContext } from 'openland-log/withLogContext';
 
 export default {
     User: {
-        online: withUser(async (ctx, src: User) => await Modules.Presence.getLastSeen(withLogContext(ctx, ['user.online.' + src.id]), src.id) === 'online'),
+        online: withUser(async (ctx, src: User) => {
+            return await Modules.Presence.getLastSeen(withLogContext(ctx, ['user.online.' + src.id + ' for ' + ctx.auth.uid]), src.id) === 'online';
+        }),
         lastSeen: withUser((ctx, src: User) => Modules.Presence.getLastSeen(withLogContext(ctx, ['user.lastSeen.' + src.id]), src.id)),
         active: withUser((ctx, src: User) => Modules.Presence.isActive(withLogContext(ctx, ['user.isActive.' + src.id]), src.id)),
     }

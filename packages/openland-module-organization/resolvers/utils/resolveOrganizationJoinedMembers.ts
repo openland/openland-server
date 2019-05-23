@@ -67,12 +67,12 @@ export async function resolveOrganizationJoinedMembers(
 }
 
 export async function resolveOrganizationJoinedAdminMembers(ctx: Context, args: { afterMemberId?: number | null; first?: number | null }, orgId: number) {
-    // let members = await resolveOrganizationJoinedMembers(ctx, args, orgId);
+    let members = await resolveOrganizationJoinedMembers(ctx, args, orgId);
 
-    // return members.filter((organizationJoinedMember: any) => {
-    //     const role = organizationJoinedMember.role;
-    //     return role === 'OWNER' || role === 'ADMIN';
-    // });
+    return members.filter((organizationJoinedMember: any) => {
+        const role = organizationJoinedMember.role;
+        return role === 'OWNER' || role === 'ADMIN';
+    });
 
     return [];
 }
