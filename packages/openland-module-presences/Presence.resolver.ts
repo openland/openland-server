@@ -72,11 +72,11 @@ export default {
                     uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
                 }
 
-                return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
+                // return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
 
-                // return createIterator(() => {
-                //     // do nothing
-                // });
+                return createIterator(() => {
+                    // do nothing
+                });
             }
         },
         alphaSubscribeOnline: {
@@ -87,9 +87,13 @@ export default {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
-                let userIds = args.users.map(c => IDs.User.parse(c));
+                // let userIds = args.users.map(c => IDs.User.parse(c));
 
-                return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
+                // return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
+
+                return createIterator(() => {
+                    // do nothing
+                });
             }
         },
         chatOnlinesCount: {
