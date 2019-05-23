@@ -317,6 +317,11 @@ export default {
                             length: span.length,
                             user: ctx.auth.uid!
                         };
+                    } else if (span.type === 'multi_user_mention') {
+                        return {
+                            ...span,
+                            users: []
+                        };
                     } else {
                         return span;
                     }
