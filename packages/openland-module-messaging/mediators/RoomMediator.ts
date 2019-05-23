@@ -87,18 +87,18 @@ export class RoomMediator {
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
                 let shouldSendJoinMessage = !conv.isChannel;
                 if (shouldSendJoinMessage) {
-                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-
-                    if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                        let uids: number[] = prevMessage.serviceMetadata.userIds;
-                        uids.push(uid);
-
-                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, invited ? null : uid, true), false);
-                        await this.messaging.bumpDialog(ctx, uid, cid);
-                    } else {
-                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
-                    }
-                    // await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
+                    // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                    //
+                    // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                    //     let uids: number[] = prevMessage.serviceMetadata.userIds;
+                    //     uids.push(uid);
+                    //
+                    //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, invited ? null : uid, true), false);
+                    //     await this.messaging.bumpDialog(ctx, uid, cid);
+                    // } else {
+                    //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
+                    // }
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
                 } else {
                     // message not sent to new members, move room up in dialog list other way
                     await this.messaging.bumpDialog(ctx, uid, cid);
@@ -130,18 +130,18 @@ export class RoomMediator {
                 if (res.length > 0) {
                     let shouldSendJoinMessage = !conv.isChannel;
                     if (shouldSendJoinMessage) {
-                        let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-
-                        if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                            let uids: number[] = [...prevMessage.serviceMetadata.userIds, ...res];
-                            await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, uid, true), false);
-                            for (let u of res) {
-                                await this.messaging.bumpDialog(ctx, u, cid);
-                            }
-                        } else {
-                            await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
-                        }
-                        // await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                        // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                        //
+                        // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                        //     let uids: number[] = [...prevMessage.serviceMetadata.userIds, ...res];
+                        //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, uid, true), false);
+                        //     for (let u of res) {
+                        //         await this.messaging.bumpDialog(ctx, u, cid);
+                        //     }
+                        // } else {
+                        //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                        // }
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
                     } else {
                         // message not sent to new members, move room up in dialog list other way
                         for (let u of res) {
