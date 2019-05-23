@@ -80,7 +80,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     //
     if (message.mentions) {
         for (let m of message.mentions) {
-            intermediateMentions.push({type: 'user', user: m});
+            intermediateMentions.push({ type: 'user', user: m });
         }
     }
 
@@ -90,9 +90,9 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     if (message.complexMentions) {
         for (let m of message.complexMentions) {
             if (m.type === 'User') {
-                intermediateMentions.push({type: 'user', user: m.id});
+                intermediateMentions.push({ type: 'user', user: m.id });
             } else if (m.type === 'SharedRoom') {
-                intermediateMentions.push({type: 'room', room: m.id});
+                intermediateMentions.push({ type: 'room', room: m.id });
             } else {
                 throw new Error('Unknown mention type: ' + m.type);
             }
@@ -190,7 +190,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
         }
     }
 
-    return spans;
+    return [];
 }
 
 const linkifyInstance = createLinkifyInstance();
@@ -425,7 +425,7 @@ export default {
                 return [];
             }
             if (src instanceof Comment) {
-                return src.attachments ? src.attachments.map(a => ({message: src, attachment: a})) : [];
+                return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
             }
 
             let attachments: { attachment: MessageAttachment, message: Message }[] = [];
@@ -514,7 +514,7 @@ export default {
                 }
             }
             if (src.attachmentsModern) {
-                attachments.push(...(src.attachmentsModern.map(a => ({message: src, attachment: a}))));
+                attachments.push(...(src.attachmentsModern.map(a => ({ message: src, attachment: a }))));
             }
 
             return attachments;
@@ -778,21 +778,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -886,21 +886,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }

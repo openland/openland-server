@@ -8,25 +8,10 @@ import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 export default {
     User: {
         online: withUser(async (ctx: AppContext, src: User) => {
-            let path = ctx instanceof GQLAppContext ? ctx.getPath() : [];
-            if (path.find(s => s === 'spans')) {
-                return false;
-            }
+            let path = ctx instanceof GQLAppContext ? ctx.getPath() : ['user.online.' + src.id + ' for ' + ctx.auth.uid];
             return await Modules.Presence.getLastSeen(withLogContext(ctx, path), src.id) === 'online';
         }),
-        lastSeen: withUser((ctx, src: User) => {
-            let path = ctx instanceof GQLAppContext ? ctx.getPath() : [];
-            if (path.find(s => s === 'spans')) {
-                return 'never_online';
-            }
-            return Modules.Presence.getLastSeen(withLogContext(ctx, ['user.lastSeen.' + src.id]), src.id)
-        }),
-        active: withUser((ctx, src: User) => {
-            let path = ctx instanceof GQLAppContext ? ctx.getPath() : [];
-            if (path.find(s => s === 'spans')) {
-                return false;
-            }
-            return Modules.Presence.isActive(withLogContext(ctx, ['user.isActive.' + src.id]), src.id);
-        }),
+        lastSeen: withUser((ctx, src: User) => Modules.Presence.getLastSeen(withLogContext(ctx, ['user.lastSeen.' + src.id]), src.id)),
+        active: withUser((ctx, src: User) => Modules.Presence.isActive(withLogContext(ctx, ['user.isActive.' + src.id]), src.id)),
     }
 } as GQLResolver;
