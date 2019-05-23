@@ -190,7 +190,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
         }
     }
 
-    return [];
+    return spans;
 }
 
 const linkifyInstance = createLinkifyInstance();
