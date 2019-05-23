@@ -12,6 +12,7 @@ import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
 import { resolveContext } from '../foundation-orm/utils/contexts';
+import { withLogContext } from 'openland-log/withLogContext';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -69,7 +70,7 @@ export class PresenceModuleFDBImpl implements IPresenceModule {
                 await this.FDB.Online.create(ctx, uid, { lastSeen: expires, active });
             } else if (online.lastSeen < expires) {
                 let userPresences = await this.FDB.Presence.allFromUser(ctx, uid);
-                let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now() );
+                let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now());
 
                 if (haveActivePresence) {
                     online.active = true;
@@ -328,7 +329,7 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
     public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
         await inTx(parent, async (ctx) => {
             resolveContext(ctx).afterTransaction(() => {
-                EventBus.publish(`online_change_${uid}`, { });
+                EventBus.publish(`online_change_${uid}`, {});
             });
 
             let expires = Date.now() + timeout;
@@ -349,7 +350,7 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
                 await this.FDB.Online.create(ctx, uid, { lastSeen: expires, active });
             } else if (online.lastSeen < expires) {
                 let userPresences = await this.FDB.Presence.allFromUser(ctx, uid);
-                let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now() );
+                let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now());
 
                 if (haveActivePresence) {
                     online.active = true;
@@ -369,7 +370,7 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
     public async setOffline(parent: Context, uid: number) {
         await inTx(parent, async (ctx) => {
             resolveContext(ctx).afterTransaction(() => {
-                EventBus.publish(`online_change_${uid}`, { });
+                EventBus.publish(`online_change_${uid}`, {});
             });
 
             let online = await this.FDB.Online.findById(ctx, uid);
@@ -526,7 +527,7 @@ export class PresenceModuleRedisImpl implements IPresenceModule {
     }
 
     private async handleOnlineChange(uid: number) {
-        let onlineValue = await this.FDB.Online.findById(createEmptyContext(), uid);
+        let onlineValue = await this.FDB.Online.findById(withLogContext(createEmptyContext(), ['handleOnlineChange']), uid);
 
         let timeout = 0;
         let online = false;
