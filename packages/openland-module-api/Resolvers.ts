@@ -3,7 +3,7 @@ import { ErrorText } from '../openland-errors/ErrorText';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
-import { AppContext } from 'openland-modules/AppContext';
+import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { MaybePromise } from './schema/SchemaUtils';
 import { createEmptyContext } from 'openland-utils/Context';
 import { CacheContext } from './CacheContext';
@@ -114,7 +114,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
                         if (!context || !context.ctx) {
                             let res = createEmptyContext();
                             res = CacheContext.set(res, new Map());
-                            context = new AppContext(res);
+                            context = new GQLAppContext(res, info);
                         }
                         return await handler(field, fieldResolve!, root, args, context, info);
                     };
