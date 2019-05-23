@@ -348,7 +348,8 @@ export default {
         alphaMentions: async (src: Message) => src.complexMentions
     },
     InviteServiceMetadata: {
-        users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
+        // users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
+        users: (src: any, args: {}, ctx: AppContext) => [],
         invitedBy: (src: any, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.invitedById)
     },
     KickServiceMetadata: {
