@@ -3,9 +3,15 @@ enum Platform {
 }
 
 type OnlineEvent {
-    user: User!
-    type: String!
+    userId: ID!
     timeout: Int!
+    online: Boolean!
+    active: Boolean!
+    lastSeen: String!
+
+    # Deprecated
+    type: String!
+    user: User!
 }
 
 type ChatOnlineEvent {

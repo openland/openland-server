@@ -8,9 +8,14 @@ import { createIterator } from '../openland-utils/asyncIterator';
 
 export default {
     OnlineEvent: {
+        userId: (src: OnlineEvent) => IDs.User.serialize(src.userId),
+        timeout: (src: OnlineEvent) => src.timeout,
+        online: (src: OnlineEvent) => src.online,
+        active: (src: OnlineEvent) => src.active,
+        lastSeen: (src: OnlineEvent) => src.lastSeen,
+
         type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
         user: (src: OnlineEvent) => src.userId,
-        timeout: (src: OnlineEvent) => src.timeout,
     },
     Mutation: {
         presenceReportOnline: async (_, args, ctx) => {

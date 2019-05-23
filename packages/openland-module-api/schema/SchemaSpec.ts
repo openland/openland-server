@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'fac1a21389a93cc1318079e8b662ef0f';
+export const GQL_SPEC_VERSION = 'b86062b940028aef436260ea488d60f6';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -461,9 +461,13 @@ export namespace GQL {
     }
     export type Platform = 'WEB' | 'IOS' | 'ANDROID';
     export interface OnlineEvent {
-        user: User;
-        type: string;
+        userId: string;
         timeout: number;
+        online: boolean;
+        active: boolean;
+        lastSeen: string;
+        type: string;
+        user: User;
     }
     export interface ChatOnlineEvent {
         onlineMembers: number;
