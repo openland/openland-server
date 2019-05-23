@@ -56,7 +56,7 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startEmailNotificationWorker();
         }
-        if (serverRoleEnabled('workers')) {
+        if (serverRoleEnabled('admin')) {
             startPushNotificationWorker();
         }
         if (serverRoleEnabled('workers')) {
