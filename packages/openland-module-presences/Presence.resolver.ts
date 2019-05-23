@@ -87,7 +87,14 @@ export default {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
-                let userIds = args.users.map(c => IDs.User.parse(c));
+                let userIds = args.users.filter(c => {
+                    try {
+                        IDs.User.parse(c);
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                }).map(c => IDs.User.parse(c));
 
                 return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
 
