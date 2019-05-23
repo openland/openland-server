@@ -31,6 +31,8 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { createFuckApolloWSServer } from '../openland-mtproto3';
 import { randomKey } from '../openland-utils/random';
 import * as url from 'url';
+import { buildConcurrencyPool } from './buildConcurrencyPool';
+import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -152,7 +154,7 @@ export async function initApi(isTest: boolean) {
             if (ctx.connection) {
                 let wsctx = ctx.connection.context;
                 let ctx2 = buildWebSocketContext(wsctx || {});
-                return ctx2;
+                return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
             }
             await TokenChecker(context.req, context.res);
             await callContextMiddleware(isTest, context.req, context.res);
@@ -197,6 +199,9 @@ export async function initApi(isTest: boolean) {
                     if (ex && (ex as OperationDefinitionNode).operation !== 'subscription') {
                         srcCtx = withCache(srcCtx);
                     }
+
+                    srcCtx = withConcurrentcyPool(srcCtx, buildConcurrencyPool((contextValue as AppContext)));
+
                     return await ws.trace(srcCtx, operationName || 'op', async (ctx) => {
                         return await execute(schema, document, rootValue, new AppContext(ctx), variableValues, operationName, fieldResolver);
                     });
@@ -268,10 +273,10 @@ export async function initApi(isTest: boolean) {
                     // disableIntrospection(undefined) // any introspection over WS is disabled
                 ]
             }, {
-                // server: server,
-                // path: '/api'
-                noServer: true,
-            });
+                    // server: server,
+                    // path: '/api'
+                    noServer: true,
+                });
         }
 
         // Starting server
@@ -282,7 +287,7 @@ export async function initApi(isTest: boolean) {
 
         let apolloWS = createWebSocketServer(httpServer);
         let fuckApolloWS = await createFuckApolloWSServer({
-            server:  undefined, // httpServer ,
+            server: undefined, // httpServer ,
             path: '/api',
             executableSchema: Schema(),
             onAuth: async (params, req) => {
@@ -298,7 +303,7 @@ export async function initApi(isTest: boolean) {
             genSessionId: async authParams => randomKey()
         });
 
-        httpServer.on('upgrade', (request, socket, head)  => {
+        httpServer.on('upgrade', (request, socket, head) => {
             const pathname = url.parse(request.url).pathname;
 
             if (pathname === '/api') {
