@@ -48,7 +48,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
     if (session.state === 'INIT') {
         // handle auth here
-        if (!message.type && message.type !== 'connection_init') {
+        if (!message.type || message.type !== 'connection_init') {
             socket.close();
             return;
         }
@@ -141,6 +141,7 @@ async function handleConnection(params: FuckApolloServerParams, socket: WebSocke
     };
 
     socket.on('message', async data => {
+        console.log('got', data.toString());
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
