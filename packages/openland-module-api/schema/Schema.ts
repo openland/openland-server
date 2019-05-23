@@ -10,7 +10,7 @@ import { withLogContext } from '../../openland-log/withLogContext';
 // import { gqlTracer } from 'openland-graphql/gqlTracer';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
-import { AppContext } from 'openland-modules/AppContext';
+import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { gqlTracer } from 'openland-graphql/gqlTracer';
 // import { withTracingSpan } from 'openland-log/withTracing';
 // import { withCache } from 'foundation-orm/withCache';
@@ -44,7 +44,7 @@ export const Schema = (forTest: boolean = false) => {
             let ctx = (context as AppContext).ctx;
             ctx = withLogContext(ctx, [field.name]);
             return await gqlTracer.trace(ctx, field.name, async (ctx2) => {
-                return await originalResolver(root, args, new AppContext(ctx2), info);
+                return await originalResolver(root, args, new GQLAppContext(ctx2, info), info);
             });
         }
     );

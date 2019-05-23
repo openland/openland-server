@@ -87,13 +87,13 @@ export default {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
-                // let userIds = args.users.map(c => IDs.User.parse(c));
+                let userIds = args.users.map(c => IDs.User.parse(c));
 
-                // return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
+                return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
 
-                return createIterator(() => {
-                    // do nothing
-                });
+                // return createIterator(() => {
+                //     // do nothing
+                // });
             }
         },
         chatOnlinesCount: {
