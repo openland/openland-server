@@ -137,7 +137,8 @@ export abstract class FEntityFactory<T extends FEntity> {
             if (res.length > limit) {
                 cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[res.length - 2].key) as any);
             }
-            return { items: d, cursor };
+            let openCursor = cursor || (res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[Math.min(limit, res.length) - 1].key) as any) : after);
+            return { items: d, cursor, openCursor };
         } else {
             let res = await this.namespace.range(ctx, this.connection, key, { limit: limit + 1, reverse });
             let d: T[] = [];
@@ -148,7 +149,8 @@ export abstract class FEntityFactory<T extends FEntity> {
             if (res.length > limit) {
                 cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[res.length - 2].key) as any);
             }
-            return { items: d, cursor };
+            let openCursor = cursor || (res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[Math.min(limit, res.length) - 1].key) as any) : after);
+            return { items: d, cursor, openCursor };
         }
     }
 
