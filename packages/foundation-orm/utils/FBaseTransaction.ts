@@ -9,6 +9,7 @@ import { tracer } from './tracer';
 import { SLog } from 'openland-log/SLog';
 import { FKeyEncoding } from './FKeyEncoding';
 import { Context } from 'openland-utils/Context';
+import { ConcurrencyPool, getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 
 const log = createLogger('tx', false);
 
@@ -22,12 +23,13 @@ export abstract class FBaseTransaction implements FContext {
 
     protected readonly log: SLog = log;
     protected connection: FConnection | null = null;
+    protected concurrencyPool: ConcurrencyPool | null = null;
 
     async get(parent: Context, connection: FConnection, key: Buffer): Promise<any | null> {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'get', async (ctx) => {
             this.log.debug(ctx, 'get');
-            return await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key);
+            return await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key));
         });
     }
 
@@ -35,7 +37,7 @@ export abstract class FBaseTransaction implements FContext {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'range', async (ctx) => {
             this.log.debug(ctx, 'get-range');
-            let res = await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options);
+            let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
             return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
@@ -43,7 +45,7 @@ export abstract class FBaseTransaction implements FContext {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'rangeAll', async (ctx) => {
             this.log.debug(ctx, 'get-range-all');
-            let res = (await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
+            let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
             return res.map((v) => v[1] as any);
         });
     }
@@ -54,7 +56,7 @@ export abstract class FBaseTransaction implements FContext {
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.lastKeyInSubspace(afterKey));
             let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);
-            let res = await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options);
+            let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options));
             return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
@@ -76,6 +78,7 @@ export abstract class FBaseTransaction implements FContext {
 
         log.debug(ctx, 'started');
         this.connection = connection;
+        this.concurrencyPool = getConcurrencyPool(ctx);
         this.tx = this.createTransaction(connection);
     }
 }
