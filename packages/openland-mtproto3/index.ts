@@ -4,6 +4,8 @@ import * as http from 'http';
 import * as https from 'https';
 import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
+import { AppContext } from '../openland-modules/AppContext';
+import { withCache } from '../foundation-orm/withCache';
 
 interface FuckApolloServerParams {
     server?: http.Server | https.Server;
@@ -108,12 +110,13 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                     }
                 };
             } else {
+                let ctx = new AppContext(withCache(((await params.context(session.authParams)) as AppContext).ctx));
                 let result = await execute({
                     schema: params.executableSchema,
                     document: query,
                     operationName: message.payload.operationName,
                     variableValues: message.payload.variables,
-                    contextValue: await params.context(session.authParams)
+                    contextValue: ctx
                 });
                 session.send({id: message.id, type: 'data', payload: result});
                 session.send({id: message.id, type: 'complete', payload: null});
