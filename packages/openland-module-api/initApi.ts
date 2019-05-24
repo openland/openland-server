@@ -179,7 +179,7 @@ export async function initApi(isTest: boolean) {
     if (dport > 0) {
         console.info('Binding to port ' + dport);
 
-        let formatError = (err: any, info: QueryInfo) => {
+        let formatError = (err: any, info?: QueryInfo) => {
             console.warn(err);
             return {
                 ...errorHandler(err, info),
@@ -298,9 +298,19 @@ export async function initApi(isTest: boolean) {
                 return await fetchWebSocketParameters(params, null);
             },
             context: async params => {
-                return buildWebSocketContext(params || {});
+                return new AppContext(withCache(buildWebSocketContext(params || {}).ctx));
             },
-            genSessionId: async authParams => randomKey()
+            genSessionId: async authParams => randomKey(),
+            formatResponse: async value => {
+                let errors: any[] | undefined;
+                if (value.errors) {
+                    errors = value.errors && value.errors.map((e: any) => formatError(e));
+                }
+                return ({
+                    ...value,
+                    errors: errors,
+                });
+            }
         });
 
         httpServer.on('upgrade', (request, socket, head) => {
@@ -310,6 +320,9 @@ export async function initApi(isTest: boolean) {
                 apolloWS.server.handleUpgrade(request, socket, head, (_ws) => {
                     apolloWS.server.emit('connection', _ws, request);
                 });
+                // fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
+                //     fuckApolloWS.emit('connection', _ws, request);
+                // });
             } else if (pathname === '/gql_ws') {
                 fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
                     fuckApolloWS.emit('connection', _ws, request);
