@@ -4,7 +4,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { createIterator } from '../openland-utils/asyncIterator';
+// import { createIterator } from '../openland-utils/asyncIterator';
 
 export default {
     OnlineEvent: {
@@ -77,11 +77,11 @@ export default {
                     uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
                 }
 
-                // return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
+                return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
 
-                return createIterator(() => {
-                    // do nothing
-                });
+                // return createIterator(() => {
+                //     // do nothing
+                // });
             }
         },
         alphaSubscribeOnline: {
@@ -116,10 +116,10 @@ export default {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
-                return createIterator(() => {
-                    // do nothing
-                });
-                // return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
+                // return createIterator(() => {
+                //     // do nothing
+                // });
+                return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
             }
         }
     }
