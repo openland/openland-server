@@ -383,7 +383,18 @@ export default {
             }
             if (src instanceof Comment) {
                 if (src.spans) {
-                    return src.spans;
+                    return src.spans.map(span => {
+                        if (span.type === 'all_mention') {
+                            return {
+                                type: 'user_mention',
+                                offset: span.offset,
+                                length: span.length,
+                                user: ctx.auth.uid!
+                            };
+                        } else {
+                            return span;
+                        }
+                    });
                 }
                 return [];
             }
