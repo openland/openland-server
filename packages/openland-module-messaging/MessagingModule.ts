@@ -130,6 +130,10 @@ export class MessagingModule {
         return await this.userState.getUserDialogState(parent, uid, cid);
     }
 
+    async zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
+        return await this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
+    }
+
     //
     // Rooms
     //

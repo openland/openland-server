@@ -1,4 +1,4 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { Context } from 'openland-utils/Context';
@@ -96,5 +96,33 @@ export class UserStateRepository {
                 return existing;
             }
         });
+    }
+
+    zipUserDialogEvents = (events: UserDialogEvent[]) => {
+        let zipedEvents = [];
+        let latestChatsUpdatesByType = new Map<string, UserDialogEvent>();
+        let currentEvent: UserDialogEvent;
+        let currentEventKey: string;
+        for (let i = events.length - 1; i >= 0; i--) {
+            currentEvent = events[i];
+            currentEventKey = currentEvent.cid + '_' + currentEvent.kind;
+            if (!latestChatsUpdatesByType.get(currentEventKey)) {
+                zipedEvents.unshift(currentEvent);
+                latestChatsUpdatesByType.set(currentEventKey, currentEvent);
+            }
+        }
+        return zipedEvents;
+    }
+
+    async *zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
+        let cursor = state;
+        while (cursor) {
+            let res = await this.entities.UserDialogEvent.rangeFromUserWithCursor(parent, uid, 1000, cursor);
+            cursor = res.cursor;
+            if (res.items.length && res.openCursor) {
+                yield { items: this.zipUserDialogEvents(res.items), cursor: res.openCursor, fromSeq: res.items[0].seq };
+            }
+        }
+        return;
     }
 }

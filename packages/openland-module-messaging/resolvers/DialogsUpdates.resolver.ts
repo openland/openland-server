@@ -6,22 +6,7 @@ import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
-
-const zipUserDialogEvents = (events: UserDialogEvent[]) => {
-    let zipedEvents = [];
-    let latestChatsUpdatesByType = new Map<string, UserDialogEvent>();
-    let currentEvent: UserDialogEvent;
-    let currentEventKey: string;
-    for (let i = events.length - 1; i >= 0; i--) {
-        currentEvent = events[i];
-        currentEventKey = currentEvent.cid + '_' + currentEvent.kind;
-        if (!latestChatsUpdatesByType.get(currentEventKey)) {
-            zipedEvents.unshift(currentEvent);
-            latestChatsUpdatesByType.set(currentEventKey, currentEvent);
-        }
-    }
-    return zipedEvents;
-};
+import { Modules } from 'openland-modules/Modules';
 
 export default {
     /* 
@@ -158,15 +143,11 @@ export default {
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
                 // zip previous updates in batches
-                let cursor = args.fromState || undefined;
-                let subscribeAfter: string | undefined;
-                while (cursor) {
-                    let res = await FDB.UserDialogEvent.rangeFromUserWithCursor(ctx, ctx.auth.uid!, 1000, cursor);
-                    cursor = res.cursor;
-                    subscribeAfter = res.openCursor;
-                    if (res.items.length) {
-                        yield { items: zipUserDialogEvents(res.items), cursor: res.openCursor, fromSeq: res.items[0].seq };
-                    }
+                let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
+                let subscribeAfter = args.fromState || undefined;
+                for await (let event of zipedGenerator) {
+                    subscribeAfter = event.cursor;
+                    yield event;
                 }
 
                 // start subscription from last known event
