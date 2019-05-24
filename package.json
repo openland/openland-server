@@ -5,9 +5,6 @@
   "repository": "https://github.com/ex3ndr/statecraft-ts.git",
   "author": "Steve Kite <korshakov.stepan@gmail.com>",
   "license": "MIT",
-  "engines": {
-    "node": ">=10.10.0"
-  },
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",
     "@sendgrid/mail": "^6.3.1",
@@ -148,10 +145,10 @@
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/openland-server/index.js",
     "start:inspect": "nodemon --inspect build/openland-server/index.js",
-    "start": "BLUEBIRD_LONG_STACK_TRACES=0 node ./build/openland-server/index.js",
+    "start": "node ./build/openland-server/index.js",
     "dev": "source ./scripts/set_dev_config.sh && yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn schema:watch\" \"yarn assets:watch\" \"yarn build:watch\" \"yarn start:watch\"",
     "dev:unwatch": "source ./scripts/set_dev_config.sh && yarn build && yarn start",
-    "dev:inspect": "source ./scripts/set_dev_config.sh && yarn build && BLUEBIRD_LONG_STACK_TRACES=0 node --inspect --trace_gc --nouse-idle-notification --max-semi-space-size=128 --max_old_space_size=1024 ./build/openland-server/index.js",
+    "dev:inspect": "source ./scripts/set_dev_config.sh && yarn build && node --inspect --trace_gc --nouse-idle-notification --max-semi-space-size=128 --max_old_space_size=1024 ./build/openland-server/index.js",
     "dev:db": "source ./scripts/set_dev_config.sh && yarn build && RECREATE_DB=true yarn start",
     "dev:reset-db": "./node_modules/.bin/ts-node packages/openland-server-tests/prepare.ts",
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",

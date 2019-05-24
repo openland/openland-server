@@ -20,8 +20,12 @@ COPY packages/ /app/packages/
 RUN yarn build 
 RUN yarn lint
 
+RUN yarn install pm2 -g
+ENV PM2_PUBLIC_KEY xm7adsccup5ef5s
+ENV PM2_SECRET_KEY 7rs8665b6gvi3zk
+
 EXPOSE 9000
 WORKDIR /app/build
 ENV NODE_ENV=production
 ENV BLUEBIRD_LONG_STACK_TRACES=0
-CMD [ "node", "--trace_gc", "--max_old_space_size=2048", "--max-semi-space-size=64", "openland-server/index.js" ]
+CMD [ "pm2-runtime", "openland-server/index.js" ]
