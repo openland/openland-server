@@ -12,7 +12,7 @@ export default {
         timeout: (src: OnlineEvent) => src.timeout,
         online: (src: OnlineEvent) => src.online,
         active: (src: OnlineEvent) => src.active,
-        lastSeen: (src: OnlineEvent) => src.lastSeen,
+        lastSeen: (src: OnlineEvent) => src.lastSeen.toString(10),
 
         type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
         user: (src: OnlineEvent) => src.userId,

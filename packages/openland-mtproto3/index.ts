@@ -141,7 +141,6 @@ async function handleConnection(params: FuckApolloServerParams, socket: WebSocke
     };
 
     socket.on('message', async data => {
-        console.log('got', data.toString());
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
