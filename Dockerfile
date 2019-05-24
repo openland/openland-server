@@ -20,7 +20,7 @@ COPY packages/ /app/packages/
 RUN yarn build 
 RUN yarn lint
 
-RUN yarn install pm2 -g
+RUN yarn global add pm2
 ENV PM2_PUBLIC_KEY xm7adsccup5ef5s
 ENV PM2_SECRET_KEY 7rs8665b6gvi3zk
 
