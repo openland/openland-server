@@ -86,20 +86,21 @@ describe('PresenceModule', () => {
     it('should return events', async () => {
         let ctx = createEmptyContext();
         await withLogDisabled(async () => {
-            let stream = await Modules.Presence.createPresenceStream(0, [1, 2, 3, 4, 5]);
+            let stream = await Modules.Presence.createPresenceStream(0, [11, 12, 13, 14, 15]);
             // tslint:disable-next-line:no-floating-promises
             (async () => {
-                await Modules.Presence.setOnline(ctx, 1, '1', 100, 'test', true);
-                await Modules.Presence.setOnline(ctx, 2, '1', 100, 'test', true);
-                await Modules.Presence.setOnline(ctx, 3, '1', 100, 'test', true);
-                await Modules.Presence.setOnline(ctx, 4, '1', 100, 'test', true);
-                await Modules.Presence.setOnline(ctx, 5, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 11, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 12, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 13, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 14, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 15, '1', 100, 'test', true);
             })();
 
             let onlineState = [false, false, false, false, false, false];
             let evs: any[] = [];
 
             for await (let event of stream) {
+                console.log('got', event);
                 if (!onlineState[event.userId]) {
                     expect(event.online).toEqual(true);
                     expect(event.timeout).toBeLessThanOrEqual(100);

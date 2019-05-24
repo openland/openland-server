@@ -82,14 +82,17 @@ export class PresenceModule {
             }
 
             await presenceEvent.event(ctx, { uid, online: true });
+            // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
+            let event = {
+                userId: uid,
+                timeout,
+                online: true,
+                active: (online ? online.active : active) || false,
+                lastSeen: expires
+            };
+            await this.handleOnlineChange(event);
             resolveContext(ctx).afterTransaction(() => {
-                EventBus.publish(`online_change`, {
-                    userId: uid,
-                    timeout,
-                    online: true,
-                    active: online ? online.active : active,
-                    lastSeen: expires.toString(10)
-                });
+                EventBus.publish(`online_change`, event);
             });
         });
     }
@@ -102,14 +105,17 @@ export class PresenceModule {
                 online.active = false;
             }
             await presenceEvent.event(ctx, { uid, online: false });
+            // this.onlines.set(uid, { lastSeen: Date.now(), active: false });
+            let event = {
+                userId: uid,
+                timeout: 0,
+                online: false,
+                active: false,
+                lastSeen: Date.now()
+            };
+            await this.handleOnlineChange(event);
             resolveContext(ctx).afterTransaction(() => {
-                EventBus.publish(`online_change`, {
-                    userId: uid,
-                    timeout: 0,
-                    online: false,
-                    active: false,
-                    lastSeen: Date.now().toString(10)
-                });
+                EventBus.publish(`online_change`, event);
             });
         });
     }
@@ -271,6 +277,10 @@ export class PresenceModule {
 
     private async handleOnlineChange(event: OnlineEvent) {
         let prev = this.onlines.get(event.userId);
+        if (prev && prev.lastSeen === event.lastSeen) {
+            return;
+        }
+
         let isChanged = event.online ? (!prev || !(prev.lastSeen > Date.now())) : (prev && (prev.lastSeen > Date.now()));
         if (prev && prev.timer) {
             clearTimeout(prev.timer);
@@ -286,7 +296,7 @@ export class PresenceModule {
                     lastSeen: Date.now()
                 });
             }, event.timeout);
-            this.onlines.set(event.userId, { timer, lastSeen: event.lastSeen, active: event.active });
+            this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active, timer });
         } else {
             this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active });
         }
