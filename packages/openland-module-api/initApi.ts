@@ -285,7 +285,8 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({ app, path: '/graphql' });
         Server.applyMiddleware({ app, path: '/api' });
 
-        let apolloWS = createWebSocketServer(httpServer);
+        // let apolloWS = createWebSocketServer(httpServer);
+        createWebSocketServer(httpServer);
         let fuckApolloWS = await createFuckApolloWSServer({
             server: undefined, // httpServer ,
             path: '/api',
@@ -317,12 +318,12 @@ export async function initApi(isTest: boolean) {
             const pathname = url.parse(request.url).pathname;
 
             if (pathname === '/api') {
-                apolloWS.server.handleUpgrade(request, socket, head, (_ws) => {
-                    apolloWS.server.emit('connection', _ws, request);
-                });
-                // fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
-                //     fuckApolloWS.emit('connection', _ws, request);
+                // apolloWS.server.handleUpgrade(request, socket, head, (_ws) => {
+                //     apolloWS.server.emit('connection', _ws, request);
                 // });
+                fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
+                    fuckApolloWS.emit('connection', _ws, request);
+                });
             } else if (pathname === '/gql_ws') {
                 fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
                     fuckApolloWS.emit('connection', _ws, request);
