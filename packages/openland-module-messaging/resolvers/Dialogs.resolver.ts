@@ -103,7 +103,7 @@ export default {
             return {
                 conversations: res,
                 seq: seq,
-                next: conversations.cursor,
+                next: conversations.haveMore ? conversations.cursor : undefined,
                 counter: uid
             };
         }),

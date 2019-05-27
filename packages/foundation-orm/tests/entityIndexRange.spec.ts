@@ -126,22 +126,27 @@ describe('FEntity with range index', () => {
             expect(res.items.length).toBe(2);
             expect(res.items[0].id).toBe(4);
             expect(res.items[1].id).toBe(5);
+            expect(res.haveMore).toBe(true);
             let res2 = await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(parent, 'paging', 2, res.cursor);
             expect(res2.cursor).not.toBeUndefined();
             expect(res2.cursor).not.toBeNull();
             expect(res2.items.length).toBe(2);
             expect(res2.items[0].id).toBe(6);
             expect(res2.items[1].id).toBe(7);
+            expect(res2.haveMore).toBe(true);
             let res3 = await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(parent, 'paging', 2, res2.cursor);
             expect(res3.cursor).not.toBeUndefined();
             expect(res3.cursor).not.toBeNull();
             expect(res3.items.length).toBe(2);
             expect(res3.items[0].id).toBe(8);
             expect(res3.items[1].id).toBe(9);
+            expect(res3.haveMore).toBe(true);
             let res4 = await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(parent, 'paging', 2, res3.cursor);
-            expect(res4.cursor).toBeUndefined();
+            expect(res4.cursor).not.toBeUndefined();
+            expect(res4.cursor).not.toBeNull();
             expect(res4.items.length).toBe(1);
             expect(res4.items[0].id).toBe(10);
+            expect(res4.haveMore).toBe(false);
 
             //
             // tx pass
@@ -153,22 +158,27 @@ describe('FEntity with range index', () => {
             expect(res5.items.length).toBe(2);
             expect(res5.items[0].id).toBe(4);
             expect(res5.items[1].id).toBe(5);
+            expect(res5.haveMore).toBe(true);
             let res6 = await inTx(parent, async (ctx) => await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(ctx, 'paging', 2, res5.cursor));
             expect(res6.cursor).not.toBeUndefined();
             expect(res6.cursor).not.toBeNull();
             expect(res6.items.length).toBe(2);
             expect(res6.items[0].id).toBe(6);
             expect(res6.items[1].id).toBe(7);
+            expect(res6.haveMore).toBe(true);
             let res7 = await inTx(parent, async (ctx) => await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(ctx, 'paging', 2, res6.cursor));
             expect(res7.cursor).not.toBeUndefined();
             expect(res7.cursor).not.toBeNull();
             expect(res7.items.length).toBe(2);
             expect(res7.items[0].id).toBe(8);
             expect(res7.items[1].id).toBe(9);
+            expect(res7.haveMore).toBe(true);
             let res8 = await inTx(parent, async (ctx) => await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(ctx, 'paging', 2, res7.cursor));
-            expect(res8.cursor).toBeUndefined();
+            expect(res8.cursor).not.toBeUndefined();
+            expect(res8.cursor).not.toBeNull();
             expect(res8.items.length).toBe(1);
             expect(res8.items[0].id).toBe(10);
+            expect(res8.haveMore).toBe(false);
         });
     });
 
@@ -195,6 +205,7 @@ describe('FEntity with range index', () => {
             expect(res.items.length).toBe(2);
             expect(res.items[0].id).toBe(17);
             expect(res.items[1].id).toBe(16);
+            expect(res.haveMore).toBe(true);
 
             let res2 = await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(parent, 'paging2', 2, res.cursor, true);
             expect(res2.cursor).not.toBeUndefined();
@@ -202,6 +213,7 @@ describe('FEntity with range index', () => {
             expect(res2.items.length).toBe(2);
             expect(res2.items[0].id).toBe(15);
             expect(res2.items[1].id).toBe(14);
+            expect(res2.haveMore).toBe(true);
 
             let res3 = await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(parent, 'paging2', 2, res2.cursor, true);
             expect(res3.cursor).not.toBeUndefined();
@@ -209,11 +221,14 @@ describe('FEntity with range index', () => {
             expect(res3.items.length).toBe(2);
             expect(res3.items[0].id).toBe(13);
             expect(res3.items[1].id).toBe(12);
+            expect(res3.haveMore).toBe(true);
 
             let res4 = await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(parent, 'paging2', 2, res3.cursor, true);
-            expect(res4.cursor).toBeUndefined();
+            expect(res4.cursor).not.toBeUndefined();
+            expect(res4.cursor).not.toBeNull();
             expect(res4.items.length).toBe(1);
             expect(res4.items[0].id).toBe(11);
+            expect(res4.haveMore).toBe(false);
 
             //
             // tx pass
@@ -225,6 +240,7 @@ describe('FEntity with range index', () => {
             expect(res5.items.length).toBe(2);
             expect(res5.items[0].id).toBe(17);
             expect(res5.items[1].id).toBe(16);
+            expect(res5.haveMore).toBe(true);
 
             let res6 = await inTx(parent, async (ctx) => await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(ctx, 'paging2', 2, res5.cursor, true));
             expect(res6.cursor).not.toBeUndefined();
@@ -232,6 +248,7 @@ describe('FEntity with range index', () => {
             expect(res6.items.length).toBe(2);
             expect(res6.items[0].id).toBe(15);
             expect(res6.items[1].id).toBe(14);
+            expect(res6.haveMore).toBe(true);
 
             let res7 = await inTx(parent, async (ctx) => await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(ctx, 'paging2', 2, res6.cursor, true));
             expect(res7.cursor).not.toBeUndefined();
@@ -239,11 +256,14 @@ describe('FEntity with range index', () => {
             expect(res7.items.length).toBe(2);
             expect(res7.items[0].id).toBe(13);
             expect(res7.items[1].id).toBe(12);
+            expect(res7.haveMore).toBe(true);
 
             let res8 = await inTx(parent, async (ctx) => await testEntities.IndexedRangeEntity.rangeFromDefaultWithCursor(ctx, 'paging2', 2, res7.cursor, true));
-            expect(res8.cursor).toBeUndefined();
+            expect(res8.cursor).not.toBeUndefined();
+            expect(res8.cursor).not.toBeNull();
             expect(res8.items.length).toBe(1);
             expect(res8.items[0].id).toBe(11);
+            expect(res8.haveMore).toBe(false);
         });
         // //
         // // Reversed pass

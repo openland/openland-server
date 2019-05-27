@@ -127,31 +127,19 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected async _findRangeWithCursor(ctx: Context, key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
+        let res: { item: any, key: Buffer }[];
         if (after) {
-            let res = await this.namespace.rangeAfter(ctx, this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
-            let d: T[] = [];
-            let cursor: string | undefined;
-            for (let i = 0; i < Math.min(limit, res.length); i++) {
-                d.push(this._createEntity(ctx, res[i].item, false));
-            }
-            if (res.length > limit) {
-                cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[res.length - 2].key) as any);
-            }
-            let openCursor = cursor || (res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[Math.min(limit, res.length) - 1].key) as any) : after);
-            return { items: d, cursor, openCursor };
+            res = await this.namespace.rangeAfter(ctx, this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
         } else {
-            let res = await this.namespace.range(ctx, this.connection, key, { limit: limit + 1, reverse });
-            let d: T[] = [];
-            let cursor: string | undefined;
-            for (let i = 0; i < Math.min(limit, res.length); i++) {
-                d.push(this._createEntity(ctx, res[i].item, false));
-            }
-            if (res.length > limit) {
-                cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[res.length - 2].key) as any);
-            }
-            let openCursor = cursor || (res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[Math.min(limit, res.length) - 1].key) as any) : after);
-            return { items: d, cursor, openCursor };
+            res = await this.namespace.range(ctx, this.connection, key, { limit: limit + 1, reverse });
         }
+        let d: T[] = [];
+        for (let i = 0; i < Math.min(limit, res.length); i++) {
+            d.push(this._createEntity(ctx, res[i].item, false));
+        }
+        let cursor = res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey((res[Math.min(res.length, limit) - 1]).key) as any) : after;
+        let haveMore = res.length > limit;
+        return { items: d, cursor, haveMore };
     }
 
     protected async _findRangeAfter(ctx: Context, subspace: (string | number)[], after: any, limit?: number, reverse?: boolean) {
