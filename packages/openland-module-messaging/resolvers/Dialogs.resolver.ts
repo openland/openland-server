@@ -85,7 +85,8 @@ export default {
             if (args.first <= 0) {
                 return [];
             }
-            return FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
+            let res = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
+            return { ...res, cursor: res.haveMore ? res.cursor : undefined };
         }),
         alphaChats: withUser(async (ctx, args, uid) => {
             let global = await FDB.UserMessagingState.findById(ctx, uid);
