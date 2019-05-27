@@ -116,12 +116,14 @@ export class UserStateRepository {
 
     async *zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
         let cursor = state;
-        while (cursor) {
+        let loadMore = !!cursor;
+        while (loadMore) {
             let res = await this.entities.UserDialogEvent.rangeFromUserWithCursor(parent, uid, 1000, cursor);
             cursor = res.cursor;
-            if (res.items.length && res.openCursor) {
-                yield { items: this.zipUserDialogEvents(res.items), cursor: res.openCursor, fromSeq: res.items[0].seq };
+            if (res.items.length && res.cursor) {
+                yield { items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq };
             }
+            loadMore = res.haveMore;
         }
         return;
     }
