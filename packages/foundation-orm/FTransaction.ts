@@ -99,7 +99,7 @@ export class FTransaction extends FBaseTransaction {
         log.debug(parent, 'flush time: ' + (currentTime() - t) + ' ms');
         t = currentTime();
         await tracer.trace(parent, 'commit', async () => {
-            await this.tx!!.rawCommit();
+            await this.concurrencyPool!.run(() => this.tx!!.rawCommit());
         });
         if (this.pendingCallbacks.length > 0) {
             await tracer.trace(parent, 'hooks', async () => {
