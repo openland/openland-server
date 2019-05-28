@@ -86,6 +86,25 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
     return duplicatesCount;
 }
 
+export async function validateIndexConsistency2<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
+    // Remove duplicates from index
+    let duplicatesCount = 0;
+    await inTx(parent, async (ctx) => {
+        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
+
+        for (let item of data) {
+            let rawId = extractRawId(item.item);
+            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
+
+            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
+                duplicatesCount++;
+            }
+        }
+    });
+
+    return duplicatesCount;
+}
+
 async function fetchAllUids(ctx: Context) {
     let allUsers = await FDB.User.findAllKeys(ctx);
     let allUids: number[] = [];
@@ -250,15 +269,15 @@ export default {
                 ];
 
                 for (let worker of workers) {
-                    let duplicatesPending = await validateIndexConsistency(parent, () => FDB.Task.allFromPending(parent, worker), (value) => value.taskType + '_' + value.uid);
-                    await log(`${worker}: ${duplicatesPending.length} duplicates pending`);
+                    let duplicatesCount = await validateIndexConsistency2(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
+                    await log(`${worker } ${duplicatesCount} duplicates pending`);
                 }
 
-                let duplicatesExecuting = await validateIndexConsistency(parent, () => FDB.Task.allFromExecuting(parent), (value) => value.taskType + '_' + value.uid);
-                await log(`${duplicatesExecuting.length} duplicates executing`);
-
-                let duplicatesFailing = await validateIndexConsistency(parent, () => FDB.Task.allFromFailing(parent), (value) => value.taskType + '_' + value.uid);
-                await log(`${duplicatesFailing.length} duplicates failing`);
+                // let duplicatesExecuting = await validateIndexConsistency(parent, () => FDB.Task.allFromExecuting(parent), (value) => value.taskType + '_' + value.uid);
+                // await log(`${duplicatesExecuting.length} duplicates executing`);
+                //
+                // let duplicatesFailing = await validateIndexConsistency(parent, () => FDB.Task.allFromFailing(parent), (value) => value.taskType + '_' + value.uid);
+                // await log(`${duplicatesFailing.length} duplicates failing`);
                 return 'done';
             });
             return 'ok';
