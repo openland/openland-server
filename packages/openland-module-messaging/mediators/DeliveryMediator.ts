@@ -12,6 +12,7 @@ import { Context } from 'openland-utils/Context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
+import { withCache } from 'foundation-orm/withCache';
 // import { PushNotificationMediator } from './PushNotificationMediator';
 
 const tracer = createTracer('message-delivery');
@@ -30,7 +31,7 @@ export class DeliveryMediator {
     start = () => {
         if (serverRoleEnabled('delivery')) {
             this.queue.addWorker(async (item, parent) => {
-                await this.deliverNewMessage(parent, item.messageId);
+                await this.deliverNewMessage(withCache(parent), item.messageId);
                 return { result: 'ok' };
             });
         }
