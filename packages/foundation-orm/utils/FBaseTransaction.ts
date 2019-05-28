@@ -10,6 +10,7 @@ import { SLog } from 'openland-log/SLog';
 import { FKeyEncoding } from './FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 import { ConcurrencyPool, getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { LockOverlord } from './lock';
 
 const log = createLogger('tx', false);
 
@@ -25,19 +26,24 @@ export abstract class FBaseTransaction implements FContext {
     protected connection: FConnection | null = null;
     protected concurrencyPool: ConcurrencyPool | null = null;
 
-    // private cache = new Map<string, any>();
-    //
-    // findInCache(key: string): any | null | undefined {
-    //     if (this.cache.has(key)) {
-    //         return this.cache.get(key);
-    //     } else {
-    //         return undefined;
-    //     }
-    // }
-    //
-    // putInCache(key: string, value: any | null) {
-    //     this.cache.set(key, value);
-    // }
+    private cache = new Map<string, any>();
+    private locks = new LockOverlord();
+
+    async lock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+        return await this.locks.lock(key, fn);
+    }
+
+    findInCache(key: string): any | null | undefined {
+        if (this.cache.has(key)) {
+            return this.cache.get(key);
+        } else {
+            return undefined;
+        }
+    }
+
+    putInCache(key: string, value: any | null) {
+        this.cache.set(key, value);
+    }
 
     async get(parent: Context, connection: FConnection, key: Buffer): Promise<any | null> {
         this.prepare(parent, connection);

@@ -160,4 +160,45 @@ describe('FEntity', () => {
         });
         expect(res).rejects.toThrowError('Field root.length must be number, got: true');
     });
+
+    it('should throw on second creation', async () => {
+        let rootctx = createEmptyContext();
+        await inTx(rootctx, async (ctx) => {
+            let ex = testEntities.SimpleEntity.create(ctx, 140, { data: 'hello world1' });
+            let ex2 = testEntities.SimpleEntity.create(ctx, 140, { data: 'hello world2' });
+            expect(ex).resolves.not.toBeUndefined();
+            expect(ex).resolves.not.toBeNull();
+            expect(ex2).rejects.toThrowError();
+        });
+    });
+
+    it('should return same references for same key (async)', async () => {
+        let rootctx = createEmptyContext();
+        await inTx(rootctx, async (ctx) => {
+            let r1 = testEntities.SimpleEntity.create(ctx, 141, { data: 'hello world1' });
+            let r2 = testEntities.SimpleEntity.findById(ctx, 141);
+            expect(await r1).toBe(await r2);
+        });
+
+        await inTx(rootctx, async (ctx) => {
+            let r1 = testEntities.SimpleEntity.findById(ctx, 141);
+            let r2 = testEntities.SimpleEntity.findById(ctx, 141);
+            expect(await r1).toBe(await r2);
+        });
+    });
+
+    it('should return same references for same key', async () => {
+        let rootctx = createEmptyContext();
+        await inTx(rootctx, async (ctx) => {
+            let r1 = await testEntities.SimpleEntity.create(ctx, 142, { data: 'hello world1' });
+            let r2 = await testEntities.SimpleEntity.findById(ctx, 142);
+            expect(r1).toBe(r2);
+        });
+
+        await inTx(rootctx, async (ctx) => {
+            let r1 = await testEntities.SimpleEntity.findById(ctx, 141);
+            let r2 = await testEntities.SimpleEntity.findById(ctx, 141);
+            expect(r1).toBe(r2);
+        });
+    });
 });

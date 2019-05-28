@@ -69,41 +69,8 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected abstract _createEntity(ctx: Context, value: any, isNew: boolean): T;
 
-    protected async _findById(parent: Context, key: (string | number)[]) {
-
-        // Cached
-        // let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
-        // if (cache) {
-        let cache = FCacheContextContext.get(parent);
-        if (cache && !FTransactionContext.get(parent)) {
-            let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-            let cached = cache!.findInCache(cacheKey);
-            if (cached !== undefined) {
-                return await (cached as Promise<T | null>);
-            }
-
-            let res: Promise<T | null> = (async () => {
-                return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                    let r = await this.namespace.get(ctx, this.connection, key);
-                    if (r) {
-                        return this.doCreateEntity(ctx, r, false);
-                    } else {
-                        return null;
-                    }
-                });
-            })();
-            cache!.putInCache(cacheKey, res);
-            return await res;
-        }
-
-        // Uncached (Obsolete: Might never happen)
-        return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-            let res = await this.namespace.get(ctx, this.connection, key);
-            if (res) {
-                return this.doCreateEntity(ctx, res, false);
-            }
-            return null;
-        });
+    protected async  _findById(parent: Context, key: (string | number)[]) {
+        return this._findByIdInternal(parent, key, true);
     }
 
     protected async _findFromIndex(parent: Context, key: (string | number)[]) {
@@ -162,17 +129,19 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _create(parent: Context, key: (string | number)[], value: any) {
         return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
-            if (await this._findById(ctx, key)) {
-                throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
+            let cache = FTransactionContext.get(parent);
+            if (!cache) {
+                throw Error('Tried to create object outside of transaction');
             }
-            let res = this.doCreateEntity(ctx, value, true);
-            await res.flush();
-            // let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
-            // if (cache) {
-            //     let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-            //     cache.putInCache(cacheKey, res);
-            // }
-            return res;
+            let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
+            return await cache.lock(cacheKey, async () => {
+                if (await this._findByIdInternal(ctx, key, false)) {
+                    throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
+                }
+                let res = this.doCreateEntity(ctx, value, true);
+                await res.flush();
+                return res;
+            });
         });
     }
 
@@ -182,13 +151,82 @@ export abstract class FEntityFactory<T extends FEntity> {
         return this.watcher.watch(ctx, fullKey, cb);
     }
 
-    public doCreateEntity(ctx: Context, value: any, isNew: boolean): T {
+    private doCreateEntity(ctx: Context, value: any, isNew: boolean): T {
         try {
             this.options.validator(value);
-            return this._createEntity(ctx, value, isNew);
+            let res = this._createEntity(ctx, value, isNew);
+            let cache = FTransactionContext.get(ctx) || FCacheContextContext.get(ctx);
+            if (cache) {
+                let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...res.rawId]);
+                let ex = cache.findInCache(cacheKey);
+                if (ex) {
+                    if (isNew) {
+                        throw Error('Internal inconsistency during creation');
+                    }
+                    return ex;
+                } else {
+                    cache.putInCache(cacheKey, res);
+                    return res;
+                }
+            } else {
+                return res;
+            }
         } catch (e) {
             log.warn(ctx, 'Unable to create entity from ', JSON.stringify(value), e);
             throw e;
         }
+    }
+
+    private async  _findByIdInternal(parent: Context, key: (string | number)[], external: boolean) {
+
+        // Cached
+        let cache = FTransactionContext.get(parent) || FCacheContextContext.get(parent);
+        if (cache) {
+            let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
+            // console.warn(cacheKey);
+            if (!external) {
+                let cached = cache!.findInCache(cacheKey);
+                if (cached) {
+                    return cached;
+                } else {
+                    let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
+                        let r = await this.namespace.get(ctx, this.connection, key);
+                        if (r) {
+                            return this.doCreateEntity(ctx, r, false);
+                        } else {
+                            return null;
+                        }
+                    });
+                    // cache!.putInCache(cacheKey, res);
+                    return res;
+                }
+            } else {
+                return await cache.lock(cacheKey, async () => {
+                    let cached = cache!.findInCache(cacheKey);
+                    if (cached) {
+                        return cached;
+                    } else {
+                        let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
+                            let r = await this.namespace.get(ctx, this.connection, key);
+                            if (r) {
+                                return this.doCreateEntity(ctx, r, false);
+                            } else {
+                                return null;
+                            }
+                        });
+                        return res;
+                    }
+                });
+            }
+        }
+
+        // Uncached (Obsolete: Might never happen)
+        return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
+            let res = await this.namespace.get(ctx, this.connection, key);
+            if (res) {
+                return this.doCreateEntity(ctx, res, false);
+            }
+            return null;
+        });
     }
 }
