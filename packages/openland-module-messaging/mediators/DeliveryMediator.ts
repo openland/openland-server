@@ -30,9 +30,7 @@ export class DeliveryMediator {
     start = () => {
         if (serverRoleEnabled('delivery')) {
             this.queue.addWorker(async (item, parent) => {
-                await tracer.trace(parent, 'delivery', async (ctx) => {
-                    await this.deliverNewMessage(ctx, item.messageId);
-                });
+                await this.deliverNewMessage(parent, item.messageId);
                 return { result: 'ok' };
             });
         }
@@ -88,32 +86,36 @@ export class DeliveryMediator {
     }
 
     private async deliverNewMessage(parent: Context, mid: number) {
-        await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid))!;
-            let members = await this.room.findConversationMembers(ctx, message.cid);
+        await tracer.trace(parent, 'deliverNewMessage', async (tctx) => {
+            await inTx(tctx, async (ctx) => {
+                let message = (await this.entities.Message.findById(ctx, mid))!;
+                let members = await this.room.findConversationMembers(ctx, message.cid);
 
-            // Deliver messages
-            if (members.length > 0) {
-                await Promise.all(members.map(async (m) => {
-                    await this.deliverMessageToUser(ctx, m, mid);
-                }));
-            }
-            // Notifications
-            // await this.pushNotificationMediator.onNewMessage(ctx, mid);
+                // Deliver messages
+                if (members.length > 0) {
+                    await Promise.all(members.map(async (m) => {
+                        await this.deliverMessageToUser(ctx, m, mid);
+                    }));
+                }
+                // Notifications
+                // await this.pushNotificationMediator.onNewMessage(ctx, mid);
+            });
         });
     }
 
     private async deliverUpdateMessage(parent: Context, mid: number) {
-        await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid))!;
-            let members = await this.room.findConversationMembers(ctx, message.cid);
+        await tracer.trace(parent, 'deliverUpdateMessage', async (tctx) => {
+            await inTx(tctx, async (ctx) => {
+                let message = (await this.entities.Message.findById(ctx, mid))!;
+                let members = await this.room.findConversationMembers(ctx, message.cid);
 
-            // Deliver messages
-            if (members.length > 0) {
-                await Promise.all(members.map(async (m) => {
-                    await this.deliverMessageUpdateToUser(ctx, m, mid);
-                }));
-            }
+                // Deliver messages
+                if (members.length > 0) {
+                    await Promise.all(members.map(async (m) => {
+                        await this.deliverMessageUpdateToUser(ctx, m, mid);
+                    }));
+                }
+            });
         });
     }
 
@@ -143,15 +145,21 @@ export class DeliveryMediator {
     }
 
     private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
-        await inTx(parent, async (ctx) => {
-            let res = await this.counters.onMessageReceived(ctx, uid, mid);
-            await this.repo.deliverMessageToUser(ctx, uid, mid);
-            await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
+        await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
+            await inTx(tctx, async (ctx) => {
+                let res = this.counters.onMessageReceived(ctx, uid, mid);
+                let del = this.repo.deliverMessageToUser(ctx, uid, mid);
+                let trk = trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
 
-            if (res.setMention) {
-                let message = (await this.entities.Message.findById(ctx, mid));
-                await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
-            }
+                if ((await res).setMention) {
+                    await del;
+                    let message = (await this.entities.Message.findById(ctx, mid));
+                    await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
+                }
+
+                await del;
+                await trk;
+            });
         });
     }
 

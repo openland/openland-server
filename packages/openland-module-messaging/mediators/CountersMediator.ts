@@ -6,6 +6,9 @@ import { inTx } from 'foundation-orm/inTx';
 import { AllEntities } from 'openland-module-db/schema';
 import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
 import { Context } from 'openland-utils/Context';
+import { createTracer } from 'openland-log/createTracer';
+
+const tracer = createTracer('messaging-counters');
 
 @injectable()
 export class CountersMediator {
@@ -18,7 +21,7 @@ export class CountersMediator {
     private readonly userState!: UserStateRepository;
 
     onMessageReceived = async (parent: Context, uid: number, mid: number) => {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'onMessageReceived', async (ctx2) => await inTx(ctx2, async (ctx) => {
             let res = await this.repo.onMessageReceived(ctx, uid, mid);
             if (res.delta !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
@@ -28,11 +31,11 @@ export class CountersMediator {
                 await this.deliverCounterPush(ctx, uid, message.cid);
             }
             return res;
-        });
+        }));
     }
 
     onMessageDeleted = async (parent: Context, uid: number, mid: number) => {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'onMessageDeleted', async (ctx2) => await inTx(ctx2, async (ctx) => {
             let res = await this.repo.onMessageDeleted(ctx, uid, mid);
             if (res !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
@@ -42,11 +45,11 @@ export class CountersMediator {
                 await this.deliverCounterPush(ctx, uid, message.cid);
             }
             return res;
-        });
+        }));
     }
 
     onMessageRead = async (parent: Context, uid: number, mid: number) => {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'onMessageRead', async (ctx2) => await inTx(ctx2, async (ctx) => {
             let res = await this.repo.onMessageRead(ctx, uid, mid);
             if (res.delta !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
@@ -56,7 +59,7 @@ export class CountersMediator {
                 await this.deliverCounterPush(ctx, uid, message.cid);
             }
             return res;
-        });
+        }));
     }
 
     onDialogDeleted = async (parent: Context, uid: number, cid: number) => {

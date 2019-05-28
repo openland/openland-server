@@ -2,10 +2,11 @@ import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';
-import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
+import { Modules } from 'openland-modules/Modules';
 
 export default {
     /* 
@@ -22,7 +23,7 @@ export default {
     },
     DialogUpdateBatch: {
         updates: (src: FLiveStreamItem<UserDialogEvent>) => src.items,
-        fromSeq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[0].seq,
+        fromSeq: (src: FLiveStreamItem<UserDialogEvent>) => (src as any).fromSeq || src.items[0].seq,
         seq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[src.items.length - 1].seq,
         state: (src: FLiveStreamItem<UserDialogEvent>) => src.cursor
     },
@@ -140,8 +141,20 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: (r, args, ctx) => {
-                return FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, args.fromState || undefined);
+            subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
+                // zip previous updates in batches
+                let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
+                let subscribeAfter = args.fromState || undefined;
+                for await (let event of zipedGenerator) {
+                    subscribeAfter = event.cursor;
+                    yield event;
+                }
+
+                // start subscription from last known event
+                let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, subscribeAfter);
+                for await (let event of generator) {
+                    yield event;
+                }
             }
         },
     }
