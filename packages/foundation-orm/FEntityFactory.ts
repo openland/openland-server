@@ -9,10 +9,9 @@ import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FDirectory } from './FDirectory';
-import { createTracer } from 'openland-log/createTracer';
-import { STracer } from 'openland-log/STracer';
 import { Context } from 'openland-utils/Context';
 import { FCacheContextContext, FTransactionContext } from './utils/contexts';
+import { tracer } from './utils/tracer';
 
 const log = createLogger('entity-factory');
 
@@ -24,10 +23,10 @@ export abstract class FEntityFactory<T extends FEntity> {
     readonly indexes: FEntityIndex[];
     readonly name: string;
     private watcher: FWatch;
-    private tracer: STracer;
+    // private tracer: STracer;
 
     constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[], name: string) {
-        this.tracer = createTracer(name);
+        // this.tracer = createTracer(name);
         this.namespace = namespace;
         this.directory = connection.getDirectory(namespace.namespace);
         this.connection = connection;
@@ -75,7 +74,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         // Cached
         let cache = FCacheContextContext.get(parent);
         if (cache && !FTransactionContext.get(parent)) {
-            return await this.tracer.trace(parent, 'findById(' + key.join('.') + ') [cached]', async (ctx) => {
+            return await tracer.trace(parent, 'findById(' + key.join('.') + ') [cached]', async (ctx) => {
                 let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
                 let cached = cache!.findInCache(cacheKey);
                 if (cached !== undefined) {
@@ -96,7 +95,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
 
         // Uncached
-        return await this.tracer.trace(parent, 'findById(' + key.join('.') + ')', async (ctx) => {
+        return await tracer.trace(parent, 'findById(' + key.join('.') + ')', async (ctx) => {
             let res = await this.namespace.get(ctx, this.connection, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
@@ -107,7 +106,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findFromIndex(parent: Context, key: (string | number)[]) {
         // let res = await this.directory.get(key);
-        return await this.tracer.trace(parent, 'findFromIndex(' + key.join('.') + ')', async (ctx) => {
+        return await tracer.trace(parent, 'findFromIndex(' + key.join('.') + ')', async (ctx) => {
             let res = await this.namespace.get(ctx, this.connection, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
