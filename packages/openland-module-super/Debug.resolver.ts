@@ -183,7 +183,9 @@ export default {
                             (data) => data.uid + '_' + data.cid
                         );
 
-                        await log(`UserDialog.allFromUser(${uid}): ${duplicates.length} duplicates`);
+                        if (duplicates.length > 0) {
+                            await log(`UserDialog.allFromUser(${uid}): ${duplicates.length} duplicates`);
+                        }
                     });
                 }
 
