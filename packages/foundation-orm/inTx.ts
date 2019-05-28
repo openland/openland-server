@@ -30,7 +30,7 @@ export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<
         do {
             try {
                 tx.reset();
-                const result = await tracer.trace(ctx, isRetry ? 'tx-retry' : 'tx', () => callback(ctx));
+                const result = await tracer.trace(ctx, isRetry ? 'tx-retry' : 'tx', async (ctx2) => await callback(ctx2));
                 await tx.flush(ctx);
                 return result;
             } catch (err) {
