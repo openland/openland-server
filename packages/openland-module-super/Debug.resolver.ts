@@ -15,6 +15,8 @@ import { delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
+import { FEntity } from '../foundation-orm/FEntity';
+import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
 
 const URLInfoService = createUrlInfoService();
 
@@ -36,6 +38,23 @@ const createDebugEvent = async (parent: Context, uid: number, key: string) => {
         await FDB.DebugEvent.create(ctx, uid!, seq, {key});
     });
 };
+
+export async function validateIndexConsistency<T extends FEntity>(ctx: Context, fetchIndex: () => Promise<T[]>, extractKey: (value: T) => string) {
+    let data = await fetchIndex();
+    let seenSet = new Set<string>();
+    let duplicates: T[] = [];
+
+    for (let item of data) {
+        let key = extractKey(item);
+        if (seenSet.has(key)) {
+            duplicates.push(item);
+        } else {
+            seenSet.add(key);
+        }
+    }
+
+    return duplicates;
+}
 
 export default {
     DebugUserPresence: {
@@ -144,7 +163,34 @@ export default {
             let tail = await FDB.DebugEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
             return {state: tail};
         }),
-        lifecheck: () => `i'm ok`
+        lifecheck: () => `i'm ok`,
+
+        debugIndexes: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
+                let allUsers = await FDB.User.findAllKeys(parent);
+                let allUids: number[] = [];
+                for (let key of allUsers) {
+                    let k = FKeyEncoding.decodeKey(key);
+                    k.splice(0, 2);
+                    allUids.push(k[0] as number);
+                }
+
+                for (let uid of allUids) {
+                    await inTx(createEmptyContext(), async (ctx) => {
+                        let duplicates = await validateIndexConsistency(
+                            ctx,
+                            () => FDB.UserDialog.allFromUser(ctx, uid),
+                            (data) => data.uid + '_' + data.cid
+                        );
+
+                        await log(`UserDialog.allFromUser(${uid}): ${duplicates.length} duplicates`);
+                    });
+                }
+
+                return 'done';
+            });
+            return 'ok';
+        })
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {

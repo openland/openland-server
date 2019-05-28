@@ -55,6 +55,8 @@ extend type Query {
 
     organizationChatsStats: [OrganizationChatStats!]!
     debugEventsState: DebugEventsState!
+
+    debugIndexes: String!
 }
 
 enum SuperNotificationType {
