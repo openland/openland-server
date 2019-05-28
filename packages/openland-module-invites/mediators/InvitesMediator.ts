@@ -48,31 +48,33 @@ export class InvitesMediator {
         });
     }
 
-    async joinAppInvite(ctx: Context, uid: number, inviteStr: string, isNewUser: boolean) {
-        let inviteData = await this.repoOrgs.getAppInvteLinkData(ctx, inviteStr);
-        if (!inviteData) {
-            throw new NotFoundError(ErrorText.unableToFindInvite);
-        }
-        await Modules.Users.activateUser(ctx, uid, isNewUser);
-        await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
-        let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
-        let name1 = await Modules.Users.getUserFullName(ctx, uid);
-        let name2 = await Modules.Users.getUserFullName(ctx, inviteData.uid);
+    async joinAppInvite(parent: Context, uid: number, inviteStr: string, isNewUser: boolean) {
+        return await inTx(parent, async (ctx) => {
+            let inviteData = await this.repoOrgs.getAppInvteLinkData(ctx, inviteStr);
+            if (!inviteData) {
+                throw new NotFoundError(ErrorText.unableToFindInvite);
+            }
+            await Modules.Users.activateUser(ctx, uid, isNewUser);
+            await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
+            let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
+            let name1 = await Modules.Users.getUserFullName(ctx, uid);
+            let name2 = await Modules.Users.getUserFullName(ctx, inviteData.uid);
 
-        let supportUserId = await Modules.Users.getSupportUserId(ctx);
+            let supportUserId = await Modules.Users.getSupportUserId(ctx);
 
-        if (!supportUserId) {
-            return;
-        }
+            if (!supportUserId) {
+                return;
+            }
 
-        await Modules.Messaging.sendMessage(
-            ctx,
-            chat.id,
-            supportUserId,
-            { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
-            true
-        );
-        return 'ok';
+            await Modules.Messaging.sendMessage(
+                ctx,
+                chat.id,
+                supportUserId,
+                { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
+                true
+            );
+            return 'ok';
+        });
     }
 
     async createOrganizationInvite(ctx: Context, oid: number, uid: number, inviteReq: { email: string; emailText?: string, firstName?: string; lastName?: string }) {
