@@ -234,6 +234,29 @@ export default {
                 return 'done';
             });
             return 'ok';
+        }),
+        debugTasksIndex: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
+                let workers = [
+                    'emailSender',
+                    'push_sender',
+                    'push_sender_firebase',
+                    'push_sender_apns',
+                    'push_sender_web',
+                    'conversation_message_push_delivery',
+                    'comment_augmentation_task',
+                    'conversation_message_delivery',
+                    'conversation_message_task'
+                ];
+
+                for (let worker of workers) {
+                    let duplicates = await validateIndexConsistency(parent, () => FDB.Task.allFromPending(parent, worker), (value) => value.taskType + '_' + value.uid);
+                    await log(`${worker}: ${duplicates.length} duplicates`);
+                }
+
+                return 'done';
+            });
+            return 'ok';
         })
     },
     Mutation: {

@@ -57,6 +57,7 @@ extend type Query {
     debugEventsState: DebugEventsState!
 
     debugIndexes: String!
+    debugTasksIndex: String!
 }
 
 enum SuperNotificationType {
