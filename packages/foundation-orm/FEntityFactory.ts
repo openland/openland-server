@@ -74,7 +74,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         // Cached
         let cache = FCacheContextContext.get(parent);
         if (cache && !FTransactionContext.get(parent)) {
-            return await tracer.trace(parent, 'findById(' + key.join('.') + ') [cached]', async (ctx) => {
+            return await tracer.trace(parent, 'findById [cached]', async (ctx) => {
                 let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
                 let cached = cache!.findInCache(cacheKey);
                 if (cached !== undefined) {
@@ -95,7 +95,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
 
         // Uncached
-        return await tracer.trace(parent, 'findById(' + key.join('.') + ')', async (ctx) => {
+        return await tracer.trace(parent, 'findById', async (ctx) => {
             let res = await this.namespace.get(ctx, this.connection, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
@@ -106,7 +106,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findFromIndex(parent: Context, key: (string | number)[]) {
         // let res = await this.directory.get(key);
-        return await tracer.trace(parent, 'findFromIndex(' + key.join('.') + ')', async (ctx) => {
+        return await tracer.trace(parent, 'findFromIndex', async (ctx) => {
             let res = await this.namespace.get(ctx, this.connection, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
