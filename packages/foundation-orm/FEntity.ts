@@ -6,6 +6,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
 import { resolveContext } from './utils/contexts';
+import { tracer } from './utils/tracer';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -117,78 +118,87 @@ export abstract class FEntity {
             return;
         }
         this.isDirty = false;
-        try {
-            let value = {
-                ...this._value
-            };
-            if (this.options.enableVersioning) {
-                value._version = this.versionCode + 1;
-            }
-            if (this.options.enableTimestamps && !this.isNew) {
-                let now = Date.now();
-                if (!value.createdAt) {
-                    value.createdAt = now;
+        tracer.trace(this.ctx, this.isNew ? 'Flush:' + this.entityName : 'Update:' + this.entityName, async () => {
+            try {
+                let value = {
+                    ...this._value
+                };
+                if (this.options.enableVersioning) {
+                    value._version = this.versionCode + 1;
                 }
-                value.updatedAt = now;
-            }
-
-            // Validate
-            this.options.validator(value);
-
-            if (!this.directory.isAllocated) {
-                await this.directory.awaitAllocation();
-            }
-
-            // Write to the store
-            this.namespace.set(this.ctx, this.connection, this.rawId, value);
-            this.directory.set(this.ctx, this.rawId, value);
-
-            // Create or Update indexes
-            if (this.isNew) {
-                // Notify after successful transaction
-                if (this.options.hasLiveStreams) {
-                    this.context.afterTransaction(() => {
-                        this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
-                    });
-                }
-
-                log.debug(this.ctx, 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
-                for (let index of this.indexes) {
-                    // Check index condition if applicable
-                    if (index.condition && !index.condition(value)) {
-                        continue;
+                if (this.options.enableTimestamps && !this.isNew) {
+                    let now = Date.now();
+                    if (!value.createdAt) {
+                        value.createdAt = now;
                     }
-                    let key = index.fields.map((v) => value[v]);
-                    if (index.unique) {
-                        let ex = await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key]);
-                        if (ex) {
-                            throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
+                    value.updatedAt = now;
+                }
+
+                // Validate
+                this.options.validator(value);
+
+                if (!this.directory.isAllocated) {
+                    await this.directory.awaitAllocation();
+                }
+
+                // Write to the store
+                this.namespace.set(this.ctx, this.connection, this.rawId, value);
+                this.directory.set(this.ctx, this.rawId, value);
+
+                // Create or Update indexes
+                if (this.isNew) {
+                    // Notify after successful transaction
+                    if (this.options.hasLiveStreams) {
+                        this.context.afterTransaction(() => {
+                            this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
+                        });
+                    }
+
+                    log.debug(this.ctx, 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
+                    for (let index of this.indexes) {
+                        // Check index condition if applicable
+                        if (index.condition && !index.condition(value)) {
+                            continue;
                         }
-                        this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
-                    } else {
-                        this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
-                    }
-                }
-            } else {
-                log.debug(this.ctx, 'updated', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
-                for (let index of this.indexes) {
-                    let key = index.fields.map((v) => value[v]);
-                    let oldkey = index.fields.map((v) => this._valueInitial[v]);
-                    var needToDeleteOld = false;
-                    var needToCreateNew = false;
-                    var needToUpdateNew = false;
-
-                    // Check index condition if applicable
-                    if (index.condition) {
-                        let newCond = index.condition(value);
-                        let oldCond = index.condition(this._valueInitial);
-                        if (newCond !== oldCond) {
-                            if (newCond) {
-                                needToCreateNew = true;
-                            } else {
-                                needToDeleteOld = true;
+                        let key = index.fields.map((v) => value[v]);
+                        if (index.unique) {
+                            let ex = await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key]);
+                            if (ex) {
+                                throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                             }
-                        } else if (newCond) {
+                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
+                        } else {
+                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                        }
+                    }
+                } else {
+                    log.debug(this.ctx, 'updated', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
+                    for (let index of this.indexes) {
+                        let key = index.fields.map((v) => value[v]);
+                        let oldkey = index.fields.map((v) => this._valueInitial[v]);
+                        var needToDeleteOld = false;
+                        var needToCreateNew = false;
+                        var needToUpdateNew = false;
+
+                        // Check index condition if applicable
+                        if (index.condition) {
+                            let newCond = index.condition(value);
+                            let oldCond = index.condition(this._valueInitial);
+                            if (newCond !== oldCond) {
+                                if (newCond) {
+                                    needToCreateNew = true;
+                                } else {
+                                    needToDeleteOld = true;
+                                }
+                            } else if (newCond) {
+                                if (key.join('===') !== oldkey.join('===')) {
+                                    needToCreateNew = true;
+                                    needToDeleteOld = true;
+                                } else {
+                                    needToUpdateNew = true;
+                                }
+                            }
+                        } else {
                             if (key.join('===') !== oldkey.join('===')) {
                                 needToCreateNew = true;
                                 needToDeleteOld = true;
@@ -196,50 +206,43 @@ export abstract class FEntity {
                                 needToUpdateNew = true;
                             }
                         }
-                    } else {
-                        if (key.join('===') !== oldkey.join('===')) {
-                            needToCreateNew = true;
-                            needToDeleteOld = true;
-                        } else {
-                            needToUpdateNew = true;
-                        }
-                    }
 
-                    if (index.unique) {
-                        if (needToDeleteOld) {
-                            this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey]);
-                        }
-                        if (needToCreateNew) {
-                            if (await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key])) {
-                                throw Error('Unique index constraint failed for index ' + index.name);
+                        if (index.unique) {
+                            if (needToDeleteOld) {
+                                this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey]);
                             }
-                        }
-                        if (needToCreateNew || needToUpdateNew) {
-                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
-                        }
-                    } else {
-                        if (needToDeleteOld) {
-                            this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
-                        }
-                        if (needToCreateNew) {
-                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
-                        }
-                        if (needToCreateNew || needToUpdateNew) {
-                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            if (needToCreateNew) {
+                                if (await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key])) {
+                                    throw Error('Unique index constraint failed for index ' + index.name);
+                                }
+                            }
+                            if (needToCreateNew || needToUpdateNew) {
+                                this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
+                            }
+                        } else {
+                            if (needToDeleteOld) {
+                                this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                            }
+                            if (needToCreateNew) {
+                                this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            }
+                            if (needToCreateNew || needToUpdateNew) {
+                                this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            }
                         }
                     }
                 }
+                this.isNew = false;
+                this._valueInitial = {
+                    ...value
+                };
+                this._value = {
+                    ...value
+                };
+            } catch (e) {
+                log.warn(this.ctx, 'Unable to flush entity', JSON.stringify(this._value), e);
+                throw e;
             }
-            this.isNew = false;
-            this._valueInitial = {
-                ...value
-            };
-            this._value = {
-                ...value
-            };
-        } catch (e) {
-            log.warn(this.ctx, 'Unable to flush entity', JSON.stringify(this._value), e);
-            throw e;
-        }
+        });
     }
 }
