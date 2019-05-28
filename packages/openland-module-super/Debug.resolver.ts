@@ -17,6 +17,8 @@ import { debugTask } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
 import { FEntity } from '../foundation-orm/FEntity';
 import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
+import { resolveContext } from '../foundation-orm/utils/contexts';
+import { FEntityFactory } from '../foundation-orm/FEntityFactory';
 
 const URLInfoService = createUrlInfoService();
 
@@ -54,6 +56,46 @@ export async function validateIndexConsistency<T extends FEntity>(ctx: Context, 
     }
 
     return duplicates;
+}
+
+export async function fixIndexConsistency<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[], getData: (ctx: Context) => Promise<T[]>) {
+    // Remove duplicates from index
+    let duplicatesCount = 0;
+    await inTx(parent, async (ctx) => {
+        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
+
+        for (let item of data) {
+            let rawId = extractRawId(item.item);
+            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
+
+            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
+                duplicatesCount++;
+                await resolveContext(ctx).delete(ctx, FDB.connection, item.key);
+            }
+        }
+    });
+
+    // Reindex all
+    await inTx(createEmptyContext(), async (ctx) => {
+        let data = await getData(ctx);
+        for (let item of data) {
+            await item.flush();
+        }
+    });
+
+    return duplicatesCount;
+}
+
+async function fetchAllUids(ctx: Context) {
+    let allUsers = await FDB.User.findAllKeys(ctx);
+    let allUids: number[] = [];
+    for (let key of allUsers) {
+        let k = FKeyEncoding.decodeKey(key);
+        k.splice(0, 2);
+        allUids.push(k[0] as number);
+    }
+
+    return allUids;
 }
 
 export default {
@@ -640,6 +682,28 @@ export default {
                     }
                     i++;
                 }
+                return 'done';
+            });
+            return true;
+        }),
+        debugFixIndex: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
+                let allUids = await fetchAllUids(parent);
+                for (let uid of allUids) {
+                    await inTx(createEmptyContext(), async (ctx) => {
+                        let duplicatesCount = await fixIndexConsistency(
+                            ctx,
+                            FDB.UserDialog,
+                            ['__indexes', 'user', uid],
+                            value => [value.uid, value.cid],
+                            _ctx => FDB.UserDialog.allFromUser(_ctx, uid)
+                        );
+                        if (duplicatesCount > 0) {
+                            await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
+                        }
+                    });
+                }
+
                 return 'done';
             });
             return true;
