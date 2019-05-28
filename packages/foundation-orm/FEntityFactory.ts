@@ -165,6 +165,11 @@ export abstract class FEntityFactory<T extends FEntity> {
             }
             let res = this.doCreateEntity(ctx, value, true);
             await res.flush();
+            let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
+            if (cache) {
+                let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
+                cache.putInCache(cacheKey, res);
+            }
             return res;
         });
     }
