@@ -177,7 +177,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
     }
 
-    private async  _findByIdInternal(parent: Context, key: (string | number)[], external: boolean) {
+    private async  _findByIdInternal(parent: Context, key: (string | number)[], external: boolean): Promise<T | null> {
 
         // Cached
         let cache = FTransactionContext.get(parent) || FCacheContextContext.get(parent);
