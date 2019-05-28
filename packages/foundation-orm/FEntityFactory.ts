@@ -81,8 +81,8 @@ export abstract class FEntityFactory<T extends FEntity> {
             }
 
             let res: Promise<T | null> = (async () => {
-                return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => { 
-                    let r =  await this.namespace.get(ctx, this.connection, key);
+                return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
+                    let r = await this.namespace.get(ctx, this.connection, key);
                     if (r) {
                         return this.doCreateEntity(ctx, r, false);
                     } else {
@@ -158,13 +158,15 @@ export abstract class FEntityFactory<T extends FEntity> {
         return res.map((v) => this.doCreateEntity(ctx, v.item, false));
     }
 
-    protected async _create(ctx: Context, key: (string | number)[], value: any) {
-        if (await this._findById(ctx, key)) {
-            throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
-        }
-        let res = this.doCreateEntity(ctx, value, true);
-        await res.flush();
-        return res;
+    protected async _create(parent: Context, key: (string | number)[], value: any) {
+        return await tracer.trace(parent, 'Create', async (ctx) => {
+            if (await this._findById(ctx, key)) {
+                throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
+            }
+            let res = this.doCreateEntity(ctx, value, true);
+            await res.flush();
+            return res;
+        });
     }
 
     protected _watch(ctx: Context, key: (string | number)[], cb: () => void) {
