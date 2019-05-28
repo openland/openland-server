@@ -250,10 +250,15 @@ export default {
                 ];
 
                 for (let worker of workers) {
-                    let duplicates = await validateIndexConsistency(parent, () => FDB.Task.allFromPending(parent, worker), (value) => value.taskType + '_' + value.uid);
-                    await log(`${worker}: ${duplicates.length} duplicates`);
+                    let duplicatesPending = await validateIndexConsistency(parent, () => FDB.Task.allFromPending(parent, worker), (value) => value.taskType + '_' + value.uid);
+                    await log(`${worker}: ${duplicatesPending.length} duplicates pending`);
                 }
 
+                let duplicatesExecuting = await validateIndexConsistency(parent, () => FDB.Task.allFromExecuting(parent), (value) => value.taskType + '_' + value.uid);
+                await log(`${duplicatesExecuting.length} duplicates executing`);
+
+                let duplicatesFailing = await validateIndexConsistency(parent, () => FDB.Task.allFromFailing(parent), (value) => value.taskType + '_' + value.uid);
+                await log(`${duplicatesFailing.length} duplicates failing`);
                 return 'done';
             });
             return 'ok';
