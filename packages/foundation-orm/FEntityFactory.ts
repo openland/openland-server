@@ -72,8 +72,10 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected async _findById(parent: Context, key: (string | number)[]) {
 
         // Cached
-        let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
-        if (cache) {
+        // let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
+        // if (cache) {
+        let cache = FCacheContextContext.get(parent);
+        if (cache && !FTransactionContext.get(parent)) {
             let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
             let cached = cache!.findInCache(cacheKey);
             if (cached !== undefined) {
@@ -165,11 +167,11 @@ export abstract class FEntityFactory<T extends FEntity> {
             }
             let res = this.doCreateEntity(ctx, value, true);
             await res.flush();
-            let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
-            if (cache) {
-                let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-                cache.putInCache(cacheKey, res);
-            }
+            // let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
+            // if (cache) {
+            //     let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
+            //     cache.putInCache(cacheKey, res);
+            // }
             return res;
         });
     }

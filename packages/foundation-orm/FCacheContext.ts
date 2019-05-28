@@ -7,6 +7,20 @@ export class FCacheContext extends FBaseTransaction {
     readonly isReadOnly = true;
     readonly isCompleted = false;
 
+    private cache = new Map<string, any>();
+
+    findInCache(key: string): any | null | undefined {
+        if (this.cache.has(key)) {
+            return this.cache.get(key);
+        } else {
+            return undefined;
+        }
+    }
+
+    putInCache(key: string, value: any | null) {
+        this.cache.set(key, value);
+    }
+
     markDirty(context: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
         throw Error('Trying to write to read-only context');
     }

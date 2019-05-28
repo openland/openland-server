@@ -25,19 +25,19 @@ export abstract class FBaseTransaction implements FContext {
     protected connection: FConnection | null = null;
     protected concurrencyPool: ConcurrencyPool | null = null;
 
-    private cache = new Map<string, any>();
-
-    findInCache(key: string): any | null | undefined {
-        if (this.cache.has(key)) {
-            return this.cache.get(key);
-        } else {
-            return undefined;
-        }
-    }
-
-    putInCache(key: string, value: any | null) {
-        this.cache.set(key, value);
-    }
+    // private cache = new Map<string, any>();
+    //
+    // findInCache(key: string): any | null | undefined {
+    //     if (this.cache.has(key)) {
+    //         return this.cache.get(key);
+    //     } else {
+    //         return undefined;
+    //     }
+    // }
+    //
+    // putInCache(key: string, value: any | null) {
+    //     this.cache.set(key, value);
+    // }
 
     async get(parent: Context, connection: FConnection, key: Buffer): Promise<any | null> {
         this.prepare(parent, connection);
