@@ -118,7 +118,7 @@ export abstract class FEntity {
             return;
         }
         this.isDirty = false;
-        tracer.trace(this.ctx, this.isNew ? 'Flush:' + this.entityName : 'Update:' + this.entityName, async () => {
+        await tracer.trace(this.ctx, this.isNew ? 'Flush:' + this.entityName : 'Update:' + this.entityName, async () => {
             try {
                 let value = {
                     ...this._value
