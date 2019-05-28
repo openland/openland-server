@@ -72,8 +72,8 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected async _findById(parent: Context, key: (string | number)[]) {
 
         // Cached
-        let cache = FCacheContextContext.get(parent);
-        if (cache && !FTransactionContext.get(parent)) {
+        let cache = FCacheContextContext.get(parent) || FTransactionContext.get(parent);
+        if (cache) {
             let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
             let cached = cache!.findInCache(cacheKey);
             if (cached !== undefined) {
@@ -94,7 +94,7 @@ export abstract class FEntityFactory<T extends FEntity> {
             return await res;
         }
 
-        // Uncached
+        // Uncached (Obsolete: Might never happen)
         return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
             let res = await this.namespace.get(ctx, this.connection, key);
             if (res) {
