@@ -54,7 +54,7 @@ export class SearchIndexer<T extends FEntity> {
             let ctx = createEmptyContext();
             let converted: any[] = [];
             for (let i of items) {
-                log.log(ctx, 'Indexing ' + i.rawId.join('.'));
+                log.log(ctx, this.name, 'Indexing ' + i.rawId.join('.'));
                 let c = await handler(i);
                 if (c) {
                     converted.push({
