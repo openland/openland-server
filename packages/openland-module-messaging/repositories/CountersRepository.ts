@@ -49,12 +49,9 @@ export class CountersRepository {
                     setMention = true;
                 }
 
-                // let isMuted = (await this.userState.getRoomSettings(ctx, uid, message.cid)).mute;
                 // Update Counters
                 local.unread++;
-                // if (!isMuted) {
                 global.unread++;
-                // }
 
                 return { delta: 1, setMention };
             }
@@ -73,11 +70,8 @@ export class CountersRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
-                // let isMuted = (await this.userState.getRoomSettings(ctx, uid, message.cid)).mute;
                 local.unread--;
-                // if (!isMuted) {
                 global.unread--;
-                // }
 
                 // TODO: Optimize
                 if (local.haveMention) {
@@ -128,11 +122,8 @@ export class CountersRepository {
 
                 // Update counters
                 if (delta !== 0) {
-                    // let isMuted = (await this.userState.getRoomSettings(ctx, uid, message.cid)).mute;
                     local.unread += delta;
-                    // if (!isMuted) {
                     global.unread += delta;
-                    // }
                 }
 
                 let mentionReset = false;
@@ -162,10 +153,7 @@ export class CountersRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             if (local.unread > 0) {
                 let delta = -local.unread;
-                // let isMuted = (await this.userState.getRoomSettings(ctx, uid, cid)).mute;
-                // if (!isMuted) {
                 global.unread += delta;
-                // }
                 local.unread = 0;
                 local.haveMention = false;
                 return delta;
