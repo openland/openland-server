@@ -35,13 +35,11 @@ export class CountersRepository {
             if (await this.entities.UserDialogHandledMessage.findById(ctx, uid, message.cid, mid)) {
                 return { delta: 0, setMention: false };
             }
-            let handled = this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, mid, {});
+            await this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, mid, {});
 
             // Updating counters if not read already
-            let localP = this.userState.getUserDialogState(ctx, uid, message.cid);
-            let globalP = this.userState.getUserMessagingState(ctx, uid);
-            let local = await localP;
-            let global = await globalP;
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let global = await this.userState.getUserMessagingState(ctx, uid);
             if (!local.readMessageId || mid > local.readMessageId) {
 
                 // Mark dialog as having mention
@@ -55,10 +53,8 @@ export class CountersRepository {
                 local.unread++;
                 global.unread++;
 
-                await handled;
                 return { delta: 1, setMention };
             }
-            await handled;
             return { delta: 0, setMention: false };
         });
     }
