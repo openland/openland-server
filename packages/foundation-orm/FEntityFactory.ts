@@ -159,7 +159,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected async _create(parent: Context, key: (string | number)[], value: any) {
-        return await tracer.trace(parent, 'Create', async (ctx) => {
+        return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
             if (await this._findById(ctx, key)) {
                 throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
             }
