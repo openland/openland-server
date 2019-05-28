@@ -26,8 +26,10 @@ export class DeliveryRepository {
             }
 
             // Update dialog and deliver update
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            let global = await this.userState.getUserMessagingState(ctx, uid);
+            let localP = this.userState.getUserDialogState(ctx, uid, message.cid);
+            let globalP = this.userState.getUserMessagingState(ctx, uid);
+            let local = await localP;
+            let global = await globalP;
             local.date = message.createdAt;
             global.seq++;
 
