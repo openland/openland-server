@@ -87,7 +87,7 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
 }
 
 export async function validateIndexConsistency2<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
-    // Remove duplicates from index
+    // Find index inconsistency
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
         let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
@@ -273,11 +273,12 @@ export default {
                     await log(`${worker } ${duplicatesCount} duplicates pending`);
                 }
 
-                // let duplicatesExecuting = await validateIndexConsistency(parent, () => FDB.Task.allFromExecuting(parent), (value) => value.taskType + '_' + value.uid);
-                // await log(`${duplicatesExecuting.length} duplicates executing`);
-                //
-                // let duplicatesFailing = await validateIndexConsistency(parent, () => FDB.Task.allFromFailing(parent), (value) => value.taskType + '_' + value.uid);
-                // await log(`${duplicatesFailing.length} duplicates failing`);
+                let duplicatesCountExecuting = await validateIndexConsistency2(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
+                await log(`${duplicatesCountExecuting} duplicates executing`);
+
+                let duplicatesCountFailing = await validateIndexConsistency2(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
+                await log(`${duplicatesCountFailing} duplicates failing`);
+
                 return 'done';
             });
             return 'ok';
