@@ -87,7 +87,7 @@ export function resolveUser<T extends { userId: number }>() {
     };
 }
 
-type FieldHandler = (field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
+type FieldHandler = (type: GraphQLObjectType, field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
 export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
     let types = schema.getTypeMap();
 
@@ -116,7 +116,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
                             res = CacheContext.set(res, new Map());
                             context = new GQLAppContext(res, info);
                         }
-                        return await handler(field, fieldResolve!, root, args, context, info);
+                        return await handler(type as GraphQLObjectType, field, fieldResolve!, root, args, context, info);
                     };
                 }
             }

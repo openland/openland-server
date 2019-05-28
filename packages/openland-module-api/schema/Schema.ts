@@ -3,7 +3,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import * as Basics from './Date';
 
 import { Directives } from './Directives2';
-import { GraphQLField, GraphQLFieldResolver } from 'graphql';
+import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
 import { wrapAllResolvers } from '../Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
 // import { trace } from 'openland-log/trace';
@@ -34,6 +34,7 @@ export const Schema = (forTest: boolean = false) => {
 
     return wrapAllResolvers(executableSchema,
         async (
+            type: GraphQLObjectType,
             field: GraphQLField<any, any>,
             originalResolver: GraphQLFieldResolver<any, any, any>,
             root: any,
@@ -43,7 +44,15 @@ export const Schema = (forTest: boolean = false) => {
         ) => {
             let ctx = (context as AppContext).ctx;
             ctx = withLogContext(ctx, [field.name]);
-            return await gqlTracer.trace(ctx, field.name, async (ctx2) => {
+            let name = 'Field:' + field.name;
+            if (type.name === 'Query') {
+                name = 'Query:' + field.name;
+            } else if (type.name === 'Mutation') {
+                name = 'Mutation:' + field.name;
+            } else if (type.name === 'Subscription') {
+                name = 'Subscription:' + field.name;
+            }
+            return await gqlTracer.trace(ctx, name, async (ctx2) => {
                 return await originalResolver(root, args, new GQLAppContext(ctx2, info), info);
             });
         }
