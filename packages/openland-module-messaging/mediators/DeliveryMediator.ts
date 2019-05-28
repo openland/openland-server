@@ -94,9 +94,7 @@ export class DeliveryMediator {
                 // Deliver messages
                 if (members.length > 0) {
                     await Promise.all(members.map(async (m) => {
-                        await tracer.trace(ctx, 'deliverMessageToUser', async (ctx2) => {
-                            await this.deliverMessageToUser(ctx2, m, mid);
-                        });
+                        await this.deliverMessageToUser(ctx, m, mid);
                     }));
                 }
                 // Notifications
@@ -149,14 +147,18 @@ export class DeliveryMediator {
     private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
         await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                let res = await this.counters.onMessageReceived(ctx, uid, mid);
-                await this.repo.deliverMessageToUser(ctx, uid, mid);
-                await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
+                let res = this.counters.onMessageReceived(ctx, uid, mid);
+                let del = this.repo.deliverMessageToUser(ctx, uid, mid);
+                let trk = trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
 
-                if (res.setMention) {
+                if ((await res).setMention) {
+                    await del;
                     let message = (await this.entities.Message.findById(ctx, mid));
                     await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
                 }
+
+                await del;
+                await trk;
             });
         });
     }
