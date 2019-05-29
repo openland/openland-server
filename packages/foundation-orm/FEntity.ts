@@ -6,6 +6,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
 import { resolveContext, FTransactionContext } from './utils/contexts';
+import { tracer } from './utils/tracer';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -258,7 +259,9 @@ export abstract class FEntity {
         };
 
         if (lock) {
-            await cache.readWriteLock(this.entityName).runWriteOperation(op);
+            await tracer.trace(this.ctx, 'performFlush', async () => {
+                await cache!.readWriteLock(this.entityName).runWriteOperation(op);
+            });
         } else {
             await op();
         }
