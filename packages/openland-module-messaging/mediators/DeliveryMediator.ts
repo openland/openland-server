@@ -34,10 +34,12 @@ export class DeliveryMediator {
                 await this.deliverNewMessage(parent, item.messageId);
                 return { result: 'ok' };
             });
-            this.queueUser.addWorker(async (item, parent) => {
-                await this.deliverMessageToUser(parent, item.uid, item.messageId);
-                return { result: 'ok' };
-            });
+            for (let i = 0; i < 10; i++) {
+                this.queueUser.addWorker(async (item, parent) => {
+                    await this.deliverMessageToUser(parent, item.uid, item.messageId);
+                    return { result: 'ok' };
+                });
+            }
         }
     }
 
