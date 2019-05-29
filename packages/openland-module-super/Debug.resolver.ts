@@ -136,7 +136,6 @@ export default {
             }
             return res;
         }),
-
         organizationChatsStats: withPermission('super-admin', async (ctx, args) => {
             let chats = await FDB.ConversationOrganization.findAll(ctx);
 
@@ -158,7 +157,6 @@ export default {
             let tail = await FDB.DebugEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
             return {state: tail};
         }),
-
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
                 let workers = [
