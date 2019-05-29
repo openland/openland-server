@@ -35,7 +35,7 @@ export class DeliveryMediator {
                 return { result: 'ok' };
             });
             this.queueUser.addWorker(async (item, parent) => {
-                this.deliverMessageToUser(parent, item.uid, item.messageId);
+                await this.deliverMessageToUser(parent, item.uid, item.messageId);
                 return { result: 'ok' };
             });
         }
