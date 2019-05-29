@@ -150,6 +150,7 @@ type RoomConnection {
 
 extend type Query {
     room(id: ID!): Room
+    rooms(ids: [ID!]!): [Room!]!
     roomSuper(id: ID!): RoomSuper
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!

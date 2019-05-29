@@ -327,6 +327,31 @@ export default {
                 throw new IDMailformedError('Invalid id');
             }
         }),
+        rooms: withAccount(async (ctx, args, uid, oid) => {
+            let res = [];
+            for (let idRaw of args.ids) {
+                let id = IdsFactory.resolve(idRaw);
+                if (id.type === IDs.Conversation) {
+                    if (await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, uid, id.id as number)) {
+                        res.push(id.id);
+                    } else {
+                        await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
+                    }
+                    res.push(id.id);
+                } else if (id.type === IDs.User) {
+                    res.push(await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid));
+                } else if (id.type === IDs.Organization) {
+                    let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                    if (!member || member.status !== 'joined') {
+                        throw new IDMailformedError('Invalid id');
+                    }
+                    res.push(Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number));
+                } else {
+                    throw new IDMailformedError('Invalid id');
+                }
+            }
+            return res;
+        }),
         roomSuper: withPermission('super-admin', async (ctx, args) => {
             return IdsFactory.resolve(args.id);
         }),
