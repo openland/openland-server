@@ -32,7 +32,7 @@ export class PushNotificationMediator {
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
 
     start = () => {
-        if (serverRoleEnabled('delivery')) {
+        if (serverRoleEnabled('workers')) {
             this.queue.addWorker(async (item, parent) => {
                 await tracer.trace(parent, 'delivery', async (ctx) => {
                     await this.handleNewMessage(ctx, item.messageId);

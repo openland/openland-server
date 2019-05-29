@@ -12,6 +12,7 @@ import { Context } from 'openland-utils/Context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
+import { batch } from 'openland-utils/batch';
 // import { PushNotificationMediator } from './PushNotificationMediator';
 
 const tracer = createTracer('message-delivery');
@@ -21,6 +22,7 @@ const isProd = process.env.APP_ENVIRONMENT === 'production';
 export class DeliveryMediator {
     private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_delivery');
     private readonly queueUser = new WorkQueue<{ messageId: number, uid: number }, { result: string }>('conversation_message_delivery_user');
+    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[] }, { result: string }>('conversation_message_delivery_user_multiple');
 
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
@@ -39,6 +41,16 @@ export class DeliveryMediator {
             for (let i = 0; i < 10; i++) {
                 this.queueUser.addWorker(async (item, parent) => {
                     await this.deliverMessageToUser(parent, item.uid, item.messageId);
+                    return { result: 'ok' };
+                });
+            }
+            for (let i = 0; i < 10; i++) {
+                this.queueUserMultiple.addWorker(async (item, parent) => {
+                    await inTx(parent, async (ctx) => {
+                        for (let uid of item.uids) {
+                            await this.deliverMessageToUser(ctx, uid, item.messageId);
+                        }
+                    });
                     return { result: 'ok' };
                 });
             }
@@ -102,9 +114,10 @@ export class DeliveryMediator {
 
                 // Deliver messages
                 if (members.length > 0) {
-                    await Promise.all(members.map(async (m) => {
-                        await this.queueUser.pushWork(ctx, { messageId: mid, uid: m });
-                    }));
+                    let batches = batch(members, 25);
+                    for (let b of batches) {
+                        await this.queueUserMultiple.pushWork(ctx, { messageId: mid, uids: b });
+                    }
                 }
                 // Notifications
                 // await this.pushNotificationMediator.onNewMessage(ctx, mid);
