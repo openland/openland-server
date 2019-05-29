@@ -155,6 +155,20 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
+    protected async _create_UNSAFE(parent: Context, key: (string | number)[], value: any) {
+        return this.writeOp(parent, async () => {
+            return await tracer.trace(parent, 'CreateUNSAFE:' + this.name, async (ctx) => {
+                let cache = FTransactionContext.get(parent);
+                if (!cache) {
+                    throw Error('Tried to create object outside of transaction');
+                }
+                let res = this.doCreateEntity(ctx, value, true);
+                await (res as any)._doFlush(false);
+                return res;
+            });
+        });
+    }
+
     protected _watch(ctx: Context, key: (string | number)[], cb: () => void) {
         let fullKey = [...this.namespace.namespace, ...key];
 

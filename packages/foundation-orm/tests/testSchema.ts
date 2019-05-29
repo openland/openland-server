@@ -68,6 +68,9 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     async create(ctx: Context, id: number, shape: SimpleEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: SimpleEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -132,6 +135,9 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     async create(ctx: Context, id: number, shape: VersionedEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: VersionedEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -195,6 +201,9 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
     }
     async create(ctx: Context, id: number, shape: TimestampedEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: TimestampedEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -286,6 +295,9 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     }
     async create(ctx: Context, id: number, shape: IndexedEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: IndexedEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -399,6 +411,9 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     async create(ctx: Context, id: number, shape: IndexedRangeEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: IndexedRangeEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -508,6 +523,9 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     async create(ctx: Context, id: number, shape: IndexedPartialEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: IndexedPartialEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -594,6 +612,9 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     async create(ctx: Context, id: number, shape: NullableEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: NullableEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -658,6 +679,9 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
     }
     async create(ctx: Context, id: number, shape: RangeTestShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: RangeTestShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -769,6 +793,9 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
     async create(ctx: Context, id: number, shape: ComplexRangeTestShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: ComplexRangeTestShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -876,6 +903,9 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
     }
     async create(ctx: Context, id: number, shape: JsonTestShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: JsonTestShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);

@@ -192,6 +192,9 @@ export function generateEntity(entity: EntityModel): string {
     res += '    async create(ctx: Context, ' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
     res += '        return await this._create(ctx, [' + entity.keys.map((v) => v.name).join(', ') + '], { ' + entity.keys.map((v) => v.name).join(', ') + ', ...shape });\n';
     res += '    }\n';
+    res += '    async create_UNSAFE(ctx: Context, ' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
+    res += '        return await this._create_UNSAFE(ctx, [' + entity.keys.map((v) => v.name).join(', ') + '], { ' + entity.keys.map((v) => v.name).join(', ') + ', ...shape });\n';
+    res += '    }\n';
     res += '    watch(ctx: Context, ' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', cb: () => void) {\n';
     res += '        return this._watch(ctx, [' + entity.keys.map((v) => v.name).join(', ') + '], cb);\n';
     res += '    }\n';

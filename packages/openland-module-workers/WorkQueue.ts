@@ -28,7 +28,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             resolveContext(ctx).afterTransaction(() => {
                 EventBus.publish(this.pubSubTopic, {});
             });
-            return await FDB.Task.create(ctx, this.taskType, uuid(), {
+            // Do UNSAFE task creation since there won't be conflicts because our is is guaranteed to be unique (uuid)
+            return await FDB.Task.create_UNSAFE(ctx, this.taskType, uuid(), {
                 arguments: work,
                 taskStatus: 'pending',
                 taskFailureCount: 0,

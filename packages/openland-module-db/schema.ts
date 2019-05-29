@@ -68,6 +68,9 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
     async create(ctx: Context, production: number, shape: EnvironmentShape) {
         return await this._create(ctx, [production], { production, ...shape });
     }
+    async create_UNSAFE(ctx: Context, production: number, shape: EnvironmentShape) {
+        return await this._create_UNSAFE(ctx, [production], { production, ...shape });
+    }
     watch(ctx: Context, production: number, cb: () => void) {
         return this._watch(ctx, [production], cb);
     }
@@ -131,6 +134,9 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
     }
     async create(ctx: Context, name: string, shape: EnvironmentVariableShape) {
         return await this._create(ctx, [name], { name, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, name: string, shape: EnvironmentVariableShape) {
+        return await this._create_UNSAFE(ctx, [name], { name, ...shape });
     }
     watch(ctx: Context, name: string, cb: () => void) {
         return this._watch(ctx, [name], cb);
@@ -223,6 +229,9 @@ export class OnlineFactory extends FEntityFactory<Online> {
     }
     async create(ctx: Context, uid: number, shape: OnlineShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, shape: OnlineShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
     watch(ctx: Context, uid: number, cb: () => void) {
         return this._watch(ctx, [uid], cb);
@@ -332,6 +341,9 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     }
     async create(ctx: Context, uid: number, tid: string, shape: PresenceShape) {
         return await this._create(ctx, [uid, tid], { uid, tid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, tid: string, shape: PresenceShape) {
+        return await this._create_UNSAFE(ctx, [uid, tid], { uid, tid, ...shape });
     }
     watch(ctx: Context, uid: number, tid: string, cb: () => void) {
         return this._watch(ctx, [uid, tid], cb);
@@ -457,6 +469,9 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     async create(ctx: Context, uuid: string, shape: AuthTokenShape) {
         return await this._create(ctx, [uuid], { uuid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uuid: string, shape: AuthTokenShape) {
+        return await this._create_UNSAFE(ctx, [uuid], { uuid, ...shape });
+    }
     watch(ctx: Context, uuid: string, cb: () => void) {
         return this._watch(ctx, [uuid], cb);
     }
@@ -559,6 +574,9 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     }
     async create(ctx: Context, service: string, key: string, shape: ServiceCacheShape) {
         return await this._create(ctx, [service, key], { service, key, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, service: string, key: string, shape: ServiceCacheShape) {
+        return await this._create_UNSAFE(ctx, [service, key], { service, key, ...shape });
     }
     watch(ctx: Context, service: string, key: string, cb: () => void) {
         return this._watch(ctx, [service, key], cb);
@@ -680,6 +698,9 @@ export class LockFactory extends FEntityFactory<Lock> {
     }
     async create(ctx: Context, key: string, shape: LockShape) {
         return await this._create(ctx, [key], { key, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, key: string, shape: LockShape) {
+        return await this._create_UNSAFE(ctx, [key], { key, ...shape });
     }
     watch(ctx: Context, key: string, cb: () => void) {
         return this._watch(ctx, [key], cb);
@@ -846,6 +867,9 @@ export class TaskFactory extends FEntityFactory<Task> {
     }
     async create(ctx: Context, taskType: string, uid: string, shape: TaskShape) {
         return await this._create(ctx, [taskType, uid], { taskType, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, taskType: string, uid: string, shape: TaskShape) {
+        return await this._create_UNSAFE(ctx, [taskType, uid], { taskType, uid, ...shape });
     }
     watch(ctx: Context, taskType: string, uid: string, cb: () => void) {
         return this._watch(ctx, [taskType, uid], cb);
@@ -1076,6 +1100,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async create(ctx: Context, id: string, shape: PushFirebaseShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: PushFirebaseShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -1296,6 +1323,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async create(ctx: Context, id: string, shape: PushAppleShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: PushAppleShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -1489,6 +1519,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
     async create(ctx: Context, id: string, shape: PushWebShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: string, shape: PushWebShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -1697,6 +1730,9 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
     async create(ctx: Context, id: string, shape: PushSafariShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: PushSafariShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -1822,6 +1858,9 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
     }
     async create(ctx: Context, id: number, shape: UserProfilePrefilShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserProfilePrefilShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -1971,6 +2010,9 @@ export class UserFactory extends FEntityFactory<User> {
     }
     async create(ctx: Context, id: number, shape: UserShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -2263,6 +2305,9 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     async create(ctx: Context, id: number, shape: UserProfileShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserProfileShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -2326,6 +2371,9 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
     }
     async create(ctx: Context, id: number, shape: UserIndexingQueueShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserIndexingQueueShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -2456,6 +2504,9 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
     }
     async create(ctx: Context, id: number, shape: OrganizationShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -2625,6 +2676,9 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
     async create(ctx: Context, id: number, shape: OrganizationProfileShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationProfileShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -2702,6 +2756,9 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
     async create(ctx: Context, id: number, shape: OrganizationEditorialShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationEditorialShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -2753,6 +2810,9 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
     }
     async create(ctx: Context, id: number, shape: OrganizationIndexingQueueShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationIndexingQueueShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -2863,6 +2923,9 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     }
     async create(ctx: Context, oid: number, uid: number, shape: OrganizationMemberShape) {
         return await this._create(ctx, [oid, uid], { oid, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, oid: number, uid: number, shape: OrganizationMemberShape) {
+        return await this._create_UNSAFE(ctx, [oid, uid], { oid, uid, ...shape });
     }
     watch(ctx: Context, oid: number, uid: number, cb: () => void) {
         return this._watch(ctx, [oid, uid], cb);
@@ -2985,6 +3048,9 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
     async create(ctx: Context, key: string, shape: FeatureFlagShape) {
         return await this._create(ctx, [key], { key, ...shape });
     }
+    async create_UNSAFE(ctx: Context, key: string, shape: FeatureFlagShape) {
+        return await this._create_UNSAFE(ctx, [key], { key, ...shape });
+    }
     watch(ctx: Context, key: string, cb: () => void) {
         return this._watch(ctx, [key], cb);
     }
@@ -3075,6 +3141,9 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     }
     async create(ctx: Context, id: string, shape: OrganizationFeaturesShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: string, shape: OrganizationFeaturesShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -3175,6 +3244,9 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     async create(ctx: Context, id: string, shape: ReaderStateShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: ReaderStateShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -3251,6 +3323,9 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
     }
     async create(ctx: Context, id: number, shape: SuperAdminShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: SuperAdminShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -3384,6 +3459,9 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
     async create(ctx: Context, id: number, shape: UserSettingsShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserSettingsShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -3475,6 +3553,9 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     }
     async create(ctx: Context, shortname: string, shape: ShortnameReservationShape) {
         return await this._create(ctx, [shortname], { shortname, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, shortname: string, shape: ShortnameReservationShape) {
+        return await this._create_UNSAFE(ctx, [shortname], { shortname, ...shape });
     }
     watch(ctx: Context, shortname: string, cb: () => void) {
         return this._watch(ctx, [shortname], cb);
@@ -3623,6 +3704,9 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     async create(ctx: Context, uid: string, shape: AuthCodeSessionShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: string, shape: AuthCodeSessionShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
     watch(ctx: Context, uid: string, cb: () => void) {
         return this._watch(ctx, [uid], cb);
     }
@@ -3714,6 +3798,9 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
     }
     async create(ctx: Context, id: number, shape: ConversationShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConversationShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -3807,6 +3894,9 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
     async create(ctx: Context, id: number, shape: ConversationPrivateShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConversationPrivateShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -3892,6 +3982,9 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
     }
     async create(ctx: Context, id: number, shape: ConversationOrganizationShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConversationOrganizationShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -4043,6 +4136,9 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
     }
     async create(ctx: Context, id: number, shape: ConversationRoomShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConversationRoomShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -4238,6 +4334,9 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     async create(ctx: Context, id: number, shape: RoomProfileShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: RoomProfileShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -4346,6 +4445,9 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     }
     async create(ctx: Context, cid: number, uid: number, shape: RoomParticipantShape) {
         return await this._create(ctx, [cid, uid], { cid, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, cid: number, uid: number, shape: RoomParticipantShape) {
+        return await this._create_UNSAFE(ctx, [cid, uid], { cid, uid, ...shape });
     }
     watch(ctx: Context, cid: number, uid: number, cb: () => void) {
         return this._watch(ctx, [cid, uid], cb);
@@ -4479,6 +4581,9 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
     async create(ctx: Context, cid: number, uid: number, shape: ConversationReceiverShape) {
         return await this._create(ctx, [cid, uid], { cid, uid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, cid: number, uid: number, shape: ConversationReceiverShape) {
+        return await this._create_UNSAFE(ctx, [cid, uid], { cid, uid, ...shape });
+    }
     watch(ctx: Context, cid: number, uid: number, cb: () => void) {
         return this._watch(ctx, [cid, uid], cb);
     }
@@ -4563,6 +4668,9 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
     }
     async create(ctx: Context, sequence: string, shape: SequenceShape) {
         return await this._create(ctx, [sequence], { sequence, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, sequence: string, shape: SequenceShape) {
+        return await this._create_UNSAFE(ctx, [sequence], { sequence, ...shape });
     }
     watch(ctx: Context, sequence: string, cb: () => void) {
         return this._watch(ctx, [sequence], cb);
@@ -5103,6 +5211,9 @@ export class MessageFactory extends FEntityFactory<Message> {
     async create(ctx: Context, id: number, shape: MessageShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: MessageShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -5508,6 +5619,9 @@ export class CommentFactory extends FEntityFactory<Comment> {
     async create(ctx: Context, id: number, shape: CommentShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: CommentShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -5612,6 +5726,9 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
     async create(ctx: Context, peerType: string, peerId: number, shape: CommentStateShape) {
         return await this._create(ctx, [peerType, peerId], { peerType, peerId, ...shape });
     }
+    async create_UNSAFE(ctx: Context, peerType: string, peerId: number, shape: CommentStateShape) {
+        return await this._create_UNSAFE(ctx, [peerType, peerId], { peerType, peerId, ...shape });
+    }
     watch(ctx: Context, peerType: string, peerId: number, cb: () => void) {
         return this._watch(ctx, [peerType, peerId], cb);
     }
@@ -5679,6 +5796,9 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
     }
     async create(ctx: Context, peerType: string, peerId: number, shape: CommentSeqShape) {
         return await this._create(ctx, [peerType, peerId], { peerType, peerId, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, peerType: string, peerId: number, shape: CommentSeqShape) {
+        return await this._create_UNSAFE(ctx, [peerType, peerId], { peerType, peerId, ...shape });
     }
     watch(ctx: Context, peerType: string, peerId: number, cb: () => void) {
         return this._watch(ctx, [peerType, peerId], cb);
@@ -5781,6 +5901,9 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
     async create(ctx: Context, peerType: string, peerId: number, seq: number, shape: CommentEventShape) {
         return await this._create(ctx, [peerType, peerId, seq], { peerType, peerId, seq, ...shape });
     }
+    async create_UNSAFE(ctx: Context, peerType: string, peerId: number, seq: number, shape: CommentEventShape) {
+        return await this._create_UNSAFE(ctx, [peerType, peerId, seq], { peerType, peerId, seq, ...shape });
+    }
     watch(ctx: Context, peerType: string, peerId: number, seq: number, cb: () => void) {
         return this._watch(ctx, [peerType, peerId, seq], cb);
     }
@@ -5865,6 +5988,9 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     }
     async create(ctx: Context, cid: number, shape: ConversationSeqShape) {
         return await this._create(ctx, [cid], { cid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, cid: number, shape: ConversationSeqShape) {
+        return await this._create_UNSAFE(ctx, [cid], { cid, ...shape });
     }
     watch(ctx: Context, cid: number, cb: () => void) {
         return this._watch(ctx, [cid], cb);
@@ -5962,6 +6088,9 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
     }
     async create(ctx: Context, cid: number, seq: number, shape: ConversationEventShape) {
         return await this._create(ctx, [cid, seq], { cid, seq, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, cid: number, seq: number, shape: ConversationEventShape) {
+        return await this._create_UNSAFE(ctx, [cid, seq], { cid, seq, ...shape });
     }
     watch(ctx: Context, cid: number, seq: number, cb: () => void) {
         return this._watch(ctx, [cid, seq], cb);
@@ -6124,6 +6253,9 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     async create(ctx: Context, uid: number, cid: number, shape: UserDialogShape) {
         return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: UserDialogShape) {
+        return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
+    }
     watch(ctx: Context, uid: number, cid: number, cb: () => void) {
         return this._watch(ctx, [uid, cid], cb);
     }
@@ -6234,6 +6366,9 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
     async create(ctx: Context, uid: number, cid: number, mid: number, shape: UserDialogHandledMessageShape) {
         return await this._create(ctx, [uid, cid, mid], { uid, cid, mid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, cid: number, mid: number, shape: UserDialogHandledMessageShape) {
+        return await this._create_UNSAFE(ctx, [uid, cid, mid], { uid, cid, mid, ...shape });
+    }
     watch(ctx: Context, uid: number, cid: number, mid: number, cb: () => void) {
         return this._watch(ctx, [uid, cid, mid], cb);
     }
@@ -6301,6 +6436,9 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
     }
     async create(ctx: Context, uid: number, cid: number, shape: UserDialogSettingsShape) {
         return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: UserDialogSettingsShape) {
+        return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
     }
     watch(ctx: Context, uid: number, cid: number, cb: () => void) {
         return this._watch(ctx, [uid, cid], cb);
@@ -6482,6 +6620,9 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     async create(ctx: Context, uid: number, seq: number, shape: UserDialogEventShape) {
         return await this._create(ctx, [uid, seq], { uid, seq, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, seq: number, shape: UserDialogEventShape) {
+        return await this._create_UNSAFE(ctx, [uid, seq], { uid, seq, ...shape });
+    }
     watch(ctx: Context, uid: number, seq: number, cb: () => void) {
         return this._watch(ctx, [uid, seq], cb);
     }
@@ -6637,6 +6778,9 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
     async create(ctx: Context, uid: number, shape: UserMessagingStateShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, shape: UserMessagingStateShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
     watch(ctx: Context, uid: number, cb: () => void) {
         return this._watch(ctx, [uid], cb);
     }
@@ -6770,6 +6914,9 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
     async create(ctx: Context, uid: number, shape: UserNotificationsStateShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, shape: UserNotificationsStateShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
     watch(ctx: Context, uid: number, cb: () => void) {
         return this._watch(ctx, [uid], cb);
     }
@@ -6861,6 +7008,9 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     }
     async create(ctx: Context, id: string, shape: HyperLogShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: string, shape: HyperLogShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -6965,6 +7115,9 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     }
     async create(ctx: Context, uid: number, cid: number, shape: MessageDraftShape) {
         return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: MessageDraftShape) {
+        return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
     }
     watch(ctx: Context, uid: number, cid: number, cb: () => void) {
         return this._watch(ctx, [uid, cid], cb);
@@ -7127,6 +7280,9 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     async create(ctx: Context, id: string, shape: ChannelInvitationShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: ChannelInvitationShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -7248,6 +7404,9 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     async create(ctx: Context, id: string, shape: ChannelLinkShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: ChannelLinkShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -7331,6 +7490,9 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     async create(ctx: Context, id: string, shape: AppInviteLinkShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: AppInviteLinkShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -7409,6 +7571,9 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
     }
     async create(ctx: Context, id: string, shape: SampleEntityShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: string, shape: SampleEntityShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -7500,6 +7665,9 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
     }
     async create(ctx: Context, id: string, shape: OrganizationPublicInviteLinkShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: string, shape: OrganizationPublicInviteLinkShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -7709,6 +7877,9 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     async create(ctx: Context, id: string, shape: OrganizationInviteLinkShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: string, shape: OrganizationInviteLinkShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: string, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -7830,6 +8001,9 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
     async create(ctx: Context, id: number, shape: ConferenceRoomShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConferenceRoomShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -7948,6 +8122,9 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     }
     async create(ctx: Context, id: number, shape: ConferencePeerShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConferencePeerShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -8170,6 +8347,9 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
     async create(ctx: Context, id: number, shape: ConferenceMediaStreamShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: ConferenceMediaStreamShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -8322,6 +8502,9 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
     async create(ctx: Context, peer1: number, peer2: number, shape: ConferenceConnectionShape) {
         return await this._create(ctx, [peer1, peer2], { peer1, peer2, ...shape });
     }
+    async create_UNSAFE(ctx: Context, peer1: number, peer2: number, shape: ConferenceConnectionShape) {
+        return await this._create_UNSAFE(ctx, [peer1, peer2], { peer1, peer2, ...shape });
+    }
     watch(ctx: Context, peer1: number, peer2: number, cb: () => void) {
         return this._watch(ctx, [peer1, peer2], cb);
     }
@@ -8396,6 +8579,9 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
     }
     async create(ctx: Context, uid1: number, uid2: number, shape: UserEdgeShape) {
         return await this._create(ctx, [uid1, uid2], { uid1, uid2, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid1: number, uid2: number, shape: UserEdgeShape) {
+        return await this._create_UNSAFE(ctx, [uid1, uid2], { uid1, uid2, ...shape });
     }
     watch(ctx: Context, uid1: number, uid2: number, cb: () => void) {
         return this._watch(ctx, [uid1, uid2], cb);
@@ -8497,6 +8683,9 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
     async create(ctx: Context, uid: number, shape: UserInfluencerUserIndexShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, shape: UserInfluencerUserIndexShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
     watch(ctx: Context, uid: number, cb: () => void) {
         return this._watch(ctx, [uid], cb);
     }
@@ -8560,6 +8749,9 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
     }
     async create(ctx: Context, uid: number, shape: UserInfluencerIndexShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, shape: UserInfluencerIndexShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
     watch(ctx: Context, uid: number, cb: () => void) {
         return this._watch(ctx, [uid], cb);
@@ -8625,6 +8817,9 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
     }
     async create(ctx: Context, id: number, shape: FeedSubscriberShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: FeedSubscriberShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -8710,6 +8905,9 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
     }
     async create(ctx: Context, sid: number, tid: number, shape: FeedSubscriptionShape) {
         return await this._create(ctx, [sid, tid], { sid, tid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, sid: number, tid: number, shape: FeedSubscriptionShape) {
+        return await this._create_UNSAFE(ctx, [sid, tid], { sid, tid, ...shape });
     }
     watch(ctx: Context, sid: number, tid: number, cb: () => void) {
         return this._watch(ctx, [sid, tid], cb);
@@ -8811,6 +9009,9 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
     }
     async create(ctx: Context, id: number, shape: FeedTopicShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: FeedTopicShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -8918,6 +9119,9 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
     async create(ctx: Context, id: number, shape: FeedEventShape) {
         return await this._create(ctx, [id], { id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, id: number, shape: FeedEventShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
     }
@@ -9017,6 +9221,9 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
     async create(ctx: Context, appId: number, chatId: number, shape: AppHookShape) {
         return await this._create(ctx, [appId, chatId], { appId, chatId, ...shape });
     }
+    async create_UNSAFE(ctx: Context, appId: number, chatId: number, shape: AppHookShape) {
+        return await this._create_UNSAFE(ctx, [appId, chatId], { appId, chatId, ...shape });
+    }
     watch(ctx: Context, appId: number, chatId: number, cb: () => void) {
         return this._watch(ctx, [appId, chatId], cb);
     }
@@ -9096,6 +9303,9 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
     }
     async create(ctx: Context, id: number, shape: UserStorageNamespaceShape) {
         return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserStorageNamespaceShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
@@ -9208,6 +9418,9 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
     async create(ctx: Context, uid: number, id: number, shape: UserStorageRecordShape) {
         return await this._create(ctx, [uid, id], { uid, id, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, id: number, shape: UserStorageRecordShape) {
+        return await this._create_UNSAFE(ctx, [uid, id], { uid, id, ...shape });
+    }
     watch(ctx: Context, uid: number, id: number, cb: () => void) {
         return this._watch(ctx, [uid, id], cb);
     }
@@ -9299,6 +9512,9 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
     async create(ctx: Context, uid: number, seq: number, shape: DebugEventShape) {
         return await this._create(ctx, [uid, seq], { uid, seq, ...shape });
     }
+    async create_UNSAFE(ctx: Context, uid: number, seq: number, shape: DebugEventShape) {
+        return await this._create_UNSAFE(ctx, [uid, seq], { uid, seq, ...shape });
+    }
     watch(ctx: Context, uid: number, seq: number, cb: () => void) {
         return this._watch(ctx, [uid, seq], cb);
     }
@@ -9383,6 +9599,9 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
     }
     async create(ctx: Context, uid: number, shape: DebugEventStateShape) {
         return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, shape: DebugEventStateShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
     watch(ctx: Context, uid: number, cb: () => void) {
         return this._watch(ctx, [uid], cb);
