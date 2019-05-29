@@ -26,7 +26,7 @@ export abstract class FBaseTransaction implements FContext {
     protected connection: FConnection | null = null;
     protected concurrencyPool: ConcurrencyPool | null = null;
 
-    private cache = new Map<string, any>();
+    protected cache = new Map<string, any>();
     private readWriteLocks = new Map<string, ReadWriteLock>();
 
     readWriteLock(key: string): ReadWriteLock {

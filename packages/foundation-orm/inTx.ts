@@ -19,24 +19,22 @@ export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<
         return r2;
     }
 
-    let tx = new FTransaction();
     let start = currentTime();
-    ctx = FTransactionContext.set(ctx, tx);
-    ctx = withLogContext(ctx, ['transaction', tx.id.toString()]);
-
     // Implementation is copied from database.js from foundationdb library.
     try {
         let isRetry = false;
         do {
+            let tx = new FTransaction();
+            let ctxi = FTransactionContext.set(ctx, tx);
+            ctxi = withLogContext(ctxi, ['transaction', tx.id.toString()]);
             try {
-                tx.reset();
-                const result = await tracer.trace(ctx, isRetry ? 'tx-retry' : 'tx', async (ctx2) => await callback(ctx2));
-                await tx.flush(ctx);
+                const result = await tracer.trace(ctxi, isRetry ? 'tx-retry' : 'tx', async (ctx2) => await callback(ctx2));
+                await tx.flush(ctxi);
                 return result;
             } catch (err) {
                 if (err instanceof FDBError) {
                     await tx.tx!.rawOnError(err.code);
-                    log.debug(ctx, 'retry with code ' + err.code);
+                    log.debug(ctxi, 'retry with code ' + err.code);
                     isRetry = true;
                 } else {
                     throw err;
