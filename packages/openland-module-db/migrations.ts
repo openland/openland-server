@@ -29,8 +29,10 @@ migrations.push({
         for (let u of user) {
             await inTx(root, async (ctx) => {
                 let profile = await FDB.UserProfile.findById(ctx, u[u.length - 1]);
-                profile!.markDirty();
-                await profile!.flush();
+                if (profile) {
+                    profile!.markDirty();
+                    await profile!.flush();
+                }
             });
         }
     }

@@ -36,6 +36,16 @@ export abstract class FEntityFactory<T extends FEntity> {
         this.watcher = new FWatch(connection);
     }
 
+    async findByRawId(ctx: Context, key: (string | number)[]) {
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.get(ctx, this.connection, key);
+            if (res) {
+                return this.doCreateEntity(ctx, res, false);
+            }
+            return null;
+        });
+    }
+
     async findAll(ctx: Context) {
         return this.readOp(ctx, async () => (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v, false)));
     }
