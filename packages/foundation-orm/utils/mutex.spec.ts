@@ -1,3 +1,4 @@
+// tslint:disable:no-floating-promises
 import { Mutex } from './mutex';
 import { delay } from 'openland-utils/timer';
 
