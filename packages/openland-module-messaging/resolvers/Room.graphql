@@ -150,6 +150,7 @@ type RoomConnection {
 
 extend type Query {
     room(id: ID!): Room
+    rooms(ids: [ID!]!): [Room!]!
     roomSuper(id: ID!): RoomSuper
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!
@@ -187,6 +188,7 @@ extend type Mutation {
     betaRoomLeave(roomId: ID!): Room!
     betaRoomChangeRole(roomId: ID!, userId: ID!, newRole: RoomMemberRole!): Room!
     betaRoomJoin(roomId: ID!): Room!
+    betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
 
     # Invite links

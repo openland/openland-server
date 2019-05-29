@@ -6,8 +6,8 @@ import { createLogger } from 'openland-log/createLogger';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
-import { MessageAttachmentFile, MessageMention } from '../MessageInput';
-import { Message } from '../../openland-module-db/schema';
+import { MessageAttachmentFile } from '../MessageInput';
+import { hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 
 const Delays = {
     'none': 10 * 1000,
@@ -16,19 +16,6 @@ const Delays = {
 };
 
 const log = createLogger('push');
-
-function hasMention(message: Message, uid: number) {
-    if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
-        return true;
-    } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
-        return true;
-    } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
-        return true;
-    } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-        return true;
-    }
-    return false;
-}
 
 export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {

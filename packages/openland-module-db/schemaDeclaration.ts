@@ -295,6 +295,8 @@ const Schema = declareSchema(() => {
         field('facebook', 'string').nullable();
         field('linkedin', 'string').nullable();
         field('website', 'string').nullable();
+
+        field('joinedMembersCount', 'number').nullable();
         enableTimestamps();
         enableVersioning();
     });
@@ -454,6 +456,8 @@ const Schema = declareSchema(() => {
         field('welcomeMessageIsOn', 'boolean').nullable();
         field('welcomeMessageSender', 'number').nullable();
         field('welcomeMessageText', 'string').nullable();
+
+        field('activeMembersCount', 'number').nullable();
 
         rangeIndex('updated', ['updatedAt']);
         enableVersioning();

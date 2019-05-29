@@ -133,7 +133,8 @@ export default {
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')),
         role: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
-        membersCount: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 0 : (await FDB.RoomParticipant.allFromActive(ctx, id)).length),
+        // membersCount: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 0 : (await FDB.RoomParticipant.allFromActive(ctx, id)).length),
+        membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         members: withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
                 return [];
@@ -327,6 +328,31 @@ export default {
                 throw new IDMailformedError('Invalid id');
             }
         }),
+        rooms: withAccount(async (ctx, args, uid, oid) => {
+            let res = [];
+            for (let idRaw of args.ids) {
+                let id = IdsFactory.resolve(idRaw);
+                if (id.type === IDs.Conversation) {
+                    if (await Modules.Messaging.room.userWasKickedOrLeavedRoom(ctx, uid, id.id as number)) {
+                        res.push(id.id);
+                    } else {
+                        await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
+                    }
+                    res.push(id.id);
+                } else if (id.type === IDs.User) {
+                    res.push(await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid));
+                } else if (id.type === IDs.Organization) {
+                    let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                    if (!member || member.status !== 'joined') {
+                        throw new IDMailformedError('Invalid id');
+                    }
+                    res.push(Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number));
+                } else {
+                    throw new IDMailformedError('Invalid id');
+                }
+            }
+            return res;
+        }),
         roomSuper: withPermission('super-admin', async (ctx, args) => {
             return IdsFactory.resolve(args.id);
         }),
@@ -514,6 +540,15 @@ export default {
 
         betaRoomJoin: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid, true);
+        }),
+        betaRoomsJoin: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                let res = [];
+                for (let id of args.roomsIds) {
+                    res.push(await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(id), uid, true));
+                }
+                return res;
+            });
         }),
 
         // invite links

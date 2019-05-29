@@ -2535,6 +2535,7 @@ export interface OrganizationProfileShape {
     facebook?: string| null;
     linkedin?: string| null;
     website?: string| null;
+    joinedMembersCount?: number| null;
 }
 
 export class OrganizationProfile extends FEntity {
@@ -2615,6 +2616,17 @@ export class OrganizationProfile extends FEntity {
         this._value.website = value;
         this.markDirty();
     }
+    get joinedMembersCount(): number | null {
+        let res = this._value.joinedMembersCount;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set joinedMembersCount(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.joinedMembersCount) { return; }
+        this._value.joinedMembersCount = value;
+        this.markDirty();
+    }
 }
 
 export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfile> {
@@ -2632,6 +2644,7 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
             { name: 'facebook', type: 'string' },
             { name: 'linkedin', type: 'string' },
             { name: 'website', type: 'string' },
+            { name: 'joinedMembersCount', type: 'number' },
         ],
         indexes: [
         ],
@@ -2656,6 +2669,7 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         validators.isString('facebook', src.facebook);
         validators.isString('linkedin', src.linkedin);
         validators.isString('website', src.website);
+        validators.isNumber('joinedMembersCount', src.joinedMembersCount);
     }
 
     constructor(connection: FConnection) {
@@ -4189,6 +4203,7 @@ export interface RoomProfileShape {
     welcomeMessageIsOn?: boolean| null;
     welcomeMessageSender?: number| null;
     welcomeMessageText?: string| null;
+    activeMembersCount?: number| null;
 }
 
 export class RoomProfile extends FEntity {
@@ -4280,6 +4295,17 @@ export class RoomProfile extends FEntity {
         this._value.welcomeMessageText = value;
         this.markDirty();
     }
+    get activeMembersCount(): number | null {
+        let res = this._value.activeMembersCount;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set activeMembersCount(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.activeMembersCount) { return; }
+        this._value.activeMembersCount = value;
+        this.markDirty();
+    }
 }
 
 export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
@@ -4298,6 +4324,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
             { name: 'welcomeMessageIsOn', type: 'boolean' },
             { name: 'welcomeMessageSender', type: 'number' },
             { name: 'welcomeMessageText', type: 'string' },
+            { name: 'activeMembersCount', type: 'number' },
         ],
         indexes: [
             { name: 'updated', type: 'range', fields: ['updatedAt'] },
@@ -4314,6 +4341,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         validators.isBoolean('welcomeMessageIsOn', src.welcomeMessageIsOn);
         validators.isNumber('welcomeMessageSender', src.welcomeMessageSender);
         validators.isString('welcomeMessageText', src.welcomeMessageText);
+        validators.isNumber('activeMembersCount', src.activeMembersCount);
     }
 
     constructor(connection: FConnection) {

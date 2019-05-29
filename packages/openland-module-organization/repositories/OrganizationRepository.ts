@@ -78,6 +78,7 @@ export class OrganizationRepository {
                 await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
                     status: 'joined', role: 'admin', invitedBy: uid
                 });
+                await this.incrementOrganizationMembersCount(ctx, organization.id);
             // }
 
             // Mark for indexing
@@ -123,9 +124,11 @@ export class OrganizationRepository {
                 return false;
             } else if (ex) {
                 ex.status = 'joined';
+                await this.incrementOrganizationMembersCount(ctx, oid);
                 return true;
             } else {
                 await this.entities.OrganizationMember.create(ctx, oid, uid, { status: 'joined', role: 'member', invitedBy: by });
+                await this.incrementOrganizationMembersCount(ctx, oid);
                 return true;
             }
         });
@@ -148,6 +151,7 @@ export class OrganizationRepository {
             existing.status = 'left';
             existing.role = 'member'; // Downgrade membership
             await existing.flush();
+            await this.decrementOrganizationMembersCount(ctx, oid);
             return true;
         });
     }
@@ -297,6 +301,34 @@ export class OrganizationRepository {
             let profile = await this.entities.OrganizationProfile.findById(ctx, id);
             profile!.name = title;
             return org;
+        });
+    }
+
+    private incrementOrganizationMembersCount(parent: Context, oid: number) {
+        return inTx(parent, async ctx => {
+           let profile = await this.entities.OrganizationProfile.findById(ctx, oid);
+           if (!profile) {
+               throw new NotFoundError();
+           }
+
+           if (!profile.joinedMembersCount) {
+               profile.joinedMembersCount = 1;
+           } else {
+               profile.joinedMembersCount++;
+           }
+        });
+    }
+
+    private decrementOrganizationMembersCount(parent: Context, oid: number) {
+        return inTx(parent, async ctx => {
+            let profile = await this.entities.OrganizationProfile.findById(ctx, oid);
+            if (!profile) {
+                throw new NotFoundError();
+            }
+
+            if (profile.joinedMembersCount) {
+                profile.joinedMembersCount--;
+            }
         });
     }
 }

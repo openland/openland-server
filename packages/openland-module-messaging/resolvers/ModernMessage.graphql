@@ -21,6 +21,7 @@ type ServiceMessage implements ModernMessage  {
     id: ID!
     date: Date!
     sender: User!
+    isMentioned: Boolean!
 
     #
     #   Content
@@ -40,6 +41,7 @@ type GeneralMessage implements ModernMessage {
     sender: User!
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
+    isMentioned: Boolean!
 
     #
     #   Content
