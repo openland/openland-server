@@ -681,6 +681,28 @@ export default {
             });
             return true;
         }),
+        debugCalcOrgsActiveMembers: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugCalcOrgsActiveMembers', async (log) => {
+                let allOrgs = await FDB.Organization.findAll(createEmptyContext());
+                let i = 0;
+                for (let org of allOrgs) {
+                    await inTx(createEmptyContext(), async (ctx) => {
+                        let activeMembers = await Modules.Orgs.organizationMembersCount(ctx, org.id);
+                        let _org = await FDB.OrganizationProfile.findById(ctx, org.id);
+
+                        if (_org) {
+                            _org.joinedMembersCount = activeMembers;
+                        }
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

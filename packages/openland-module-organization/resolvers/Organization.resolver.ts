@@ -69,7 +69,8 @@ export default {
 
         betaPublicRooms: resolveOrganizationRooms,
         status: async (src: Organization) => src.status,
-        membersCount: async (src: Organization, args: {}, ctx: AppContext) => await Modules.Orgs.organizationMembersCount(ctx, src.id)
+        // membersCount: async (src: Organization, args: {}, ctx: AppContext) => await Modules.Orgs.organizationMembersCount(ctx, src.id)
+        membersCount: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0)
     },
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: AppContext) => {

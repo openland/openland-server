@@ -295,6 +295,8 @@ const Schema = declareSchema(() => {
         field('facebook', 'string').nullable();
         field('linkedin', 'string').nullable();
         field('website', 'string').nullable();
+
+        field('joinedMembersCount', 'number').nullable();
         enableTimestamps();
         enableVersioning();
     });
