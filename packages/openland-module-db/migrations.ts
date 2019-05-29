@@ -758,6 +758,29 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '53-fix-user-messaging-state',
+    migration: async (root, log) => {
+        let allKeys = await FDB.UserMessagingState.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let state = (await FDB.UserMessagingState.findById(ctx, k[0] as number));
+                    if (!state) {
+                        log.warn(ctx, 'no state found! ' + JSON.stringify(k));
+                    } else {
+                        state.seq += 100;
+                        state.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
 //
 // !! Run only on entities with one primary key !!
 //
