@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { Context } from '../../openland-utils/Context';
-import { AllEntities, Message } from '../../openland-module-db/schema';
+import { AllEntities } from '../../openland-module-db/schema';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { createTracer } from '../../openland-log/createTracer';
@@ -10,9 +10,10 @@ import { RoomMediator } from './RoomMediator';
 import { withLogContext } from '../../openland-log/withLogContext';
 import { createLogger } from '../../openland-log/createLogger';
 import { Modules } from '../../openland-modules/Modules';
-import { MessageAttachmentFile, MessageMention } from '../MessageInput';
+import { MessageAttachmentFile } from '../MessageInput';
 import { Texts } from '../texts';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import { hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 
 const tracer = createTracer('message-push-delivery');
 const log = createLogger('push_delivery');
@@ -22,19 +23,6 @@ const Delays = {
     '1min': 60 * 1000,
     '15min': 15 * 60 * 1000
 };
-
-function hasMention(message: Message, uid: number) {
-    if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
-        return true;
-    } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
-        return true;
-    } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
-        return true;
-    } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-        return true;
-    }
-    return false;
-}
 
 @injectable()
 export class PushNotificationMediator {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7f678da8f29889ed9c2ad26c6da14104';
+export const GQL_SPEC_VERSION = 'b9aec905d7b3bfedfa79954b91dd9b01';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -510,6 +510,7 @@ export namespace GQL {
         id: string;
         date: Date;
         sender: User;
+        isMentioned: boolean;
         message: Nullable<string>;
         spans: MessageSpan[];
         serviceMetadata: Nullable<ServiceMetadata>;
@@ -521,6 +522,7 @@ export namespace GQL {
         sender: User;
         edited: boolean;
         reactions: ModernMessageReaction[];
+        isMentioned: boolean;
         message: Nullable<string>;
         spans: MessageSpan[];
         attachments: ModernMessageAttachment[];

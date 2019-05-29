@@ -14,6 +14,20 @@ import { LinkSpan, MessageAttachment, MessageAttachmentInput, MessageSpan } from
 import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
 import { Texts } from '../texts';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
+import { MessageMention } from '../MessageInput';
+
+export function hasMention(message: Message, uid: number) {
+    if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
+        return true;
+    } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
+        return true;
+    } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
+        return true;
+    } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
+        return true;
+    }
+    return false;
+}
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -299,6 +313,12 @@ export default {
         id: src => IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: src => src.uid,
+        isMentioned: (src, args, ctx) => {
+            if (src instanceof Message) {
+                return hasMention(src, ctx.auth.uid!);
+            }
+            return false;
+        },
 
         //
         //  Content
@@ -356,6 +376,12 @@ export default {
         sender: async (src, args, ctx) => src.deleted ? await Modules.Users.getDeletedUserId(ctx) : src.uid,
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
+        isMentioned: async (src, args, ctx) => {
+            if (src instanceof Message) {
+                return hasMention(src, ctx.auth.uid!);
+            }
+            return false;
+        },
 
         //
         //  Content
