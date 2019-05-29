@@ -56,8 +56,7 @@ extend type Query {
     organizationChatsStats: [OrganizationChatStats!]!
     debugEventsState: DebugEventsState!
 
-    debugIndexes: String!
-    debugTasksIndex: String!
+    debugCheckTasksIndex: String!
 }
 
 enum SuperNotificationType {
@@ -81,10 +80,8 @@ extend type Mutation {
     debugFixCommentsVisibility: Boolean!
     debugSetCommentVisibility(commentId: ID!, visible: Boolean!): Boolean!
     debugRemoveDeletedDialogs: Boolean!
-
     debugReindexOrgs(marActivatedOrgsListed: Boolean!): Boolean!
-
-    debugFixIndex: Boolean!
+    debugFixUserDialogsIndex: Boolean!
 }
 
 extend type Subscription {

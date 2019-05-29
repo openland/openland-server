@@ -15,10 +15,8 @@ import { delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
-import { FEntity } from '../foundation-orm/FEntity';
 import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
-import { resolveContext } from '../foundation-orm/utils/contexts';
-import { FEntityFactory } from '../foundation-orm/FEntityFactory';
+import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 
 const URLInfoService = createUrlInfoService();
 
@@ -41,71 +39,7 @@ const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     });
 };
 
-export async function validateIndexConsistency<T extends FEntity>(ctx: Context, fetchIndex: () => Promise<T[]>, extractKey: (value: T) => string) {
-    let data = await fetchIndex();
-    let seenSet = new Set<string>();
-    let duplicates: T[] = [];
-
-    for (let item of data) {
-        let key = extractKey(item);
-        if (seenSet.has(key)) {
-            duplicates.push(item);
-        } else {
-            seenSet.add(key);
-        }
-    }
-
-    return duplicates;
-}
-
-export async function fixIndexConsistency<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[], getData: (ctx: Context) => Promise<T[]>) {
-    // Remove duplicates from index
-    let duplicatesCount = 0;
-    await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
-
-        for (let item of data) {
-            let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
-
-            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
-                duplicatesCount++;
-                await resolveContext(ctx).delete(ctx, FDB.connection, item.key);
-            }
-        }
-    });
-
-    // Reindex all
-    await inTx(createEmptyContext(), async (ctx) => {
-        let data = await getData(ctx);
-        for (let item of data) {
-            await item.flush();
-        }
-    });
-
-    return duplicatesCount;
-}
-
-export async function validateIndexConsistency2<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
-    // Find index inconsistency
-    let duplicatesCount = 0;
-    await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
-
-        for (let item of data) {
-            let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
-
-            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
-                duplicatesCount++;
-            }
-        }
-    });
-
-    return duplicatesCount;
-}
-
-async function fetchAllUids(ctx: Context) {
+export async function fetchAllUids(ctx: Context) {
     let allUsers = await FDB.User.findAllKeys(ctx);
     let allUids: number[] = [];
     for (let key of allUsers) {
@@ -226,35 +160,7 @@ export default {
         }),
         lifecheck: () => `i'm ok`,
 
-        debugIndexes: withPermission('super-admin', async (parent, args) => {
-            debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let allUsers = await FDB.User.findAllKeys(parent);
-                let allUids: number[] = [];
-                for (let key of allUsers) {
-                    let k = FKeyEncoding.decodeKey(key);
-                    k.splice(0, 2);
-                    allUids.push(k[0] as number);
-                }
-
-                for (let uid of allUids) {
-                    await inTx(createEmptyContext(), async (ctx) => {
-                        let duplicates = await validateIndexConsistency(
-                            ctx,
-                            () => FDB.UserDialog.allFromUser(ctx, uid),
-                            (data) => data.uid + '_' + data.cid
-                        );
-
-                        if (duplicates.length > 0) {
-                            await log(`UserDialog.allFromUser(${uid}): ${duplicates.length} duplicates`);
-                        }
-                    });
-                }
-
-                return 'done';
-            });
-            return 'ok';
-        }),
-        debugTasksIndex: withPermission('super-admin', async (parent, args) => {
+        debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
                 let workers = [
                     'emailSender',
@@ -269,14 +175,14 @@ export default {
                 ];
 
                 for (let worker of workers) {
-                    let duplicatesCount = await validateIndexConsistency2(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
+                    let duplicatesCount = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
                     await log(`${worker } ${duplicatesCount} duplicates pending`);
                 }
 
-                let duplicatesCountExecuting = await validateIndexConsistency2(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
+                let duplicatesCountExecuting = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
                 await log(`${duplicatesCountExecuting} duplicates executing`);
 
-                let duplicatesCountFailing = await validateIndexConsistency2(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
+                let duplicatesCountFailing = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
                 await log(`${duplicatesCountFailing} duplicates failing`);
 
                 return 'done';
@@ -734,7 +640,7 @@ export default {
             });
             return true;
         }),
-        debugFixIndex: withPermission('super-admin', async (parent, args) => {
+        debugFixUserDialogsIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
                 let allUids = await fetchAllUids(parent);
                 for (let uid of allUids) {
