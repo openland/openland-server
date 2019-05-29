@@ -65,6 +65,7 @@ export default {
         key: src => src.key
     },
     Query: {
+        lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
             return {
@@ -151,14 +152,12 @@ export default {
                 });
             }
 
-            console.log(res);
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
             let tail = await FDB.DebugEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
             return {state: tail};
         }),
-        lifecheck: () => `i'm ok`,
 
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -191,6 +190,7 @@ export default {
         })
     },
     Mutation: {
+        lifecheck: () => `i'm still ok`,
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
             let oid = ctx.auth.oid!;
@@ -599,7 +599,6 @@ export default {
             });
             return true;
         }),
-        lifecheck: () => `i'm still ok`,
         debugReindexOrgs: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
                 let orgs = await FDB.Organization.findAll(createEmptyContext());
