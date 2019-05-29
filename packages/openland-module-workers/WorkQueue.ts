@@ -63,7 +63,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 if (pend.length === 0) {
                     return null;
                 }
-                let res = pend[0];
+                let res = pend[Math.floor(Math.random() * (pend.length))];
                 res.taskLockSeed = lockSeed;
                 res.taskLockTimeout = Date.now() + 15000;
                 res.taskStatus = 'executing';

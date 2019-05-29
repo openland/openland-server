@@ -26,6 +26,7 @@ async function createUser(ctx: Context, email: string) {
         about: faker.name.jobTitle()
     });
     await Modules.Auth.createToken(ctx, user.id);
+    return user.id;
 }
 
 export async function prepare() {
@@ -54,6 +55,12 @@ export async function prepare() {
         await createUser(ctx, 'test1112@openland.com');
         await createUser(ctx, 'test1113@openland.com');
         await createUser(ctx, 'test1114@openland.com');
+
+        // Developer account
+        let uid = await createUser(ctx, 'bot@openland.com');
+        await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
+        await Modules.Users.activateUser(ctx, uid, false);
+        await Modules.Orgs.createOrganization(ctx, uid, { name: 'Developer Organization' });
 
         process.exit();
     } catch (e) {

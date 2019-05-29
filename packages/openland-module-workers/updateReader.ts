@@ -3,11 +3,12 @@ import { FStream } from 'foundation-orm/FStream';
 import { staticWorker } from './staticWorker';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
-import { createEmptyContext } from 'openland-utils/Context';
+import { createEmptyContext, Context } from 'openland-utils/Context';
+import { withLogContext } from 'openland-log/withLogContext';
 
-export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean) => Promise<void>, args?: { delay: number }) {
+export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
     staticWorker({ name: 'update_reader_' + name, version, delay: args && args.delay }, async () => {
-        let root = createEmptyContext();
+        let root = withLogContext(createEmptyContext(), ['static-worker', name]);
         let existing = await FDB.ReaderState.findById(root, name);
         let first = false;
         if (existing) {
@@ -26,7 +27,7 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
         if (res.length > 0) {
 
             // Handling elements
-            await handler(res, first);
+            await handler(res, first, root);
 
             // Commit offset
             await inTx(root, async (ctx) => {

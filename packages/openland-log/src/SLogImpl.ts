@@ -28,7 +28,7 @@ export class SLogImpl implements SLog {
             if (v.disabled) {
                 return;
             }
-            logger.info([...v.path, this.name, message, ...optionalParams].join(' '));
+            logger.info([...v.path].join(' ') + ' | ' + this.name + ': ' + [message, ...optionalParams].join(' '));
         }
     }
 
@@ -39,7 +39,7 @@ export class SLogImpl implements SLog {
                 if (v.disabled) {
                     return;
                 }
-                logger.debug([...v.path, this.name, message, ...optionalParams].join(' '));
+                logger.debug([...v.path].join(' ') + ' | ' + this.name + ': ' + [message, ...optionalParams].join(' '));
             }
         }
     }
@@ -49,7 +49,7 @@ export class SLogImpl implements SLog {
             // if (v.disabled) {
             //     return;
             // }
-            logger.warn([...v.path, this.name, message, ...optionalParams].join(' '));
+            logger.warn([...v.path].join(' ') + ' | ' + this.name + ': ' + [message, ...optionalParams].join(' '));
         }
     }
 }
