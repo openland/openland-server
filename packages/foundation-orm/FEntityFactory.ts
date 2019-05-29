@@ -222,14 +222,14 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     private writeOp<T2>(ctx: Context, fn: () => Promise<T2>): Promise<T2> {
-        return this.getLock(ctx)!.runWriteOperation(fn);
+        return this.getLock(ctx)!.runWriteOperation(ctx, fn);
         // return this.readOp(ctx, fn);
     }
 
     private readOp<T2>(ctx: Context, fn: () => Promise<T2>): Promise<T2> {
         let lock = this.getLock(ctx);
         if (lock) {
-            return lock.runReadOperation(fn);
+            return lock.runReadOperation(ctx, fn);
         } else {
             return fn();
         }

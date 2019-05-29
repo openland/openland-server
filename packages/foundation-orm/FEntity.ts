@@ -260,7 +260,7 @@ export abstract class FEntity {
 
         if (lock) {
             await tracer.trace(this.ctx, 'performFlush', async () => {
-                await cache!.readWriteLock(this.entityName).runWriteOperation(op);
+                await cache!.readWriteLock(this.entityName).runWriteOperation(this.ctx, op);
             });
         } else {
             await op();
