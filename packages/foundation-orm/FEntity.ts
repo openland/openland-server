@@ -146,6 +146,11 @@ export abstract class FEntity {
                 // Validate
                 this.options.validator(value);
 
+                // Update state
+                this._value = {
+                    ...value
+                };
+
                 if (!this.directory.isAllocated) {
                     await this.directory.awaitAllocation();
                 }
@@ -241,11 +246,9 @@ export abstract class FEntity {
                         }
                     }
                 }
+
                 this.isNew = false;
                 this._valueInitial = {
-                    ...value
-                };
-                this._value = {
                     ...value
                 };
             } catch (e) {
