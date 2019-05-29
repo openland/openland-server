@@ -6,6 +6,13 @@ export class Mutex {
         return this.locked;
     }
 
+    acquireSync = () => {
+        if (this.locked) {
+            throw Error('internal inconsistency!');
+        }
+        this.locked = true;
+    }
+
     acquire = async () => {
         while (this.locked) {
             await new Promise<void>((resolve) => {
@@ -25,13 +32,7 @@ export class Mutex {
         this.locked = false;
         if (this.queue.length > 0) {
             let ex = this.queue.shift()!;
-            process.nextTick(() => {
-                if (!this.locked) {
-                    ex();
-                } else {
-                    this.queue.unshift(ex);
-                }
-            });
+            ex();
         }
     }
 

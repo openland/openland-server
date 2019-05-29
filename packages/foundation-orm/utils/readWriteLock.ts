@@ -6,16 +6,28 @@ export class ReadWriteLock {
     private writeLock = new Mutex();
 
     runReadOperation = async <T>(fn: () => Promise<T>) => {
-        await this.readLock.acquire();
+        if (!this.readLock.isLocked) {
+            this.readLock.acquireSync();
+        } else {
+            await this.readLock.acquire();
+        }
         this.readOperations++;
         if (this.readOperations === 1) {
-            await this.writeLock.acquire();
+            if (!this.writeLock.isLocked) {
+                this.writeLock.acquireSync();
+            } else {
+                await this.writeLock.acquire();
+            }
         }
         this.readLock.release();
         try {
             return await fn();
         } finally {
-            await this.readLock.acquire();
+            if (!this.readLock.isLocked) {
+                this.readLock.acquireSync();
+            } else {
+                await this.readLock.acquire();
+            }
             this.readOperations--;
             if (this.readOperations === 0) {
                 this.writeLock.release();
@@ -24,7 +36,11 @@ export class ReadWriteLock {
         }
     }
     runWriteOperation = async <T>(fn: () => Promise<T>) => {
-        await this.writeLock.acquire();
+        if (!this.writeLock.isLocked) {
+            this.writeLock.acquireSync();
+        } else {
+            await this.writeLock.acquire();
+        }
         try {
             return await fn();
         } finally {
