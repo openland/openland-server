@@ -1,6 +1,6 @@
 import { JsonMap } from 'openland-utils/json';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx, inTxLeaky } from 'foundation-orm/inTx';
 import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { withLogContext } from 'openland-log/withLogContext';
@@ -24,7 +24,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
     }
 
     pushWork = async (parent: Context, work: ARGS) => {
-        return await inTx(parent, async (ctx) => {
+        return await inTxLeaky(parent, async (ctx) => {
             resolveContext(ctx).afterTransaction(() => {
                 EventBus.publish(this.pubSubTopic, {});
             });

@@ -9,13 +9,17 @@ import { tracer } from './utils/tracer';
 
 const log = createLogger('tx', false);
 
-export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
+async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
     let ex = FTransactionContext.get(ctx);
     if (ex) {
         let res = await callback(ctx);
-        await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+        if (!leaky) {
+            await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+        }
         let r2 = res;
-        await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+        if (!leaky) {
+            await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+        }
         return r2;
     }
 
@@ -44,4 +48,12 @@ export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<
     } finally {
         log.debug(ctx, 'full tx time: ' + (currentTime() - start) + ' ms');
     }
+}
+
+export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
+    return doInTx(false, ctx, callback);
+}
+
+export async function inTxLeaky<T>(ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
+    return doInTx(true, ctx, callback);
 }
