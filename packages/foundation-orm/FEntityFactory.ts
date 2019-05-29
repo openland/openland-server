@@ -36,33 +36,31 @@ export abstract class FEntityFactory<T extends FEntity> {
         this.watcher = new FWatch(connection);
     }
 
-    async findByRawId(ctx: Context, key: (string | number)[]) {
-        let res = await this.namespace.get(ctx, this.connection, key);
-        if (res) {
-            return this.doCreateEntity(ctx, res, false);
-        }
-        return null;
-    }
-
     async findAll(ctx: Context) {
-        return (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v, false));
+        return this.readOp(ctx, async () => (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v, false)));
     }
 
     async findAllKeys(ctx: Context, limit?: number) {
-        let res = await this.namespace.range(ctx, this.connection, [], { limit });
-        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
-        return res.map((v) => v.key);
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.range(ctx, this.connection, [], { limit });
+            res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
+            return res.map((v) => v.key);
+        });
     }
 
     async findAllKeysAfter(ctx: Context, after: any[], limit?: number) {
-        let res = await this.namespace.rangeAfter(ctx, this.connection, [], after, { limit });
-        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
-        return res.map((v) => v.key);
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.rangeAfter(ctx, this.connection, [], after, { limit });
+            res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
+            return res.map((v) => v.key);
+        });
     }
 
     async findAllWithIds(ctx: Context) {
-        let res = await this.namespace.range(ctx, this.connection, []);
-        return res.map((v) => ({ item: this.doCreateEntity(ctx, v.item, false), key: v.key }));
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.range(ctx, this.connection, []);
+            return res.map((v) => ({ item: this.doCreateEntity(ctx, v.item, false), key: v.key }));
+        });
     }
 
     abstract extractId(rawId: any[]): any;
@@ -70,49 +68,60 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected abstract _createEntity(ctx: Context, value: any, isNew: boolean): T;
 
     protected async  _findById(parent: Context, key: (string | number)[]) {
-        return this._findByIdInternal(parent, key, true);
+        return this.readOp(parent, async () => {
+            return await this._findByIdInternal(parent, key);
+        });
     }
 
     protected async _findFromIndex(parent: Context, key: (string | number)[]) {
-        // let res = await this.directory.get(key);
-        return await tracer.trace(parent, 'FindById', async (ctx) => {
-            let res = await this.namespace.get(ctx, this.connection, key);
-            if (res) {
-                return this.doCreateEntity(ctx, res, false);
-            }
-            return null;
+        return this.readOp(parent, async () => {
+            return await tracer.trace(parent, 'FindById', async (ctx) => {
+                let res = await this.namespace.get(ctx, this.connection, key);
+                if (res) {
+                    return this.doCreateEntity(ctx, res, false);
+                }
+                return null;
+            });
         });
     }
 
     protected async _findRangeAllAfter(ctx: Context, key: (string | number)[], after: any, reverse?: boolean) {
-        let res = await this.namespace.rangeAfter(ctx, this.connection, key, [...this.namespace.namespace, ...key, after], { reverse });
-        return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.rangeAfter(ctx, this.connection, key, [...this.namespace.namespace, ...key, after], { reverse });
+            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        });
     }
 
     protected async _findRange(ctx: Context, key: (string | number)[], limit: number, reverse?: boolean) {
-        let res = await this.namespace.range(ctx, this.connection, key, { limit, reverse });
-        return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.range(ctx, this.connection, key, { limit, reverse });
+            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        });
     }
 
     protected async _findRangeWithCursor(ctx: Context, key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
-        let res: { item: any, key: Buffer }[];
-        if (after) {
-            res = await this.namespace.rangeAfter(ctx, this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
-        } else {
-            res = await this.namespace.range(ctx, this.connection, key, { limit: limit + 1, reverse });
-        }
-        let d: T[] = [];
-        for (let i = 0; i < Math.min(limit, res.length); i++) {
-            d.push(this._createEntity(ctx, res[i].item, false));
-        }
-        let cursor = res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey((res[Math.min(res.length, limit) - 1]).key) as any) : after;
-        let haveMore = res.length > limit;
-        return { items: d, cursor, haveMore };
+        return this.readOp(ctx, async () => {
+            let res: { item: any, key: Buffer }[];
+            if (after) {
+                res = await this.namespace.rangeAfter(ctx, this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
+            } else {
+                res = await this.namespace.range(ctx, this.connection, key, { limit: limit + 1, reverse });
+            }
+            let d: T[] = [];
+            for (let i = 0; i < Math.min(limit, res.length); i++) {
+                d.push(this._createEntity(ctx, res[i].item, false));
+            }
+            let cursor = res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey((res[Math.min(res.length, limit) - 1]).key) as any) : after;
+            let haveMore = res.length > limit;
+            return { items: d, cursor, haveMore };
+        });
     }
 
     protected async _findRangeAfter(ctx: Context, subspace: (string | number)[], after: any, limit?: number, reverse?: boolean) {
-        let res = await this.namespace.rangeAfter(ctx, this.connection, subspace, [...this.namespace.namespace, ...subspace, after], { limit, reverse });
-        return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.rangeAfter(ctx, this.connection, subspace, [...this.namespace.namespace, ...subspace, after], { limit, reverse });
+            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        });
     }
 
     protected _createStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): FStream<T> {
@@ -123,23 +132,24 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected async _findAll(ctx: Context, key: (string | number)[]) {
-        let res = await this.namespace.range(ctx, this.connection, key);
-        return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.range(ctx, this.connection, key);
+            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+        });
     }
 
     protected async _create(parent: Context, key: (string | number)[], value: any) {
-        return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
-            let cache = FTransactionContext.get(parent);
-            if (!cache) {
-                throw Error('Tried to create object outside of transaction');
-            }
-            let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-            return await cache.lock(cacheKey, async () => {
-                if (await this._findByIdInternal(ctx, key, false)) {
+        return this.writeOp(parent, async () => {
+            return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
+                let cache = FTransactionContext.get(parent);
+                if (!cache) {
+                    throw Error('Tried to create object outside of transaction');
+                }
+                if (await this._findByIdInternal(ctx, key)) {
                     throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
                 }
                 let res = this.doCreateEntity(ctx, value, true);
-                await res.flush();
+                await (res as any)._doFlush(false);
                 return res;
             });
         });
@@ -177,46 +187,27 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
     }
 
-    private async  _findByIdInternal(parent: Context, key: (string | number)[], external: boolean): Promise<T | null> {
+    private async  _findByIdInternal(parent: Context, key: (string | number)[]): Promise<T | null> {
 
         // Cached
         let cache = FTransactionContext.get(parent) || FCacheContextContext.get(parent);
         if (cache) {
             let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-            // console.warn(cacheKey);
-            if (!external) {
-                let cached = cache!.findInCache(cacheKey);
-                if (cached) {
-                    return cached;
-                } else {
-                    let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                        let r = await this.namespace.get(ctx, this.connection, key);
-                        if (r) {
-                            return this.doCreateEntity(ctx, r, false);
-                        } else {
-                            return null;
-                        }
-                    });
-                    // cache!.putInCache(cacheKey, res);
-                    return res;
-                }
+
+            let cached = cache!.findInCache(cacheKey);
+            if (cached) {
+                return cached;
             } else {
-                return await cache.lock(cacheKey, async () => {
-                    let cached = cache!.findInCache(cacheKey);
-                    if (cached) {
-                        return cached;
+                let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
+                    let r = await this.namespace.get(ctx, this.connection, key);
+                    if (r) {
+                        return this.doCreateEntity(ctx, r, false);
                     } else {
-                        let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                            let r = await this.namespace.get(ctx, this.connection, key);
-                            if (r) {
-                                return this.doCreateEntity(ctx, r, false);
-                            } else {
-                                return null;
-                            }
-                        });
-                        return res;
+                        return null;
                     }
                 });
+                // cache!.putInCache(cacheKey, res);
+                return res;
             }
         }
 
@@ -228,5 +219,28 @@ export abstract class FEntityFactory<T extends FEntity> {
             }
             return null;
         });
+    }
+
+    private writeOp<T2>(ctx: Context, fn: () => Promise<T2>): Promise<T2> {
+        return this.getLock(ctx)!.runWriteOperation(fn);
+        // return this.readOp(ctx, fn);
+    }
+
+    private readOp<T2>(ctx: Context, fn: () => Promise<T2>): Promise<T2> {
+        let lock = this.getLock(ctx);
+        if (lock) {
+            return lock.runReadOperation(fn);
+        } else {
+            return fn();
+        }
+    }
+
+    private getLock(ctx: Context) {
+        let cache = FTransactionContext.get(ctx) || FCacheContextContext.get(ctx);
+        if (!cache) {
+            // throw Error('No transaction or cache in the context!');
+            return null;
+        }
+        return cache.readWriteLock(this.name);
     }
 }

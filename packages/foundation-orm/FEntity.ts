@@ -113,6 +113,7 @@ export abstract class FEntity {
     }
 
     private async _doFlush(lock: boolean) {
+        // console.warn('doFlush');
 
         let cache = FTransactionContext.get(this.ctx);
         if (!cache) {
@@ -254,7 +255,7 @@ export abstract class FEntity {
         };
 
         if (lock) {
-            await cache.lock('flush', op);
+            await cache.readWriteLock(this.entityName).runWriteOperation(op);
         } else {
             await op();
         }
