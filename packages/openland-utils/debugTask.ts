@@ -11,7 +11,7 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
             if (superNotificationsAppId) {
                 let ctx = createEmptyContext();
                 let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, superNotificationsAppId);
-                await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId, { message: str }, true);
+                await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId, { message: `Task #${key}: ${str}` }, true);
             }
         };
         await sendLog(`Task #${key} ${name} started`);

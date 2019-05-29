@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '638f79d9ed095ae712e7bc03c0d94d4d';
+export const GQL_SPEC_VERSION = 'fdc2c9b297d3b9b6c74bfe0406194d10';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1099,6 +1099,7 @@ export namespace GQL {
         debugRemoveDeletedDialogs: boolean;
         debugReindexOrgs: boolean;
         debugFixUserDialogsIndex: boolean;
+        debugCalcRoomsActiveMembers: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         betaOrganizationMemberRequestApprove: Organization;

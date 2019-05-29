@@ -455,6 +455,8 @@ const Schema = declareSchema(() => {
         field('welcomeMessageSender', 'number').nullable();
         field('welcomeMessageText', 'string').nullable();
 
+        field('activeMembersCount', 'number').nullable();
+
         rangeIndex('updated', ['updatedAt']);
         enableVersioning();
         enableTimestamps();

@@ -659,6 +659,28 @@ export default {
             });
             return true;
         }),
+        debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugCalcRoomsActiveMembers', async (log) => {
+                let allRooms = await FDB.RoomProfile.findAll(createEmptyContext());
+                let i = 0;
+                for (let room of allRooms) {
+                    await inTx(createEmptyContext(), async (ctx) => {
+                        let activeMembers = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+                        let _room = await FDB.RoomProfile.findById(ctx, room.id);
+
+                        if (_room) {
+                            _room.activeMembersCount = activeMembers.length;
+                        }
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

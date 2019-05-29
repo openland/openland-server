@@ -1,4 +1,4 @@
-import { AllEntities, User, ConversationRoom, Message } from 'openland-module-db/schema';
+import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
@@ -54,17 +54,17 @@ export class RoomRepository {
                 description: profile.description,
                 socialImage: profile.socialImage
             });
-            await this.entities.RoomParticipant.create(ctx, id, uid, {
+            await this.createRoomParticipant(ctx, id, uid, {
                 role: 'owner',
                 invitedBy: uid,
                 status: 'joined'
             });
             await this.onRoomJoin(ctx, id, uid, uid);
-            for (let m of members) {
+            for (let m of [...new Set(members)]) {
                 if (m === uid) {
                     continue; // Just in case of bad input
                 }
-                await this.entities.RoomParticipant.create(ctx, id, m, {
+                await this.createRoomParticipant(ctx, id, m, {
                     role: 'member',
                     invitedBy: uid,
                     status: 'joined'
@@ -90,11 +90,12 @@ export class RoomRepository {
                 } else {
                     p.status = 'joined';
                     p.invitedBy = by;
+                    await this.incrementRoomActiveMembers(ctx, cid);
                     await this.onRoomJoin(ctx, cid, uid, by);
                     return true;
                 }
             } else {
-                await this.entities.RoomParticipant.create(ctx, cid, uid, {
+                await this.createRoomParticipant(ctx, cid, uid, {
                     status: 'joined',
                     invitedBy: by,
                     role: 'member'
@@ -116,6 +117,7 @@ export class RoomRepository {
                 return false;
             }
             participant.status = 'kicked';
+            await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid);
             return true;
         });
@@ -147,6 +149,7 @@ export class RoomRepository {
                 return false;
             }
             p.status = 'left';
+            await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid);
             return true;
         });
@@ -166,12 +169,13 @@ export class RoomRepository {
                     p.invitedBy = uid;
                     p.status = targetStatus;
                     if (targetStatus === 'joined') {
+                        await this.incrementRoomActiveMembers(ctx, cid);
                         await this.onRoomJoin(ctx, cid, uid, uid);
                     }
                     return true;
                 }
             } else {
-                await this.entities.RoomParticipant.create(ctx, cid, uid, {
+                await this.createRoomParticipant(ctx, cid, uid, {
                     status: targetStatus,
                     role: 'member',
                     invitedBy: uid
@@ -1053,6 +1057,49 @@ export class RoomRepository {
                 await sequence.flush();
             }
             return ++sequence.value;
+        });
+    }
+
+    private async createRoomParticipant(parent: Context, cid: number, uid: number, data: RoomParticipantShape) {
+        return await inTx(parent, async ctx => {
+            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            if (!roomProfile) {
+                throw new NotFoundError();
+            }
+
+            if (data.status === 'joined') {
+                await this.incrementRoomActiveMembers(ctx, cid);
+            }
+
+            return await this.entities.RoomParticipant.create(ctx, cid, uid, data);
+        });
+    }
+
+    private async incrementRoomActiveMembers(parent: Context, cid: number) {
+        return await inTx(parent, async ctx => {
+            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            if (!roomProfile) {
+                throw new NotFoundError();
+            }
+
+            if (!roomProfile.activeMembersCount) {
+                roomProfile.activeMembersCount = 1;
+            } else {
+                roomProfile.activeMembersCount++;
+            }
+        });
+    }
+
+    private async decrementRoomActiveMembers(parent: Context, cid: number) {
+        return await inTx(parent, async ctx => {
+            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            if (!roomProfile) {
+                throw new NotFoundError();
+            }
+
+            if (roomProfile.activeMembersCount) {
+                roomProfile.activeMembersCount--;
+            }
         });
     }
 

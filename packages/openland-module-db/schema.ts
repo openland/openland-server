@@ -4189,6 +4189,7 @@ export interface RoomProfileShape {
     welcomeMessageIsOn?: boolean| null;
     welcomeMessageSender?: number| null;
     welcomeMessageText?: string| null;
+    activeMembersCount?: number| null;
 }
 
 export class RoomProfile extends FEntity {
@@ -4280,6 +4281,17 @@ export class RoomProfile extends FEntity {
         this._value.welcomeMessageText = value;
         this.markDirty();
     }
+    get activeMembersCount(): number | null {
+        let res = this._value.activeMembersCount;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set activeMembersCount(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.activeMembersCount) { return; }
+        this._value.activeMembersCount = value;
+        this.markDirty();
+    }
 }
 
 export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
@@ -4298,6 +4310,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
             { name: 'welcomeMessageIsOn', type: 'boolean' },
             { name: 'welcomeMessageSender', type: 'number' },
             { name: 'welcomeMessageText', type: 'string' },
+            { name: 'activeMembersCount', type: 'number' },
         ],
         indexes: [
             { name: 'updated', type: 'range', fields: ['updatedAt'] },
@@ -4314,6 +4327,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         validators.isBoolean('welcomeMessageIsOn', src.welcomeMessageIsOn);
         validators.isNumber('welcomeMessageSender', src.welcomeMessageSender);
         validators.isString('welcomeMessageText', src.welcomeMessageText);
+        validators.isNumber('activeMembersCount', src.activeMembersCount);
     }
 
     constructor(connection: FConnection) {

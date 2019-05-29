@@ -82,6 +82,7 @@ extend type Mutation {
     debugRemoveDeletedDialogs: Boolean!
     debugReindexOrgs(marActivatedOrgsListed: Boolean!): Boolean!
     debugFixUserDialogsIndex: Boolean!
+    debugCalcRoomsActiveMembers: Boolean!
 }
 
 extend type Subscription {

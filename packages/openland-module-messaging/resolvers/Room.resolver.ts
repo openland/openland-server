@@ -133,7 +133,8 @@ export default {
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')),
         role: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
-        membersCount: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 0 : (await FDB.RoomParticipant.allFromActive(ctx, id)).length),
+        // membersCount: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 0 : (await FDB.RoomParticipant.allFromActive(ctx, id)).length),
+        membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         members: withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
                 return [];
