@@ -20,6 +20,7 @@ const isProd = process.env.APP_ENVIRONMENT === 'production';
 @injectable()
 export class DeliveryMediator {
     private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_delivery');
+    private readonly queueUser = new WorkQueue<{ messageId: number, uid: number }, { result: string }>('conversation_message_delivery_user');
 
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
@@ -31,6 +32,10 @@ export class DeliveryMediator {
         if (serverRoleEnabled('delivery')) {
             this.queue.addWorker(async (item, parent) => {
                 await this.deliverNewMessage(parent, item.messageId);
+                return { result: 'ok' };
+            });
+            this.queueUser.addWorker(async (item, parent) => {
+                this.deliverMessageToUser(parent, item.uid, item.messageId);
                 return { result: 'ok' };
             });
         }
@@ -94,7 +99,7 @@ export class DeliveryMediator {
                 // Deliver messages
                 if (members.length > 0) {
                     await Promise.all(members.map(async (m) => {
-                        await this.deliverMessageToUser(ctx, m, mid);
+                        await this.queueUser.pushWork(ctx, { messageId: mid, uid: m });
                     }));
                 }
                 // Notifications
