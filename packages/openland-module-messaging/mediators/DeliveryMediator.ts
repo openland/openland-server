@@ -49,11 +49,13 @@ export class DeliveryMediator {
             }
             for (let i = 0; i < 10; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
-                    await inTx(parent, async (ctx) => {
-                        let message = (await this.entities.Message.findById(ctx, item.messageId))!;
-                        for (let uid of item.uids) {
-                            await this.deliverMessageToUser(ctx, uid, message);
-                        }
+                    tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
+                        await inTx(ctx2, async (ctx) => {
+                            let message = (await this.entities.Message.findById(ctx, item.messageId))!;
+                            for (let uid of item.uids) {
+                                await this.deliverMessageToUser(ctx, uid, message);
+                            }
+                        });
                     });
                     return { result: 'ok' };
                 });
