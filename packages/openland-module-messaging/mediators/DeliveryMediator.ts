@@ -185,7 +185,7 @@ export class DeliveryMediator {
                 }
 
                 if (message.uid !== uid) {
-                    await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
+                    await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_received', did: 'server', args: undefined, isProd, time: Date.now() });
                 }
             });
         });
