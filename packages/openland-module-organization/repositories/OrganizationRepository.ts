@@ -261,7 +261,7 @@ export class OrganizationRepository {
     }
 
     async organizationMembersCount(ctx: Context, oid: number): Promise<number> {
-        return (await this.findOrganizationMembers(ctx, oid)).length;
+        return ((await FDB.OrganizationProfile.findById(ctx, oid))!.joinedMembersCount || 0);
     }
 
     async findUserOrganizations(ctx: Context, uid: number): Promise<number[]> {
