@@ -66,7 +66,7 @@ export default {
         message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         alphaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
-        unread: (src: UserDialogEvent) => src.unread || 0,
+        unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid)).get(ctx)) || 0,
         globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogMessageUpdated: {
@@ -86,12 +86,12 @@ export default {
         prevMessage: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
         },
-        unread: (src: UserDialogEvent) => src.unread || 0,
+        unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid)).get(ctx)) || 0,
         globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogMessageRead: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        unread: (src: UserDialogEvent) => src.unread || 0,
+        unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid)).get(ctx)) || 0,
         globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogTitleUpdated: {
@@ -109,7 +109,7 @@ export default {
     DialogBump: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0,
-        unread: (src: UserDialogEvent) => src.unread || 0,
+        unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid)).get(ctx)) || 0,
         topMessage: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
         },

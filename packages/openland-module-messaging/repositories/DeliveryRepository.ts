@@ -22,10 +22,10 @@ export class DeliveryRepository {
         await inTx(parent, async (ctx) => {
             // Update dialog and deliver update
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            let global = await this.userState.getUserMessagingState(ctx, uid);
             local.date = message.createdAt;
-            global.seq++;
 
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
             if (message.uid !== uid) {
                 if (!global.messagesReceived) {
                     global.messagesReceived = 1;
@@ -39,8 +39,8 @@ export class DeliveryRepository {
                 kind: 'message_received',
                 cid: message.cid,
                 mid: message.id,
-                allUnread: global.unread,
-                unread: local.unread
+                allUnread: 0,
+                unread: 0
             });
         });
     }
@@ -50,16 +50,15 @@ export class DeliveryRepository {
 
             // Update dialog and deliver update
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
-            let global = await this.userState.getUserMessagingState(ctx, uid);
             local.date = date;
+            
+            let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
-
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_bump',
                 cid: cid,
-                allUnread: global.unread,
-                unread: local.unread
+                allUnread: 0,
+                unread: 0
             });
         });
     }
@@ -89,15 +88,13 @@ export class DeliveryRepository {
 
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(ctx, uid);
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_deleted',
                 cid: message.cid,
                 mid: message.id,
-                allUnread: global.unread,
-                unread: local.unread
+                allUnread: 0,
+                unread: 0
             });
         });
     }
@@ -107,7 +104,6 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'title_updated',
                 cid: cid,
@@ -118,10 +114,9 @@ export class DeliveryRepository {
 
     async deliverDialogPhotoUpadtedToUser(parent: Context, uid: number, cid: number, photo?: ImageRef) {
         await inTx(parent, async (ctx) => {
-
+            
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'photo_updated',
                 cid: cid,
@@ -132,25 +127,23 @@ export class DeliveryRepository {
 
     async deliverDialogMuteChangedToUser(parent: Context, uid: number, cid: number, mute: boolean) {
         await inTx(parent, async (ctx) => {
-
+            
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_mute_changed',
                 cid,
                 mute,
-                allUnread: global.unread
+                allUnread: 0
             });
         });
     }
 
     async deliverDialogMentionedChangedToUser(parent: Context, uid: number, cid: number, haveMention: boolean) {
         await inTx(parent, async (ctx) => {
-
+            
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_mentioned_changed',
                 cid,
@@ -161,7 +154,10 @@ export class DeliveryRepository {
 
     async deliverDialogDeleteToUser(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
+            
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
+            local.date = null;
+
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             if (global.chatsCount) {
@@ -173,13 +169,11 @@ export class DeliveryRepository {
                     global.directChatsCount--;
                 }
             }
-            await global.flush(ctx); // Fix for delivery crashing
-            local.date = null;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_deleted',
                 cid: cid,
                 unread: 0,
-                allUnread: global.unread
+                allUnread: 0
             });
         });
     }
@@ -194,14 +188,12 @@ export class DeliveryRepository {
             // Deliver update if needed
             if (delta !== 0) {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
-                let local = await this.userState.getUserDialogState(ctx, uid, msg.cid);
                 global.seq++;
-                await global.flush(ctx); // Fix for delivery crashing
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: msg.cid,
-                    unread: local.unread,
-                    allUnread: global.unread
+                    unread: 0,
+                    allUnread: 0
                 });
             }
         });
@@ -209,15 +201,14 @@ export class DeliveryRepository {
 
     async deliverCurrentCountersToUser(parent: Context, uid: number, cid: number) {
         await inTx(parent, async (ctx) => {
+
             let global = await this.userState.getUserMessagingState(ctx, uid);
-            let local = await this.userState.getUserDialogState(ctx, uid, cid);
             global.seq++;
-            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_read',
                 cid: cid,
-                unread: local.unread,
-                allUnread: global.unread
+                unread: 0,
+                allUnread: 0
             });
         });
     }
