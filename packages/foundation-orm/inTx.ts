@@ -12,15 +12,16 @@ const log = createLogger('tx', false);
 async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
     let ex = FTransactionContext.get(ctx);
     if (ex) {
-        let res = await callback(ctx);
         if (!leaky) {
-            await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+             // Flush all pending operations to avoid nasty bugs during compose
+            await tracer.trace(ctx, 'pre-sub-tx-flush', async (ctx2) => await ex!.flushPending(ctx2));
         }
-        let r2 = res;
+        let res = await tracer.trace(ctx, 'sub-tx', async (ctx2) => await callback(ctx2));
         if (!leaky) {
-            await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+            // Flush all pending operations to avoid nasty bugs during compose
+            await tracer.trace(ctx, 'post-sub-tx-flush', async (ctx2) => await ex!.flushPending(ctx2));
         }
-        return r2;
+        return res;
     }
 
     let start = currentTime();
