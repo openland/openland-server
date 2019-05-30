@@ -20,6 +20,15 @@ export interface URLInfo {
     keyboard?: MessageKeyboard;
 }
 
+const FetchParams = {
+    timeout: 5000,
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-us'
+    },
+};
+
 export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
     let { hostname } = URL.parse(url);
 
@@ -27,14 +36,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
         url = 'https://www.linkedin.com/';
     }
 
-    let res = await fetch(encodeURI(url), {
-        timeout: 5000,
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-us'
-        },
-    });
+    let res = await fetch(encodeURI(url), FetchParams);
 
     if (res.status !== 200) {
         return null;
@@ -96,6 +98,32 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
         getMeta(doc, 'image') ||
         null;
 
+    let iconURL =
+        getLink(doc, 'shortcut icon') ||
+        getLink(doc, 'icon') ||
+        '/favicon.ico';
+    iconURL = URL.resolve(url, iconURL);
+
+    return fetchURLInfoInternal({
+        url,
+        title,
+        description,
+        imageURL,
+        iconURL
+    });
+}
+
+export async function fetchURLInfoInternal(params: { url: string, title: string | null, description: string | null, imageURL?: string | null, iconURL?: string | null }): Promise<URLInfo|null> {
+    let {
+        url,
+        title,
+        description,
+        imageURL,
+        iconURL
+    } = params;
+
+    let { hostname } = URL.parse(url);
+
     let imageInfo: FileInfo | null = null;
     let imageRef: ImageRef | null = null;
 
@@ -110,22 +138,17 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
         }
     }
 
-    let iconUrl =
-        getLink(doc, 'shortcut icon') ||
-        getLink(doc, 'icon') ||
-        '/favicon.ico';
-
-    iconUrl = URL.resolve(url, iconUrl);
-
     let iconInfo: FileInfo | null = null;
     let iconRef: ImageRef | null = null;
 
-    try {
-        let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), iconUrl);
-        iconRef = { uuid: file, crop: null };
-        iconInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
-    } catch (e) {
-        console.warn('Cant fetch image ' + iconUrl);
+    if (iconURL) {
+        try {
+            let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), iconURL);
+            iconRef = { uuid: file, crop: null };
+            iconInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
+        } catch (e) {
+            console.warn('Cant fetch image ' + iconURL);
+        }
     }
 
     return {
