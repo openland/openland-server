@@ -101,19 +101,19 @@ export abstract class FEntity {
     }
 
     async flush() {
-        await this._doFlush(true);
+        await this._doFlush(false, true);
     }
 
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
             this.context.markDirty(this.ctx, this, async (connection: FConnection) => {
-                await this._doFlush(true);
+                await this._doFlush(false, true);
             });
         }
     }
 
-    private async _doFlush(lock: boolean) {
+    private async _doFlush(unsafe: boolean, lock: boolean) {
         // console.warn('doFlush');
 
         let cache = FTransactionContext.get(this.ctx);
@@ -177,9 +177,11 @@ export abstract class FEntity {
                         }
                         let key = index.fields.map((v) => value[v]);
                         if (index.unique) {
-                            let ex = await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key]);
-                            if (ex) {
-                                throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
+                            if (!unsafe) {
+                                let ex = await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key]);
+                                if (ex) {
+                                    throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
+                                }
                             }
                             this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
                         } else {
@@ -227,8 +229,10 @@ export abstract class FEntity {
                                 this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey]);
                             }
                             if (needToCreateNew) {
-                                if (await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key])) {
-                                    throw Error('Unique index constraint failed for index ' + index.name);
+                                if (!unsafe) {
+                                    if (await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key])) {
+                                        throw Error('Unique index constraint failed for index ' + index.name);
+                                    }
                                 }
                             }
                             if (needToCreateNew || needToUpdateNew) {

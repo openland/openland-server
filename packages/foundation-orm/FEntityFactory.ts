@@ -159,23 +159,21 @@ export abstract class FEntityFactory<T extends FEntity> {
                     throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
                 }
                 let res = this.doCreateEntity(ctx, value, true);
-                await (res as any)._doFlush(false);
+                await (res as any)._doFlush(false, false);
                 return res;
             });
         });
     }
 
     protected async _create_UNSAFE(parent: Context, key: (string | number)[], value: any) {
-        return this.writeOp(parent, async () => {
-            return await tracer.trace(parent, 'CreateUNSAFE:' + this.name, async (ctx) => {
-                let cache = FTransactionContext.get(parent);
-                if (!cache) {
-                    throw Error('Tried to create object outside of transaction');
-                }
-                let res = this.doCreateEntity(ctx, value, true);
-                await (res as any)._doFlush(false);
-                return res;
-            });
+        return await tracer.trace(parent, 'CreateUNSAFE:' + this.name, async (ctx) => {
+            let cache = FTransactionContext.get(parent);
+            if (!cache) {
+                throw Error('Tried to create object outside of transaction');
+            }
+            let res = this.doCreateEntity(ctx, value, true);
+            await (res as any)._doFlush(true, false);
+            return res;
         });
     }
 

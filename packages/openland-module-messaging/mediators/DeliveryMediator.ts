@@ -167,14 +167,15 @@ export class DeliveryMediator {
     private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
         await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                let res = await this.counters.onMessageReceived(ctx, uid, mid);
                 await this.repo.deliverMessageToUser(ctx, uid, mid);
-                await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
 
+                let res = await this.counters.onMessageReceived(ctx, uid, mid);
                 if (res.setMention) {
                     let message = (await this.entities.Message.findById(ctx, mid));
                     await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
                 }
+
+                await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
             });
         });
     }

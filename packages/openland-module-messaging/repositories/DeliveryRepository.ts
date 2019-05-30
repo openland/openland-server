@@ -39,8 +39,6 @@ export class DeliveryRepository {
                 }
             }
 
-            await global.flush(); // Fix for delivery crashing
-
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,
