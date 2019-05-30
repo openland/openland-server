@@ -8,7 +8,7 @@ export async function resolveSequenceNumber(parent: Context, entities: AllEntiti
         let id: number;
         if (ex) {
             id = ++ex.value;
-            await ex.flush();
+            await ex.flush(ctx);
         } else {
             await entities.Sequence.create(ctx, key, { value: 1 });
             id = 1;

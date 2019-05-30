@@ -51,7 +51,7 @@ export class PushRepository {
                     return;
                 } else {
                     existing.enabled = false;
-                    await existing.flush();
+                    await existing.flush(ctx);
                 }
             }
 
@@ -69,7 +69,7 @@ export class PushRepository {
                     return;
                 } else {
                     existing.enabled = false;
-                    await existing.flush();
+                    await existing.flush(ctx);
                 }
             }
             await this.entites.PushFirebase.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, token, packageId, sandbox, enabled: true });
@@ -85,7 +85,7 @@ export class PushRepository {
                     return;
                 } else {
                     existing.enabled = false;
-                    await existing.flush();
+                    await existing.flush(ctx);
                 }
             }
             await this.entites.PushWeb.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, endpoint, enabled: true });
@@ -102,7 +102,7 @@ export class PushRepository {
                     return;
                 } else {
                     existing.enabled = false;
-                    await existing.flush();
+                    await existing.flush(ctx);
                 }
             }
             await this.entites.PushSafari.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, token, bundleId, enabled: true });

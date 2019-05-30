@@ -18,10 +18,10 @@ export class EnvironmentVariablesRepository {
 
             if (existing) {
                 existing.value = valueToWrite;
-                await existing.flush();
+                await existing.flush(ctx);
             } else {
                 let variable = await this.entities.EnvironmentVariable.create(ctx, name, { value: valueToWrite });
-                await variable.flush();
+                await variable.flush(ctx);
             }
         });
     }

@@ -86,7 +86,7 @@ export abstract class FBaseTransaction implements FContext {
 
     protected abstract createTransaction(connection: FConnection): Transaction;
 
-    abstract markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
+    abstract markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>): void;
     abstract set(context: Context, connection: FConnection, key: Buffer, value: any): void;
     abstract delete(context: Context, connection: FConnection, key: Buffer): void;
     abstract afterTransaction(callback: () => void): void;

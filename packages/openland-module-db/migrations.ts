@@ -31,7 +31,7 @@ migrations.push({
                 let profile = await FDB.UserProfile.findById(ctx, u[u.length - 1]);
                 if (profile) {
                     profile!.markDirty();
-                    await profile!.flush();
+                    await profile!.flush(ctx);
                 }
             });
         }
@@ -124,7 +124,7 @@ migrations.push({
             for (let o of k) {
                 if (o.date) {
                     o.markDirty();
-                    await o.flush();
+                    await o.flush(ctx);
                 }
             }
         });
@@ -140,7 +140,7 @@ migrations.push({
                 let u = await FDB.UserDialog.findById(ctx, o[o.length - 2], o[o.length - 1]);
                 if (u) {
                     u.markDirty();
-                    await u.flush();
+                    await u.flush(ctx);
                 }
             });
         }
@@ -399,7 +399,7 @@ migrations.push({
                     } else {
                         t.enabled = true;
                         t.markDirty();
-                        await t.flush();
+                        await t.flush(ctx);
                     }
                 }
             });

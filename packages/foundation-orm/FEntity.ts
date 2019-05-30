@@ -100,23 +100,26 @@ export abstract class FEntity {
         }
     }
 
-    async flush() {
-        await this._doFlush(false, true);
+    async flush(ctx: Context, opts?: { unsafe?: boolean, noWriteLock?: boolean }) {
+        await this._doFlush(ctx,
+            opts && opts.unsafe !== undefined ? opts!.unsafe! : false,
+            opts && opts.noWriteLock !== undefined ? !opts!.noWriteLock! : true
+        );
     }
 
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
-            this.context.markDirty(this.ctx, this, async (connection: FConnection) => {
-                await this._doFlush(false, true);
+            this.context.markDirty(this.ctx, this, async (ctx: Context) => {
+                await this._doFlush(ctx, false, true);
             });
         }
     }
 
-    private async _doFlush(unsafe: boolean, lock: boolean) {
+    private async _doFlush(ctx: Context, unsafe: boolean, lock: boolean) {
         // console.warn('doFlush');
 
-        let cache = FTransactionContext.get(this.ctx);
+        let cache = FTransactionContext.get(ctx);
         if (!cache) {
             throw Error('Tried to flush object outside of transaction');
         }
@@ -157,8 +160,8 @@ export abstract class FEntity {
                 }
 
                 // Write to the store
-                this.namespace.set(this.ctx, this.connection, this.rawId, value);
-                this.directory.set(this.ctx, this.rawId, value);
+                this.namespace.set(ctx, this.connection, this.rawId, value);
+                this.directory.set(ctx, this.rawId, value);
 
                 // Create or Update indexes
                 if (this.isNew) {
@@ -169,7 +172,7 @@ export abstract class FEntity {
                         });
                     }
 
-                    log.debug(this.ctx, 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
+                    // log.debug(ctx, 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                     for (let index of this.indexes) {
                         // Check index condition if applicable
                         if (index.condition && !index.condition(value)) {
@@ -178,18 +181,18 @@ export abstract class FEntity {
                         let key = index.fields.map((v) => value[v]);
                         if (index.unique) {
                             if (!unsafe) {
-                                let ex = await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key]);
+                                let ex = await this.namespace.get(ctx, this.connection, ['__indexes', index.name, ...key]);
                                 if (ex) {
                                     throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                                 }
                             }
-                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
+                            this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key], value);
                         } else {
-                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                     }
                 } else {
-                    log.debug(this.ctx, 'updated', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
+                    // log.debug(ctx, 'updated', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                     for (let index of this.indexes) {
                         let key = index.fields.map((v) => value[v]);
                         let oldkey = index.fields.map((v) => this._valueInitial[v]);
@@ -226,21 +229,21 @@ export abstract class FEntity {
 
                         if (index.unique) {
                             if (needToDeleteOld) {
-                                this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey]);
+                                this.namespace.delete(ctx, this.connection, ['__indexes', index.name, ...oldkey]);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
-                                    if (await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key])) {
+                                    if (await this.namespace.get(ctx, this.connection, ['__indexes', index.name, ...key])) {
                                         throw Error('Unique index constraint failed for index ' + index.name);
                                     }
                                 }
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
+                                this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key], value);
                             }
                         } else {
                             if (needToDeleteOld) {
-                                this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                                this.namespace.delete(ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
                                 this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);

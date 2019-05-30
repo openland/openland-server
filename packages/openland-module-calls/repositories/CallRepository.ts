@@ -37,7 +37,7 @@ export class CallRepository {
             if (confPeers.length === 0) {
                 let conf = await this.getOrCreateConference(ctx, cid);
                 conf.startTime = Date.now();
-                await conf.flush();
+                await conf.flush(ctx);
             }
 
             // Disable existing for this auth
@@ -52,7 +52,7 @@ export class CallRepository {
                 seq = await this.entities.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
             }
             let id = ++seq.value;
-            await seq.flush();
+            await seq.flush(ctx);
             let res = await this.entities.ConferencePeer.create(ctx, id, {
                 cid, uid, tid,
                 keepAliveTimeout: Date.now() + timeout,
@@ -114,7 +114,7 @@ export class CallRepository {
                 throw Error('Unable to find peer: ' + pid);
             }
             existing.enabled = false;
-            await existing.flush();
+            await existing.flush(ctx);
 
             // Kill all connections
             let connections = await this.entities.ConferenceConnection.allFromConference(ctx, existing.cid);
@@ -412,7 +412,7 @@ export class CallRepository {
             if (ex) {
                 ex.value++;
                 let res = ex.value;
-                await ex.flush();
+                await ex.flush(ctx);
                 return res;
             } else {
                 await this.entities.Sequence.create(ctx, 'media-stream-id', { value: 1 });

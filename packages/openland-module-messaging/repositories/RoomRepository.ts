@@ -253,7 +253,7 @@ export class RoomRepository {
                 room!.kind = profile.kind!;
             }
 
-            await conv.flush();
+            await conv.flush(ctx);
 
             return { updatedTitle, updatedPhoto };
         });
@@ -276,14 +276,14 @@ export class RoomRepository {
                     throw new NotFoundError();
                 }
                 privateConv.pinnedMessage = mid;
-                await privateConv.flush();
+                await privateConv.flush(ctx);
             } else if (conv.kind === 'room') {
                 let profile = await this.entities.RoomProfile.findById(ctx, cid);
                 if (!profile) {
                     throw new NotFoundError();
                 }
                 profile.pinnedMessage = mid;
-                await profile.flush();
+                await profile.flush(ctx);
             }
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
@@ -351,7 +351,7 @@ export class RoomRepository {
                 }
 
                 profile.pinnedMessage = null;
-                await profile.flush();
+                await profile.flush(ctx);
             } else if (conv.kind === 'private') {
                 let privateConv = await this.entities.ConversationPrivate.findById(ctx, cid);
                 if (!privateConv) {
@@ -362,7 +362,7 @@ export class RoomRepository {
                 }
 
                 privateConv.pinnedMessage = null;
-                await privateConv.flush();
+                await privateConv.flush(ctx);
             }
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
@@ -420,7 +420,7 @@ export class RoomRepository {
                 return false;
             }
             conv!.deleted = true;
-            await conv!.flush();
+            await conv!.flush(ctx);
 
             return true;
         });
@@ -439,7 +439,7 @@ export class RoomRepository {
                 return false;
             }
             conv!.archived = true;
-            await conv!.flush();
+            await conv!.flush(ctx);
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
             await this.entities.ConversationEvent.create(ctx, cid, seq, {
@@ -539,9 +539,9 @@ export class RoomRepository {
             let conv = await this.entities.ConversationPrivate.findFromUsers(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
-                await (await this.entities.Conversation.create(ctx, id, { kind: 'private' })).flush();
+                await (await this.entities.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
                 conv = await this.entities.ConversationPrivate.create(ctx, id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
-                await conv.flush();
+                await conv.flush(ctx);
             }
             return (await this.entities.Conversation.findById(ctx, conv.id))!;
         });
@@ -552,9 +552,9 @@ export class RoomRepository {
             let conv = await this.entities.ConversationOrganization.findFromOrganization(ctx, oid);
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
-                await (await this.entities.Conversation.create(ctx, id, { kind: 'organization' })).flush();
+                await (await this.entities.Conversation.create(ctx, id, { kind: 'organization' })).flush(ctx);
                 conv = await this.entities.ConversationOrganization.create(ctx, id, { oid });
-                await conv.flush();
+                await conv.flush(ctx);
             }
             return (await this.entities.Conversation.findById(ctx, conv.id))!;
         });
@@ -747,7 +747,7 @@ export class RoomRepository {
                 profile.welcomeMessageText = welcomeMessageText;
             }
 
-            await profile.flush();
+            await profile.flush(ctx);
             return true;
         });
     }
@@ -1054,7 +1054,7 @@ export class RoomRepository {
             let sequence = await this.entities.Sequence.findById(ctx, 'conversation-id');
             if (!sequence) {
                 sequence = (await this.entities.Sequence.create(ctx, 'conversation-id', { value: 0 }));
-                await sequence.flush();
+                await sequence.flush(ctx);
             }
             return ++sequence.value;
         });

@@ -10,7 +10,7 @@ import { Context } from 'openland-utils/Context';
 export class FTransaction extends FBaseTransaction {
 
     readonly isReadOnly: boolean = false;
-    private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
+    private _pending = new Map<string, (ctx: Context) => Promise<void>>();
     private pendingCallbacks: (() => void)[] = [];
     private _isCompleted = false;
 
@@ -42,7 +42,7 @@ export class FTransaction extends FBaseTransaction {
         });
     }
 
-    markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
+    markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>) {
         // logger.debug(parent, 'markDirty');
         this.prepare(parent, entity.connection);
         let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
@@ -72,9 +72,9 @@ export class FTransaction extends FBaseTransaction {
         let pend = [...this._pending.values()];
         this._pending.clear();
         if (pend.length > 0) {
-            await tracer.trace(parent, 'flushPending', async () => {
+            await tracer.trace(parent, 'flushPending', async (ctx) => {
                 for (let p of pend) {
-                    await p(this.connection!);
+                    await p(ctx);
                 }
             });
         }
@@ -90,9 +90,9 @@ export class FTransaction extends FBaseTransaction {
 
         // Do not need to parallel things since client will batch everything for us
         // let t = currentTime();
-        await tracer.trace(parent, 'flush', async () => {
+        await tracer.trace(parent, 'flush', async (ctx) => {
             for (let p of this._pending.values()) {
-                await p(this.connection!);
+                await p(ctx);
             }
         });
         // log.debug(parent, 'flush time: ' + (currentTime() - t) + ' ms');

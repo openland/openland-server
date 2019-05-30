@@ -58,7 +58,7 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             local.date = date;
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
 
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_bump',
@@ -96,7 +96,7 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_deleted',
                 cid: message.cid,
@@ -112,7 +112,7 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'title_updated',
                 cid: cid,
@@ -126,7 +126,7 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'photo_updated',
                 cid: cid,
@@ -140,7 +140,7 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_mute_changed',
                 cid,
@@ -155,7 +155,7 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_mentioned_changed',
                 cid,
@@ -178,7 +178,7 @@ export class DeliveryRepository {
                     global.directChatsCount--;
                 }
             }
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             local.date = null;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_deleted',
@@ -201,7 +201,7 @@ export class DeliveryRepository {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
                 let local = await this.userState.getUserDialogState(ctx, uid, msg.cid);
                 global.seq++;
-                await global.flush(); // Fix for delivery crashing
+                await global.flush(ctx); // Fix for delivery crashing
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: msg.cid,
@@ -217,7 +217,7 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             global.seq++;
-            await global.flush(); // Fix for delivery crashing
+            await global.flush(ctx); // Fix for delivery crashing
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_read',
                 cid: cid,

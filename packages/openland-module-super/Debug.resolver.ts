@@ -27,7 +27,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
         return 1;
     } else {
         state.seq++;
-        await state.flush();
+        await state.flush(ctx);
         return state.seq;
     }
 };
@@ -348,11 +348,11 @@ export default {
                                 messagesReceived: totalReceived,
                                 messagesSent: totalSent
                             });
-                            await created.flush();
+                            await created.flush(ctx);
                         } else {
                             existing.messagesSent = totalSent;
                             existing.messagesReceived = totalReceived;
-                            await existing.flush();
+                            await existing.flush(ctx);
                         }
                     } catch (e) {
                         console.log('debugCalcUsersMessagingStatsError', e);
@@ -400,11 +400,11 @@ export default {
                                 chatsCount,
                                 directChatsCount
                             });
-                            await created.flush();
+                            await created.flush(ctx);
                         } else {
                             existing.chatsCount = chatsCount;
                             existing.directChatsCount = directChatsCount;
-                            await existing.flush();
+                            await existing.flush(ctx);
                         }
                     } catch (e) {
                         console.log('debugCalcUsersChatsStats', e);
@@ -432,7 +432,7 @@ export default {
                 }
 
                 chat.kind = 'room';
-                await chat.flush();
+                await chat.flush(ctx);
 
                 let room = await FDB.ConversationRoom.findById(ctx, chat.id);
                 if (room) {
@@ -443,7 +443,7 @@ export default {
                     room.featured = false;
                     room.listed = false;
                     room.isChannel = false;
-                    await room.flush();
+                    await room.flush(ctx);
                 } else {
                     await FDB.ConversationRoom.create(ctx, chat.id, {
                         kind: 'public',
@@ -614,7 +614,7 @@ export default {
                                 if (org.status === 'activated') {
                                     editorial.listed = true;
                                 }
-                                await editorial.flush();
+                                await editorial.flush(ctx);
                                 await Modules.Orgs.markForUndexing(_ctx, o.id);
                             } else {
                                 let org = await FDB.Organization.findById(_ctx, o.id);

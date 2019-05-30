@@ -120,7 +120,7 @@ export class ShortnameRepository {
             } else if (oldShortname) {
                 // release previous reservation
                 oldShortname.enabled = false;
-                await oldShortname.flush();
+                await oldShortname.flush(ctx);
             }
 
             let existing = await this.entities.ShortnameReservation.findById(ctx, normalized);
@@ -131,7 +131,7 @@ export class ShortnameRepository {
                 existing.ownerId = ownerId;
                 existing.ownerType = ownerType;
                 existing.enabled = true;
-                await existing.flush();
+                await existing.flush(ctx);
                 return true;
             } else {
                 await this.entities.ShortnameReservation.create(ctx, normalized, { ownerId, ownerType, enabled: true });

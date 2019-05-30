@@ -9,7 +9,7 @@ import { Context } from 'openland-utils/Context';
 export interface FContext {
     readonly isReadOnly: boolean;
     readonly isCompleted: boolean;
-    markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
+    markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>): void;
     get(context: Context, connection: FConnection, key: Buffer): Promise<any | null>;
     range(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     rangeAll(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]>;
@@ -60,7 +60,7 @@ export class FGlobalContext implements FContext {
     delete(context: Context, connection: FConnection, key: Buffer) {
         throw Error('Trying to write to read-only context');
     }
-    markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => void) {
+    markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => void) {
         throw Error('Trying to write to read-only context');
     }
     afterTransaction(callback: () => void) {

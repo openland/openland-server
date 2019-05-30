@@ -149,8 +149,8 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected async _create(parent: Context, key: (string | number)[], value: any) {
-        return this.writeOp(parent, async () => {
-            return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
+        return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
+            return this.writeOp(ctx, async () => {
                 let cache = FTransactionContext.get(parent);
                 if (!cache) {
                     throw Error('Tried to create object outside of transaction');
@@ -159,7 +159,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                     throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
                 }
                 let res = this.doCreateEntity(ctx, value, true);
-                await (res as any)._doFlush(false, false);
+                await res.flush(ctx, { noWriteLock: true, unsafe: false });
                 return res;
             });
         });
@@ -172,7 +172,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 throw Error('Tried to create object outside of transaction');
             }
             let res = this.doCreateEntity(ctx, value, true);
-            await (res as any)._doFlush(true, false);
+            await res.flush(ctx, { noWriteLock: true, unsafe: true });
             return res;
         });
     }

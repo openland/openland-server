@@ -242,10 +242,10 @@ export class MessagingRepository {
             let existing = await this.entities.ConversationSeq.findById(ctx, cid);
             let seq = 1;
             if (!existing) {
-                await (await this.entities.ConversationSeq.create(ctx, cid, { seq: 1 })).flush();
+                await (await this.entities.ConversationSeq.create(ctx, cid, { seq: 1 })).flush(ctx);
             } else {
                 seq = ++existing.seq;
-                await existing.flush();
+                await existing.flush(ctx);
             }
             return seq;
         });
@@ -256,7 +256,7 @@ export class MessagingRepository {
             let ex = await this.entities.Sequence.findById(ctx, 'message-id');
             if (ex) {
                 let res = ++ex.value;
-                await ex.flush();
+                await ex.flush(ctx);
                 return res;
             } else {
                 await this.entities.Sequence.create(ctx, 'message-id', { value: 1 });
