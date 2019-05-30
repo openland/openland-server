@@ -116,10 +116,10 @@ export abstract class FEntity {
         }
     }
 
-    private async _doFlush(ctx: Context, unsafe: boolean, lock: boolean) {
+    private async _doFlush(parent: Context, unsafe: boolean, lock: boolean) {
         // console.warn('doFlush');
 
-        let cache = FTransactionContext.get(ctx);
+        let cache = FTransactionContext.get(parent);
         if (!cache) {
             throw Error('Tried to flush object outside of transaction');
         }
@@ -127,7 +127,7 @@ export abstract class FEntity {
             throw Error('Tried to flush object after transaction is completed');
         }
 
-        let op = async () => {
+        let op = async (ctx: Context) => {
             if (!this.isDirty) {
                 return;
             }
@@ -246,10 +246,10 @@ export abstract class FEntity {
                                 this.namespace.delete(ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
-                                this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                             }
                         }
                     }
@@ -260,17 +260,22 @@ export abstract class FEntity {
                     ...value
                 };
             } catch (e) {
-                log.warn(this.ctx, 'Unable to flush entity', JSON.stringify(this._value), e);
+                log.warn(ctx, 'Unable to flush entity', JSON.stringify(this._value), e);
                 throw e;
             }
         };
 
         if (lock) {
-            await tracer.trace(this.ctx, 'performFlush', async () => {
-                await cache!.readWriteLock(this.entityName).runWriteOperation(this.ctx, op);
+            await tracer.trace(parent, 'performFlush', async (ctx) => {
+                await cache!.readWriteLock(this.entityName)
+                    .runWriteOperation(ctx, async () => {
+                        await op(ctx);
+                    });
             });
         } else {
-            await op();
+            await tracer.trace(parent, 'performFlush', async (ctx) => {
+                await op(ctx);
+            });
         }
     }
 }

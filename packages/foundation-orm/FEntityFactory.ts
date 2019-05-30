@@ -158,7 +158,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 if (await this._findByIdInternal(ctx, key)) {
                     throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
                 }
-                let res = this.doCreateEntity(ctx, value, true);
+                let res = this.doCreateEntity(parent, value, true);
                 await res.flush(ctx, { noWriteLock: true, unsafe: false });
                 return res;
             });
@@ -171,7 +171,7 @@ export abstract class FEntityFactory<T extends FEntity> {
             if (!cache) {
                 throw Error('Tried to create object outside of transaction');
             }
-            let res = this.doCreateEntity(ctx, value, true);
+            let res = this.doCreateEntity(parent, value, true);
             await res.flush(ctx, { noWriteLock: true, unsafe: true });
             return res;
         });
