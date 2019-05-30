@@ -113,6 +113,7 @@ export abstract class FBaseTransaction implements FContext {
     }
 
     abstract atomicSet(context: Context, connection: FConnection, key: Buffer, value: number): void;
+    abstract atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number): void;
 
     protected prepare(ctx: Context, connection: FConnection) {
         if (this.connection && this.connection !== connection) {
