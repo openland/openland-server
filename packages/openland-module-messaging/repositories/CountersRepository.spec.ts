@@ -105,7 +105,7 @@ describe('CountersRepository', () => {
 
         let receiverState = await urepo.getUserDialogState(ctx, 2, 2);
         expect(receiverState.unread).toBe(0);
-        expect(receiverState.readMessageId).toBe(mid3);
+        expect(receiverState.readMessageId).toBe(mid3.id);
     });
 
     it('should be tolerant to double invoke', async () => {
