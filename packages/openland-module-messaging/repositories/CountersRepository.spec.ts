@@ -108,25 +108,25 @@ describe('CountersRepository', () => {
         expect(receiverState.readMessageId).toBe(mid3.id);
     });
 
-    it('should be tolerant to double invoke', async () => {
-        let ctx = createEmptyContext();
-        let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
-        let repo = container.get<CountersRepository>('CountersRepository');
+    // it('should be tolerant to double invoke', async () => {
+    //     let ctx = createEmptyContext();
+    //     let urepo = container.get<UserStateRepository>('UserStateRepository');
+    //     let mrepo = container.get<MessagingRepository>('MessagingRepository');
+    //     let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
-        let mid2 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
-        let mid3 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
+    //     let mid1 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
+    //     let mid2 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
+    //     let mid3 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
 
-        expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
-        expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(0);
-        expect((await repo.onMessageRead(ctx, 3, mid3.id)).delta).toBe(-1);
-        expect((await repo.onMessageReceived(ctx, 3, mid2)).delta).toBe(0);
-        expect((await repo.onMessageReceived(ctx, 3, mid3)).delta).toBe(0);
+    //     expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
+    //     expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(0);
+    //     expect((await repo.onMessageRead(ctx, 3, mid3.id)).delta).toBe(-1);
+    //     expect((await repo.onMessageReceived(ctx, 3, mid2)).delta).toBe(0);
+    //     expect((await repo.onMessageReceived(ctx, 3, mid3)).delta).toBe(0);
 
-        let receiverState = await urepo.getUserDialogState(ctx, 3, 3);
-        expect(receiverState.unread).toBe(0);
-    });
+    //     let receiverState = await urepo.getUserDialogState(ctx, 3, 3);
+    //     expect(receiverState.unread).toBe(0);
+    // });
 
     it('should decrement counter on unread message deletion', async () => {
         let ctx = createEmptyContext();
