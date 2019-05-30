@@ -39,7 +39,8 @@ export class DeliveryRepository {
                 }
             }
 
-            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+            // Make Event as UNSAFE since we guarantee unique id
+            await this.entities.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,
                 mid: message.id,
