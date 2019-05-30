@@ -180,6 +180,8 @@ export class DeliveryMediator {
                 // DO NOT SWAP!
                 let res = await this.counters.onMessageReceived(ctx, uid, message);
                 await this.repo.deliverMessageToUser(ctx, uid, message);
+
+                // TODO: Remove update
                 if (res.setMention) {
                     await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, true);
                 }

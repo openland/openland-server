@@ -316,7 +316,7 @@ export default {
                     if (conv.kind === 'room') {
                         let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
                         if (!pat || pat.status !== 'joined') {
-                            a.unread = 0;
+                            // a.unread = 0;
                             continue;
                         }
                     }

@@ -1100,9 +1100,14 @@ const Schema = declareSchema(() => {
     //
     // Counters
     //
-    
+
     atomic('UserCounter', () => {
         primaryKey('uid', 'number');
+    });
+
+    atomic('UserDialogCounter', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
     });
 });
 

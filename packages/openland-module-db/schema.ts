@@ -9647,6 +9647,14 @@ export class UserCounterFactory extends FAtomicIntegerFactory {
         return await this._findById(ctx, [uid]);
     }
 }
+export class UserDialogCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('atomic', 'userDialogCounter'));
+    }
+    async findById(ctx: Context, uid: number, cid: number) {
+        return await this._findById(ctx, [uid, cid]);
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -9724,6 +9732,7 @@ export interface AllEntities {
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly UserCounter: UserCounterFactory;
+    readonly UserDialogCounter: UserDialogCounterFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -9876,6 +9885,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     DebugEvent: DebugEventFactory;
     DebugEventState: DebugEventStateFactory;
     UserCounter: UserCounterFactory;
+    UserDialogCounter: UserDialogCounterFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -10026,6 +10036,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.DebugEventState = new DebugEventStateFactory(connection);
         this.allEntities.push(this.DebugEventState);
         this.UserCounter = new UserCounterFactory(connection);
+        this.UserDialogCounter = new UserDialogCounterFactory(connection);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -10253,6 +10264,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserCounter(): UserCounterFactory {
         return this.resolver().UserCounter;
+    }
+    get UserDialogCounter(): UserDialogCounterFactory {
+        return this.resolver().UserDialogCounter;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

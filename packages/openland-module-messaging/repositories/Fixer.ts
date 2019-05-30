@@ -28,14 +28,15 @@ export class FixerRepository {
                 let totalUnread = 0;
                 for (let a of all) {
                     let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
+                    let counter = await this.entities.UserDialogCounter.findById(ctx, uid, a.cid);
                     if (!conv) {
-                        a.unread = 0;
+                        counter.set(ctx, 0);
                         continue;
                     }
                     if (conv.kind === 'room') {
                         let pat = await this.entities.RoomParticipant.findById(ctx, a.cid, uid);
                         if (!pat || pat.status !== 'joined') {
-                            a.unread = 0;
+                            counter.set(ctx, 0);
                             continue;
                         }
                     }
@@ -45,11 +46,12 @@ export class FixerRepository {
                         totalUnread += total;
                         logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
                         a.unread = total;
+                        counter.set(ctx, total);
                     } else {
                         let total = Math.max(0, (await this.entities.Message.allFromChat(ctx, a.cid)).filter((v) => v.uid !== uid).length);
                         totalUnread += total;
                         logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + a.unread + ', updated: ' + total);
-                        a.unread = total;
+                        counter.set(ctx, total);
                     }
                 }
                 let ex = await this.entities.UserMessagingState.findById(ctx, uid);

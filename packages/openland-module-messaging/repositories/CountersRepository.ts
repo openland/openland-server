@@ -34,7 +34,7 @@ export class CountersRepository {
 
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            // let global = await this.userState.getUserMessagingState(ctx, uid);
+            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
 
             if (!local.readMessageId || message.id > local.readMessageId) {
@@ -48,7 +48,7 @@ export class CountersRepository {
 
                 // Update Counters
                 local.unread++;
-                // global.unread++;
+                localCounter.increment(ctx);
                 globalCounter.increment(ctx);
 
                 return { delta: 1, setMention };
@@ -66,11 +66,12 @@ export class CountersRepository {
 
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
-                // global.unread--;
+                localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
 
                 // TODO: Optimize
@@ -100,6 +101,7 @@ export class CountersRepository {
                 throw Error('Unable to find message');
             }
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
             let prevReadMessageId = local.readMessageId;
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
@@ -125,6 +127,7 @@ export class CountersRepository {
                 if (delta !== 0) {
                     local.unread += delta;
                     // global.unread += delta;
+                    localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
                 }
 
@@ -152,12 +155,14 @@ export class CountersRepository {
     onDialogDeleted = async (parent: Context, uid: number, cid: number) => {
         return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
+            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, cid);
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             if (local.unread > 0) {
                 let delta = -local.unread;
                 // global.unread += delta;
                 globalCounter.add(ctx, delta);
+                localCounter.set(ctx, 0);
                 local.unread = 0;
                 local.haveMention = false;
                 return delta;
