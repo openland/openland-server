@@ -372,7 +372,7 @@ export default {
                 return 'TitleChangeServiceMetadata';
             } else if (src.type === 'photo_change') {
                 return 'PhotoChangeServiceMetadata';
-            }  else if (src.type === 'post_respond') {
+            } else if (src.type === 'post_respond') {
                 return 'PostRespondServiceMetadata';
             }
 
@@ -409,12 +409,7 @@ export default {
         },
         unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: AppContext) => {
             if (typeof src === 'number') {
-                let global = await FDB.UserMessagingState.findById(ctx, src);
-                if (global) {
-                    return global.unread;
-                } else {
-                    return 0;
-                }
+                return (await (await FDB.UserCounter.findById(ctx, src)).get(ctx)) || 0;
             } else {
                 return src.counter;
             }
@@ -492,7 +487,7 @@ export default {
         alphaChatsSearchForCompose: withAccount(async (ctx, args, uid, oid) => {
 
             // Do search
-            let {uids} = await Modules.Users.searchForUsers(ctx, args.query || '', {
+            let { uids } = await Modules.Users.searchForUsers(ctx, args.query || '', {
                 uid,
                 limit: args.limit || 10
             });

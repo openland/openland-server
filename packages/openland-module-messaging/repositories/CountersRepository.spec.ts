@@ -39,13 +39,17 @@ describe('CountersRepository', () => {
 
         let senderState = await urepo.getUserDialogState(ctx, 1, 1);
         let senderGlobal = await urepo.getUserMessagingState(ctx, 1);
+        let senderGlobalCounter = await urepo.getUserMessagingUnread(ctx, 1);
         let receiverState = await urepo.getUserDialogState(ctx, 2, 1);
         let receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
+        let receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
 
         expect(senderState.unread).toBe(0);
         expect(receiverState.unread).toBe(3);
         expect(senderGlobal.unread).toBe(0);
+        expect(senderGlobalCounter).toBe(0);
         expect(receiverGlobal.unread).toBe(3);
+        expect(receiverGlobalCounter).toBe(3);
 
         // Read
         expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
@@ -74,18 +78,22 @@ describe('CountersRepository', () => {
 
         let receiverState = await urepo.getUserDialogState(ctx, 2, 1);
         let receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
+        let receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
 
         expect(receiverState.unread).toBe(6);
         expect(receiverGlobal.unread).toBe(6);
+        expect(receiverGlobalCounter).toBe(6);
 
         // Read
         expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
 
         receiverState = await urepo.getUserDialogState(ctx, 2, 1);
         receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
+        receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
 
         expect(receiverState.unread).toBe(3);
         expect(receiverGlobal.unread).toBe(3);
+        expect(receiverGlobalCounter).toBe(3);
     });
 
     it('should be order-independent', async () => {

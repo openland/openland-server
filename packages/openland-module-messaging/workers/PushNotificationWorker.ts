@@ -93,6 +93,8 @@ export function startPushNotificationWorker() {
                 let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, afterSec);
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
+                let unreadCounter: number | undefined = undefined;
+
                 // Handling unread messages
                 let hasMessage = false;
                 for (let m of messages) {
@@ -107,7 +109,6 @@ export function startPushNotificationWorker() {
                     }
                     let senderId = message.uid!;
 
-                    let unreadCount = m.allUnread!;
                     // Ignore current user
                     if (senderId === u.uid) {
                         continue;
@@ -210,12 +211,16 @@ export function startPushNotificationWorker() {
                         pushBody += Texts.Notifications.REPLY_ATTACH;
                     }
 
+                    if (unreadCounter === undefined) {
+                        unreadCounter = (await (await FDB.UserCounter.findById(ctx, u.uid)).get(ctx)) || 0;
+                    }
+
                     let push = {
                         uid: u.uid,
                         title: pushTitle,
                         body: pushBody,
                         picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
-                        counter: unreadCount,
+                        counter: unreadCounter,
                         conversationId: conversation.id,
                         mobile: sendMobile,
                         desktop: sendDesktop,

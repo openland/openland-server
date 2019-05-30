@@ -47,6 +47,13 @@ export class UserStateRepository {
         });
     }
 
+    async getUserMessagingUnread(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let c = await this.entities.UserCounter.findById(ctx, uid);
+            return await c.get(ctx) || 0;
+        });
+    }
+
     async getUserMessagingState(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserMessagingState.findById(ctx, uid);
