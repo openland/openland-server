@@ -14,13 +14,8 @@ export class CountersRepository {
     @lazyInject('UserStateRepository')
     private readonly userState!: UserStateRepository;
 
-    onMessageReceived = async (parent: Context, uid: number, mid: number) => {
+    onMessageReceived = async (parent: Context, uid: number, message: Message) => {
         return await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid));
-            if (!message) {
-                throw Error('Unable to find message');
-            }
-
             // Ignore already deleted messages
             if (message.deleted) {
                 return { delta: 0, setMention: false };
@@ -32,15 +27,15 @@ export class CountersRepository {
             }
 
             // Avoid double counter for same message
-            if (await this.entities.UserDialogHandledMessage.findById(ctx, uid, message.cid, mid)) {
+            if (await this.entities.UserDialogHandledMessage.findById(ctx, uid, message.cid, message.id)) {
                 return { delta: 0, setMention: false };
             }
-            await this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, mid, {});
+            await this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, message.id, {});
 
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
-            if (!local.readMessageId || mid > local.readMessageId) {
+            if (!local.readMessageId || message.id > local.readMessageId) {
 
                 // Mark dialog as having mention
                 let setMention = false;

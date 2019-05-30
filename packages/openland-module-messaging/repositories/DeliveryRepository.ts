@@ -1,4 +1,4 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
@@ -18,13 +18,8 @@ export class DeliveryRepository {
         this.userState = userState;
     }
 
-    async deliverMessageToUser(parent: Context, uid: number, mid: number) {
+    async deliverMessageToUser(parent: Context, uid: number, message: Message) {
         await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid));
-            if (!message) {
-                throw Error('Message not found');
-            }
-
             // Update dialog and deliver update
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);

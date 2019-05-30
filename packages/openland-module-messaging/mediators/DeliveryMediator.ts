@@ -40,15 +40,19 @@ export class DeliveryMediator {
             }
             for (let i = 0; i < 10; i++) {
                 this.queueUser.addWorker(async (item, parent) => {
-                    await this.deliverMessageToUser(parent, item.uid, item.messageId);
+                    await inTx(parent, async (ctx) => {
+                        let message = (await this.entities.Message.findById(ctx, item.messageId))!;
+                        await this.deliverMessageToUser(parent, item.uid, message);
+                    });
                     return { result: 'ok' };
                 });
             }
             for (let i = 0; i < 10; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
                     await inTx(parent, async (ctx) => {
+                        let message = (await this.entities.Message.findById(ctx, item.messageId))!;
                         for (let uid of item.uids) {
-                            await this.deliverMessageToUser(ctx, uid, item.messageId);
+                            await this.deliverMessageToUser(ctx, uid, message);
                         }
                     });
                     return { result: 'ok' };
@@ -166,15 +170,14 @@ export class DeliveryMediator {
         });
     }
 
-    private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
+    private deliverMessageToUser = async (parent: Context, uid: number, message: Message) => {
         await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                await this.repo.deliverMessageToUser(ctx, uid, mid);
+                await this.repo.deliverMessageToUser(ctx, uid, message);
 
-                let res = await this.counters.onMessageReceived(ctx, uid, mid);
+                let res = await this.counters.onMessageReceived(ctx, uid, message);
                 if (res.setMention) {
-                    let message = (await this.entities.Message.findById(ctx, mid));
-                    await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
+                    await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, true);
                 }
 
                 await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });

@@ -25,9 +25,9 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
         // Sender
         expect((await repo.onMessageReceived(ctx, 1, mid1)).delta).toBe(0);
         expect((await repo.onMessageReceived(ctx, 1, mid2)).delta).toBe(0);
@@ -48,8 +48,8 @@ describe('CountersRepository', () => {
         expect(receiverGlobal.unread).toBe(3);
 
         // Read
-        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
-        expect((await repo.onMessageRead(ctx, 1, mid3)).delta).toBe(0);
+        expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
+        expect((await repo.onMessageRead(ctx, 1, mid3.id)).delta).toBe(0);
     });
 
     it('should properly decrement on middle-read', async () => {
@@ -58,12 +58,12 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid4 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid5 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
-        let mid6 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid4 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid5 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
+        let mid6 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
         // Receiver
         expect((await repo.onMessageReceived(ctx, 2, mid1)).delta).toBe(1);
         expect((await repo.onMessageReceived(ctx, 2, mid2)).delta).toBe(1);
@@ -79,7 +79,7 @@ describe('CountersRepository', () => {
         expect(receiverGlobal.unread).toBe(6);
 
         // Read
-        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
+        expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
 
         receiverState = await urepo.getUserDialogState(ctx, 2, 1);
         receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
@@ -94,12 +94,12 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message;
+        let mid2 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message;
+        let mid3 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message;
 
         expect((await repo.onMessageReceived(ctx, 2, mid1)).delta).toBe(1);
-        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-1);
+        expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-1);
         expect((await repo.onMessageReceived(ctx, 2, mid2)).delta).toBe(0);
         expect((await repo.onMessageReceived(ctx, 2, mid3)).delta).toBe(0);
 
@@ -114,13 +114,13 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
+        let mid2 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
+        let mid3 = (await mrepo.createMessage(ctx, 3, 1, { message: '1' })).message;
 
         expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
         expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(0);
-        expect((await repo.onMessageRead(ctx, 3, mid3)).delta).toBe(-1);
+        expect((await repo.onMessageRead(ctx, 3, mid3.id)).delta).toBe(-1);
         expect((await repo.onMessageReceived(ctx, 3, mid2)).delta).toBe(0);
         expect((await repo.onMessageReceived(ctx, 3, mid3)).delta).toBe(0);
 
@@ -134,17 +134,17 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message;
 
         expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
-        expect((await repo.onMessageRead(ctx, 3, mid1)).delta).toBe(-1);
-        expect(await repo.onMessageDeleted(ctx, 3, mid1)).toBe(0); // Should ignore if already read
+        expect((await repo.onMessageRead(ctx, 3, mid1.id)).delta).toBe(-1);
+        expect(await repo.onMessageDeleted(ctx, 3, mid1.id)).toBe(0); // Should ignore if already read
 
-        let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message.id!;
+        let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message;
+        let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message;
 
         expect((await repo.onMessageReceived(ctx, 3, mid2)).delta).toBe(1);
-        expect(await repo.onMessageDeleted(ctx, 3, mid2)).toBe(-1);
+        expect(await repo.onMessageDeleted(ctx, 3, mid2.id)).toBe(-1);
         expect((await repo.onMessageReceived(ctx, 3, mid3)).delta).toBe(1);
 
         let receiverState = await urepo.getUserDialogState(ctx, 3, 4);
@@ -158,9 +158,9 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 5, 1, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message;
+        let mid2 = (await mrepo.createMessage(ctx, 5, 1, { message: '1' })).message;
+        let mid3 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message;
 
         // After fisrt mention
         expect((await repo.onMessageReceived(ctx, 6, mid1)).delta).toBe(1);
@@ -189,23 +189,23 @@ describe('CountersRepository', () => {
         const CID = 7;
         const S_UID = 8;
         const R_UID = 9;
-        let mid1 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message;
 
         // Should not reset mention as there are more messages
         expect((await repo.onMessageReceived(ctx, R_UID, mid1)).delta).toBe(1);
-        let r = await repo.onMessageRead(ctx, R_UID, mid1);
+        let r = await repo.onMessageRead(ctx, R_UID, mid1.id);
         expect(r.delta).toBe(-1);
         expect(r.mentionReset).toBe(false);
 
-        let mid2 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
+        let mid2 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1' })).message;
+        let mid3 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message;
 
         // Receive other
         expect((await repo.onMessageReceived(ctx, R_UID, mid2)).delta).toBe(1);
         expect((await repo.onMessageReceived(ctx, R_UID, mid3)).delta).toBe(1);
 
         // Read last
-        r = await repo.onMessageRead(ctx, R_UID, mid3);
+        r = await repo.onMessageRead(ctx, R_UID, mid3.id);
         expect(r.delta).toBe(-2);
         expect(r.mentionReset).toBe(true);
 

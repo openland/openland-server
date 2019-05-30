@@ -28,7 +28,7 @@ describe('UserStateRepository', () => {
     });
     const sendMessage = async (cid: number, text: string) => {
         let m1 = await messagingRepo.createMessage(ctx, cid, 2, { message: text });
-        await deliveryRepo.deliverMessageToUser(ctx, 2, m1.message.id);
+        await deliveryRepo.deliverMessageToUser(ctx, 2, m1.message);
         let state = await entities.UserDialogEvent.rangeFromUserWithCursor(ctx, 2, 1, undefined, true);
         return { mid: m1.message.id, state };
     };
