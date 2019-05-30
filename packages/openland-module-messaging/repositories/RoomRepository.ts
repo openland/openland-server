@@ -527,6 +527,10 @@ export class RoomRepository {
     }
 
     async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
+        if (!status || status === 'joined') {
+            let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+            return (profile && profile.activeMembersCount) || 0;
+        }
         return (await this.entities.RoomParticipant.allFromActive(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
@@ -971,8 +975,8 @@ export class RoomRepository {
                 continue;
             }
 
-            let members = (await this.entities.RoomParticipant.allFromActive(parent, rid));
-            toSort.push({ rid, count: members.length });
+            let membersCount = (await this.entities.RoomProfile.findById(parent, rid)!)!.activeMembersCount || 0;
+            toSort.push({ rid, count: membersCount });
         }
         let res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
 

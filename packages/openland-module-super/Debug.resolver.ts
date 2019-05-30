@@ -687,11 +687,11 @@ export default {
                 let i = 0;
                 for (let org of allOrgs) {
                     await inTx(createEmptyContext(), async (ctx) => {
-                        let activeMembers = await Modules.Orgs.organizationMembersCount(ctx, org.id);
+                        let activeMembers = await Modules.Orgs.findOrganizationMembers(ctx, org.id);
                         let _org = await FDB.OrganizationProfile.findById(ctx, org.id);
 
                         if (_org) {
-                            _org.joinedMembersCount = activeMembers;
+                            _org.joinedMembersCount = activeMembers.length;
                         }
                         if ((i % 100) === 0) {
                             await log('done: ' + i);
