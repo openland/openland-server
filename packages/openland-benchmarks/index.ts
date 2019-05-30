@@ -6,13 +6,6 @@ import * as fdb from 'foundationdb';
 import { RandomIDFactory } from '../openland-security/RandomIDFactory';
 import { delay } from '../openland-utils/timer';
 
-import async_hooks from 'async_hooks';
-async_hooks.createHook({
-    init: (asyncId, type, triggerAsyncId, resource) => {
-        //
-    },
-}).enable();
-
 fdb.setAPIVersion(510);
 (async () => {
     let db1 = fdb.openSync()

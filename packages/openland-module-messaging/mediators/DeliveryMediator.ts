@@ -52,9 +52,10 @@ export class DeliveryMediator {
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
                             let message = (await this.entities.Message.findById(ctx, item.messageId))!;
-                            for (let uid of item.uids) {
-                                await this.deliverMessageToUser(ctx, uid, message);
-                            }
+                            // for (let uid of item.uids) {
+                            //     await this.deliverMessageToUser(ctx, uid, message);
+                            // }
+                            await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
                         });
                     });
                     return { result: 'ok' };
