@@ -527,6 +527,10 @@ export class RoomRepository {
     }
 
     async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
+        if (!status || status === 'joined') {
+            let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+            return (profile && profile.activeMembersCount) || 0;
+        }
         return (await this.entities.RoomParticipant.allFromActive(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
