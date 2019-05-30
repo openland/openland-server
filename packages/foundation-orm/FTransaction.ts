@@ -69,13 +69,15 @@ export class FTransaction extends FBaseTransaction {
             return;
         }
 
-        await tracer.trace(parent, 'flushPending', async () => {
-            let pend = [...this._pending.values()];
-            this._pending.clear();
-            for (let p of pend) {
-                await p(this.connection!);
-            }
-        });
+        let pend = [...this._pending.values()];
+        this._pending.clear();
+        if (pend.length > 0) {
+            await tracer.trace(parent, 'flushPending', async () => {
+                for (let p of pend) {
+                    await p(this.connection!);
+                }
+            });
+        }
     }
 
     async flush(parent: Context) {
