@@ -11,7 +11,7 @@ import { FDiagnostics } from './FDiagnostics';
 
 export class FConnection {
     static readonly globalContext: FContext = new FGlobalContext();
-    readonly fdb: fdb.Database<NativeValue, any>;
+    readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
     readonly diagnostics: FDiagnostics;
     private readonly directoryAllocator: DirectoryAllocator;
@@ -30,10 +30,10 @@ export class FConnection {
         } else {
             db = fdb.openSync(undefined, dcId ? { datacenter_id: dcId } : undefined);
         }
-        return db.withValueEncoding(fdb.encoders.json) as fdb.Database<NativeValue, any>;
+        return db as fdb.Database<NativeValue, Buffer>;
     }
 
-    constructor(connection: fdb.Database<NativeValue, any>, pubsub: FPubsub, test?: boolean) {
+    constructor(connection: fdb.Database<NativeValue, Buffer>, pubsub: FPubsub, test?: boolean) {
         this.fdb = connection;
         this.pubsub = pubsub;
         this.nodeRegistrator = new FNodeRegistrator(this);

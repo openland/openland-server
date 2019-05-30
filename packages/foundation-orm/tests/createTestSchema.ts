@@ -8,7 +8,8 @@ import {
     enableTimestamps,
     uniqueIndex,
     rangeIndex,
-    jsonField
+    jsonField,
+    atomic
 } from '../../foundation-orm-gen';
 import { jField, jNumber, jString } from '../../openland-utils/jsonSchema';
 
@@ -79,6 +80,10 @@ const Schema = declareSchema(() => {
             jField('length', jNumber());
             jField('url', jString());
         });
+    });
+
+    atomic('SampleAtomic', () => {
+        primaryKey('id', 'string');
     });
 });
 

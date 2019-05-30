@@ -5,6 +5,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { FKeyEncoding } from './FKeyEncoding';
 import { createEmptyContext, Context } from 'openland-utils/Context';
+import { encoders } from 'foundationdb';
 
 export class FNodeRegistrator {
     private readonly connection: FConnection;
@@ -29,8 +30,8 @@ export class FNodeRegistrator {
                     this.log.log(this.ctx, 'Check if ' + candidate + ' is available');
                     let res = await this.connection.fdb.doTransaction(async (tn) => {
                         let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
-                        if (!existing || ((existing.timeout as number) < now)) {
-                            tn.set(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]), { timeout: now + 60000, seed: seed });
+                        if (!existing || ((encoders.json.unpack(existing).timeout as number) < now)) {
+                            tn.set(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]), encoders.json.pack({ timeout: now + 60000, seed: seed }) as Buffer);
                             return true;
                         } else {
                             return false;
@@ -43,8 +44,8 @@ export class FNodeRegistrator {
                             while (true) {
                                 let updated = await this.connection.fdb.doTransaction(async (tn) => {
                                     let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
-                                    if (existing && existing.seed === seed) {
-                                        tn.set(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]), { timeout: Date.now() + 60000, seed: seed });
+                                    if (existing && encoders.json.unpack(existing).seed === seed) {
+                                        tn.set(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]), encoders.json.pack({ timeout: Date.now() + 60000, seed: seed }) as Buffer);
                                         return true;
                                     } else {
                                         return false;

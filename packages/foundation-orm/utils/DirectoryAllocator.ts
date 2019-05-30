@@ -3,6 +3,7 @@ import { FKeyEncoding } from './FKeyEncoding';
 import { createLogger } from 'openland-log/createLogger';
 import { backoff } from 'openland-utils/timer';
 import { createEmptyContext } from 'openland-utils/Context';
+import { encoders } from 'foundationdb';
 
 const rootPrefix = Buffer.from('f0', 'hex');
 const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);
@@ -31,20 +32,20 @@ export class DirectoryAllocator {
             return await backoff(async () => await this.connection.fdb.doTransaction(async (tx) => {
                 let res = await tx.get(destKey);
                 if (res) {
-                    return buildDataPrefix(res.value as number);
+                    return buildDataPrefix(encoders.json.unpack(res).value as number);
                 }
                 let nextPrefix = await tx.get(counterKey);
                 let nextCounter = 1;
                 if (!nextPrefix) {
-                    tx.set(counterKey, { value: 1 });
+                    tx.set(counterKey, encoders.json.pack({ value: 1 }) as Buffer);
                 } else {
-                    nextCounter = (nextPrefix.value as number) + 1;
-                    tx.set(counterKey, { value: nextCounter });
+                    nextCounter = (encoders.json.unpack(nextPrefix).value as number) + 1;
+                    tx.set(counterKey, encoders.json.pack({ value: nextCounter }) as Buffer);
                 }
                 if (nextCounter > 6536) {
                     throw Error('Key space overflowed');
                 }
-                tx.set(destKey, { value: nextCounter });
+                tx.set(destKey, encoders.json.pack({ value: nextCounter }) as Buffer);
                 logger.debug(createEmptyContext(), 'Allocated ' + nextCounter + ' for key: ' + JSON.stringify(key));
                 return buildDataPrefix(nextCounter);
             }));
@@ -58,7 +59,7 @@ export class DirectoryAllocator {
         let res = await this.connection.fdb.getRangeAll(regsPrefix);
         return res.map((v) => ({
             key: FKeyEncoding.decodeKey(v[0].slice(regsPrefix.length)).join('.'),
-            id: buildDataPrefix((v[1] as any).value).toString('hex')
+            id: buildDataPrefix(encoders.json.unpack(v[1]).value).toString('hex')
         }));
     }
 }

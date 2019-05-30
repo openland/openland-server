@@ -106,9 +106,29 @@ export class EntityModel {
     }
 }
 
+export class AtomicModel {
+    readonly name: string;
+    keys: EntityField[] = [];
+
+    constructor(name: string) {
+        this.name = name;
+    }
+
+    addKey(name: string, type: 'string' | 'number' | 'boolean') {
+        let res = new EntityField(name, type, [], null);
+        this.keys.push(res);
+        return res;
+    }
+}
+
 export class SchemaModel {
     entities: EntityModel[] = [];
+    atomics: AtomicModel[] = [];
     addEntity(entity: EntityModel) {
         this.entities.push(entity);
+    }
+
+    addAtomic(entity: AtomicModel) {
+        this.atomics.push(entity);
     }
 }
