@@ -157,11 +157,15 @@ export function createUrlInfoService() {
             }
 
             let profile = await FDB.RoomProfile.findById(createEmptyContext(), channelId);
+            if (!profile) {
+                return null;
+            }
+            let membersCount = profile.activeMembersCount || 0;
 
             return {
                 url,
                 title: profile!.title || null,
-                subtitle: profile!.title || null,
+                subtitle: membersCount < 10 ? `New ${channel && channel.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
                 description: profile!.description || null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
                 photo: profile!.image,
@@ -186,7 +190,7 @@ export function createUrlInfoService() {
             if (!profile) {
                 return null;
             }
-            let membersCount = await Modules.Messaging.roomMembersCount(ctx, profile.id);
+            let membersCount = profile.activeMembersCount || 0;
 
             return {
                 url,
