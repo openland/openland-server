@@ -4,6 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Message } from '../../openland-module-db/schema';
+import { hasMention } from '../resolvers/ModernMessage.resolver';
 
 const Delays = {
     '15min': 15 * 60 * 1000,
@@ -99,9 +100,10 @@ export function startEmailNotificationWorker() {
                         }
                     }
 
-                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
+                    let userMentioned = hasMention(message, u.uid);
 
-                    if (conversationSettings.mute) {
+                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
+                    if (conversationSettings.mute && !userMentioned) {
                         continue;
                     }
 
