@@ -266,14 +266,14 @@ export abstract class FEntity {
         };
 
         if (lock) {
-            await tracer.trace(parent, 'performFlush', async (ctx) => {
+            await tracer.trace(parent, 'Flush:' + this.entityName, async (ctx) => {
                 await cache!.readWriteLock(this.entityName)
                     .runWriteOperation(ctx, async () => {
                         await op(ctx);
                     });
             });
         } else {
-            await tracer.trace(parent, 'performFlush', async (ctx) => {
+            await tracer.trace(parent, 'Flush:' + this.entityName, async (ctx) => {
                 await op(ctx);
             });
         }
