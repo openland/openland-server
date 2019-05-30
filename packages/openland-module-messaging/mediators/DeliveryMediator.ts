@@ -184,7 +184,9 @@ export class DeliveryMediator {
                     await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, true);
                 }
 
-                await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
+                if (message.uid !== uid) {
+                    await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
+                }
             });
         });
     }
