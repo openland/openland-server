@@ -45,7 +45,7 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
     await inTx(createEmptyContext(), async (ctx) => {
         let data = await getData(ctx);
         for (let item of data) {
-            await item.flush();
+            await item.flush(ctx);
         }
     });
 

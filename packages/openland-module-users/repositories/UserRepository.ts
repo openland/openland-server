@@ -34,10 +34,10 @@ export class UserRepository {
                 seq = await this.entities.Sequence.create(ctx, 'user-id', { value: 0 });
             }
             let id = ++seq.value;
-            await seq.flush();
+            await seq.flush(ctx);
 
             let res = (await this.entities.User.create(ctx, id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
-            await res.flush();
+            await res.flush(ctx);
             await userCreated.event(ctx, { uid: id });
             return res;
         });
@@ -51,7 +51,7 @@ export class UserRepository {
             }
             if (user.status !== 'activated') {
                 user.status = 'activated';
-                await user.flush();
+                await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
                 await userActivated.event(ctx, { uid });
                 return true;
@@ -68,7 +68,7 @@ export class UserRepository {
                 throw new NotFoundError('Unable to find user');
             }
             user.status = 'suspended';
-            await user.flush();
+            await user.flush(ctx);
             await this.markForUndexing(ctx, uid);
             return user;
         });
@@ -81,7 +81,7 @@ export class UserRepository {
                 throw new NotFoundError('Unable to find user');
             }
             user.status = 'deleted';
-            await user.flush();
+            await user.flush(ctx);
             await this.markForUndexing(ctx, uid);
             return user;
         });
@@ -120,7 +120,7 @@ export class UserRepository {
                 about: Sanitizer.sanitizeString(input.about),
                 location: Sanitizer.sanitizeString(input.location)
             });
-            await profile.flush();
+            await profile.flush(ctx);
             await this.markForUndexing(ctx, uid);
             await userProfileCreated.event(ctx, { uid: uid });
             return profile;

@@ -203,7 +203,7 @@ export default {
                 }
 
                 // Call hook
-                await profile.flush();
+                await profile.flush(ctx);
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
 

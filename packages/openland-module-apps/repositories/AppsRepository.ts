@@ -53,7 +53,7 @@ export class AppsRepository {
                 await Modules.Shortnames.setShortnameToUser(ctx, extra.shortname, appUser.id);
             }
 
-            await appUser!.flush();
+            await appUser!.flush(ctx);
             await Modules.Users.markForUndexing(ctx, appUser!.id);
             return appUser;
         });
@@ -115,7 +115,7 @@ export class AppsRepository {
             await this.checkAppAccess(ctx, uid, appId);
             let appUser = await this.entities.User.findById(ctx, appId);
             appUser!.status = 'deleted';
-            await appUser!.flush();
+            await appUser!.flush(ctx);
             await Modules.Users.markForUndexing(ctx, appUser!.id);
             return true;
         });

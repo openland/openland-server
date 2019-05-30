@@ -4,13 +4,15 @@ import { FEntity } from './FEntity';
 import { tracer } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
 import { Context } from 'openland-utils/Context';
+import { encoders, MutationType } from 'foundationdb';
+import { encodeAtomic } from './utils/atomicEncode';
 
 // const log = createLogger('tx', false);
 
 export class FTransaction extends FBaseTransaction {
 
     readonly isReadOnly: boolean = false;
-    private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
+    private _pending = new Map<string, (ctx: Context) => Promise<void>>();
     private pendingCallbacks: (() => void)[] = [];
     private _isCompleted = false;
 
@@ -28,25 +30,35 @@ export class FTransaction extends FBaseTransaction {
 
     set(parent: Context, connection: FConnection, key: Buffer, value: any) {
         this.prepare(parent, connection);
-        tracer.traceSync(parent, 'set', (ctx) => {
-            // logger.debug(parent, 'set');
-            this.tx!.set(key, value);
-        });
+        // tracer.traceSync(parent, 'set', (ctx) => {
+        // logger.debug(parent, 'set');
+        this.tx!.set(key, encoders.json.pack(value));
+        // });
     }
 
     delete(parent: Context, connection: FConnection, key: Buffer) {
         this.prepare(parent, connection);
-        tracer.traceSync(parent, 'delete', (ctx) => {
-            // logger.debug(ctx, 'delete');
-            this.tx!.clear(key);
-        });
+        // tracer.traceSync(parent, 'delete', (ctx) => {
+        // logger.debug(ctx, 'delete');
+        this.tx!.clear(key);
+        // });
     }
 
-    markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
+    markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>) {
         // logger.debug(parent, 'markDirty');
         this.prepare(parent, entity.connection);
         let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
         this._pending.set(key, callback);
+    }
+
+    atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
+        this.prepare(context, connection);
+        this.tx!.set(key, encodeAtomic(value));
+    }
+
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
+        this.prepare(context, connection);
+        this.tx!.atomicOp(MutationType.Add, key, encodeAtomic(value));
     }
 
     async abort() {
@@ -69,13 +81,15 @@ export class FTransaction extends FBaseTransaction {
             return;
         }
 
-        await tracer.trace(parent, 'flushPending', async () => {
-            let pend = [...this._pending.values()];
-            this._pending.clear();
-            for (let p of pend) {
-                await p(this.connection!);
-            }
-        });
+        let pend = [...this._pending.values()];
+        this._pending.clear();
+        if (pend.length > 0) {
+            await tracer.trace(parent, 'tx-flush-pending', async (ctx) => {
+                for (let p of pend) {
+                    await p(ctx);
+                }
+            });
+        }
     }
 
     async flush(parent: Context) {
@@ -88,18 +102,18 @@ export class FTransaction extends FBaseTransaction {
 
         // Do not need to parallel things since client will batch everything for us
         // let t = currentTime();
-        await tracer.trace(parent, 'flush', async () => {
+        await tracer.trace(parent, 'tx-flush', async (ctx) => {
             for (let p of this._pending.values()) {
-                await p(this.connection!);
+                await p(ctx);
             }
         });
         // log.debug(parent, 'flush time: ' + (currentTime() - t) + ' ms');
         // t = currentTime();
-        await tracer.trace(parent, 'commit', async () => {
+        await tracer.trace(parent, 'tx-commit', async () => {
             await this.concurrencyPool!.run(() => this.tx!!.rawCommit());
         });
         if (this.pendingCallbacks.length > 0) {
-            await tracer.trace(parent, 'hooks', async () => {
+            await tracer.trace(parent, 'tx-hooks', async () => {
                 for (let p of this.pendingCallbacks) {
                     p();
                 }

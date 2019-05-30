@@ -53,11 +53,14 @@ export class FixerRepository {
                     }
                 }
                 let ex = await this.entities.UserMessagingState.findById(ctx, uid);
+                let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
                 if (ex) {
                     logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + ex.unread + ', updated: ' + totalUnread);
                     ex.unread = totalUnread;
-                    await ex.flush();
+                    globalCounter.set(ctx, totalUnread);
+                    await ex.flush(ctx);
                 } else {
+                    globalCounter.set(ctx, totalUnread);
                     await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
                 }
 
@@ -90,7 +93,7 @@ export class FixerRepository {
             for (let dialog of all) {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
                 global.seq++;
-                await global.flush();
+                await global.flush(ctx);
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: dialog.cid,

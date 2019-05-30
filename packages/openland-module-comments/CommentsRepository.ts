@@ -165,7 +165,7 @@ export class CommentsRepository {
             if (markEdited) {
                 comment.edited = true;
             }
-            await comment.flush();
+            await comment.flush(ctx);
 
             //
             // Create event
@@ -195,11 +195,11 @@ export class CommentsRepository {
             // Mark visible if comment have visible sub-comments
             if (childs.find(c => c.visible || false)) {
                 comment.visible = true;
-                await comment.flush();
+                await comment.flush(ctx);
             } else {
                 comment.visible = false;
                 numberOfCommentsMarkedInvisible++;
-                await comment.flush();
+                await comment.flush(ctx);
             }
 
             // Handle parent visibility if we are not visible anymore
@@ -217,7 +217,7 @@ export class CommentsRepository {
                     if (!parentChilds.find(c => c.id !== comment!.id && (c.visible || false))) {
                         parentComment!.visible = false;
                         numberOfCommentsMarkedInvisible++;
-                        await parentComment!.flush();
+                        await parentComment!.flush(ctx);
                         comm = parentComment!;
                     } else {
                         break;
@@ -296,7 +296,7 @@ export class CommentsRepository {
             let ex = await this.entities.Sequence.findById(ctx, 'comment-id');
             if (ex) {
                 let res = ++ex.value;
-                await ex.flush();
+                await ex.flush(ctx);
                 return res;
             } else {
                 await this.entities.Sequence.create(ctx, 'comment-id', {value: 1});
@@ -310,10 +310,10 @@ export class CommentsRepository {
             let existing = await this.entities.CommentSeq.findById(ctx, peerType, peerId);
             let seq = 1;
             if (!existing) {
-                await (await this.entities.CommentSeq.create(ctx, peerType, peerId, {seq: 1})).flush();
+                await (await this.entities.CommentSeq.create(ctx, peerType, peerId, {seq: 1})).flush(ctx);
             } else {
                 seq = ++existing.seq;
-                await existing.flush();
+                await existing.flush(ctx);
             }
             return seq;
         });

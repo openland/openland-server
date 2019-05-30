@@ -22,6 +22,13 @@ export class FDirectory {
         return !!this.allocatedKey;
     }
 
+    get getAllocatedKey() {
+        if (!this.allocatedKey) {
+            throw Error('Not yet allocated');
+        }
+        return this.allocatedKey!!;
+    }
+
     awaitAllocation = async () => {
         await this.allocatorProcess;
     }

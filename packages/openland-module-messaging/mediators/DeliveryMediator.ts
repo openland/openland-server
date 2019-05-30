@@ -12,6 +12,7 @@ import { Context } from 'openland-utils/Context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
+import { batch } from 'openland-utils/batch';
 // import { PushNotificationMediator } from './PushNotificationMediator';
 
 const tracer = createTracer('message-delivery');
@@ -21,6 +22,7 @@ const isProd = process.env.APP_ENVIRONMENT === 'production';
 export class DeliveryMediator {
     private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_delivery');
     private readonly queueUser = new WorkQueue<{ messageId: number, uid: number }, { result: string }>('conversation_message_delivery_user');
+    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[] }, { result: string }>('conversation_message_delivery_user_multiple');
 
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
@@ -30,13 +32,32 @@ export class DeliveryMediator {
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-            this.queue.addWorker(async (item, parent) => {
-                await this.deliverNewMessage(parent, item.messageId);
-                return { result: 'ok' };
-            });
+            for (let i = 0; i < 10; i++) {
+                this.queue.addWorker(async (item, parent) => {
+                    await this.deliverNewMessage(parent, item.messageId);
+                    return { result: 'ok' };
+                });
+            }
             for (let i = 0; i < 10; i++) {
                 this.queueUser.addWorker(async (item, parent) => {
-                    await this.deliverMessageToUser(parent, item.uid, item.messageId);
+                    await inTx(parent, async (ctx) => {
+                        let message = (await this.entities.Message.findById(ctx, item.messageId))!;
+                        await this.deliverMessageToUser(parent, item.uid, message);
+                    });
+                    return { result: 'ok' };
+                });
+            }
+            for (let i = 0; i < 10; i++) {
+                this.queueUserMultiple.addWorker(async (item, parent) => {
+                    await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
+                        await inTx(ctx2, async (ctx) => {
+                            let message = (await this.entities.Message.findById(ctx, item.messageId))!;
+                            // for (let uid of item.uids) {
+                            //     await this.deliverMessageToUser(ctx, uid, message);
+                            // }
+                            await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                        });
+                    });
                     return { result: 'ok' };
                 });
             }
@@ -100,9 +121,10 @@ export class DeliveryMediator {
 
                 // Deliver messages
                 if (members.length > 0) {
-                    await Promise.all(members.map(async (m) => {
-                        await this.queueUser.pushWork(ctx, { messageId: mid, uid: m });
-                    }));
+                    let batches = batch(members, 10);
+                    for (let b of batches) {
+                        await this.queueUserMultiple.pushWork(ctx, { messageId: mid, uids: b });
+                    }
                 }
                 // Notifications
                 // await this.pushNotificationMediator.onNewMessage(ctx, mid);
@@ -151,17 +173,18 @@ export class DeliveryMediator {
         });
     }
 
-    private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
+    private deliverMessageToUser = async (parent: Context, uid: number, message: Message) => {
         await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                let res = await this.counters.onMessageReceived(ctx, uid, mid);
-                await this.repo.deliverMessageToUser(ctx, uid, mid);
-                await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
-
+                // WARNING: Counters need to be updated BEFORE DELIVERY.
+                // DO NOT SWAP!
+                let res = await this.counters.onMessageReceived(ctx, uid, message);
+                await this.repo.deliverMessageToUser(ctx, uid, message);
                 if (res.setMention) {
-                    let message = (await this.entities.Message.findById(ctx, mid));
-                    await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
+                    await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, true);
                 }
+
+                await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_recieved', did: 'server', args: undefined, isProd, time: Date.now() });
             });
         });
     }

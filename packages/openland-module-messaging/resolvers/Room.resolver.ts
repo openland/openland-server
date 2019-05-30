@@ -541,6 +541,15 @@ export default {
         betaRoomJoin: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid, true);
         }),
+        betaRoomsJoin: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                let res = [];
+                for (let id of args.roomsIds) {
+                    res.push(await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(id), uid, true));
+                }
+                return res;
+            });
+        }),
 
         // invite links
         betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {

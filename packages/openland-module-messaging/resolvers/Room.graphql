@@ -188,6 +188,7 @@ extend type Mutation {
     betaRoomLeave(roomId: ID!): Room!
     betaRoomChangeRole(roomId: ID!, userId: ID!, newRole: RoomMemberRole!): Room!
     betaRoomJoin(roomId: ID!): Room!
+    betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
 
     # Invite links

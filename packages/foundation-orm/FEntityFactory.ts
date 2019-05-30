@@ -36,6 +36,16 @@ export abstract class FEntityFactory<T extends FEntity> {
         this.watcher = new FWatch(connection);
     }
 
+    async findByRawId(ctx: Context, key: (string | number)[]) {
+        return this.readOp(ctx, async () => {
+            let res = await this.namespace.get(ctx, this.connection, key);
+            if (res) {
+                return this.doCreateEntity(ctx, res, false);
+            }
+            return null;
+        });
+    }
+
     async findAll(ctx: Context) {
         return this.readOp(ctx, async () => (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v, false)));
     }
@@ -139,8 +149,8 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected async _create(parent: Context, key: (string | number)[], value: any) {
-        return this.writeOp(parent, async () => {
-            return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
+        return await tracer.trace(parent, 'Create:' + this.name, async (ctx) => {
+            return this.writeOp(ctx, async () => {
                 let cache = FTransactionContext.get(parent);
                 if (!cache) {
                     throw Error('Tried to create object outside of transaction');
@@ -148,24 +158,22 @@ export abstract class FEntityFactory<T extends FEntity> {
                 if (await this._findByIdInternal(ctx, key)) {
                     throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
                 }
-                let res = this.doCreateEntity(ctx, value, true);
-                await (res as any)._doFlush(false);
+                let res = this.doCreateEntity(parent, value, true);
+                await res.flush(ctx, { noWriteLock: true, unsafe: false });
                 return res;
             });
         });
     }
 
     protected async _create_UNSAFE(parent: Context, key: (string | number)[], value: any) {
-        return this.writeOp(parent, async () => {
-            return await tracer.trace(parent, 'CreateUNSAFE:' + this.name, async (ctx) => {
-                let cache = FTransactionContext.get(parent);
-                if (!cache) {
-                    throw Error('Tried to create object outside of transaction');
-                }
-                let res = this.doCreateEntity(ctx, value, true);
-                await (res as any)._doFlush(false);
-                return res;
-            });
+        return await tracer.trace(parent, 'CreateUNSAFE:' + this.name, async (ctx) => {
+            let cache = FTransactionContext.get(parent);
+            if (!cache) {
+                throw Error('Tried to create object outside of transaction');
+            }
+            let res = this.doCreateEntity(parent, value, true);
+            await res.flush(ctx, { noWriteLock: true, unsafe: true });
+            return res;
         });
     }
 

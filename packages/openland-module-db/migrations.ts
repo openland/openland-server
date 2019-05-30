@@ -29,8 +29,10 @@ migrations.push({
         for (let u of user) {
             await inTx(root, async (ctx) => {
                 let profile = await FDB.UserProfile.findById(ctx, u[u.length - 1]);
-                profile!.markDirty();
-                await profile!.flush();
+                if (profile) {
+                    profile!.markDirty();
+                    await profile!.flush(ctx);
+                }
             });
         }
     }
@@ -122,7 +124,7 @@ migrations.push({
             for (let o of k) {
                 if (o.date) {
                     o.markDirty();
-                    await o.flush();
+                    await o.flush(ctx);
                 }
             }
         });
@@ -138,7 +140,7 @@ migrations.push({
                 let u = await FDB.UserDialog.findById(ctx, o[o.length - 2], o[o.length - 1]);
                 if (u) {
                     u.markDirty();
-                    await u.flush();
+                    await u.flush(ctx);
                 }
             });
         }
@@ -397,7 +399,7 @@ migrations.push({
                     } else {
                         t.enabled = true;
                         t.markDirty();
-                        await t.flush();
+                        await t.flush(ctx);
                     }
                 }
             });
@@ -797,6 +799,29 @@ migrations.push({
                     } else {
                         state.seq += 100;
                         state.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '55-copy-global-counters',
+    migration: async (root, log) => {
+        let allKeys = await FDB.UserMessagingState.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let state = (await FDB.UserMessagingState.findById(ctx, k[0] as number));
+                    if (!state) {
+                        log.warn(ctx, 'no state found! ' + JSON.stringify(k));
+                    } else {
+                        let counter = await FDB.UserCounter.findById(ctx, state.uid);
+                        counter.set(ctx, state.unread);
                     }
                 }
             });

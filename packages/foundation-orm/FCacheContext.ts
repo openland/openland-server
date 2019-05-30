@@ -21,7 +21,7 @@ export class FCacheContext extends FBaseTransaction {
     //     this.cache.set(key, value);
     // }
 
-    markDirty(context: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
+    markDirty(context: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>) {
         throw Error('Trying to write to read-only context');
     }
     set(context: Context, connection: FConnection, key: Buffer, value: any) {
@@ -31,6 +31,12 @@ export class FCacheContext extends FBaseTransaction {
         throw Error('Trying to write to read-only context');
     }
     afterTransaction(callback: () => void) {
+        throw Error('Trying to write to read-only context');
+    }
+    atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
+        throw Error('Trying to write to read-only context');
+    }
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
         throw Error('Trying to write to read-only context');
     }
 

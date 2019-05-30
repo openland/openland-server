@@ -5,6 +5,7 @@ import { FEntitySchema } from 'foundation-orm/FEntitySchema';
 import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
+import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
 import { Context } from 'openland-utils/Context';
@@ -914,6 +915,14 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
         return new JsonTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'JsonTest');
     }
 }
+export class SampleAtomicFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('atomic', 'sampleAtomic'));
+    }
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -927,6 +936,7 @@ export interface AllEntities {
     readonly RangeTest: RangeTestFactory;
     readonly ComplexRangeTest: ComplexRangeTestFactory;
     readonly JsonTest: JsonTestFactory;
+    readonly SampleAtomic: SampleAtomicFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -952,6 +962,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     RangeTest: RangeTestFactory;
     ComplexRangeTest: ComplexRangeTestFactory;
     JsonTest: JsonTestFactory;
+    SampleAtomic: SampleAtomicFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -975,6 +986,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.ComplexRangeTest);
         this.JsonTest = new JsonTestFactory(connection);
         this.allEntities.push(this.JsonTest);
+        this.SampleAtomic = new SampleAtomicFactory(connection);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -1010,6 +1022,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get JsonTest(): JsonTestFactory {
         return this.resolver().JsonTest;
+    }
+    get SampleAtomic(): SampleAtomicFactory {
+        return this.resolver().SampleAtomic;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

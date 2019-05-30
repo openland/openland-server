@@ -10,7 +10,8 @@ import {
     rangeIndex,
     uniqueIndex,
     allowAdminEdit,
-    jsonField
+    jsonField,
+    atomic
 } from '../foundation-orm-gen';
 import {
     jBool,
@@ -1094,6 +1095,14 @@ const Schema = declareSchema(() => {
         field('seq', 'number');
         enableVersioning();
         enableTimestamps();
+    });
+
+    //
+    // Counters
+    //
+    
+    atomic('UserCounter', () => {
+        primaryKey('uid', 'number');
     });
 });
 

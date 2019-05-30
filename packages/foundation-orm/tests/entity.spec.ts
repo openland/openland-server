@@ -135,8 +135,8 @@ describe('FEntity', () => {
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 let res = await testEntities.SimpleEntity.create(ctx, 10, { data: 'hello world' });
-                await res.flush();
-                await res.flush();
+                await res.flush(ctx);
+                await res.flush(ctx);
             });
         });
     });

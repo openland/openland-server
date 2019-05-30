@@ -32,7 +32,7 @@ export class OrganizationRepository {
                 seq = await this.entities.Sequence.create(ctx, 'org-id', { value: 0 });
             }
             let orgId = ++seq.value;
-            await seq.flush();
+            await seq.flush(ctx);
 
             let organization;
 
@@ -93,7 +93,7 @@ export class OrganizationRepository {
             let org = (await this.entities.Organization.findById(ctx, id))!;
             if (org.status !== 'activated' && org.status !== 'deleted') {
                 org.status = 'activated';
-                await org.flush();
+                await org.flush(ctx);
                 return true;
             }
             return false;
@@ -105,7 +105,7 @@ export class OrganizationRepository {
             let org = (await this.entities.Organization.findById(ctx, id))!;
             if (org.status !== 'suspended') {
                 org.status = 'suspended';
-                await org.flush();
+                await org.flush(ctx);
                 return true;
             } else {
                 return false;
@@ -150,7 +150,7 @@ export class OrganizationRepository {
             }
             existing.status = 'left';
             existing.role = 'member'; // Downgrade membership
-            await existing.flush();
+            await existing.flush(ctx);
             await this.decrementOrganizationMembersCount(ctx, oid);
             return true;
         });
@@ -166,7 +166,7 @@ export class OrganizationRepository {
                 return false;
             }
             member.role = role;
-            await member.flush();
+            await member.flush(ctx);
             return true;
         });
     }
@@ -206,7 +206,7 @@ export class OrganizationRepository {
 
             // Mark deleted
             organization.status = 'deleted';
-            await organization.flush();
+            await organization.flush(ctx);
 
             let userProfile = await Modules.Users.profileById(ctx, uid);
 

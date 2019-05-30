@@ -1,4 +1,4 @@
-import { keySelector } from 'foundationdb';
+import { keySelector, encoders } from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
 import { FContext } from 'foundation-orm/FContext';
 import { FEntity } from 'foundation-orm/FEntity';
@@ -11,6 +11,7 @@ import { FKeyEncoding } from './FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 import { ConcurrencyPool, getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { ReadWriteLock } from './readWriteLock';
+import { decodeAtomic } from './atomicEncode';
 
 const log = createLogger('tx', false);
 
@@ -20,7 +21,7 @@ export abstract class FBaseTransaction implements FContext {
     readonly id = FBaseTransaction.nextId++;
     abstract isReadOnly: boolean;
     abstract isCompleted: boolean;
-    tx: Transaction<NativeValue, any> | null = null;
+    tx: Transaction<NativeValue, NativeValue> | null = null;
 
     protected readonly log: SLog = log;
     protected connection: FConnection | null = null;
@@ -51,45 +52,69 @@ export abstract class FBaseTransaction implements FContext {
     async get(parent: Context, connection: FConnection, key: Buffer): Promise<any | null> {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'get', async (ctx) => {
-            this.log.debug(ctx, 'get');
-            return await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key));
+            // this.log.debug(ctx, 'get');
+            let r = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key));
+            if (r) {
+                return encoders.json.unpack(r as Buffer);
+            } else {
+                return null;
+            }
         });
     }
 
     async range(parent: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'range', async (ctx) => {
-            this.log.debug(ctx, 'get-range');
+            // this.log.debug(ctx, 'get-range');
             let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
-            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
+            return res.map((v) => ({ item: encoders.json.unpack(v[1]), key: v[0] }));
         });
     }
     async rangeAll(parent: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'rangeAll', async (ctx) => {
-            this.log.debug(ctx, 'get-range-all');
+            // this.log.debug(ctx, 'get-range-all');
             let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
-            return res.map((v) => v[1] as any);
+            return res.map((v) => encoders.json.unpack(v[1]));
         });
     }
     async rangeAfter(parent: Context, connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(parent, connection);
         return await tracer.trace(parent, 'rangeAfter', async (ctx) => {
-            this.log.debug(ctx, 'get-range-after');
+            // this.log.debug(ctx, 'get-range-after');
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.lastKeyInSubspace(afterKey));
             let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options));
-            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
+            return res.map((v) => ({ item: encoders.json.unpack(v[1]), key: v[0] }));
         });
     }
 
-    protected abstract createTransaction(connection: FConnection): Transaction;
+    protected abstract createTransaction(connection: FConnection): Transaction<NativeValue, Buffer>;
 
-    abstract markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
+    abstract markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>): void;
     abstract set(context: Context, connection: FConnection, key: Buffer, value: any): void;
     abstract delete(context: Context, connection: FConnection, key: Buffer): void;
     abstract afterTransaction(callback: () => void): void;
+
+    //
+    // Atomic
+    //
+
+    async atomicGet(context: Context, connection: FConnection, key: Buffer) {
+        this.prepare(context, connection);
+        return await tracer.trace(context, 'atomicGet', async (ctx) => {
+            let r = await connection.fdb.get(key);
+            if (r) {
+                return decodeAtomic(r);
+            } else {
+                return null;
+            }
+        });
+    }
+
+    abstract atomicSet(context: Context, connection: FConnection, key: Buffer, value: number): void;
+    abstract atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number): void;
 
     protected prepare(ctx: Context, connection: FConnection) {
         if (this.connection && this.connection !== connection) {
@@ -99,7 +124,7 @@ export abstract class FBaseTransaction implements FContext {
             return;
         }
 
-        log.debug(ctx, 'started');
+        // log.debug(ctx, 'started');
         this.connection = connection;
         this.concurrencyPool = getConcurrencyPool(ctx);
         this.tx = this.createTransaction(connection);

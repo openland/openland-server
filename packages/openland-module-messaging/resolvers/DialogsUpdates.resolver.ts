@@ -67,7 +67,7 @@ export default {
         betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         alphaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         unread: (src: UserDialogEvent) => src.unread || 0,
-        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogMessageUpdated: {
         cid: async (src: UserDialogEvent, args: {}, ctx: AppContext) => IDs.Conversation.serialize(src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid),
@@ -87,12 +87,12 @@ export default {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
         },
         unread: (src: UserDialogEvent) => src.unread || 0,
-        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogMessageRead: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         unread: (src: UserDialogEvent) => src.unread || 0,
-        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogTitleUpdated: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
@@ -104,11 +104,11 @@ export default {
     },
     DialogDeleted: {
         cid: src => IDs.Conversation.serialize(src.cid!),
-        globalUnread: src => src.allUnread || 0
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogBump: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        globalUnread: (src: UserDialogEvent) => src.allUnread || 0,
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0,
         unread: (src: UserDialogEvent) => src.unread || 0,
         topMessage: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
@@ -117,7 +117,7 @@ export default {
     DialogMuteChanged: {
         cid: src => IDs.Conversation.serialize(src.cid!),
         mute: src => src.mute,
-        globalUnread: src => src.allUnread
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => (await (await FDB.UserCounter.findById(ctx, ctx.auth.uid!)).get(ctx)) || 0
     },
     DialogMentionedChanged: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),

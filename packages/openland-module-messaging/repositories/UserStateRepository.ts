@@ -30,7 +30,7 @@ export class UserStateRepository {
             } else {
                 state.readSeq = toSeq;
             }
-            await state.flush();
+            await state.flush(ctx);
         });
     }
 
@@ -39,11 +39,18 @@ export class UserStateRepository {
             let existing = await this.entities.UserNotificationsState.findById(ctx, uid);
             if (!existing) {
                 let created = await this.entities.UserNotificationsState.create(ctx, uid, {});
-                await created.flush();
+                await created.flush(ctx);
                 return created;
             } else {
                 return existing;
             }
+        });
+    }
+
+    async getUserMessagingUnread(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let c = await this.entities.UserCounter.findById(ctx, uid);
+            return await c.get(ctx) || 0;
         });
     }
 
@@ -59,7 +66,7 @@ export class UserStateRepository {
                     chatsCount: 0,
                     directChatsCount: 0
                 });
-                await created.flush();
+                await created.flush(ctx);
                 return created;
             } else {
                 return existing;
@@ -88,9 +95,9 @@ export class UserStateRepository {
                         messagingState.directChatsCount++;
                     }
                 }
-                await messagingState.flush();
+                await messagingState.flush(ctx);
 
-                await created.flush();
+                await created.flush(ctx);
                 return created;
             } else {
                 return existing;

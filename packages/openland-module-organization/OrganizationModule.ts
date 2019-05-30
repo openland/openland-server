@@ -211,7 +211,7 @@ export class OrganizationModule {
                     } else {
                         profile.primaryOrganization = orgs[0];
                     }
-                    await profile.flush();
+                    await profile.flush(ctx);
                 }
                 let userGroups = await FDB.RoomParticipant.allFromUserActive(ctx, uid);
                 for (let group of userGroups) {

@@ -131,13 +131,13 @@ export default {
                 let profiles = await Promise.all(orgRooms.map(room => FDB.RoomProfile.findById(ctx, room.id)));
                 for (let roomProfile of profiles) {
                     if (roomProfile) {
-                        await roomProfile!.flush();
+                        await roomProfile!.flush(ctx);
                     }
                 }
 
                 // Call hook
-                await editorial.flush();
-                await profile.flush();
+                await editorial.flush(ctx);
+                await profile.flush(ctx);
                 await Modules.Hooks.onOrganizationProfileUpdated(ctx, profile.id);
 
                 return existing;
