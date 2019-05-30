@@ -127,7 +127,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     await awaitTask();
                 }
             } else {
-                log.debug(root, 'Task not found');
+                // log.debug(root, 'Task not found');
                 await awaitTask();
             }
         });

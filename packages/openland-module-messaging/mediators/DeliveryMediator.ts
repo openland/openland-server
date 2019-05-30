@@ -47,9 +47,7 @@ export class DeliveryMediator {
             for (let i = 0; i < 10; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
                     await inTx(parent, async (ctx) => {
-                        for (let uid of item.uids) {
-                            await this.deliverMessageToUser(ctx, uid, item.messageId);
-                        }
+                        await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, item.messageId)));
                     });
                     return { result: 'ok' };
                 });
