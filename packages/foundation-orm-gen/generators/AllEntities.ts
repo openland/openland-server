@@ -7,6 +7,9 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
     for (let e of entity) {
         res += '    readonly ' + e.name + ': ' + e.name + 'Factory;\n';
     }
+    for (let a of atomics) {
+        res += '    ' + a.name + ': ' + a.name + 'Factory;\n';
+    }
     res += '}\n';
     res += 'export class AllEntitiesDirect extends FDBInstance implements AllEntities {\n';
     res += '    static readonly schema: FEntitySchema[] = [\n';
@@ -42,6 +45,12 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
         res += '        return this.resolver().' + e.name + ';\n';
         res += '    }\n';
     }
+    for (let e of atomics) {
+        res += '    get ' + e.name + '(): ' + e.name + 'Factory {\n';
+        res += '        return this.resolver().' + e.name + ';\n';
+        res += '    }\n';
+    }
+    
     res += '    private resolver: () => AllEntities;\n';
     res += '    constructor(resolver: () => AllEntities) {\n';
     res += '        this.resolver = resolver;\n';

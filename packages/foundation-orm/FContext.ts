@@ -20,6 +20,7 @@ export interface FContext {
     afterTransaction(callback: () => void): void;
 
     atomicSet(context: Context, connection: FConnection, key: Buffer, value: number): void;
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number): void;
     atomicGet(context: Context, connection: FConnection, key: Buffer): Promise<number | null>;
 }
 
@@ -81,7 +82,6 @@ export class FGlobalContext implements FContext {
 
     async atomicGet(context: Context, connection: FConnection, key: Buffer) {
         return await tracer.trace(context, 'atomicGet', async (ctx) => {
-            // logger.debug(ctx, 'get');
             let r = await connection.fdb.get(key);
             if (r) {
                 return encoders.int32BE.unpack(r);
@@ -92,6 +92,9 @@ export class FGlobalContext implements FContext {
     }
 
     atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
+        throw Error('Trying to write to read-only context');
+    }
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
         throw Error('Trying to write to read-only context');
     }
 }

@@ -36,6 +36,9 @@ export class FCacheContext extends FBaseTransaction {
     atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
         throw Error('Trying to write to read-only context');
     }
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
+        throw Error('Trying to write to read-only context');
+    }
 
     protected createTransaction(connection: FConnection) {
         return connection.fdb.rawCreateTransaction({ causal_read_risky: true });

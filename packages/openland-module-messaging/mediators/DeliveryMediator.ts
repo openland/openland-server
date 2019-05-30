@@ -175,9 +175,10 @@ export class DeliveryMediator {
     private deliverMessageToUser = async (parent: Context, uid: number, message: Message) => {
         await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                await this.repo.deliverMessageToUser(ctx, uid, message);
-
+                // WARNING: Counters need to be updated BEFORE DELIVERY.
+                // DO NOT SWAP!
                 let res = await this.counters.onMessageReceived(ctx, uid, message);
+                await this.repo.deliverMessageToUser(ctx, uid, message);
                 if (res.setMention) {
                     await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, true);
                 }

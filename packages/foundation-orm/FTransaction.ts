@@ -4,7 +4,7 @@ import { FEntity } from './FEntity';
 import { tracer } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
 import { Context } from 'openland-utils/Context';
-import { encoders } from 'foundationdb';
+import { encoders, MutationType } from 'foundationdb';
 
 // const log = createLogger('tx', false);
 
@@ -53,6 +53,11 @@ export class FTransaction extends FBaseTransaction {
     atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
         this.prepare(context, connection);
         this.tx!.set(key, encoders.int32BE.pack(value));
+    }
+
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
+        this.prepare(context, connection);
+        this.tx!.atomicOp(MutationType.Add, key, encoders.int32BE.pack(value));
     }
 
     async abort() {

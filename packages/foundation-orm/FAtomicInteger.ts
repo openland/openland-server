@@ -19,4 +19,14 @@ export class FAtomicInteger {
         let cont = resolveContext(ctx);
         cont.atomicSet(ctx, this.connection, this.key, value);
     }
+    increment = (ctx: Context) => {
+        this.add(ctx, 1);
+    }
+    decrement = (ctx: Context) => {
+        this.add(ctx, -1);
+    }
+    add = (ctx: Context, value: number) => {
+        let cont = resolveContext(ctx);
+        cont.atomicAdd(ctx, this.connection, this.key, value);
+    }
 }

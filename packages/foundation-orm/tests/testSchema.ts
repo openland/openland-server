@@ -936,6 +936,7 @@ export interface AllEntities {
     readonly RangeTest: RangeTestFactory;
     readonly ComplexRangeTest: ComplexRangeTestFactory;
     readonly JsonTest: JsonTestFactory;
+    SampleAtomic: SampleAtomicFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -1021,6 +1022,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get JsonTest(): JsonTestFactory {
         return this.resolver().JsonTest;
+    }
+    get SampleAtomic(): SampleAtomicFactory {
+        return this.resolver().SampleAtomic;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {
