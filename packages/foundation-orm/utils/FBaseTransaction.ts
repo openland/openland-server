@@ -11,6 +11,7 @@ import { FKeyEncoding } from './FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 import { ConcurrencyPool, getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { ReadWriteLock } from './readWriteLock';
+import { decodeAtomic } from './atomicEncode';
 
 const log = createLogger('tx', false);
 
@@ -105,7 +106,7 @@ export abstract class FBaseTransaction implements FContext {
         return await tracer.trace(context, 'atomicGet', async (ctx) => {
             let r = await connection.fdb.get(key);
             if (r) {
-                return encoders.int32BE.unpack(r);
+                return decodeAtomic(r);
             } else {
                 return null;
             }

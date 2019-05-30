@@ -66,12 +66,12 @@ describe('atomics', () => {
         let res2 = await (await testEntities.SampleAtomic.findById(rootctx, 'some-1')).get(rootctx);
         expect(res2).toEqual(1350);
 
-        // await inTx(rootctx, async (ctx) => {
-        //     let atomic = await testEntities.SampleAtomic.findById(ctx, 'some-1');
-        //     atomic.add(ctx, -1);
-        // });
+        await inTx(rootctx, async (ctx) => {
+            let atomic = await testEntities.SampleAtomic.findById(ctx, 'some-1');
+            atomic.add(ctx, -10);
+        });
 
-        // let res3 = await (await testEntities.SampleAtomic.findById(rootctx, 'some-1')).get(rootctx);
-        // expect(res3).toEqual(1349);
+        let res3 = await (await testEntities.SampleAtomic.findById(rootctx, 'some-1')).get(rootctx);
+        expect(res3).toEqual(1340);
     });
 });

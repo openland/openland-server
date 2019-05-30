@@ -5,6 +5,7 @@ import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { tracer } from './utils/tracer';
 import { Context } from 'openland-utils/Context';
+import { decodeAtomic } from './utils/atomicEncode';
 
 export interface FContext {
     readonly isReadOnly: boolean;
@@ -84,7 +85,7 @@ export class FGlobalContext implements FContext {
         return await tracer.trace(context, 'atomicGet', async (ctx) => {
             let r = await connection.fdb.get(key);
             if (r) {
-                return encoders.int32BE.unpack(r);
+                return decodeAtomic(r);
             } else {
                 return null;
             }
