@@ -971,8 +971,8 @@ export class RoomRepository {
                 continue;
             }
 
-            let members = (await this.entities.RoomParticipant.allFromActive(parent, rid));
-            toSort.push({ rid, count: members.length });
+            let membersCount = (await this.entities.RoomProfile.findById(parent, rid)!)!.activeMembersCount || 0;
+            toSort.push({ rid, count: membersCount });
         }
         let res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
 
