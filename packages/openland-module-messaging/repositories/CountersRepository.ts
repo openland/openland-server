@@ -35,6 +35,8 @@ export class CountersRepository {
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
+
             if (!local.readMessageId || message.id > local.readMessageId) {
 
                 // Mark dialog as having mention
@@ -47,6 +49,7 @@ export class CountersRepository {
                 // Update Counters
                 local.unread++;
                 global.unread++;
+                globalCounter.increment(ctx);
 
                 return { delta: 1, setMention };
             }
@@ -64,9 +67,11 @@ export class CountersRepository {
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
                 global.unread--;
+                globalCounter.decrement(ctx);
 
                 // TODO: Optimize
                 if (local.haveMention) {
@@ -97,6 +102,7 @@ export class CountersRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let prevReadMessageId = local.readMessageId;
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             if (!local.readMessageId || local.readMessageId < mid) {
                 local.readMessageId = mid;
 
@@ -119,6 +125,7 @@ export class CountersRepository {
                 if (delta !== 0) {
                     local.unread += delta;
                     global.unread += delta;
+                    globalCounter.add(ctx, delta);
                 }
 
                 let mentionReset = false;
@@ -146,9 +153,11 @@ export class CountersRepository {
         return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             if (local.unread > 0) {
                 let delta = -local.unread;
                 global.unread += delta;
+                globalCounter.add(ctx, delta);
                 local.unread = 0;
                 local.haveMention = false;
                 return delta;
@@ -161,14 +170,16 @@ export class CountersRepository {
         return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
-
+            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             let isMuted = (await this.userState.getRoomSettings(ctx, uid, cid)).mute;
 
             if (isMuted && !mute) {
                 global.unread += local.unread;
+                globalCounter.add(ctx, local.unread);
                 return local.unread;
             } else if (!isMuted && mute) {
                 global.unread -= local.unread;
+                globalCounter.add(ctx, -local.unread);
                 return -local.unread;
             }
             return 0;

@@ -5,6 +5,7 @@ import { FEntitySchema } from 'foundation-orm/FEntitySchema';
 import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
+import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
 import { Context } from 'openland-utils/Context';
@@ -9638,6 +9639,14 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
         return new DebugEventState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
     }
 }
+export class UserCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('atomic', 'userCounter'));
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -9714,6 +9723,7 @@ export interface AllEntities {
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly UserCounter: UserCounterFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -9865,6 +9875,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     UserStorageRecord: UserStorageRecordFactory;
     DebugEvent: DebugEventFactory;
     DebugEventState: DebugEventStateFactory;
+    UserCounter: UserCounterFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -10014,6 +10025,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.DebugEvent);
         this.DebugEventState = new DebugEventStateFactory(connection);
         this.allEntities.push(this.DebugEventState);
+        this.UserCounter = new UserCounterFactory(connection);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -10238,6 +10250,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get DebugEventState(): DebugEventStateFactory {
         return this.resolver().DebugEventState;
+    }
+    get UserCounter(): UserCounterFactory {
+        return this.resolver().UserCounter;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

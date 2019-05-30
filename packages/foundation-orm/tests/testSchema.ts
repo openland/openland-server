@@ -936,7 +936,7 @@ export interface AllEntities {
     readonly RangeTest: RangeTestFactory;
     readonly ComplexRangeTest: ComplexRangeTestFactory;
     readonly JsonTest: JsonTestFactory;
-    SampleAtomic: SampleAtomicFactory;
+    readonly SampleAtomic: SampleAtomicFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
