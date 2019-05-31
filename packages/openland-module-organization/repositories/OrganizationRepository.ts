@@ -277,6 +277,19 @@ export class OrganizationRepository {
             .find((v) => v!.email === email);
     }
 
+    async findPrimaryOrganizationForUser(ctx: Context, uid: number): Promise<number | null> {
+        let userOrgs = await this.findUserOrganizations(ctx, uid);
+        let primaryOrganization: number | null = null;
+        for (let oid of userOrgs) {
+            let org = await this.entities.Organization.findById(ctx, oid);
+            if (org && org.kind === 'organization') {
+                primaryOrganization = oid;
+            }
+        }
+
+        return primaryOrganization;
+    }
+
     //
     // Tools
     //

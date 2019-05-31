@@ -12,11 +12,14 @@ import { organizationProfileIndexer } from './workers/organizationProfileIndexer
 import { Context } from 'openland-utils/Context';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { UserError } from '../openland-errors/UserError';
+import { AllEntities } from '../openland-module-db/schema';
 
 @injectable()
 export class OrganizationModule {
     @lazyInject('OrganizationRepository')
     private readonly repo!: OrganizationRepository;
+    @lazyInject('FDB')
+    private readonly entities!: AllEntities;
 
     start = () => {
         if (serverRoleEnabled('workers')) {
@@ -53,7 +56,7 @@ export class OrganizationModule {
 
             // 5. Update primary organization if needed
             if (status === 'activated') {
-                if (!profile.primaryOrganization) {
+                if (!profile.primaryOrganization && !input.isCommunity) {
                     profile.primaryOrganization = res.id;
                 }
             }
@@ -78,7 +81,8 @@ export class OrganizationModule {
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid, false);
                     let profile = await FDB.UserProfile.findById(ctx, m.uid);
-                    if (profile && !profile.primaryOrganization) {
+                    let org = await this.entities.Organization.findById(ctx, id);
+                    if (profile && !profile.primaryOrganization && (org && org.kind === 'organization')) {
                         profile.primaryOrganization = id;
                     }
                 }
@@ -145,10 +149,7 @@ export class OrganizationModule {
                         }
                     } else if (org.kind === 'community') {
                         if (!profile.primaryOrganization && userOrgs.length > 0) {
-                            let primaryOrg = userOrgs.find(o => o!.id !== org.id && o!.kind === 'organization');
-                            if (primaryOrg) {
-                                profile.primaryOrganization = primaryOrg.id;
-                            }
+                            profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                         }
                     }
                 }
@@ -205,12 +206,7 @@ export class OrganizationModule {
             if (await this.repo.removeUserFromOrganization(ctx, uid, oid)) {
                 let profile = (await FDB.UserProfile.findById(ctx, uid))!;
                 if (profile.primaryOrganization === oid) {
-                    let orgs = await this.repo.findUserOrganizations(ctx, uid);
-                    if (orgs.length === 0) {
-                        profile.primaryOrganization = null;
-                    } else {
-                        profile.primaryOrganization = orgs[0];
-                    }
+                    profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                     await profile.flush(ctx);
                 }
                 let userGroups = await FDB.RoomParticipant.allFromUserActive(ctx, uid);
