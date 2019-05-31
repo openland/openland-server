@@ -29,8 +29,8 @@ const FetchParams = {
     },
 };
 
-export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
-    let { hostname } = URL.parse(url);
+export async function fetchURLInfo(url: string): Promise<URLInfo | null> {
+    let {hostname} = URL.parse(url);
 
     if (hostname && hostname.endsWith('linkedin.com')) {
         url = 'https://www.linkedin.com/';
@@ -45,28 +45,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
     let contentType = res.headers.get('content-type');
 
     if (contentType && contentType.startsWith('image')) {
-        let imgInfo: FileInfo | null = null;
-        let imgRef: ImageRef | null = null;
-
-        try {
-            let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), url);
-            imgRef = { uuid: file, crop: null };
-            imgInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
-        } catch (e) {
-            console.warn('Cant fetch image ' + url);
-        }
-
-        return {
-            url,
-            title: null,
-            subtitle: null,
-            description: null,
-            imageInfo: imgInfo,
-            photo: imgRef,
-            hostname: null,
-            iconRef: null,
-            iconInfo: null
-        };
+        return fetchURLInfoInternal({ url, imageURL: url });
     }
 
     let text = await res.text();
@@ -79,7 +58,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
         getMeta(doc, 'title') ||
         getHTMLTitle(doc) ||
         null;
-    
+
     let description =
         getMeta(doc, 'og:description') ||
         getMeta(doc, 'vk:description') ||
@@ -113,7 +92,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo|null> {
     });
 }
 
-export async function fetchURLInfoInternal(params: { url: string, title: string | null, description: string | null, imageURL?: string | null, iconURL?: string | null }): Promise<URLInfo|null> {
+async function fetchURLInfoInternal(params: { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null }): Promise<URLInfo | null> {
     let {
         url,
         title,
@@ -122,7 +101,7 @@ export async function fetchURLInfoInternal(params: { url: string, title: string 
         iconURL
     } = params;
 
-    let { hostname } = URL.parse(url);
+    let {hostname} = URL.parse(url);
 
     let imageInfo: FileInfo | null = null;
     let imageRef: ImageRef | null = null;
@@ -130,8 +109,8 @@ export async function fetchURLInfoInternal(params: { url: string, title: string 
     if (imageURL) {
         imageURL = URL.resolve(url, imageURL);
         try {
-            let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), imageURL);
-            imageRef = { uuid: file, crop: null };
+            let {file} = await Modules.Media.uploadFromUrl(createEmptyContext(), imageURL);
+            imageRef = {uuid: file, crop: null};
             imageInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
         } catch (e) {
             console.warn('Cant fetch image ' + imageURL);
@@ -143,8 +122,8 @@ export async function fetchURLInfoInternal(params: { url: string, title: string 
 
     if (iconURL) {
         try {
-            let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), iconURL);
-            iconRef = { uuid: file, crop: null };
+            let {file} = await Modules.Media.uploadFromUrl(createEmptyContext(), iconURL);
+            iconRef = {uuid: file, crop: null};
             iconInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
         } catch (e) {
             console.warn('Cant fetch image ' + iconURL);
@@ -153,9 +132,9 @@ export async function fetchURLInfoInternal(params: { url: string, title: string 
 
     return {
         url,
-        title,
+        title: title || null,
         subtitle: null,
-        description,
+        description: description || null,
         imageInfo: Modules.Media.sanitizeFileInfo(imageInfo),
         photo: imageRef,
         hostname: hostname || null,
