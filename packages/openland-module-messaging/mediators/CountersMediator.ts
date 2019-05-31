@@ -79,7 +79,7 @@ export class CountersMediator {
     }
 
     private deliverCounterPush = async (ctx: Context, uid: number, cid: number) => {
-        let global = await this.userState.getUserMessagingState(ctx, uid);
-        await Modules.Push.sendCounterPush(ctx, uid, cid, global.unread);
+        let globalCounter = await this.userState.getUserMessagingUnread(ctx, uid);
+        await Modules.Push.sendCounterPush(ctx, uid, cid, globalCounter);
     }
 }
