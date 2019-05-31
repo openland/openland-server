@@ -33,7 +33,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo | null> {
     let {hostname} = URL.parse(url);
 
     if (hostname && hostname.endsWith('linkedin.com')) {
-        url = 'https://www.linkedin.com/';
+        return null;
     }
 
     let res = await fetch(encodeURI(url), FetchParams);
