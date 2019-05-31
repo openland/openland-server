@@ -1,7 +1,7 @@
 import { JsonMap } from 'openland-utils/json';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx, inTxLeaky } from 'foundation-orm/inTx';
-import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
@@ -72,6 +72,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             });
             if (task) {
                 log.log(root, 'Task ' + task.uid + ' found');
+                let start = currentTime();
                 let res: RES;
                 try {
                     res = await handler(task.arguments, root);
@@ -105,7 +106,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return;
                 }
 
-                log.log(root, 'Task ' + task.uid + ' completed', JSON.stringify(res));
+                log.log(root, 'Task ' + task.uid + ' completed in ' + (currentTime() - start) + ' ms');
 
                 // Commiting
                 let commited = await inTx(root, async (ctx) => {
