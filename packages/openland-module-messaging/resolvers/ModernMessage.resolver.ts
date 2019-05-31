@@ -404,25 +404,6 @@ export default {
             if (src.deleted) {
                 return [];
             }
-            if (src instanceof Comment) {
-                if (src.spans) {
-                    return src
-                        .spans.map(span => {
-                            if (span.type === 'all_mention') {
-                                return {
-                                    type: 'user_mention',
-                                    offset: span.offset,
-                                    length: span.length,
-                                    user: ctx.auth.uid!
-                                };
-                            } else {
-                                return span;
-                            }
-                        })
-                        .filter(span => span.type !== 'date_text');
-                }
-                return [];
-            }
             //
             //  Modern spans
             //
@@ -441,6 +422,8 @@ export default {
                         }
                     })
                     .filter(span => span.type !== 'date_text');
+            } else if (src instanceof Comment) {
+                return [];
             }
 
             let uid = ctx.auth.uid!;
