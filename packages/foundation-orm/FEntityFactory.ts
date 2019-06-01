@@ -38,7 +38,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findByRawId(ctx: Context, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.get(ctx, this.connection, key);
+            let res = await this.namespace.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }
@@ -52,7 +52,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllKeys(ctx: Context, limit?: number) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, this.connection, [], { limit });
+            let res = await this.namespace.range(ctx, [], { limit });
             res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
             return res.map((v) => v.key);
         });
@@ -60,7 +60,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllKeysAfter(ctx: Context, after: any[], limit?: number) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.rangeAfter(ctx, this.connection, [], after, { limit });
+            let res = await this.namespace.rangeAfter(ctx, [], after, { limit });
             res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
             return res.map((v) => v.key);
         });
@@ -68,7 +68,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllWithIds(ctx: Context) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, this.connection, []);
+            let res = await this.namespace.range(ctx, []);
             return res.map((v) => ({ item: this.doCreateEntity(ctx, v.item, false), key: v.key }));
         });
     }
@@ -86,7 +86,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected async _findFromIndex(parent: Context, key: (string | number)[]) {
         return this.readOp(parent, async () => {
             return await tracer.trace(parent, 'FindById', async (ctx) => {
-                let res = await this.namespace.get(ctx, this.connection, key);
+                let res = await this.namespace.get(ctx, key);
                 if (res) {
                     return this.doCreateEntity(ctx, res, false);
                 }
@@ -97,14 +97,14 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findRangeAllAfter(ctx: Context, key: (string | number)[], after: any, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.rangeAfter(ctx, this.connection, key, [...this.namespace.namespace, ...key, after], { reverse });
+            let res = await this.namespace.rangeAfter(ctx, key, [...this.namespace.namespace, ...key, after], { reverse });
             return res.map((v) => this.doCreateEntity(ctx, v.item, false));
         });
     }
 
     protected async _findRange(ctx: Context, key: (string | number)[], limit: number, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, this.connection, key, { limit, reverse });
+            let res = await this.namespace.range(ctx, key, { limit, reverse });
             return res.map((v) => this.doCreateEntity(ctx, v.item, false));
         });
     }
@@ -113,9 +113,9 @@ export abstract class FEntityFactory<T extends FEntity> {
         return this.readOp(ctx, async () => {
             let res: { item: any, key: Buffer }[];
             if (after) {
-                res = await this.namespace.rangeAfter(ctx, this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
+                res = await this.namespace.rangeAfter(ctx, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
             } else {
-                res = await this.namespace.range(ctx, this.connection, key, { limit: limit + 1, reverse });
+                res = await this.namespace.range(ctx, key, { limit: limit + 1, reverse });
             }
             let d: T[] = [];
             for (let i = 0; i < Math.min(limit, res.length); i++) {
@@ -129,7 +129,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findRangeAfter(ctx: Context, subspace: (string | number)[], after: any, limit?: number, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.rangeAfter(ctx, this.connection, subspace, [...this.namespace.namespace, ...subspace, after], { limit, reverse });
+            let res = await this.namespace.rangeAfter(ctx, subspace, [...this.namespace.namespace, ...subspace, after], { limit, reverse });
             return res.map((v) => this.doCreateEntity(ctx, v.item, false));
         });
     }
@@ -143,7 +143,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findAll(ctx: Context, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, this.connection, key);
+            let res = await this.namespace.range(ctx, key);
             return res.map((v) => this.doCreateEntity(ctx, v.item, false));
         });
     }
@@ -221,7 +221,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 return cached;
             } else {
                 let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                    let r = await this.namespace.get(ctx, this.connection, key);
+                    let r = await this.namespace.get(ctx, key);
                     if (r) {
                         return this.doCreateEntity(ctx, r, false);
                     } else {
@@ -235,7 +235,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
         // Uncached (Obsolete: Might never happen)
         return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-            let res = await this.namespace.get(ctx, this.connection, key);
+            let res = await this.namespace.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }

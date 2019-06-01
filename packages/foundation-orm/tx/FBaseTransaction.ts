@@ -4,13 +4,11 @@ import { FTransaction } from 'foundation-orm/FTransaction';
 import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { createLogger } from 'openland-log/createLogger';
-import { tracer } from '../utils/tracer';
 import { SLog } from 'openland-log/SLog';
 import { FKeyEncoding } from '../utils/FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 import { ReadWriteLock } from '../utils/readWriteLock';
-import { decodeAtomic, encodeAtomic } from '../utils/atomicEncode';
-import { TransactionWrapper } from 'foundation-orm/tx/TransactionWrapper';
+import { FRawTransaction } from './FRawTransaction';
 
 const log = createLogger('tx', false);
 
@@ -20,11 +18,10 @@ export abstract class FBaseTransaction implements FTransaction {
     readonly id = FBaseTransaction.nextId++;
     abstract isReadOnly: boolean;
     abstract isCompleted: boolean;
-    tx: TransactionWrapper | null = null;
-    rawTx!: Transaction<Buffer, Buffer>;
-
     protected readonly log: SLog = log;
     protected connection: FConnection | null = null;
+    protected tx!: FRawTransaction;
+    protected rawTx!: Transaction<Buffer, Buffer>;
 
     protected cache = new Map<string, any>();
     private readWriteLocks = new Map<string, ReadWriteLock>();
@@ -98,38 +95,6 @@ export abstract class FBaseTransaction implements FTransaction {
         this.tx!.delete(key);
     }
 
-    atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
-        if (this.isReadOnly) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.prepare(connection);
-        this.tx!.set(key, encodeAtomic(value));
-    }
-
-    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
-        if (this.isReadOnly) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.prepare(connection);
-        this.tx!.atomicAdd(key, encodeAtomic(value));
-    }
-
-    //
-    // Atomic
-    //
-
-    async atomicGet(context: Context, connection: FConnection, key: Buffer) {
-        this.prepare(connection);
-        return await tracer.trace(context, 'atomicGet', async (ctx) => {
-            let r = await connection.fdb.get(key);
-            if (r) {
-                return decodeAtomic(r);
-            } else {
-                return null;
-            }
-        });
-    }
-
     //
     // Connection
     //
@@ -145,7 +110,7 @@ export abstract class FBaseTransaction implements FTransaction {
         // log.debug(ctx, 'started');
         this.connection = connection;
         this.rawTx = this.createTransaction(connection) as Transaction<Buffer, Buffer>;
-        this.tx = new TransactionWrapper(this.rawTx);
+        this.tx = new FRawTransaction(this.rawTx);
     }
 
     protected abstract createTransaction(connection: FConnection): Transaction<NativeValue, Buffer>;

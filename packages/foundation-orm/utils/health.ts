@@ -9,11 +9,11 @@ export async function checkIndexConsistency<T extends FEntity>(parent: Context, 
     // Find index inconsistency
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
+        let data = await entity.namespace.range(ctx, indexKey);
 
         for (let item of data) {
             let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
+            let actual = await entity.namespace.get(ctx, rawId);
 
             if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
                 duplicatesCount++;
@@ -28,11 +28,11 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
     // Remove duplicates from index
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
+        let data = await entity.namespace.range(ctx, indexKey);
 
         for (let item of data) {
             let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
+            let actual = await entity.namespace.get(ctx, rawId);
 
             if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
                 duplicatesCount++;

@@ -1,23 +1,26 @@
 import { Context } from 'openland-utils/Context';
-import { FConnection } from './FConnection';
-import { getTransaction } from './getTransaction';
+import { FOperations } from './FOperations';
+import { decodeAtomic, encodeAtomic } from './utils/atomicEncode';
 
 export class FAtomicInteger {
-
     private readonly key: Buffer;
-    private readonly connection: FConnection;
-    constructor(key: Buffer, connection: FConnection) {
+    private readonly ops: FOperations;
+
+    constructor(key: Buffer, ops: FOperations) {
         this.key = key;
-        this.connection = connection;
+        this.ops = ops;
     }
 
     get = async (ctx: Context) => {
-        let cont = getTransaction(ctx);
-        return await cont.atomicGet(ctx, this.connection, this.key);
+        let r = await this.ops.get(ctx, this.key);
+        if (r) {
+            return decodeAtomic(r);
+        } else {
+            return null;
+        }
     }
     set = (ctx: Context, value: number) => {
-        let cont = getTransaction(ctx);
-        cont.atomicSet(ctx, this.connection, this.key, value);
+        this.ops.set(ctx, this.key, encodeAtomic(value));
     }
     increment = (ctx: Context) => {
         this.add(ctx, 1);
@@ -26,7 +29,6 @@ export class FAtomicInteger {
         this.add(ctx, -1);
     }
     add = (ctx: Context, value: number) => {
-        let cont = getTransaction(ctx);
-        cont.atomicAdd(ctx, this.connection, this.key, value);
+        this.ops.add(ctx, this.key, encodeAtomic(value));
     }
 }

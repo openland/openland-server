@@ -4,10 +4,9 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 
 export class FDiagnostics {
-    private connection: FConnection;
 
     constructor(connection: FConnection) {
-        this.connection = connection;
+        //        
     }
 
     async runEntityDiagnostics(src: FEntityFactory<any>) {
@@ -15,7 +14,7 @@ export class FDiagnostics {
         let ctx = createEmptyContext();
 
         // Load all keys from namespace
-        let res = await src.namespace.range(ctx, this.connection, []);
+        let res = await src.namespace.range(ctx, []);
         res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
         let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(v.key).splice(2) as any));
 

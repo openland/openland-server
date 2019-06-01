@@ -9,7 +9,7 @@ export function generateAtomic(atomic: AtomicModel): string {
 
     res += 'export class ' + entityClass + 'Factory extends FAtomicIntegerFactory {\n';
     res += '    constructor(connection: FConnection) {\n';
-    res += '        super(connection, new FNamespace(\'atomic\', \'' + entityKey + '\'));\n';
+    res += '        super(connection, new FNamespace(connection, \'atomic\', \'' + entityKey + '\'));\n';
     res += '    }\n';
 
     res += '    async findById(ctx: Context, ' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';

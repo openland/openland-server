@@ -53,7 +53,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'simpleEntity'),
+            new FNamespace(connection, 'entity', 'simpleEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false },
             [],
             'SimpleEntity'
@@ -120,7 +120,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'versionedEntity'),
+            new FNamespace(connection, 'entity', 'versionedEntity'),
             { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false },
             [],
             'VersionedEntity'
@@ -187,7 +187,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'timestampedEntity'),
+            new FNamespace(connection, 'entity', 'timestampedEntity'),
             { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false },
             [],
             'TimestampedEntity'
@@ -281,7 +281,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'indexedEntity'),
+            new FNamespace(connection, 'entity', 'indexedEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true)],
             'IndexedEntity'
@@ -396,7 +396,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'indexedRangeEntity'),
+            new FNamespace(connection, 'entity', 'indexedRangeEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['data1', 'data2'], false)],
             'IndexedRangeEntity'
@@ -508,7 +508,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'indexedPartialEntity'),
+            new FNamespace(connection, 'entity', 'indexedPartialEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
             'IndexedPartialEntity'
@@ -597,7 +597,7 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'nullableEntity'),
+            new FNamespace(connection, 'entity', 'nullableEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, hasLiveStreams: false },
             [],
             'NullableEntity'
@@ -665,7 +665,7 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'rangeTest'),
+            new FNamespace(connection, 'entity', 'rangeTest'),
             { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['key', 'id'], false)],
             'RangeTest'
@@ -778,7 +778,7 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'complexRangeTest'),
+            new FNamespace(connection, 'entity', 'complexRangeTest'),
             { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('nonUnique', ['subId1', 'subId2'], false), new FEntityIndex('unique', ['subId1', 'subId2'], true)],
             'ComplexRangeTest'
@@ -889,7 +889,7 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'jsonTest'),
+            new FNamespace(connection, 'entity', 'jsonTest'),
             { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, hasLiveStreams: false },
             [],
             'JsonTest'
@@ -917,7 +917,7 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
 }
 export class SampleAtomicFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('atomic', 'sampleAtomic'));
+        super(connection, new FNamespace(connection, 'atomic', 'sampleAtomic'));
     }
     async findById(ctx: Context, id: string) {
         return await this._findById(ctx, [id]);

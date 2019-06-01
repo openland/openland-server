@@ -8,7 +8,7 @@ interface RangeOptions {
     reverse?: boolean;
 }
 
-export class TransactionWrapper {
+export class FRawTransaction {
     private readonly tx: Transaction<Buffer, Buffer>;
 
     constructor(tx: Transaction<Buffer, Buffer>) {
@@ -57,37 +57,5 @@ export class TransactionWrapper {
                 reverse: opts && opts.reverse ? opts.reverse : undefined
             })).map((v) => ({ key: v[0], value: v[1] }));
         }
-    }
-
-    //
-    // Atomic Mutations
-    //
-
-    atomicAdd(key: Buffer, value: Buffer) {
-        if (this.tx.isSnapshot) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.tx.add(key, value);
-    }
-
-    atomicAnd(key: Buffer, value: Buffer) {
-        if (this.tx.isSnapshot) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.tx.bitAnd(key, value);
-    }
-
-    atomicOr(key: Buffer, value: Buffer) {
-        if (this.tx.isSnapshot) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.tx.bitOr(key, value);
-    }
-
-    atomicXor(key: Buffer, value: Buffer) {
-        if (this.tx.isSnapshot) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.tx.bitXor(key, value);
     }
 }

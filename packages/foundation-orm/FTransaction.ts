@@ -17,8 +17,4 @@ export interface FTransaction {
     rangeAfter(context: Context, connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     set(context: Context, connection: FConnection, key: Buffer, value: any): void;
     delete(context: Context, connection: FConnection, key: Buffer): void;
-
-    atomicSet(context: Context, connection: FConnection, key: Buffer, value: number): void;
-    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number): void;
-    atomicGet(context: Context, connection: FConnection, key: Buffer): Promise<number | null>;
 }
