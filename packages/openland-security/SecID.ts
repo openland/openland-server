@@ -51,7 +51,7 @@ function encodeStyle(value: Buffer, style: SecIDStyle, hashids: Hashids) {
 function encodeNumberIdBody(value: SecIDv2ValueType, typeId: number) {
     // Preflight check
     if (typeof value !== 'number') {
-        throw new IDMailformedError('Id value and valueType mismatch');
+        throw new IDMailformedError('Id value and valueType mismatch, got: ' + value + ', ' + (typeof value));
     }
     if (value < 0) {
         throw new IDMailformedError('Ids can\'t be negative!');
@@ -165,7 +165,7 @@ function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, en
         correctType = type.has(valueTypeId);
     }
     if (correctType && correctVersion && hmacCorrect && correctValueTypeId && valueRes) {
-        return {id: valueRes, type: valueTypeId};
+        return { id: valueRes, type: valueTypeId };
     }
     throw new IDMailformedError('Invalid id: ' + valuestr);
 }
