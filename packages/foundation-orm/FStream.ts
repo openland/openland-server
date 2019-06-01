@@ -62,11 +62,11 @@ export class FStream<T extends FEntity> {
             }
             return d;
         } else {
-            let res = await getTransaction(this.ctx).range(this.ctx, this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
+            let res = await this.ops.range(this.ctx, [], { limit: this.limit });
             let d: T[] = [];
             for (let r of res) {
-                d.push(this.builder(r.item));
-                this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
+                d.push(this.builder(r.value));
+                this._cursor = FKeyEncoding.encodeKeyToString(r.key);
             }
             return d;
         }
