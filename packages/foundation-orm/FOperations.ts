@@ -1,24 +1,24 @@
 import { Context } from 'openland-utils/Context';
+import { FRangeOptions } from './FRangeOptions';
+import { FTransformer } from './FTransformer';
 
-interface RangeOptions {
-    after?: Buffer;
-    limit?: number;
-    reverse?: boolean;
-}
+export interface FOperations<K = Buffer, V = Buffer> {
 
-export interface FOperations {
+    withKeyEncoding<K2>(keyTf: FTransformer<K, K2>): FOperations<K2, V>;
+    withValueEncoding<V2>(valueTf: FTransformer<V, V2>): FOperations<K, V2>;
+    subspace(key: K): FOperations<K, V>;
 
-    get(ctx: Context, key: Buffer): Promise<Buffer | null>;
+    get(ctx: Context, key: K): Promise<V | null>;
 
-    range(ctx: Context, key: Buffer, opts?: RangeOptions): Promise<{ key: Buffer, value: Buffer }[]>;
+    range(ctx: Context, key: K, opts?: FRangeOptions<K>): Promise<{ key: K, value: V }[]>;
 
-    set(ctx: Context, key: Buffer, value: Buffer): void;
+    set(ctx: Context, key: K, value: V): void;
 
-    delete(ctx: Context, key: Buffer): void;
+    delete(ctx: Context, key: K): void;
 
-    add(ctx: Context, key: Buffer, value: Buffer): void;
+    add(ctx: Context, key: K, value: V): void;
 
-    or(ctx: Context, key: Buffer, value: Buffer): void;
+    or(ctx: Context, key: K, value: V): void;
 
-    xor(ctx: Context, key: Buffer, value: Buffer): void;
+    xor(ctx: Context, key: K, value: V): void;
 }

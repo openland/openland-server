@@ -41,7 +41,7 @@ export const FKeyEncoding = {
         // } catch (e) {
         //     log.warn('Unable to encode key with new encoder!!', key, e);
         // }
-        return res;
+        return res as (string | boolean | number)[];
     },
     decodeFromString: (key: string) => {
         return encoders.tuple.unpack(Buffer.from(key, 'hex'));

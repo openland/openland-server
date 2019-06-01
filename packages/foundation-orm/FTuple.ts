@@ -1,0 +1,1 @@
+export type FTuple = (string | number | boolean);

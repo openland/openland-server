@@ -9,13 +9,11 @@ import { FOperations } from './FOperations';
 export class FAtomicIntegerFactory {
 
     readonly connection: FConnection;
-    readonly namespace: FNamespace;
     readonly directory: FDirectory;
     readonly ops: FOperations;
 
     constructor(connection: FConnection, namespace: FNamespace) {
         this.connection = connection;
-        this.namespace = namespace;
         this.ops = connection.ops;
         this.directory = connection.getDirectory(namespace.namespace);
     }

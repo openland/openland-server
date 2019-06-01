@@ -16,6 +16,8 @@ export function getTransaction(ctx: Context): FTransaction {
     }
 
     // Create ephermal read-only transaction
-    log.warn(ctx, 'Using ephermal transaction! Consider using a permanent one.');
+    if (!process.env.JEST_WORKER_ID) {
+        log.warn(ctx, 'Using ephermal transaction! Consider using a permanent one.');
+    }
     return new FTransactionReadOnly();
 }

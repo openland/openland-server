@@ -13,7 +13,7 @@ export async function checkIndexConsistency<T extends FEntity>(parent: Context, 
 
         for (let item of data) {
             let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, rawId);
+            let actual = await entity.namespace.ops.get(ctx, rawId);
 
             if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
                 duplicatesCount++;
@@ -32,7 +32,7 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
 
         for (let item of data) {
             let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, rawId);
+            let actual = await entity.namespace.ops.get(ctx, rawId);
 
             if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
                 duplicatesCount++;

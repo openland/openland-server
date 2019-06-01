@@ -9,6 +9,7 @@ import { tracer } from './utils/tracer';
 import { FTransaction } from './FTransaction';
 import { getTransaction } from './getTransaction';
 import { FOperations } from './FOperations';
+import { FTuple } from './FTuple';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -21,7 +22,7 @@ const log = createLogger('FEntity', false);
 
 export abstract class FEntity {
     abstract readonly entityName: string;
-    readonly namespace: FNamespace;
+    readonly obsoleteKeySpace: FOperations<FTuple[], any>;
     readonly directory: FDirectory;
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
@@ -40,7 +41,7 @@ export abstract class FEntity {
 
     constructor(ctx: Context, connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
-        this.namespace = namespace;
+        this.obsoleteKeySpace = namespace.ops;
         this.directory = directory;
         this.rawId = id;
         this.connection = connection;
@@ -162,7 +163,7 @@ export abstract class FEntity {
                 }
 
                 // Write to the store
-                this.namespace.set(ctx, this.rawId, value);
+                this.obsoleteKeySpace.set(ctx, this.rawId, value);
                 this.directory.set(ctx, this.rawId, value);
 
                 // Create or Update indexes
@@ -183,14 +184,14 @@ export abstract class FEntity {
                         let key = index.fields.map((v) => value[v]);
                         if (index.unique) {
                             if (!unsafe) {
-                                let ex = await this.namespace.get(ctx, ['__indexes', index.name, ...key]);
+                                let ex = await this.obsoleteKeySpace.get(ctx, ['__indexes', index.name, ...key]);
                                 if (ex) {
                                     throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                                 }
                             }
-                            this.namespace.set(ctx, ['__indexes', index.name, ...key], value);
+                            this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
                         } else {
-                            this.namespace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                     }
                 } else {
@@ -231,27 +232,27 @@ export abstract class FEntity {
 
                         if (index.unique) {
                             if (needToDeleteOld) {
-                                this.namespace.delete(ctx, ['__indexes', index.name, ...oldkey]);
+                                this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey]);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
-                                    if (await this.namespace.get(ctx, ['__indexes', index.name, ...key])) {
+                                    if (await this.obsoleteKeySpace.get(ctx, ['__indexes', index.name, ...key])) {
                                         throw Error('Unique index constraint failed for index ' + index.name);
                                     }
                                 }
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.namespace.set(ctx, ['__indexes', index.name, ...key], value);
+                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
                             }
                         } else {
                             if (needToDeleteOld) {
-                                this.namespace.delete(ctx, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                                this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
-                                this.namespace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.namespace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                             }
                         }
                     }

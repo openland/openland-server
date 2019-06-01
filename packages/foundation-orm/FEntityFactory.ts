@@ -38,7 +38,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findByRawId(ctx: Context, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.get(ctx, key);
+            let res = await this.namespace.ops.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }
@@ -86,7 +86,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected async _findFromIndex(parent: Context, key: (string | number)[]) {
         return this.readOp(parent, async () => {
             return await tracer.trace(parent, 'FindById', async (ctx) => {
-                let res = await this.namespace.get(ctx, key);
+                let res = await this.namespace.ops.get(ctx, key);
                 if (res) {
                     return this.doCreateEntity(ctx, res, false);
                 }
@@ -221,7 +221,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 return cached;
             } else {
                 let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                    let r = await this.namespace.get(ctx, key);
+                    let r = await this.namespace.ops.get(ctx, key);
                     if (r) {
                         return this.doCreateEntity(ctx, r, false);
                     } else {
@@ -235,7 +235,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
         // Uncached (Obsolete: Might never happen)
         return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-            let res = await this.namespace.get(ctx, key);
+            let res = await this.namespace.ops.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }
