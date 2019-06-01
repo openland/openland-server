@@ -91,7 +91,7 @@ export class PresenceModule {
                 lastSeen: expires
             };
             await this.handleOnlineChange(event);
-            resolveContext(ctx).afterTransaction(() => {
+            resolveContext(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
             });
         });
@@ -114,7 +114,7 @@ export class PresenceModule {
                 lastSeen: Date.now()
             };
             await this.handleOnlineChange(event);
-            resolveContext(ctx).afterTransaction(() => {
+            resolveContext(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
             });
         });

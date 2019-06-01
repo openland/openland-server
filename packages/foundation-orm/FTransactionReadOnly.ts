@@ -1,5 +1,4 @@
 import { FBaseTransaction } from './utils/FBaseTransaction';
-import { FEntity } from './FEntity';
 import { FConnection } from './FConnection';
 import { Context } from 'openland-utils/Context';
 
@@ -7,13 +6,13 @@ export class FTransactionReadOnly extends FBaseTransaction {
     readonly isReadOnly = true;
     readonly isCompleted = false;
 
-    markDirty(context: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>) {
+    beforeCommit(fn: ((ctx: Context) => Promise<void>) | (() => void)) {
         throw Error('Trying to write to read-only context');
     }
-    afterTransaction(callback: () => void) {
+    afterCommit(fn: (ctx: Context) => void) {
         throw Error('Trying to write to read-only context');
     }
-    
+
     protected createTransaction(connection: FConnection) {
         return connection.fdb.rawCreateTransaction({ causal_read_risky: true }).snapshot();
     }

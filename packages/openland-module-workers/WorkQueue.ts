@@ -25,7 +25,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
     pushWork = async (parent: Context, work: ARGS) => {
         return await inTxLeaky(parent, async (ctx) => {
-            resolveContext(ctx).afterTransaction(() => {
+            resolveContext(ctx).afterCommit(() => {
                 EventBus.publish(this.pubSubTopic, {});
             });
             // Do UNSAFE task creation since there won't be conflicts because our is is guaranteed to be unique (uuid)

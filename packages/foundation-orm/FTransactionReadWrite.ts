@@ -1,6 +1,4 @@
 import { FConnection } from './FConnection';
-import { FEntity } from './FEntity';
-// import { createLogger } from 'openland-log/createLogger';
 import { tracer } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
 import { Context } from 'openland-utils/Context';
@@ -10,26 +8,24 @@ import { Context } from 'openland-utils/Context';
 export class FTransactionReadWrite extends FBaseTransaction {
 
     readonly isReadOnly: boolean = false;
-    private _pending = new Map<string, (ctx: Context) => Promise<void>>();
-    private pendingCallbacks: (() => void)[] = [];
+    private _beforeCommit: (((ctx: Context) => void) | ((ctx: Context) => Promise<void>))[] = [];
+    private _afterCommit: ((ctx: Context) => void)[] = [];
     private _isCompleted = false;
 
     get isCompleted() {
         return this._isCompleted;
     }
 
-    afterTransaction(callback: () => void) {
-        this.pendingCallbacks.push(callback);
+    beforeCommit(fn: ((ctx: Context) => void) | ((ctx: Context) => Promise<void>)) {
+        this._beforeCommit.push(fn);
     }
 
-    markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>) {
-        this.prepare(parent, entity.connection);
-        let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
-        this._pending.set(key, callback);
+    afterCommit(fn: (ctx: Context) => void) {
+        this._afterCommit.push(fn);
     }
 
     async abort() {
-        if (this._isCompleted) { 
+        if (this._isCompleted) {
             return;
         }
         this._isCompleted = true;
@@ -49,8 +45,8 @@ export class FTransactionReadWrite extends FBaseTransaction {
             return;
         }
 
-        let pend = [...this._pending.values()];
-        this._pending.clear();
+        let pend = [...this._beforeCommit];
+        this._beforeCommit = [];
         if (pend.length > 0) {
             await tracer.trace(parent, 'tx-flush-pending', async (ctx) => {
                 for (let p of pend) {
@@ -69,18 +65,22 @@ export class FTransactionReadWrite extends FBaseTransaction {
         }
 
         // Do not need to parallel things since client will batch everything for us
+        let pend = [...this._beforeCommit];
+        this._beforeCommit = [];
         await tracer.trace(parent, 'tx-flush', async (ctx) => {
-            for (let p of this._pending.values()) {
+            for (let p of pend) {
                 await p(ctx);
             }
         });
         await tracer.trace(parent, 'tx-commit', async () => {
             await this.tx!.commit();
         });
-        if (this.pendingCallbacks.length > 0) {
-            await tracer.trace(parent, 'tx-hooks', async () => {
-                for (let p of this.pendingCallbacks) {
-                    p();
+        let pend2 = [...this._afterCommit];
+        this._afterCommit = [];
+        if (pend2.length > 0) {
+            await tracer.trace(parent, 'tx-hooks', async (ctx) => {
+                for (let p of pend2) {
+                    p(ctx);
                 }
             });
         }

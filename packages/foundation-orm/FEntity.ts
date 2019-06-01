@@ -110,15 +110,13 @@ export abstract class FEntity {
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
-            this.context.markDirty(this.ctx, this, async (ctx: Context) => {
+            this.context.beforeCommit(async (ctx: Context) => {
                 await this._doFlush(ctx, false, true);
             });
         }
     }
 
     private async _doFlush(parent: Context, unsafe: boolean, lock: boolean) {
-        // console.warn('doFlush');
-
         let cache = FTransactionContext.get(parent);
         if (!cache) {
             throw Error('Tried to flush object outside of transaction');
@@ -167,7 +165,7 @@ export abstract class FEntity {
                 if (this.isNew) {
                     // Notify after successful transaction
                     if (this.options.hasLiveStreams) {
-                        this.context.afterTransaction(() => {
+                        this.context.afterCommit(() => {
                             this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
                         });
                     }

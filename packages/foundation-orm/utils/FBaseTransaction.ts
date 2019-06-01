@@ -1,7 +1,6 @@
 import { encoders } from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
 import { FTransaction } from 'foundation-orm/FTransaction';
-import { FEntity } from 'foundation-orm/FEntity';
 import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { createLogger } from 'openland-log/createLogger';
@@ -156,6 +155,6 @@ export abstract class FBaseTransaction implements FTransaction {
     // Lifecycle
     //
 
-    abstract markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>): void;
-    abstract afterTransaction(callback: () => void): void;
+    abstract beforeCommit(fn: ((ctx: Context) => Promise<void>) | (() => void)): void;
+    abstract afterCommit(fn: (ctx: Context) => void): void;
 }
