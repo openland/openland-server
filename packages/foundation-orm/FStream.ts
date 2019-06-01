@@ -2,7 +2,6 @@ import { FEntity } from './FEntity';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
 import { createEmptyContext } from 'openland-utils/Context';
-import { getTransaction } from './getTransaction';
 import { FOperations } from './FOperations';
 import { FTuple } from './FTuple';
 import { FEncoders } from './FEncoders';
