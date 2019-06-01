@@ -1,6 +1,9 @@
 import { FTuple } from 'foundation-orm/FTuple';
 
 function removePrefix(src: FTuple[], prefix: FTuple[]): FTuple[] {
+    if (prefix.length === 0) {
+        return src;
+    }
     let key = [...src];
 
     let hasNamespacePrefix = true;
@@ -19,5 +22,6 @@ function removePrefix(src: FTuple[], prefix: FTuple[]): FTuple[] {
 }
 
 export function fixObsoleteCursor(src: FTuple[], namespace: FTuple[], subspace: FTuple[]): FTuple[] {
+    console.log('Fix Cursor: ' + (JSON.stringify(src)));
     return removePrefix(removePrefix(src, namespace), subspace);
 }
