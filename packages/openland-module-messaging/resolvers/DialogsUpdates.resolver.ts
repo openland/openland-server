@@ -150,9 +150,10 @@ export default {
                 //     yield event;
                 // }
                 console.log('Load dialogs from ' + args.fromState + ' by ' + ctx.auth.uid);
+                let tail = await FDB.UserDialogEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
 
                 // start subscription from last known event
-                let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, args.fromState || undefined);
+                let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, tail);
                 for await (let event of generator) {
                     yield event;
                 }
