@@ -11,6 +11,7 @@ function removePrefix(src: FTuple[], prefix: FTuple[]): FTuple[] {
         }
     }
     if (hasNamespacePrefix) {
+        console.log('Fix Cursor: ' + (JSON.stringify(key)) + ', ' + (JSON.stringify(prefix)));
         key.splice(0, prefix.length);
     }
 
