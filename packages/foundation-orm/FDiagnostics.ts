@@ -14,9 +14,9 @@ export class FDiagnostics {
         let ctx = createEmptyContext();
 
         // Load all keys from namespace
-        let res = await src.namespace.range(ctx, []);
-        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
-        let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(v.key).splice(2) as any));
+        let res = await src.namespace.ops.range(ctx, []);
+        res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
+        let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(v.key.splice(2) as any));
 
         // Load all keys from directory
         let res2 = await src.directory.range2(ctx, []);

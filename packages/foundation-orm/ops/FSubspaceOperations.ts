@@ -39,7 +39,7 @@ export class FSubspaceOperations implements FOperations<Buffer, Buffer> {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         if (opts && opts.after) {
             let keyR = Buffer.concat([this.prefix, key]);
-            let after = Buffer.concat([this.prefix, opts.after!]);
+            let after = Buffer.concat([this.prefix, key, opts.after!]);
             let reversed = (opts && opts.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspaceBuf(keyR) : keySelector.firstGreaterThan(FKeyEncoding.lastKeyInSubspaceBuf(after));
             let end = reversed ? after : FKeyEncoding.lastKeyInSubspaceBuf(keyR);

@@ -15,7 +15,6 @@ import { delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
-import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
 import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 
 const URLInfoService = createUrlInfoService();
@@ -43,9 +42,8 @@ export async function fetchAllUids(ctx: Context) {
     let allUsers = await FDB.User.findAllKeys(ctx);
     let allUids: number[] = [];
     for (let key of allUsers) {
-        let k = FKeyEncoding.decodeKey(key);
-        k.splice(0, 2);
-        allUids.push(k[0] as number);
+        key.splice(0, 2);
+        allUids.push(key[0] as number);
     }
 
     return allUids;

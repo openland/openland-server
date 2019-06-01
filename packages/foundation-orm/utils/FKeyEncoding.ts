@@ -1,6 +1,7 @@
 import { encoders } from 'foundationdb';
 import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
+import { FTuple } from 'foundation-orm/FTuple';
 // import { pack } from './TupleEncoder';
 
 const byteFF = Buffer.alloc(1);
@@ -41,10 +42,10 @@ export const FKeyEncoding = {
         // } catch (e) {
         //     log.warn('Unable to encode key with new encoder!!', key, e);
         // }
-        return res as (string | boolean | number)[];
+        return res as FTuple[];
     },
     decodeFromString: (key: string) => {
-        return encoders.tuple.unpack(Buffer.from(key, 'hex'));
+        return encoders.tuple.unpack(Buffer.from(key, 'hex')) as FTuple[];
     },
     lastKeyInSubspace: (key: (string | boolean | number)[]) => {
         let r = encoders.tuple.pack(key) as Buffer;

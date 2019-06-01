@@ -9,13 +9,13 @@ export async function checkIndexConsistency<T extends FEntity>(parent: Context, 
     // Find index inconsistency
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, indexKey);
+        let data = await entity.namespace.ops.range(ctx, indexKey);
 
         for (let item of data) {
-            let rawId = extractRawId(item.item);
+            let rawId = extractRawId(item.value);
             let actual = await entity.namespace.ops.get(ctx, rawId);
 
-            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
+            if (JSON.stringify(actual) !== JSON.stringify(item.value)) {
                 duplicatesCount++;
             }
         }
@@ -28,15 +28,15 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
     // Remove duplicates from index
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, indexKey);
+        let data = await entity.namespace.ops.range(ctx, indexKey);
 
         for (let item of data) {
-            let rawId = extractRawId(item.item);
+            let rawId = extractRawId(item.value);
             let actual = await entity.namespace.ops.get(ctx, rawId);
 
-            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
+            if (JSON.stringify(actual) !== JSON.stringify(item.value)) {
                 duplicatesCount++;
-                await getTransaction(ctx).delete(ctx, FDB.connection, item.key);
+                await getTransaction(ctx).delete(ctx, FDB.connection, item.value);
             }
         }
     });

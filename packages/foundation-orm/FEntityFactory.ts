@@ -12,6 +12,8 @@ import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
 import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
+import { FTuple } from './FTuple';
+import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 
 const log = createLogger('entity-factory');
 
@@ -52,26 +54,26 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllKeys(ctx: Context, limit?: number) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, [], { limit });
-            res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
+            let res = await this.namespace.ops.range(ctx, [], { limit });
+            res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
             return res.map((v) => v.key);
         });
     }
 
-    async findAllKeysAfter(ctx: Context, after: any[], limit?: number) {
-        return this.readOp(ctx, async () => {
-            let res = await this.namespace.rangeAfter(ctx, [], after, { limit });
-            res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
-            return res.map((v) => v.key);
-        });
-    }
+    // async findAllKeysAfter(ctx: Context, after: any[], limit?: number) {
+    //     return this.readOp(ctx, async () => {
+    //         let res = await this.namespace.rangeAfter(ctx, [], after, { limit });
+    //         res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
+    //         return res.map((v) => v.key);
+    //     });
+    // }
 
-    async findAllWithIds(ctx: Context) {
-        return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, []);
-            return res.map((v) => ({ item: this.doCreateEntity(ctx, v.item, false), key: v.key }));
-        });
-    }
+    // async findAllWithIds(ctx: Context) {
+    //     return this.readOp(ctx, async () => {
+    //         let res = await this.namespace.range(ctx, []);
+    //         return res.map((v) => ({ item: this.doCreateEntity(ctx, v.item, false), key: v.key }));
+    //     });
+    // }
 
     abstract extractId(rawId: any[]): any;
 
@@ -97,40 +99,55 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findRangeAllAfter(ctx: Context, key: (string | number)[], after: any, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.rangeAfter(ctx, key, [...this.namespace.namespace, ...key, after], { reverse });
-            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+            let res = await this.namespace.ops.subspace(key).range(ctx, [], { after: [after], reverse });
+            return res.map((v) => this.doCreateEntity(ctx, v.value, false));
         });
     }
 
     protected async _findRange(ctx: Context, key: (string | number)[], limit: number, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, key, { limit, reverse });
-            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+            let res = await this.namespace.ops.range(ctx, key, { limit, reverse });
+            return res.map((v) => this.doCreateEntity(ctx, v.value, false));
         });
     }
 
     protected async _findRangeWithCursor(ctx: Context, key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res: { item: any, key: Buffer }[];
+            let res: { value: any, key: FTuple[] }[];
+            // Using subspace for shortest possible key
+            let subspace = this.namespace.ops.subspace(key);
             if (after) {
-                res = await this.namespace.rangeAfter(ctx, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
+                // Fix old cursors
+                let k = fixObsoleteCursor(FKeyEncoding.decodeFromString(after), this.namespace.namespace, key);
+                res = await subspace.range(ctx, [], { limit: limit + 1, reverse, after: k });
             } else {
-                res = await this.namespace.range(ctx, key, { limit: limit + 1, reverse });
+                res = await subspace.range(ctx, [], { limit: limit + 1, reverse });
             }
             let d: T[] = [];
             for (let i = 0; i < Math.min(limit, res.length); i++) {
-                d.push(this._createEntity(ctx, res[i].item, false));
+                d.push(this._createEntity(ctx, res[i].value, false));
             }
-            let cursor = res.length ? FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey((res[Math.min(res.length, limit) - 1]).key) as any) : after;
+            let cursor: string | undefined;
+            if (res.length > 0) {
+                if (res.length === limit + 1) {
+                    cursor = FKeyEncoding.encodeKeyToString(res[res.length - 2].key);
+                } else {
+                    cursor = FKeyEncoding.encodeKeyToString(res[res.length - 1].key);
+                }
+            } else {
+                cursor = after;
+            }
+            // let cursor = res.length ? FKeyEncoding.encodeKeyToString((res[Math.min(res.length - 2, limit)]).key) : after;
             let haveMore = res.length > limit;
             return { items: d, cursor, haveMore };
         });
     }
 
-    protected async _findRangeAfter(ctx: Context, subspace: (string | number)[], after: any, limit?: number, reverse?: boolean) {
+    protected async _findRangeAfter(ctx: Context, subspace: (string | number)[], after: (string | number), limit?: number, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.rangeAfter(ctx, subspace, [...this.namespace.namespace, ...subspace, after], { limit, reverse });
-            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+            let res = await this.namespace.ops
+                .range(ctx, subspace, { limit, reverse, after: [after] });
+            return res.map((v) => this.doCreateEntity(ctx, v.value, false));
         });
     }
 
@@ -143,8 +160,8 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findAll(ctx: Context, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.range(ctx, key);
-            return res.map((v) => this.doCreateEntity(ctx, v.item, false));
+            let res = await this.namespace.ops.range(ctx, key);
+            return res.map((v) => this.doCreateEntity(ctx, v.value, false));
         });
     }
 
