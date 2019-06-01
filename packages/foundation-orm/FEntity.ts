@@ -1,5 +1,4 @@
 import { FNamespace } from './FNamespace';
-import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
@@ -7,6 +6,7 @@ import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
 import { resolveContext, FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
+import { FTransaction } from './FTransaction';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -25,7 +25,7 @@ export abstract class FEntity {
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
     readonly ctx: Context;
-    readonly context: FContext;
+    readonly context: FTransaction;
 
     protected _valueInitial: any;
     protected _value: any;

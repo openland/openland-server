@@ -10,7 +10,7 @@ import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
-import { FCacheContextContext, FTransactionContext } from './utils/contexts';
+import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 
 const log = createLogger('entity-factory');
@@ -187,7 +187,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         try {
             this.options.validator(value);
             let res = this._createEntity(ctx, value, isNew);
-            let cache = FTransactionContext.get(ctx) || FCacheContextContext.get(ctx);
+            let cache = FTransactionContext.get(ctx) || FTransactionReadOnlyContext.get(ctx);
             if (cache) {
                 let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...res.rawId]);
                 let ex = cache.findInCache(cacheKey);
@@ -212,7 +212,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     private async  _findByIdInternal(parent: Context, key: (string | number)[]): Promise<T | null> {
 
         // Cached
-        let cache = FTransactionContext.get(parent) || FCacheContextContext.get(parent);
+        let cache = FTransactionContext.get(parent) || FTransactionReadOnlyContext.get(parent);
         if (cache) {
             let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
 
@@ -258,7 +258,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     private getLock(ctx: Context) {
-        let cache = FTransactionContext.get(ctx) || FCacheContextContext.get(ctx);
+        let cache = FTransactionContext.get(ctx) || FTransactionReadOnlyContext.get(ctx);
         if (!cache) {
             // throw Error('No transaction or cache in the context!');
             return null;

@@ -83,7 +83,7 @@ describe('FEntity with range index', () => {
         expect(res0[0].id).toBe(24);
         expect(res0[1].id).toBe(25);
 
-        let res1 = await testEntities.IndexedRangeEntity.rangeFromDefaultAfter(parent, 'paging4', '3', 2);
+        let res1 = await testEntities.IndexedRangeEntity.rangeFromDefaultAfter(parent, 'paging4', '2', 2);
         expect(res1.length).toBe(2);
         expect(res1[0].id).toBe(26);
         expect(res1[1].id).toBe(27);

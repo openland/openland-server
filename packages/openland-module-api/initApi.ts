@@ -18,7 +18,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
-import { withCache } from 'foundation-orm/withCache';
+import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
 import { initSafariPush } from '../openland-module-push/safari/handlers';
 import { initAppHandlers } from '../openland-module-apps/Apps.handler';
 import { ApolloServer } from 'apollo-server-express';
@@ -197,7 +197,7 @@ export async function initApi(isTest: boolean) {
                     let ex = document.definitions.find((v) => v.kind === 'OperationDefinition');
                     let srcCtx = (contextValue as AppContext).ctx;
                     if (ex && (ex as OperationDefinitionNode).operation !== 'subscription') {
-                        srcCtx = withCache(srcCtx);
+                        srcCtx = withReadOnlyTransaction(srcCtx);
                     }
 
                     srcCtx = withConcurrentcyPool(srcCtx, buildConcurrencyPool((contextValue as AppContext)));
@@ -298,7 +298,7 @@ export async function initApi(isTest: boolean) {
                 return await fetchWebSocketParameters(params, null);
             },
             context: async params => {
-                return new AppContext(withCache(buildWebSocketContext(params || {}).ctx));
+                return new AppContext(withReadOnlyTransaction(buildWebSocketContext(params || {}).ctx));
             },
             genSessionId: async authParams => randomKey(),
             formatResponse: async value => {

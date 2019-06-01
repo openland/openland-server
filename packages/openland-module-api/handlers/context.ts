@@ -7,7 +7,7 @@ import { AuthContext } from 'openland-module-auth/AuthContext';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { withCache } from 'foundation-orm/withCache';
+import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
@@ -48,7 +48,7 @@ async function context(src: express.Request): Promise<AppContext> {
     // Tracing Context
     res = TracingContext.set(res, { span: tracer.startSpan('http') });
     res = CacheContext.set(res, new Map());
-    res = withCache(res);
+    res = withReadOnlyTransaction(res);
     
     return new AppContext(res);
 }

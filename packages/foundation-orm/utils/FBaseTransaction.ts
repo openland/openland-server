@@ -1,6 +1,6 @@
-import { keySelector, encoders } from 'foundationdb';
+import { encoders } from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
-import { FContext } from 'foundation-orm/FContext';
+import { FTransaction } from 'foundation-orm/FTransaction';
 import { FEntity } from 'foundation-orm/FEntity';
 import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
@@ -11,17 +11,18 @@ import { FKeyEncoding } from './FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 import { ConcurrencyPool, getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { ReadWriteLock } from './readWriteLock';
-import { decodeAtomic } from './atomicEncode';
+import { decodeAtomic, encodeAtomic } from './atomicEncode';
+import { TransactionWrapper } from 'foundation-orm/tx/TransactionWrapper';
 
 const log = createLogger('tx', false);
 
-export abstract class FBaseTransaction implements FContext {
+export abstract class FBaseTransaction implements FTransaction {
     private static nextId = 1;
 
     readonly id = FBaseTransaction.nextId++;
     abstract isReadOnly: boolean;
     abstract isCompleted: boolean;
-    tx: Transaction<NativeValue, NativeValue> | null = null;
+    tx: TransactionWrapper | null = null;
 
     protected readonly log: SLog = log;
     protected connection: FConnection | null = null;
@@ -51,51 +52,69 @@ export abstract class FBaseTransaction implements FContext {
 
     async get(parent: Context, connection: FConnection, key: Buffer): Promise<any | null> {
         this.prepare(parent, connection);
-        return await tracer.trace(parent, 'get', async (ctx) => {
-            // this.log.debug(ctx, 'get');
-            let r = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key));
-            if (r) {
-                return encoders.json.unpack(r as Buffer);
-            } else {
-                return null;
-            }
-        });
+        let r = await this.tx!.get(key);
+        if (r) {
+            return encoders.json.unpack(r);
+        } else {
+            return null;
+        }
     }
 
     async range(parent: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(parent, connection);
-        return await tracer.trace(parent, 'range', async (ctx) => {
-            // this.log.debug(ctx, 'get-range');
-            let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
-            return res.map((v) => ({ item: encoders.json.unpack(v[1]), key: v[0] }));
-        });
+        return (await this.tx!.range(key, {
+            limit: options && options.limit ? options.limit : undefined,
+            reverse: options && options.reverse ? options.reverse : undefined,
+        })).map((v) => ({ item: encoders.json.unpack(v.value), key: v.key }));
     }
+
     async rangeAll(parent: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
         this.prepare(parent, connection);
-        return await tracer.trace(parent, 'rangeAll', async (ctx) => {
-            // this.log.debug(ctx, 'get-range-all');
-            let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
-            return res.map((v) => encoders.json.unpack(v[1]));
-        });
+        return (await this.tx!.range(key, {
+            limit: options && options.limit ? options.limit : undefined,
+            reverse: options && options.reverse ? options.reverse : undefined,
+        })).map((v) => encoders.json.unpack(v.value));
     }
     async rangeAfter(parent: Context, connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(parent, connection);
-        return await tracer.trace(parent, 'rangeAfter', async (ctx) => {
-            // this.log.debug(ctx, 'get-range-after');
-            let reversed = (options && options.reverse) ? true : false;
-            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.lastKeyInSubspace(afterKey));
-            let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);
-            let res = await this.concurrencyPool!.run(() => (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options));
-            return res.map((v) => ({ item: encoders.json.unpack(v[1]), key: v[0] }));
-        });
+        return (await this.tx!.range(FKeyEncoding.encodeKey(prefix), {
+            after: FKeyEncoding.encodeKey(afterKey),
+            limit: options && options.limit ? options.limit : undefined,
+            reverse: options && options.reverse ? options.reverse : undefined,
+        })).map((v) => ({ item: encoders.json.unpack(v.value), key: v.key }));
     }
 
-    protected abstract createTransaction(connection: FConnection): Transaction<NativeValue, Buffer>;
+    set(parent: Context, connection: FConnection, key: Buffer, value: any) {
+        if (this.isReadOnly) {
+            throw Error('Trying to write to read-only transaction');
+        }
+        this.prepare(parent, connection);
+        this.tx!.set(key, encoders.json.pack(value) as Buffer);
+    }
 
-    abstract markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>): void;
-    abstract set(context: Context, connection: FConnection, key: Buffer, value: any): void;
-    abstract delete(context: Context, connection: FConnection, key: Buffer): void;
-    abstract afterTransaction(callback: () => void): void;
+    delete(parent: Context, connection: FConnection, key: Buffer) {
+        if (this.isReadOnly) {
+            throw Error('Trying to write to read-only transaction');
+        }
+        this.prepare(parent, connection);
+        this.tx!.delete(key);
+    }
+
+    atomicSet(context: Context, connection: FConnection, key: Buffer, value: number) {
+        if (this.isReadOnly) {
+            throw Error('Trying to write to read-only transaction');
+        }
+        this.prepare(context, connection);
+        this.tx!.set(key, encodeAtomic(value));
+    }
+
+    atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number) {
+        if (this.isReadOnly) {
+            throw Error('Trying to write to read-only transaction');
+        }
+        this.prepare(context, connection);
+        this.tx!.atomicAdd(key, encodeAtomic(value));
+    }
 
     //
     // Atomic
@@ -113,8 +132,9 @@ export abstract class FBaseTransaction implements FContext {
         });
     }
 
-    abstract atomicSet(context: Context, connection: FConnection, key: Buffer, value: number): void;
-    abstract atomicAdd(context: Context, connection: FConnection, key: Buffer, value: number): void;
+    //
+    // Connection
+    //
 
     protected prepare(ctx: Context, connection: FConnection) {
         if (this.connection && this.connection !== connection) {
@@ -127,6 +147,15 @@ export abstract class FBaseTransaction implements FContext {
         // log.debug(ctx, 'started');
         this.connection = connection;
         this.concurrencyPool = getConcurrencyPool(ctx);
-        this.tx = this.createTransaction(connection);
+        this.tx = new TransactionWrapper(this.createTransaction(connection) as Transaction<Buffer, Buffer>);
     }
+
+    protected abstract createTransaction(connection: FConnection): Transaction<NativeValue, Buffer>;
+
+    //
+    // Lifecycle
+    //
+
+    abstract markDirty(parent: Context, entity: FEntity, callback: (ctx: Context) => Promise<void>): void;
+    abstract afterTransaction(callback: () => void): void;
 }

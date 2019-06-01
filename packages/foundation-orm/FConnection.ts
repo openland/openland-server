@@ -1,5 +1,4 @@
 import * as fdb from 'foundationdb';
-import { FContext, FGlobalContext } from './FContext';
 import * as fs from 'fs';
 import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
@@ -10,7 +9,6 @@ import { FDirectory } from './FDirectory';
 import { FDiagnostics } from './FDiagnostics';
 
 export class FConnection {
-    static readonly globalContext: FContext = new FGlobalContext();
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
     readonly diagnostics: FDiagnostics;

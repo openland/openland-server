@@ -1,4 +1,4 @@
-import { FTransaction } from './FTransaction';
+import { FTransactionReadWrite } from './FTransactionReadWrite';
 import { FDBError } from 'foundationdb';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
@@ -29,7 +29,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
     try {
         let isRetry = false;
         do {
-            let tx = new FTransaction();
+            let tx = new FTransactionReadWrite();
             let ctxi = FTransactionContext.set(ctx, tx);
             ctxi = withLogContext(ctxi, ['transaction', tx.id.toString()]);
             try {
@@ -38,7 +38,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
                 return result;
             } catch (err) {
                 if (err instanceof FDBError) {
-                    await tx.tx!.rawOnError(err.code);
+                    await tx.tx!.handleError(err.code);
                     log.debug(ctxi, 'retry with code ' + err.code);
                     isRetry = true;
                 } else {
