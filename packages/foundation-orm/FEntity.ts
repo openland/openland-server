@@ -4,9 +4,10 @@ import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
-import { resolveContext, FTransactionContext } from './utils/contexts';
+import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 import { FTransaction } from './FTransaction';
+import { getTransaction } from './getTransaction';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -25,7 +26,7 @@ export abstract class FEntity {
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
     readonly ctx: Context;
-    readonly context: FTransaction;
+    readonly transaction: FTransaction;
 
     protected _valueInitial: any;
     protected _value: any;
@@ -41,8 +42,8 @@ export abstract class FEntity {
         this.directory = directory;
         this.rawId = id;
         this.connection = connection;
-        this.context = resolveContext(ctx);
-        this.isReadOnly = this.context.isReadOnly;
+        this.transaction = getTransaction(ctx);
+        this.isReadOnly = this.transaction.isReadOnly;
         this.options = options;
         this.isNew = isNew;
         this.indexes = indexes;
@@ -95,7 +96,7 @@ export abstract class FEntity {
         if (this.isReadOnly) {
             throw Error('Entity is not writable. Did you wrapped everything in transaction?');
         }
-        if (this.context.isCompleted) {
+        if (this.transaction.isCompleted) {
             throw Error('You can\'t update entity when transaction is in completed state.');
         }
     }
@@ -110,7 +111,7 @@ export abstract class FEntity {
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
-            this.context.beforeCommit(async (ctx: Context) => {
+            this.transaction.beforeCommit(async (ctx: Context) => {
                 await this._doFlush(ctx, false, true);
             });
         }
@@ -165,7 +166,7 @@ export abstract class FEntity {
                 if (this.isNew) {
                     // Notify after successful transaction
                     if (this.options.hasLiveStreams) {
-                        this.context.afterCommit(() => {
+                        this.transaction.afterCommit(() => {
                             this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
                         });
                     }

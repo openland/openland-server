@@ -1,6 +1,6 @@
 import { Context } from 'openland-utils/Context';
-import { resolveContext } from './utils/contexts';
 import { FConnection } from './FConnection';
+import { getTransaction } from './getTransaction';
 
 export class FAtomicInteger {
 
@@ -12,11 +12,11 @@ export class FAtomicInteger {
     }
 
     get = async (ctx: Context) => {
-        let cont = resolveContext(ctx);
+        let cont = getTransaction(ctx);
         return await cont.atomicGet(ctx, this.connection, this.key);
     }
     set = (ctx: Context, value: number) => {
-        let cont = resolveContext(ctx);
+        let cont = getTransaction(ctx);
         cont.atomicSet(ctx, this.connection, this.key, value);
     }
     increment = (ctx: Context) => {
@@ -26,7 +26,7 @@ export class FAtomicInteger {
         this.add(ctx, -1);
     }
     add = (ctx: Context, value: number) => {
-        let cont = resolveContext(ctx);
+        let cont = getTransaction(ctx);
         cont.atomicAdd(ctx, this.connection, this.key, value);
     }
 }

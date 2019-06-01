@@ -1,5 +1,4 @@
 import Transaction from 'foundationdb/dist/lib/transaction';
-import { Context } from 'openland-utils/Context';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { keySelector } from 'foundationdb';
 
@@ -90,39 +89,5 @@ export class TransactionWrapper {
             throw Error('Trying to write to read-only transaction');
         }
         this.tx.bitXor(key, value);
-    }
-
-    //
-    // Lifecycle
-    //
-
-    async abort() {
-        await this.tx.rawCancel();
-    }
-
-    async commit() {
-        await this.tx.rawCommit();
-    }
-
-    async handleError(code: number) {
-        await this.tx.rawOnError(code);
-    }
-
-    //
-    // Hooks
-    //
-
-    beforeCommit(callback: (ctx: Context) => void) {
-        if (this.tx.isSnapshot) {
-            throw Error('Trying to write to read-only context');
-        }
-        // TODO: Implement
-    }
-
-    afterCommit(callback: (ctx: Context) => void) {
-        if (this.tx.isSnapshot) {
-            throw Error('Trying to write to read-only context');
-        }
-        // TODO: Implement
     }
 }

@@ -1,6 +1,6 @@
-import { FConnection } from './FConnection';
-import { tracer } from './utils/tracer';
-import { FBaseTransaction } from './utils/FBaseTransaction';
+import { FConnection } from '../FConnection';
+import { tracer } from '../utils/tracer';
+import { FBaseTransaction } from './FBaseTransaction';
 import { Context } from 'openland-utils/Context';
 
 // const log = createLogger('tx', false);
@@ -34,7 +34,7 @@ export class FTransactionReadWrite extends FBaseTransaction {
             return;
         }
 
-        await this.tx!.abort();
+        await this.rawTx.rawCancel();
     }
 
     async flushPending(parent: Context) {
@@ -73,7 +73,7 @@ export class FTransactionReadWrite extends FBaseTransaction {
             }
         });
         await tracer.trace(parent, 'tx-commit', async () => {
-            await this.tx!.commit();
+            await this.rawTx.rawCommit();
         });
         let pend2 = [...this._afterCommit];
         this._afterCommit = [];
@@ -86,6 +86,10 @@ export class FTransactionReadWrite extends FBaseTransaction {
         }
 
         this._isCompleted = true;
+    }
+
+    async handleError(code: number) {
+        await this.rawTx.rawOnError(code);
     }
 
     protected createTransaction(connection: FConnection) {

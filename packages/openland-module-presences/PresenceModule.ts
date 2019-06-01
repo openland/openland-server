@@ -11,7 +11,7 @@ import { Context, createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
-import { resolveContext } from '../foundation-orm/utils/contexts';
+import { getTransaction } from 'foundation-orm/getTransaction';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 // const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -91,7 +91,7 @@ export class PresenceModule {
                 lastSeen: expires
             };
             await this.handleOnlineChange(event);
-            resolveContext(ctx).afterCommit(() => {
+            getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
             });
         });
@@ -114,7 +114,7 @@ export class PresenceModule {
                 lastSeen: Date.now()
             };
             await this.handleOnlineChange(event);
-            resolveContext(ctx).afterCommit(() => {
+            getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
             });
         });

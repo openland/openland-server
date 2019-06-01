@@ -2,7 +2,7 @@ import { FConnection } from './FConnection';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { Context } from 'openland-utils/Context';
-import { resolveContext } from './utils/contexts';
+import { getTransaction } from './getTransaction';
 
 export class FDirectory {
     readonly connection: FConnection;
@@ -37,26 +37,26 @@ export class FDirectory {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        return resolveContext(ctx).get(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        return getTransaction(ctx).get(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
     }
 
     range = async (ctx: Context, key: (string | number)[]) => {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        return resolveContext(ctx).rangeAll(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        return getTransaction(ctx).rangeAll(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
     }
 
     range2 = async (ctx: Context, key: (string | number)[]) => {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        let res = await resolveContext(ctx).range(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        let res = await getTransaction(ctx).range(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
         return res.map((v) => ({ key: v.key.slice(this.allocatedKey!.length), item: v.item }));
     }
 
     set = (ctx: Context, key: (string | number)[], value: any) => {
-        resolveContext(ctx).set(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]), value);
+        getTransaction(ctx).set(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]), value);
     }
 
     private onAllocated(key: Buffer) {

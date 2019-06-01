@@ -10,7 +10,7 @@ import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createEmptyContext } from 'openland-utils/Context';
-import { resolveContext } from 'foundation-orm/utils/contexts';
+import { getTransaction } from 'foundation-orm/getTransaction';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
@@ -25,7 +25,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
     pushWork = async (parent: Context, work: ARGS) => {
         return await inTxLeaky(parent, async (ctx) => {
-            resolveContext(ctx).afterCommit(() => {
+            getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(this.pubSubTopic, {});
             });
             // Do UNSAFE task creation since there won't be conflicts because our is is guaranteed to be unique (uuid)

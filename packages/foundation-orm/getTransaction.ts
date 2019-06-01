@@ -1,8 +1,10 @@
 import { FTransaction } from './FTransaction';
 import { Context } from 'openland-utils/Context';
 import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
-import { FTransactionReadOnly } from './FTransactionReadOnly';
+import { FTransactionReadOnly } from './tx/FTransactionReadOnly';
+import { createLogger } from 'openland-log/createLogger';
 
+const log = createLogger('ephermal');
 export function getTransaction(ctx: Context): FTransaction {
     let tx = FTransactionContext.get(ctx);
     if (tx) {
@@ -14,5 +16,6 @@ export function getTransaction(ctx: Context): FTransaction {
     }
 
     // Create ephermal read-only transaction
+    log.warn(ctx, 'Using ephermal transaction! Consider using a permanent one.');
     return new FTransactionReadOnly();
 }
