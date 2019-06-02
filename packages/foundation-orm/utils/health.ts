@@ -2,8 +2,6 @@ import { FEntity } from '../FEntity';
 import { Context, createEmptyContext } from '../../openland-utils/Context';
 import { FEntityFactory } from '../FEntityFactory';
 import { inTx } from '../inTx';
-import { FDB } from '../../openland-module-db/FDB';
-import { getTransaction } from 'foundation-orm/getTransaction';
 
 export async function checkIndexConsistency<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
     // Find index inconsistency
@@ -36,7 +34,7 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
 
             if (JSON.stringify(actual) !== JSON.stringify(item.value)) {
                 duplicatesCount++;
-                await getTransaction(ctx).delete(ctx, FDB.connection, item.value);
+                entity.namespace.keySpace.delete(ctx, item.key);
             }
         }
     });

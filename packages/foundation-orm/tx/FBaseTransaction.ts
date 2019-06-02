@@ -44,16 +44,6 @@ export abstract class FBaseTransaction implements FTransaction {
         this.cache.set(key, value);
     }
 
-    async get(parent: Context, connection: FConnection, key: Buffer): Promise<any | null> {
-        this.prepare(connection);
-        let r = await this.tx!.get(key);
-        if (r) {
-            return encoders.json.unpack(r);
-        } else {
-            return null;
-        }
-    }
-
     async range(parent: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(connection);
         return (await this.tx!.range(key, {
@@ -76,14 +66,6 @@ export abstract class FBaseTransaction implements FTransaction {
         }
         this.prepare(connection);
         this.tx!.set(key, encoders.json.pack(value) as Buffer);
-    }
-
-    delete(parent: Context, connection: FConnection, key: Buffer) {
-        if (this.isReadOnly) {
-            throw Error('Trying to write to read-only transaction');
-        }
-        this.prepare(connection);
-        this.tx!.delete(key);
     }
 
     //
