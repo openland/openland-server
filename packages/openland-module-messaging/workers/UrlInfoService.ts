@@ -6,10 +6,10 @@ import { FDB } from 'openland-module-db/FDB';
 import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { Context, createEmptyContext } from 'openland-utils/Context';
 import { UserProfile } from 'openland-module-db/schema';
 import { MessageKeyboard } from '../MessageInput';
 import { inTx } from '../../foundation-orm/inTx';
+import { EmptyContext, Context } from '@openland/context';
 
 export interface URLAugmentation {
     url: string;
@@ -32,7 +32,7 @@ export class UrlInfoService {
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation|null> {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let existing = await this.cache.read(ctx, url);
         let creationTime = await this.cache.getCreationTime(ctx, url);
 
@@ -69,7 +69,7 @@ export class UrlInfoService {
     }
 
     public async deleteURLInfoCache(url: string): Promise<boolean> {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await this.cache.delete(ctx, url);
         return true;
     }
@@ -88,14 +88,14 @@ export class UrlInfoService {
 }
 
 const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
-    let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization!);
+    let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(EmptyContext, user!.primaryOrganization!);
 
     return {
         url,
         title: user!.firstName + ' ' + user!.lastName,
         subtitle: org ? org.name : null,
         description: user!.about || null,
-        imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
+        imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(EmptyContext, user!.picture.uuid) : null,
         photo: user!.picture,
         hostname: null,
         iconRef: null,
@@ -119,7 +119,7 @@ export function createUrlInfoService() {
 
             let userId = IDs.User.parse(_userId);
 
-            let user = await Modules.Users.profileById(createEmptyContext(), userId);
+            let user = await Modules.Users.profileById(EmptyContext, userId);
 
             return await getURLAugmentationForUser({ hostname, url, userId, user });
         })
@@ -128,7 +128,7 @@ export function createUrlInfoService() {
 
             let orgId = IDs.Organization.parse(_orgId);
 
-            let ctx = createEmptyContext();
+            let ctx = EmptyContext;
             let org = await FDB.OrganizationProfile.findById(ctx, orgId);
             let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
@@ -137,7 +137,7 @@ export function createUrlInfoService() {
                 title: org!.name || null,
                 subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                 description: org!.about || null,
-                imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
+                imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(EmptyContext, org!.photo!.uuid) : null,
                 photo: org!.photo || null,
                 hostname: null,
                 iconRef: null,
@@ -147,16 +147,16 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
-            let ctx = createEmptyContext();
+            let ctx = EmptyContext;
             let channelId = IDs.Conversation.parse(_channelId);
 
-            let channel = await FDB.ConversationRoom.findById(createEmptyContext(), channelId);
+            let channel = await FDB.ConversationRoom.findById(EmptyContext, channelId);
 
             if (!channel || channel!.kind !== 'public' || (channel.oid && (await FDB.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
                 return null;
             }
 
-            let profile = await FDB.RoomProfile.findById(createEmptyContext(), channelId);
+            let profile = await FDB.RoomProfile.findById(EmptyContext, channelId);
             if (!profile) {
                 return null;
             }
@@ -167,7 +167,7 @@ export function createUrlInfoService() {
                 title: profile!.title || null,
                 subtitle: membersCount < 10 ? `New ${channel && channel.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
                 description: profile!.description || null,
-                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
+                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(EmptyContext, profile!.image.uuid) : null,
                 photo: profile!.image,
                 hostname: null,
                 iconRef: null,
@@ -175,7 +175,7 @@ export function createUrlInfoService() {
             };
         })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(joinChannel|invite)\/(.*)/, false, async (url, data) => {
-            let ctx = createEmptyContext();
+            let ctx = EmptyContext;
             let [, , , , _invite] = data;
 
             let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
@@ -197,7 +197,7 @@ export function createUrlInfoService() {
                 title: profile!.title || null,
                 subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
                 description: profile!.description || null,
-                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
+                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(EmptyContext, profile!.image.uuid) : null,
                 photo: profile!.image,
                 hostname: null,
                 iconRef: null,
@@ -215,7 +215,7 @@ export function createUrlInfoService() {
 
             let { hostname } = URL.parse(url);
 
-            let shortname = await Modules.Shortnames.findShortname(createEmptyContext(), _shortname);
+            let shortname = await Modules.Shortnames.findShortname(EmptyContext, _shortname);
 
             if (!shortname) {
                 return null;
@@ -224,13 +224,13 @@ export function createUrlInfoService() {
             if (shortname.ownerType === 'user') {
                 const userId = shortname.ownerId;
 
-                let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
+                let user = await Modules.Users.profileById(EmptyContext, shortname.ownerId);
 
                 return await getURLAugmentationForUser({ hostname, url, userId, user });
             } else if (shortname.ownerType === 'org') {
                 let orgId = shortname.ownerId;
 
-                let ctx = createEmptyContext();
+                let ctx = EmptyContext;
                 let org = await FDB.OrganizationProfile.findById(ctx, orgId);
                 let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
@@ -239,7 +239,7 @@ export function createUrlInfoService() {
                     title: org!.name || null,
                     subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                     description: org!.about || null,
-                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
+                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(EmptyContext, org!.photo!.uuid) : null,
                     photo: org!.photo || null,
                     hostname: null,
                     iconRef: null,

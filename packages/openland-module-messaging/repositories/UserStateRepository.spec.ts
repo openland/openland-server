@@ -2,10 +2,10 @@ import 'reflect-metadata';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { MessagingRepository } from './MessagingRepository';
 import { UserDialogEvent, AllEntities } from 'openland-module-db/schema';
 import { DeliveryRepository } from './DeliveryRepository';
+import { EmptyContext, Context } from '@openland/context';
 
 describe('UserStateRepository', () => {
     let ctx: Context;
@@ -19,7 +19,7 @@ describe('UserStateRepository', () => {
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind('DeliveryRepository').to(DeliveryRepository).inSingletonScope();
 
-        ctx = createEmptyContext();
+        ctx = EmptyContext;
         userStateRepo = container.get<UserStateRepository>('UserStateRepository');
         messagingRepo = container.get<MessagingRepository>('MessagingRepository');
         deliveryRepo = container.get<DeliveryRepository>('DeliveryRepository');

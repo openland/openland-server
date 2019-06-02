@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FTransactionReadOnlyContext } from './utils/contexts';
 import { FTransactionReadOnly } from './tx/FTransactionReadOnly';
 

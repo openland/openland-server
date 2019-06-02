@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 describe('FEntity with range index', () => {
 
@@ -22,7 +22,7 @@ describe('FEntity with range index', () => {
     });
 
     it('should create indexes', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             let res1 = await inTx(parent, async (ctx) => { return await testEntities.IndexedRangeEntity.create(ctx, 0, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');
@@ -41,7 +41,7 @@ describe('FEntity with range index', () => {
         });
     });
     it('should update indexes', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { return await testEntities.IndexedRangeEntity.create(ctx, 1, { data1: 'hello2', data2: 'world', data3: '' }); });
             await inTx(parent, async (ctx) => {
@@ -61,7 +61,7 @@ describe('FEntity with range index', () => {
     });
 
     it('paging should work correctly', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.IndexedRangeEntity.create(ctx, 24, { data1: 'paging4', data2: '1', data3: '' });
@@ -104,7 +104,7 @@ describe('FEntity with range index', () => {
     });
 
     it('paging should work correctly', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.IndexedRangeEntity.create(ctx, 4, { data1: 'paging', data2: '1', data3: '' });
@@ -183,7 +183,7 @@ describe('FEntity with range index', () => {
     });
 
     it('reversed paging should work correctly', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.IndexedRangeEntity.create(ctx, 11, { data1: 'paging2', data2: '1', data3: '' });
@@ -284,7 +284,7 @@ describe('FEntity with range index', () => {
     });
 
     it('reversed paging should work correctly in tx', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await inTx(parent, async (ctx) => {
             await testEntities.RangeTest.create(ctx, 550, { key: 1 });
             await testEntities.RangeTest.create(ctx, 551, { key: 1 });
@@ -309,7 +309,7 @@ describe('FEntity with range index', () => {
     });
 
     it('paging in unique range and non-unique ranges should work correctly', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await inTx(parent, async (ctx) => {
             await testEntities.ComplexRangeTest.create(ctx, 550, { key: '1', subId1: 1, subId2: 2 });
             await testEntities.ComplexRangeTest.create(ctx, 551, { key: '1', subId1: 1, subId2: 3 });

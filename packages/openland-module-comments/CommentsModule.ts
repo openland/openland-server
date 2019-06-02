@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { CommentInput } from './CommentsRepository';
-import { Context } from '../openland-utils/Context';
+import { Context } from '@openland/context';
 import { CommentsMediator } from './CommentsMediator';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 

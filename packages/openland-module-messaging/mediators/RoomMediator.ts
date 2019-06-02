@@ -10,7 +10,7 @@ import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
 import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 

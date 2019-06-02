@@ -6,7 +6,7 @@ import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { InvitesRoomRepository } from './InvitesRoomRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 describe('ChannelRepository', () => {
     // Database Init
@@ -21,7 +21,7 @@ describe('ChannelRepository', () => {
     });
 
     it('should create links', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let repo = new InvitesRoomRepository(entities);
         let uuid = await repo.createRoomInviteLink(ctx, 1, 1);
         let res = await repo.resolveInvite(ctx, uuid);

@@ -8,7 +8,7 @@ import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 

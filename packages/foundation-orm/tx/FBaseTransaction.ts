@@ -5,7 +5,7 @@ import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { createLogger } from 'openland-log/createLogger';
 import { SLog } from 'openland-log/SLog';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { ReadWriteLock } from '../utils/readWriteLock';
 import { FRawTransaction } from './FRawTransaction';
 

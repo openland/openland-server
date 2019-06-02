@@ -1,12 +1,12 @@
 import { Express } from 'express';
 import express from 'express';
 import { createLogger } from '../../openland-log/createLogger';
-import { createEmptyContext } from '../../openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
 import { resolve } from 'path';
+import { EmptyContext } from '@openland/context';
 
 let log = createLogger('safari push');
-let ctx = createEmptyContext();
+let ctx = EmptyContext;
 
 export function initSafariPush(app: Express) {
     app.post('/push/safari/v1/log', handleLog);

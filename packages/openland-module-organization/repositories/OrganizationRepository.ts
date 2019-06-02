@@ -4,7 +4,7 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { injectable } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';

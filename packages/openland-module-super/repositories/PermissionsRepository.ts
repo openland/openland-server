@@ -3,7 +3,7 @@ import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { IDs } from 'openland-module-api/IDs';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export class PermissionsRepository {
     private readonly entities: AllEntities;

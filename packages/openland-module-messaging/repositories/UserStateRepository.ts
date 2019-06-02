@@ -1,7 +1,7 @@
 import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 @injectable()
 export class UserStateRepository {

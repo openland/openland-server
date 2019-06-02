@@ -8,8 +8,8 @@ import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { FDB } from 'openland-module-db/FDB';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
+import { EmptyContext, Context } from '@openland/context';
 // console.log('imported in ' + (Date.now() - start) + ' ms');
 
 describe('OrganizationModule', () => {
@@ -35,7 +35,7 @@ describe('OrganizationModule', () => {
     }
 
     it('should create organization', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Create Test User
         let user = await Modules.Users.createUser(ctx, 'test1', 'some@email.comn');
@@ -69,7 +69,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should activate organization for activated user', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user = await Modules.Users.createUser(ctx, 'tes2', 'som2@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         await Modules.Users.activateUser(ctx, user.id, true);
@@ -80,7 +80,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should select primary organization from first activated', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user = await Modules.Users.createUser(ctx, 'test2', 'some2@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         // await Modules.Users.activateUser(user.id);
@@ -97,7 +97,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should activate user on organization activation', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Create User and Org
         let user = await Modules.Users.createUser(ctx, 'test3', 'some3@email.comn');
@@ -128,7 +128,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should not activate deleted organization', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Create User and Org
         let user = await Modules.Users.createUser(ctx, 'test____1', 'some____3@email.comn');
@@ -148,7 +148,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should suspend organization and DO NOT suspend user', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Create User and Org
         let user = await Modules.Users.createUser(ctx, 'test5', 'some5@email.comn');
@@ -172,7 +172,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should activate user on joining to activated organization', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Create Owner and Org
         let user = await Modules.Users.createUser(ctx, 'test6', 'some6@email.comn');
@@ -194,7 +194,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should not remove user from organization if it is last organization for user', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user1 = await createUser(ctx, 6);
         let user2 = await createUser(ctx, 7);
         await Modules.Users.activateUser(ctx, user1.id, true);
@@ -207,7 +207,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should pick another primary organization when removing primary one', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user1 = await createUser(ctx, 8);
         let user2 = await createUser(ctx, 9);
         await Modules.Users.activateUser(ctx, user1.id, true);
@@ -230,7 +230,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should return correct membership status for users', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user1 = await createUser(ctx, 10);
         let user2 = await createUser(ctx, 11);
         let user3 = await createUser(ctx, 12);
@@ -283,7 +283,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should downgrade membership on organization left', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user1 = await createUser(ctx, 15);
         let user2 = await createUser(ctx, 16);
         let user3 = await createUser(ctx, 17);
@@ -307,7 +307,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should allow role changing only to owners', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user1 = await createUser(ctx, 18);
         let user2 = await createUser(ctx, 19);
         let user3 = await createUser(ctx, 20);
@@ -334,7 +334,7 @@ describe('OrganizationModule', () => {
     });
 
     it('should handle kicking securely', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let user1 = await createUser(ctx, 22);
         let user2 = await createUser(ctx, 23);
         let user3 = await createUser(ctx, 24);

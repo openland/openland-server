@@ -1,7 +1,7 @@
 import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FDirectory } from './FDirectory';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FAtomicInteger } from './FAtomicInteger';
 import { FSubspace } from './FSubspace';

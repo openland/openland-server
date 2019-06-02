@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 const tracer = createTracer('user-search');
 export class UserSearch {

@@ -8,7 +8,7 @@ import { injectable, inject } from 'inversify';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Modules } from '../openland-modules/Modules';
 

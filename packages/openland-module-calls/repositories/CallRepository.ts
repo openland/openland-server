@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { AllEntities } from 'openland-module-db/schema';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
 

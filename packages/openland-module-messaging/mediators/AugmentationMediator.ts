@@ -5,9 +5,9 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoService';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
+import { EmptyContext, Context } from '@openland/context';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -29,7 +29,7 @@ export class AugmentationMediator {
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
             this.queue.addWorker(async (item) => {
-                let message = await this.entities.Message.findById(createEmptyContext(), item.messageId);
+                let message = await this.entities.Message.findById(EmptyContext, item.messageId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };
@@ -70,7 +70,7 @@ export class AugmentationMediator {
                     };
 
                     await this.messaging.editMessage(
-                        createEmptyContext(),
+                        EmptyContext,
                         item.messageId,
                         { attachments: [richAttachment], appendAttachments: true },
                         false
@@ -84,7 +84,7 @@ export class AugmentationMediator {
                     };
 
                     await this.messaging.editMessage(
-                        createEmptyContext(),
+                        EmptyContext,
                         item.messageId,
                         { attachments: [fileAttachment], appendAttachments: true },
                         false

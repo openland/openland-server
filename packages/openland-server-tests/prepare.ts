@@ -2,7 +2,6 @@
 require('module-alias/register');
 import '../openland-utils/Shutdown';
 import { Modules } from 'openland-modules/Modules';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { loadAllModules } from 'openland-modules/loadAllModules';
 import faker from 'faker';
 import { FDB } from 'openland-module-db/FDB';
@@ -11,6 +10,7 @@ import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { inTx } from 'foundation-orm/inTx';
+import { EmptyContext, Context } from '@openland/context';
 faker.seed(123);
 
 async function createUser(ctx: Context, email: string) {
@@ -40,7 +40,7 @@ export async function prepare() {
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
             .inSingletonScope();
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         if (await FDB.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');
         }
@@ -66,14 +66,14 @@ export async function prepare() {
         // for (let i = 0; i < 150; i++) {
         //     console.log('create user #' + i);
         let users: number[] = [];
-        await inTx(createEmptyContext(), async (ctx2) => {
+        await inTx(EmptyContext, async (ctx2) => {
             for (let j = 0; j < 10; j++) {
                 let u = await createUser(ctx2, 'testmember' + j + '@openland.com');
                 await Modules.Orgs.addUserToOrganization(ctx2, u, org.id, uid, false, false);
                 users.push(u);
             }
         });
-        await Modules.Messaging.room.inviteToRoom(createEmptyContext(), group.id, uid, users);
+        await Modules.Messaging.room.inviteToRoom(EmptyContext, group.id, uid, users);
         // }
 
         process.exit();

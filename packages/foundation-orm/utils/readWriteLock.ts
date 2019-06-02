@@ -1,5 +1,5 @@
 import { Mutex } from './mutex';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { createTracer } from 'openland-log/createTracer';
 
 const tracer = createTracer('rwlock');

@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { FeedRepository } from './repositories/FeedRepository';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { JsonMap } from 'openland-utils/json';
 
 @injectable()

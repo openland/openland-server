@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FConnection } from './FConnection';
 import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 

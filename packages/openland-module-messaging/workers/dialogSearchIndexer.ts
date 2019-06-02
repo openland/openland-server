@@ -1,10 +1,10 @@
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 export function dialogSearchIndexer() {
-    declareSearchIndexer('dialog-index', 8, 'dialog', FDB.UserDialog.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('dialog-index', 8, 'dialog', FDB.UserDialog.createUpdatedStream(EmptyContext, 50))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -28,7 +28,7 @@ export function dialogSearchIndexer() {
         .start(async (item) => {
             let title: string;
             try {
-                title = await Modules.Messaging.room.resolveConversationTitle(createEmptyContext(), item.cid, item.uid);
+                title = await Modules.Messaging.room.resolveConversationTitle(EmptyContext, item.cid, item.uid);
             } catch (e) {
                 return {
                     id: item.cid + '_' + item.uid,

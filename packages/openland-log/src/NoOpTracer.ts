@@ -1,6 +1,6 @@
 import { STracer } from '../STracer';
 import { SSpan } from '../SSpan';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export class NoOpSpan implements SSpan {
     finish() {

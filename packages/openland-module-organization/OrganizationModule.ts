@@ -9,7 +9,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { organizationProfileIndexer } from './workers/organizationProfileIndexer';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { UserError } from '../openland-errors/UserError';
 import { AllEntities } from '../openland-module-db/schema';

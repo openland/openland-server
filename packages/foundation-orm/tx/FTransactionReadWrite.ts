@@ -1,7 +1,7 @@
 import { FConnection } from '../FConnection';
 import { tracer } from '../utils/tracer';
 import { FBaseTransaction } from './FBaseTransaction';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 // const log = createLogger('tx', false);
 

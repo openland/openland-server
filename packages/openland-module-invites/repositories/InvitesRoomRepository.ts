@@ -4,7 +4,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { UserError } from 'openland-errors/UserError';
 import { randomInviteKey } from 'openland-utils/random';
 import { injectable, inject } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 @injectable()
 export class InvitesRoomRepository {

@@ -2,7 +2,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { AuthCodeRepository } from './repositories/AuthCodeRepository';
 import { injectable, inject } from 'inversify';
 import { TokenRepository } from './repositories/TokenRepository';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 @injectable()
 export class AuthModule {

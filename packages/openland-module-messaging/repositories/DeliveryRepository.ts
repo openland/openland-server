@@ -2,7 +2,7 @@ import { AllEntities, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 
 @injectable()

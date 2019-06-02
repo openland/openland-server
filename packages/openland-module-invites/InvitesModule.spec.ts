@@ -4,12 +4,12 @@ import { FDB } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
-import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { Modules } from '../openland-modules/Modules';
 import { SuperModule } from 'openland-module-super/SuperModule';
+import { EmptyContext } from '@openland/context';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
@@ -26,7 +26,7 @@ describe('RoomMediator', () => {
     });
 
     it('should create room', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
@@ -47,7 +47,7 @@ describe('RoomMediator', () => {
     });
 
     it('should be able to join room', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await randomTestUser(ctx)).uid;

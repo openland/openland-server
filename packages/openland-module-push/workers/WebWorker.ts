@@ -8,7 +8,7 @@ import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 const log = createLogger('web_push');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');
@@ -20,7 +20,7 @@ export function createWebWorker(repo: PushRepository) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task) => {
-                    let root = createEmptyContext();
+                    let root = EmptyContext;
                     let token = (await repo.getWebToken(root, task.tokenId))!;
                     if (!token.enabled) {
                         return { result: 'skipped' };

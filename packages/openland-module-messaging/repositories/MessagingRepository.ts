@@ -6,7 +6,7 @@ import {
     MessageInput,
 } from 'openland-module-messaging/MessageInput';
 import { injectable } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';

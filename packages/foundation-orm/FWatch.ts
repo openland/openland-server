@@ -3,7 +3,7 @@ import { FKeyEncoding } from './utils/FKeyEncoding';
 import { delay } from '../openland-utils/timer';
 import { fastDeepEquals } from '../openland-utils/fastDeepEquals';
 import { createLogger } from 'openland-log/createLogger';
-import { Context, createEmptyContext } from 'openland-utils/Context';
+import { Context, EmptyContext } from '@openland/context';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
@@ -51,7 +51,7 @@ export class FWatch {
     }
 
     private async startWatching(key: Buffer) {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         try {
             await this.doWatch(key);
         } catch (e) {
@@ -93,7 +93,7 @@ export class FWatch {
     private async doWatch(key: Buffer) {
         while (true) {
             let subscription = await this.connection.fdb.getAndWatch(key);
-            log.debug(createEmptyContext(), 'subscribe');
+            log.debug(EmptyContext, 'subscribe');
 
             let res = await subscription.promise;
 

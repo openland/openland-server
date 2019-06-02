@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { SLogContext } from './src/SLogContext';
 
 export function withLogContext(ctx: Context, path: string[]): Context {

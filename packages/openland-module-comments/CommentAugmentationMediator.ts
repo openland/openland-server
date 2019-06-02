@@ -4,10 +4,10 @@ import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
-import { Context, createEmptyContext } from '../openland-utils/Context';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
 import { CommentsRepository } from './CommentsRepository';
 import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
+import { EmptyContext, Context } from '@openland/context';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -29,7 +29,7 @@ export class CommentAugmentationMediator {
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
             this.queue.addWorker(async (item) => {
-                let message = await this.entities.Comment.findById(createEmptyContext(), item.commentId);
+                let message = await this.entities.Comment.findById(EmptyContext, item.commentId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };
@@ -65,7 +65,7 @@ export class CommentAugmentationMediator {
                     };
 
                     await this.comments.editComment(
-                        createEmptyContext(),
+                        EmptyContext,
                         item.commentId,
                         { attachments: [richAttachment], appendAttachments: true },
                         false
@@ -79,7 +79,7 @@ export class CommentAugmentationMediator {
                     };
 
                     await this.comments.editComment(
-                        createEmptyContext(),
+                        EmptyContext,
                         item.commentId,
                         { attachments: [fileAttachment], appendAttachments: true },
                         false

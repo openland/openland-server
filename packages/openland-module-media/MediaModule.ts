@@ -10,7 +10,7 @@ import { extname } from 'path';
 import { randomString } from 'openland-utils/random';
 import { FileInfo } from './FileInfo';
 import { injectable } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { createTracer } from 'openland-log/createTracer';
 
 const writeFileAsync = promisify(writeFile);

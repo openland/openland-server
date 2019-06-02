@@ -1,4 +1,4 @@
-import { Context, createContextNamespace } from './Context';
+import { createContextNamespace, Context } from '@openland/context';
 
 export interface ConcurrencyPool {
     run<T>(src: () => Promise<T>): Promise<T>;

@@ -1,5 +1,5 @@
 import { FSubspace } from 'foundation-orm/FSubspace';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FTransformer } from 'foundation-orm/FTransformer';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';
 import { FEncoders } from 'foundation-orm/FEncoders';

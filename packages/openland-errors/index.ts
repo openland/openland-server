@@ -8,7 +8,7 @@ import { DoubleInvokeError } from './DoubleInvokeError';
 import { AccessDeniedError } from './AccessDeniedError';
 import { IDs } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
-import { createEmptyContext } from '../openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 interface FormattedError {
     uuid: string;
@@ -33,7 +33,7 @@ const handleUnexpectedError = (uuid: string, error: { message: string, originalE
 
     // tslint:disable:no-floating-promises
     (async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         if (!await Modules.Super.getEnvVar<boolean>(ctx, 'api-error-reporting-enabled')) {
             return;
@@ -57,7 +57,7 @@ const handleUnexpectedError = (uuid: string, error: { message: string, originalE
             'Error: ' + error.originalError.message + '\n' +
             'UUID: ' + uuid;
 
-        await Modules.Messaging.sendMessage(createEmptyContext(), chatId, botId, { message: report, ignoreAugmentation: true });
+        await Modules.Messaging.sendMessage(EmptyContext, chatId, botId, { message: report, ignoreAugmentation: true });
     })();
 };
 

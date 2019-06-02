@@ -1,7 +1,7 @@
 import { FConnection } from './FConnection';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FKeyEncoding } from './utils/FKeyEncoding';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { getTransaction } from './getTransaction';
 
 export class FDirectory {

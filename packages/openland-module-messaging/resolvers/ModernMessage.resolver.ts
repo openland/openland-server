@@ -4,7 +4,7 @@ import { IDs } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
 import { Comment, Message } from '../../openland-module-db/schema';
 import { FDB } from '../../openland-module-db/FDB';
-import { Context } from '../../openland-utils/Context';
+import { Context } from '@openland/context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';

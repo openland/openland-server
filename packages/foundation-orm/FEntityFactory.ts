@@ -9,7 +9,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FDirectory } from './FDirectory';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 import { FTuple } from './FTuple';

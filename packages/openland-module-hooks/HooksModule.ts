@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
 import { FDB } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/schema';

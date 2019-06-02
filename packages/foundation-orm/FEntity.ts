@@ -3,7 +3,7 @@ import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 import { FTransaction } from './FTransaction';

@@ -3,7 +3,7 @@ import { FDBError } from 'foundationdb';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { currentTime } from 'openland-utils/timer';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 

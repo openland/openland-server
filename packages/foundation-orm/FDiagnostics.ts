@@ -1,7 +1,7 @@
 import { FConnection } from './FConnection';
 import { FEntityFactory } from './FEntityFactory';
-import { createEmptyContext } from 'openland-utils/Context';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { EmptyContext } from '@openland/context';
 
 export class FDiagnostics {
 
@@ -11,7 +11,7 @@ export class FDiagnostics {
 
     async runEntityDiagnostics(src: FEntityFactory<any>) {
         let diag = '';
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Load all keys from namespace
         let res = await src.namespace.keySpace.range(ctx, []);

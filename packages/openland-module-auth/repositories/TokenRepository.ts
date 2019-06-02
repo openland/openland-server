@@ -4,9 +4,9 @@ import { uuid } from 'openland-utils/uuid';
 import { randomBytes } from 'crypto';
 import * as base64 from 'openland-utils/base64';
 import { inTx } from 'foundation-orm/inTx';
-import { Context, createEmptyContext } from 'openland-utils/Context';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
+import { EmptyContext, Context } from '@openland/context';
 
 @injectable()
 export class TokenRepository {
@@ -17,7 +17,7 @@ export class TokenRepository {
     private readonly loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
         let res: (AuthToken | null)[] = [];
         for (let i of tokens) {
-            let token = await this.entities.AuthToken.findFromSalt(createEmptyContext(), i);
+            let token = await this.entities.AuthToken.findFromSalt(EmptyContext, i);
             if (token && token.enabled !== false) {
                 res.push(token);
             } else {

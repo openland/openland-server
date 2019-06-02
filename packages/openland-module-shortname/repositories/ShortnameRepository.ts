@@ -1,7 +1,7 @@
 import { AllEntities, ShortnameReservation } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { injectable } from 'inversify';

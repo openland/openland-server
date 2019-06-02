@@ -4,8 +4,8 @@ import { delay } from 'openland-utils/timer';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { FKeyEncoding } from './FKeyEncoding';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { encoders } from 'foundationdb';
+import { EmptyContext, Context } from '@openland/context';
 
 export class FNodeRegistrator {
     private readonly connection: FConnection;
@@ -17,7 +17,7 @@ export class FNodeRegistrator {
         this.connection = connection;
         this.nodeId = null;
 
-        this.ctx = withLogContext(createEmptyContext(), ['node-registrator-loop']);
+        this.ctx = withLogContext(EmptyContext, ['node-registrator-loop']);
     }
 
     getNodeId() {

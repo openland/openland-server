@@ -2,19 +2,19 @@ import * as express from 'express';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from 'openland-log/createLogger';
-import { createEmptyContext } from 'openland-utils/Context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
+import { EmptyContext } from '@openland/context';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
 
 async function context(src: express.Request): Promise<AppContext> {
 
-    let res = createEmptyContext();
+    let res = EmptyContext;
     let uid: number | undefined;
     let tid: string | undefined;
     let oid: number | undefined;
@@ -22,7 +22,7 @@ async function context(src: express.Request): Promise<AppContext> {
     // User
     if (src.user !== null && src.user !== undefined) {
         if (typeof src.user.sub === 'string') {
-            uid = await Modules.Users.findUserByAuthId(createEmptyContext(), src.user.sub);
+            uid = await Modules.Users.findUserByAuthId(EmptyContext, src.user.sub);
             tid = src.user.sub;
         } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'string') {
             uid = src.user.uid;
@@ -31,13 +31,13 @@ async function context(src: express.Request): Promise<AppContext> {
     }
     // Organization
     if (uid) {
-        let accounts = await Modules.Orgs.findUserOrganizations(createEmptyContext(), uid);
+        let accounts = await Modules.Orgs.findUserOrganizations(EmptyContext, uid);
 
         // Default behaviour: pick the default one
         if (accounts.length >= 1) {
             oid = accounts[0];
 
-            let profile = await Modules.Users.profileById(createEmptyContext(), uid);
+            let profile = await Modules.Users.profileById(EmptyContext, uid);
             oid = (profile && profile.primaryOrganization) || oid;
         }
     }

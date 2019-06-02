@@ -1,9 +1,9 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 export function invitesIndexer() {
-    declareSearchIndexer('invites-room-index', 3, 'invites-room', FDB.ChannelInvitation.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('invites-room-index', 3, 'invites-room', FDB.ChannelInvitation.createUpdatedStream(EmptyContext, 50))
         .withProperties({
             uid: {
                 type: 'long'
@@ -19,7 +19,7 @@ export function invitesIndexer() {
             }
         })
         .start(async (item) => {
-            let ctx = createEmptyContext();
+            let ctx = EmptyContext;
             let user = await FDB.UserProfile.findById(ctx, item.creatorId);
 
             return {

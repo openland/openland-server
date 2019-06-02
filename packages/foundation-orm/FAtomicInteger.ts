@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FSubspace } from './FSubspace';
 import { decodeAtomic, encodeAtomic } from './utils/atomicEncode';
 

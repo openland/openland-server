@@ -1,6 +1,6 @@
 import { FBaseTransaction } from './FBaseTransaction';
 import { FConnection } from '../FConnection';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export class FTransactionReadOnly extends FBaseTransaction {
     readonly isReadOnly = true;

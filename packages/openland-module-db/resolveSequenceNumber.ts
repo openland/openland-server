@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 import { AllEntities } from './schema';
 

@@ -5,7 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { AllEntities, Message } from 'openland-module-db/schema';
 import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { createTracer } from 'openland-log/createTracer';
 
 const tracer = createTracer('messaging-counters');

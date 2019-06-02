@@ -2,9 +2,9 @@ import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
-import { createEmptyContext } from '../../openland-utils/Context';
 import { FDB } from '../../openland-module-db/FDB';
 import { debugTask } from '../../openland-utils/debugTask';
+import { EmptyContext } from '@openland/context';
 
 export default {
     Mutation: {
@@ -13,12 +13,12 @@ export default {
         }),
         betaFixCountersForAll: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'fix-counters-for-all', async (log) => {
-                let users = await FDB.User.findAll(createEmptyContext());
+                let users = await FDB.User.findAll(EmptyContext);
                 let i = 0;
                 for (let user of users) {
                     try {
-                        await Modules.Messaging.fixer.fixForUser(createEmptyContext(), user.id);
-                        await Modules.Messaging.fixer.deliverUserCounters(createEmptyContext(), user.id);
+                        await Modules.Messaging.fixer.fixForUser(EmptyContext, user.id);
+                        await Modules.Messaging.fixer.deliverUserCounters(EmptyContext, user.id);
                         if ((i % 100) === 0) {
                             await log('done: ' + i);
                         }

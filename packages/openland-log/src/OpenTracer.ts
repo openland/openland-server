@@ -1,6 +1,6 @@
 import { STracer } from '../STracer';
 import { SSpan } from '../SSpan';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { TracingContext } from './TracingContext';
 
 export class OpenSpan implements SSpan {

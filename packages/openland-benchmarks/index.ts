@@ -13,7 +13,7 @@ import { AllEntitiesDirect } from 'foundation-orm/tests/testSchema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { inTx } from 'foundation-orm/inTx';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 fdb.setAPIVersion(510);
 let db1 = fdb.openSync()
@@ -130,7 +130,7 @@ addAsync('orm-1000', async () => {
     let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
     let p: any[] = [];
     for (let i = 0; i < 1000; i++) {
-        let p2 = inTx(createEmptyContext(), async (ctx) => {
+        let p2 = inTx(EmptyContext, async (ctx) => {
             await entities.SimpleEntity.findById(ctx, i);
         });
         p.push(p2);
@@ -142,7 +142,7 @@ addAsync('orm-10000', async function orm10000() {
     let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
     let p: any[] = [];
     for (let i = 0; i < 10000; i++) {
-        let p2 = inTx(createEmptyContext(), async (ctx) => {
+        let p2 = inTx(EmptyContext, async (ctx) => {
             await entities.SimpleEntity.findById(ctx, i);
         });
         p.push(p2);
@@ -154,7 +154,7 @@ addAsync('orm-10000-empty', async function orm10000Empty() {
     let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
     let p: any[] = [];
     for (let i = 0; i < 10000; i++) {
-        let p2 = inTx(createEmptyContext(), async (ctx) => {
+        let p2 = inTx(EmptyContext, async (ctx) => {
             await entities.SimpleEntity.findById(ctx, 100000 + i);
         });
         p.push(p2);
@@ -173,7 +173,7 @@ suite.on('cycle', function (event: any) {
     let p: any[] = [];
     console.log('Prepare');
     for (let i = 0; i < 10000; i++) {
-        let p2 = inTx(createEmptyContext(), async (ctx) => {
+        let p2 = inTx(EmptyContext, async (ctx) => {
             await entities.SimpleEntity.create(ctx, i, { data: 'data-0' });
             // await tx.get('key-read-' + i);
         });

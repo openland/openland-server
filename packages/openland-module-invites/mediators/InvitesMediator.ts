@@ -9,7 +9,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { InvitesOrganizationRepository } from 'openland-module-invites/repositories/InvitesOrganizationRepository';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { Emails } from '../../openland-module-email/Emails';
 import { UserError } from '../../openland-errors/UserError';
 import { FDB } from '../../openland-module-db/FDB';

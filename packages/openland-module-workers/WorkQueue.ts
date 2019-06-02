@@ -9,8 +9,9 @@ import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay'
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { Context, createEmptyContext } from 'openland-utils/Context';
+import { Context } from 'openland-utils/Context';
 import { getTransaction } from 'foundation-orm/getTransaction';
+import { EmptyContext } from '@openland/context';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
@@ -56,7 +57,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             awaiter = w.resolver;
             await w.promise;
         };
-        let root = withLogContext(createEmptyContext(), ['worker', this.taskType]);
+        let root = withLogContext(EmptyContext, ['worker', this.taskType]);
         let workLoop = foreverBreakable(async () => {
             let task = await inTx(root, async (ctx) => {
                 let pend = await FDB.Task.rangeFromPending(ctx, this.taskType, 1);

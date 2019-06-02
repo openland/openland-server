@@ -1,5 +1,5 @@
 import { EmailTask } from './EmailTask';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export interface EmailModule {
     start(): void;

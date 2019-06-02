@@ -1,6 +1,6 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { getTransaction } from 'foundation-orm/getTransaction';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { keySelector } from 'foundationdb';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';

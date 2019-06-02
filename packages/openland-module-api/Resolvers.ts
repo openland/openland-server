@@ -5,8 +5,8 @@ import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { MaybePromise } from './schema/SchemaUtils';
-import { createEmptyContext } from 'openland-utils/Context';
 import { CacheContext } from './CacheContext';
+import { EmptyContext } from '@openland/context';
 
 async function fetchPermissions(ctx: AppContext) {
     if (ctx.cache.has('permissions')) {
@@ -112,7 +112,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
                 if (field.resolve) {
                     field.resolve = async (root: any, args: any, context: AppContext, info: any) => {
                         if (!context || !context.ctx) {
-                            let res = createEmptyContext();
+                            let res = EmptyContext;
                             res = CacheContext.set(res, new Map());
                             context = new GQLAppContext(res, info);
                         }

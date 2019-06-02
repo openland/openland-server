@@ -3,7 +3,7 @@ import { AllEntities, Message } from 'openland-module-db/schema';
 import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { MessageMention } from '../MessageInput';
 
 @injectable()

@@ -1,4 +1,4 @@
-import { createContextNamespace } from 'openland-utils/Context';
+import { createContextNamespace } from '@openland/context';
 
 // import { SafeContext } from 'openland-utils/SafeContext';
 

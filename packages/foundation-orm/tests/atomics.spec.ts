@@ -5,8 +5,8 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { AllEntitiesDirect, AllEntities } from './testSchema';
 import { NoOpBus } from './NoOpBus';
 import { NativeValue } from 'foundationdb/dist/lib/native';
-import { createEmptyContext } from 'openland-utils/Context';
 import { inTx } from 'foundation-orm/inTx';
+import { EmptyContext } from '@openland/context';
 
 describe('atomics', () => {
     let db: fdb.Database<NativeValue, any>;
@@ -19,7 +19,7 @@ describe('atomics', () => {
     });
 
     it('should set and get', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await inTx(rootctx, async (ctx) => {
             let atomic = await testEntities.SampleAtomic.findById(ctx, 'some');
             await atomic.set(ctx, 1339);
@@ -35,7 +35,7 @@ describe('atomics', () => {
     });
 
     it('should increment and decrement', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await inTx(rootctx, async (ctx) => {
             let atomic = await testEntities.SampleAtomic.findById(ctx, 'some-1');
             await atomic.set(ctx, 1339);

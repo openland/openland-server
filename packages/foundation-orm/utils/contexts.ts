@@ -1,4 +1,4 @@
-import { createContextNamespace } from 'openland-utils/Context';
+import { createContextNamespace } from '@openland/context';
 import { FTransactionReadWrite } from 'foundation-orm/tx/FTransactionReadWrite';
 import { FTransactionReadOnly } from 'foundation-orm/tx/FTransactionReadOnly';
 import { FConnection } from 'foundation-orm/FConnection';

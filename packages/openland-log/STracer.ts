@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { SSpan } from './SSpan';
 
 export interface STracer {

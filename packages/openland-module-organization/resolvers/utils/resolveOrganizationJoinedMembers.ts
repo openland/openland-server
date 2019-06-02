@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 async function resolveRoleInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
     let org = (await FDB.Organization.findById(ctx, oid))!;

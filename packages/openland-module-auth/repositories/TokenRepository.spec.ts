@@ -1,7 +1,7 @@
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { TokenRepository } from './TokenRepository';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 describe('TokenRepository', () => {
     beforeAll(async () => {
@@ -14,7 +14,7 @@ describe('TokenRepository', () => {
     
     it('should create tokens', async () => {
         let repo = container.get<TokenRepository>('TokenRepository');
-        let created = await repo.createToken(createEmptyContext(), 10000);
+        let created = await repo.createToken(EmptyContext, 10000);
         let loaded = await repo.findToken(created.salt);
         expect(loaded).not.toBeNull();
         expect(loaded).not.toBeUndefined();

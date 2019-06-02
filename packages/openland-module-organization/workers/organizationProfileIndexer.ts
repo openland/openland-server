@@ -1,10 +1,10 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
+import { EmptyContext } from '@openland/context';
 
 export function organizationProfileIndexer() {
-    declareSearchIndexer('organization-profile-index', 8, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('organization-profile-index', 8, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(EmptyContext, 50))
         .withProperties({
             name: {
                 type: 'text'
@@ -35,7 +35,7 @@ export function organizationProfileIndexer() {
             }
         })
         .start(async (item) => {
-            let ctx = createEmptyContext();
+            let ctx = EmptyContext;
             let org = (await FDB.Organization.findById(ctx, item.id))!;
             let profile = (await (FDB.OrganizationProfile.findById(ctx, item.id)))!;
             let editorial = (await FDB.OrganizationEditorial.findById(ctx, item.id))!;

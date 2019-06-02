@@ -1,20 +1,20 @@
 import { IDs } from '../IDs';
 import { Modules } from 'openland-modules/Modules';
-import { createEmptyContext } from 'openland-utils/Context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
+import { EmptyContext } from '@openland/context';
 // import { withCache } from 'foundation-orm/withCache';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
     let token = args['x-openland-token'] as string | undefined;
     if (token) {
-        let uid = await Modules.Auth.findToken(createEmptyContext(), token);
+        let uid = await Modules.Auth.findToken(EmptyContext, token);
         if (uid !== null) {
             res.uid = uid.uid;
             res.tid = uid.uuid;
-            let accounts = await Modules.Orgs.findUserOrganizations(createEmptyContext(), res.uid);
+            let accounts = await Modules.Orgs.findUserOrganizations(EmptyContext, res.uid);
             if (accounts.length === 1) {
                 res.oid = accounts[0];
             }
@@ -39,7 +39,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                 if (accounts.length >= 1) {
                     res.oid = accounts[0];
 
-                    let profile = await Modules.Users.profileById(createEmptyContext(), res.uid);
+                    let profile = await Modules.Users.profileById(EmptyContext, res.uid);
                     res.oid = (profile && profile.primaryOrganization) || res.oid;
                 }
             }
@@ -49,7 +49,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
 }
 
 export function buildWebSocketContext(args: any) {
-    let res = createEmptyContext();
+    let res = EmptyContext;
     if (args.uid && args.tid) {
         res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
     }
