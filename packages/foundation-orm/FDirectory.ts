@@ -33,13 +33,6 @@ export class FDirectory {
         await this.allocatorProcess;
     }
 
-    get = async (ctx: Context, key: (string | number)[]) => {
-        if (!this.isAllocated) {
-            await this.allocatorProcess;
-        }
-        return getTransaction(ctx).get(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
-    }
-
     range = async (ctx: Context, key: (string | number)[]) => {
         if (!this.isAllocated) {
             await this.allocatorProcess;

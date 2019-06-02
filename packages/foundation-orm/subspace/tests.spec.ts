@@ -17,7 +17,7 @@ describe('FOperationsGloba', () => {
     });
 
     it('should do set and get', async () => {
-        let ops = connection.ops;
+        let ops = connection.keySpace;
         await inTx(createEmptyContext(), async (ctx) => {
             ops.set(ctx, Buffer.of(0, 1, 2, 3, 4), Buffer.of(5, 6, 7, 8, 9));
         });
@@ -28,8 +28,8 @@ describe('FOperationsGloba', () => {
     });
 
     it('subspace must work', async () => {
-        let ops = connection.ops;
-        let sops = connection.ops.subspace(Buffer.of(1));
+        let ops = connection.keySpace;
+        let sops = connection.keySpace.subspace(Buffer.of(1));
         await inTx(createEmptyContext(), async (ctx) => {
             ops.set(ctx, Buffer.of(1, 2, 3, 4), Buffer.of(5, 6, 7, 8));
         });

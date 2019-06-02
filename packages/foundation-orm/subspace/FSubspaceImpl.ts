@@ -4,12 +4,12 @@ import { Context } from 'openland-utils/Context';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { keySelector } from 'foundationdb';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';
-import { FOperations } from 'foundation-orm/FOperations';
+import { FSubspace } from 'foundation-orm/FSubspace';
 import { FTransformer } from 'foundation-orm/FTransformer';
-import { FTransformedOperations } from './FTransformedOperations';
+import { FTransformedSubspace } from './FTransformedSubspace';
 import { FEncoders } from 'foundation-orm/FEncoders';
 
-export class FSubspaceOperations implements FOperations<Buffer, Buffer> {
+export class FSubspaceImpl implements FSubspace<Buffer, Buffer> {
 
     readonly connection: FConnection;
     readonly prefix: Buffer;
@@ -19,15 +19,15 @@ export class FSubspaceOperations implements FOperations<Buffer, Buffer> {
         this.prefix = prefix;
     }
 
-    withKeyEncoding<K2>(keyTf: FTransformer<Buffer, K2>): FOperations<K2, Buffer> {
-        return new FTransformedOperations<K2, Buffer, Buffer, Buffer>(this, keyTf, FEncoders.id<Buffer>());
+    withKeyEncoding<K2>(keyTf: FTransformer<Buffer, K2>): FSubspace<K2, Buffer> {
+        return new FTransformedSubspace<K2, Buffer, Buffer, Buffer>(this, keyTf, FEncoders.id<Buffer>());
     }
-    withValueEncoding<V2>(valueTf: FTransformer<Buffer, V2>): FOperations<Buffer, V2> {
-        return new FTransformedOperations<Buffer, V2, Buffer, Buffer>(this, FEncoders.id<Buffer>(), valueTf);
+    withValueEncoding<V2>(valueTf: FTransformer<Buffer, V2>): FSubspace<Buffer, V2> {
+        return new FTransformedSubspace<Buffer, V2, Buffer, Buffer>(this, FEncoders.id<Buffer>(), valueTf);
     }
 
-    subspace(key: Buffer): FOperations<Buffer, Buffer> {
-        return new FSubspaceOperations(this.connection, Buffer.concat([this.prefix, key]));
+    subspace(key: Buffer): FSubspace<Buffer, Buffer> {
+        return new FSubspaceImpl(this.connection, Buffer.concat([this.prefix, key]));
     }
 
     async get(ctx: Context, key: Buffer) {

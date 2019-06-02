@@ -7,14 +7,14 @@ import { FPubsub } from './FPubsub';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FDirectory } from './FDirectory';
 import { FDiagnostics } from './FDiagnostics';
-import { FOperations } from './FOperations';
-import { FOperationsGlobal } from './ops/FOperationsGlobal';
+import { FSubspace } from './FSubspace';
+import { FGlobalSpace } from './subspace/FGlobalSpace';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
     readonly diagnostics: FDiagnostics;
-    readonly ops: FOperations;
+    readonly keySpace: FSubspace;
     private readonly directoryAllocator: DirectoryAllocator;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -41,7 +41,7 @@ export class FConnection {
         this.test = test;
         this.directoryAllocator = new DirectoryAllocator(this);
         this.diagnostics = new FDiagnostics(this);
-        this.ops = new FOperationsGlobal(this);
+        this.keySpace = new FGlobalSpace(this);
     }
 
     getDirectory(key: (string | number | boolean)[]) {

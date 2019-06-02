@@ -8,7 +8,7 @@ import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 import { FTransaction } from './FTransaction';
 import { getTransaction } from './getTransaction';
-import { FOperations } from './FOperations';
+import { FSubspace } from './FSubspace';
 import { FTuple } from './FTuple';
 
 export interface FEntityOptions {
@@ -22,11 +22,11 @@ const log = createLogger('FEntity', false);
 
 export abstract class FEntity {
     abstract readonly entityName: string;
-    readonly obsoleteKeySpace: FOperations<FTuple[], any>;
+    readonly obsoleteKeySpace: FSubspace<FTuple[], any>;
+    readonly keySpace: FSubspace;
     readonly directory: FDirectory;
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
-    readonly ops: FOperations;
     readonly isReadOnly: boolean;
     readonly ctx: Context;
     readonly transaction: FTransaction;
@@ -41,11 +41,11 @@ export abstract class FEntity {
 
     constructor(ctx: Context, connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
-        this.obsoleteKeySpace = namespace.ops;
+        this.obsoleteKeySpace = namespace.keySpace;
         this.directory = directory;
         this.rawId = id;
         this.connection = connection;
-        this.ops = connection.ops;
+        this.keySpace = connection.keySpace;
         this.transaction = getTransaction(ctx);
         this.isReadOnly = this.transaction.isReadOnly;
         this.options = options;

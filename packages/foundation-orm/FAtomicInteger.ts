@@ -1,18 +1,18 @@
 import { Context } from 'openland-utils/Context';
-import { FOperations } from './FOperations';
+import { FSubspace } from './FSubspace';
 import { decodeAtomic, encodeAtomic } from './utils/atomicEncode';
 
 export class FAtomicInteger {
     private readonly key: Buffer;
-    private readonly ops: FOperations;
+    private readonly keySpace: FSubspace;
 
-    constructor(key: Buffer, ops: FOperations) {
+    constructor(key: Buffer, keySpace: FSubspace) {
         this.key = key;
-        this.ops = ops;
+        this.keySpace = keySpace;
     }
 
     get = async (ctx: Context) => {
-        let r = await this.ops.get(ctx, this.key);
+        let r = await this.keySpace.get(ctx, this.key);
         if (r) {
             return decodeAtomic(r);
         } else {
@@ -20,7 +20,7 @@ export class FAtomicInteger {
         }
     }
     set = (ctx: Context, value: number) => {
-        this.ops.set(ctx, this.key, encodeAtomic(value));
+        this.keySpace.set(ctx, this.key, encodeAtomic(value));
     }
     increment = (ctx: Context) => {
         this.add(ctx, 1);
@@ -29,6 +29,6 @@ export class FAtomicInteger {
         this.add(ctx, -1);
     }
     add = (ctx: Context, value: number) => {
-        this.ops.add(ctx, this.key, encodeAtomic(value));
+        this.keySpace.add(ctx, this.key, encodeAtomic(value));
     }
 }

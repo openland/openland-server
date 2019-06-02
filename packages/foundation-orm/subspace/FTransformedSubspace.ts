@@ -1,30 +1,30 @@
-import { FOperations } from 'foundation-orm/FOperations';
+import { FSubspace } from 'foundation-orm/FSubspace';
 import { Context } from 'openland-utils/Context';
 import { FTransformer } from 'foundation-orm/FTransformer';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';
 import { FEncoders } from 'foundation-orm/FEncoders';
 
-export class FTransformedOperations<K, V, SK, SV> implements FOperations<K, V> {
+export class FTransformedSubspace<K, V, SK, SV> implements FSubspace<K, V> {
 
-    readonly ops: FOperations<SK, SV>;
+    readonly ops: FSubspace<SK, SV>;
     readonly keyTf: FTransformer<SK, K>;
     readonly valTf: FTransformer<SV, V>;
 
-    constructor(ops: FOperations<SK, SV>, keyTf: FTransformer<SK, K>, valTf: FTransformer<SV, V>) {
+    constructor(ops: FSubspace<SK, SV>, keyTf: FTransformer<SK, K>, valTf: FTransformer<SV, V>) {
         this.ops = ops;
         this.keyTf = keyTf;
         this.valTf = valTf;
     }
 
-    withKeyEncoding<K2>(keyTf: FTransformer<K, K2>): FOperations<K2, V> {
-        return new FTransformedOperations<K2, V, K, V>(this, keyTf, FEncoders.id<V>());
+    withKeyEncoding<K2>(keyTf: FTransformer<K, K2>): FSubspace<K2, V> {
+        return new FTransformedSubspace<K2, V, K, V>(this, keyTf, FEncoders.id<V>());
     }
-    withValueEncoding<V2>(valueTf: FTransformer<V, V2>): FOperations<K, V2> {
-        return new FTransformedOperations<K, V2, K, V>(this, FEncoders.id<K>(), valueTf);
+    withValueEncoding<V2>(valueTf: FTransformer<V, V2>): FSubspace<K, V2> {
+        return new FTransformedSubspace<K, V2, K, V>(this, FEncoders.id<K>(), valueTf);
     }
 
-    subspace(key: K): FOperations<K, V> {
-        return new FTransformedOperations(this.ops.subspace(this.keyTf.pack(key)), this.keyTf, this.valTf);
+    subspace(key: K): FSubspace<K, V> {
+        return new FTransformedSubspace(this.ops.subspace(this.keyTf.pack(key)), this.keyTf, this.valTf);
     }
 
     async get(ctx: Context, key: K): Promise<V | null> {

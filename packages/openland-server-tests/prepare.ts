@@ -10,6 +10,7 @@ import { container } from 'openland-modules/Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
+import { inTx } from 'foundation-orm/inTx';
 faker.seed(123);
 
 async function createUser(ctx: Context, email: string) {
@@ -60,7 +61,20 @@ export async function prepare() {
         let uid = await createUser(ctx, 'bot@openland.com');
         await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
         await Modules.Users.activateUser(ctx, uid, false);
-        await Modules.Orgs.createOrganization(ctx, uid, { name: 'Developer Organization' });
+        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'Developer Organization' });
+        let group = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: 'Test Group' });
+        // for (let i = 0; i < 150; i++) {
+        //     console.log('create user #' + i);
+        let users: number[] = [];
+        await inTx(createEmptyContext(), async (ctx2) => {
+            for (let j = 0; j < 10; j++) {
+                let u = await createUser(ctx2, 'testmember' + j + '@openland.com');
+                await Modules.Orgs.addUserToOrganization(ctx2, u, org.id, uid, false, false);
+                users.push(u);
+            }
+        });
+        await Modules.Messaging.room.inviteToRoom(createEmptyContext(), group.id, uid, users);
+        // }
 
         process.exit();
     } catch (e) {

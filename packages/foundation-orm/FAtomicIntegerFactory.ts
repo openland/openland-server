@@ -4,17 +4,17 @@ import { FDirectory } from './FDirectory';
 import { Context } from 'openland-utils/Context';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FAtomicInteger } from './FAtomicInteger';
-import { FOperations } from './FOperations';
+import { FSubspace } from './FSubspace';
 
 export class FAtomicIntegerFactory {
 
     readonly connection: FConnection;
     readonly directory: FDirectory;
-    readonly ops: FOperations;
+    readonly keySpace: FSubspace;
 
     constructor(connection: FConnection, namespace: FNamespace) {
         this.connection = connection;
-        this.ops = connection.ops;
+        this.keySpace = connection.keySpace;
         this.directory = connection.getDirectory(namespace.namespace);
     }
 
@@ -25,6 +25,6 @@ export class FAtomicIntegerFactory {
         let prefixKey = this.directory.getAllocatedKey;
         let converteKey = Buffer.concat([prefixKey, FKeyEncoding.encodeKey(key)]);
 
-        return new FAtomicInteger(converteKey, this.ops);
+        return new FAtomicInteger(converteKey, this.keySpace);
     }
 }

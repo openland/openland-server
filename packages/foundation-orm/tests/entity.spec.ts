@@ -45,7 +45,7 @@ describe('FEntity', () => {
             let res = inTx(rootctx, async (ctx) => {
                 return await testEntities.SimpleEntity.create(ctx, 12, { data: 'hello world' });
             });
-            expect(res).rejects.toThrowError('Object with id entity.simpleEntity.12 already exists');
+            expect(res).rejects.toThrowError('Object with id SimpleEntity.12 already exists');
         });
     });
 

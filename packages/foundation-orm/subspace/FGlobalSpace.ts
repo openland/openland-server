@@ -4,28 +4,28 @@ import { getTransaction } from '../getTransaction';
 import { FKeyEncoding } from '../utils/FKeyEncoding';
 import { keySelector } from 'foundationdb';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';
-import { FSubspaceOperations } from './FSubspaceOperations';
-import { FOperations } from 'foundation-orm/FOperations';
+import { FSubspaceImpl } from './FSubspaceImpl';
+import { FSubspace } from 'foundation-orm/FSubspace';
 import { FEncoders } from 'foundation-orm/FEncoders';
 import { FTransformer } from 'foundation-orm/FTransformer';
-import { FTransformedOperations } from './FTransformedOperations';
+import { FTransformedSubspace } from './FTransformedSubspace';
 
-export class FOperationsGlobal implements FOperations<Buffer, Buffer> {
+export class FGlobalSpace implements FSubspace<Buffer, Buffer> {
     readonly connection: FConnection;
 
     constructor(connection: FConnection) {
         this.connection = connection;
     }
 
-    withKeyEncoding<K2>(keyTf: FTransformer<Buffer, K2>): FOperations<K2, Buffer> {
-        return new FTransformedOperations<K2, Buffer, Buffer, Buffer>(this, keyTf, FEncoders.id<Buffer>());
+    withKeyEncoding<K2>(keyTf: FTransformer<Buffer, K2>): FSubspace<K2, Buffer> {
+        return new FTransformedSubspace<K2, Buffer, Buffer, Buffer>(this, keyTf, FEncoders.id<Buffer>());
     }
-    withValueEncoding<V2>(valueTf: FTransformer<Buffer, V2>): FOperations<Buffer, V2> {
-        return new FTransformedOperations<Buffer, V2, Buffer, Buffer>(this, FEncoders.id<Buffer>(), valueTf);
+    withValueEncoding<V2>(valueTf: FTransformer<Buffer, V2>): FSubspace<Buffer, V2> {
+        return new FTransformedSubspace<Buffer, V2, Buffer, Buffer>(this, FEncoders.id<Buffer>(), valueTf);
     }
 
-    subspace(key: Buffer): FOperations<Buffer, Buffer> {
-        return new FSubspaceOperations(this.connection, key);
+    subspace(key: Buffer): FSubspace<Buffer, Buffer> {
+        return new FSubspaceImpl(this.connection, key);
     }
 
     async get(ctx: Context, key: Buffer) {
