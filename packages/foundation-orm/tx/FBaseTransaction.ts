@@ -5,7 +5,6 @@ import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { createLogger } from 'openland-log/createLogger';
 import { SLog } from 'openland-log/SLog';
-import { FKeyEncoding } from '../utils/FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 import { ReadWriteLock } from '../utils/readWriteLock';
 import { FRawTransaction } from './FRawTransaction';
@@ -69,14 +68,6 @@ export abstract class FBaseTransaction implements FTransaction {
             limit: options && options.limit ? options.limit : undefined,
             reverse: options && options.reverse ? options.reverse : undefined,
         })).map((v) => encoders.json.unpack(v.value));
-    }
-    async rangeAfter(parent: Context, connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
-        this.prepare(connection);
-        return (await this.tx!.range(FKeyEncoding.encodeKey(prefix), {
-            after: FKeyEncoding.encodeKey(afterKey),
-            limit: options && options.limit ? options.limit : undefined,
-            reverse: options && options.reverse ? options.reverse : undefined,
-        })).map((v) => ({ item: encoders.json.unpack(v.value), key: v.key }));
     }
 
     set(parent: Context, connection: FConnection, key: Buffer, value: any) {

@@ -37,7 +37,7 @@ export const validators = {
                     return;
                 }
             }
-            throw new FDBValidationError('\'' + name + '\' string \'' + value + '\' is matched with known enum values');
+            throw new FDBValidationError('\'' + name + '\' string \'' + value + '\' is not matched with known enum values');
         }
     },
     isJson: (name: string, value: any, schema: JsonSchema) => {

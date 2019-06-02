@@ -14,7 +14,6 @@ export interface FTransaction {
     get(context: Context, connection: FConnection, key: Buffer): Promise<any | null>;
     range(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     rangeAll(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]>;
-    rangeAfter(context: Context, connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     set(context: Context, connection: FConnection, key: Buffer, value: any): void;
     delete(context: Context, connection: FConnection, key: Buffer): void;
 }
