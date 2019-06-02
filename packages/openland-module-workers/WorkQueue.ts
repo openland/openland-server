@@ -9,9 +9,8 @@ import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay'
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { Context } from 'openland-utils/Context';
 import { getTransaction } from 'foundation-orm/getTransaction';
-import { EmptyContext } from '@openland/context';
+import { EmptyContext, Context } from '@openland/context';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
