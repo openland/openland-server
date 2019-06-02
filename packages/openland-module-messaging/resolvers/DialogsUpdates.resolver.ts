@@ -6,7 +6,7 @@ import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
-// import { Modules } from 'openland-modules/Modules';
+import { Modules } from 'openland-modules/Modules';
 
 export default {
     /* 
@@ -143,17 +143,18 @@ export default {
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
                 // zip previous updates in batches
-                // let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
-                // let subscribeAfter = args.fromState || undefined;
-                // for await (let event of zipedGenerator) {
-                //     subscribeAfter = event.cursor;
-                //     yield event;
-                // }
-                console.log('Load dialogs from ' + args.fromState + ' by ' + ctx.auth.uid);
-                let tail = await FDB.UserDialogEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
+                let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
+                let subscribeAfter = args.fromState || undefined;
+                for await (let event of zipedGenerator) {
+                    subscribeAfter = event.cursor;
+                    yield event;
+                }
+                if (!subscribeAfter) {
+                    subscribeAfter = await FDB.UserDialogEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
+                }
 
                 // start subscription from last known event
-                let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, tail);
+                let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, subscribeAfter);
                 for await (let event of generator) {
                     yield event;
                 }
