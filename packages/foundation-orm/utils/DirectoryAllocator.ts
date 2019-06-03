@@ -1,8 +1,8 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from './FKeyEncoding';
-import { createLogger } from 'openland-log/createLogger';
+// import { createLogger } from 'openland-log/createLogger';
 import { backoff } from 'openland-utils/timer';
-import { createEmptyContext } from 'openland-utils/Context';
+// import { createEmptyContext } from 'openland-utils/Context';
 import { encoders } from 'foundationdb';
 
 const rootPrefix = Buffer.from('f0', 'hex');
@@ -10,7 +10,7 @@ const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);
 const metaPrefix = Buffer.concat([rootPrefix, Buffer.from('fd', 'hex')]);
 const regsPrefix = Buffer.concat([metaPrefix, Buffer.from('01', 'hex')]);
 const counterKey = Buffer.concat([metaPrefix, Buffer.from('02', 'hex')]);
-const logger = createLogger('directory-allocator');
+// const logger = createLogger('directory-allocator');
 
 function buildDataPrefix(counter: number) {
     let res = new Buffer(2);
@@ -26,7 +26,7 @@ export class DirectoryAllocator {
     }
 
     async allocateDirectory(key: (string | number | boolean)[]) {
-        logger.debug(createEmptyContext(), 'Allocating for key: ' + JSON.stringify(key));
+        // logger.debug(createEmptyContext(), 'Allocating for key: ' + JSON.stringify(key));
         let destKey = Buffer.concat([regsPrefix, FKeyEncoding.encodeKey([...key])]);
         try {
             return await backoff(async () => await this.connection.fdb.doTransaction(async (tx) => {
@@ -46,7 +46,7 @@ export class DirectoryAllocator {
                     throw Error('Key space overflowed');
                 }
                 tx.set(destKey, encoders.json.pack({ value: nextCounter }) as Buffer);
-                logger.debug(createEmptyContext(), 'Allocated ' + nextCounter + ' for key: ' + JSON.stringify(key));
+                // logger.debug(createEmptyContext(), 'Allocated ' + nextCounter + ' for key: ' + JSON.stringify(key));
                 return buildDataPrefix(nextCounter);
             }));
         } catch (e) {

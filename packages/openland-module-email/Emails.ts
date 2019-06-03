@@ -3,7 +3,7 @@ import { ChannelInvitation, Message, OrganizationInviteLink } from 'openland-mod
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 export const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';

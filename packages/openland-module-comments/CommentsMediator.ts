@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { CommentInput, CommentsRepository } from './CommentsRepository';
-import { Context } from '../openland-utils/Context';
+import { Context } from '@openland/context';
 import { inTx } from '../foundation-orm/inTx';
 import { AllEntities } from '../openland-module-db/schema';
 import { NotFoundError } from '../openland-errors/NotFoundError';

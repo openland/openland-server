@@ -1,7 +1,7 @@
 import { DraftsRepository } from './repositories/DraftsRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { injectable } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 @injectable()
 export class DraftsModule {

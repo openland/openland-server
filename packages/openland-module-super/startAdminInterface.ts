@@ -5,8 +5,8 @@ import compression from 'compression';
 import { ApolloServer } from 'apollo-server-express';
 import { FDBGraphqlSchema } from 'openland-module-db/tools/GraphEndpoint';
 import { Modules } from 'openland-modules/Modules';
-import { createEmptyContext } from 'openland-utils/Context';
 import * as http from 'http';
+import { EmptyContext } from '@openland/context';
 
 export function startAdminInterface() {
     console.log('Starting Admin Interface...');
@@ -21,7 +21,7 @@ export function startAdminInterface() {
     app.use(compression());
 
     app.get('/', (req, res) => res.send('Welcome to Closedland API!'));
-    app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats(createEmptyContext())));
+    app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats(EmptyContext)));
 
     const Server = new ApolloServer({
         schema: FDBGraphqlSchema,

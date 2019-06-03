@@ -1,12 +1,15 @@
 import { FNamespace } from './FNamespace';
-import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
-import { Context } from 'openland-utils/Context';
-import { resolveContext, FTransactionContext } from './utils/contexts';
+import { Context } from '@openland/context';
+import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
+import { FTransaction } from './FTransaction';
+import { getTransaction } from './getTransaction';
+import { FSubspace } from './FSubspace';
+import { FTuple } from './encoding/FTuple';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -19,13 +22,14 @@ const log = createLogger('FEntity', false);
 
 export abstract class FEntity {
     abstract readonly entityName: string;
-    readonly namespace: FNamespace;
+    readonly obsoleteKeySpace: FSubspace<FTuple[], any>;
+    readonly keySpace: FSubspace;
     readonly directory: FDirectory;
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
     readonly ctx: Context;
-    readonly context: FContext;
+    readonly transaction: FTransaction;
 
     protected _valueInitial: any;
     protected _value: any;
@@ -37,12 +41,13 @@ export abstract class FEntity {
 
     constructor(ctx: Context, connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
-        this.namespace = namespace;
+        this.obsoleteKeySpace = namespace.keySpace;
         this.directory = directory;
         this.rawId = id;
         this.connection = connection;
-        this.context = resolveContext(ctx);
-        this.isReadOnly = this.context.isReadOnly;
+        this.keySpace = connection.keySpace;
+        this.transaction = getTransaction(ctx);
+        this.isReadOnly = this.transaction.isReadOnly;
         this.options = options;
         this.isNew = isNew;
         this.indexes = indexes;
@@ -95,7 +100,7 @@ export abstract class FEntity {
         if (this.isReadOnly) {
             throw Error('Entity is not writable. Did you wrapped everything in transaction?');
         }
-        if (this.context.isCompleted) {
+        if (this.transaction.isCompleted) {
             throw Error('You can\'t update entity when transaction is in completed state.');
         }
     }
@@ -110,15 +115,13 @@ export abstract class FEntity {
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
-            this.context.markDirty(this.ctx, this, async (ctx: Context) => {
+            this.transaction.beforeCommit(async (ctx: Context) => {
                 await this._doFlush(ctx, false, true);
             });
         }
     }
 
     private async _doFlush(parent: Context, unsafe: boolean, lock: boolean) {
-        // console.warn('doFlush');
-
         let cache = FTransactionContext.get(parent);
         if (!cache) {
             throw Error('Tried to flush object outside of transaction');
@@ -160,14 +163,14 @@ export abstract class FEntity {
                 }
 
                 // Write to the store
-                this.namespace.set(ctx, this.connection, this.rawId, value);
+                this.obsoleteKeySpace.set(ctx, this.rawId, value);
                 this.directory.set(ctx, this.rawId, value);
 
                 // Create or Update indexes
                 if (this.isNew) {
                     // Notify after successful transaction
                     if (this.options.hasLiveStreams) {
-                        this.context.afterTransaction(() => {
+                        this.transaction.afterCommit(() => {
                             this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
                         });
                     }
@@ -181,14 +184,14 @@ export abstract class FEntity {
                         let key = index.fields.map((v) => value[v]);
                         if (index.unique) {
                             if (!unsafe) {
-                                let ex = await this.namespace.get(ctx, this.connection, ['__indexes', index.name, ...key]);
+                                let ex = await this.obsoleteKeySpace.get(ctx, ['__indexes', index.name, ...key]);
                                 if (ex) {
                                     throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                                 }
                             }
-                            this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key], value);
+                            this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
                         } else {
-                            this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                     }
                 } else {
@@ -229,27 +232,27 @@ export abstract class FEntity {
 
                         if (index.unique) {
                             if (needToDeleteOld) {
-                                this.namespace.delete(ctx, this.connection, ['__indexes', index.name, ...oldkey]);
+                                this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey]);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
-                                    if (await this.namespace.get(ctx, this.connection, ['__indexes', index.name, ...key])) {
+                                    if (await this.obsoleteKeySpace.get(ctx, ['__indexes', index.name, ...key])) {
                                         throw Error('Unique index constraint failed for index ' + index.name);
                                     }
                                 }
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key], value);
+                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
                             }
                         } else {
                             if (needToDeleteOld) {
-                                this.namespace.delete(ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                                this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
-                                this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.namespace.set(ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                             }
                         }
                     }

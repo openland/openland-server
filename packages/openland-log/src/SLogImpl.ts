@@ -1,6 +1,6 @@
 import { SLog } from '../SLog';
 import winston from 'winston';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { SLogContext } from './SLogContext';
 import { AnyFighter } from 'openland-utils/anyfighter';
 

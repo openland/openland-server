@@ -1,12 +1,12 @@
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
-import { createEmptyContext } from 'openland-utils/Context';
 import { ShortnameRepository } from './ShortnameRepository';
 import { SuperModule } from '../../openland-module-super/SuperModule';
 import { UsersModule } from '../../openland-module-users/UsersModule';
 import { UserRepository } from '../../openland-module-users/repositories/UserRepository';
 import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from '../../openland-module-organization/repositories/OrganizationRepository';
+import { EmptyContext } from '@openland/context';
 
 describe('ShortnameRepository', () => {
     beforeAll(async () => {
@@ -23,7 +23,7 @@ describe('ShortnameRepository', () => {
     });
     it('should set user shortname', async () => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let res = await repo.setShortnameToUser(ctx, 'hello1', 1);
 
         expect(res).toEqual(true);
@@ -35,7 +35,7 @@ describe('ShortnameRepository', () => {
     });
     it('should set org shortname', async () => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let res = await repo.setShortnameToOrganization(ctx, 'hello2', 1, 1);
 
         expect(res).toEqual(true);
@@ -47,7 +47,7 @@ describe('ShortnameRepository', () => {
     });
     it('should not set already reserved shortname', async (done) => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let res = await repo.setShortnameToUser(ctx, 'hello3', 1);
 
         expect(res).toEqual(true);
@@ -61,7 +61,7 @@ describe('ShortnameRepository', () => {
     });
     it('should release shortname when changed', async () => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let res = await repo.setShortnameToUser(ctx, 'hello4', 1);
         res = await repo.setShortnameToUser(ctx, 'hello5', 1);
         res = await repo.setShortnameToUser(ctx, 'hello4', 2);

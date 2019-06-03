@@ -15,7 +15,7 @@ export function generate(model: SchemaModel, path: string) {
     res += 'import { FAtomicIntegerFactory } from \'foundation-orm/FAtomicIntegerFactory\';\n';
     res += 'import { FConnection } from \'foundation-orm/FConnection\';\n';
     res += 'import { validators } from \'foundation-orm/utils/validators\';\n';
-    res += 'import { Context } from \'openland-utils/Context\';\n';
+    res += 'import { Context } from \'@openland/context\';\n';
     res += '// @ts-ignore\n';
     res += 'import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from \'openland-utils/jsonSchema\';\n';
     res += '\n';

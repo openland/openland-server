@@ -2,7 +2,7 @@ import { AllEntities } from 'openland-module-db/schema';
 import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { inTx } from 'foundation-orm/inTx';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export class AuthCodeRepository {
     private readonly entities: AllEntities;

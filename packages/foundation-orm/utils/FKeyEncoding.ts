@@ -1,6 +1,7 @@
 import { encoders } from 'foundationdb';
 import { createLogger } from 'openland-log/createLogger';
-import { createEmptyContext } from 'openland-utils/Context';
+import { FTuple } from 'foundation-orm/encoding/FTuple';
+import { EmptyContext } from '@openland/context';
 // import { pack } from './TupleEncoder';
 
 const byteFF = Buffer.alloc(1);
@@ -18,7 +19,7 @@ export const FKeyEncoding = {
         try {
             return encoders.tuple.pack(key) as Buffer;
         } catch (e) {
-            log.warn(createEmptyContext(), 'Unable to encode key', key, e);
+            log.warn(EmptyContext, 'Unable to encode key', key, e);
             throw e;
         }
     },
@@ -41,17 +42,24 @@ export const FKeyEncoding = {
         // } catch (e) {
         //     log.warn('Unable to encode key with new encoder!!', key, e);
         // }
-        return res;
+        return res as FTuple[];
     },
     decodeFromString: (key: string) => {
-        return encoders.tuple.unpack(Buffer.from(key, 'hex'));
+        return encoders.tuple.unpack(Buffer.from(key, 'hex')) as FTuple[];
     },
     lastKeyInSubspace: (key: (string | boolean | number)[]) => {
         let r = encoders.tuple.pack(key) as Buffer;
         return Buffer.concat([r, byteFF]);
     },
+    lastKeyInSubspaceBuf: (key: Buffer) => {
+        return Buffer.concat([key, byteFF]);
+    },
     firstKeyInSubspace: (key: (string | boolean | number)[]) => {
         let r = encoders.tuple.pack(key) as Buffer;
         return Buffer.concat([r, byteZero]);
+    },
+
+    firstKeyInSubspaceBuf: (key: Buffer) => {
+        return Buffer.concat([key, byteZero]);
     },
 };

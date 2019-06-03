@@ -1,6 +1,6 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export class DraftsRepository {
     readonly entities: AllEntities;

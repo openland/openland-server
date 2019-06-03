@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NoOpBus } from './NoOpBus';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 describe('FEntity Versioned', () => {
 
@@ -22,7 +22,7 @@ describe('FEntity Versioned', () => {
     });
 
     it('should create with version number eq to one', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 0, { data: 'hello world' }); });
             let res = (await testEntities.VersionedEntity.findById(parent, 0))!;
@@ -31,7 +31,7 @@ describe('FEntity Versioned', () => {
     });
 
     it('should update version number by one', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 1, { data: 'hello world' }); });
             await inTx(parent, async (ctx) => {
@@ -44,7 +44,7 @@ describe('FEntity Versioned', () => {
     });
 
     it('should create with version number eq to one', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 2, { data: 'hello world' }); });
             let res = (await testEntities.VersionedEntity.findById(parent, 2))!;

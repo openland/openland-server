@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { AllEntities, UserStorageRecord } from '../../openland-module-db/schema';
-import { Context } from '../../openland-utils/Context';
+import { Context } from '@openland/context';
 import { inTx } from '../../foundation-orm/inTx';
 import { Modules } from '../../openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';

@@ -5,7 +5,7 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { ProfileInput } from 'openland-module-users/ProfileInput';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';

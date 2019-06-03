@@ -2,7 +2,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { ConferenceRoom, ConferencePeer } from 'openland-module-db/schema';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { AppContext } from 'openland-modules/AppContext';
 import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';

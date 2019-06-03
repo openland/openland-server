@@ -1,5 +1,4 @@
 import * as fdb from 'foundationdb';
-import { FContext, FGlobalContext } from './FContext';
 import * as fs from 'fs';
 import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
@@ -8,12 +7,14 @@ import { FPubsub } from './FPubsub';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FDirectory } from './FDirectory';
 import { FDiagnostics } from './FDiagnostics';
+import { FSubspace } from './FSubspace';
+import { FGlobalSpace } from './subspace/FGlobalSpace';
 
 export class FConnection {
-    static readonly globalContext: FContext = new FGlobalContext();
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
     readonly diagnostics: FDiagnostics;
+    readonly keySpace: FSubspace;
     private readonly directoryAllocator: DirectoryAllocator;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -40,6 +41,7 @@ export class FConnection {
         this.test = test;
         this.directoryAllocator = new DirectoryAllocator(this);
         this.diagnostics = new FDiagnostics(this);
+        this.keySpace = new FGlobalSpace(this);
     }
 
     getDirectory(key: (string | number | boolean)[]) {

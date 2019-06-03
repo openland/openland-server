@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 describe('FEntity', () => {
 
@@ -22,7 +22,7 @@ describe('FEntity', () => {
     });
 
     it('should be able to create items', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await withLogDisabled(async () => {
             let res = await inTx(rootctx, async (ctx) => {
                 return await testEntities.SimpleEntity.create(ctx, 14, { data: 'hello world' });
@@ -35,7 +35,7 @@ describe('FEntity', () => {
         });
     });
     it('should crash on create if exists', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await withLogDisabled(async () => {
             // First create
             await inTx(rootctx, async (ctx) => {
@@ -45,12 +45,12 @@ describe('FEntity', () => {
             let res = inTx(rootctx, async (ctx) => {
                 return await testEntities.SimpleEntity.create(ctx, 12, { data: 'hello world' });
             });
-            expect(res).rejects.toThrowError('Object with id entity.simpleEntity.12 already exists');
+            expect(res).rejects.toThrowError('Object with id SimpleEntity.12 already exists');
         });
     });
 
     it('should update values', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.SimpleEntity.create(ctx, 3, { data: 'hello world' });
@@ -67,7 +67,7 @@ describe('FEntity', () => {
     });
 
     it('should read nullable falsy fields correctly', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.NullableEntity.create(ctx, 0, { flag: true });
@@ -89,7 +89,7 @@ describe('FEntity', () => {
     });
 
     it('should update values when read outside transaction', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.SimpleEntity.create(ctx, 6, { data: 'hello world' });
@@ -104,7 +104,7 @@ describe('FEntity', () => {
     });
 
     it('should crash when trying to change read-only instance', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.SimpleEntity.create(ctx, 4, { data: 'hello world' }); });
             let res = (await testEntities.SimpleEntity.findById(parent, 4))!;
@@ -113,7 +113,7 @@ describe('FEntity', () => {
     });
 
     it('should crash when trying to change instance after transaction completed', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.SimpleEntity.create(ctx, 5, { data: 'hello world' }); });
             let res = await inTx(parent, async (ctx) => { return (await testEntities.SimpleEntity.findById(ctx, 5))!; });
@@ -122,7 +122,7 @@ describe('FEntity', () => {
     });
 
     it('should be able to read values from entity even when transaction is completed', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.SimpleEntity.create(ctx, 7, { data: 'hello world' }); });
             let res = await inTx(parent, async (ctx) => { return (await testEntities.SimpleEntity.findById(ctx, 7))!; });
@@ -131,7 +131,7 @@ describe('FEntity', () => {
     });
 
     it('double flush should work', async () => {
-        let parent = createEmptyContext();
+        let parent = EmptyContext;
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 let res = await testEntities.SimpleEntity.create(ctx, 10, { data: 'hello world' });
@@ -142,7 +142,7 @@ describe('FEntity', () => {
     });
 
     it('should save valid json field', async () => {
-        let rctx = createEmptyContext();
+        let rctx = EmptyContext;
         let res = await inTx(rctx, async (ctx) => {
             return await testEntities.JsonTest.create(ctx, 1, { test: { type: 'link', length: 0, offset: 0, url: '_' } });
         });
@@ -154,7 +154,7 @@ describe('FEntity', () => {
     });
 
     it('should not save invalid json field', async () => {
-        let rctx = createEmptyContext();
+        let rctx = EmptyContext;
         let res = inTx(rctx, async (ctx) => {
             return await testEntities.JsonTest.create(ctx, 2, { test: { type: 'link', length: true, offset: 0, url: '_' } as any });
         });
@@ -162,7 +162,7 @@ describe('FEntity', () => {
     });
 
     it('should throw on second creation', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await inTx(rootctx, async (ctx) => {
             let ex = testEntities.SimpleEntity.create(ctx, 140, { data: 'hello world1' });
             let ex2 = testEntities.SimpleEntity.create(ctx, 140, { data: 'hello world2' });
@@ -173,7 +173,7 @@ describe('FEntity', () => {
     });
 
     it('should return same references for same key (async)', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await inTx(rootctx, async (ctx) => {
             let r1 = testEntities.SimpleEntity.create(ctx, 141, { data: 'hello world1' });
             let r2 = testEntities.SimpleEntity.findById(ctx, 141);
@@ -188,7 +188,7 @@ describe('FEntity', () => {
     });
 
     it('should return same references for same key', async () => {
-        let rootctx = createEmptyContext();
+        let rootctx = EmptyContext;
         await inTx(rootctx, async (ctx) => {
             let r1 = await testEntities.SimpleEntity.create(ctx, 142, { data: 'hello world1' });
             let r2 = await testEntities.SimpleEntity.findById(ctx, 142);

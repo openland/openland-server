@@ -8,7 +8,7 @@ import { DBModule } from 'openland-module-db/DBModule';
 import { EmailModuleMock } from 'openland-module-email/EmailModule.mock';
 import { randomKey } from 'openland-utils/random';
 import { HooksModuleMock } from 'openland-module-hooks/HooksModule.mock';
-import { Context } from '../openland-utils/Context';
+import { Context } from '@openland/context';
 import { UsersModule } from '../openland-module-users/UsersModule';
 
 export async function testEnvironmentStart(name: string) {

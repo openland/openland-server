@@ -8,15 +8,14 @@ import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
 import { inTx } from '../foundation-orm/inTx';
-import { Context, createEmptyContext } from '../openland-utils/Context';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
-import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
 import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
+import { Context, EmptyContext } from '@openland/context';
 
 const URLInfoService = createUrlInfoService();
 
@@ -43,9 +42,8 @@ export async function fetchAllUids(ctx: Context) {
     let allUsers = await FDB.User.findAllKeys(ctx);
     let allUids: number[] = [];
     for (let key of allUsers) {
-        let k = FKeyEncoding.decodeKey(key);
-        k.splice(0, 2);
-        allUids.push(k[0] as number);
+        key.splice(0, 2);
+        allUids.push(key[0] as number);
     }
 
     return allUids;
@@ -336,7 +334,7 @@ export default {
             let users = await FDB.User.findAll(parent);
 
             for (let user of users) {
-                await inTx(createEmptyContext(), async (ctx) => {
+                await inTx(EmptyContext, async (ctx) => {
                     try {
                         let {totalSent, totalReceived} = await calculateForUser(ctx, user.id);
 
@@ -386,7 +384,7 @@ export default {
             let users = await FDB.User.findAll(parent);
 
             for (let user of users) {
-                await inTx(createEmptyContext(), async (ctx) => {
+                await inTx(EmptyContext, async (ctx) => {
                     try {
                         let {chatsCount, directChatsCount} = await calculateForUser(ctx, user.id);
 
@@ -477,7 +475,7 @@ export default {
             let chats = await FDB.ConversationOrganization.findAll(parent);
             let i = 0;
             for (let chat of chats) {
-                await inTx(createEmptyContext(), async ctx => {
+                await inTx(EmptyContext, async ctx => {
                     let conv = await FDB.Conversation.findById(ctx, chat.id);
                     if (conv && conv.deleted) {
                         // ignore already deleted chats
@@ -510,7 +508,7 @@ export default {
                 let i = 0;
 
                 for (let state of commentSeqs) {
-                    await inTx(createEmptyContext(), async _ctx => {
+                    await inTx(EmptyContext, async _ctx => {
                         let comments = await FDB.Comment.allFromPeer(_ctx, state.peerType as any, state.peerId);
 
                         let id2Comment = new Map<number, Comment>();
@@ -571,11 +569,11 @@ export default {
         }),
         debugRemoveDeletedDialogs: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugRemoveDeletedDialogs', async (log) => {
-                let users = await FDB.User.findAll(createEmptyContext());
+                let users = await FDB.User.findAll(EmptyContext);
                 let i = 0;
                 for (let user of users) {
                     try {
-                        await inTx(createEmptyContext(), async _ctx => {
+                        await inTx(EmptyContext, async _ctx => {
                             let all = await FDB.UserDialog.allFromUser(_ctx, user.id);
                             for (let dialog of all) {
                                 let conv = (await FDB.Conversation.findById(_ctx, dialog.cid))!;
@@ -599,11 +597,11 @@ export default {
         }),
         debugReindexOrgs: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let orgs = await FDB.Organization.findAll(createEmptyContext());
+                let orgs = await FDB.Organization.findAll(EmptyContext);
                 let i = 0;
                 for (let o of orgs) {
                     try {
-                        await inTx(createEmptyContext(), async _ctx => {
+                        await inTx(EmptyContext, async _ctx => {
                             if (args.marActivatedOrgsListed) {
                                 let org = await FDB.Organization.findById(_ctx, o.id);
                                 let editorial = await FDB.OrganizationEditorial.findById(_ctx, o.id);
@@ -641,7 +639,7 @@ export default {
             debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
                 let allUids = await fetchAllUids(parent);
                 for (let uid of allUids) {
-                    await inTx(createEmptyContext(), async (ctx) => {
+                    await inTx(EmptyContext, async (ctx) => {
                         let duplicatesCount = await fixIndexConsistency(
                             ctx,
                             FDB.UserDialog,
@@ -661,10 +659,10 @@ export default {
         }),
         debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcRoomsActiveMembers', async (log) => {
-                let allRooms = await FDB.RoomProfile.findAll(createEmptyContext());
+                let allRooms = await FDB.RoomProfile.findAll(EmptyContext);
                 let i = 0;
                 for (let room of allRooms) {
-                    await inTx(createEmptyContext(), async (ctx) => {
+                    await inTx(EmptyContext, async (ctx) => {
                         let activeMembers = await FDB.RoomParticipant.allFromActive(ctx, room.id);
                         let _room = await FDB.RoomProfile.findById(ctx, room.id);
 
@@ -683,10 +681,10 @@ export default {
         }),
         debugCalcOrgsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcOrgsActiveMembers', async (log) => {
-                let allOrgs = await FDB.Organization.findAll(createEmptyContext());
+                let allOrgs = await FDB.Organization.findAll(EmptyContext);
                 let i = 0;
                 for (let org of allOrgs) {
-                    await inTx(createEmptyContext(), async (ctx) => {
+                    await inTx(EmptyContext, async (ctx) => {
                         let activeMembers = await Modules.Orgs.findOrganizationMembers(ctx, org.id);
                         let _org = await FDB.OrganizationProfile.findById(ctx, org.id);
 
@@ -724,7 +722,7 @@ export default {
                             if (args.randomDelays) {
                                 await delay(randomInt(0, 10000));
                             }
-                            await createDebugEvent(createEmptyContext(), uid!, args.seed + ':' + i.toString(10));
+                            await createDebugEvent(EmptyContext, uid!, args.seed + ':' + i.toString(10));
                         })();
                     }
                 })();

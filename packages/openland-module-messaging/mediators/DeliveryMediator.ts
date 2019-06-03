@@ -8,7 +8,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
 import { inTx } from 'foundation-orm/inTx';
 import { RoomMediator } from './RoomMediator';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';

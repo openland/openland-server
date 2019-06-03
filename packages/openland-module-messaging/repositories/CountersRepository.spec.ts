@@ -3,9 +3,9 @@ import { container } from 'openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';
 import { CountersRepository } from './CountersRepository';
 import { MessagingRepository } from './MessagingRepository';
-import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { loadMessagingTestModule } from '../Messaging.container.test';
+import { EmptyContext } from '@openland/context';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
@@ -20,7 +20,7 @@ describe('CountersRepository', () => {
         testEnvironmentEnd();
     });
     it('should increment counter and decrement', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -60,7 +60,7 @@ describe('CountersRepository', () => {
     });
 
     it('should properly decrement on middle-read', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -104,7 +104,7 @@ describe('CountersRepository', () => {
     });
 
     it('should be order-independent', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -146,7 +146,7 @@ describe('CountersRepository', () => {
     // });
 
     it('should decrement counter on unread message deletion', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -172,7 +172,7 @@ describe('CountersRepository', () => {
     });
 
     it('should mark dialog mention for messages with mentions', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -207,7 +207,7 @@ describe('CountersRepository', () => {
     });
 
     it('should clear mention flag on read', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');

@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { Context } from '../../openland-utils/Context';
+import { Context } from '@openland/context';
 import { AllEntities } from '../../openland-module-db/schema';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';

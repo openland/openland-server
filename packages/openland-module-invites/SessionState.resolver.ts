@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 

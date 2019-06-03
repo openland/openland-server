@@ -4,8 +4,8 @@ import { delay } from 'openland-utils/timer';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { FKeyEncoding } from './FKeyEncoding';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { encoders } from 'foundationdb';
+import { EmptyContext, Context } from '@openland/context';
 
 export class FNodeRegistrator {
     private readonly connection: FConnection;
@@ -17,7 +17,7 @@ export class FNodeRegistrator {
         this.connection = connection;
         this.nodeId = null;
 
-        this.ctx = withLogContext(createEmptyContext(), ['node-registrator-loop']);
+        this.ctx = withLogContext(EmptyContext, ['node-registrator-loop']);
     }
 
     getNodeId() {
@@ -27,7 +27,9 @@ export class FNodeRegistrator {
                 while (true) {
                     let candidate = Math.round(Math.random() * 1023);
                     let now = Date.now();
-                    this.log.log(this.ctx, 'Check if ' + candidate + ' is available');
+                    if (!process.env.JEST_WORKER_ID) {
+                        this.log.log(this.ctx, 'Check if ' + candidate + ' is available');
+                    }
                     let res = await this.connection.fdb.doTransaction(async (tn) => {
                         let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
                         if (!existing || ((encoders.json.unpack(existing).timeout as number) < now)) {

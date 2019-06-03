@@ -9,7 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AugmentationMediator } from './AugmentationMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { RoomMediator } from './RoomMediator';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { createTracer } from 'openland-log/createTracer';
 import { UserError } from '../../openland-errors/UserError';
 import { currentTime } from 'openland-utils/timer';

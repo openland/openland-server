@@ -1,8 +1,8 @@
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { CallRepository } from './CallRepository';
-import { createEmptyContext } from 'openland-utils/Context';
 import { FDB } from 'openland-module-db/FDB';
+import { EmptyContext } from '@openland/context';
 
 describe('CallRepository', () => {
     beforeAll(async () => {
@@ -14,14 +14,14 @@ describe('CallRepository', () => {
     });
     it('should create conference', async () => {
         let repo = container.get(CallRepository);
-        let conf1 = await repo.getOrCreateConference(createEmptyContext(), 1);
-        let conf2 = await repo.getOrCreateConference(createEmptyContext(), 1);
+        let conf1 = await repo.getOrCreateConference(EmptyContext, 1);
+        let conf2 = await repo.getOrCreateConference(EmptyContext, 1);
         expect(conf1.versionCode).toBe(1);
         expect(conf2.versionCode).toBe(1);
     });
 
     it('should add peers', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 2;
         let repo = container.get(CallRepository);
         let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
@@ -39,11 +39,11 @@ describe('CallRepository', () => {
     });
 
     it('should automatically connect peers', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 3;
         let repo = container.get(CallRepository);
-        let peer1 = await repo.addPeer(createEmptyContext(), CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(createEmptyContext(), CID, 4, 'tid2', 5000);
+        let peer1 = await repo.addPeer(EmptyContext, CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(EmptyContext, CID, 4, 'tid2', 5000);
         let peers = await FDB.ConferencePeer.allFromConference(ctx, CID);
         expect(peer1.id).toBeLessThan(peer2.id);
         expect(peer1.uid).toBe(3);
@@ -56,7 +56,7 @@ describe('CallRepository', () => {
     });
 
     it('should remove peers and related connections', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 4;
         let repo = container.get(CallRepository);
         let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
@@ -70,7 +70,7 @@ describe('CallRepository', () => {
     });
 
     it('should accept offers', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 5;
         let repo = container.get(CallRepository);
         let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
@@ -85,7 +85,7 @@ describe('CallRepository', () => {
     });
 
     it('should crash if offer came from the wrong side', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 6;
         let repo = container.get(CallRepository);
         let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
@@ -100,7 +100,7 @@ describe('CallRepository', () => {
     });
 
     it('should accept answer', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 7;
         let repo = container.get(CallRepository);
         let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
@@ -116,7 +116,7 @@ describe('CallRepository', () => {
     });
 
     it('should accept ICE', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let CID = 7;
         let repo = container.get(CallRepository);
         let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);

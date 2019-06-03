@@ -3,12 +3,12 @@ import { FStream } from 'foundation-orm/FStream';
 import { staticWorker } from './staticWorker';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
-import { createEmptyContext, Context } from 'openland-utils/Context';
 import { withLogContext } from 'openland-log/withLogContext';
+import { EmptyContext, Context } from '@openland/context';
 
 export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
     staticWorker({ name: 'update_reader_' + name, version, delay: args && args.delay }, async () => {
-        let root = withLogContext(createEmptyContext(), ['static-worker', name]);
+        let root = withLogContext(EmptyContext, ['static-worker', name]);
         let existing = await FDB.ReaderState.findById(root, name);
         let first = false;
         if (existing) {

@@ -6,7 +6,6 @@ import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.con
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingMediator } from './MessagingMediator';
 import *  as ChatResolver from '../resolvers/Chat.resolver';
-import { createEmptyContext } from 'openland-utils/Context';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
@@ -16,6 +15,7 @@ import { createUrlInfoService } from '../workers/UrlInfoService';
 import { Modules } from '../../openland-modules/Modules';
 import { MediaModule } from '../../openland-module-media/MediaModule';
 import { IDs } from '../../openland-module-api/IDs';
+import { EmptyContext } from '@openland/context';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -33,7 +33,7 @@ describe('MessagingMediator', () => {
     });
 
     it('should send message', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
         let users = container.get<UsersModule>(UsersModule);
@@ -52,7 +52,7 @@ describe('MessagingMediator', () => {
     });
 
     it('should set and reset reaction', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
         let USER_ID = (await randomTestUser(ctx)).uid;
@@ -76,7 +76,7 @@ describe('MessagingMediator', () => {
     });
 
     it('should edit message', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
         let USER_ID = (await randomTestUser(ctx)).uid;
@@ -98,7 +98,7 @@ describe('MessagingMediator', () => {
     });
 
     it('should delete url augmentation', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
         let USER_ID = (await randomTestUser(ctx)).uid;
@@ -145,7 +145,7 @@ describe('MessagingMediator', () => {
     });
 
     it('history pagination should work correctly', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
         let USER_ID = (await randomTestUser(ctx)).uid;

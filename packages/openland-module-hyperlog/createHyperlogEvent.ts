@@ -1,6 +1,6 @@
 import { FDB } from 'openland-module-db/FDB';
 import { inTxLeaky } from 'foundation-orm/inTx';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 export function createHyperlogger<T>(type: string) {
     return {

@@ -1,6 +1,6 @@
 import { ShortnameRepository } from './repositories/ShortnameRepository';
 import { inject, injectable } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 @injectable()
 export class ShortnameModule {

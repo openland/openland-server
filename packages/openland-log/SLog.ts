@@ -1,4 +1,4 @@
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { AnyFighter } from 'openland-utils/anyfighter';
 
 export interface SLog {

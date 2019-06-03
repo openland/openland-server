@@ -11,7 +11,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { Context } from '../openland-utils/Context';
+import { Context } from '@openland/context';
 
 async function resolveOrgInvite(ctx: Context, key: string) {
     let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, key);

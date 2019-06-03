@@ -2,7 +2,7 @@ import { injectable, inject } from 'inversify';
 import { InvitesMediator } from './mediators/InvitesMediator';
 import { InvitesRoomRepository } from './repositories/InvitesRoomRepository';
 import { InvitesOrganizationRepository } from './repositories/InvitesOrganizationRepository';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { invitesIndexer } from './workers/invitesIndexer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 

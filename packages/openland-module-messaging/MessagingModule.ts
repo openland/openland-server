@@ -11,7 +11,7 @@ import { MessagingMediator } from './mediators/MessagingMediator';
 import { RoomMediator } from './mediators/RoomMediator';
 import { dialogSearchIndexer } from './workers/dialogSearchIndexer';
 import { RoomSearch } from './search/RoomSearch';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { messagesIndexer } from './workers/messagesIndexer';
 import { FixerRepository } from './repositories/Fixer';
 import { roomsSearchIndexer } from './workers/roomsSerachIndexer';

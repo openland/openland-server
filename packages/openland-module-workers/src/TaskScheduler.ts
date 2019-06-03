@@ -5,12 +5,12 @@ import { inTx } from 'foundation-orm/inTx';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { withLogContext } from 'openland-log/withLogContext';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { createEmptyContext } from 'openland-utils/Context';
+import { EmptyContext } from '@openland/context';
 
 export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
-            let root = withLogContext(createEmptyContext(), ['modern-scheduler']);
+            let root = withLogContext(EmptyContext, ['modern-scheduler']);
             forever(async () => {
 
                 // Prerequisites

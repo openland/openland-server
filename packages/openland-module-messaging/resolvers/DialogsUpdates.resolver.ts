@@ -149,6 +149,9 @@ export default {
                     subscribeAfter = event.cursor;
                     yield event;
                 }
+                if (!subscribeAfter) {
+                    subscribeAfter = await FDB.UserDialogEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
+                }
 
                 // start subscription from last known event
                 let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, subscribeAfter);

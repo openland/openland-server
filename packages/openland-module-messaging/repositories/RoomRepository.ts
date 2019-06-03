@@ -7,7 +7,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { MessagingRepository } from './MessagingRepository';

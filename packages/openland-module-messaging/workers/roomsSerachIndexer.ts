@@ -1,10 +1,10 @@
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { FDB } from 'openland-module-db/FDB';
-import { createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
+import { EmptyContext } from '@openland/context';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(EmptyContext, 50))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -29,7 +29,7 @@ export function roomsSearchIndexer() {
             },
         })
         .start(async (item) => {
-            let ctx = createEmptyContext();
+            let ctx = EmptyContext;
             let room = await FDB.ConversationRoom.findById(ctx, item.id);
 
             if (!room) {

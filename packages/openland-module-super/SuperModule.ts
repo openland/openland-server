@@ -4,7 +4,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startAdminInterface } from './startAdminInterface';
 import { PermissionsRepository } from './repositories/PermissionsRepository';
 import { injectable } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/EnvironmentVariablesRepository';
 
 @injectable()

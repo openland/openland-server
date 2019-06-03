@@ -2,7 +2,7 @@ import { AllEntities, OrganizationInviteLink, OrganizationPublicInviteLink } fro
 import { inTx } from 'foundation-orm/inTx';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { injectable, inject } from 'inversify';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 
 @injectable()
 export class InvitesOrganizationRepository {

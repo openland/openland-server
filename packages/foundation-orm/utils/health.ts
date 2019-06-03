@@ -1,21 +1,19 @@
 import { FEntity } from '../FEntity';
-import { Context, createEmptyContext } from '../../openland-utils/Context';
 import { FEntityFactory } from '../FEntityFactory';
 import { inTx } from '../inTx';
-import { FDB } from '../../openland-module-db/FDB';
-import { resolveContext } from './contexts';
+import { EmptyContext, Context } from '@openland/context';
 
 export async function checkIndexConsistency<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
     // Find index inconsistency
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
+        let data = await entity.namespace.keySpace.range(ctx, indexKey);
 
         for (let item of data) {
-            let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
+            let rawId = extractRawId(item.value);
+            let actual = await entity.namespace.keySpace.get(ctx, rawId);
 
-            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
+            if (JSON.stringify(actual) !== JSON.stringify(item.value)) {
                 duplicatesCount++;
             }
         }
@@ -28,21 +26,21 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
     // Remove duplicates from index
     let duplicatesCount = 0;
     await inTx(parent, async (ctx) => {
-        let data = await entity.namespace.range(ctx, FDB.connection, indexKey);
+        let data = await entity.namespace.keySpace.range(ctx, indexKey);
 
         for (let item of data) {
-            let rawId = extractRawId(item.item);
-            let actual = await entity.namespace.get(ctx, FDB.connection, rawId);
+            let rawId = extractRawId(item.value);
+            let actual = await entity.namespace.keySpace.get(ctx, rawId);
 
-            if (JSON.stringify(actual) !== JSON.stringify(item.item)) {
+            if (JSON.stringify(actual) !== JSON.stringify(item.value)) {
                 duplicatesCount++;
-                await resolveContext(ctx).delete(ctx, FDB.connection, item.key);
+                entity.namespace.keySpace.delete(ctx, item.key);
             }
         }
     });
 
     // Reindex all
-    await inTx(createEmptyContext(), async (ctx) => {
+    await inTx(EmptyContext, async (ctx) => {
         let data = await getData(ctx);
         for (let item of data) {
             await item.flush(ctx);

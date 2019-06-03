@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { AppsRepository } from './repositories/AppsRepository';
-import { Context } from '../openland-utils/Context';
+import { Context } from '@openland/context';
 import { ImageRef } from '../openland-module-media/ImageRef';
 
 @injectable()

@@ -1,19 +1,8 @@
-import { createContextNamespace, Context } from 'openland-utils/Context';
-import { FTransaction } from 'foundation-orm/FTransaction';
+import { createContextNamespace } from '@openland/context';
+import { FTransactionReadWrite } from 'foundation-orm/tx/FTransactionReadWrite';
+import { FTransactionReadOnly } from 'foundation-orm/tx/FTransactionReadOnly';
 import { FConnection } from 'foundation-orm/FConnection';
-import { FCacheContext } from 'foundation-orm/FCacheContext';
 
-export const FTransactionContext = createContextNamespace<FTransaction | null>('tx', null);
-export const FCacheContextContext = createContextNamespace<FCacheContext | null>('tx-cache', null);
-
-export function resolveContext(ctx: Context) {
-    let tx = FTransactionContext.get(ctx);
-    if (tx) {
-        return tx;
-    }
-    let cache = FCacheContextContext.get(ctx);
-    if (cache) {
-        return cache;
-    }
-    return FConnection.globalContext;
-}
+export const FTransactionContext = createContextNamespace<FTransactionReadWrite | null>('tx-rw', null);
+export const FTransactionReadOnlyContext = createContextNamespace<FTransactionReadOnly | null>('tx-ro', null);
+export const FConnectionContext = createContextNamespace<FConnection | null>('fdb-connection', null);

@@ -6,10 +6,10 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
 import { PresenceModule } from './PresenceModule';
-import { createEmptyContext } from 'openland-utils/Context';
 import { UsersModule } from '../openland-module-users/UsersModule';
 import { UserRepository } from '../openland-module-users/repositories/UserRepository';
 import { SuperModule } from '../openland-module-super/SuperModule';
+import { EmptyContext } from '@openland/context';
 
 describe('PresenceModule', () => {
     beforeAll(async () => {
@@ -24,7 +24,7 @@ describe('PresenceModule', () => {
     });
 
     it('should setOnline', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await withLogDisabled(async () => {
             await Modules.Presence.setOnline(ctx, 9, '1', 5000, 'test', true);
             let p = await FDB.Presence.findById(ctx, 9, '1');
@@ -39,7 +39,7 @@ describe('PresenceModule', () => {
     });
 
     it('should return lastSeen', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await withLogDisabled(async () => {
             // online
             await Modules.Presence.setOnline(ctx, 2, '1', 1000, 'test', true);
@@ -57,7 +57,7 @@ describe('PresenceModule', () => {
     });
 
     it('should setOffline', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await withLogDisabled(async () => {
             await Modules.Presence.setOnline(ctx, 7, '1', 5000, 'test', true);
             let lastSeen = await Modules.Presence.getLastSeen(ctx, 7);
@@ -69,7 +69,7 @@ describe('PresenceModule', () => {
     });
 
     it('should return active status', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await withLogDisabled(async () => {
             await Modules.Presence.setOnline(ctx, 8, '1', 5000, 'test', true);
             let active = await Modules.Presence.isActive(ctx, 8);
@@ -84,7 +84,7 @@ describe('PresenceModule', () => {
     });
 
     it('should return events', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await withLogDisabled(async () => {
             let stream = await Modules.Presence.createPresenceStream(0, [11, 12, 13, 14, 15]);
             // tslint:disable-next-line:no-floating-promises

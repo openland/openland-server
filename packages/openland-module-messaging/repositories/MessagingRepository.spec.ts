@@ -2,8 +2,8 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { container } from 'openland-modules/Modules.container';
 import { MessagingRepository } from './MessagingRepository';
 import { AllEntities } from 'openland-module-db/schema';
-import { createEmptyContext } from 'openland-utils/Context';
 import { UserStateRepository } from './UserStateRepository';
+import { EmptyContext } from '@openland/context';
 
 describe('MessagingRepository', () => {
     beforeAll(async () => {
@@ -16,7 +16,7 @@ describe('MessagingRepository', () => {
     });
 
     it('should create message and event', async () => {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         let repo = container.get<MessagingRepository>('MessagingRepository');
         let entities = container.get<AllEntities>('FDB');
         let res = (await repo.createMessage(ctx, 1, 2, { message: 'text' }));

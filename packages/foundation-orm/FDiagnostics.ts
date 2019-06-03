@@ -1,23 +1,22 @@
 import { FConnection } from './FConnection';
 import { FEntityFactory } from './FEntityFactory';
-import { createEmptyContext } from 'openland-utils/Context';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { EmptyContext } from '@openland/context';
 
 export class FDiagnostics {
-    private connection: FConnection;
 
     constructor(connection: FConnection) {
-        this.connection = connection;
+        //        
     }
 
     async runEntityDiagnostics(src: FEntityFactory<any>) {
         let diag = '';
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
 
         // Load all keys from namespace
-        let res = await src.namespace.range(ctx, this.connection, []);
-        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
-        let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(v.key).splice(2) as any));
+        let res = await src.namespace.keySpace.range(ctx, []);
+        res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
+        let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(v.key.splice(2) as any));
 
         // Load all keys from directory
         let res2 = await src.directory.range2(ctx, []);

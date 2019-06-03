@@ -7,11 +7,11 @@ import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { injectable } from 'inversify';
 import { createLogger } from 'openland-log/createLogger';
-import { Context, createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
-import { resolveContext } from '../foundation-orm/utils/contexts';
+import { getTransaction } from 'foundation-orm/getTransaction';
+import { EmptyContext, Context } from '@openland/context';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 // const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -38,7 +38,7 @@ export class PresenceModule {
         }
         // tslint:disable-next-line:no-floating-promises
         (async () => {
-            let supportId = await Modules.Users.getSupportUserId(createEmptyContext());
+            let supportId = await Modules.Users.getSupportUserId(EmptyContext);
             if (supportId) {
                 this.onlines.set(supportId, { lastSeen: new Date('2077-11-25T12:00:00.000Z').getTime(), active: true });
             }
@@ -91,7 +91,7 @@ export class PresenceModule {
                 lastSeen: expires
             };
             await this.handleOnlineChange(event);
-            resolveContext(ctx).afterTransaction(() => {
+            getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
             });
         });
@@ -114,7 +114,7 @@ export class PresenceModule {
                 lastSeen: Date.now()
             };
             await this.handleOnlineChange(event);
-            resolveContext(ctx).afterTransaction(() => {
+            getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
             });
         });
@@ -178,7 +178,7 @@ export class PresenceModule {
         let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
 
         // Send initial state
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         for (let userId of users) {
             if (userId === await Modules.Users.getSupportUserId(ctx)) {
                 iterator.push({
@@ -210,7 +210,7 @@ export class PresenceModule {
     }
 
     public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = await perf('presence_members', async () => (await Modules.Messaging.room.findConversationMembers(ctx, chatId)));
 
@@ -242,7 +242,7 @@ export class PresenceModule {
     }
 
     public async * createChatOnlineCountStream(uid: number, chatId: number): AsyncIterable<{ onlineMembers: number }> {
-        let ctx = createEmptyContext();
+        let ctx = EmptyContext;
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId));
         let stream = await this.createChatPresenceStream(uid, chatId);

@@ -171,7 +171,7 @@ export function generateEntity(entity: EntityModel): string {
 
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection,\n';
-    res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
+    res += '            new FNamespace(connection, \'entity\', \'' + entityKey + '\'),\n';
     res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' },\n';
     res += '            [' + entity.indexes.map(buildIndex).join(', ') + '],\n';
     res += '            \'' + entity.name + '\'\n';

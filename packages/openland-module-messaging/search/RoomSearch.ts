@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
-import { Context } from 'openland-utils/Context';
+import { Context } from '@openland/context';
 import { QueryParser } from '../../openland-utils/QueryParser';
 import { FDB } from '../../openland-module-db/FDB';
 
