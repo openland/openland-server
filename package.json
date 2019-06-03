@@ -86,7 +86,7 @@
     "faker": "^4.1.0",
     "firebase-admin": "^6.0.0",
     "form-data": "^2.3.2",
-    "foundationdb": "0.6.0",
+    "foundationdb": "0.10.2",
     "graphql": "^0.13.2",
     "graphql-import": "^0.4.5",
     "graphql-playground-middleware-express": "^1.7.8",

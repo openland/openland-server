@@ -27,7 +27,9 @@ export class FNodeRegistrator {
                 while (true) {
                     let candidate = Math.round(Math.random() * 1023);
                     let now = Date.now();
-                    this.log.log(this.ctx, 'Check if ' + candidate + ' is available');
+                    if (!process.env.JEST_WORKER_ID) {
+                        this.log.log(this.ctx, 'Check if ' + candidate + ' is available');
+                    }
                     let res = await this.connection.fdb.doTransaction(async (tn) => {
                         let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
                         if (!existing || ((encoders.json.unpack(existing).timeout as number) < now)) {

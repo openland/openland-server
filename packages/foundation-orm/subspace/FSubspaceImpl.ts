@@ -60,6 +60,20 @@ export class FSubspaceImpl implements FSubspace<Buffer, Buffer> {
         tx.set(Buffer.concat([this.prefix, key]), value);
     }
 
+    setWithVerstionstamp(ctx: Context, key: Buffer, value: Buffer) {
+        let tx = getTransaction(ctx).rawTransaction(this.connection);
+        tx.setVersionstampSuffixedKey(Buffer.concat([this.prefix, key]), value);
+    }
+
+    setWithVerstionstampUnique(ctx: Context, key: Buffer, value: Buffer) {
+        let tn = getTransaction(ctx);
+        let tx = getTransaction(ctx).rawTransaction(this.connection);
+        let counter = tn.nextCounter();
+        const b = Buffer.alloc(2);
+        b.writeInt16BE(counter, 0);
+        tx.setVersionstampSuffixedKey(Buffer.concat([this.prefix, key]), value, b);
+    }
+
     delete(ctx: Context, key: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.clear(Buffer.concat([this.prefix, key]));

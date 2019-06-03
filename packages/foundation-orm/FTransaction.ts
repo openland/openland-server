@@ -11,6 +11,8 @@ export interface FTransaction {
 
     rawTransaction(connection: FConnection): Transaction<Buffer, Buffer>;
 
+    nextCounter(): number;
+
     range(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     rangeAll(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]>;
     set(context: Context, connection: FConnection, key: Buffer, value: any): void;

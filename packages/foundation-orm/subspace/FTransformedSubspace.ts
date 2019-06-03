@@ -53,6 +53,14 @@ export class FTransformedSubspace<K, V, SK, SV> implements FSubspace<K, V> {
         this.ops.set(ctx, this.keyTf.pack(key), this.valTf.pack(value));
     }
 
+    setWithVerstionstamp(ctx: Context, key: K, value: V) {
+        this.ops.setWithVerstionstamp(ctx, this.keyTf.pack(key), this.valTf.pack(value));
+    }
+
+    setWithVerstionstampUnique(ctx: Context, key: K, value: V) {
+        this.ops.setWithVerstionstampUnique(ctx, this.keyTf.pack(key), this.valTf.pack(value));
+    }
+
     add(ctx: Context, key: K, value: V) {
         this.ops.add(ctx, this.keyTf.pack(key), this.valTf.pack(value));
     }

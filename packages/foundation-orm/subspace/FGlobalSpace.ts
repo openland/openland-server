@@ -57,6 +57,20 @@ export class FGlobalSpace implements FSubspace<Buffer, Buffer> {
         tx.set(key, value);
     }
 
+    setWithVerstionstamp(ctx: Context, key: Buffer, value: Buffer) {
+        let tx = getTransaction(ctx).rawTransaction(this.connection);
+        tx.setVersionstampSuffixedKey(key, value);
+    }
+
+    setWithVerstionstampUnique(ctx: Context, key: Buffer, value: Buffer) {
+        let tn = getTransaction(ctx);
+        let tx = getTransaction(ctx).rawTransaction(this.connection);
+        let counter = tn.nextCounter();
+        const b = Buffer.alloc(2);
+        b.writeInt16BE(counter, 0);
+        tx.setVersionstampSuffixedKey(key, value, b);
+    }
+
     delete(ctx: Context, key: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.clear(key);

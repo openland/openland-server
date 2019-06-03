@@ -24,6 +24,7 @@ export abstract class FBaseTransaction implements FTransaction {
 
     protected cache = new Map<string, any>();
     private readWriteLocks = new Map<string, ReadWriteLock>();
+    private _nextCounter = 0;
 
     readWriteLock(key: string): ReadWriteLock {
         if (!this.readWriteLocks.has(key)) {
@@ -42,6 +43,10 @@ export abstract class FBaseTransaction implements FTransaction {
 
     putInCache(key: string, value: any | null) {
         this.cache.set(key, value);
+    }
+
+    nextCounter() {
+        return ++this._nextCounter;
     }
 
     async range(parent: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {

@@ -3735,13 +3735,13 @@ forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
 
-foundationdb@0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/foundationdb/-/foundationdb-0.6.0.tgz#e2700f553719d49f59e4144424e7373b4c3e3435"
-  integrity sha512-X79SgiN4et5/iKwYzjZLMFrAUBGJ4LDcWMmpJJObKu6PhSUeC6F0J7kbh2mLeeRON9Ljl886jBn5yUn+fntbyg==
+foundationdb@0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/foundationdb/-/foundationdb-0.10.2.tgz#cdce283f02b2d91fb50de10a44614b1243c28344"
+  integrity sha512-4VUjUmjD2fEhGTBNhREriTtTbkBMx1Q8lyQb7aPoHlTn6tgp1U7lI93hVqjyOa7tQ00WjVbDN83RYRFEaa5OgA==
   dependencies:
-    nan "^2.10.0"
-    node-gyp-build "^3.3.0"
+    nan "^2.13.2"
+    node-gyp-build "^4.1.0"
 
 fragment-cache@^0.2.1:
   version "0.2.1"
@@ -5747,7 +5747,7 @@ nan@^2.0.0, nan@^2.9.2:
   version "2.11.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.1.tgz#90e22bccb8ca57ea4cd37cc83d3819b52eea6766"
 
-nan@^2.10.0:
+nan@^2.13.2:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
@@ -5814,10 +5814,15 @@ node-forge@^0.7.1, node-forge@^0.7.4:
   version "0.7.6"
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.7.6.tgz#fdf3b418aee1f94f0ef642cd63486c77ca9724ac"
 
-node-gyp-build@^3.3.0, node-gyp-build@^3.8.0:
+node-gyp-build@^3.8.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-3.9.0.tgz#53a350187dd4d5276750da21605d1cb681d09e25"
   integrity sha512-zLcTg6P4AbcHPq465ZMFNXx7XpKKJh+7kkN699NiQWisR2uWYOWNWqRHAmbnmKiL4e9aLSlmy5U7rEMUXV59+A==
+
+node-gyp-build@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.1.0.tgz#3bc3dd7dd4aafecaf64a2e3729e785bc3cdea565"
+  integrity sha512-rGLv++nK20BG8gc0MzzcYe1Nl3p3mtwJ74Q2QD0HTEDKZ6NvOFSelY6s2QBPWIHRR8h7hpad0LiwajfClBJfNg==
 
 node-int64@^0.4.0:
   version "0.4.0"
