@@ -106,7 +106,7 @@ export default {
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
-                if (args.input.alphaIsPrivate !== undefined && isMemberOwner) {
+                if (args.input.alphaIsPrivate !== undefined && (isMemberOwner || isSuper)) {
                     existing.private = args.input.alphaIsPrivate;
                 }
 
