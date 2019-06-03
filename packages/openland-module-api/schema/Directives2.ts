@@ -11,7 +11,7 @@ import {
 } from 'graphql';
 import { GraphQLFieldResolver, GraphQLInputType, GraphQLOutputType } from 'graphql/type/definition';
 import { ValueNode } from 'graphql/language/ast';
-import { SecID } from 'openland-security/SecID';
+import { SecID } from '@openland/secure-id';
 import { IDs } from 'openland-module-api/IDs';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ErrorText } from 'openland-errors/ErrorText';
