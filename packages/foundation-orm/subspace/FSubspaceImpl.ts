@@ -5,9 +5,9 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { keySelector } from 'foundationdb';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';
 import { FSubspace } from 'foundation-orm/FSubspace';
-import { FTransformer } from 'foundation-orm/FTransformer';
+import { FTransformer } from 'foundation-orm/encoding/FTransformer';
 import { FTransformedSubspace } from './FTransformedSubspace';
-import { FEncoders } from 'foundation-orm/FEncoders';
+import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 
 export class FSubspaceImpl implements FSubspace<Buffer, Buffer> {
 

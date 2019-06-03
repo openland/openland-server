@@ -2,8 +2,8 @@ import { FEntity } from './FEntity';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
 import { FSubspace } from './FSubspace';
-import { FTuple } from './FTuple';
-import { FEncoders } from './FEncoders';
+import { FTuple } from './encoding/FTuple';
+import { FEncoders } from './encoding/FEncoders';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { EmptyContext } from '@openland/context';
 

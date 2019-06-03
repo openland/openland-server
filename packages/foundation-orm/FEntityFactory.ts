@@ -12,7 +12,7 @@ import { FDirectory } from './FDirectory';
 import { Context } from '@openland/context';
 import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
-import { FTuple } from './FTuple';
+import { FTuple } from './encoding/FTuple';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 
 const log = createLogger('entity-factory');

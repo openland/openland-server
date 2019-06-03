@@ -1,4 +1,4 @@
-import { FTuple } from 'foundation-orm/FTuple';
+import { FTuple } from 'foundation-orm/encoding/FTuple';
 
 function removePrefix(src: FTuple[], prefix: FTuple[]): FTuple[] {
     if (prefix.length === 0) {

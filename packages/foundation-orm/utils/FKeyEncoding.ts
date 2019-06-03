@@ -1,6 +1,6 @@
 import { encoders } from 'foundationdb';
 import { createLogger } from 'openland-log/createLogger';
-import { FTuple } from 'foundation-orm/FTuple';
+import { FTuple } from 'foundation-orm/encoding/FTuple';
 import { EmptyContext } from '@openland/context';
 // import { pack } from './TupleEncoder';
 

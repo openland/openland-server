@@ -9,7 +9,7 @@ import { tracer } from './utils/tracer';
 import { FTransaction } from './FTransaction';
 import { getTransaction } from './getTransaction';
 import { FSubspace } from './FSubspace';
-import { FTuple } from './FTuple';
+import { FTuple } from './encoding/FTuple';
 
 export interface FEntityOptions {
     enableVersioning: boolean;

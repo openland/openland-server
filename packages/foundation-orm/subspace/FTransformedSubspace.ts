@@ -1,8 +1,8 @@
 import { FSubspace } from 'foundation-orm/FSubspace';
 import { Context } from '@openland/context';
-import { FTransformer } from 'foundation-orm/FTransformer';
+import { FTransformer } from 'foundation-orm/encoding/FTransformer';
 import { FRangeOptions } from 'foundation-orm/FRangeOptions';
-import { FEncoders } from 'foundation-orm/FEncoders';
+import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 
 export class FTransformedSubspace<K, V, SK, SV> implements FSubspace<K, V> {
 

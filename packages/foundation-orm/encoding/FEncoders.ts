@@ -1,5 +1,5 @@
 import { FTransformer } from './FTransformer';
-import { FKeyEncoding } from './utils/FKeyEncoding';
+import { FKeyEncoding } from '../utils/FKeyEncoding';
 import { FTuple } from './FTuple';
 
 const jsonTransformer: FTransformer<Buffer, any> = {

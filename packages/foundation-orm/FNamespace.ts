@@ -1,7 +1,7 @@
 import { FConnection } from './FConnection';
 import { FSubspace } from './FSubspace';
-import { FTuple } from './FTuple';
-import { FEncoders } from './FEncoders';
+import { FTuple } from './encoding/FTuple';
+import { FEncoders } from './encoding/FEncoders';
 
 export class FNamespace {
     readonly namespace: (string | number)[];

@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
 import { FRangeOptions } from './FRangeOptions';
-import { FTransformer } from './FTransformer';
+import { FTransformer } from './encoding/FTransformer';
 
 export interface FSubspace<K = Buffer, V = Buffer> {
 
