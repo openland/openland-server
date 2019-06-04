@@ -196,7 +196,15 @@ export class DiscoverData {
         if (group) {
             return { tagGroup: group };
         } else {
-            return { chats: this.resolveSuggestedChats(selected).map(c => IDs.Conversation.parse(c.id)) };
+            let chats: number[] = [];
+            for (let c of this.resolveSuggestedChats(selected)) {
+                try {
+                    chats.push(IDs.Conversation.parse(c.id))
+                } catch{
+                    // ignore bad links
+                }
+            }
+            return { chats };
         }
     }
 }
