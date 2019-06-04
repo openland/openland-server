@@ -86,7 +86,7 @@ const groupMeta: { [group: string]: { score: number, title?: string, subtitle?: 
 };
 
 const tagToGroup: { [tag: string]: string[] } = {
-    'Profession_Engineer': ['Engeneer_sub'],
+    'Role_Engineer': ['Engineer_sub'],
     'Role_Founder': ['Founder_sub_1', 'Founder_sub_2'],
 };
 
@@ -99,7 +99,7 @@ export class DiscoverData {
     constructor() {
         let split = _data.split('\n');
 
-        let tagsGroups = split[0].split(',');
+        let tagsGroups = split[0].split(',').map(id => id.trim());
         // init tag groups
         for (let i = 2; i < tagsGroups.length; i++) {
             let groupId = tagsGroups[i];

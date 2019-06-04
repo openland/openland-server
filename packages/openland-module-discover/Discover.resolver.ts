@@ -17,7 +17,7 @@ export default {
 
     Query: {
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
-            return Modules.Discover.nextPage(args.selectedTagsIds, args.selectedTagsIds);
+            return Modules.Discover.nextPage(args.selectedTagsIds, args.excudedGroupsIds);
         }),
     }
 } as GQLResolver;
