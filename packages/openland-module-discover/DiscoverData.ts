@@ -199,8 +199,8 @@ export class DiscoverData {
             let chats: number[] = [];
             for (let c of this.resolveSuggestedChats(selected)) {
                 try {
-                    chats.push(IDs.Conversation.parse(c.id))
-                } catch{
+                    chats.push(IDs.Conversation.parse(c.id));
+                } catch {
                     // ignore bad links
                 }
             }
