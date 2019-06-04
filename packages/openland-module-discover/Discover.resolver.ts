@@ -11,7 +11,7 @@ export default {
     TagGroup: {
         id: src => src.id,
         title: src => src.title,
-        subtitle: src => src.title,
+        subtitle: src => src.subtitle,
         tags: src => src.tags,
     },
 
