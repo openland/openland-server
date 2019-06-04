@@ -40,7 +40,8 @@ export class DeliveryRepository {
                 cid: message.cid,
                 mid: message.id,
                 allUnread: 0,
-                unread: 0
+                unread: 0,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -51,14 +52,15 @@ export class DeliveryRepository {
             // Update dialog and deliver update
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             local.date = date;
-            
+
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_bump',
                 cid: cid,
                 allUnread: 0,
-                unread: 0
+                unread: 0,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -70,11 +72,13 @@ export class DeliveryRepository {
                 throw Error('Message not found');
             }
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_updated',
                 cid: message.cid,
-                mid: mid
+                mid: mid,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -88,13 +92,15 @@ export class DeliveryRepository {
 
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_deleted',
                 cid: message.cid,
                 mid: message.id,
                 allUnread: 0,
-                unread: 0
+                unread: 0,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -114,7 +120,7 @@ export class DeliveryRepository {
 
     async deliverDialogPhotoUpadtedToUser(parent: Context, uid: number, cid: number, photo?: ImageRef) {
         await inTx(parent, async (ctx) => {
-            
+
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
@@ -127,7 +133,7 @@ export class DeliveryRepository {
 
     async deliverDialogMuteChangedToUser(parent: Context, uid: number, cid: number, mute: boolean) {
         await inTx(parent, async (ctx) => {
-            
+
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
@@ -139,9 +145,10 @@ export class DeliveryRepository {
         });
     }
 
+    // TODO: depricated - turn off
     async deliverDialogMentionedChangedToUser(parent: Context, uid: number, cid: number, haveMention: boolean) {
         await inTx(parent, async (ctx) => {
-            
+
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
@@ -154,7 +161,7 @@ export class DeliveryRepository {
 
     async deliverDialogDeleteToUser(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            
+
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             local.date = null;
 
@@ -188,12 +195,14 @@ export class DeliveryRepository {
             // Deliver update if needed
             if (delta !== 0) {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
+                let local = await this.userState.getUserDialogState(ctx, uid, msg.cid);
                 global.seq++;
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: msg.cid,
                     unread: 0,
-                    allUnread: 0
+                    allUnread: 0,
+                    haveMention: local.haveMention,
                 });
             }
         });
