@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { DiscoverData } from './discoverData';
+import { DiscoverData } from './DiscoverData';
 
 @injectable()
 export class DiscoverModule {

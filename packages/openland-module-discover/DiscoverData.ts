@@ -93,7 +93,7 @@ const tagToGroup: { [tag: string]: string[] } = {
 type Chat = { id: string, tags: string[] };
 
 export class DiscoverData {
-    chats: Chat[] = []
+    chats: Chat[] = [];
     tagsMap = new Map<string, Tag>();
     tagsGroupsMap = new Map<string, TagGroup>();
     constructor() {
