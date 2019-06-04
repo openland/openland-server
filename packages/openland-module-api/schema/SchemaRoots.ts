@@ -226,7 +226,7 @@ export namespace GQLRoots {
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
-    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number }  };
+    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number } };
 
     //
     //  Chat updates
@@ -267,6 +267,13 @@ export namespace GQLRoots {
     export type CommentReceivedRoot = CommentEvent;
     export type CommentUpdatedRoot = CommentEvent;
     export type CommentUpdatesStateRoot = { state: string };
+
+    //
+    // Discover
+    //
+    export type TagRoot = any;
+    export type TagGroupRoot = any;
+    export type DiscoverPageRoot = any;
 
     //
     //  Presence
