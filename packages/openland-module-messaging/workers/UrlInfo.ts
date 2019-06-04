@@ -6,6 +6,7 @@ import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
 import { EmptyContext } from '@openland/context';
+import { URLAugmentation } from './UrlInfoService';
 
 export interface URLInfo {
     url: string;
@@ -20,6 +21,97 @@ export interface URLInfo {
     keyboard?: MessageKeyboard;
 }
 
+class URLInfoFetcher {
+    private specialUrls: { condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLInfo | null | boolean> }[] = [];
+
+    public async fetchURLInfo(url: string): Promise<URLInfo | null> {
+        let {hostname} = URL.parse(url);
+
+        for (let specialUrl of this.specialUrls) {
+            if (specialUrl.condition(url, hostname || '')) {
+                let info = await specialUrl.handler(url);
+                if (typeof info === 'boolean') {
+                    if (!info) {
+                        return null;
+                    }
+                } else {
+                    if (info) {
+                        return info;
+                    }
+                }
+            }
+        }
+
+        try {
+            let raw = await fetchRawURLInfo(url);
+            if (raw) {
+                return await fetchImages(raw.info);
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    public specialUrl(condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLAugmentation | null | boolean>) {
+        this.specialUrls.push({condition, handler});
+        return this;
+    }
+}
+
+export const fetchURLInfo = createURLInfoFetcher();
+
+function createURLInfoFetcher() {
+    let fetcher = new URLInfoFetcher();
+
+    fetcher
+        .specialUrl((_, hostname) => hostname.endsWith('linkedin.com'), async () => null)
+        .specialUrl((_, hostname) => hostname.endsWith('wikipedia.org'), async (url) => {
+            let raw = await fetchRawURLInfo(url);
+            if (raw && raw.doc) {
+                return await fetchImages({
+                    ...raw.info,
+                    description: raw.doc('p', '.mw-parser-output').first().text()
+                });
+            }
+            return null;
+        })
+        .specialUrl((url, hostname) => hostname.endsWith('youtube.com') && url.includes('watch?v='), async (url) => {
+            let res = await fetch(encodeURI(url), FetchParams);
+
+            if (res.status !== 200) {
+                return null;
+            }
+
+            let text = await res.text();
+
+            let data = /ytplayer\.config = (\{(.*)\});ytplayer.load =/.exec(text);
+            if (!data || !data[1]) {
+                return null;
+            }
+
+            let jsonData = JSON.parse(data[1]);
+            if (!jsonData.args || !jsonData.args.player_response) {
+                return null;
+            }
+            jsonData = JSON.parse(jsonData.args.player_response);
+
+            let videoDetails = jsonData.videoDetails;
+
+            return fetchImages({
+                url,
+                title: videoDetails.title,
+                description: videoDetails.shortDescription,
+                imageURL: videoDetails.thumbnail.thumbnails[videoDetails.thumbnail.thumbnails.length - 1].url,
+                iconURL: 'https://s.ytimg.com/yts/img/favicon_144-vfliLAfaB.png'
+            });
+        });
+
+    return (url: string) => fetcher.fetchURLInfo(url);
+}
+
+type RawURLInfo = { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null };
+
 const FetchParams = {
     timeout: 5000,
     headers: {
@@ -29,12 +121,8 @@ const FetchParams = {
     },
 };
 
-export async function fetchURLInfo(url: string): Promise<URLInfo | null> {
+async function fetchRawURLInfo(url: string): Promise< { info: RawURLInfo, doc?: CheerioStatic } | null> {
     let {hostname} = URL.parse(url);
-
-    if (hostname && hostname.endsWith('linkedin.com')) {
-        return null;
-    }
 
     let res = await fetch(encodeURI(url), FetchParams);
 
@@ -45,7 +133,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo | null> {
     let contentType = res.headers.get('content-type');
 
     if (contentType && contentType.startsWith('image')) {
-        return fetchURLInfoInternal({ url, imageURL: url });
+        return { info: {url, imageURL: url} };
     }
 
     let text = await res.text();
@@ -83,16 +171,22 @@ export async function fetchURLInfo(url: string): Promise<URLInfo | null> {
         '/favicon.ico';
     iconURL = URL.resolve(url, iconURL);
 
-    return fetchURLInfoInternal({
-        url,
-        title,
-        description,
-        imageURL,
-        iconURL
-    });
+    return {
+        info: {
+            url,
+            title,
+            description,
+            imageURL,
+            iconURL
+        },
+        doc
+    };
 }
 
-async function fetchURLInfoInternal(params: { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null }): Promise<URLInfo | null> {
+async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
+    if (!params) {
+        return null;
+    }
     let {
         url,
         title,
