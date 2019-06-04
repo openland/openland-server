@@ -83,12 +83,12 @@ const groupMeta: { [group: string]: { score: number, title?: string, subtitle?: 
     'Founder_sub_1': { score: 2, title: 'Areas of work', subtitle: 'What areas have you worked on?' },
     'Founder_sub_2': { score: 3, title: 'Priorities', subtitle: 'What are your key priorities?' },
     'Engineer_sub': { score: 3, title: 'Tech expertise', subtitle: 'What are your areas of ​​expertise?' },
-}
+};
 
 const tagToGroup: { [tag: string]: string[] } = {
     'Profession_Engineer': ['Engeneer_sub'],
     'Role_Founder': ['Founder_sub_1', 'Founder_sub_2'],
-}
+};
 
 type Chat = { id: string, tags: string[] };
 
@@ -121,7 +121,7 @@ export class DiscoverData {
                     let tagId = groupId + '_' + t;
                     if (!this.tagsGroupsMap.get(groupId)!.tags.find(tag => tag.id === tagId)) {
                         let tag = { title: t, id: tagId, score: group.score };
-                        this.tagsGroupsMap.get(groupId)!.tags.push(tag)
+                        this.tagsGroupsMap.get(groupId)!.tags.push(tag);
                         this.tagsMap.set(tagId, tag);
                     }
                     tags.push(tagId);
@@ -143,7 +143,7 @@ export class DiscoverData {
         text.replace(reValue,
             (m0, m1, m2, m3) => {
                 if (m1 !== undefined) {
-                    a.push(m1.replace(/\\'/g, "'"));
+                    a.push(m1.replace(/\\'/g, '\''));
                 } else if (m2 !== undefined) {
                     a.push(m2.replace(/\\"/g, '"'));
                 } else if (m3 !== undefined) {
@@ -155,7 +155,7 @@ export class DiscoverData {
             a.push('');
         }
         return a;
-    };
+    }
 
     resolveSuggestedChats = (tagsIds: string[]) => {
         let resMap = new Map<Chat, number>();
