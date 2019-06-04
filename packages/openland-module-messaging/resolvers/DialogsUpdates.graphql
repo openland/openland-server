@@ -22,6 +22,7 @@ type DialogMessageReceived {
     alphaMessage: ModernMessage!
     unread: Int!
     globalUnread: Int!
+    haveMention: Boolean!
 }
 
 type DialogMessageUpdated {
@@ -29,6 +30,7 @@ type DialogMessageUpdated {
     message: ConversationMessage!
     betaMessage: RoomMessage!
     alphaMessage: ModernMessage!
+    haveMention: Boolean!
 }
 
 type DialogMessageDeleted {
@@ -40,12 +42,14 @@ type DialogMessageDeleted {
     alphaMessage: ModernMessage!
     unread: Int!
     globalUnread: Int!
+    haveMention: Boolean!
 }
 
 type DialogMessageRead {
     cid: ID!
     unread: Int!
     globalUnread: Int!
+    haveMention: Boolean!
 }
 
 type DialogTitleUpdated {
@@ -68,6 +72,7 @@ type DialogBump {
     globalUnread: Int!
     unread: Int!
     topMessage: ModernMessage
+    haveMention: Boolean!
 }
 
 type DialogMuteChanged {
@@ -76,6 +81,7 @@ type DialogMuteChanged {
     globalUnread: Int!
 }
 
+# depricated
 type DialogMentionedChanged {
     cid: ID!
     haveMention: Boolean!

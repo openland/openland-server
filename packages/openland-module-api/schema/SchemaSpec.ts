@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '08ab0ea6604eba78537f326ec1b89a39';
+export const GQL_SPEC_VERSION = '8119c459040f90902b3af2a3f0335ac1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -926,12 +926,14 @@ export namespace GQL {
         alphaMessage: ModernMessage;
         unread: number;
         globalUnread: number;
+        haveMention: boolean;
     }
     export interface DialogMessageUpdated {
         cid: string;
         message: ConversationMessage;
         betaMessage: RoomMessage;
         alphaMessage: ModernMessage;
+        haveMention: boolean;
     }
     export interface DialogMessageDeleted {
         cid: string;
@@ -942,11 +944,13 @@ export namespace GQL {
         alphaMessage: ModernMessage;
         unread: number;
         globalUnread: number;
+        haveMention: boolean;
     }
     export interface DialogMessageRead {
         cid: string;
         unread: number;
         globalUnread: number;
+        haveMention: boolean;
     }
     export interface DialogTitleUpdated {
         cid: string;
@@ -965,6 +969,7 @@ export namespace GQL {
         globalUnread: number;
         unread: number;
         topMessage: Nullable<ModernMessage>;
+        haveMention: boolean;
     }
     export interface DialogMuteChanged {
         cid: string;
