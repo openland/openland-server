@@ -1,6 +1,6 @@
 type Tag{
-    id: String
-    title: String
+    id: String!
+    title: String!
 }
 
 type TagGroup{

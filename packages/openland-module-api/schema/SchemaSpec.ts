@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8ecedb94b2e95e10f8aa37fbfdc266a8';
+export const GQL_SPEC_VERSION = '0c1aa26b98a12a3d3d73af10f56b561e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2414,8 +2414,8 @@ export namespace GQL {
         conversationId: string;
     }
     export interface Tag {
-        id: Nullable<string>;
-        title: Nullable<string>;
+        id: string;
+        title: string;
     }
     export interface TagGroup {
         id: string;
