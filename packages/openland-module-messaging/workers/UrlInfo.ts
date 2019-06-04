@@ -21,6 +21,17 @@ export interface URLInfo {
     keyboard?: MessageKeyboard;
 }
 
+type RawURLInfo = { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null };
+
+const FetchParams = {
+    timeout: 5000,
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-us'
+    },
+};
+
 class URLInfoFetcher {
     private specialUrls: { condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLInfo | null | boolean> }[] = [];
 
@@ -109,17 +120,6 @@ function createURLInfoFetcher() {
 
     return (url: string) => fetcher.fetchURLInfo(url);
 }
-
-type RawURLInfo = { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null };
-
-const FetchParams = {
-    timeout: 5000,
-    headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-us'
-    },
-};
 
 async function fetchRawURLInfo(url: string): Promise< { info: RawURLInfo, doc?: CheerioStatic } | null> {
     let {hostname} = URL.parse(url);
