@@ -9,12 +9,14 @@ import { FDirectory } from './FDirectory';
 import { FDiagnostics } from './FDiagnostics';
 import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
+import { FDirectoryLayer } from './layers/FDirectoryLayer';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
     readonly diagnostics: FDiagnostics;
     readonly keySpace: FSubspace;
+    readonly directory: FDirectoryLayer;
     private readonly directoryAllocator: DirectoryAllocator;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -42,6 +44,11 @@ export class FConnection {
         this.directoryAllocator = new DirectoryAllocator(this);
         this.diagnostics = new FDiagnostics(this);
         this.keySpace = new FGlobalSpace(this);
+        this.directory = new FDirectoryLayer();
+    }
+
+    async ready() {
+        await this.directory.ready();
     }
 
     getDirectory(key: (string | number | boolean)[]) {

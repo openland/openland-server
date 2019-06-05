@@ -26,12 +26,6 @@ export class CountersRepository {
                 return { delta: 0, setMention: false };
             }
 
-            // Avoid double counter for same message
-            // if (await this.entities.UserDialogHandledMessage.findById(ctx, uid, message.cid, message.id)) {
-            //     return { delta: 0, setMention: false };
-            // }
-            // await this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, message.id, {});
-
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
@@ -52,6 +46,7 @@ export class CountersRepository {
 
                 return { delta: 1, setMention };
             }
+            
             return { delta: 0, setMention: false };
         });
     }

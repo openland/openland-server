@@ -44,11 +44,14 @@ import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { loadCommentsModule } from '../openland-module-comments/CommentsModule.container';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 
-export function loadAllModules(loadDb: boolean = true) {
+export async function loadAllModules(loadDb: boolean = true) {
 
     if (loadDb) {
+        let connection = new FConnection(FConnection.create(), EventBus);
+        let entities = new AllEntitiesDirect(connection);
+        await connection.ready();
         container.bind<AllEntities>('FDB')
-            .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
+            .toDynamicValue(() => entities)
             .inSingletonScope();
     }
 

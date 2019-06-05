@@ -12,6 +12,7 @@ describe('DirectoryAllocator', () => {
             .at(FKeyEncoding.encodeKey(['_tests_allocator']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         connection = new FConnection(db, NoOpBus);
+        await connection.ready();
     });
 
     it('should allocate ids correctly', async () => {

@@ -25,7 +25,7 @@ import { uuid } from 'openland-utils/uuid';
 import { createLogger } from 'openland-log/createLogger';
 import { EmptyContext } from '@openland/context';
 
-let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus));
+let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)); // WTF? Why separate connection?
 let entitiesMap: any = {};
 let queries: any = {};
 let mutations: any = {};

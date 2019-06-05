@@ -14,6 +14,7 @@ describe('FOperationsGloba', () => {
             .at(FKeyEncoding.encodeKey(['_tests_ops']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         connection = new FConnection(db, NoOpBus);
+        await connection.ready();
     });
 
     it('should do set and get', async () => {

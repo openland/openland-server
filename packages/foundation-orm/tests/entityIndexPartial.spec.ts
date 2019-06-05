@@ -18,7 +18,9 @@ describe('Partial Index', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_partial']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
+        let connection = new FConnection(db, NoOpBus);
+        testEntities = new AllEntitiesDirect(connection);
+        await connection.ready();
     });
 
     it('should create indexes if condition true', async () => {

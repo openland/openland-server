@@ -22,6 +22,9 @@ describe('Random', () => {
             for (let i = 0; i < 32; i++) {
                 connections.push(new FConnection(db, NoOpBus));
             }
+            for (let i = 0; i < 32; i++) {
+                await connections[i].ready();
+            }
             let ids: Promise<number>[] = [];
             for (let i = 0; i < connections.length; i++) {
                 ids.push(connections[i].nodeId);
