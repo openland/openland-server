@@ -867,7 +867,6 @@ migrations.push({
     }
 });
 
-
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
