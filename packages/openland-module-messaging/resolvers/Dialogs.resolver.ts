@@ -64,8 +64,8 @@ export default {
             return await Modules.Messaging.room.resolveConversationPhoto(ctx, src.cid, ctx.auth.uid!);
         },
 
-        unreadCount: async (src: UserDialog) => {
-            return src.unread;
+        unreadCount: async (src: UserDialog, args: {}, ctx: AppContext) => {
+            return (await (await FDB.UserDialogCounter.findById(ctx, src.uid, src.cid)).get(ctx)) || 0;
         },
 
         topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),

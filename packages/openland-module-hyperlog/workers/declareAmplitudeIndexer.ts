@@ -35,7 +35,7 @@ export function declareAmplitudeIndexer() {
         updateReader('amplitude-indexer', 2, FDB.HyperLog.createUserEventsStream(EmptyContext, 50), async (items) => {
             await inTx(EmptyContext, async (ctx) => {
                 const mapEvent = (body: any) => {
-                    let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean, time: number };
+                    let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android' | 'iOS' | 'WEB', isProd: boolean, time: number };
                     return {
                         user_id: event.uid,
                         device_id: event.did,
@@ -76,10 +76,10 @@ export function declareAmplitudeIndexer() {
                             let userMessagingState = await FDB.UserMessagingState.findById(ctx, profile.id);
 
                             if (userMessagingState) {
-                                userProperties.messages_sent = userMessagingState.messagesSent || 0;
-                                userProperties.messages_received = userMessagingState.messagesReceived || 0;
-                                userProperties.chats_count = userMessagingState.chatsCount || 0;
-                                userProperties.direct_chats_count = userMessagingState.directChatsCount || 0;
+                                userProperties.messages_sent = (await FDB.UserMessagesSentCounter.findById(ctx, profile.id)).get(ctx) || 0;
+                                userProperties.messages_received = (await FDB.UserMessagesReceivedCounter.findById(ctx, profile.id)).get(ctx) || 0;
+                                userProperties.chats_count = (await FDB.UserMessagesChatsCounter.findById(ctx, profile.id)).get(ctx) || 0;
+                                userProperties.direct_chats_count = (await FDB.UserMessagesDirectChatsCounter.findById(ctx, profile.id)).get(ctx) || 0;
                             }
                         }
                     }

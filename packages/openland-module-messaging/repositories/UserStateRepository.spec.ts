@@ -43,7 +43,6 @@ describe('UserStateRepository', () => {
         expect(state.cid).toBe(2);
         expect(state.date).toBeNull();
         expect(state.readMessageId).toBeNull();
-        expect(state.unread).toBe(0);
     });
 
     it('should not zip updates for initial dialog load', async () => {

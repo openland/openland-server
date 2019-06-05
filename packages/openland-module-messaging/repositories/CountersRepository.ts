@@ -47,7 +47,6 @@ export class CountersRepository {
                 }
 
                 // Update Counters
-                local.unread++;
                 localCounter.increment(ctx);
                 globalCounter.increment(ctx);
 
@@ -70,7 +69,6 @@ export class CountersRepository {
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
-                local.unread--;
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
 
@@ -113,10 +111,11 @@ export class CountersRepository {
                 let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid);
                 let remainingCount = remaining.length;
                 let delta: number;
+                let localUnread = (await (await this.entities.UserDialogCounter.findById(ctx, uid, message.cid)).get(ctx)) || 0;
                 if (remainingCount === 0) { // Just additional case for self-healing of a broken counters
-                    delta = -local.unread;
+                    delta = -localUnread;
                 } else {
-                    delta = - (local.unread - remainingCount);
+                    delta = - (localUnread - remainingCount);
                 }
                 // Crazy hack to avoid -0 values
                 if (delta === 0) {
@@ -125,8 +124,6 @@ export class CountersRepository {
 
                 // Update counters
                 if (delta !== 0) {
-                    local.unread += delta;
-                    // global.unread += delta;
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
                 }
@@ -156,36 +153,13 @@ export class CountersRepository {
         return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, cid);
-            // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-            if (local.unread > 0) {
-                let delta = -local.unread;
-                // global.unread += delta;
-                globalCounter.add(ctx, delta);
+            let localUnread = (await localCounter.get(ctx) || 0);
+            if (localUnread > 0) {
+                globalCounter.add(ctx, -localUnread);
                 localCounter.set(ctx, 0);
-                local.unread = 0;
                 local.haveMention = false;
-                return delta;
-            }
-            return 0;
-        });
-    }
-
-    onDialogMuteChange = async (parent: Context, uid: number, cid: number, mute: boolean) => {
-        return await inTx(parent, async (ctx) => {
-            let local = await this.userState.getUserDialogState(ctx, uid, cid);
-            // let global = await this.userState.getUserMessagingState(ctx, uid);
-            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-            let isMuted = (await this.userState.getRoomSettings(ctx, uid, cid)).mute;
-
-            if (isMuted && !mute) {
-                // global.unread += local.unread;
-                globalCounter.add(ctx, local.unread);
-                return local.unread;
-            } else if (!isMuted && mute) {
-                // global.unread -= local.unread;
-                globalCounter.add(ctx, -local.unread);
-                return -local.unread;
+                return -localUnread;
             }
             return 0;
         });

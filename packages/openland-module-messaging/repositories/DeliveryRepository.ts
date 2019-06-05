@@ -4,44 +4,46 @@ import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { ChatMetricsRepository } from './ChatMetricsRepository';
 
 @injectable()
 export class DeliveryRepository {
     private readonly entities: AllEntities;
     private readonly userState: UserStateRepository;
+    private readonly metrics: ChatMetricsRepository;
 
     constructor(
         @inject('FDB') entities: AllEntities,
-        @inject('UserStateRepository') userState: UserStateRepository
+        @inject('UserStateRepository') userState: UserStateRepository,
+        @inject('ChatMetricsRepository') metrics: ChatMetricsRepository
     ) {
         this.entities = entities;
         this.userState = userState;
+        this.metrics = metrics;
     }
 
     async deliverMessageToUser(parent: Context, uid: number, message: Message) {
         await inTx(parent, async (ctx) => {
+
+            // Count Metrics
+            if (message.uid !== uid) {
+                await this.metrics.onMessageReceived(ctx, uid);
+            }
+
             // Update dialog and deliver update
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             local.date = message.createdAt;
 
+            // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            if (message.uid !== uid) {
-                if (!global.messagesReceived) {
-                    global.messagesReceived = 1;
-                } else {
-                    global.messagesReceived++;
-                }
-            }
-
-            // Make Event as UNSAFE since we guarantee unique id
             await this.entities.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,
                 mid: message.id,
                 allUnread: 0,
                 unread: 0,
-                haveMention: local.haveMention,
+                haveMention: false,
             });
         });
     }
@@ -53,14 +55,15 @@ export class DeliveryRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             local.date = date;
 
+            // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+            await this.entities.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'dialog_bump',
                 cid: cid,
                 allUnread: 0,
                 unread: 0,
-                haveMention: local.haveMention,
+                haveMention: false,
             });
         });
     }
@@ -71,14 +74,15 @@ export class DeliveryRepository {
             if (!message) {
                 throw Error('Message not found');
             }
+
+            // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_updated',
                 cid: message.cid,
                 mid: mid,
-                haveMention: local.haveMention,
+                haveMention: false,
             });
         });
     }
@@ -92,7 +96,6 @@ export class DeliveryRepository {
 
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(ctx, uid);
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_deleted',
@@ -100,7 +103,7 @@ export class DeliveryRepository {
                 mid: message.id,
                 allUnread: 0,
                 unread: 0,
-                haveMention: local.haveMention,
+                haveMention: false,
             });
         });
     }
@@ -162,20 +165,18 @@ export class DeliveryRepository {
     async deliverDialogDeleteToUser(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
 
+            // Update metrics
+            this.metrics.onChatDeleted(ctx, uid);
+            let chat = await this.entities.Conversation.findById(ctx, cid);
+            if (chat && chat.kind === 'private') {
+                this.metrics.onDirectChatDeleted(ctx, uid);
+            }
+
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             local.date = null;
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            if (global.chatsCount) {
-                global.chatsCount--;
-            }
-            let chat = await this.entities.Conversation.findById(ctx, cid);
-            if (chat && chat.kind === 'private') {
-                if (global.directChatsCount) {
-                    global.directChatsCount--;
-                }
-            }
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_deleted',
                 cid: cid,
@@ -195,14 +196,13 @@ export class DeliveryRepository {
             // Deliver update if needed
             if (delta !== 0) {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
-                let local = await this.userState.getUserDialogState(ctx, uid, msg.cid);
                 global.seq++;
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: msg.cid,
                     unread: 0,
                     allUnread: 0,
-                    haveMention: local.haveMention,
+                    haveMention: false,
                 });
             }
         });

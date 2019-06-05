@@ -9,14 +9,14 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { UserStateRepository } from './UserStateRepository';
+import { ChatMetricsRepository } from './ChatMetricsRepository';
 
 @injectable()
 export class MessagingRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
-    @lazyInject('UserStateRepository')
-    private readonly userState!: UserStateRepository;
+    @lazyInject('ChatMetricsRepository')
+    private readonly chatMetrics!: ChatMetricsRepository;
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
         return await inTx(parent, async (ctx) => {
@@ -66,12 +66,7 @@ export class MessagingRepository {
             //
             // Update user counter
             //
-            let global = await this.userState.getUserMessagingState(ctx, uid);
-            if (!global.messagesSent) {
-                global.messagesSent = 1;
-            } else {
-                global.messagesSent++;
-            }
+            this.chatMetrics.onMessageSent(ctx, uid);
 
             return {
                 event: res,
@@ -141,6 +136,7 @@ export class MessagingRepository {
             //
 
             message.deleted = true;
+
             //
             // Write Event
             //
@@ -150,21 +146,6 @@ export class MessagingRepository {
                 kind: 'message_deleted',
                 mid: message!.id
             });
-
-            return res;
-        });
-    }
-
-    async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
-        return await inTx(parent, async (ctx) => {
-            let res: MessageAttachment[] = [];
-
-            for (let attachInput of attachments) {
-                res.push({
-                    ...attachInput,
-                    id: await this.entities.connection.nextRandomId()
-                });
-            }
 
             return res;
         });
@@ -262,6 +243,21 @@ export class MessagingRepository {
                 await this.entities.Sequence.create(ctx, 'message-id', { value: 1 });
                 return 1;
             }
+        });
+    }
+
+    private async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
+        return await inTx(parent, async (ctx) => {
+            let res: MessageAttachment[] = [];
+
+            for (let attachInput of attachments) {
+                res.push({
+                    ...attachInput,
+                    id: await this.entities.connection.nextRandomId()
+                });
+            }
+
+            return res;
         });
     }
 }
