@@ -9655,6 +9655,14 @@ export class UserDialogCounterFactory extends FAtomicIntegerFactory {
         return await this._findById(ctx, [uid, cid]);
     }
 }
+export class UserDialogHaveMentionFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace(connection, 'atomic', 'userDialogHaveMention'));
+    }
+    async findById(ctx: Context, uid: number, cid: number) {
+        return await this._findById(ctx, [uid, cid]);
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -9733,6 +9741,7 @@ export interface AllEntities {
     readonly DebugEventState: DebugEventStateFactory;
     readonly UserCounter: UserCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
+    readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -9886,6 +9895,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     DebugEventState: DebugEventStateFactory;
     UserCounter: UserCounterFactory;
     UserDialogCounter: UserDialogCounterFactory;
+    UserDialogHaveMention: UserDialogHaveMentionFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -10037,6 +10047,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.DebugEventState);
         this.UserCounter = new UserCounterFactory(connection);
         this.UserDialogCounter = new UserDialogCounterFactory(connection);
+        this.UserDialogHaveMention = new UserDialogHaveMentionFactory(connection);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -10267,6 +10278,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserDialogCounter(): UserDialogCounterFactory {
         return this.resolver().UserDialogCounter;
+    }
+    get UserDialogHaveMention(): UserDialogHaveMentionFactory {
+        return this.resolver().UserDialogHaveMention;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {
