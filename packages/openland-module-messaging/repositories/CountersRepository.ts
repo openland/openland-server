@@ -36,15 +36,13 @@ export class CountersRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-            let userDialogHaveMention = await this.entities.UserDialogHaveMention.findById(ctx, uid, message.cid);
 
             if (!local.readMessageId || message.id > local.readMessageId) {
 
-                // TODO: remove userDialogHaveMention read when new client adoption is hight enough
                 // Mark dialog as having mention
                 let setMention = false;
-                if (!(await userDialogHaveMention.get(ctx)) && !message.isService && this.hasMention(message, uid)) {
-                    userDialogHaveMention.set(ctx, 1);
+                if (!local.haveMention && !message.isService && this.hasMention(message, uid)) {
+                    local.haveMention = true;
                     setMention = true;
                 }
 
@@ -71,7 +69,6 @@ export class CountersRepository {
             let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-            let userDialogHaveMention = await this.entities.UserDialogHaveMention.findById(ctx, uid, message.cid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
                 localCounter.decrement(ctx);
@@ -88,7 +85,7 @@ export class CountersRepository {
                         }
                     }
                     if (mentionReset) {
-                        userDialogHaveMention.set(ctx, 0);
+                        local.haveMention = false;
                     }
                 }
                 return -1;
@@ -108,7 +105,6 @@ export class CountersRepository {
             let prevReadMessageId = local.readMessageId;
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-            let userDialogHaveMention = await this.entities.UserDialogHaveMention.findById(ctx, uid, message.cid);
             if (!local.readMessageId || local.readMessageId < mid) {
                 local.readMessageId = mid;
 
@@ -136,7 +132,7 @@ export class CountersRepository {
                 }
 
                 let mentionReset = false;
-                if (prevReadMessageId && (await userDialogHaveMention.get(ctx))) {
+                if (prevReadMessageId && local.haveMention) {
                     mentionReset = true;
                     for (let m of remaining) {
                         if (this.hasMention(m, uid)) {
@@ -146,7 +142,7 @@ export class CountersRepository {
                     }
 
                     if (mentionReset) {
-                        userDialogHaveMention.set(ctx, 0);
+                        local.haveMention = false;
                     }
                 }
 
@@ -162,14 +158,13 @@ export class CountersRepository {
             let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, cid);
             // let global = await this.userState.getUserMessagingState(ctx, uid);
             let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-            let userDialogHaveMention = await this.entities.UserDialogHaveMention.findById(ctx, uid, cid);
             if (local.unread > 0) {
                 let delta = -local.unread;
                 // global.unread += delta;
                 globalCounter.add(ctx, delta);
                 localCounter.set(ctx, 0);
                 local.unread = 0;
-                userDialogHaveMention.set(ctx, 0);
+                local.haveMention = false;
                 return delta;
             }
             return 0;

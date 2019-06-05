@@ -41,7 +41,7 @@ export class DeliveryRepository {
                 mid: message.id,
                 allUnread: 0,
                 unread: 0,
-                haveMention: false,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -60,7 +60,7 @@ export class DeliveryRepository {
                 cid: cid,
                 allUnread: 0,
                 unread: 0,
-                haveMention: false,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -72,12 +72,13 @@ export class DeliveryRepository {
                 throw Error('Message not found');
             }
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_updated',
                 cid: message.cid,
                 mid: mid,
-                haveMention: false,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -91,6 +92,7 @@ export class DeliveryRepository {
 
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(ctx, uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_deleted',
@@ -98,7 +100,7 @@ export class DeliveryRepository {
                 mid: message.id,
                 allUnread: 0,
                 unread: 0,
-                haveMention: false,
+                haveMention: local.haveMention,
             });
         });
     }
@@ -152,7 +154,7 @@ export class DeliveryRepository {
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'dialog_mentioned_changed',
                 cid,
-                haveMention: false
+                haveMention
             });
         });
     }
@@ -193,13 +195,14 @@ export class DeliveryRepository {
             // Deliver update if needed
             if (delta !== 0) {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
+                let local = await this.userState.getUserDialogState(ctx, uid, msg.cid);
                 global.seq++;
                 await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: msg.cid,
                     unread: 0,
                     allUnread: 0,
-                    haveMention: false,
+                    haveMention: local.haveMention,
                 });
             }
         });

@@ -1109,15 +1109,6 @@ const Schema = declareSchema(() => {
         primaryKey('uid', 'number');
         primaryKey('cid', 'number');
     });
-
-    //
-    // Flags
-    //
-    atomic('UserDialogHaveMention', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-    });
-
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
