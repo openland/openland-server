@@ -17,4 +17,5 @@ type DiscoverPage {
 
 extend type Query {
     betaNextDiscoverPage(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
+    betaSuggestedRooms(selectedTagsIds: [String!]!): [Room!]!
 }

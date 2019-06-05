@@ -19,5 +19,8 @@ export default {
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
             return Modules.Discover.nextPage(args.selectedTagsIds, args.excudedGroupsIds);
         }),
+        betaSuggestedRooms: withUser((ctx, args, uid) => {
+            return Modules.Discover.suggestedChats(args.selectedTagsIds);
+        })
     }
 } as GQLResolver;

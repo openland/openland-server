@@ -171,7 +171,16 @@ export class DiscoverData {
             }
         }
 
-        return [...resMap].filter(e => !!e[0].id).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+        let suggested = [...resMap].filter(e => !!e[0].id).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+        let res: number[] = [];
+        for (let c of suggested) {
+            try {
+                res.push(IDs.Conversation.parse(c.id));
+            } catch {
+                // ignore bad links
+            }
+        }
+        return res;
     }
 
     public next: (selected: string[], excludeGroups: string[]) => { tagGroup?: TagGroup, chats?: number[] } = (selected: string[], excludeGroups: string[]) => {
@@ -196,15 +205,7 @@ export class DiscoverData {
         if (group) {
             return { tagGroup: group };
         } else {
-            let chats: number[] = [];
-            for (let c of this.resolveSuggestedChats(selected)) {
-                try {
-                    chats.push(IDs.Conversation.parse(c.id));
-                } catch {
-                    // ignore bad links
-                }
-            }
-            return { chats };
+            return { chats: this.resolveSuggestedChats(selected) };
         }
     }
 }
