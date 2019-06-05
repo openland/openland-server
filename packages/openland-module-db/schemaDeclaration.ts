@@ -770,8 +770,11 @@ const Schema = declareSchema(() => {
         field('title', 'string').nullable();
         field('photo', 'json').nullable();
 
+        field('hidden', 'boolean').nullable();
+        field('disableGlobalCounter', 'boolean').nullable();
+
         rangeIndex('user', ['uid', 'date'])
-            .withCondition((src) => !!src.date)
+            .withCondition((src) => !!src.date && !src.hidden)
             .withDisplayName('dialogsForUser');
         uniqueIndex('conversation', ['cid', 'uid'])
             .withRange();

@@ -49,7 +49,9 @@ export class CountersRepository {
                 // Update Counters
                 local.unread++;
                 localCounter.increment(ctx);
-                globalCounter.increment(ctx);
+                if (!local.disableGlobalCounter) {
+                    globalCounter.increment(ctx);
+                }
 
                 return { delta: 1, setMention };
             }
@@ -72,7 +74,9 @@ export class CountersRepository {
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
                 localCounter.decrement(ctx);
-                globalCounter.decrement(ctx);
+                if (!local.disableGlobalCounter) {
+                    globalCounter.decrement(ctx);
+                }
 
                 // TODO: Optimize
                 if (local.haveMention) {
@@ -128,7 +132,9 @@ export class CountersRepository {
                     local.unread += delta;
                     // global.unread += delta;
                     localCounter.add(ctx, delta);
-                    globalCounter.add(ctx, delta);
+                    if (!local.disableGlobalCounter) {
+                        globalCounter.add(ctx, delta);
+                    }
                 }
 
                 let mentionReset = false;
@@ -161,7 +167,9 @@ export class CountersRepository {
             if (local.unread > 0) {
                 let delta = -local.unread;
                 // global.unread += delta;
-                globalCounter.add(ctx, delta);
+                if (!local.disableGlobalCounter) {
+                    globalCounter.add(ctx, delta);
+                }
                 localCounter.set(ctx, 0);
                 local.unread = 0;
                 local.haveMention = false;

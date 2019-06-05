@@ -6156,6 +6156,8 @@ export interface UserDialogShape {
     haveMention?: boolean| null;
     title?: string| null;
     photo?: any| null;
+    hidden?: boolean| null;
+    disableGlobalCounter?: boolean| null;
 }
 
 export class UserDialog extends FEntity {
@@ -6226,6 +6228,28 @@ export class UserDialog extends FEntity {
         this._value.photo = value;
         this.markDirty();
     }
+    get hidden(): boolean | null {
+        let res = this._value.hidden;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set hidden(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.hidden) { return; }
+        this._value.hidden = value;
+        this.markDirty();
+    }
+    get disableGlobalCounter(): boolean | null {
+        let res = this._value.disableGlobalCounter;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set disableGlobalCounter(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.disableGlobalCounter) { return; }
+        this._value.disableGlobalCounter = value;
+        this.markDirty();
+    }
 }
 
 export class UserDialogFactory extends FEntityFactory<UserDialog> {
@@ -6243,6 +6267,8 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
             { name: 'haveMention', type: 'boolean' },
             { name: 'title', type: 'string' },
             { name: 'photo', type: 'json' },
+            { name: 'hidden', type: 'boolean' },
+            { name: 'disableGlobalCounter', type: 'boolean' },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'date'], displayName: 'dialogsForUser' },
@@ -6262,13 +6288,15 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         validators.isNumber('date', src.date);
         validators.isBoolean('haveMention', src.haveMention);
         validators.isString('title', src.title);
+        validators.isBoolean('hidden', src.hidden);
+        validators.isBoolean('disableGlobalCounter', src.disableGlobalCounter);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace(connection, 'entity', 'userDialog'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date), new FEntityIndex('conversation', ['cid', 'uid'], true), new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden), new FEntityIndex('conversation', ['cid', 'uid'], true), new FEntityIndex('updated', ['updatedAt'], false)],
             'UserDialog'
         );
     }
