@@ -53,17 +53,9 @@ export class FixerRepository {
                         counter.set(ctx, total);
                     }
                 }
-                let ex = await this.entities.UserMessagingState.findById(ctx, uid);
                 let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
-                if (ex) {
-                    logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + ex.unread + ', updated: ' + totalUnread);
-                    ex.unread = totalUnread;
-                    globalCounter.set(ctx, totalUnread);
-                    await ex.flush(ctx);
-                } else {
-                    globalCounter.set(ctx, totalUnread);
-                    await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
-                }
+                logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + (await globalCounter.get(ctx) || 0) + ', updated: ' + totalUnread);
+                globalCounter.set(ctx, totalUnread);
 
                 return true;
             } catch (e) {
