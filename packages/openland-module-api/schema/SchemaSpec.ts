@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5e326d57d484340af7c98007f0aa5a6e';
+export const GQL_SPEC_VERSION = 'ef0147ef3465599c2702826fabf3d083';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2259,6 +2259,7 @@ export namespace GQL {
         first: number;
         after: OptionalNullable<string>;
         page: OptionalNullable<number>;
+        featuredIfEmptyQuery: OptionalNullable<boolean>;
     }
     export interface QueryUsersArgs {
         query: string;
