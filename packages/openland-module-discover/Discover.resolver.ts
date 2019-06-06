@@ -17,10 +17,13 @@ export default {
 
     Query: {
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
-            return Modules.Discover.nextPage(args.selectedTagsIds, args.excudedGroupsIds);
+            return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
         betaSuggestedRooms: withUser((ctx, args, uid) => {
-            return Modules.Discover.suggestedChats(args.selectedTagsIds);
+            return Modules.Discover.suggestedChats(ctx, uid);
+        }),
+        betaIsDiscoverDone: withUser((ctx, args, uid) => {
+            return Modules.Discover.isDiscoverDone(ctx, uid);
         })
     }
 } as GQLResolver;
