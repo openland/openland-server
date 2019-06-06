@@ -19,7 +19,7 @@ describe('FEntity', () => {
             .at(FKeyEncoding.encodeKey(['_tests_1']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
+        testEntities = new AllEntitiesDirect(connection);
         await connection.ready();
     });
 

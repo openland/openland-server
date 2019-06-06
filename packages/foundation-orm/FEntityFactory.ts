@@ -8,18 +8,19 @@ import { FStream } from './FStream';
 import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
-import { FDirectory } from './FDirectory';
 import { Context } from '@openland/context';
 import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 import { FTuple } from './encoding/FTuple';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
+import { FSubspace } from './FSubspace';
+import { FEncoders } from './encoding/FEncoders';
 
 const log = createLogger('entity-factory');
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
-    readonly directory: FDirectory;
+    readonly directory: FSubspace<FTuple[], any>;
     readonly connection: FConnection;
     readonly options: FEntityOptions;
     readonly indexes: FEntityIndex[];
@@ -30,7 +31,9 @@ export abstract class FEntityFactory<T extends FEntity> {
     constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[], name: string) {
         // this.tracer = createTracer(name);
         this.namespace = namespace;
-        this.directory = connection.getDirectory(namespace.namespace);
+        this.directory = connection.directories.getDirectory(namespace.namespace)
+            .withKeyEncoding(FEncoders.tuple)
+            .withValueEncoding(FEncoders.json);
         this.connection = connection;
         this.options = options;
         this.indexes = indexes;

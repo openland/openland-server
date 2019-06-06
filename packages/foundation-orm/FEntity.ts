@@ -2,7 +2,6 @@ import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
-import { FDirectory } from './FDirectory';
 import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
@@ -23,8 +22,8 @@ const log = createLogger('FEntity', false);
 export abstract class FEntity {
     abstract readonly entityName: string;
     readonly obsoleteKeySpace: FSubspace<FTuple[], any>;
-    readonly keySpace: FSubspace;
-    readonly directory: FDirectory;
+    readonly keyspace: FSubspace<FTuple[], any>;
+
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
@@ -39,13 +38,12 @@ export abstract class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(ctx: Context, connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(ctx: Context, connection: FConnection, namespace: FNamespace, keyspace: FSubspace<FTuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
         this.obsoleteKeySpace = namespace.keySpace;
-        this.directory = directory;
+        this.keyspace = keyspace;
         this.rawId = id;
         this.connection = connection;
-        this.keySpace = connection.keySpace;
         this.transaction = getTransaction(ctx);
         this.isReadOnly = this.transaction.isReadOnly;
         this.options = options;
@@ -158,13 +156,9 @@ export abstract class FEntity {
                     ...value
                 };
 
-                if (!this.directory.isAllocated) {
-                    await this.directory.awaitAllocation();
-                }
-
                 // Write to the store
                 this.obsoleteKeySpace.set(ctx, this.rawId, value);
-                this.directory.set(ctx, this.rawId, value);
+                this.keyspace.set(ctx, this.rawId, value);
 
                 // Create or Update indexes
                 if (this.isNew) {

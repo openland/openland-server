@@ -1,7 +1,7 @@
 import { FConnection } from 'foundation-orm/FConnection';
-import { FKeyEncoding } from './FKeyEncoding';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { DirectoryAllocator } from './DirectoryAllocator';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 
 describe('DirectoryAllocator', () => {
 

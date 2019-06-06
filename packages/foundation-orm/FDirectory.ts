@@ -1,58 +1,115 @@
 import { FConnection } from './FConnection';
-import { DirectoryAllocator } from './utils/DirectoryAllocator';
-import { FKeyEncoding } from './utils/FKeyEncoding';
 import { Context } from '@openland/context';
-import { getTransaction } from './getTransaction';
+import { DirectoryAllocator } from './layers/directory/DirectoryAllocator';
+import { FSubspace } from './FSubspace';
+import { FRangeOptions } from './FRangeOptions';
+import { FTransformer } from './encoding/FTransformer';
+import { FTransformedSubspace } from './subspace/FTransformedSubspace';
+import { FEncoders } from './encoding/FEncoders';
+import { FSubspaceImpl } from './subspace/FSubspaceImpl';
 
-export class FDirectory {
+export class FDirectory implements FSubspace {
     readonly connection: FConnection;
-    private readonly allocatorProcess: Promise<Buffer>;
-    private allocatedKey?: Buffer;
+    private readonly allocatorProcess: Promise<void>;
+    private keyspace!: FSubspace;
+    private allocatedKey!: Buffer;
+    private isAllocated = false;
 
     constructor(connection: FConnection, allocator: DirectoryAllocator, key: (string | number | boolean)[]) {
         this.connection = connection;
         this.allocatorProcess = (async () => {
             let v = await allocator.allocateDirectory(key);
             this.onAllocated(v);
-            return v;
         })();
-    }
-
-    get isAllocated() {
-        return !!this.allocatedKey;
-    }
-
-    get getAllocatedKey() {
-        if (!this.allocatedKey) {
-            throw Error('Not yet allocated');
-        }
-        return this.allocatedKey!!;
-    }
-
-    awaitAllocation = async () => {
-        await this.allocatorProcess;
-    }
-
-    range = async (ctx: Context, key: (string | number)[]) => {
-        if (!this.isAllocated) {
-            await this.allocatorProcess;
-        }
-        return getTransaction(ctx).rangeAll(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
-    }
-
-    range2 = async (ctx: Context, key: (string | number)[]) => {
-        if (!this.isAllocated) {
-            await this.allocatorProcess;
-        }
-        let res = await getTransaction(ctx).range(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
-        return res.map((v) => ({ key: v.key.slice(this.allocatedKey!.length), item: v.item }));
-    }
-
-    set = (ctx: Context, key: (string | number)[], value: any) => {
-        getTransaction(ctx).set(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]), value);
     }
 
     private onAllocated(key: Buffer) {
         this.allocatedKey = key;
+        this.isAllocated = true;
+        this.keyspace = this.connection.keySpace.subspace(key);
+    }
+
+    ready = async () => {
+        await this.allocatorProcess;
+    }
+
+    //
+    // Proxy methods
+    //
+
+    withKeyEncoding<K2>(keyTf: FTransformer<Buffer, K2>): FSubspace<K2, Buffer> {
+        return new FTransformedSubspace<K2, Buffer, Buffer, Buffer>(this, keyTf, FEncoders.id<Buffer>());
+    }
+    withValueEncoding<V2>(valueTf: FTransformer<Buffer, V2>): FSubspace<Buffer, V2> {
+        return new FTransformedSubspace<Buffer, V2, Buffer, Buffer>(this, FEncoders.id<Buffer>(), valueTf);
+    }
+    subspace(key: Buffer): FSubspace<Buffer, Buffer> {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return new FSubspaceImpl(this.connection, Buffer.concat([this.allocatedKey, key]));
+    }
+
+    get(ctx: Context, key: Buffer): Promise<Buffer | null> {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.get(ctx, key);
+    }
+
+    range(ctx: Context, key: Buffer, opts?: FRangeOptions<Buffer>): Promise<{ key: Buffer, value: Buffer }[]> {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.range(ctx, key, opts);
+    }
+
+    set(ctx: Context, key: Buffer, value: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.set(ctx, key, value);
+    }
+
+    setWithVerstionstamp(ctx: Context, key: Buffer, value: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.setWithVerstionstamp(ctx, key, value);
+    }
+
+    setWithVerstionstampUnique(ctx: Context, key: Buffer, value: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.setWithVerstionstampUnique(ctx, key, value);
+    }
+
+    delete(ctx: Context, key: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.delete(ctx, key);
+    }
+
+    add(ctx: Context, key: Buffer, value: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.add(ctx, key, value);
+    }
+
+    or(ctx: Context, key: Buffer, value: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.or(ctx, key, value);
+    }
+
+    xor(ctx: Context, key: Buffer, value: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.xor(ctx, key, value);
     }
 }

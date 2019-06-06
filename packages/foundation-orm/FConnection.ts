@@ -3,8 +3,6 @@ import * as fs from 'fs';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
-import { DirectoryAllocator } from './utils/DirectoryAllocator';
-import { FDirectory } from './FDirectory';
 import { FDiagnostics } from './FDiagnostics';
 import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
@@ -14,13 +12,14 @@ import { FNodeIDLayer } from './layers/FNodeIDLayer';
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
-    readonly diagnostics: FDiagnostics;
     readonly keySpace: FSubspace;
-    readonly directoryLayer: FDirectoryLayer;
+    readonly directories: FDirectoryLayer;
     readonly nodeIdLayer: FNodeIDLayer;
-    private readonly directoryAllocator: DirectoryAllocator;
-    private randomFactory: RandomIDFactory | null = null;
+    readonly diagnostics: FDiagnostics;
+
+    // Obsolete
     private test?: boolean;
+    private randomFactory: RandomIDFactory | null = null;
     private testNextId = 0;
 
     static create() {
@@ -40,26 +39,18 @@ export class FConnection {
         this.fdb = connection;
         this.pubsub = pubsub;
         this.test = test;
-        this.directoryAllocator = new DirectoryAllocator(this);
         this.diagnostics = new FDiagnostics(this);
         this.keySpace = new FGlobalSpace(this);
-        this.directoryLayer = new FDirectoryLayer(this);
+        this.directories = new FDirectoryLayer(this);
         this.nodeIdLayer = new FNodeIDLayer(this);
     }
 
     async ready() {
-        await this.directoryLayer.ready();
+        await this.directories.ready();
         await this.nodeIdLayer.ready();
     }
 
-    getDirectory(key: (string | number | boolean)[]) {
-        return new FDirectory(this, this.directoryAllocator, key);
-    }
-
-    async findAllDirectories() {
-        return await this.directoryAllocator.findAllDirectories();
-    }
-
+    // Obsolete
     nextRandomId(): string {
         if (this.test) {
             return (++this.testNextId).toString();

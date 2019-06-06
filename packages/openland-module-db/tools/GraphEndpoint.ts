@@ -357,7 +357,7 @@ queries.metaAllDirectories = {
         }
     })),
     resolve(_: any, a: any) {
-        return FDB.connection.findAllDirectories();
+        return FDB.connection.directories.findAllDirectories();
     }
 };
 
