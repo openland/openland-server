@@ -7,16 +7,19 @@ import { FTransformer } from './encoding/FTransformer';
 import { FTransformedSubspace } from './subspace/FTransformedSubspace';
 import { FEncoders } from './encoding/FEncoders';
 import { FSubspaceImpl } from './subspace/FSubspaceImpl';
+import { FTuple } from './encoding/FTuple';
 
 export class FDirectory implements FSubspace {
     readonly connection: FConnection;
+    readonly key: FTuple[];
     private readonly allocatorProcess: Promise<void>;
     private keyspace!: FSubspace;
     private allocatedKey!: Buffer;
     private isAllocated = false;
 
-    constructor(connection: FConnection, allocator: DirectoryAllocator, key: (string | number | boolean)[]) {
+    constructor(connection: FConnection, allocator: DirectoryAllocator, key: FTuple[]) {
         this.connection = connection;
+        this.key = key;
         this.allocatorProcess = (async () => {
             let v = await allocator.allocateDirectory(key);
             this.allocatedKey = v;
