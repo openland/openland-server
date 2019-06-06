@@ -64,7 +64,9 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
         try {
             return await callback();
         } catch (e) {
-            console.warn(e);
+            if (currentFailureCount > 3) {
+                console.warn(e);
+            }
             if (currentFailureCount < maxFailureCount) {
                 currentFailureCount++;
             }
