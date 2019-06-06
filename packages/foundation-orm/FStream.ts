@@ -5,6 +5,7 @@ import { FSubspace } from './FSubspace';
 import { FTuple } from './encoding/FTuple';
 import { FEncoders } from './encoding/FEncoders';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
+import { inTx } from './inTx';
 import { EmptyContext } from '@openland/context';
 
 export class FStream<T extends FEntity> {
@@ -14,7 +15,6 @@ export class FStream<T extends FEntity> {
     private _subspace: FTuple[];
     private keySpace: FSubspace<FTuple[], any>;
     private _cursor: string;
-    private ctx = EmptyContext;
 
     constructor(factory: FEntityFactory<T>, subspace: FTuple[], limit: number, builder: (val: any) => T, after?: string) {
         this._subspace = subspace;
@@ -41,7 +41,7 @@ export class FStream<T extends FEntity> {
     }
 
     async tail() {
-        let res = await this.keySpace.range(this.ctx, [], { limit: 1, reverse: true });
+        let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: 1, reverse: true }));
         if (res.length === 1) {
             return FKeyEncoding.encodeKeyToString(res[0].key);
         } else {
@@ -53,7 +53,7 @@ export class FStream<T extends FEntity> {
         if (this._cursor && this._cursor !== '') {
 
             let fixedCursor = fixObsoleteCursor(FKeyEncoding.decodeFromString(this._cursor), this._subspace, []);
-            let res = await this.keySpace.range(this.ctx, [], { limit: this.limit, after: fixedCursor });
+            let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit, after: fixedCursor }));
             let d: T[] = [];
             for (let r of res) {
                 d.push(this.builder(r.value));
@@ -61,7 +61,7 @@ export class FStream<T extends FEntity> {
             }
             return d;
         } else {
-            let res = await this.keySpace.range(this.ctx, [], { limit: this.limit });
+            let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit }));
             let d: T[] = [];
             for (let r of res) {
                 d.push(this.builder(r.value));
