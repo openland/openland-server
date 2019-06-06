@@ -50,7 +50,7 @@ export class RoomMediator {
                 isService: true,
             });
             if (message) {
-                await this.messaging.sendMessage(ctx, uid, res.id, {message: message});
+                await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
             return res;
         });
@@ -636,8 +636,8 @@ export class RoomMediator {
         }
     }
 
-    async userAvailableRooms(ctx: Context, uid: number, limit?: number, after?: number) {
-        return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, after);
+    async userAvailableRooms(ctx: Context, uid: number, isChannel: boolean | undefined, limit?: number, after?: number) {
+        return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, isChannel, after);
     }
 
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {
