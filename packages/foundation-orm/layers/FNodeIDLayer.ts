@@ -47,9 +47,9 @@ export class FNodeIDLayer {
             while (true) {
                 let candidate = Math.round(Math.random() * 1023);
                 let now = Date.now();
-                if (!process.env.JEST_WORKER_ID) {
-                    log.log(rootCtx, 'Check if ' + candidate + ' is available');
-                }
+                // if (!process.env.JEST_WORKER_ID) {
+                log.log(rootCtx, 'Check if ' + candidate + ' is available');
+                //}
 
                 let res = await inTx(rootCtx, async (ctx) => {
                     let existing = await this.keyspace.get(ctx, [candidate]);
