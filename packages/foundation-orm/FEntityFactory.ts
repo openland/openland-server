@@ -52,7 +52,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     async findAll(ctx: Context) {
-        return this.readOp(ctx, async () => (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v, false)));
+        return this.readOp(ctx, async () => (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v.value, false)));
     }
 
     async findAllKeys(ctx: Context, limit?: number) {
