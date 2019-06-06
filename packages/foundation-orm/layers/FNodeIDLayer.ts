@@ -95,7 +95,9 @@ export class FNodeIDLayer {
     }
 
     private onHalted() {
-        // Halt NodeJS process
-        process.abort();
+        if (process.env.NODE_ENV === 'production') {
+            // Halt NodeJS process
+            process.abort();
+        }
     }
 }
