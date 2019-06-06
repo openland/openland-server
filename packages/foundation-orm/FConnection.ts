@@ -1,6 +1,5 @@
 import * as fdb from 'foundationdb';
 import * as fs from 'fs';
-import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
@@ -10,15 +9,16 @@ import { FDiagnostics } from './FDiagnostics';
 import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
 import { FDirectoryLayer } from './layers/FDirectoryLayer';
+import { FNodeIDLayer } from './layers/FNodeIDLayer';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
     readonly diagnostics: FDiagnostics;
     readonly keySpace: FSubspace;
-    readonly directory: FDirectoryLayer;
+    readonly directoryLayer: FDirectoryLayer;
+    readonly nodeIdLayer: FNodeIDLayer;
     private readonly directoryAllocator: DirectoryAllocator;
-    private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
     private test?: boolean;
     private testNextId = 0;
@@ -39,16 +39,17 @@ export class FConnection {
     constructor(connection: fdb.Database<NativeValue, Buffer>, pubsub: FPubsub, test?: boolean) {
         this.fdb = connection;
         this.pubsub = pubsub;
-        this.nodeRegistrator = new FNodeRegistrator(this);
         this.test = test;
         this.directoryAllocator = new DirectoryAllocator(this);
         this.diagnostics = new FDiagnostics(this);
         this.keySpace = new FGlobalSpace(this);
-        this.directory = new FDirectoryLayer();
+        this.directoryLayer = new FDirectoryLayer(this);
+        this.nodeIdLayer = new FNodeIDLayer(this);
     }
 
     async ready() {
-        await this.directory.ready();
+        await this.directoryLayer.ready();
+        await this.nodeIdLayer.ready();
     }
 
     getDirectory(key: (string | number | boolean)[]) {
@@ -59,18 +60,14 @@ export class FConnection {
         return await this.directoryAllocator.findAllDirectories();
     }
 
-    get nodeId() {
-        return this.nodeRegistrator.getNodeId();
-    }
-
-    async nextRandomId(): Promise<string> {
+    nextRandomId(): string {
         if (this.test) {
             return (++this.testNextId).toString();
         }
-        let nid = await this.nodeId;
         if (this.randomFactory === null) {
+            let nid = this.nodeIdLayer.nodeId;
             this.randomFactory = new RandomIDFactory(nid);
         }
-        return await this.randomFactory.next();
+        return this.randomFactory.next();
     }
 }

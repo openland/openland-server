@@ -7,7 +7,7 @@ export function createHyperlogger<T>(type: string) {
         event: async (parent: Context, event: T) => {
             try {
                 await inTxLeaky(parent, async (ctx) => {
-                    await FDB.HyperLog.create_UNSAFE(ctx, await FDB.HyperLog.connection.nextRandomId(), {
+                    await FDB.HyperLog.create_UNSAFE(ctx, FDB.HyperLog.connection.nextRandomId(), {
                         type: type,
                         date: Date.now(),
                         body: event

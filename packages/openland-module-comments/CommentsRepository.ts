@@ -367,7 +367,7 @@ export class CommentsRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: await this.entities.connection.nextRandomId()
+                    id: this.entities.connection.nextRandomId()
                 });
             }
 

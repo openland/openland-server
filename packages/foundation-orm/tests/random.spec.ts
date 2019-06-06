@@ -25,13 +25,9 @@ describe('Random', () => {
             for (let i = 0; i < 32; i++) {
                 await connections[i].ready();
             }
-            let ids: Promise<number>[] = [];
-            for (let i = 0; i < connections.length; i++) {
-                ids.push(connections[i].nodeId);
-            }
             let idsv: number[] = [];
             for (let i = 0; i < connections.length; i++) {
-                idsv.push(await ids[i]);
+                idsv.push(connections[i].nodeIdLayer.nodeId);
             }
             for (let i = 0; i < connections.length; i++) {
                 for (let j = 0; j < connections.length; j++) {
