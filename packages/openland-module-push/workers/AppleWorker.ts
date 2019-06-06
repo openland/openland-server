@@ -8,7 +8,6 @@ import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
-import { EmptyContext } from '@openland/context';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 const log = createLogger('apns');
@@ -20,8 +19,7 @@ export function createAppleWorker(repo: PushRepository) {
     if (PushConfig.apple) {
         if (serverRoleEnabled('workers')) {
             // for (let i = 0; i < 10; i++) {
-            queue.addWorker(async (task) => {
-                let root = EmptyContext;
+            queue.addWorker(async (task, root) => {
                 let token = (await repo.getAppleToken(root, task.tokenId));
                 if (!token || !token.enabled) {
                     return { result: 'skipped' };

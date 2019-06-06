@@ -8,7 +8,6 @@ import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
-import { EmptyContext } from '@openland/context';
 
 const log = createLogger('firebase');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_firebase_sent');
@@ -32,8 +31,7 @@ export function createAndroidWorker(repo: PushRepository) {
                 }
             }
             for (let i = 0; i < 10; i++) {
-                queue.addWorker(async (task) => {
-                    let root = EmptyContext;
+                queue.addWorker(async (task, root) => {
                     let token = (await repo.getAndroidToken(root, task.tokenId))!;
                     if (!token.enabled) {
                         return { result: 'skipped' };
