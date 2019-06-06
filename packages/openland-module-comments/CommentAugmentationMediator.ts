@@ -28,8 +28,8 @@ export class CommentAugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorker(async (item) => {
-                let message = await this.entities.Comment.findById(EmptyContext, item.commentId);
+            this.queue.addWorker(async (item, ctx) => {
+                let message = await this.entities.Comment.findById(ctx, item.commentId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };

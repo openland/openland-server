@@ -28,8 +28,8 @@ export class AugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorker(async (item) => {
-                let message = await this.entities.Message.findById(EmptyContext, item.messageId);
+            this.queue.addWorker(async (item, ctx) => {
+                let message = await this.entities.Message.findById(ctx, item.messageId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };
