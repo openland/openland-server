@@ -9,7 +9,6 @@ const metaPrefix = Buffer.concat([rootPrefix, Buffer.from('fd', 'hex')]);
 const regsPrefix = Buffer.concat([metaPrefix, Buffer.from('01', 'hex')]);
 const counterKey = Buffer.concat([metaPrefix, Buffer.from('02', 'hex')]);
 
-
 function buildDataPrefix(counter: number) {
     let res = new Buffer(2);
     res.writeInt16BE(counter, 0);

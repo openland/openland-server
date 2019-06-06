@@ -33,7 +33,7 @@ export class FNodeIDLayer {
 
     public get nodeId(): number {
         if (!this._registered) {
-            throw Error('NodeID layer is not ready')
+            throw Error('NodeID layer is not ready');
         }
         return this._nodeId;
     }
@@ -41,7 +41,6 @@ export class FNodeIDLayer {
     async ready() {
         await this.readyPromise;
     }
-
 
     private start() {
         this.readyPromise = (async () => {
@@ -70,7 +69,7 @@ export class FNodeIDLayer {
                         while (true) {
                             let updated = await inTx(rootCtx, async (ctx) => {
                                 let existing = await this.keyspace.get(ctx, [candidate]);
-                                if (existing && (existing.seed == this.seed)) {
+                                if (existing && (existing.seed === this.seed)) {
                                     this.keyspace.set(ctx, [candidate], { timeout: Date.now() + 30000, seed: this.seed });
                                     return true;
                                 } else {

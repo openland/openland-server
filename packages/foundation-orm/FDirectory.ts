@@ -19,14 +19,10 @@ export class FDirectory implements FSubspace {
         this.connection = connection;
         this.allocatorProcess = (async () => {
             let v = await allocator.allocateDirectory(key);
-            this.onAllocated(v);
+            this.allocatedKey = v;
+            this.isAllocated = true;
+            this.keyspace = connection.keySpace.subspace(v);
         })();
-    }
-
-    private onAllocated(key: Buffer) {
-        this.allocatedKey = key;
-        this.isAllocated = true;
-        this.keyspace = this.connection.keySpace.subspace(key);
     }
 
     ready = async () => {

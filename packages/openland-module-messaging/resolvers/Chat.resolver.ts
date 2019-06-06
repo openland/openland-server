@@ -119,7 +119,7 @@ export default {
             }
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx)
+            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
         topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
         user: async (src: Conversation, _: any, ctx: AppContext) => {
