@@ -7,16 +7,29 @@ export function generateAtomic(atomic: AtomicModel): string {
 
     let res = '';
 
-    res += 'export class ' + entityClass + 'Factory extends FAtomicIntegerFactory {\n';
-    res += '    constructor(connection: FConnection) {\n';
-    res += '        super(connection, new FNamespace(connection, \'atomic\', \'' + entityKey + '\'));\n';
-    res += '    }\n';
+    if (atomic.kind == 'int') {
+        res += 'export class ' + entityClass + 'Factory extends FAtomicIntegerFactory {\n';
+        res += '    constructor(connection: FConnection) {\n';
+        res += '        super(connection, new FNamespace(connection, \'atomic\', \'' + entityKey + '\'));\n';
+        res += '    }\n';
 
-    res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
-    res += '        return this._findById([' + atomic.keys.map((v) => v.name).join(', ') + ']);\n';
-    res += '    }\n';
+        res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
+        res += '        return this._findById([' + atomic.keys.map((v) => v.name).join(', ') + ']);\n';
+        res += '    }\n';
 
-    res += '}';
+        res += '}';
+    } else {
+        res += 'export class ' + entityClass + 'Factory extends FAtomicBooleanFactory {\n';
+        res += '    constructor(connection: FConnection) {\n';
+        res += '        super(connection, new FNamespace(connection, \'atomic\', \'' + entityKey + '\'));\n';
+        res += '    }\n';
+
+        res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
+        res += '        return this._findById([' + atomic.keys.map((v) => v.name).join(', ') + ']);\n';
+        res += '    }\n';
+
+        res += '}';
+    }
 
     return res;
 }

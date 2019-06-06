@@ -11,7 +11,8 @@ import {
     uniqueIndex,
     allowAdminEdit,
     jsonField,
-    atomic
+    atomic,
+    directory
 } from '../foundation-orm-gen';
 import {
     jBool,
@@ -1133,6 +1134,8 @@ const Schema = declareSchema(() => {
         primaryKey('uid', 'number');
         primaryKey('cid', 'number');
     });
+
+    directory('NeedNotificationFlag')
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

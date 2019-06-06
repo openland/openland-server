@@ -27,7 +27,7 @@ export function entity(name: string, schema: () => void) {
 }
 
 export function atomic(name: string, schema: () => void) {
-    currentAtomic = new AtomicModel(name);
+    currentAtomic = new AtomicModel(name, 'int');
     if (currentSchema!.entities.find((v) => v.name === name)) {
         throw Error('Duplicate atomic with name ' + name);
     }
@@ -37,6 +37,23 @@ export function atomic(name: string, schema: () => void) {
     currentSchema!.addAtomic(currentAtomic!!);
     schema();
     currentAtomic = null;
+}
+
+export function atomicBoolean(name: string, schema: () => void) {
+    currentAtomic = new AtomicModel(name, 'boolean');
+    if (currentSchema!.entities.find((v) => v.name === name)) {
+        throw Error('Duplicate atomic with name ' + name);
+    }
+    if (currentSchema!.atomics.find((v) => v.name === name)) {
+        throw Error('Duplicate atomic with name ' + name);
+    }
+    currentSchema!.addAtomic(currentAtomic!!);
+    schema();
+    currentAtomic = null;
+}
+
+export function directory(name: string) {
+    currentSchema!!.addDirectory(name);
 }
 
 export function field(name: string, type: 'number' | 'string' | 'boolean' | 'json') {

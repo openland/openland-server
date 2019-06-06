@@ -5,13 +5,13 @@ export class EntityField {
     readonly name: string;
     readonly type: 'string' | 'number' | 'boolean' | 'enum' | 'json';
     readonly enumValues: string[];
-    readonly jsonSchema: JsonSchema|null;
+    readonly jsonSchema: JsonSchema | null;
     isNullable: boolean = false;
     isSecure: boolean = false;
     dispName?: string;
     reference?: FEntitySchemaReference;
 
-    constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema|null) {
+    constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema | null) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
@@ -87,7 +87,7 @@ export class EntityModel {
         this.name = name;
     }
 
-    addField(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema|null) {
+    addField(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema | null) {
         let res = new EntityField(name, type, enumValues, jsonSchema);
         this.fields.push(res);
         return res;
@@ -108,10 +108,12 @@ export class EntityModel {
 
 export class AtomicModel {
     readonly name: string;
+    readonly kind: 'int' | 'boolean';
     keys: EntityField[] = [];
 
-    constructor(name: string) {
+    constructor(name: string, kind: 'int' | 'boolean') {
         this.name = name;
+        this.kind = kind;
     }
 
     addKey(name: string, type: 'string' | 'number' | 'boolean') {
@@ -121,9 +123,23 @@ export class AtomicModel {
     }
 }
 
+export class DirectoryModel {
+    readonly name: string;
+
+    constructor(name: string) {
+        this.name = name;
+    }
+}
+
 export class SchemaModel {
     entities: EntityModel[] = [];
     atomics: AtomicModel[] = [];
+    directories: DirectoryModel[] = [];
+
+    addDirectory(name: string) {
+        this.directories.push(new DirectoryModel(name));
+    }
+
     addEntity(entity: EntityModel) {
         this.entities.push(entity);
     }

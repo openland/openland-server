@@ -9,7 +9,8 @@ import {
     uniqueIndex,
     rangeIndex,
     jsonField,
-    atomic
+    atomic,
+    atomicBoolean
 } from '../../foundation-orm-gen';
 import { jField, jNumber, jString } from '../../openland-utils/jsonSchema';
 
@@ -83,6 +84,10 @@ const Schema = declareSchema(() => {
     });
 
     atomic('SampleAtomic', () => {
+        primaryKey('id', 'string');
+    });
+
+    atomicBoolean('SampleAtomicBoolean', () => {
         primaryKey('id', 'string');
     });
 });

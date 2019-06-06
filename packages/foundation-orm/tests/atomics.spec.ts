@@ -76,4 +76,27 @@ describe('atomics', () => {
         let res3 = await (testEntities.SampleAtomic.byId('some-1')).get(rootctx);
         expect(res3).toEqual(1340);
     });
+
+    it('should set and get booleans', async () => {
+        let rootctx = EmptyContext;
+
+        let res = await (testEntities.SampleAtomicBoolean.byId('some-1')).get(rootctx);
+        expect(res).toEqual(false);
+
+        await inTx(rootctx, async (ctx) => {
+            let atomic = testEntities.SampleAtomicBoolean.byId('some-1');
+            await atomic.set(ctx, true);
+        });
+
+        res = await (testEntities.SampleAtomicBoolean.byId('some-1')).get(rootctx);
+        expect(res).toEqual(true);
+
+        await inTx(rootctx, async (ctx) => {
+            let atomic = testEntities.SampleAtomicBoolean.byId('some-1');
+            await atomic.set(ctx, false);
+        });
+
+        res = await (testEntities.SampleAtomicBoolean.byId('some-1')).get(rootctx);
+        expect(res).toEqual(false);
+    });
 });
