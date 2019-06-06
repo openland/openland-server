@@ -1081,6 +1081,15 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('DiscoverUserPickedTags', () => {
+        primaryKey('uid', 'number');
+        primaryKey('id', 'string');
+        field('deleted', 'boolean');
+        uniqueIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
+        enableTimestamps();
+        enableVersioning();
+    });
+
     //
     //  Debug
     //

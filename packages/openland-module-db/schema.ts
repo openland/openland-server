@@ -9506,6 +9506,99 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         return new UserStorageRecord(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
     }
 }
+export interface DiscoverUserPickedTagsShape {
+    deleted: boolean;
+}
+
+export class DiscoverUserPickedTags extends FEntity {
+    readonly entityName: 'DiscoverUserPickedTags' = 'DiscoverUserPickedTags';
+    get uid(): number { return this._value.uid; }
+    get id(): string { return this._value.id; }
+    get deleted(): boolean {
+        return this._value.deleted;
+    }
+    set deleted(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
+}
+
+export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPickedTags> {
+    static schema: FEntitySchema = {
+        name: 'DiscoverUserPickedTags',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+            { name: 'id', type: 'string' },
+        ],
+        fields: [
+            { name: 'deleted', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'user', type: 'unique', fields: ['uid', 'id'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('deleted', src.deleted);
+        validators.isBoolean('deleted', src.deleted);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'discoverUserPickedTags'),
+            { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('user', ['uid', 'id'], true, (src) => !src.deleted)],
+            'DiscoverUserPickedTags'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0], 'id': rawId[1] };
+    }
+    async findById(ctx: Context, uid: number, id: string) {
+        return await this._findById(ctx, [uid, id]);
+    }
+    async create(ctx: Context, uid: number, id: string, shape: DiscoverUserPickedTagsShape) {
+        return await this._create(ctx, [uid, id], { uid, id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, id: string, shape: DiscoverUserPickedTagsShape) {
+        return await this._create_UNSAFE(ctx, [uid, id], { uid, id, ...shape });
+    }
+    watch(ctx: Context, uid: number, id: string, cb: () => void) {
+        return this._watch(ctx, [uid, id], cb);
+    }
+    async findFromUser(ctx: Context, uid: number, id: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'user', uid, id]);
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+    }
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'discoverUserPickedTags', '__indexes', 'user', uid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new DiscoverUserPickedTags(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
+    }
+}
 export interface DebugEventShape {
     key?: string| null;
 }
@@ -9789,6 +9882,7 @@ export interface AllEntities {
     readonly AppHook: AppHookFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
+    readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly UserCounter: UserCounterFactory;
@@ -9871,6 +9965,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         AppHookFactory.schema,
         UserStorageNamespaceFactory.schema,
         UserStorageRecordFactory.schema,
+        DiscoverUserPickedTagsFactory.schema,
         DebugEventFactory.schema,
         DebugEventStateFactory.schema,
     ];
@@ -9946,6 +10041,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     AppHook: AppHookFactory;
     UserStorageNamespace: UserStorageNamespaceFactory;
     UserStorageRecord: UserStorageRecordFactory;
+    DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
     DebugEvent: DebugEventFactory;
     DebugEventState: DebugEventStateFactory;
     UserCounter: UserCounterFactory;
@@ -10099,6 +10195,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.UserStorageNamespace);
         this.UserStorageRecord = new UserStorageRecordFactory(connection);
         this.allEntities.push(this.UserStorageRecord);
+        this.DiscoverUserPickedTags = new DiscoverUserPickedTagsFactory(connection);
+        this.allEntities.push(this.DiscoverUserPickedTags);
         this.DebugEvent = new DebugEventFactory(connection);
         this.allEntities.push(this.DebugEvent);
         this.DebugEventState = new DebugEventStateFactory(connection);
@@ -10327,6 +10425,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserStorageRecord(): UserStorageRecordFactory {
         return this.resolver().UserStorageRecord;
+    }
+    get DiscoverUserPickedTags(): DiscoverUserPickedTagsFactory {
+        return this.resolver().DiscoverUserPickedTags;
     }
     get DebugEvent(): DebugEventFactory {
         return this.resolver().DebugEvent;

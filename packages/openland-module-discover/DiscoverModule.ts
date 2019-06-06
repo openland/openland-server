@@ -1,16 +1,51 @@
 import { injectable } from 'inversify';
 import { DiscoverData } from './DiscoverData';
+import { FDB } from 'openland-module-db/FDB';
+import { Context } from '@openland/context';
+import { inTx } from 'foundation-orm/inTx';
 
 @injectable()
 export class DiscoverModule {
     private data = new DiscoverData();
 
-    nextPage = (selectedTags: string[], exludedGroups: string[]) => {
-        return this.data.next(selectedTags, exludedGroups);
+    nextPage = async (parent: Context, uid: number, selectedTags: string[], exludedGroups: string[]) => {
+        return inTx(parent, async (ctx) => {
+            let page = this.data.next(selectedTags, exludedGroups);
+            if (page.chats) {
+                // save picked tags if chats resolved
+                // mark old as deleted
+                let oldTags = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+                for (let old of oldTags) {
+                    old.deleted = true;
+                }
+                // save new
+                for (let tagId of selectedTags) {
+                    let existing = await FDB.DiscoverUserPickedTags.findById(ctx, uid, tagId);
+                    if (existing) {
+                        existing.deleted = false;
+                    } else {
+                        await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
+                    }
+                }
+            }
+            return page;
+        });
     }
 
-    suggestedChats = (selectedTags: string[]) => {
-        return this.data.resolveSuggestedChats(selectedTags);
+    suggestedChats = async (parent: Context, uid: number) => {
+        return inTx(parent, async (ctx) => {
+            let selected = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            return this.data.resolveSuggestedChats(selected.map(s => s.id));
+        });
+
+    }
+
+    isDiscoverDone = async (parent: Context, uid: number) => {
+        return inTx(parent, async (ctx) => {
+            let selected = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            return !!selected.length;
+        });
+
     }
     start = () => {
         // Nothing to do
