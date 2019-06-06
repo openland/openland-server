@@ -55,7 +55,7 @@ export class FNodeIDLayer {
                 let res = await inTx(rootCtx, async (ctx) => {
                     let existing = await this.keyspace.get(ctx, [candidate]);
                     if (!existing || (existing.timeout < now)) {
-                        this.keyspace.set(ctx, [candidate], { timeout: now + 60000, seed: this.seed });
+                        this.keyspace.set(ctx, [candidate], { timeout: now + 30000, seed: this.seed });
                         return true;
                     } else {
                         return false;
@@ -71,7 +71,7 @@ export class FNodeIDLayer {
                             let updated = await inTx(rootCtx, async (ctx) => {
                                 let existing = await this.keyspace.get(ctx, [candidate]);
                                 if (existing && (existing.seed == this.seed)) {
-                                    this.keyspace.set(ctx, [candidate], { timeout: Date.now() + 60000, seed: this.seed });
+                                    this.keyspace.set(ctx, [candidate], { timeout: Date.now() + 30000, seed: this.seed });
                                     return true;
                                 } else {
                                     return false;
@@ -84,6 +84,7 @@ export class FNodeIDLayer {
                             }
                         }
                     })();
+                    return;
                 }
             }
         })();
