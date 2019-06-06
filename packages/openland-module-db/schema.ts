@@ -3353,6 +3353,7 @@ export interface UserSettingsShape {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
+    commentNotifications?: 'all' | 'direct' | 'none'| null;
     mobileAlert?: boolean| null;
     mobileIncludeText?: boolean| null;
     notificationsDelay?: 'none' | '1min' | '15min'| null;
@@ -3386,6 +3387,17 @@ export class UserSettings extends FEntity {
         this._checkIsWritable();
         if (value === this._value.mobileNotifications) { return; }
         this._value.mobileNotifications = value;
+        this.markDirty();
+    }
+    get commentNotifications(): 'all' | 'direct' | 'none' | null {
+        let res = this._value.commentNotifications;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set commentNotifications(value: 'all' | 'direct' | 'none' | null) {
+        this._checkIsWritable();
+        if (value === this._value.commentNotifications) { return; }
+        this._value.commentNotifications = value;
         this.markDirty();
     }
     get mobileAlert(): boolean | null {
@@ -3434,6 +3446,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
             { name: 'emailFrequency', type: 'enum', enumValues: ['1hour', '15min', 'never', '24hour', '1week'] },
             { name: 'desktopNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
             { name: 'mobileNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
+            { name: 'commentNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
             { name: 'mobileAlert', type: 'boolean' },
             { name: 'mobileIncludeText', type: 'boolean' },
             { name: 'notificationsDelay', type: 'enum', enumValues: ['none', '1min', '15min'] },
@@ -3451,6 +3464,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isEnum('desktopNotifications', src.desktopNotifications, ['all', 'direct', 'none']);
         validators.notNull('mobileNotifications', src.mobileNotifications);
         validators.isEnum('mobileNotifications', src.mobileNotifications, ['all', 'direct', 'none']);
+        validators.isEnum('commentNotifications', src.commentNotifications, ['all', 'direct', 'none']);
         validators.isBoolean('mobileAlert', src.mobileAlert);
         validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
@@ -4721,7 +4735,7 @@ export interface MessageShape {
     isService: boolean;
     deleted?: boolean| null;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, } | { type: 'italic_text', offset: number, length: number, } | { type: 'irony_text', offset: number, length: number, } | { type: 'inline_code_text', offset: number, length: number, } | { type: 'code_block_text', offset: number, length: number, } | { type: 'insane_text', offset: number, length: number, } | { type: 'loud_text', offset: number, length: number, } | { type: 'rotating_text', offset: number, length: number, } | { type: 'date_text', offset: number, length: number, date: number, } | { type: 'all_mention', offset: number, length: number, })[]| null;
-    attachmentsModern?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[]| null;
+    attachmentsModern?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, } | { type: 'comment_attachment', commentId: number, id: string, })[]| null;
     fileId?: string| null;
     fileMetadata?: { isStored: boolean | undefined, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, }| null;
     filePreview?: string| null;
@@ -4862,12 +4876,12 @@ export class Message extends FEntity {
         this._value.spans = value;
         this.markDirty();
     }
-    get attachmentsModern(): ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[] | null {
+    get attachmentsModern(): ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, } | { type: 'comment_attachment', commentId: number, id: string, })[] | null {
         let res = this._value.attachmentsModern;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set attachmentsModern(value: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[] | null) {
+    set attachmentsModern(value: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, } | { type: 'comment_attachment', commentId: number, id: string, })[] | null) {
         this._checkIsWritable();
         if (value === this._value.attachmentsModern) { return; }
         this._value.attachmentsModern = value;
@@ -5202,6 +5216,11 @@ export class MessageFactory extends FEntityFactory<Message> {
                 jField('url', jString()).nullable();
             }))));
             })).nullable();
+                jField('id', jString());
+            }), 
+            json(() => {
+                jField('type', jString('comment_attachment'));
+                jField('commentId', jNumber());
                 jField('id', jString());
             })
         )));
@@ -5961,6 +5980,180 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         return new CommentEvent(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
     }
 }
+export interface CommentNotificationsShape {
+    chat: number;
+}
+
+export class CommentNotifications extends FEntity {
+    readonly entityName: 'CommentNotifications' = 'CommentNotifications';
+    get uid(): number { return this._value.uid; }
+    get chat(): number {
+        return this._value.chat;
+    }
+    set chat(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.chat) { return; }
+        this._value.chat = value;
+        this.markDirty();
+    }
+}
+
+export class CommentNotificationsFactory extends FEntityFactory<CommentNotifications> {
+    static schema: FEntitySchema = {
+        name: 'CommentNotifications',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'chat', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('chat', src.chat);
+        validators.isNumber('chat', src.chat);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'commentNotifications'),
+            { enableVersioning: false, enableTimestamps: false, validator: CommentNotificationsFactory.validate, hasLiveStreams: false },
+            [],
+            'CommentNotifications'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0] };
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+    async create(ctx: Context, uid: number, shape: CommentNotificationsShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, shape: CommentNotificationsShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentNotifications(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'CommentNotifications');
+    }
+}
+export interface CommentSubscriptionShape {
+    kind: 'all' | 'direct';
+    status: 'active' | 'disabled';
+}
+
+export class CommentSubscription extends FEntity {
+    readonly entityName: 'CommentSubscription' = 'CommentSubscription';
+    get peerType(): string { return this._value.peerType; }
+    get peerId(): number { return this._value.peerId; }
+    get uid(): number { return this._value.uid; }
+    get kind(): 'all' | 'direct' {
+        return this._value.kind;
+    }
+    set kind(value: 'all' | 'direct') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+    get status(): 'active' | 'disabled' {
+        return this._value.status;
+    }
+    set status(value: 'active' | 'disabled') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
+}
+
+export class CommentSubscriptionFactory extends FEntityFactory<CommentSubscription> {
+    static schema: FEntitySchema = {
+        name: 'CommentSubscription',
+        editable: false,
+        primaryKeys: [
+            { name: 'peerType', type: 'string' },
+            { name: 'peerId', type: 'number' },
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'kind', type: 'enum', enumValues: ['all', 'direct'] },
+            { name: 'status', type: 'enum', enumValues: ['active', 'disabled'] },
+        ],
+        indexes: [
+            { name: 'peer', type: 'range', fields: ['peerType', 'peerId', 'uid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('peerType', src.peerType);
+        validators.isString('peerType', src.peerType);
+        validators.notNull('peerId', src.peerId);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['all', 'direct']);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['active', 'disabled']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'commentSubscription'),
+            { enableVersioning: false, enableTimestamps: false, validator: CommentSubscriptionFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('peer', ['peerType', 'peerId', 'uid'], false)],
+            'CommentSubscription'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 3) { throw Error('Invalid key length!'); }
+        return { 'peerType': rawId[0], 'peerId': rawId[1], 'uid': rawId[2] };
+    }
+    async findById(ctx: Context, peerType: string, peerId: number, uid: number) {
+        return await this._findById(ctx, [peerType, peerId, uid]);
+    }
+    async create(ctx: Context, peerType: string, peerId: number, uid: number, shape: CommentSubscriptionShape) {
+        return await this._create(ctx, [peerType, peerId, uid], { peerType, peerId, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, peerType: string, peerId: number, uid: number, shape: CommentSubscriptionShape) {
+        return await this._create_UNSAFE(ctx, [peerType, peerId, uid], { peerType, peerId, uid, ...shape });
+    }
+    watch(ctx: Context, peerType: string, peerId: number, uid: number, cb: () => void) {
+        return this._watch(ctx, [peerType, peerId, uid], cb);
+    }
+    async allFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'peer', peerType, peerId], after);
+    }
+    async rangeFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'peer', peerType, peerId], after, limit, reversed);
+    }
+    async rangeFromPeer(ctx: Context, peerType: string, peerId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'peer', peerType, peerId], limit, reversed);
+    }
+    async rangeFromPeerWithCursor(ctx: Context, peerType: string, peerId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'peer', peerType, peerId], limit, after, reversed);
+    }
+    async allFromPeer(ctx: Context, peerType: string, peerId: number) {
+        return await this._findAll(ctx, ['__indexes', 'peer', peerType, peerId]);
+    }
+    createPeerStream(ctx: Context, peerType: string, peerId: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'commentSubscription', '__indexes', 'peer', peerType, peerId], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentSubscription(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentSubscription');
+    }
+}
 export interface ConversationSeqShape {
     seq: number;
 }
@@ -6513,7 +6706,7 @@ export interface UserDialogEventShape {
     photo?: any| null;
     mute?: boolean| null;
     haveMention?: boolean| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
+    kind: 'message_received' | 'message_received_silent' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
 }
 
 export class UserDialogEvent extends FEntity {
@@ -6608,10 +6801,10 @@ export class UserDialogEvent extends FEntity {
         this._value.haveMention = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' {
+    get kind(): 'message_received' | 'message_received_silent' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
+    set kind(value: 'message_received' | 'message_received_silent' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -6636,7 +6829,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
             { name: 'photo', type: 'json' },
             { name: 'mute', type: 'boolean' },
             { name: 'haveMention', type: 'boolean' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_received_silent', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'seq'] },
@@ -6656,7 +6849,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isBoolean('mute', src.mute);
         validators.isBoolean('haveMention', src.haveMention);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_received_silent', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
     }
 
     constructor(connection: FConnection) {
@@ -9759,6 +9952,8 @@ export interface AllEntities {
     readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
+    readonly CommentNotifications: CommentNotificationsFactory;
+    readonly CommentSubscription: CommentSubscriptionFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -9841,6 +10036,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         CommentStateFactory.schema,
         CommentSeqFactory.schema,
         CommentEventFactory.schema,
+        CommentNotificationsFactory.schema,
+        CommentSubscriptionFactory.schema,
         ConversationSeqFactory.schema,
         ConversationEventFactory.schema,
         UserDialogFactory.schema,
@@ -9916,6 +10113,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     CommentState: CommentStateFactory;
     CommentSeq: CommentSeqFactory;
     CommentEvent: CommentEventFactory;
+    CommentNotifications: CommentNotificationsFactory;
+    CommentSubscription: CommentSubscriptionFactory;
     ConversationSeq: ConversationSeqFactory;
     ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
@@ -10039,6 +10238,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.CommentSeq);
         this.CommentEvent = new CommentEventFactory(connection);
         this.allEntities.push(this.CommentEvent);
+        this.CommentNotifications = new CommentNotificationsFactory(connection);
+        this.allEntities.push(this.CommentNotifications);
+        this.CommentSubscription = new CommentSubscriptionFactory(connection);
+        this.allEntities.push(this.CommentSubscription);
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.allEntities.push(this.ConversationSeq);
         this.ConversationEvent = new ConversationEventFactory(connection);
@@ -10237,6 +10440,12 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get CommentEvent(): CommentEventFactory {
         return this.resolver().CommentEvent;
+    }
+    get CommentNotifications(): CommentNotificationsFactory {
+        return this.resolver().CommentNotifications;
+    }
+    get CommentSubscription(): CommentSubscriptionFactory {
+        return this.resolver().CommentSubscription;
     }
     get ConversationSeq(): ConversationSeqFactory {
         return this.resolver().ConversationSeq;

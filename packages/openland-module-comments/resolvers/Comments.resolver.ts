@@ -4,12 +4,22 @@ import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
 import {
-    MessageAttachmentFileInput, MessageAttachmentInput,
+    MessageAttachmentFileInput,
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { CommentSpan } from '../CommentsRepository';
+import { CommentAttachmentInput, CommentSpan } from '../CommentsRepository';
+import { Message } from '../../openland-module-db/schema';
 
 export default {
+    CommentPeerRoot: {
+        __resolveType(obj: any) {
+            if (obj instanceof Message) {
+                return 'GeneralMessage';
+            } else {
+                throw new Error('Unknown comments peer root type: ' + obj);
+            }
+        }
+    },
     CommentsPeer: {
         id: src => {
             if (src.peerType === 'message') {
@@ -24,6 +34,13 @@ export default {
         },
         count: src => src.comments.length,
         comments: src => src.comments,
+        peerRoot: async (src, args, ctx) => {
+            if (src.peerType === 'message') {
+                return await FDB.Message.findById(ctx, src.peerId);
+            } else {
+                throw new Error('Unknown comments peer type: ' + src.peerType);
+            }
+        }
     },
     CommentEntry: {
         id: src => IDs.CommentEntry.serialize(src.id),
@@ -346,7 +363,7 @@ export default {
                 throw new NotFoundError();
             }
 
-            let newAttachments: MessageAttachmentInput[] = [];
+            let newAttachments: CommentAttachmentInput[] = [];
 
             if (comment.attachments) {
                 newAttachments = comment.attachments.filter(a => a.type !== 'rich_attachment').map(a => {
@@ -384,6 +401,10 @@ export default {
                 peerType: 'message',
                 peerId: messageId,
             };
+        }),
+        commentsNotificationsDialog: withUser(async (ctx, args, uid) => {
+            let cid = await Modules.Comments.getNotificationsChat(ctx, uid);
+            return await FDB.UserDialog.findById(ctx, uid, cid);
         }),
     },
 } as GQLResolver;

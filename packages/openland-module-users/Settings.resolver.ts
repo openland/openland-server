@@ -20,6 +20,11 @@ export default {
         DIRECT: 'direct',
         NONE: 'none'
     },
+    NotificationComments: {
+        ALL: 'all',
+        DIRECT: 'direct',
+        NONE: 'none'
+    },
     NotificationsDelay: {
         NONE: 'none',
         MIN_1: '1min',
@@ -31,6 +36,7 @@ export default {
         emailFrequency: (src: UserSettings) => src.emailFrequency as any,
         desktopNotifications: (src: UserSettings) => src.desktopNotifications as any,
         mobileNotifications: (src: UserSettings) => src.mobileNotifications as any,
+        commentNotifications: (src: UserSettings) => src.commentNotifications ? src.commentNotifications : 'none' as any,
         mobileAlert: (src: UserSettings) => src.mobileAlert !== null && src.mobileAlert !== undefined ? src.mobileAlert : true,
         mobileIncludeText: (src: UserSettings) => src.mobileIncludeText !== null && src.mobileAlert !== undefined ? src.mobileIncludeText : true,
         notificationsDelay: (src: UserSettings) => src.notificationsDelay as any,
@@ -64,6 +70,9 @@ export default {
                 }
                 if (args.settings.notificationsDelay !== null) {
                     settings.notificationsDelay = args.settings.notificationsDelay as any;
+                }
+                if (args.settings.commentNotifications !== null) {
+                    settings.commentNotifications = args.settings.commentNotifications as any;
                 }
                 return settings;
             });

@@ -38,7 +38,7 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
-                kind: 'message_received',
+                kind: local.hidden ? 'message_received_silent' : 'message_received',
                 cid: message.cid,
                 mid: message.id,
                 allUnread: 0,

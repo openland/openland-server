@@ -368,6 +368,7 @@ const Schema = declareSchema(() => {
         enumField('emailFrequency', ['1hour', '15min', 'never', '24hour', '1week']);
         enumField('desktopNotifications', ['all', 'direct', 'none']);
         enumField('mobileNotifications', ['all', 'direct', 'none']);
+        enumField('commentNotifications', ['all', 'direct', 'none']).nullable();
         field('mobileAlert', 'boolean').nullable();
         field('mobileIncludeText', 'boolean').nullable();
         enumField('notificationsDelay', ['none', '1min', '15min']).nullable();
@@ -582,6 +583,11 @@ const Schema = declareSchema(() => {
                 })).nullable();
                 jField('id', jString());
             }),
+            json(() => {
+                jField('type', jString('comment_attachment'));
+                jField('commentId', jNumber());
+                jField('id', jString());
+            }),
         ))).nullable();
 
         // deprecated start
@@ -735,6 +741,21 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    entity('CommentNotifications', () => {
+        primaryKey('uid', 'number');
+        field('chat', 'number');
+    });
+
+    entity('CommentSubscription', () => {
+        primaryKey('peerType', 'string');
+        primaryKey('peerId', 'number');
+        primaryKey('uid', 'number');
+        enumField('kind', ['all', 'direct']);
+        enumField('status', ['active', 'disabled']);
+
+        rangeIndex('peer', ['peerType', 'peerId', 'uid']);
+    });
+
     //
     //  Comments end
     //
@@ -810,7 +831,7 @@ const Schema = declareSchema(() => {
         field('photo', 'json').nullable();
         field('mute', 'boolean').nullable();
         field('haveMention', 'boolean').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
+        enumField('kind', ['message_received', 'message_received_silent', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
         rangeIndex('user', ['uid', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();

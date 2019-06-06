@@ -7,9 +7,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
     AllMentionSpan,
     BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan,
-    MessageAttachment,
-    MessageAttachmentInput,
+    LinkSpan, LoudTextSpan, MessageAttachmentFile, MessageAttachmentFileInput, MessageRichAttachment, MessageRichAttachmentInput,
     MultiUserMentionSpan,
     RoomMentionSpan, RotatingTextSpan,
     UserMentionSpan
@@ -35,11 +33,14 @@ export type CommentSpan =
     DateTextSpan |
     AllMentionSpan;
 
+export type CommentAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
+export type CommentAttachment = MessageAttachmentFile | MessageRichAttachment;
+
 export interface CommentInput {
     message?: string | null;
     replyToComment?: number | null;
     spans?: CommentSpan[] | null;
-    attachments?: MessageAttachmentInput[] | null;
+    attachments?: CommentAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
 
     // appends attachments instead of replacing them in editComment
@@ -84,7 +85,7 @@ export class CommentsRepository {
             //
             // Prepare attachments
             //
-            let attachments: MessageAttachment[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
+            let attachments: CommentAttachment[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
 
             //
             //  Create comment
@@ -360,9 +361,9 @@ export class CommentsRepository {
         });
     }
 
-    private async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
+    private async prepateAttachments(parent: Context, attachments: CommentAttachmentInput[]) {
         return await inTx(parent, async (ctx) => {
-            let res: MessageAttachment[] = [];
+            let res: CommentAttachment[] = [];
 
             for (let attachInput of attachments) {
                 res.push({

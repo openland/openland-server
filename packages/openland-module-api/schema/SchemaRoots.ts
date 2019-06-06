@@ -22,7 +22,7 @@ import {
 import { GQL } from './SchemaSpec';
 import {
     BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
+    LinkSpan, LoudTextSpan, MessageAttachment, MessageAttachmentFile, MessageButton, MessageCommentAttachment,
     MessageMention, MessageRichAttachment,
     MessageSpan,
     MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
@@ -139,6 +139,7 @@ export namespace GQLRoots {
     export type DialogUpdateContainerRoot = any;
     export type DialogUpdateRoot = any;
     export type DialogMessageReceivedRoot = UserDialogEvent;
+    export type DialogMessageReceivedSilentRoot = UserDialogEvent;
     export type DialogMessageUpdatedRoot = UserDialogEvent;
     export type DialogMessageDeletedRoot = UserDialogEvent;
     export type DialogMessageReadRoot = UserDialogEvent;
@@ -225,6 +226,7 @@ export namespace GQLRoots {
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
+    export type MessageAttachmentCommentRoot = { attachment: MessageCommentAttachment, message: Message };
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
     export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number } };
 
@@ -258,6 +260,7 @@ export namespace GQLRoots {
     //
     //  Comments
     //
+    export type CommentPeerRootRoot = Message;
     export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
     export type CommentUpdateContainerRoot = FLiveStreamItem<CommentEvent>;

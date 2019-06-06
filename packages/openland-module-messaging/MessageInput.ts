@@ -84,7 +84,13 @@ export type MessageRichAttachment = {
     keyboard: MessageKeyboard | null
 };
 
-export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
+export type MessageCommentAttachment = {
+    type: 'comment_attachment',
+    commentId: number,
+    id: string
+};
+
+export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment | MessageCommentAttachment;
 
 export type MessageAttachmentFileInput = {
     type: 'file_attachment',
@@ -107,7 +113,12 @@ export type MessageRichAttachmentInput = {
     keyboard: MessageKeyboard | null
 };
 
-export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
+export type MessageCommentAttachmentInput = {
+    type: 'comment_attachment',
+    commentId: number
+};
+
+export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput | MessageCommentAttachmentInput;
 
 // Deprecated
 export type MessageMention = {

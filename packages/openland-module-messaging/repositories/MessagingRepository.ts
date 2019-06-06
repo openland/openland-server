@@ -31,7 +31,7 @@ export class MessagingRepository {
             //
             // Prepare attachments
             //
-            let attachments: MessageAttachment[] = await this.prepateAttachments(ctx, message.attachments || []);
+            let attachments: MessageAttachment[] = await this.prepareAttachments(ctx, message.attachments || []);
 
             //
             // Persist Messages
@@ -97,9 +97,9 @@ export class MessagingRepository {
             }
             if (newMessage.attachments) {
                 if (newMessage.appendAttachments) {
-                    message.attachmentsModern = [...(message.attachmentsModern || []), ...await this.prepateAttachments(ctx, newMessage.attachments || [])];
+                    message.attachmentsModern = [...(message.attachmentsModern || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
                 } else {
-                    message.attachmentsModern = await this.prepateAttachments(ctx, newMessage.attachments || []);
+                    message.attachmentsModern = await this.prepareAttachments(ctx, newMessage.attachments || []);
                 }
             }
             if (newMessage.spans) {
@@ -246,7 +246,7 @@ export class MessagingRepository {
         });
     }
 
-    private async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
+    private async prepareAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
         return await inTx(parent, async (ctx) => {
             let res: MessageAttachment[] = [];
 

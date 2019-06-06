@@ -91,7 +91,7 @@ export function startPushNotificationWorker() {
                 let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
 
                 let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, afterSec);
-                let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+                let messages = remainingUpdates.filter((v) => v.kind === 'message_received' || v.kind === 'message_received_silent');
 
                 let unreadCounter: number | undefined = undefined;
 

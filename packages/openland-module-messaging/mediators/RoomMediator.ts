@@ -30,7 +30,7 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number|undefined, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
             if (oid) {
                 let isMember = await Modules.Orgs.isUserMember(ctx, uid, oid);

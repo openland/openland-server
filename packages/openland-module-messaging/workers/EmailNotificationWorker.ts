@@ -70,7 +70,7 @@ export function startEmailNotificationWorker() {
 
                 // Fetch pending updates
                 let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
-                let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+                let messages = remainingUpdates.filter((v) => v.kind === 'message_received' || v.kind === 'message_received_silent');
 
                 let hasNonMuted = false;
                 let msgs: Message[] = [];

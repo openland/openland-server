@@ -117,6 +117,13 @@ type MessageAttachmentPost implements ModernMessageAttachment {
     fallback: String!
 }
 
+type MessageAttachmentComment implements ModernMessageAttachment {
+    id: ID!
+    peer: CommentsPeer!
+    comment: CommentEntry!
+    fallback: String!
+}
+
 input FileAttachmentInput {
     fileId: String!
 }

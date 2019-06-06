@@ -4,7 +4,7 @@ import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from '@openland/context';
-import { MessageMention } from '../MessageInput';
+import { hasMention } from '../resolvers/ModernMessage.resolver';
 
 @injectable()
 export class CountersRepository {
@@ -35,14 +35,16 @@ export class CountersRepository {
 
                 // Mark dialog as having mention
                 let setMention = false;
-                if (!local.haveMention && !message.isService && this.hasMention(message, uid)) {
+                if (!local.haveMention && !message.isService && hasMention(message, uid)) {
                     local.haveMention = true;
                     setMention = true;
                 }
 
                 // Update Counters
                 localCounter.increment(ctx);
-                globalCounter.increment(ctx);
+                if (!local.disableGlobalCounter) {
+                    globalCounter.increment(ctx);
+                }
 
                 return { delta: 1, setMention };
             }
@@ -65,14 +67,16 @@ export class CountersRepository {
             let globalCounter = this.entities.UserCounter.byId(uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 localCounter.decrement(ctx);
-                globalCounter.decrement(ctx);
+                if (!local.disableGlobalCounter) {
+                    globalCounter.decrement(ctx);
+                }
 
                 // TODO: Optimize
                 if (local.haveMention) {
                     let mentionReset = true;
                     let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid);
                     for (let m of remaining) {
-                        if (this.hasMention(m, uid)) {
+                        if (hasMention(m, uid)) {
                             mentionReset = false;
                             break;
                         }
@@ -120,14 +124,16 @@ export class CountersRepository {
                 // Update counters
                 if (delta !== 0) {
                     localCounter.add(ctx, delta);
-                    globalCounter.add(ctx, delta);
+                    if (!local.disableGlobalCounter) {
+                        globalCounter.add(ctx, delta);
+                    }
                 }
 
                 let mentionReset = false;
                 if (prevReadMessageId && local.haveMention) {
                     mentionReset = true;
                     for (let m of remaining) {
-                        if (this.hasMention(m, uid)) {
+                        if (hasMention(m, uid)) {
                             mentionReset = false;
                             break;
                         }
@@ -151,25 +157,14 @@ export class CountersRepository {
             let globalCounter = this.entities.UserCounter.byId(uid);
             let localUnread = (await localCounter.get(ctx) || 0);
             if (localUnread > 0) {
-                globalCounter.add(ctx, -localUnread);
+                if (!local.disableGlobalCounter) {
+                    globalCounter.add(ctx, -localUnread);
+                }
                 localCounter.set(ctx, 0);
                 local.haveMention = false;
                 return -localUnread;
             }
             return 0;
         });
-    }
-
-    private hasMention(message: Message, uid: number) {
-        if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
-            return true;
-        } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
-            return true;
-        } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
-            return true;
-        } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-            return true;
-        }
-        return false;
     }
 }

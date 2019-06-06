@@ -667,8 +667,10 @@ export default {
                 return 'MessageAttachmentFile';
             } else if (src.attachment.type === 'rich_attachment') {
                 return 'MessageRichAttachment';
+            } else if (src.attachment.type === 'comment_attachment') {
+                return 'MessageAttachmentComment';
             } else {
-                throw new UserError('Unknown message attachment type: ' + (src as any).type);
+                throw new UserError('Unknown message attachment type: ' + (src.attachment as any).type);
             }
         }
     },
@@ -727,6 +729,23 @@ export default {
 
             return src.attachment.keyboard;
         }
+    },
+    MessageAttachmentComment: {
+        id: src => IDs.MessageAttachment.serialize(src.attachment.id),
+        peer: async (src, args, ctx) => {
+            let comment = (await FDB.Comment.findById(ctx, src.attachment.commentId))!;
+            let comments = await FDB.Comment.allFromPeer(ctx, comment.peerType, comment.peerId);
+
+            return {
+                comments: comments.filter(c => c.visible),
+                peerType: comment.peerType,
+                peerId: comment.peerId
+            };
+        },
+        comment: async (src, args, ctx) => {
+            return await FDB.Comment.findById(ctx, src.attachment.commentId);
+        },
+        fallback: () => ''
     },
 
     Query: {

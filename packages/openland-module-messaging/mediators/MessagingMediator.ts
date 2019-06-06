@@ -78,6 +78,9 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
 
+            // Subscribe to comments
+            await Modules.Comments.subscribeToComments(ctx, 'message', res.message.id, uid);
+
             if (!message.ignoreAugmentation) {
                 // Augment
                 await this.augmentation.onNewMessage(ctx, res.message);

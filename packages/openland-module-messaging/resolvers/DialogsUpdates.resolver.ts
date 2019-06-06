@@ -39,6 +39,8 @@ export default {
         __resolveType(obj: UserDialogEvent) {
             if (obj.kind === 'message_received') {
                 return 'DialogMessageReceived';
+            } else if (obj.kind === 'message_received_silent') {
+                return 'DialogMessageReceivedSilent';
             } else if (obj.kind === 'message_updated') {
                 return 'DialogMessageUpdated';
             } else if (obj.kind === 'message_deleted') {
@@ -62,6 +64,15 @@ export default {
         }
     },
     DialogMessageReceived: {
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        alphaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx),
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx),
+        haveMention: (src: UserDialogEvent) => src.haveMention || false
+    },
+    DialogMessageReceivedSilent: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),

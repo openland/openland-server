@@ -36,7 +36,7 @@ export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await this.entities.Conversation.create(ctx, id, { kind: 'room' });

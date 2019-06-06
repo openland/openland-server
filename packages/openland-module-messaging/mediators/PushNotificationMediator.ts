@@ -128,7 +128,7 @@ export class PushNotificationMediator {
             let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
 
             let remainingUpdates = await this.entities.UserDialogEvent.allFromUserAfter(ctx, messagingState.uid, afterSec);
-            let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+            let messages = remainingUpdates.filter((v) => v.kind === 'message_received' || v.kind === 'message_received_silent');
 
             // Handling unread messages
             let hasMessage = false;

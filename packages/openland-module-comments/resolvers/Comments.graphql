@@ -1,8 +1,11 @@
+union CommentPeerRoot = GeneralMessage
+
 type CommentsPeer {
     id: ID!
     state: CommentUpdatesState!
     count: Int!
     comments: [CommentEntry!]!
+    peerRoot: CommentPeerRoot!
 }
 
 type CommentEntry {
@@ -15,6 +18,7 @@ type CommentEntry {
 
 extend type Query {
     messageComments(messageId: ID!): CommentsPeer!
+    commentsNotificationsDialog: Dialog!
 }
 
 extend type Mutation {
