@@ -20,7 +20,7 @@ const log = createLogger('push');
 export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
         let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
-        let unreadUsers = await needNotificationDelivery.findAllUsersWithNotifications(parent, 'push');
+        let unreadUsers = await inTx(parent, async (ctx) => await needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         log.debug(parent, 'unread users: ' + unreadUsers.length);
         // let workDone = false;
         for (let uid of unreadUsers) {

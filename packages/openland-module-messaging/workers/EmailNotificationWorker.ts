@@ -16,7 +16,7 @@ const Delays = {
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
         let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
-        let unreadUsers = await needNotificationDelivery.findAllUsersWithNotifications(parent, 'email');
+        let unreadUsers = await inTx(parent, async (ctx) => await needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email'));
         let now = Date.now();
         for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
