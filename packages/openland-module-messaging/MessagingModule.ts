@@ -35,7 +35,7 @@ export class MessagingModule {
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
         @inject('DeliveryMediator') delivery: DeliveryMediator,
         @inject('RoomMediator') room: RoomMediator,
-        @inject('RoomMediator') needNotificationDelivery: NeedNotificationDeliveryRepository
+        @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository
     ) {
         this.delivery = delivery;
         this.userState = userState;
