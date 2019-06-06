@@ -63,7 +63,7 @@ export default {
             }
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.id)).get(ctx)) || 0;
+            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
         topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
         organization: async (src: Conversation, _: any, ctx: AppContext) => {
@@ -119,7 +119,7 @@ export default {
             }
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.id)).get(ctx)) || 0;
+            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx)
         },
         topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
         user: async (src: Conversation, _: any, ctx: AppContext) => {
@@ -184,7 +184,7 @@ export default {
             return Promise.all(res.map((v) => FDB.User.findById(ctx, v.uid)));
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.id)).get(ctx)) || 0;
+            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
         topMessage: async (src: Conversation, _: any, ctx: AppContext) => {
             if (!await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.id)) {
@@ -394,7 +394,7 @@ export default {
         },
         unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: AppContext) => {
             if (typeof src === 'number') {
-                return (await (await FDB.UserCounter.findById(ctx, src)).get(ctx)) || 0;
+                return FDB.UserCounter.byId(src).get(ctx);
             } else {
                 return src.counter;
             }

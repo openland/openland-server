@@ -27,7 +27,7 @@ export class DeliveryRepository {
 
             // Count Metrics
             if (message.uid !== uid) {
-                await this.metrics.onMessageReceived(ctx, uid);
+                this.metrics.onMessageReceived(ctx, uid);
             }
 
             // Update dialog and deliver update
@@ -166,10 +166,10 @@ export class DeliveryRepository {
         return await inTx(parent, async (ctx) => {
 
             // Update metrics
-            await this.metrics.onChatDeleted(ctx, uid);
+            this.metrics.onChatDeleted(ctx, uid);
             let chat = await this.entities.Conversation.findById(ctx, cid);
             if (chat && chat.kind === 'private') {
-                await this.metrics.onDirectChatDeleted(ctx, uid);
+                this.metrics.onDirectChatDeleted(ctx, uid);
             }
 
             let local = await this.userState.getUserDialogState(ctx, uid, cid);

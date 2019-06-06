@@ -338,11 +338,11 @@ export default {
                     try {
                         let { totalSent, totalReceived } = await calculateForUser(ctx, user.id);
 
-                        let messagesSent = await FDB.UserMessagesSentCounter.findById(ctx, user.id);
-                        await messagesSent.set(ctx, totalSent);
+                        let messagesSent = FDB.UserMessagesSentCounter.byId(user.id);
+                        messagesSent.set(ctx, totalSent);
 
-                        let messagesReceived = await FDB.UserMessagesReceivedCounter.findById(ctx, user.id);
-                        await messagesReceived.set(ctx, totalReceived);
+                        let messagesReceived = FDB.UserMessagesReceivedCounter.byId(user.id);
+                        messagesReceived.set(ctx, totalReceived);
                     } catch (e) {
                         console.log('debugCalcUsersMessagingStatsError', e);
                     }

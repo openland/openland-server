@@ -8,27 +8,27 @@ export class ChatMetricsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    onMessageSent = async (ctx: Context, uid: number) => {
-        (await this.entities.UserMessagesSentCounter.findById(ctx, uid)).increment(ctx);
+    onMessageSent = (ctx: Context, uid: number) => {
+        this.entities.UserMessagesSentCounter.byId(uid).increment(ctx);
     }
 
-    onMessageReceived = async (ctx: Context, uid: number) => {
-        (await this.entities.UserMessagesReceivedCounter.findById(ctx, uid)).increment(ctx);
+    onMessageReceived = (ctx: Context, uid: number) => {
+        this.entities.UserMessagesReceivedCounter.byId(uid).increment(ctx);
     }
 
-    onChatCreated = async (ctx: Context, uid: number) => {
-        (await this.entities.UserMessagesChatsCounter.findById(ctx, uid)).increment(ctx);
+    onChatCreated = (ctx: Context, uid: number) => {
+        this.entities.UserMessagesChatsCounter.byId(uid).increment(ctx);
     }
 
-    onChatDeleted = async (ctx: Context, uid: number) => {
-        (await this.entities.UserMessagesChatsCounter.findById(ctx, uid)).decrement(ctx);
+    onChatDeleted = (ctx: Context, uid: number) => {
+        this.entities.UserMessagesChatsCounter.byId(uid).decrement(ctx);
     }
 
-    onDirectChatCreated = async (ctx: Context, uid: number) => {
-        (await this.entities.UserMessagesDirectChatsCounter.findById(ctx, uid)).increment(ctx);
+    onDirectChatCreated = (ctx: Context, uid: number) => {
+        this.entities.UserMessagesDirectChatsCounter.byId(uid).increment(ctx);
     }
     
-    onDirectChatDeleted = async (ctx: Context, uid: number) => {
-        (await this.entities.UserMessagesDirectChatsCounter.findById(ctx, uid)).decrement(ctx);
+    onDirectChatDeleted = (ctx: Context, uid: number) => {
+        this.entities.UserMessagesDirectChatsCounter.byId(uid).decrement(ctx);
     }
 }

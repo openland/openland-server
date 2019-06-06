@@ -212,7 +212,7 @@ export function startPushNotificationWorker() {
                     }
 
                     if (unreadCounter === undefined) {
-                        unreadCounter = (await (await FDB.UserCounter.findById(ctx, u.uid)).get(ctx)) || 0;
+                        unreadCounter = await FDB.UserCounter.byId(u.uid).get(ctx);
                     }
 
                     let push = {
@@ -220,7 +220,7 @@ export function startPushNotificationWorker() {
                         title: pushTitle,
                         body: pushBody,
                         picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
-                        counter: unreadCounter,
+                        counter: unreadCounter!,
                         conversationId: conversation.id,
                         mobile: sendMobile,
                         desktop: sendDesktop,

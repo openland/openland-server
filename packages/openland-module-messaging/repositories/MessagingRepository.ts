@@ -66,7 +66,7 @@ export class MessagingRepository {
             //
             // Update user counter
             //
-            await this.chatMetrics.onMessageSent(ctx, uid);
+            this.chatMetrics.onMessageSent(ctx, uid);
 
             return {
                 event: res,

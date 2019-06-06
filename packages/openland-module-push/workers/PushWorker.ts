@@ -80,7 +80,7 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
-                            let unread = await (await FDB.UserCounter.findById(ctx, args.uid)).get(ctx) || 0;
+                            let unread = await FDB.UserCounter.byId(args.uid).get(ctx);
 
                             if (args.silent) {
                                 await Modules.Push.appleWorker.pushWork(ctx, {

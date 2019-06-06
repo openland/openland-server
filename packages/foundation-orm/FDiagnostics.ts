@@ -19,8 +19,8 @@ export class FDiagnostics {
         let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(v.key.splice(2) as any));
 
         // Load all keys from directory
-        let res2 = await src.directory.range2(ctx, []);
-        let dirkeys = res2.map((v) => FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(v.key) as any));
+        let res2 = await src.directory.range(ctx, []);
+        let dirkeys = res2.map((v) => FKeyEncoding.encodeKeyToString(v.key));
 
         // Check equality
         if (nskeys.length !== dirkeys.length) {

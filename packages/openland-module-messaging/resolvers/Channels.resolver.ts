@@ -34,7 +34,7 @@ export default {
         photos: () => [],
         members: () => [],
         unreadCount: async (src, args, ctx) => {
-            return (await (await FDB.UserDialogCounter.findById(ctx, ctx.auth.uid!, src.id)).get(ctx)) || 0;
+            return (FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id)).get(ctx);
         },
         topMessage: async (src: Conversation, _: any, ctx: AppContext) => {
             if (!await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.id!)) {

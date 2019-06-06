@@ -28,7 +28,7 @@ export class FixerRepository {
                 let totalUnread = 0;
                 for (let a of all) {
                     let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
-                    let counter = await this.entities.UserDialogCounter.findById(ctx, uid, a.cid);
+                    let counter = this.entities.UserDialogCounter.byId(uid, a.cid);
                     if (!conv) {
                         counter.set(ctx, 0);
                         continue;
@@ -53,7 +53,7 @@ export class FixerRepository {
                         counter.set(ctx, total);
                     }
                 }
-                let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
+                let globalCounter = this.entities.UserCounter.byId(uid);
                 logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + (await globalCounter.get(ctx) || 0) + ', updated: ' + totalUnread);
                 globalCounter.set(ctx, totalUnread);
 

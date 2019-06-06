@@ -52,15 +52,13 @@ export class UserStateRepository {
 
     async getUserMessagingUnread(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let c = await this.entities.UserCounter.findById(ctx, uid);
-            return await c.get(ctx) || 0;
+            return await this.entities.UserCounter.byId(uid).get(ctx);
         });
     }
 
     async getUserMessagingDialogUnread(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let c = await this.entities.UserDialogCounter.findById(ctx, uid, cid);
-            return await c.get(ctx) || 0;
+            return await this.entities.UserDialogCounter.byId(uid, cid).get(ctx);
         });
     }
 
@@ -90,10 +88,10 @@ export class UserStateRepository {
             if (!existing) {
 
                 // Update chats counters
-                await this.metrics.onChatCreated(ctx, uid);
+                this.metrics.onChatCreated(ctx, uid);
                 let chat = await this.entities.Conversation.findById(ctx, cid);
                 if (chat && chat.kind === 'private') {
-                    await this.metrics.onDirectChatCreated(ctx, uid);
+                    this.metrics.onDirectChatCreated(ctx, uid);
                 }
 
                 let created = await this.entities.UserDialog.create(ctx, uid, cid, { unread: 0 });

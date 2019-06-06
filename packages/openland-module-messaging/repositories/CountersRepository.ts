@@ -28,8 +28,8 @@ export class CountersRepository {
 
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
-            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
+            let localCounter = this.entities.UserDialogCounter.byId(uid, message.cid);
+            let globalCounter = this.entities.UserCounter.byId(uid);
 
             if (!local.readMessageId || message.id > local.readMessageId) {
 
@@ -46,7 +46,7 @@ export class CountersRepository {
 
                 return { delta: 1, setMention };
             }
-            
+
             return { delta: 0, setMention: false };
         });
     }
@@ -60,9 +60,9 @@ export class CountersRepository {
 
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
+            let localCounter = this.entities.UserDialogCounter.byId(uid, message.cid);
             // let global = await this.userState.getUserMessagingState(ctx, uid);
-            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
+            let globalCounter = this.entities.UserCounter.byId(uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
@@ -94,10 +94,10 @@ export class CountersRepository {
                 throw Error('Unable to find message');
             }
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, message.cid);
+            let localCounter = this.entities.UserDialogCounter.byId(uid, message.cid);
             let prevReadMessageId = local.readMessageId;
             // let global = await this.userState.getUserMessagingState(ctx, uid);
-            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
+            let globalCounter = this.entities.UserCounter.byId(uid);
             if (!local.readMessageId || local.readMessageId < mid) {
                 local.readMessageId = mid;
 
@@ -106,7 +106,7 @@ export class CountersRepository {
                 let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid);
                 let remainingCount = remaining.length;
                 let delta: number;
-                let localUnread = (await (await this.entities.UserDialogCounter.findById(ctx, uid, message.cid)).get(ctx)) || 0;
+                let localUnread = await this.entities.UserDialogCounter.byId(uid, message.cid).get(ctx);
                 if (remainingCount === 0) { // Just additional case for self-healing of a broken counters
                     delta = -localUnread;
                 } else {
@@ -147,8 +147,8 @@ export class CountersRepository {
     onDialogDeleted = async (parent: Context, uid: number, cid: number) => {
         return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
-            let localCounter = await this.entities.UserDialogCounter.findById(ctx, uid, cid);
-            let globalCounter = await this.entities.UserCounter.findById(ctx, uid);
+            let localCounter = this.entities.UserDialogCounter.byId(uid, cid);
+            let globalCounter = this.entities.UserCounter.byId(uid);
             let localUnread = (await localCounter.get(ctx) || 0);
             if (localUnread > 0) {
                 globalCounter.add(ctx, -localUnread);

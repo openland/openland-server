@@ -9643,48 +9643,48 @@ export class UserCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userCounter'));
     }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
+    byId(uid: number) {
+        return this._findById([uid]);
     }
 }
 export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userMessagesSentCounter'));
     }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
+    byId(uid: number) {
+        return this._findById([uid]);
     }
 }
 export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userMessagesReceivedCounter'));
     }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
+    byId(uid: number) {
+        return this._findById([uid]);
     }
 }
 export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userMessagesChatsCounter'));
     }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
+    byId(uid: number) {
+        return this._findById([uid]);
     }
 }
 export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userMessagesDirectChatsCounter'));
     }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
+    byId(uid: number) {
+        return this._findById([uid]);
     }
 }
 export class UserDialogCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userDialogCounter'));
     }
-    async findById(ctx: Context, uid: number, cid: number) {
-        return await this._findById(ctx, [uid, cid]);
+    byId(uid: number, cid: number) {
+        return this._findById([uid, cid]);
     }
 }
 

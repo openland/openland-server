@@ -856,10 +856,10 @@ migrations.push({
                     let uid = a[0] as number;
                     let state = (await FDB.UserMessagingState.findById(ctx, uid));
                     if (state) {
-                        (await FDB.UserMessagesSentCounter.findById(ctx, uid)).set(ctx, state!.messagesSent || 0);
-                        (await FDB.UserMessagesReceivedCounter.findById(ctx, uid)).set(ctx, state!.messagesReceived || 0);
-                        (await FDB.UserMessagesChatsCounter.findById(ctx, uid)).set(ctx, state!.chatsCount || 0);
-                        (await FDB.UserMessagesDirectChatsCounter.findById(ctx, uid)).set(ctx, state!.directChatsCount || 0);
+                        FDB.UserMessagesSentCounter.byId(uid).set(ctx, state!.messagesSent || 0);
+                        FDB.UserMessagesReceivedCounter.byId(uid).set(ctx, state!.messagesReceived || 0);
+                        FDB.UserMessagesChatsCounter.byId(uid).set(ctx, state!.chatsCount || 0);
+                        FDB.UserMessagesDirectChatsCounter.byId(uid).set(ctx, state!.directChatsCount || 0);
                     }
                 }
             });

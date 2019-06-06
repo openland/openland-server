@@ -76,10 +76,10 @@ export function declareAmplitudeIndexer() {
                             let userMessagingState = await FDB.UserMessagingState.findById(ctx, profile.id);
 
                             if (userMessagingState) {
-                                userProperties.messages_sent = (await FDB.UserMessagesSentCounter.findById(ctx, profile.id)).get(ctx) || 0;
-                                userProperties.messages_received = (await FDB.UserMessagesReceivedCounter.findById(ctx, profile.id)).get(ctx) || 0;
-                                userProperties.chats_count = (await FDB.UserMessagesChatsCounter.findById(ctx, profile.id)).get(ctx) || 0;
-                                userProperties.direct_chats_count = (await FDB.UserMessagesDirectChatsCounter.findById(ctx, profile.id)).get(ctx) || 0;
+                                userProperties.messages_sent = (await FDB.UserMessagesSentCounter.byId(profile.id).get(ctx));
+                                userProperties.messages_received = (await FDB.UserMessagesReceivedCounter.byId(profile.id).get(ctx));
+                                userProperties.chats_count = (await FDB.UserMessagesChatsCounter.byId(profile.id).get(ctx));
+                                userProperties.direct_chats_count = (await FDB.UserMessagesDirectChatsCounter.byId(profile.id).get(ctx));
                             }
                         }
                     }
