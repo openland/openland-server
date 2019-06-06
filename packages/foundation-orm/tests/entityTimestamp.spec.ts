@@ -17,8 +17,10 @@ describe('FEntity Timestamped', () => {
     beforeAll(async () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_timestamp']));
+        let connection = new FConnection(db, NoOpBus);
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
+        testEntities = new AllEntitiesDirect(connection);
+        await connection.ready();
     });
 
     it('should create with correct timestamps', async () => {

@@ -18,6 +18,7 @@ describe('events', () => {
 
     it('should create singe events', async () => {
         let connection = new FConnection(db, NoOpBus, true);
+        await connection.ready();
         let factory = new FEventStore('test1', connection);
         await inTx(EmptyContext, async (ctx) => {
             await factory.create(ctx, [1], { event: 1 });
@@ -42,6 +43,7 @@ describe('events', () => {
 
     it('should create multiple events', async () => {
         let connection = new FConnection(db, NoOpBus, true);
+        await connection.ready();
         let factory = new FEventStore('test2', connection);
         await inTx(EmptyContext, async (ctx) => {
             await factory.create(ctx, [1], { event: 1 });
@@ -60,6 +62,7 @@ describe('events', () => {
 
     it('range should work', async () => {
         let connection = new FConnection(db, NoOpBus, true);
+        await connection.ready();
         let factory = new FEventStore('test3', connection);
         await inTx(EmptyContext, async (ctx) => {
             await factory.create(ctx, [1], { event: 1 });

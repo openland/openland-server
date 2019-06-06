@@ -3,6 +3,8 @@ import { performMigrations, FMigration } from 'foundation-orm/FMigrator';
 import { FDB } from './FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Modules } from 'openland-modules/Modules';
+import { batch } from 'openland-utils/batch';
+import { inTx } from 'foundation-orm/inTx';
 
 var migrations: FMigration[] = [];
 migrations.push({
@@ -842,6 +844,28 @@ migrations.push({
 //         });
 //     }
 // }
+
+migrations.push({
+    key: '56-copy-metrics',
+    migration: async (root, log) => {
+        let allKeys = await FDB.UserMessagingState.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let uid = a[0] as number;
+                    let state = (await FDB.UserMessagingState.findById(ctx, uid));
+                    if (state) {
+                        FDB.UserMessagesSentCounter.byId(uid).set(ctx, state!.messagesSent || 0);
+                        FDB.UserMessagesReceivedCounter.byId(uid).set(ctx, state!.messagesReceived || 0);
+                        FDB.UserMessagesChatsCounter.byId(uid).set(ctx, state!.chatsCount || 0);
+                        FDB.UserMessagesDirectChatsCounter.byId(uid).set(ctx, state!.directChatsCount || 0);
+                    }
+                }
+            });
+        }
+    }
+});
 
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {

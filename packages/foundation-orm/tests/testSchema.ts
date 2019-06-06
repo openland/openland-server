@@ -919,8 +919,8 @@ export class SampleAtomicFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'sampleAtomic'));
     }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
+    byId(id: string) {
+        return this._findById([id]);
     }
 }
 

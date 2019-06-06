@@ -26,6 +26,7 @@ extend type Query {
         sort: String,
         first: Int!,
         after: String,
-        page: Int
+        page: Int,
+        featuredIfEmptyQuery: Boolean,
     ): OrganizationsConnection!
 }

@@ -2,13 +2,16 @@ import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
+import { ChatMetricsRepository } from './ChatMetricsRepository';
 
 @injectable()
 export class UserStateRepository {
     private readonly entities: AllEntities;
+    private readonly metrics: ChatMetricsRepository;
 
-    constructor(@inject('FDB') entities: AllEntities) {
+    constructor(@inject('FDB') entities: AllEntities, @inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
         this.entities = entities;
+        this.metrics = metrics;
     }
 
     async getRoomSettings(parent: Context, uid: number, cid: number) {
@@ -49,15 +52,13 @@ export class UserStateRepository {
 
     async getUserMessagingUnread(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let c = await this.entities.UserCounter.findById(ctx, uid);
-            return await c.get(ctx) || 0;
+            return await this.entities.UserCounter.byId(uid).get(ctx);
         });
     }
 
     async getUserMessagingDialogUnread(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let c = await this.entities.UserDialogCounter.findById(ctx, uid, cid);
-            return await c.get(ctx) || 0;
+            return await this.entities.UserDialogCounter.byId(uid, cid).get(ctx);
         });
     }
 
@@ -85,25 +86,15 @@ export class UserStateRepository {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserDialog.findById(ctx, uid, cid);
             if (!existing) {
-                let created = await this.entities.UserDialog.create(ctx, uid, cid, { unread: 0 });
-                let messagingState = await this.getUserMessagingState(ctx, uid);
 
                 // Update chats counters
-                if (!messagingState.chatsCount) {
-                    messagingState.chatsCount = 1;
-                } else {
-                    messagingState.chatsCount++;
-                }
+                this.metrics.onChatCreated(ctx, uid);
                 let chat = await this.entities.Conversation.findById(ctx, cid);
                 if (chat && chat.kind === 'private') {
-                    if (!messagingState.directChatsCount) {
-                        messagingState.directChatsCount = 1;
-                    } else {
-                        messagingState.directChatsCount++;
-                    }
+                    this.metrics.onDirectChatCreated(ctx, uid);
                 }
-                await messagingState.flush(ctx);
 
+                let created = await this.entities.UserDialog.create(ctx, uid, cid, { unread: 0 });
                 await created.flush(ctx);
                 return created;
             } else {

@@ -68,16 +68,6 @@ export class CountersMediator {
         });
     }
 
-    onDialogMuteChange = async (parent: Context, uid: number, cid: number, mute: boolean) => {
-        return await inTx(parent, async (ctx) => {
-            let res = await this.repo.onDialogMuteChange(ctx, uid, cid, mute);
-            if (res !== 0) {
-                await this.deliverCounterPush(ctx, uid, cid);
-            }
-            return res;
-        });
-    }
-
     private deliverCounterPush = async (ctx: Context, uid: number, cid: number) => {
         let globalCounter = await this.userState.getUserMessagingUnread(ctx, uid);
         await Modules.Push.sendCounterPush(ctx, uid, cid, globalCounter);

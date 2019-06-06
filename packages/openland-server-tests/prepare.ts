@@ -37,8 +37,11 @@ export async function prepare() {
         }
 
         // Init DB
+        let connection = new FConnection(FConnection.create(), EventBus);
+        let entities = new AllEntitiesDirect(connection);
+        await connection.ready();
         container.bind<AllEntities>('FDB')
-            .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
+            .toDynamicValue(() => entities)
             .inSingletonScope();
         let ctx = EmptyContext;
         if (await FDB.Environment.findById(ctx, 1)) {
@@ -49,7 +52,7 @@ export async function prepare() {
         await FDB.connection.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
-        loadAllModules(false);
+        await loadAllModules(false);
 
         // Create entities
         await createUser(ctx, 'test1111@openland.com');

@@ -18,7 +18,9 @@ describe('FEntity Versioned', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_versioned']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
+        let connection = new FConnection(db, NoOpBus);
+        testEntities = new AllEntitiesDirect(connection);
+        await connection.ready();
     });
 
     it('should create with version number eq to one', async () => {

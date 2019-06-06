@@ -9671,16 +9671,48 @@ export class UserCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userCounter'));
     }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+}
+export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace(connection, 'atomic', 'userMessagesSentCounter'));
+    }
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+}
+export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace(connection, 'atomic', 'userMessagesReceivedCounter'));
+    }
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+}
+export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace(connection, 'atomic', 'userMessagesChatsCounter'));
+    }
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+}
+export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace(connection, 'atomic', 'userMessagesDirectChatsCounter'));
+    }
+    byId(uid: number) {
+        return this._findById([uid]);
     }
 }
 export class UserDialogCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userDialogCounter'));
     }
-    async findById(ctx: Context, uid: number, cid: number) {
-        return await this._findById(ctx, [uid, cid]);
+    byId(uid: number, cid: number) {
+        return this._findById([uid, cid]);
     }
 }
 
@@ -9760,6 +9792,10 @@ export interface AllEntities {
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly UserCounter: UserCounterFactory;
+    readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
+    readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
+    readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
+    readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
@@ -9913,6 +9949,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     DebugEvent: DebugEventFactory;
     DebugEventState: DebugEventStateFactory;
     UserCounter: UserCounterFactory;
+    UserMessagesSentCounter: UserMessagesSentCounterFactory;
+    UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
+    UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
+    UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     UserDialogCounter: UserDialogCounterFactory;
 
     constructor(connection: FConnection) {
@@ -10064,6 +10104,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.DebugEventState = new DebugEventStateFactory(connection);
         this.allEntities.push(this.DebugEventState);
         this.UserCounter = new UserCounterFactory(connection);
+        this.UserMessagesSentCounter = new UserMessagesSentCounterFactory(connection);
+        this.UserMessagesReceivedCounter = new UserMessagesReceivedCounterFactory(connection);
+        this.UserMessagesChatsCounter = new UserMessagesChatsCounterFactory(connection);
+        this.UserMessagesDirectChatsCounter = new UserMessagesDirectChatsCounterFactory(connection);
         this.UserDialogCounter = new UserDialogCounterFactory(connection);
     }
 }
@@ -10292,6 +10336,18 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserCounter(): UserCounterFactory {
         return this.resolver().UserCounter;
+    }
+    get UserMessagesSentCounter(): UserMessagesSentCounterFactory {
+        return this.resolver().UserMessagesSentCounter;
+    }
+    get UserMessagesReceivedCounter(): UserMessagesReceivedCounterFactory {
+        return this.resolver().UserMessagesReceivedCounter;
+    }
+    get UserMessagesChatsCounter(): UserMessagesChatsCounterFactory {
+        return this.resolver().UserMessagesChatsCounter;
+    }
+    get UserMessagesDirectChatsCounter(): UserMessagesDirectChatsCounterFactory {
+        return this.resolver().UserMessagesDirectChatsCounter;
     }
     get UserDialogCounter(): UserDialogCounterFactory {
         return this.resolver().UserDialogCounter;

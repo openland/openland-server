@@ -1107,6 +1107,18 @@ const Schema = declareSchema(() => {
     atomic('UserCounter', () => {
         primaryKey('uid', 'number');
     });
+    atomic('UserMessagesSentCounter', () => {
+        primaryKey('uid', 'number');
+    });
+    atomic('UserMessagesReceivedCounter', () => {
+        primaryKey('uid', 'number');
+    });
+    atomic('UserMessagesChatsCounter', () => {
+        primaryKey('uid', 'number');
+    });
+    atomic('UserMessagesDirectChatsCounter', () => {
+        primaryKey('uid', 'number');
+    });
 
     atomic('UserDialogCounter', () => {
         primaryKey('uid', 'number');

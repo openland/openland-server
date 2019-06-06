@@ -40,7 +40,7 @@ export default {
             clauses.push({ term: { status: 'activated' } });
             if (args.query && args.query.length > 0) {
                 clauses.push({ match_phrase_prefix: { name: args.query } });
-            } else {
+            } else if (args.featuredIfEmptyQuery !== false) {
                 clauses.push({ term: { featured: true } });
             }
 
@@ -50,6 +50,7 @@ export default {
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
+                    sort: [{ membersCount: 'desc' }],
                     query: { bool: { must: clauses } }
                 }
             });

@@ -16,7 +16,7 @@ export class FAtomicInteger {
         if (r) {
             return decodeAtomic(r);
         } else {
-            return null;
+            return 0;
         }
     }
     set = (ctx: Context, value: number) => {

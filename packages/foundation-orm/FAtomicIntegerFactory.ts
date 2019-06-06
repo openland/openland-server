@@ -1,10 +1,10 @@
 import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FDirectory } from './FDirectory';
-import { Context } from '@openland/context';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FAtomicInteger } from './FAtomicInteger';
 import { FSubspace } from './FSubspace';
+import { FTuple } from './encoding/FTuple';
 
 export class FAtomicIntegerFactory {
 
@@ -15,16 +15,10 @@ export class FAtomicIntegerFactory {
     constructor(connection: FConnection, namespace: FNamespace) {
         this.connection = connection;
         this.keySpace = connection.keySpace;
-        this.directory = connection.getDirectory(namespace.namespace);
+        this.directory = connection.directories.getDirectory(namespace.namespace);
     }
 
-    protected async _findById(ctx: Context, key: (string | number)[]) {
-        if (!this.directory.isAllocated) {
-            await this.directory.awaitAllocation();
-        }
-        let prefixKey = this.directory.getAllocatedKey;
-        let converteKey = Buffer.concat([prefixKey, FKeyEncoding.encodeKey(key)]);
-
-        return new FAtomicInteger(converteKey, this.keySpace);
+    protected _findById(key: FTuple[]) {
+        return new FAtomicInteger(FKeyEncoding.encodeKey(key), this.directory);
     }
 }

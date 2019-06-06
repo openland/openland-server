@@ -12,6 +12,7 @@ import { CountersMediator } from './mediators/CountersMediator';
 import { RoomMediator } from './mediators/RoomMediator';
 import { FixerRepository } from './repositories/Fixer';
 import { PushNotificationMediator } from './mediators/PushNotificationMediator';
+import { ChatMetricsRepository } from './repositories/ChatMetricsRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -27,4 +28,5 @@ export function loadMessagingModule() {
     container.bind('CountersMediator').to(CountersMediator).inSingletonScope();
     container.bind('RoomMediator').to(RoomMediator).inSingletonScope();
     container.bind('FixerRepository').to(FixerRepository).inSingletonScope();
+    container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
 }

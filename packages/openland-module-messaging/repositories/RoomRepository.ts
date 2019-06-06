@@ -922,7 +922,7 @@ export class RoomRepository {
         throw new NotFoundError();
     }
 
-    async userAvailableRooms(parent: Context, uid: number, limit: number, after?: number) {
+    async userAvailableRooms(parent: Context, uid: number, limit: number, isChannel: boolean | undefined, after?: number) {
         let userOrgs = await Modules.Orgs.findUserOrganizations(parent, uid);
 
         let availableRooms = new Set<number>();
@@ -950,14 +950,16 @@ export class RoomRepository {
             //
             if (org.kind === 'community') {
                 let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
-                rooms.map(r => availableRooms.add(r.id));
+                rooms
+                    .filter(r => (isChannel === undefined) || (!!r.isChannel === isChannel))
+                    .map(r => availableRooms.add(r.id));
             } else if (isUserMember) {
                 //
                 //  Add rooms from org if user is member
                 //
                 let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
                 for (let room of rooms) {
-                    if (room.kind === 'public') {
+                    if ((room.kind === 'public') && ((isChannel === undefined) || (!!room.isChannel === isChannel))) {
                         availableRooms.add(room.id);
                     }
                 }

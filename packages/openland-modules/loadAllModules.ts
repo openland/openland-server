@@ -42,12 +42,16 @@ import { AppsModule } from '../openland-module-apps/AppsModule';
 import { loadOrganizationModule } from '../openland-module-organization/OrganizationModule.container';
 import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { loadCommentsModule } from '../openland-module-comments/CommentsModule.container';
+import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 
-export function loadAllModules(loadDb: boolean = true) {
+export async function loadAllModules(loadDb: boolean = true) {
 
     if (loadDb) {
+        let connection = new FConnection(FConnection.create(), EventBus);
+        let entities = new AllEntitiesDirect(connection);
+        await connection.ready();
         container.bind<AllEntities>('FDB')
-            .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
+            .toDynamicValue(() => entities)
             .inSingletonScope();
     }
 
@@ -84,6 +88,7 @@ export function loadAllModules(loadDb: boolean = true) {
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
     container.bind(CommentsModule).toSelf().inSingletonScope();
+    container.bind(DiscoverModule).toSelf().inSingletonScope();
     loadCallsModule();
     loadFeedModule();
 }
@@ -114,4 +119,5 @@ export async function startAllModules() {
     await container.get(FeedModule).start();
     await container.get(AppsModule).start();
     await container.get(CommentsModule).start();
+    await container.get(DiscoverModule).start();
 }

@@ -21,7 +21,7 @@ import '../openland-utils/Shutdown';
 import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules';
 async function initServer() {
     try {
-        loadAllModules();
+        await loadAllModules();
         await startAllModules();
     } catch (e) {
         console.error('Unable to init server');

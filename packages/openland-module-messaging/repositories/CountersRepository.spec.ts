@@ -37,18 +37,14 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, 2, mid2)).delta).toBe(1);
         expect((await repo.onMessageReceived(ctx, 2, mid3)).delta).toBe(1);
 
-        let senderState = await urepo.getUserDialogState(ctx, 1, 1);
         let senderLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 1, 1);
         let senderGlobalCounter = await urepo.getUserMessagingUnread(ctx, 1);
 
-        let receiverState = await urepo.getUserDialogState(ctx, 2, 1);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 1);
         let receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
 
-        expect(senderState.unread).toBe(0);
         expect(senderLocalCounter).toBe(0);
 
-        expect(receiverState.unread).toBe(3);
         expect(receiverLocalCounter).toBe(3);
 
         expect(senderGlobalCounter).toBe(0);
@@ -79,27 +75,19 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, 2, mid5)).delta).toBe(1);
         expect((await repo.onMessageReceived(ctx, 2, mid6)).delta).toBe(1);
 
-        let receiverState = await urepo.getUserDialogState(ctx, 2, 1);
-        // let receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 1);
         let receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
 
-        expect(receiverState.unread).toBe(6);
         expect(receiverLocalCounter).toBe(6);
-        // expect(receiverGlobal.unread).toBe(6);
         expect(receiverGlobalCounter).toBe(6);
 
         // Read
         expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
 
-        receiverState = await urepo.getUserDialogState(ctx, 2, 1);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 1);
-        // receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
         receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
 
-        expect(receiverState.unread).toBe(3);
         expect(receiverLocalCounter).toBe(3);
-        // expect(receiverGlobal.unread).toBe(3);
         expect(receiverGlobalCounter).toBe(3);
     });
 
@@ -121,7 +109,6 @@ describe('CountersRepository', () => {
         let receiverState = await urepo.getUserDialogState(ctx, 2, 2);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 2);
         expect(receiverLocalCounter).toBe(0);
-        expect(receiverState.unread).toBe(0);
         expect(receiverState.readMessageId).toBe(mid3.id);
     });
 
@@ -167,7 +154,6 @@ describe('CountersRepository', () => {
         let receiverState = await urepo.getUserDialogState(ctx, 3, 4);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 3, 4);
         expect(receiverLocalCounter).toBe(1);
-        expect(receiverState.unread).toBe(1);
         expect(receiverState.haveMention).toBe(false);
     });
 
@@ -185,7 +171,6 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, 6, mid1)).delta).toBe(1);
         let receiverState = await urepo.getUserDialogState(ctx, 6, 5);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
-        expect(receiverState.unread).toBe(1);
         expect(receiverLocalCounter).toBe(1);
         expect(receiverState.haveMention).toBe(true);
 
@@ -193,7 +178,6 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, 6, mid2)).delta).toBe(1);
         receiverState = await urepo.getUserDialogState(ctx, 6, 5);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
-        expect(receiverState.unread).toBe(2);
         expect(receiverLocalCounter).toBe(2);
         expect(receiverState.haveMention).toBe(true);
 
@@ -201,7 +185,6 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, 6, mid3)).delta).toBe(1);
         receiverState = await urepo.getUserDialogState(ctx, 6, 5);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
-        expect(receiverState.unread).toBe(3);
         expect(receiverLocalCounter).toBe(3);
         expect(receiverState.haveMention).toBe(true);
     });
@@ -238,7 +221,6 @@ describe('CountersRepository', () => {
         let receiverState = await urepo.getUserDialogState(ctx, R_UID, CID);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, R_UID, CID);
         expect(receiverLocalCounter).toBe(0);
-        expect(receiverState.unread).toBe(0);
         expect(receiverState.haveMention).toBe(false);
     });
 

@@ -1,0 +1,21 @@
+type Tag{
+    id: String!
+    title: String!
+}
+
+type TagGroup{
+    id: String!
+    title: String
+    subtitle: String
+    tags: [Tag!]!
+}
+
+type DiscoverPage {
+    chats: [Room!]
+    tagGroup: TagGroup
+}
+
+extend type Query {
+    betaNextDiscoverPage(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
+    betaSuggestedRooms(selectedTagsIds: [String!]!): [Room!]!
+}

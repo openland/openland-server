@@ -4,12 +4,14 @@ import { MessagingRepository } from './MessagingRepository';
 import { AllEntities } from 'openland-module-db/schema';
 import { UserStateRepository } from './UserStateRepository';
 import { EmptyContext } from '@openland/context';
+import { ChatMetricsRepository } from './ChatMetricsRepository';
 
 describe('MessagingRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('messaging-repo');
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
+        container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();
