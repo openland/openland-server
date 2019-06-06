@@ -1135,7 +1135,7 @@ const Schema = declareSchema(() => {
         primaryKey('cid', 'number');
     });
 
-    directory('NeedNotificationFlag')
+    directory('NeedNotificationFlag');
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

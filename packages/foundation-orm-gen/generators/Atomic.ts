@@ -7,7 +7,7 @@ export function generateAtomic(atomic: AtomicModel): string {
 
     let res = '';
 
-    if (atomic.kind == 'int') {
+    if (atomic.kind === 'int') {
         res += 'export class ' + entityClass + 'Factory extends FAtomicIntegerFactory {\n';
         res += '    constructor(connection: FConnection) {\n';
         res += '        super(connection, new FNamespace(connection, \'atomic\', \'' + entityKey + '\'));\n';
