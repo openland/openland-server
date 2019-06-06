@@ -15,14 +15,16 @@ const Delays = {
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
-        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
+        let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
+        let unreadUsers = await needNotificationDelivery.findAllUsersWithNotifications(parent, 'email');
         let now = Date.now();
-        for (let u of unreadUsers) {
+        for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
-                let state = await Modules.Messaging.getUserNotificationState(ctx, u.uid);
-                let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
-                let isActive = await Modules.Presence.isActive(ctx, u.uid);
-                let tag = 'email_notifications ' + u.uid;
+                let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);
+                let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
+                let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
+                let isActive = await Modules.Presence.isActive(ctx, uid);
+                let tag = 'email_notifications ' + uid;
 
                 // Ignore active users
                 if (isActive) {
@@ -31,6 +33,7 @@ export function startEmailNotificationWorker() {
 
                 // Ignore never online
                 if (lastSeen === 'never_online') {
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
                     return;
                 }
 
@@ -41,20 +44,22 @@ export function startEmailNotificationWorker() {
 
                 // Ignore never opened apps
                 if (state.readSeq === null) {
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
                     return;
                 }
 
                 // Ignore read updates
-                if (state.readSeq === u.seq) {
+                if (state.readSeq === ustate.seq) {
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
                     return;
                 }
 
                 // Ignore already processed updates
-                if (state.lastEmailSeq === u.seq) {
+                if (state.lastEmailSeq === ustate.seq) {
                     return;
                 }
 
-                let settings = await Modules.Users.getUserSettings(ctx, u.uid);
+                let settings = await Modules.Users.getUserSettings(ctx, uid);
 
                 if (settings.emailFrequency === 'never') {
                     return;
@@ -69,7 +74,7 @@ export function startEmailNotificationWorker() {
                 }
 
                 // Fetch pending updates
-                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
+                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                 let hasNonMuted = false;
@@ -81,7 +86,7 @@ export function startEmailNotificationWorker() {
                         continue;
                     }
 
-                    if (message.uid === u.uid) {
+                    if (message.uid === uid) {
                         continue;
                     }
 
@@ -100,9 +105,9 @@ export function startEmailNotificationWorker() {
                         }
                     }
 
-                    let userMentioned = hasMention(message, u.uid);
+                    let userMentioned = hasMention(message, uid);
 
-                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
+                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, uid, conversation.id);
                     if (conversationSettings.mute && !userMentioned) {
                         continue;
                     }
@@ -117,12 +122,13 @@ export function startEmailNotificationWorker() {
                 // Send email notification if there are some
                 if (hasNonMuted) {
                     console.log(tag, 'new_email_notification');
-                    await Emails.sendUnreadMessages(ctx, u.uid, msgs);
+                    await Emails.sendUnreadMessages(ctx, uid, msgs);
                     state.lastEmailNotification = Date.now();
                 }
 
                 // Save state
-                state.lastEmailSeq = u.seq;
+                state.lastEmailSeq = ustate.seq;
+                needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
             });
         }
         return false;

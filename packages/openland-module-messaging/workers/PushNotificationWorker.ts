@@ -19,26 +19,28 @@ const log = createLogger('push');
 
 export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
-        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
+        let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
+        let unreadUsers = await needNotificationDelivery.findAllUsersWithNotifications(parent, 'push');
         log.debug(parent, 'unread users: ' + unreadUsers.length);
         // let workDone = false;
-        for (let u of unreadUsers) {
+        for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
-                ctx = withLogContext(ctx, ['user', '' + u.uid]);
+                ctx = withLogContext(ctx, ['user', '' + uid]);
 
                 // Loading user's settings and state
-                let settings = await Modules.Users.getUserSettings(ctx, u.uid);
-                let state = await Modules.Messaging.getUserNotificationState(ctx, u.uid);
+                let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);
+                let settings = await Modules.Users.getUserSettings(ctx, uid);
+                let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
 
                 let now = Date.now();
 
-                let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
-                let isActive = await Modules.Presence.isActive(ctx, u.uid);
+                let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
+                let isActive = await Modules.Presence.isActive(ctx, uid);
 
                 // Ignore never-online users
                 if (lastSeen === 'never_online') {
                     log.debug(ctx, 'skip never-online');
-                    state.lastPushSeq = u.seq;
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
                     return;
                 }
 
@@ -63,34 +65,38 @@ export function startPushNotificationWorker() {
                 }
 
                 // Ignore read updates
-                if (state.readSeq === u.seq) {
+                if (state.readSeq === ustate.seq) {
                     log.debug(ctx, 'ignore read updates');
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
                     return;
                 }
 
                 // Ignore never opened apps
                 if (state.readSeq === null) {
                     log.debug(ctx, 'ignore never opened apps');
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
                     return;
                 }
 
                 // Ignore user's with disabled notifications
                 if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
-                    state.lastPushSeq = u.seq;
+                    state.lastPushSeq = ustate.seq;
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
                     log.debug(ctx, 'ignore user\'s with disabled notifications');
                     return;
                 }
 
                 // Ignore already processed updates
-                if (state.lastPushSeq !== null && state.lastPushSeq >= u.seq) {
+                if (state.lastPushSeq !== null && state.lastPushSeq >= ustate.seq) {
                     log.debug(ctx, 'ignore already processed updates');
+                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
                     return;
                 }
 
                 // Scanning updates
                 let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
 
-                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, afterSec);
+                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, afterSec);
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                 let unreadCounter: number | undefined = undefined;
@@ -110,14 +116,14 @@ export function startPushNotificationWorker() {
                     let senderId = message.uid!;
 
                     // Ignore current user
-                    if (senderId === u.uid) {
+                    if (senderId === uid) {
                         continue;
                     }
                     let sender = await Modules.Users.profileById(ctx, senderId);
                     if (!sender) {
                         continue;
                     }
-                    let receiver = await Modules.Users.profileById(ctx, u.uid);
+                    let receiver = await Modules.Users.profileById(ctx, uid);
                     if (!receiver) {
                         continue;
                     }
@@ -133,7 +139,7 @@ export function startPushNotificationWorker() {
                         }
                     }
 
-                    let userMentioned = hasMention(message, u.uid);
+                    let userMentioned = hasMention(message, uid);
 
                     let sendDesktop = settings.desktopNotifications !== 'none';
                     let sendMobile = settings.mobileNotifications !== 'none';
@@ -150,7 +156,7 @@ export function startPushNotificationWorker() {
                         }
                     }
 
-                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
+                    let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, uid, conversation.id);
                     if (conversationSettings.mute && !userMentioned) {
                         continue;
                     }
@@ -164,7 +170,7 @@ export function startPushNotificationWorker() {
                         continue;
                     }
 
-                    let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, u.uid);
+                    let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
 
                     if (chatTitle.startsWith('@')) {
                         chatTitle = chatTitle.slice(1);
@@ -212,11 +218,11 @@ export function startPushNotificationWorker() {
                     }
 
                     if (unreadCounter === undefined) {
-                        unreadCounter = await FDB.UserCounter.byId(u.uid).get(ctx);
+                        unreadCounter = await FDB.UserCounter.byId(uid).get(ctx);
                     }
 
                     let push = {
-                        uid: u.uid,
+                        uid: uid,
                         title: pushTitle,
                         body: pushBody,
                         picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
@@ -239,9 +245,10 @@ export function startPushNotificationWorker() {
                     state.lastPushNotification = Date.now();
                 }
 
-                log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + u.seq);
+                log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);
 
-                state.lastPushSeq = u.seq;
+                state.lastPushSeq = ustate.seq;
+                needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
             });
         }
         // return workDone;

@@ -15,15 +15,15 @@ import { Context } from '@openland/context';
 import { messagesIndexer } from './workers/messagesIndexer';
 import { FixerRepository } from './repositories/Fixer';
 import { roomsSearchIndexer } from './workers/roomsSerachIndexer';
-import { PushNotificationMediator } from './mediators/PushNotificationMediator';
+import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 
 @injectable()
 export class MessagingModule {
     readonly room: RoomMediator;
     readonly search: RoomSearch = new RoomSearch();
     readonly fixer: FixerRepository;
+    readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
     private readonly delivery: DeliveryMediator;
-    private readonly pushNotificationMediator: PushNotificationMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
@@ -34,16 +34,16 @@ export class MessagingModule {
         @inject('FixerRepository') fixer: FixerRepository,
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
         @inject('DeliveryMediator') delivery: DeliveryMediator,
-        @inject('PushNotificationMediator') pushNotificationMediator: PushNotificationMediator,
         @inject('RoomMediator') room: RoomMediator,
+        @inject('RoomMediator') needNotificationDelivery: NeedNotificationDeliveryRepository
     ) {
         this.delivery = delivery;
-        this.pushNotificationMediator = pushNotificationMediator;
         this.userState = userState;
         this.messaging = messaging;
         this.room = room;
         this.augmentation = augmentation;
         this.fixer = fixer;
+        this.needNotificationDelivery = needNotificationDelivery;
     }
 
     //
@@ -52,7 +52,6 @@ export class MessagingModule {
     start = () => {
         this.augmentation.start();
         this.delivery.start();
-        this.pushNotificationMediator.start();
         if (serverRoleEnabled('workers')) {
             startEmailNotificationWorker();
         }

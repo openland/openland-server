@@ -1,7 +1,7 @@
 import { FSubspace } from './FSubspace';
 import { Context } from '@openland/context';
 
-const zero = Buffer.from('00', 'hex');
+const zero = Buffer.of();
 const one = Buffer.from('ff', 'hex');
 
 export class FAtomicBoolean {
@@ -16,7 +16,7 @@ export class FAtomicBoolean {
     get = async (ctx: Context) => {
         let r = await this.keySpace.get(ctx, this.key);
         if (r) {
-            return !r.equals(zero);
+            return r.length > 0;
         } else {
             return false;
         }

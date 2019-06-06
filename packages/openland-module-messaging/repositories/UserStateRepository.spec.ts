@@ -63,7 +63,7 @@ describe('UserStateRepository', () => {
         let { state: state2 } = await sendMessage(1, '3');
         let iterator = await userStateRepo.zipUpdatesInBatchesAfter(ctx, 2, state.cursor);
 
-        let batch;
+        let batch: any;
         for await (let b of iterator) {
             batch = b;
         }

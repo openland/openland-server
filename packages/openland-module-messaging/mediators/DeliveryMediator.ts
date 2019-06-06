@@ -13,6 +13,7 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
 import { batch } from 'openland-utils/batch';
+import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 // import { PushNotificationMediator } from './PushNotificationMediator';
 
 const tracer = createTracer('message-delivery');
@@ -28,6 +29,7 @@ export class DeliveryMediator {
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
+    @lazyInject('NeedNotificationDeliveryRepository') private readonly needNotification!: NeedNotificationDeliveryRepository;
     // @lazyInject('PushNotificationMediator') private readonly pushNotificationMediator!: PushNotificationMediator;
 
     start = () => {
@@ -179,7 +181,14 @@ export class DeliveryMediator {
                 // WARNING: Counters need to be updated BEFORE DELIVERY.
                 // DO NOT SWAP!
                 let res = await this.counters.onMessageReceived(ctx, uid, message);
+
+                // Put message event to dialogs list and dialog sequence
                 await this.repo.deliverMessageToUser(ctx, uid, message);
+
+                // Mark user as needed notification delivery
+                if (res.delta > 0) {
+                    this.needNotification.setNeedNotificationDelivery(ctx, uid);
+                }
 
                 // TODO: Remove update
                 if (res.setMention) {
