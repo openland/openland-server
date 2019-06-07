@@ -64,13 +64,20 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return null;
                 }
                 let res = pend[Math.floor(Math.random() * (pend.length))];
-                res.taskLockSeed = lockSeed;
-                res.taskLockTimeout = Date.now() + 15000;
-                res.taskStatus = 'executing';
-                await workScheduled.event(ctx, { taskId: res.uid, taskType: res.taskType, duration: Date.now() - res.createdAt });
                 return res;
             });
-            if (task) {
+            let locked = task && await inTx(root, async (ctx) => {
+                let tsk = (await FDB.Task.findById(ctx, task!.taskType, task!.uid))!;
+                if (tsk.taskStatus !== 'pending') {
+                    return false;
+                }
+                tsk.taskLockSeed = lockSeed;
+                tsk.taskLockTimeout = Date.now() + 15000;
+                tsk.taskStatus = 'executing';
+                await workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.createdAt });
+                return true;
+            });
+            if (task && locked) {
                 log.log(root, 'Task ' + task.uid + ' found');
                 let start = currentTime();
                 let res: RES;
