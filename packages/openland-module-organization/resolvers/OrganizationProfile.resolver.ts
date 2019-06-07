@@ -78,7 +78,7 @@ export default {
 
                 if (args.input.name !== undefined) {
                     await validate(
-                        stringNotEmpty('Name can\'t be empty!'),
+                        stringNotEmpty(`Please enter a name for this ${existing.kind === 'organization' ? 'organization' : 'community'}`),
                         args.input.name,
                         'input.name'
                     );
