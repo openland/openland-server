@@ -93,7 +93,7 @@ export default {
 
             if (args.after) {
                 let dc = FKeyEncoding.decodeFromString(args.after);
-                let aft = dc[dc.length - 1] as number;
+                let aft = dc[0] as number;
                 allDialogs = allDialogs.filter((v) => v.date! <= aft);
             }
 
