@@ -180,18 +180,4 @@ export class DeliveryRepository {
             });
         });
     }
-
-    async deliverCurrentCountersToUser(parent: Context, uid: number, cid: number) {
-        await inTx(parent, async (ctx) => {
-
-            let global = await this.userState.getUserMessagingState(ctx, uid);
-            global.seq++;
-            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
-                kind: 'message_read',
-                cid: cid,
-                unread: 0,
-                allUnread: 0
-            });
-        });
-    }
 }

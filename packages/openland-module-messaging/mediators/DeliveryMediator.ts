@@ -91,7 +91,7 @@ export class DeliveryMediator {
             let res = await this.counters.onMessageRead(ctx, uid, message);
 
             // Update dialogs
-            if (res.delta > 0) {
+            if (res.delta < 0) {
                 await this.repo.deliverMessageReadToUser(ctx, uid, mid);
             }
         });
