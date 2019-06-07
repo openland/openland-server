@@ -3,12 +3,14 @@ import { IDs } from 'openland-module-api/IDs';
 export type Tag = { id: string, title: string, score: number };
 export type TagGroup = { id: string, title?: string, subtitle?: string, tags: Tag[], score: number };
 
+// https://www.notion.so/openland/8db9400948ef4c7cb6ddf626c5cd87b6?v=cfb89c13d283453e8abba074f20ef469
 const _data = `Name,Link,Role,Founder_sub_1,Founder_sub_2,Engineer_sub,all triggers
 Score: 4 (in the end of recommendations list),,,,,,
 Founder Chats,https://openland.com/mail/p/ZYx4d9K6kjIZ5jo6r69zc4AX3v,Founder,,,,"Founder, "
 Founders · Random,https://openland.com/mail/3Ym4RrOAbxIMAa43Qv1WFDymz4,Founder,,,,"Founder, "
 Venture Capital,https://openland.com/directory/r/nqoZQV6zYQCmnRv19evPSMJPaE,Investor,,,,"Investor, "
 Accelerators,https://openland.com/directory/r/qljZr9WbgLiL6YK0gDO6faQVYV,Investor,,,,"Investor, "
+Investor Chats,https://next.openland.com/mail/mJvq41O5gEF61xQBMx6bikPKrE,Investor,,,,"Investor, "
 Product Chats,https://openland.com/mail/rAb139w0Mzc4XrgvdxvEH5DYRO,Product manager,,,,"Product manager, "
 Openland Tech,https://openland.com/mail/p/LOLqoerbADtq4xDP0dBzuwJwx3,Engineer,,,,"Engineer, "
 Engineer Chats,https://openland.com/mail/p/VywdDrg3byuRx0dqmyaRfrR7Pb,Engineer,,,,"Engineer, "
