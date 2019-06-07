@@ -32,7 +32,7 @@ describe('UserStateRepository', () => {
         let m1 = await messagingRepo.createMessage(ctx, cid, 2, { message: text });
         await deliveryRepo.deliverMessageToUser(ctx, 2, m1.message);
         let state = await entities.UserDialogEvent.rangeFromUserWithCursor(ctx, 2, 1, undefined, true);
-        return { mid: m1.message.id, state };
+        return { message: m1.message, state };
     };
 
     afterAll(() => {
@@ -75,27 +75,27 @@ describe('UserStateRepository', () => {
     it('should zip updates currectly', async () => {
 
         // messages to chat 1
-        let { mid, state: stateFrom } = await sendMessage(1, '4');
+        let { message, state: stateFrom } = await sendMessage(1, '4');
         await sendMessage(1, '5');
         await sendMessage(1, '6');
 
         // edit message from chat 1
-        await messagingRepo.editMessage(ctx, mid, { message: 'kek' }, false);
-        await deliveryRepo.deliverMessageUpdateToUser(ctx, 2, mid);
+        await messagingRepo.editMessage(ctx, message.id, { message: 'kek' }, false);
+        await deliveryRepo.deliverMessageUpdateToUser(ctx, 2, message);
 
         // more messages to chat 1
         await sendMessage(1, '7');
-        let { mid: mid8Cid1 } = await sendMessage(1, '8');
+        let { message: mid8Cid1 } = await sendMessage(1, '8');
 
         // read chat 1
-        await deliveryRepo.deliverMessageReadToUser(ctx, 2, mid8Cid1, 8);
+        await deliveryRepo.deliverMessageReadToUser(ctx, 2, mid8Cid1.id);
 
         // messages to chat 2
         await sendMessage(2, '1');
-        let { mid: m2fromCid2 } = await sendMessage(2, '2');
+        let { message: m2fromCid2 } = await sendMessage(2, '2');
 
         // one more message to chat 1
-        let { mid: mid9Cid1, state: stateTo } = await sendMessage(1, '9');
+        let { message: mid9Cid1, state: stateTo } = await sendMessage(1, '9');
 
         let iterator = await userStateRepo.zipUpdatesInBatchesAfter(ctx, 2, stateFrom.cursor);
 
@@ -106,17 +106,17 @@ describe('UserStateRepository', () => {
         expect(batch).toBeDefined();
         expect(batch!.items.length).toBe(4);
 
-        expect(batch!.items[0].mid).toBe(mid);
+        expect(batch!.items[0].mid).toBe(message.id);
         expect(batch!.items[0].cid).toBe(1);
         expect(batch!.items[0].kind).toBe('message_updated');
 
         expect(batch!.items[1].cid).toBe(1);
         expect(batch!.items[1].kind).toBe('message_read');
 
-        expect(batch!.items[2].mid).toBe(m2fromCid2);
+        expect(batch!.items[2].mid).toBe(m2fromCid2.id);
         expect(batch!.items[2].cid).toBe(2);
 
-        expect(batch!.items[3].mid).toBe(mid9Cid1);
+        expect(batch!.items[3].mid).toBe(mid9Cid1.id);
         expect(batch!.items[3].cid).toBe(1);
 
         expect(batch!.cursor).toBe(stateTo.cursor);

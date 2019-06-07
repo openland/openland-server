@@ -6,6 +6,7 @@ import { MessagingRepository } from './MessagingRepository';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { loadMessagingTestModule } from '../Messaging.container.test';
 import { EmptyContext } from '@openland/context';
+import { FDB } from 'openland-module-db/FDB';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
@@ -51,8 +52,8 @@ describe('CountersRepository', () => {
         expect(receiverGlobalCounter).toBe(3);
 
         // Read
-        expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
-        expect((await repo.onMessageRead(ctx, 1, mid3.id)).delta).toBe(0);
+        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
+        expect((await repo.onMessageRead(ctx, 1, mid3)).delta).toBe(0);
     });
 
     it('should properly decrement on middle-read', async () => {
@@ -82,7 +83,7 @@ describe('CountersRepository', () => {
         expect(receiverGlobalCounter).toBe(6);
 
         // Read
-        expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-3);
+        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
 
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 1);
         receiverGlobalCounter = await urepo.getUserMessagingUnread(ctx, 2);
@@ -102,7 +103,7 @@ describe('CountersRepository', () => {
         let mid3 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message;
 
         expect((await repo.onMessageReceived(ctx, 2, mid1)).delta).toBe(1);
-        expect((await repo.onMessageRead(ctx, 2, mid3.id)).delta).toBe(-1);
+        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-1);
         expect((await repo.onMessageReceived(ctx, 2, mid2)).delta).toBe(0);
         expect((await repo.onMessageReceived(ctx, 2, mid3)).delta).toBe(0);
 
@@ -141,20 +142,20 @@ describe('CountersRepository', () => {
         let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message;
 
         expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
-        expect((await repo.onMessageRead(ctx, 3, mid1.id)).delta).toBe(-1);
-        expect(await repo.onMessageDeleted(ctx, 3, mid1.id)).toBe(0); // Should ignore if already read
+        expect((await repo.onMessageRead(ctx, 3, mid1)).delta).toBe(-1);
+        expect(await repo.onMessageDeleted(ctx, 3, mid1)).toBe(0); // Should ignore if already read
 
         let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message;
         let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message;
 
         expect((await repo.onMessageReceived(ctx, 3, mid2)).delta).toBe(1);
-        expect(await repo.onMessageDeleted(ctx, 3, mid2.id)).toBe(-1);
+        expect(await repo.onMessageDeleted(ctx, 3, mid2)).toBe(-1);
         expect((await repo.onMessageReceived(ctx, 3, mid3)).delta).toBe(1);
 
-        let receiverState = await urepo.getUserDialogState(ctx, 3, 4);
+        let receiverHaveMention = await FDB.UserDialogHaveMention.byId(3, 4).get(ctx);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 3, 4);
         expect(receiverLocalCounter).toBe(1);
-        expect(receiverState.haveMention).toBe(false);
+        expect(receiverHaveMention).toBe(false);
     });
 
     it('should mark dialog mention for messages with mentions', async () => {
@@ -169,24 +170,25 @@ describe('CountersRepository', () => {
 
         // After fisrt mention
         expect((await repo.onMessageReceived(ctx, 6, mid1)).delta).toBe(1);
-        let receiverState = await urepo.getUserDialogState(ctx, 6, 5);
+        // let receiverState = await urepo.getUserDialogState(ctx, 6, 5);
+        let receiverHaveMention = await FDB.UserDialogHaveMention.byId(6, 5).get(ctx);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(1);
-        expect(receiverState.haveMention).toBe(true);
+        expect(receiverHaveMention).toBe(true);
 
         // Second message without mention
         expect((await repo.onMessageReceived(ctx, 6, mid2)).delta).toBe(1);
-        receiverState = await urepo.getUserDialogState(ctx, 6, 5);
+        receiverHaveMention = await FDB.UserDialogHaveMention.byId(6, 5).get(ctx);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(2);
-        expect(receiverState.haveMention).toBe(true);
+        expect(receiverHaveMention).toBe(true);
 
         // Third message with mention again
         expect((await repo.onMessageReceived(ctx, 6, mid3)).delta).toBe(1);
-        receiverState = await urepo.getUserDialogState(ctx, 6, 5);
+        receiverHaveMention = await FDB.UserDialogHaveMention.byId(6, 5).get(ctx);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(3);
-        expect(receiverState.haveMention).toBe(true);
+        expect(receiverHaveMention).toBe(true);
     });
 
     it('should clear mention flag on read', async () => {
@@ -201,7 +203,7 @@ describe('CountersRepository', () => {
 
         // Should not reset mention as there are more messages
         expect((await repo.onMessageReceived(ctx, R_UID, mid1)).delta).toBe(1);
-        let r = await repo.onMessageRead(ctx, R_UID, mid1.id);
+        let r = await repo.onMessageRead(ctx, R_UID, mid1);
         expect(r.delta).toBe(-1);
         expect(r.mentionReset).toBe(false);
 
@@ -213,15 +215,15 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, R_UID, mid3)).delta).toBe(1);
 
         // Read last
-        r = await repo.onMessageRead(ctx, R_UID, mid3.id);
+        r = await repo.onMessageRead(ctx, R_UID, mid3);
         expect(r.delta).toBe(-2);
         expect(r.mentionReset).toBe(true);
 
         // Result state
-        let receiverState = await urepo.getUserDialogState(ctx, R_UID, CID);
+        let receiverHaveMention = await FDB.UserDialogHaveMention.byId(R_UID, CID).get(ctx);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, R_UID, CID);
         expect(receiverLocalCounter).toBe(0);
-        expect(receiverState.haveMention).toBe(false);
+        expect(receiverHaveMention).toBe(false);
     });
 
     // it('should not increment global counter for muted chat', async () => {

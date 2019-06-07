@@ -243,6 +243,12 @@ export function startPushNotificationWorker() {
                 // Save state
                 if (hasMessage) {
                     state.lastPushNotification = Date.now();
+                } else {
+                    // Deliver counter if there are no updates
+                    if (unreadCounter === undefined) {
+                        unreadCounter = await FDB.UserCounter.byId(uid).get(ctx);
+                    }
+                    await Modules.Push.sendCounterPush(ctx, uid, 0, unreadCounter!);
                 }
 
                 log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);

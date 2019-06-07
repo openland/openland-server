@@ -14,38 +14,34 @@ import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
 import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
-// import { PushNotificationMediator } from './PushNotificationMediator';
 
 const tracer = createTracer('message-delivery');
 const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 @injectable()
 export class DeliveryMediator {
-    private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_delivery');
-    private readonly queueUser = new WorkQueue<{ messageId: number, uid: number }, { result: string }>('conversation_message_delivery_user');
-    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[] }, { result: string }>('conversation_message_delivery_user_multiple');
+    private readonly queue = new WorkQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }, { result: string }>('conversation_message_delivery');
+    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }, { result: string }>('conversation_message_delivery_user_multiple');
 
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
     @lazyInject('NeedNotificationDeliveryRepository') private readonly needNotification!: NeedNotificationDeliveryRepository;
-    // @lazyInject('PushNotificationMediator') private readonly pushNotificationMediator!: PushNotificationMediator;
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
             for (let i = 0; i < 10; i++) {
                 this.queue.addWorker(async (item, parent) => {
-                    await this.deliverNewMessage(parent, item.messageId);
-                    return { result: 'ok' };
-                });
-            }
-            for (let i = 0; i < 10; i++) {
-                this.queueUser.addWorker(async (item, parent) => {
-                    await inTx(parent, async (ctx) => {
-                        let message = (await this.entities.Message.findById(ctx, item.messageId))!;
-                        await this.deliverMessageToUser(parent, item.uid, message);
-                    });
+                    if (item.action === 'new' || item.action === undefined) {
+                        await this.fanOutDelivery(parent, item.messageId, 'new');
+                    } else if (item.action === 'delete') {
+                        await this.fanOutDelivery(parent, item.messageId, 'delete');
+                    } else if (item.action === 'update') {
+                        await this.fanOutDelivery(parent, item.messageId, 'update');
+                    } else {
+                        throw Error('Unknown action: ' + item.action);
+                    }
                     return { result: 'ok' };
                 });
             }
@@ -54,10 +50,15 @@ export class DeliveryMediator {
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
                             let message = (await this.entities.Message.findById(ctx, item.messageId))!;
-                            // for (let uid of item.uids) {
-                            //     await this.deliverMessageToUser(ctx, uid, message);
-                            // }
-                            await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                            if (item.action === 'new' || item.action === undefined) {
+                                await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                            } else if (item.action === 'delete') {
+                                await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
+                            } else if (item.action === 'update') {
+                                await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                            } else {
+                                throw Error('Unknown action: ' + item.action);
+                            }
                         });
                     });
                     return { result: 'ok' };
@@ -66,57 +67,97 @@ export class DeliveryMediator {
         }
     }
 
+    //
+    // Chat Events
+    //
+
     onNewMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id });
+        await this.queue.pushWork(ctx, { messageId: message.id, action: 'new' });
     }
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
-        await this.deliverUpdateMessage(ctx, message.id);
+        await this.queue.pushWork(ctx, { messageId: message.id, action: 'update' });
     }
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
-        await this.deliverDeleteMessage(ctx, message.id);
+        await this.queue.pushWork(ctx, { messageId: message.id, action: 'delete' });
     }
 
-    onRoomRead = async (ctx: Context, uid: number, mid: number) => {
-        await this.deliverMessageReadToUser(ctx, uid, mid);
+    onRoomRead = async (parent: Context, uid: number, mid: number) => {
+        await inTx(parent, async (ctx) => {
+            let message = (await this.entities.Message.findById(ctx, mid))!;
+
+            // Update counters
+            let res = await this.counters.onMessageRead(ctx, uid, message);
+
+            // Update dialogs
+            if (res.delta > 0) {
+                await this.repo.deliverMessageReadToUser(ctx, uid, mid);
+            }
+        });
     }
 
-    onDialogDelete = async (ctx: Context, uid: number, cid: number) => {
-        await this.deliverDialogDeleteToUser(ctx, uid, cid);
+    //
+    // Dialog updates
+    //
+
+    onDialogTitleUpdate = async (parent: Context, cid: number, title: string) => {
+        await inTx(parent, async (ctx) => {
+            let members = await this.room.findConversationMembers(ctx, cid);
+            for (let m of members) {
+                await this.repo.deliverDialogTitleUpadtedToUser(ctx, m, cid, title);
+            }
+        });
     }
 
-    onDialogTitleUpdate = async (ctx: Context, uid: number, cid: number, title: string) => {
-        await this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, cid, title);
-    }
-
-    onDialogPhotoUpdate = async (ctx: Context, uid: number, cid: number, photo?: ImageRef) => {
-        await this.repo.deliverDialogPhotoUpadtedToUser(ctx, uid, cid, photo);
-    }
-
-    onDialogBump = async (ctx: Context, uid: number, cid: number, date: number) => {
-        await this.repo.deliverDialogBumpToUser(ctx, uid, cid, date);
+    onDialogPhotoUpdate = async (parent: Context, cid: number, photo?: ImageRef) => {
+        await inTx(parent, async (ctx) => {
+            let members = await this.room.findConversationMembers(ctx, cid);
+            for (let m of members) {
+                await this.repo.deliverDialogPhotoUpadtedToUser(ctx, m, cid, photo);
+            }
+        });
     }
 
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
-        //
-    }
-
-    onDialogMuteChanged = async (ctx: Context, uid: number, cid: number, mute: boolean) => {
-        // await this.counters.onDialogMuteChange(ctx, uid, cid, mute);
-        await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
-        // await this.repo.deliverCurrentCountersToUser(ctx, uid, cid);
+        // TODO: Load all dialogs with user
     }
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
-        // await inTx(async () => {
-        //     let org = await this.room.resolveOrganizationChat(oid);
-        //     // let title =
-        // });
+        // Nothing to do
     }
 
-    private async deliverNewMessage(parent: Context, mid: number) {
-        await tracer.trace(parent, 'deliverNewMessage', async (tctx) => {
+    //
+    // Personal Changes
+    //
+
+    onDialogDelete = async (parent: Context, uid: number, cid: number) => {
+        // Update dialogs
+        await inTx(parent, async (ctx) => {
+            await this.deliverDialogDeleteToUser(ctx, uid, cid);
+        });
+    }
+
+    onDialogBump = async (parent: Context, uid: number, cid: number, date: number) => {
+        // Update dialogs
+        await inTx(parent, async (ctx) => {
+            await this.repo.deliverDialogBumpToUser(ctx, uid, cid, date);
+        });
+    }
+
+    onDialogMuteChanged = async (parent: Context, uid: number, cid: number, mute: boolean) => {
+        // Update dialogs
+        await inTx(parent, async (ctx) => {
+            await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
+        });
+    }
+
+    //
+    // Deliver action to every member of the conversation
+    //
+
+    private async fanOutDelivery(parent: Context, mid: number, action: 'new' | 'update' | 'delete') {
+        await tracer.trace(parent, 'fanOutDelivery:' + action, async (tctx) => {
             await inTx(tctx, async (ctx) => {
                 let message = (await this.entities.Message.findById(ctx, mid))!;
                 let members = await this.room.findConversationMembers(ctx, message.cid);
@@ -125,76 +166,31 @@ export class DeliveryMediator {
                 if (members.length > 0) {
                     let batches = batch(members, 10);
                     for (let b of batches) {
-                        await this.queueUserMultiple.pushWork(ctx, { messageId: mid, uids: b });
+                        await this.queueUserMultiple.pushWork(ctx, { messageId: mid, uids: b, action });
                     }
                 }
-                // Notifications
-                // await this.pushNotificationMediator.onNewMessage(ctx, mid);
             });
         });
     }
 
-    private async deliverUpdateMessage(parent: Context, mid: number) {
-        await tracer.trace(parent, 'deliverUpdateMessage', async (tctx) => {
-            await inTx(tctx, async (ctx) => {
-                let message = (await this.entities.Message.findById(ctx, mid))!;
-                let members = await this.room.findConversationMembers(ctx, message.cid);
-
-                // Deliver messages
-                if (members.length > 0) {
-                    await Promise.all(members.map(async (m) => {
-                        await this.deliverMessageUpdateToUser(ctx, m, mid);
-                    }));
-                }
-            });
-        });
-    }
-
-    private async deliverDeleteMessage(parent: Context, mid: number) {
-        await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid))!;
-            let members = await this.room.findConversationMembers(ctx, message.cid);
-
-            // Deliver messages
-            if (members.length > 0) {
-                await Promise.all(members.map(async (m) => {
-                    await this.deliverMessageDeleteToUser(ctx, m, mid);
-                }));
-            }
-        });
-    }
-
-    private async deliverMessageReadToUser(parent: Context, uid: number, mid: number) {
-        await inTx(parent, async (ctx) => {
-            let res = await this.counters.onMessageRead(ctx, uid, mid);
-            await this.repo.deliverMessageReadToUser(ctx, uid, mid, res.delta);
-            if (res.mentionReset) {
-                let message = (await this.entities.Message.findById(ctx, mid));
-                await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, false);
-            }
-        });
-    }
+    //
+    // User Scoped Delivery
+    //
 
     private deliverMessageToUser = async (parent: Context, uid: number, message: Message) => {
         await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                // WARNING: Counters need to be updated BEFORE DELIVERY.
-                // DO NOT SWAP!
-                let res = await this.counters.onMessageReceived(ctx, uid, message);
 
-                // Put message event to dialogs list and dialog sequence
+                // Update counters
+                await this.counters.onMessageReceived(ctx, uid, message);
+
+                // Update dialogs
                 await this.repo.deliverMessageToUser(ctx, uid, message);
 
                 // Mark user as needed notification delivery
-                if (res.delta > 0) {
-                    this.needNotification.setNeedNotificationDelivery(ctx, uid);
-                }
+                this.needNotification.setNeedNotificationDelivery(ctx, uid);
 
-                // TODO: Remove update
-                if (res.setMention) {
-                    await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, true);
-                }
-
+                // Track message received
                 if (message.uid !== uid) {
                     await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_received', did: 'server', args: undefined, isProd, time: Date.now() });
                 }
@@ -202,21 +198,38 @@ export class DeliveryMediator {
         });
     }
 
-    private deliverMessageUpdateToUser = async (ctx: Context, uid: number, mid: number) => {
-        await this.repo.deliverMessageUpdateToUser(ctx, uid, mid);
+    private deliverMessageUpdateToUser = async (parent: Context, uid: number, message: Message) => {
+        await inTx(parent, async (ctx) => {
+            // Update dialogs
+            await this.repo.deliverMessageUpdateToUser(ctx, uid, message);
+        });
     }
 
-    private deliverMessageDeleteToUser = async (parent: Context, uid: number, mid: number) => {
+    private deliverMessageDeleteToUser = async (parent: Context, uid: number, message: Message) => {
         await inTx(parent, async (ctx) => {
-            await this.counters.onMessageDeleted(ctx, uid, mid);
-            await this.repo.deliverMessageDeleteToUser(ctx, uid, mid);
+
+            // Update counters
+            await this.counters.onMessageDeleted(ctx, uid, message);
+
+            // Update dialogs
+            await this.repo.deliverMessageDeleteToUser(ctx, uid, message);
+
+            // Mark user as needed notification delivery
+            this.needNotification.setNeedNotificationDelivery(ctx, uid);
         });
     }
 
     private deliverDialogDeleteToUser = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
+
+            // Update counters
             await this.counters.onDialogDeleted(ctx, uid, cid);
+
+            // Update dialogs
             await this.repo.deliverDialogDeleteToUser(ctx, uid, cid);
+
+            // Mark user as needed notification delivery
+            this.needNotification.setNeedNotificationDelivery(ctx, uid);
         });
     }
 }

@@ -77,8 +77,7 @@ export default {
             return settings.mute;
         },
         haveMention: async (src: UserDialog, _, ctx) => {
-            let local = await Modules.Messaging.getUserDialogState(ctx, ctx.auth.uid!, src.cid);
-            return local.haveMention || false;
+            return await FDB.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
     },
     Query: {

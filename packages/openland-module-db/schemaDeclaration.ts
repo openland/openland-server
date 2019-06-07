@@ -12,7 +12,8 @@ import {
     allowAdminEdit,
     jsonField,
     atomic,
-    directory
+    directory,
+    atomicBoolean
 } from '../foundation-orm-gen';
 import {
     jBool,
@@ -1131,6 +1132,10 @@ const Schema = declareSchema(() => {
     });
 
     atomic('UserDialogCounter', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+    });
+    atomicBoolean('UserDialogHaveMention', () => {
         primaryKey('uid', 'number');
         primaryKey('cid', 'number');
     });

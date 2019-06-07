@@ -68,32 +68,22 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverMessageUpdateToUser(parent: Context, uid: number, mid: number) {
+    async deliverMessageUpdateToUser(parent: Context, uid: number, message: Message) {
         await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid));
-            if (!message) {
-                throw Error('Message not found');
-            }
-
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_updated',
                 cid: message.cid,
-                mid: mid,
+                mid: message.id,
                 haveMention: false,
             });
         });
     }
 
-    async deliverMessageDeleteToUser(parent: Context, uid: number, mid: number) {
+    async deliverMessageDeleteToUser(parent: Context, uid: number, message: Message) {
         await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid));
-            if (!message) {
-                throw Error('Message not found');
-            }
-
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
@@ -136,7 +126,6 @@ export class DeliveryRepository {
 
     async deliverDialogMuteChangedToUser(parent: Context, uid: number, cid: number, mute: boolean) {
         await inTx(parent, async (ctx) => {
-
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
@@ -144,20 +133,6 @@ export class DeliveryRepository {
                 cid,
                 mute,
                 allUnread: 0
-            });
-        });
-    }
-
-    // TODO: depricated - turn off
-    async deliverDialogMentionedChangedToUser(parent: Context, uid: number, cid: number, haveMention: boolean) {
-        await inTx(parent, async (ctx) => {
-
-            let global = await this.userState.getUserMessagingState(ctx, uid);
-            global.seq++;
-            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
-                kind: 'dialog_mentioned_changed',
-                cid,
-                haveMention
             });
         });
     }
@@ -186,25 +161,23 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverMessageReadToUser(parent: Context, uid: number, mid: number, delta: number) {
+    async deliverMessageReadToUser(parent: Context, uid: number, mid: number) {
         await inTx(parent, async (ctx) => {
             let msg = await this.entities.Message.findById(ctx, mid);
             if (!msg) {
                 throw Error('Unable to find message');
             }
 
-            // Deliver update if needed
-            if (delta !== 0) {
-                let global = await this.userState.getUserMessagingState(ctx, uid);
-                global.seq++;
-                await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
-                    kind: 'message_read',
-                    cid: msg.cid,
-                    unread: 0,
-                    allUnread: 0,
-                    haveMention: false,
-                });
-            }
+            // Deliver update
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'message_read',
+                cid: msg.cid,
+                unread: 0,
+                allUnread: 0,
+                haveMention: false,
+            });
         });
     }
 
