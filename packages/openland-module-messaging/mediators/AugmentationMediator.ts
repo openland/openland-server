@@ -7,7 +7,7 @@ import { MessagingRepository } from 'openland-module-messaging/repositories/Mess
 import { lazyInject } from 'openland-modules/Modules.container';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
-import { EmptyContext, Context } from '@openland/context';
+import { Context } from '@openland/context';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -70,7 +70,7 @@ export class AugmentationMediator {
                     };
 
                     await this.messaging.editMessage(
-                        EmptyContext,
+                        ctx,
                         item.messageId,
                         { attachments: [richAttachment], appendAttachments: true },
                         false
@@ -84,7 +84,7 @@ export class AugmentationMediator {
                     };
 
                     await this.messaging.editMessage(
-                        EmptyContext,
+                        ctx,
                         item.messageId,
                         { attachments: [fileAttachment], appendAttachments: true },
                         false

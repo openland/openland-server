@@ -4,7 +4,9 @@ import { PubsubSubcription, Pubsub } from 'openland-module-pubsub/pubsub';
 import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
-import { EmptyContext } from '@openland/context';
+import { EmptyContext, Context } from '@openland/context';
+import { withLogContext } from 'openland-log/withLogContext';
+import { inTx } from 'foundation-orm/inTx';
 
 @injectable()
 export class TypingsModule {
@@ -13,6 +15,7 @@ export class TypingsModule {
     private debounce = debouncer(this.TIMEOUT);
     private cache = new Map<number, number[]>();
     private xPubSub = new Pubsub<TypingEvent>();
+    private rootCtx = withLogContext(EmptyContext, ['typings']);
 
     start = () => {
         setInterval(() => this.cache.clear(), 1000 * 30);
@@ -20,7 +23,7 @@ export class TypingsModule {
 
     public async setTyping(uid: number, conversationId: number, type: string) {
         this.debounce(conversationId, async () => {
-            let members = await this.getChatMembers(conversationId);
+            let members = await inTx(this.rootCtx, async (ctx) => await this.getChatMembers(ctx, conversationId));
 
             for (let member of members) {
                 // tslint:disable-next-line:no-floating-promises
@@ -49,7 +52,7 @@ export class TypingsModule {
     }
 
     public async createTypingStream(uid: number, conversationId?: number) {
-        
+
         let sub: PubsubSubcription | undefined;
 
         let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});
@@ -65,11 +68,11 @@ export class TypingsModule {
         return iterator;
     }
 
-    private async getChatMembers(chatId: number): Promise<number[]> {
+    private async getChatMembers(ctx: Context, chatId: number): Promise<number[]> {
         if (this.cache.has(chatId)) {
             return this.cache.get(chatId)!;
         } else {
-            let members = await Modules.Messaging.room.findConversationMembers(EmptyContext, chatId);
+            let members = await Modules.Messaging.room.findConversationMembers(ctx, chatId);
 
             this.cache.set(chatId, members);
 

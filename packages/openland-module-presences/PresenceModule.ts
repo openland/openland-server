@@ -12,6 +12,7 @@ import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
 import { getTransaction } from 'foundation-orm/getTransaction';
 import { EmptyContext, Context } from '@openland/context';
+import { withLogContext } from 'openland-log/withLogContext';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 // const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -30,6 +31,7 @@ export class PresenceModule {
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
     private localSub = new Pubsub<OnlineEvent>(false);
     private FDB: AllEntities = FDB;
+    private rootCtx = withLogContext(EmptyContext, ['presence']);
 
     start = (fdb?: AllEntities) => {
         // Nothing to do
@@ -38,7 +40,7 @@ export class PresenceModule {
         }
         // tslint:disable-next-line:no-floating-promises
         (async () => {
-            let supportId = await Modules.Users.getSupportUserId(EmptyContext);
+            let supportId = await Modules.Users.getSupportUserId(this.rootCtx);
             if (supportId) {
                 this.onlines.set(supportId, { lastSeen: new Date('2077-11-25T12:00:00.000Z').getTime(), active: true });
             }
@@ -178,7 +180,7 @@ export class PresenceModule {
         let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
 
         // Send initial state
-        let ctx = EmptyContext;
+        let ctx = this.rootCtx;
         for (let userId of users) {
             if (userId === await Modules.Users.getSupportUserId(ctx)) {
                 iterator.push({
@@ -210,7 +212,7 @@ export class PresenceModule {
     }
 
     public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
-        let ctx = EmptyContext;
+        let ctx = this.rootCtx;
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = await perf('presence_members', async () => (await Modules.Messaging.room.findConversationMembers(ctx, chatId)));
 
@@ -226,7 +228,7 @@ export class PresenceModule {
 
         joinSub = EventBus.subscribe(`chat_join_${chatId}`, async (ev: { uid: number, cid: number }) => {
             let online = await FDB.Online.findById(ctx, ev.uid);
-            iterator.push({ userId: ev.uid, timeout: 0, online: online && online.lastSeen > Date.now() || false, active: (online && online.active || false), lastSeen: (online && online.lastSeen || Date.now())   });
+            iterator.push({ userId: ev.uid, timeout: 0, online: online && online.lastSeen > Date.now() || false, active: (online && online.active || false), lastSeen: (online && online.lastSeen || Date.now()) });
             subscriptions.set(ev.uid, await this.localSub.subscribe(uid.toString(10), iterator.push));
         });
         leaveSub = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
@@ -242,7 +244,7 @@ export class PresenceModule {
     }
 
     public async * createChatOnlineCountStream(uid: number, chatId: number): AsyncIterable<{ onlineMembers: number }> {
-        let ctx = EmptyContext;
+        let ctx = this.rootCtx;
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId));
         let stream = await this.createChatPresenceStream(uid, chatId);

@@ -7,7 +7,7 @@ import { createUrlInfoService } from '../openland-module-messaging/workers/UrlIn
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
 import { CommentsRepository } from './CommentsRepository';
 import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
-import { EmptyContext, Context } from '@openland/context';
+import { Context } from '@openland/context';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -65,7 +65,7 @@ export class CommentAugmentationMediator {
                     };
 
                     await this.comments.editComment(
-                        EmptyContext,
+                        ctx,
                         item.commentId,
                         { attachments: [richAttachment], appendAttachments: true },
                         false
@@ -79,7 +79,7 @@ export class CommentAugmentationMediator {
                     };
 
                     await this.comments.editComment(
-                        EmptyContext,
+                        ctx,
                         item.commentId,
                         { attachments: [fileAttachment], appendAttachments: true },
                         false

@@ -1,6 +1,7 @@
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { FDB } from 'openland-module-db/FDB';
 import { EmptyContext } from '@openland/context';
+import { inTx } from 'foundation-orm/inTx';
 
 export function messagesIndexer() {
     declareSearchIndexer('message-index', 4, 'mesage', FDB.Message.createUpdatedStream(EmptyContext, 50))
@@ -35,22 +36,23 @@ export function messagesIndexer() {
 
         })
         .start(async (item) => {
-            let ctx = EmptyContext;
-            let room = await FDB.Conversation.findById(ctx, item.cid);
-            let user = await FDB.UserProfile.findById(ctx, item.uid);
-            return {
-                id: item.id,
-                doc: {
+            return await inTx(EmptyContext, async (ctx) => {
+                let room = await FDB.Conversation.findById(ctx, item.cid);
+                let user = await FDB.UserProfile.findById(ctx, item.uid);
+                return {
                     id: item.id,
-                    cid: item.cid,
-                    uid: item.uid,
-                    name: user ? ((user.firstName || '') + ' ' + (user.lastName || '')) : 'unknown',
-                    roomKind: room ? room.kind : 'unknown',
-                    isService: !!item.isService,
-                    deleted: !!item.deleted,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                }
-            };
+                    doc: {
+                        id: item.id,
+                        cid: item.cid,
+                        uid: item.uid,
+                        name: user ? ((user.firstName || '') + ' ' + (user.lastName || '')) : 'unknown',
+                        roomKind: room ? room.kind : 'unknown',
+                        isService: !!item.isService,
+                        deleted: !!item.deleted,
+                        createdAt: item.createdAt,
+                        updatedAt: item.updatedAt,
+                    }
+                };
+            });
         });
 }

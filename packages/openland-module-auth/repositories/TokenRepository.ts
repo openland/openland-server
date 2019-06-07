@@ -13,11 +13,11 @@ export class TokenRepository {
 
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
-    
+
     private readonly loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
         let res: (AuthToken | null)[] = [];
         for (let i of tokens) {
-            let token = await this.entities.AuthToken.findFromSalt(EmptyContext, i);
+            let token = await inTx(EmptyContext, async (ctx) => await this.entities.AuthToken.findFromSalt(ctx, i));
             if (token && token.enabled !== false) {
                 res.push(token);
             } else {

@@ -77,7 +77,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
             awaiter = undefined;
         }
         await workLoop.stop();
-        await await LockRepository.releaseLock(EmptyContext, 'worker_' + config.name, config.version);
+        await await LockRepository.releaseLock(ctx, 'worker_' + config.name, config.version);
         logger.log(sctx, 'worker_' + config.name, 'stopped');
     };
 

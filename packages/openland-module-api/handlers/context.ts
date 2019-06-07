@@ -8,49 +8,52 @@ import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
 import { EmptyContext } from '@openland/context';
+import { inTx } from 'foundation-orm/inTx';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
 
 async function context(src: express.Request): Promise<AppContext> {
 
-    let res = EmptyContext;
-    let uid: number | undefined;
-    let tid: string | undefined;
-    let oid: number | undefined;
+    return await inTx(EmptyContext, async (ctx) => {
+        let res = EmptyContext;
+        let uid: number | undefined;
+        let tid: string | undefined;
+        let oid: number | undefined;
 
-    // User
-    if (src.user !== null && src.user !== undefined) {
-        if (typeof src.user.sub === 'string') {
-            uid = await Modules.Users.findUserByAuthId(EmptyContext, src.user.sub);
-            tid = src.user.sub;
-        } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'string') {
-            uid = src.user.uid;
-            tid = src.user.tid;
+        // User
+        if (src.user !== null && src.user !== undefined) {
+            if (typeof src.user.sub === 'string') {
+                uid = await Modules.Users.findUserByAuthId(ctx, src.user.sub);
+                tid = src.user.sub;
+            } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'string') {
+                uid = src.user.uid;
+                tid = src.user.tid;
+            }
         }
-    }
-    // Organization
-    if (uid) {
-        let accounts = await Modules.Orgs.findUserOrganizations(EmptyContext, uid);
+        // Organization
+        if (uid) {
+            let accounts = await Modules.Orgs.findUserOrganizations(ctx, uid);
 
-        // Default behaviour: pick the default one
-        if (accounts.length >= 1) {
-            oid = accounts[0];
+            // Default behaviour: pick the default one
+            if (accounts.length >= 1) {
+                oid = accounts[0];
 
-            let profile = await Modules.Users.profileById(EmptyContext, uid);
-            oid = (profile && profile.primaryOrganization) || oid;
+                let profile = await Modules.Users.profileById(ctx, uid);
+                oid = (profile && profile.primaryOrganization) || oid;
+            }
         }
-    }
 
-    // Auth Context
-    res = AuthContext.set(res, { tid, uid, oid });
+        // Auth Context
+        res = AuthContext.set(res, { tid, uid, oid });
 
-    // Tracing Context
-    res = TracingContext.set(res, { span: tracer.startSpan('http') });
-    res = CacheContext.set(res, new Map());
-    res = withReadOnlyTransaction(res);
-    
-    return new AppContext(res);
+        // Tracing Context
+        res = TracingContext.set(res, { span: tracer.startSpan('http') });
+        res = CacheContext.set(res, new Map());
+        res = withReadOnlyTransaction(res);
+
+        return new AppContext(res);
+    });
 }
 
 export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response) {
