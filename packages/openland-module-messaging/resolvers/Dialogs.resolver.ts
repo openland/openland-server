@@ -6,6 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 
 export default {
     Dialog: {
@@ -85,8 +86,31 @@ export default {
             if (args.first <= 0) {
                 return [];
             }
-            let res = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
-            return { ...res, cursor: res.haveMore ? res.cursor : undefined };
+
+            let allDialogs = [...(await FDB.UserDialog.allFromUser(ctx, uid))];
+            allDialogs = allDialogs.filter((a) => !!a.date);
+            allDialogs.sort((a, b) => -(a.date!! - b.date!!));
+
+            if (args.after) {
+                let dc = FKeyEncoding.decodeFromString(args.after);
+                let aft = dc[0] as number;
+                allDialogs = allDialogs.filter((v) => v.date! <= aft);
+            }
+
+            if (allDialogs.length <= args.first) {
+                return {
+                    items: allDialogs,
+                    cursor: undefined,
+                    hasMore: false
+                };
+            } else {
+                let cursor = FKeyEncoding.encodeKeyToString([allDialogs[args.first].date!]);
+                return {
+                    items: allDialogs.slice(0, args.first),
+                    cursor: cursor,
+                    hasMore: true
+                };
+            }
         }),
         alphaChats: withUser(async (ctx, args, uid) => {
             let global = await FDB.UserMessagingState.findById(ctx, uid);

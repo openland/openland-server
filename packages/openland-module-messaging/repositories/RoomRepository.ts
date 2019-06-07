@@ -946,9 +946,9 @@ export class RoomRepository {
             let isUserMember = userOrgs.indexOf(orgId) > -1;
 
             //
-            //  Add all rooms from communities
+            //  Add all rooms from communities if not private
             //
-            if (org.kind === 'community') {
+            if (org.kind === 'community' && !org.private) {
                 let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
                 rooms
                     .filter(r => (isChannel === undefined) || (!!r.isChannel === isChannel))

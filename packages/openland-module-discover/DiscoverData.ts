@@ -3,18 +3,18 @@ import { IDs } from 'openland-module-api/IDs';
 export type Tag = { id: string, title: string, score: number };
 export type TagGroup = { id: string, title?: string, subtitle?: string, tags: Tag[], score: number };
 
+// https://www.notion.so/openland/8db9400948ef4c7cb6ddf626c5cd87b6?v=cfb89c13d283453e8abba074f20ef469
 const _data = `Name,Link,Role,Founder_sub_1,Founder_sub_2,Engineer_sub,all triggers
 Score: 4 (in the end of recommendations list),,,,,,
 Founder Chats,https://openland.com/mail/p/ZYx4d9K6kjIZ5jo6r69zc4AX3v,Founder,,,,"Founder, "
 Founders · Random,https://openland.com/mail/3Ym4RrOAbxIMAa43Qv1WFDymz4,Founder,,,,"Founder, "
-Venture Capital,https://openland.com/directory/r/nqoZQV6zYQCmnRv19evPSMJPaE,Investor,,,,"Investor, "
-Accelerators,https://openland.com/directory/r/qljZr9WbgLiL6YK0gDO6faQVYV,Investor,,,,"Investor, "
+Investor Chats,https://next.openland.com/mail/mJvq41O5gEF61xQBMx6bikPKrE,Investor,,,,"Investor, "
 Product Chats,https://openland.com/mail/rAb139w0Mzc4XrgvdxvEH5DYRO,Product manager,,,,"Product manager, "
 Openland Tech,https://openland.com/mail/p/LOLqoerbADtq4xDP0dBzuwJwx3,Engineer,,,,"Engineer, "
 Engineer Chats,https://openland.com/mail/p/VywdDrg3byuRx0dqmyaRfrR7Pb,Engineer,,,,"Engineer, "
 Engineers · Random,https://openland.com/mail/p/Y96dY7aOP9UAMLbZpoAJHdqdKg,Engineer,,,,"Engineer, "
 Community Managers 😎,https://openland.com/mail/p/Rgq6MV7Q5gCb6r53E1koT7BMBZ,Community manager,,,,"Community manager, "
-Openland News,https://openland.com/mail/p/EQvPJ1LamRtJJ9ppVxDDs30Jzw,"Community manager,Designer,Engineer,Founder,Investor,Other roles,Product manager,Recruiter",,,,"Founder, Investor, Product manager, Engineer, Designer, Recruiter, Other roles, Community manager, "
+Openland News,https://openland.com/mail/p/EQvPJ1LamRtJJ9ppVxDDs30Jzw,"Community manager,Designer,Engineer,Founder,Investor,Other roles,Product manager,Recruiter",,,,"Founder, Investor, Product manager, Engineer, Designer, Recruiter, Community manager, Other roles, "
 ,,,,,,
 Score: 2,,,,,,
 Proptech,https://openland.com/mail/p/EQvPJ1LaODS1WAAx65wVI3m55l,,Proptech,,,
@@ -85,6 +85,12 @@ const groupMeta: { [group: string]: { score: number, title?: string, subtitle?: 
     'Engineer_sub': { score: 3, title: 'Tech expertise', subtitle: 'What are your areas of ​​expertise?' },
 };
 
+const tagMeta: { [tagId: string]: { sort: number } | undefined } = {
+    'Role_Founder': { sort: 10 },
+    'Role_Investor': { sort: 9 },
+    'Role_Other roles': { sort: 0 },
+};
+
 const tagToGroup: { [tag: string]: string[] } = {
     'Role_Engineer': ['Engineer_sub'],
     'Role_Founder': ['Founder_sub_1', 'Founder_sub_2'],
@@ -109,7 +115,6 @@ export class DiscoverData {
         }
         for (let i = 1; i < split.length; i++) {
             let line = this.csvToArray(split[i]);
-            // parse chat tags
             let tags: string[] = [];
 
             // fill tags groups
@@ -126,9 +131,18 @@ export class DiscoverData {
                     }
                     tags.push(tagId);
                 }
+
+                // sort tags by score from meta
+                group.tags.sort((a, b) => {
+                    let aMeta = tagMeta[a.id] || { sort: 1 };
+                    let bMeta = tagMeta[b.id] || { sort: 1 };
+                    return bMeta.sort - aMeta.sort;
+                });
             }
 
             let linkSplit = line[1].split('/');
+
+            // fill chat tags
             this.chats.push({ id: linkSplit[linkSplit.length - 1], tags });
         }
     }
