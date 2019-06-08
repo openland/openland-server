@@ -5,6 +5,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Message } from '../../openland-module-db/schema';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
+import { createLogger } from 'openland-log/createLogger';
 
 const Delays = {
     '15min': 15 * 60 * 1000,
@@ -13,10 +14,13 @@ const Delays = {
     '1week': 7 * 24 * 60 * 60 * 1000,
 };
 
+const log = createLogger('email');
+
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
         let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email'));
+        log.debug(parent, 'unread users: ' + unreadUsers.length);
         let now = Date.now();
         for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
