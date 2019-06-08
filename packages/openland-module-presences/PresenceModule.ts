@@ -11,8 +11,7 @@ import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
 import { getTransaction } from 'foundation-orm/getTransaction';
-import { EmptyContext, Context } from '@openland/context';
-import { withLogContext } from 'openland-log/withLogContext';
+import { Context, createNamedContext } from '@openland/context';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 // const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -31,7 +30,7 @@ export class PresenceModule {
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
     private localSub = new Pubsub<OnlineEvent>(false);
     private FDB: AllEntities = FDB;
-    private rootCtx = withLogContext(EmptyContext, ['presence']);
+    private rootCtx = createNamedContext('presence');
 
     start = (fdb?: AllEntities) => {
         // Nothing to do

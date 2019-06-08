@@ -3,14 +3,13 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx, inTxLeaky } from 'foundation-orm/inTx';
 import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
-import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { getTransaction } from 'foundation-orm/getTransaction';
-import { EmptyContext, Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
@@ -56,7 +55,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             awaiter = w.resolver;
             await w.promise;
         };
-        let root = withLogContext(EmptyContext, ['worker', this.taskType]);
+        let root = createNamedContext('worker-' + this.taskType);
         let workLoop = foreverBreakable(async () => {
             let task = await inTx(root, async (ctx) => {
                 let pend = await FDB.Task.rangeFromPending(ctx, this.taskType, 1);

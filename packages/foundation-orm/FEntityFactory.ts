@@ -158,7 +158,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         return new FStream(this, subspace, limit, (s, ctx) => this.doCreateEntity(ctx, s, false), after);
     }
     protected _createLiveStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): AsyncIterable<FLiveStreamItem<T>> {
-        return new FLiveStream<T>(new FStream(this, subspace, limit, (s, ctx2) => this.doCreateEntity(ctx2, s, false), after)).generator();
+        return new FLiveStream<T>(new FStream(this, subspace, limit, (s, ctx2) => this.doCreateEntity(ctx2, s, false), after)).generator(ctx);
     }
 
     protected async _findAll(ctx: Context, key: (string | number)[]) {

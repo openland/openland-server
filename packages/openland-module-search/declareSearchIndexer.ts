@@ -3,6 +3,7 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { Modules } from 'openland-modules/Modules';
 import { createLogger } from 'openland-log/createLogger';
+import { Context } from '@openland/context';
 
 const log = createLogger('indexer');
 
@@ -26,7 +27,7 @@ export class SearchIndexer<T extends FEntity> {
         return this;
     }
 
-    start(handler: (item: T) => Promise<{ id: string | number, doc: any } | null>) {
+    start(handler: (item: T, ctx: Context) => Promise<{ id: string | number, doc: any } | null>) {
         if (!Modules.Search.elastic.isWritable) {
             return;
         }
@@ -53,7 +54,7 @@ export class SearchIndexer<T extends FEntity> {
             let converted: any[] = [];
             for (let i of items) {
                 log.log(ctx, this.name, 'Indexing ' + i.rawId.join('.'));
-                let c = await handler(i);
+                let c = await handler(i, ctx);
                 if (c) {
                     converted.push({
                         index: {

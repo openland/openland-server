@@ -78,7 +78,7 @@ export default {
     Query: {
         conversationState: withUser(async (ctx, args, uid) => {
             let id = IDs.Conversation.parse(args.id);
-            let tail = await FDB.ConversationEvent.createUserStream(id, 1).tail();
+            let tail = await FDB.ConversationEvent.createUserStream(id, 1).tail(ctx);
             return {
                 state: tail
             };

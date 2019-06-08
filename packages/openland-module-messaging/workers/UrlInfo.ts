@@ -5,8 +5,8 @@ import { Modules } from 'openland-modules/Modules';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
-import { EmptyContext } from '@openland/context';
 import { URLAugmentation } from './UrlInfoService';
+import { createNamedContext } from '@openland/context';
 
 export interface URLInfo {
     url: string;
@@ -183,6 +183,8 @@ async function fetchRawURLInfo(url: string): Promise< { info: RawURLInfo, doc?: 
     };
 }
 
+const rootCtx = createNamedContext('url-info');
+
 async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     if (!params) {
         return null;
@@ -203,9 +205,9 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     if (imageURL) {
         imageURL = URL.resolve(url, imageURL);
         try {
-            let {file} = await Modules.Media.uploadFromUrl(EmptyContext, imageURL);
+            let {file} = await Modules.Media.uploadFromUrl(rootCtx, imageURL);
             imageRef = {uuid: file, crop: null};
-            imageInfo = await Modules.Media.fetchFileInfo(EmptyContext, file);
+            imageInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
         } catch (e) {
             console.warn('Cant fetch image ' + imageURL);
         }
@@ -216,9 +218,9 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
 
     if (iconURL) {
         try {
-            let {file} = await Modules.Media.uploadFromUrl(EmptyContext, iconURL);
+            let {file} = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
             iconRef = {uuid: file, crop: null};
-            iconInfo = await Modules.Media.fetchFileInfo(EmptyContext, file);
+            iconInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
         } catch (e) {
             console.warn('Cant fetch image ' + iconURL);
         }

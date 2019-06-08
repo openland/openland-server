@@ -39,7 +39,7 @@ export async function prepare() {
         // Init DB
         let connection = new FConnection(FConnection.create(), EventBus);
         let entities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(EmptyContext);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();
@@ -52,7 +52,7 @@ export async function prepare() {
         await FDB.connection.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
-        await loadAllModules(false);
+        await loadAllModules(EmptyContext, false);
 
         // Create entities
         await createUser(ctx, 'test1111@openland.com');

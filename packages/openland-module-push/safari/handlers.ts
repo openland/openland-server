@@ -3,10 +3,10 @@ import express from 'express';
 import { createLogger } from '../../openland-log/createLogger';
 import { Modules } from '../../openland-modules/Modules';
 import { resolve } from 'path';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 let log = createLogger('safari push');
-let ctx = EmptyContext;
+let ctx = createNamedContext('safari-push-handler');
 
 export function initSafariPush(app: Express) {
     app.post('/push/safari/v1/log', handleLog);

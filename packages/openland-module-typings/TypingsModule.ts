@@ -4,8 +4,7 @@ import { PubsubSubcription, Pubsub } from 'openland-module-pubsub/pubsub';
 import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
-import { EmptyContext, Context } from '@openland/context';
-import { withLogContext } from 'openland-log/withLogContext';
+import { Context, createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 @injectable()
@@ -15,7 +14,7 @@ export class TypingsModule {
     private debounce = debouncer(this.TIMEOUT);
     private cache = new Map<number, number[]>();
     private xPubSub = new Pubsub<TypingEvent>();
-    private rootCtx = withLogContext(EmptyContext, ['typings']);
+    private rootCtx = createNamedContext('typings');
 
     start = () => {
         setInterval(() => this.cache.clear(), 1000 * 30);

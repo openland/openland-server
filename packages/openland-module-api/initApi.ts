@@ -32,12 +32,13 @@ import { randomKey } from '../openland-utils/random';
 import * as url from 'url';
 import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
+const integrationCtx = createNamedContext('integration-ctx');
 
 export async function initApi(isTest: boolean) {
 
@@ -105,7 +106,7 @@ export async function initApi(isTest: boolean) {
     // Semaphore bot
     //
     app.post('/semaphorebot', bodyParser.json(), (async (req, res) => {
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(integrationCtx, async (ctx) => {
             let chatId = IDs.Conversation.parse('zoqLwdzr6VHelWZOR6JatW4aak');
             let botId = IDs.User.parse('vmM5pE5lQ4udYLr6AOLBhdQDJK');
             let data = req.body;
@@ -126,7 +127,7 @@ export async function initApi(isTest: boolean) {
         if (!authRaw || decode(authRaw!.split(' ')[1]) !== 'grfana:d138df93-758a-4e8c-be8f-e46ecf09eeb4') {
             throw new AccessDeniedError();
         }
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(integrationCtx, async (ctx) => {
             let chatId = IDs.Conversation.parse('M6Pl7R30rECQn7a9OP4MHrqYdo');
             let botId = IDs.User.parse('LOaDEWDjZQfjVm3P7Ro4CYgMAD');
             let data = req.body;

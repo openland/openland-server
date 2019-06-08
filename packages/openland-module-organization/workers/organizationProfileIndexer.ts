@@ -1,7 +1,6 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from '../../openland-modules/Modules';
-import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function organizationProfileIndexer() {
@@ -35,8 +34,8 @@ export function organizationProfileIndexer() {
                 type: 'integer'
             }
         })
-        .start(async (item) => {
-            return await inTx(EmptyContext, async (ctx) => {
+        .start(async (item, parent) => {
+            return await inTx(parent, async (ctx) => {
                 let org = (await FDB.Organization.findById(ctx, item.id))!;
                 let profile = (await (FDB.OrganizationProfile.findById(ctx, item.id)))!;
                 let editorial = (await FDB.OrganizationEditorial.findById(ctx, item.id))!;

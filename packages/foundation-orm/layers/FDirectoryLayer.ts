@@ -3,7 +3,7 @@ import { DirectoryAllocator } from './directory/DirectoryAllocator';
 import { FDirectory } from 'foundation-orm/FDirectory';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { createLogger } from 'openland-log/createLogger';
-import { EmptyContext } from '@openland/context';
+import { Context } from '@openland/context';
 
 const log = createLogger('directory-layer');
 
@@ -28,12 +28,12 @@ export class FDirectoryLayer {
         return this.directories.get(k)!;
     }
 
-    async ready() {
-        log.log(EmptyContext, 'Waiting for allocations');
+    async ready(ctx: Context) {
+        log.log(ctx, 'Waiting for allocations');
         for (let v of this.directories.values()) {
-            log.log(EmptyContext, 'Waiting for ' + v.key.join('.'));
+            log.log(ctx, 'Waiting for ' + v.key.join('.'));
             await v.ready();
         }
-        log.log(EmptyContext, 'Directory allocation completed');
+        log.log(ctx, 'Directory allocation completed');
     }
 }

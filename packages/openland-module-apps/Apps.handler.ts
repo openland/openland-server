@@ -4,7 +4,7 @@ import { inTx } from '../foundation-orm/inTx';
 import { Modules } from '../openland-modules/Modules';
 import * as bodyParser from 'body-parser';
 import { jBool, jField, json, JsonSchema, jString, validateJson } from '../openland-utils/jsonSchema';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 // import { jField, json, jString } from '../openland-utils/jsonSchema';
 
 const Errors = {
@@ -17,7 +17,7 @@ const sendError = (response: express.Response, error: { code: number, text: stri
     response.json({ ok: false, errorCode: error.code, errorText: error.text });
 };
 
-let parent = EmptyContext;
+let parent = createNamedContext('apps');
 
 function handler(schema: JsonSchema, h: (req: express.Request, response: express.Response) => any) {
     return (req: express.Request, response: express.Response) => {

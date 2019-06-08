@@ -1,6 +1,5 @@
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { FDB } from 'openland-module-db/FDB';
-import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function messagesIndexer() {
@@ -35,8 +34,8 @@ export function messagesIndexer() {
             },
 
         })
-        .start(async (item) => {
-            return await inTx(EmptyContext, async (ctx) => {
+        .start(async (item, parent) => {
+            return await inTx(parent, async (ctx) => {
                 let room = await FDB.Conversation.findById(ctx, item.cid);
                 let user = await FDB.UserProfile.findById(ctx, item.uid);
                 return {

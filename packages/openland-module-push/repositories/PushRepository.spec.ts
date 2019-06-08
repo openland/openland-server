@@ -19,7 +19,7 @@ describe('PushRepository', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         entities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(EmptyContext);
     });
 
     it('should register web push', async () => {

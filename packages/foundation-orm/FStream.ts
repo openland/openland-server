@@ -6,7 +6,7 @@ import { FTuple } from './encoding/FTuple';
 import { FEncoders } from './encoding/FEncoders';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { inTx } from './inTx';
-import { EmptyContext, Context } from '@openland/context';
+import { Context } from '@openland/context';
 
 export class FStream<T extends FEntity> {
     readonly factory: FEntityFactory<T>;
@@ -40,8 +40,8 @@ export class FStream<T extends FEntity> {
         this._cursor = '';
     }
 
-    async tail() {
-        let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: 1, reverse: true }));
+    async tail(parent: Context) {
+        let res = await inTx(parent, async (ctx) => await this.keySpace.range(ctx, [], { limit: 1, reverse: true }));
         if (res.length === 1) {
             return FKeyEncoding.encodeKeyToString(res[0].key);
         } else {
@@ -49,22 +49,22 @@ export class FStream<T extends FEntity> {
         }
     }
 
-    async next(): Promise<T[]> {
+    async next(parent: Context): Promise<T[]> {
         if (this._cursor && this._cursor !== '') {
 
             let fixedCursor = fixObsoleteCursor(FKeyEncoding.decodeFromString(this._cursor), this._subspace, []);
-            let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit, after: fixedCursor }));
+            let res = await inTx(parent, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit, after: fixedCursor }));
             let d: T[] = [];
             for (let r of res) {
-                d.push(this.builder(r.value, EmptyContext));
+                d.push(this.builder(r.value, parent));
                 this._cursor = FKeyEncoding.encodeKeyToString(r.key);
             }
             return d;
         } else {
-            let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit }));
+            let res = await inTx(parent, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit }));
             let d: T[] = [];
             for (let r of res) {
-                d.push(this.builder(r.value, EmptyContext));
+                d.push(this.builder(r.value, parent));
                 this._cursor = FKeyEncoding.encodeKeyToString(r.key);
             }
             return d;

@@ -2,9 +2,10 @@ import { FPubsub } from 'foundation-orm/FPubsub';
 import { createRedisClient, isRedisConfigured } from './redis/createRedisClient';
 import { backoff } from 'openland-utils/timer';
 import { createLogger } from 'openland-log/createLogger';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 const logger = createLogger('eventbus');
+const rootCtx = createNamedContext('eventbus');
 
 class EventBusImpl implements FPubsub {
     private readonly client = isRedisConfigured ? createRedisClient() : undefined;
@@ -73,7 +74,7 @@ class EventBusImpl implements FPubsub {
                 let index = subs.findIndex(s => s.listener === receiver);
 
                 if (index === -1) {
-                    logger.warn(EmptyContext, 'Double unsubscribe from event bus for topic ' + topic);
+                    logger.warn(rootCtx, 'Double unsubscribe from event bus for topic ' + topic);
                 } else {
                     subs.splice(index, 1);
                 }

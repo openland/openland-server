@@ -17,7 +17,7 @@ describe('atomics', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(EmptyContext);
     });
 
     it('should set and get', async () => {

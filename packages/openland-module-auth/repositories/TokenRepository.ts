@@ -6,7 +6,9 @@ import * as base64 from 'openland-utils/base64';
 import { inTx } from 'foundation-orm/inTx';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { EmptyContext, Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
+
+const rootCtx = createNamedContext('token-loader');
 
 @injectable()
 export class TokenRepository {
@@ -17,7 +19,7 @@ export class TokenRepository {
     private readonly loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
         let res: (AuthToken | null)[] = [];
         for (let i of tokens) {
-            let token = await inTx(EmptyContext, async (ctx) => await this.entities.AuthToken.findFromSalt(ctx, i));
+            let token = await inTx(rootCtx, async (ctx) => await this.entities.AuthToken.findFromSalt(ctx, i));
             if (token && token.enabled !== false) {
                 res.push(token);
             } else {

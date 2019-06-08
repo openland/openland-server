@@ -7,16 +7,18 @@ import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
 
+let rootContext = createNamedContext('http');
+
 async function context(src: express.Request): Promise<AppContext> {
 
-    return await inTx(EmptyContext, async (ctx) => {
-        let res = EmptyContext;
+    return await inTx(rootContext, async (ctx) => {
+        let res = rootContext;
         let uid: number | undefined;
         let tid: string | undefined;
         let oid: number | undefined;

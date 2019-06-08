@@ -1,6 +1,5 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function invitesIndexer() {
@@ -19,8 +18,8 @@ export function invitesIndexer() {
                 type: 'date'
             }
         })
-        .start(async (item) => {
-            let user = await inTx(EmptyContext, async (ctx) => await FDB.UserProfile.findById(ctx, item.creatorId));
+        .start(async (item, parent) => {
+            let user = await inTx(parent, async (ctx) => await FDB.UserProfile.findById(ctx, item.creatorId));
 
             return {
                 id: item.id!!,

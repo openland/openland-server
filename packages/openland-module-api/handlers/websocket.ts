@@ -3,12 +3,14 @@ import { Modules } from 'openland-modules/Modules';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 // import { withCache } from 'foundation-orm/withCache';
 
+let rootContext = createNamedContext('ws');
+
 export async function fetchWebSocketParameters(args: any, websocket: any) {
-    return await inTx(EmptyContext, async (ctx) => {
+    return await inTx(rootContext, async (ctx) => {
         let res: any = {};
         let token = args['x-openland-token'] as string | undefined;
         if (token) {
@@ -52,7 +54,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
 }
 
 export function buildWebSocketContext(args: any) {
-    let res = EmptyContext;
+    let res = rootContext;
     if (args.uid && args.tid) {
         res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
     }

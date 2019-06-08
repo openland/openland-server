@@ -1,6 +1,6 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { withLogContext } from 'openland-log/withLogContext';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 import { randomKey } from 'openland-utils/random';
 import { createLogger } from 'openland-log/createLogger';
 import { FEncoders } from 'foundation-orm/encoding/FEncoders';
@@ -9,7 +9,7 @@ import { FTuple } from 'foundation-orm/encoding/FTuple';
 import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-utils/timer';
 
-const rootCtx = withLogContext(EmptyContext, ['fdb-layers-node']);
+const rootCtx = withLogContext(createNamedContext('fdb-node-id'), ['fdb-layers-node']);
 const log = createLogger('node-id-layer');
 
 export class FNodeIDLayer {

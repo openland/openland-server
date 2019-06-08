@@ -43,13 +43,14 @@ import { loadOrganizationModule } from '../openland-module-organization/Organiza
 import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { loadCommentsModule } from '../openland-module-comments/CommentsModule.container';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
+import { Context } from '@openland/context';
 
-export async function loadAllModules(loadDb: boolean = true) {
+export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
         let connection = new FConnection(FConnection.create(), EventBus);
         let entities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(ctx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();

@@ -19,7 +19,7 @@ describe('ChannelRepository', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         entities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(EmptyContext);
     });
 
     it('should create links', async () => {

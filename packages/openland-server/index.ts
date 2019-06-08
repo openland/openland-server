@@ -19,9 +19,11 @@ if (process.env.NODE_ENV !== 'development') {
 import '../openland-utils/Shutdown';
 
 import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules';
+import { createNamedContext } from '@openland/context';
 async function initServer() {
     try {
-        await loadAllModules();
+        let ctx = createNamedContext('launcher');
+        await loadAllModules(ctx);
         await startAllModules();
     } catch (e) {
         console.error('Unable to init server');

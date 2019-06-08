@@ -5,6 +5,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NoOpBus } from './NoOpBus';
+import { EmptyContext } from '@openland/context';
 
 describe('Random', () => {
 
@@ -23,7 +24,7 @@ describe('Random', () => {
                 connections.push(new FConnection(db, NoOpBus));
             }
             for (let i = 0; i < 32; i++) {
-                await connections[i].ready();
+                await connections[i].ready(EmptyContext);
             }
             let idsv: number[] = [];
             for (let i = 0; i < connections.length; i++) {

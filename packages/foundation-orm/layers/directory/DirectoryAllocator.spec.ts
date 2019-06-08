@@ -2,6 +2,7 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { DirectoryAllocator } from './DirectoryAllocator';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { EmptyContext } from '@openland/context';
 
 describe('DirectoryAllocator', () => {
 
@@ -12,7 +13,7 @@ describe('DirectoryAllocator', () => {
             .at(FKeyEncoding.encodeKey(['_tests_allocator']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         connection = new FConnection(db, NoOpBus);
-        await connection.ready();
+        await connection.ready(EmptyContext);
     });
 
     it('should allocate ids correctly', async () => {

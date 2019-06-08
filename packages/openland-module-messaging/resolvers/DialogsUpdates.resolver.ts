@@ -132,7 +132,7 @@ export default {
 
     Query: {
         dialogsState: withUser(async (ctx, args, uid) => {
-            let tail = await FDB.UserDialogEvent.createUserStream(uid, 1).tail();
+            let tail = await FDB.UserDialogEvent.createUserStream(uid, 1).tail(ctx);
             return {
                 state: tail
             };
@@ -156,7 +156,7 @@ export default {
                     yield event;
                 }
                 if (!subscribeAfter) {
-                    subscribeAfter = await FDB.UserDialogEvent.createUserStream(ctx.auth.uid!, 1).tail();
+                    subscribeAfter = await FDB.UserDialogEvent.createUserStream(ctx.auth.uid!, 1).tail(ctx);
                 }
 
                 // start subscription from last known event

@@ -2,7 +2,7 @@ import geoIpv4 from './geo_ip_v4.json';
 import request from 'request';
 import countries from './countries.json';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 // [fromIp, toIp, location_code, location_name]
 export type GeoIPRecord = [number, number, string, string];
@@ -23,8 +23,10 @@ export async function geoIP(ip: string): Promise<GeoIPResponse> {
 
 const IPStackCache = new CacheRepository<any>('ipstack');
 
+const rootCtx = createNamedContext('ipstack');
+
 async function fetchIPStack(ip: string): Promise<any> {
-    let cached = await IPStackCache.read(EmptyContext, ip);
+    let cached = await IPStackCache.read(rootCtx, ip);
 
     if (cached) {
         return cached;
@@ -32,7 +34,7 @@ async function fetchIPStack(ip: string): Promise<any> {
 
     let data = await ipStackCall(ip);
 
-    await IPStackCache.write(EmptyContext, ip, data);
+    await IPStackCache.write(rootCtx, ip, data);
 
     return data;
 }

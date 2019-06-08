@@ -3,6 +3,8 @@ import { FEntity } from './FEntity';
 import { delayBreakable } from 'openland-utils/timer';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FPubsubSubcription } from './FPubsub';
+import { Context } from '@openland/context';
+import { withoutTransaction } from './withoutTransaction';
 
 export class FLiveStream<T extends FEntity> {
     private readonly baseStream: FStream<T>;
@@ -23,20 +25,21 @@ export class FLiveStream<T extends FEntity> {
         });
     }
 
-    generator(): AsyncIterable<FLiveStreamItem<T>> {
+    generator(parent: Context): AsyncIterable<FLiveStreamItem<T>> {
         let t = this;
+        let ctx = withoutTransaction(parent); // Clear transaction information since live stream manage transactions by itself
         return {
             [Symbol.asyncIterator]() {
                 return {
                     ...(async function* func() {
                         if (!t.baseStream.cursor) {
-                            let tail = await t.baseStream.tail();
+                            let tail = await t.baseStream.tail(ctx);
                             if (tail) {
                                 t.baseStream.seek(tail);
                             }
                         }
                         while (!t.ended) {
-                            let res = await t.baseStream.next();
+                            let res = await t.baseStream.next(ctx);
                             if (res.length > 0) {
                                 yield { items: res, cursor: t.baseStream.cursor };
                             } else {

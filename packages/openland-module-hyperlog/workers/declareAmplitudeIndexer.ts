@@ -2,7 +2,6 @@ import { updateReader } from 'openland-module-workers/updateReader';
 import { FDB } from 'openland-module-db/FDB';
 import request, { Response } from 'request';
 import { inTx } from '../../foundation-orm/inTx';
-import { EmptyContext } from '@openland/context';
 
 const AMPLITUDE_TEST_KEY = '158a2c0e7619751c92cdf1943462a44e';
 const AMPLITUDE_KEY = process.env.AMPLITUDE_KEY;
@@ -32,8 +31,8 @@ const saveEvents = async (events: any[], isProd: boolean) => {
 
 export function declareAmplitudeIndexer() {
     if (process.env.AMPLITUDE_KEY) {
-        updateReader('amplitude-indexer', 3, FDB.HyperLog.createUserEventsStream(50), async (items) => {
-            await inTx(EmptyContext, async (ctx) => {
+        updateReader('amplitude-indexer', 3, FDB.HyperLog.createUserEventsStream(50), async (items, first, parent) => {
+            await inTx(parent, async (ctx) => {
                 const mapEvent = (body: any) => {
                     let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android' | 'iOS' | 'WEB', isProd: boolean, time: number };
                     return {

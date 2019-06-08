@@ -2,11 +2,10 @@ import { updateReader } from 'openland-module-workers/updateReader';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
-import { EmptyContext } from '@openland/context';
 
 export function startConnectionsIndexer() {
-    updateReader('user_connections', 3, FDB.Message.createUpdatedStream(50), async (items) => {
-        await inTx(EmptyContext, async (ctx) => {
+    updateReader('user_connections', 3, FDB.Message.createUpdatedStream(50), async (items, first, parent) => {
+        await inTx(parent, async (ctx) => {
             for (let i of items) {
                 let pr = await FDB.ConversationPrivate.findById(ctx, i.cid);
                 if (pr) {

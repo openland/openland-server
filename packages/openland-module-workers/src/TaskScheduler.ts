@@ -3,14 +3,13 @@ import { LockRepository } from 'openland-module-sync/LockRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
-import { withLogContext } from 'openland-log/withLogContext';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
-            let root = withLogContext(EmptyContext, ['modern-scheduler']);
+            let root = createNamedContext('task-scheduler');
             forever(async () => {
 
                 // Prerequisites

@@ -21,7 +21,7 @@ describe('FWatch', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(EmptyContext);
         FWatch.POOL_TIMEOUT = 10;
     });
 

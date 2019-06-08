@@ -8,6 +8,7 @@ import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
 import { FDirectoryLayer } from './layers/FDirectoryLayer';
 import { FNodeIDLayer } from './layers/FNodeIDLayer';
+import { Context } from '@openland/context';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
@@ -45,8 +46,8 @@ export class FConnection {
         this.nodeIdLayer = new FNodeIDLayer(this);
     }
 
-    async ready() {
-        await this.directories.ready();
+    async ready(ctx: Context) {
+        await this.directories.ready(ctx);
         await this.nodeIdLayer.ready();
     }
 

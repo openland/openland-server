@@ -9,7 +9,9 @@ import { AuthCodeSession } from 'openland-module-db/schema';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { FDB } from 'openland-module-db/FDB';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
+
+const rootCtx = createNamedContext('auth-email');
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -93,7 +95,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         phone,
         session
     } = req.body;
-    await inTx(EmptyContext, async (ctx) => {
+    await inTx(rootCtx, async (ctx) => {
         let authSession: AuthCodeSession | undefined;
         if (session) {
             if (!checkSession(session)) {
@@ -177,7 +179,7 @@ export async function checkCode(req: express.Request, response: express.Response
         return;
     }
 
-    let res = await inTx(EmptyContext, async (ctx) => {
+    let res = await inTx(rootCtx, async (ctx) => {
         let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
         // No session found
@@ -228,7 +230,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
         return;
     }
 
-    await inTx(EmptyContext, async (ctx) => {
+    await inTx(rootCtx, async (ctx) => {
         let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
         // No session found

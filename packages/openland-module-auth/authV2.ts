@@ -7,7 +7,9 @@ import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
+
+const rootContext = createNamedContext('auth-v2');
 
 //
 // Main JWT verifier
@@ -41,7 +43,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
     try {
         let accessToken = fetchKeyFromRequest(req, 'x-openland-token');
         if (accessToken) {
-            let uid = await inTx(EmptyContext, async (ctx) => await Modules.Auth.findToken(ctx, accessToken as string));
+            let uid = await inTx(rootContext, async (ctx) => await Modules.Auth.findToken(ctx, accessToken as string));
             if (uid !== null) {
                 req.user = { uid: uid.uid, tid: uid.uuid };
             }
@@ -93,7 +95,7 @@ export const Authenticator = async function (req: express.Request, response: exp
         //
         // Get Or Create User
         //
-        let uid = await inTx(EmptyContext, async (ctx) => {
+        let uid = await inTx(rootContext, async (ctx) => {
             let userKey = req.user.sub;
 
             // Account
@@ -117,7 +119,7 @@ export const Authenticator = async function (req: express.Request, response: exp
         // Create New Token
         //
 
-        let token = await Modules.Auth.createToken(EmptyContext, uid);
+        let token = await Modules.Auth.createToken(rootContext, uid);
 
         response.json({ ok: true, token: token.salt });
     } catch (e) {

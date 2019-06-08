@@ -1,16 +1,26 @@
 import { SLog } from '../SLog';
 import winston from 'winston';
-import { Context } from '@openland/context';
+import { Context, ContextName } from '@openland/context';
 import { SLogContext } from './SLogContext';
 import { AnyFighter } from 'openland-utils/anyfighter';
 
 const logger = winston.createLogger({
     level: 'debug',
-    format: winston.format.simple(),
+    format: winston.format.combine(
+        winston.format.simple(),
+        winston.format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss'
+        })
+    ),
     transports: [
         new winston.transports.Console(),
     ]
 });
+
+function formatMessage(ctx: Context, name: string, message: any, optionalParams: any[]) {
+    let v = SLogContext.get(ctx);
+    return ContextName.get(ctx) + ' | ' + [...v.path, name].join(' ') + ': ' + [message, ...optionalParams].join(' ');
+}
 
 export class SLogImpl implements SLog {
     private readonly name: string;
@@ -28,7 +38,8 @@ export class SLogImpl implements SLog {
             if (v.disabled) {
                 return;
             }
-            logger.info([...v.path].join(' ') + ' | ' + this.name + ': ' + [message, ...optionalParams].join(' '));
+
+            logger.info(formatMessage(ctx, this.name, message, optionalParams));
         }
     }
 
@@ -39,17 +50,18 @@ export class SLogImpl implements SLog {
                 if (v.disabled) {
                     return;
                 }
-                logger.debug([...v.path].join(' ') + ' | ' + this.name + ': ' + [message, ...optionalParams].join(' '));
+
+                logger.debug(formatMessage(ctx, this.name, message, optionalParams));
             }
         }
     }
     warn = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
-        let v = SLogContext.get(ctx);
+        // let v = SLogContext.get(ctx);
         if (this.enabled) {
             // if (v.disabled) {
             //     return;
             // }
-            logger.warn([...v.path].join(' ') + ' | ' + this.name + ': ' + [message, ...optionalParams].join(' '));
+            logger.warn(formatMessage(ctx, this.name, message, optionalParams));
         }
     }
 }

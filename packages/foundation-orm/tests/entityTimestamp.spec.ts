@@ -20,7 +20,7 @@ describe('FEntity Timestamped', () => {
         let connection = new FConnection(db, NoOpBus);
         await db.clearRange(FKeyEncoding.encodeKey([]));
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready();
+        await connection.ready(EmptyContext);
     });
 
     it('should create with correct timestamps', async () => {
