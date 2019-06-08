@@ -4,7 +4,7 @@ import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 4, 'mesage', FDB.Message.createUpdatedStream(EmptyContext, 50))
+    declareSearchIndexer('message-index', 4, 'mesage', FDB.Message.createUpdatedStream(50))
         .withProperties({
             id: {
                 type: 'integer'

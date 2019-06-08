@@ -5,7 +5,7 @@ import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function userProfileIndexer() {
-    declareSearchIndexer('user-profile-index', 16, 'user_profile', FDB.UserIndexingQueue.createUpdatedStream(EmptyContext, 50))
+    declareSearchIndexer('user-profile-index', 16, 'user_profile', FDB.UserIndexingQueue.createUpdatedStream(50))
         .withProperties({
             primaryOrganization: {
                 type: 'keyword'

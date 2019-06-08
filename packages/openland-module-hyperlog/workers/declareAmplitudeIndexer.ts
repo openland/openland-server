@@ -32,7 +32,7 @@ const saveEvents = async (events: any[], isProd: boolean) => {
 
 export function declareAmplitudeIndexer() {
     if (process.env.AMPLITUDE_KEY) {
-        updateReader('amplitude-indexer', 3, FDB.HyperLog.createUserEventsStream(EmptyContext, 50), async (items) => {
+        updateReader('amplitude-indexer', 3, FDB.HyperLog.createUserEventsStream(50), async (items) => {
             await inTx(EmptyContext, async (ctx) => {
                 const mapEvent = (body: any) => {
                     let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android' | 'iOS' | 'WEB', isProd: boolean, time: number };

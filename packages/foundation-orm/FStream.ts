@@ -6,17 +6,17 @@ import { FTuple } from './encoding/FTuple';
 import { FEncoders } from './encoding/FEncoders';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { inTx } from './inTx';
-import { EmptyContext } from '@openland/context';
+import { EmptyContext, Context } from '@openland/context';
 
 export class FStream<T extends FEntity> {
     readonly factory: FEntityFactory<T>;
     private readonly limit: number;
-    private readonly builder: (val: any) => T;
+    private readonly builder: (val: any, ctx: Context) => T;
     private _subspace: FTuple[];
     private keySpace: FSubspace<FTuple[], any>;
     private _cursor: string;
 
-    constructor(factory: FEntityFactory<T>, subspace: FTuple[], limit: number, builder: (val: any) => T, after?: string) {
+    constructor(factory: FEntityFactory<T>, subspace: FTuple[], limit: number, builder: (val: any, ctx: Context) => T, after?: string) {
         this._subspace = subspace;
         this._cursor = after || '';
         this.keySpace = factory.connection.keySpace
@@ -56,7 +56,7 @@ export class FStream<T extends FEntity> {
             let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit, after: fixedCursor }));
             let d: T[] = [];
             for (let r of res) {
-                d.push(this.builder(r.value));
+                d.push(this.builder(r.value, EmptyContext));
                 this._cursor = FKeyEncoding.encodeKeyToString(r.key);
             }
             return d;
@@ -64,7 +64,7 @@ export class FStream<T extends FEntity> {
             let res = await inTx(EmptyContext, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit }));
             let d: T[] = [];
             for (let r of res) {
-                d.push(this.builder(r.value));
+                d.push(this.builder(r.value, EmptyContext));
                 this._cursor = FKeyEncoding.encodeKeyToString(r.key);
             }
             return d;

@@ -335,8 +335,8 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     async allFromDefault(ctx: Context, data1: string, data2: string) {
         return await this._findAll(ctx, ['__indexes', 'default', data1, data2]);
     }
-    createDefaultStream(ctx: Context, data1: string, data2: string, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'indexedEntity', '__indexes', 'default', data1, data2], limit, after); 
+    createDefaultStream(data1: string, data2: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'indexedEntity', '__indexes', 'default', data1, data2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new IndexedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
@@ -447,8 +447,8 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     async allFromDefault(ctx: Context, data1: string) {
         return await this._findAll(ctx, ['__indexes', 'default', data1]);
     }
-    createDefaultStream(ctx: Context, data1: string, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
+    createDefaultStream(data1: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new IndexedRangeEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
@@ -562,8 +562,8 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     async allFromDefault(ctx: Context, data1: string, data2: string) {
         return await this._findAll(ctx, ['__indexes', 'default', data1, data2]);
     }
-    createDefaultStream(ctx: Context, data1: string, data2: string, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'indexedPartialEntity', '__indexes', 'default', data1, data2], limit, after); 
+    createDefaultStream(data1: string, data2: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'indexedPartialEntity', '__indexes', 'default', data1, data2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new IndexedPartialEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
@@ -716,8 +716,8 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
     async allFromDefault(ctx: Context, key: number) {
         return await this._findAll(ctx, ['__indexes', 'default', key]);
     }
-    createDefaultStream(ctx: Context, key: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'rangeTest', '__indexes', 'default', key], limit, after); 
+    createDefaultStream(key: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'rangeTest', '__indexes', 'default', key], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
@@ -829,8 +829,8 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
     async allFromNonUnique(ctx: Context, subId1: number) {
         return await this._findAll(ctx, ['__indexes', 'nonUnique', subId1]);
     }
-    createNonUniqueStream(ctx: Context, subId1: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'complexRangeTest', '__indexes', 'nonUnique', subId1], limit, after); 
+    createNonUniqueStream(subId1: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'complexRangeTest', '__indexes', 'nonUnique', subId1], limit, after); 
     }
     async findFromUnique(ctx: Context, subId1: number, subId2: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'unique', subId1, subId2]);
@@ -850,8 +850,8 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
     async allFromUnique(ctx: Context, subId1: number) {
         return await this._findAll(ctx, ['__indexes', 'unique', subId1]);
     }
-    createUniqueStream(ctx: Context, subId1: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'complexRangeTest', '__indexes', 'unique', subId1], limit, after); 
+    createUniqueStream(subId1: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'complexRangeTest', '__indexes', 'unique', subId1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ComplexRangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ComplexRangeTest');

@@ -7,7 +7,7 @@ import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 
-const log = createLogger('tx', false);
+const log = createLogger('tx');
 
 async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
     let ex = FTransactionContext.get(ctx);
@@ -26,6 +26,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
 
     let start = currentTime();
     // Implementation is copied from database.js from foundationdb library.
+    log.log(ctx, 'start tx');
     try {
         let isRetry = false;
         do {
@@ -39,7 +40,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
             } catch (err) {
                 if (err instanceof FDBError) {
                     await tx.handleError(err.code);
-                    log.debug(ctxi, 'retry with code ' + err.code);
+                    log.log(ctxi, 'retry with code ' + err.code);
                     isRetry = true;
                 } else {
                     throw err;
@@ -47,7 +48,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
             }
         } while (true);
     } finally {
-        log.debug(ctx, 'full tx time: ' + (currentTime() - start) + ' ms');
+        log.log(ctx, 'full tx time: ' + (currentTime() - start) + ' ms');
     }
 }
 

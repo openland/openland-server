@@ -1,9 +1,8 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { EmptyContext } from '@openland/context';
 
 export function declareHyperlogIndexer() {
-    declareSearchIndexer('hyperlog', 1, 'hyperlog', FDB.HyperLog.createCreatedStream(EmptyContext, 5000))
+    declareSearchIndexer('hyperlog', 1, 'hyperlog', FDB.HyperLog.createCreatedStream(5000))
         .withProperties({
             type: {
                 type: 'keyword'

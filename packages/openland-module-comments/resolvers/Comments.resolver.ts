@@ -19,7 +19,7 @@ export default {
             }
         },
         state: async (src, args, ctx) => {
-            let tail = await FDB.CommentEvent.createUserStream(ctx, src.peerType, src.peerId, 1).tail();
+            let tail = await FDB.CommentEvent.createUserStream(src.peerType, src.peerId, 1).tail();
             return {state: tail};
         },
         count: src => src.comments.length,

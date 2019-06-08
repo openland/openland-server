@@ -5,7 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { EmptyContext } from '@openland/context';
 
 export function startConnectionsIndexer() {
-    updateReader('user_connections', 3, FDB.Message.createUpdatedStream(EmptyContext, 50), async (items) => {
+    updateReader('user_connections', 3, FDB.Message.createUpdatedStream(50), async (items) => {
         await inTx(EmptyContext, async (ctx) => {
             for (let i of items) {
                 let pr = await FDB.ConversationPrivate.findById(ctx, i.cid);

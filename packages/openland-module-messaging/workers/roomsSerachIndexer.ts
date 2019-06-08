@@ -5,7 +5,7 @@ import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(EmptyContext, 50))
+    declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(50))
         .withProperties({
             cid: {
                 type: 'integer'

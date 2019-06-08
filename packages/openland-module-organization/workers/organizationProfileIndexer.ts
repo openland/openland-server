@@ -5,7 +5,7 @@ import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function organizationProfileIndexer() {
-    declareSearchIndexer('organization-profile-index', 8, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(EmptyContext, 50))
+    declareSearchIndexer('organization-profile-index', 8, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(50))
         .withProperties({
             name: {
                 type: 'text'

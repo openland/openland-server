@@ -378,8 +378,8 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'presence', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'presence', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Presence(ctx, this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
@@ -502,8 +502,8 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     async allFromSalt(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'salt']);
     }
-    createSaltStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'salt'], limit, after); 
+    createSaltStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'authToken', '__indexes', 'salt'], limit, after); 
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
@@ -520,8 +520,8 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'authToken', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AuthToken(ctx, this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
@@ -611,8 +611,8 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     async allFromFromService(ctx: Context, service: string) {
         return await this._findAll(ctx, ['__indexes', 'fromService', service]);
     }
-    createFromServiceStream(ctx: Context, service: string, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'serviceCache', '__indexes', 'fromService', service], limit, after); 
+    createFromServiceStream(service: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'serviceCache', '__indexes', 'fromService', service], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ServiceCache(ctx, this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
@@ -904,8 +904,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromPending(ctx: Context, taskType: string) {
         return await this._findAll(ctx, ['__indexes', 'pending', taskType]);
     }
-    createPendingStream(ctx: Context, taskType: string, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'task', '__indexes', 'pending', taskType], limit, after); 
+    createPendingStream(taskType: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'task', '__indexes', 'pending', taskType], limit, after); 
     }
     async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'executing'], limit, reversed);
@@ -916,8 +916,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromExecuting(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'executing']);
     }
-    createExecutingStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'task', '__indexes', 'executing'], limit, after); 
+    createExecutingStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'task', '__indexes', 'executing'], limit, after); 
     }
     async rangeFromFailing(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'failing'], limit, reversed);
@@ -928,8 +928,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromFailing(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'failing']);
     }
-    createFailingStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'task', '__indexes', 'failing'], limit, after); 
+    createFailingStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'task', '__indexes', 'failing'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Task(ctx, this.connection, this.namespace, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
@@ -1136,8 +1136,8 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(ctx: Context, token: string) {
         return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
@@ -1151,8 +1151,8 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async allFromToken(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'token']);
     }
-    createTokenStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
+    createTokenStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushFirebase(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
@@ -1359,8 +1359,8 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(ctx: Context, token: string) {
         return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
@@ -1374,8 +1374,8 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async allFromToken(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'token']);
     }
-    createTokenStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushApple', '__indexes', 'token'], limit, after); 
+    createTokenStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushApple', '__indexes', 'token'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushApple(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
@@ -1556,8 +1556,8 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
     }
     async findFromEndpoint(ctx: Context, endpoint: string) {
         return await this._findFromIndex(ctx, ['__indexes', 'endpoint', endpoint]);
@@ -1571,8 +1571,8 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     async allFromEndpoint(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'endpoint']);
     }
-    createEndpointStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
+    createEndpointStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushWeb(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
@@ -1766,8 +1766,8 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushSafari', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushSafari', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(ctx: Context, token: string) {
         return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
@@ -1781,8 +1781,8 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
     async allFromToken(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'token']);
     }
-    createTokenStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'pushSafari', '__indexes', 'token'], limit, after); 
+    createTokenStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushSafari', '__indexes', 'token'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushSafari(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
@@ -2044,8 +2044,8 @@ export class UserFactory extends FEntityFactory<User> {
     async allFromAuthId(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'authId']);
     }
-    createAuthIdStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'user', '__indexes', 'authId'], limit, after); 
+    createAuthIdStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'user', '__indexes', 'authId'], limit, after); 
     }
     async findFromEmail(ctx: Context, email: string) {
         return await this._findFromIndex(ctx, ['__indexes', 'email', email]);
@@ -2059,8 +2059,8 @@ export class UserFactory extends FEntityFactory<User> {
     async allFromEmail(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'email']);
     }
-    createEmailStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'user', '__indexes', 'email'], limit, after); 
+    createEmailStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'user', '__indexes', 'email'], limit, after); 
     }
     async allFromOwnerAfter(ctx: Context, botOwner: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'owner', botOwner], after);
@@ -2077,8 +2077,8 @@ export class UserFactory extends FEntityFactory<User> {
     async allFromOwner(ctx: Context, botOwner: number) {
         return await this._findAll(ctx, ['__indexes', 'owner', botOwner]);
     }
-    createOwnerStream(ctx: Context, botOwner: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'user', '__indexes', 'owner', botOwner], limit, after); 
+    createOwnerStream(botOwner: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'user', '__indexes', 'owner', botOwner], limit, after); 
     }
     async rangeFromSuperBots(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'superBots'], limit, reversed);
@@ -2089,8 +2089,8 @@ export class UserFactory extends FEntityFactory<User> {
     async allFromSuperBots(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'superBots']);
     }
-    createSuperBotsStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'user', '__indexes', 'superBots'], limit, after); 
+    createSuperBotsStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'user', '__indexes', 'superBots'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
@@ -2335,8 +2335,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     async allFromByUpdatedAt(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'byUpdatedAt']);
     }
-    createByUpdatedAtStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
+    createByUpdatedAtStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
@@ -2402,8 +2402,8 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userIndexingQueue', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userIndexingQueue', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
@@ -2535,8 +2535,8 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
     async allFromCommunity(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'community']);
     }
-    createCommunityStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organization', '__indexes', 'community'], limit, after); 
+    createCommunityStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'organization', '__indexes', 'community'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Organization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
@@ -2855,8 +2855,8 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationIndexingQueue', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationIndexingQueue', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
@@ -2977,8 +2977,8 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     async allFromIds(ctx: Context, oid: number) {
         return await this._findAll(ctx, ['__indexes', 'ids', oid]);
     }
-    createIdsStream(ctx: Context, oid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'ids', oid], limit, after); 
+    createIdsStream(oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'ids', oid], limit, after); 
     }
     async allFromOrganizationAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', status, oid], after);
@@ -2995,8 +2995,8 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     async allFromOrganization(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number) {
         return await this._findAll(ctx, ['__indexes', 'organization', status, oid]);
     }
-    createOrganizationStream(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
+    createOrganizationStream(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
     }
     async allFromUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'user', status, uid], after);
@@ -3013,8 +3013,8 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     async allFromUser(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', status, uid]);
     }
-    createUserStream(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
+    createUserStream(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationMember(ctx, this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
@@ -3195,8 +3195,8 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     async allFromOrganization(ctx: Context, organizationId: number) {
         return await this._findAll(ctx, ['__indexes', 'organization', organizationId]);
     }
-    createOrganizationStream(ctx: Context, organizationId: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
+    createOrganizationStream(organizationId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationFeatures(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
@@ -3601,8 +3601,8 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     async allFromUser(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'user']);
     }
-    createUserStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
     }
     async findFromOrg(ctx: Context, ownerId: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'org', ownerId]);
@@ -3616,8 +3616,8 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     async allFromOrg(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'org']);
     }
-    createOrgStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
+    createOrgStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ShortnameReservation(ctx, this.connection, this.namespace, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
@@ -3947,8 +3947,8 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
     async allFromUsers(ctx: Context, uid1: number) {
         return await this._findAll(ctx, ['__indexes', 'users', uid1]);
     }
-    createUsersStream(ctx: Context, uid1: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conversationPrivate', '__indexes', 'users', uid1], limit, after); 
+    createUsersStream(uid1: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationPrivate', '__indexes', 'users', uid1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationPrivate(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
@@ -4030,8 +4030,8 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
     async allFromOrganization(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'organization']);
     }
-    createOrganizationStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conversationOrganization', '__indexes', 'organization'], limit, after); 
+    createOrganizationStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationOrganization', '__indexes', 'organization'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationOrganization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
@@ -4181,8 +4181,8 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
     async allFromOrganization(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'organization']);
     }
-    createOrganizationStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
+    createOrganizationStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
     }
     async findFromOrganizationPublicRooms(ctx: Context, oid: number, id: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'organizationPublicRooms', oid, id]);
@@ -4202,8 +4202,8 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
     async allFromOrganizationPublicRooms(ctx: Context, oid: number) {
         return await this._findAll(ctx, ['__indexes', 'organizationPublicRooms', oid]);
     }
-    createOrganizationPublicRoomsStream(ctx: Context, oid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conversationRoom', '__indexes', 'organizationPublicRooms', oid], limit, after); 
+    createOrganizationPublicRoomsStream(oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organizationPublicRooms', oid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
@@ -4392,8 +4392,8 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'roomProfile', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'roomProfile', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RoomProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
@@ -4513,8 +4513,8 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     async allFromActive(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'active', cid]);
     }
-    createActiveStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
+    createActiveStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
     }
     async findFromRequests(ctx: Context, cid: number, uid: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'requests', cid, uid]);
@@ -4534,8 +4534,8 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     async allFromRequests(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'requests', cid]);
     }
-    createRequestsStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
+    createRequestsStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
     }
     async findFromUserActive(ctx: Context, uid: number, cid: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'userActive', uid, cid]);
@@ -4555,8 +4555,8 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     async allFromUserActive(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'userActive', uid]);
     }
-    createUserActiveStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
+    createUserActiveStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
@@ -4648,8 +4648,8 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
     async allFromConversation(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'conversation', cid]);
     }
-    createConversationStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
+    createConversationStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationReceiver(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
@@ -5275,8 +5275,8 @@ export class MessageFactory extends FEntityFactory<Message> {
     async allFromChat(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'chat', cid]);
     }
-    createChatStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'message', '__indexes', 'chat', cid], limit, after); 
+    createChatStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'message', '__indexes', 'chat', cid], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
@@ -5287,8 +5287,8 @@ export class MessageFactory extends FEntityFactory<Message> {
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'message', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'message', '__indexes', 'updated'], limit, after); 
     }
     async findFromRepeat(ctx: Context, uid: number, cid: number, repeatKey: string) {
         return await this._findFromIndex(ctx, ['__indexes', 'repeat', uid, cid, repeatKey]);
@@ -5308,8 +5308,8 @@ export class MessageFactory extends FEntityFactory<Message> {
     async allFromRepeat(ctx: Context, uid: number, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'repeat', uid, cid]);
     }
-    createRepeatStream(ctx: Context, uid: number, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'message', '__indexes', 'repeat', uid, cid], limit, after); 
+    createRepeatStream(uid: number, cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'message', '__indexes', 'repeat', uid, cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
@@ -5683,8 +5683,8 @@ export class CommentFactory extends FEntityFactory<Comment> {
     async allFromPeer(ctx: Context, peerType: 'message', peerId: number) {
         return await this._findAll(ctx, ['__indexes', 'peer', peerType, peerId]);
     }
-    createPeerStream(ctx: Context, peerType: 'message', peerId: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'comment', '__indexes', 'peer', peerType, peerId], limit, after); 
+    createPeerStream(peerType: 'message', peerId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'comment', '__indexes', 'peer', peerType, peerId], limit, after); 
     }
     async allFromChildAfter(ctx: Context, parentCommentId: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'child', parentCommentId], after);
@@ -5701,8 +5701,8 @@ export class CommentFactory extends FEntityFactory<Comment> {
     async allFromChild(ctx: Context, parentCommentId: number) {
         return await this._findAll(ctx, ['__indexes', 'child', parentCommentId]);
     }
-    createChildStream(ctx: Context, parentCommentId: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'comment', '__indexes', 'child', parentCommentId], limit, after); 
+    createChildStream(parentCommentId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'comment', '__indexes', 'child', parentCommentId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Comment(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
@@ -5965,8 +5965,8 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
     async allFromUser(ctx: Context, peerType: string, peerId: number) {
         return await this._findAll(ctx, ['__indexes', 'user', peerType, peerId]);
     }
-    createUserStream(ctx: Context, peerType: string, peerId: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
+    createUserStream(peerType: string, peerId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
     }
     createUserLiveStream(ctx: Context, peerType: string, peerId: number, limit: number, after?: string) {
         return this._createLiveStream(ctx, ['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
@@ -6153,8 +6153,8 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
     async allFromUser(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', cid]);
     }
-    createUserStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+    createUserStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
     }
     createUserLiveStream(ctx: Context, cid: number, limit: number, after?: string) {
         return this._createLiveStream(ctx, ['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
@@ -6345,8 +6345,8 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
     }
     async findFromConversation(ctx: Context, cid: number, uid: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'conversation', cid, uid]);
@@ -6366,8 +6366,8 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     async allFromConversation(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'conversation', cid]);
     }
-    createConversationStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userDialog', '__indexes', 'conversation', cid], limit, after); 
+    createConversationStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'conversation', cid], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
@@ -6378,8 +6378,8 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userDialog', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserDialog(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
@@ -6712,8 +6712,8 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
     }
     createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
         return this._createLiveStream(ctx, ['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
@@ -6864,8 +6864,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
     async allFromHasUnread(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'hasUnread']);
     }
-    createHasUnreadStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
+    createHasUnreadStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserMessagingState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
@@ -7095,8 +7095,8 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     async allFromCreated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'created']);
     }
-    createCreatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
+    createCreatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
     }
     async rangeFromUserEvents(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'userEvents'], limit, reversed);
@@ -7107,8 +7107,8 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     async allFromUserEvents(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'userEvents']);
     }
-    createUserEventsStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'userEvents'], limit, after); 
+    createUserEventsStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'hyperLog', '__indexes', 'userEvents'], limit, after); 
     }
     async rangeFromOnlineChangeEvents(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'onlineChangeEvents'], limit, reversed);
@@ -7119,8 +7119,8 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     async allFromOnlineChangeEvents(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'onlineChangeEvents']);
     }
-    createOnlineChangeEventsStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'onlineChangeEvents'], limit, after); 
+    createOnlineChangeEventsStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'hyperLog', '__indexes', 'onlineChangeEvents'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new HyperLog(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
@@ -7372,8 +7372,8 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     async allFromChannel(ctx: Context, createdAt: number) {
         return await this._findAll(ctx, ['__indexes', 'channel', createdAt]);
     }
-    createChannelStream(ctx: Context, createdAt: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
+    createChannelStream(createdAt: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
@@ -7384,8 +7384,8 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'channelInvitation', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'channelInvitation', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ChannelInvitation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
@@ -7496,8 +7496,8 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     async allFromChannel(ctx: Context, channelId: number) {
         return await this._findAll(ctx, ['__indexes', 'channel', channelId]);
     }
-    createChannelStream(ctx: Context, channelId: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'channelLink', '__indexes', 'channel', channelId], limit, after); 
+    createChannelStream(channelId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'channelLink', '__indexes', 'channel', channelId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ChannelLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
@@ -7579,8 +7579,8 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     async allFromUser(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'user']);
     }
-    createUserStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AppInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
@@ -7761,8 +7761,8 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
     async allFromUserInOrganization(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'userInOrganization', uid]);
     }
-    createUserInOrganizationStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationPublicInviteLink', '__indexes', 'userInOrganization', uid], limit, after); 
+    createUserInOrganizationStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationPublicInviteLink', '__indexes', 'userInOrganization', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationPublicInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
@@ -7972,8 +7972,8 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     async allFromOrganization(ctx: Context, oid: number) {
         return await this._findAll(ctx, ['__indexes', 'organization', oid]);
     }
-    createOrganizationStream(ctx: Context, oid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
+    createOrganizationStream(oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
     }
     async findFromEmailInOrganization(ctx: Context, email: string, oid: number) {
         return await this._findFromIndex(ctx, ['__indexes', 'emailInOrganization', email, oid]);
@@ -7993,8 +7993,8 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     async allFromEmailInOrganization(ctx: Context, email: string) {
         return await this._findAll(ctx, ['__indexes', 'emailInOrganization', email]);
     }
-    createEmailInOrganizationStream(ctx: Context, email: string, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'organizationInviteLink', '__indexes', 'emailInOrganization', email], limit, after); 
+    createEmailInOrganizationStream(email: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'emailInOrganization', email], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
@@ -8218,8 +8218,8 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     async allFromAuth(ctx: Context, cid: number, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'auth', cid, uid]);
     }
-    createAuthStream(ctx: Context, cid: number, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferencePeer', '__indexes', 'auth', cid, uid], limit, after); 
+    createAuthStream(cid: number, uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conferencePeer', '__indexes', 'auth', cid, uid], limit, after); 
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
@@ -8236,8 +8236,8 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     async allFromConference(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'conference', cid]);
     }
-    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferencePeer', '__indexes', 'conference', cid], limit, after); 
+    createConferenceStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conferencePeer', '__indexes', 'conference', cid], limit, after); 
     }
     async rangeFromActive(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'active'], limit, reversed);
@@ -8248,8 +8248,8 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     async allFromActive(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'active']);
     }
-    createActiveStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferencePeer', '__indexes', 'active'], limit, after); 
+    createActiveStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'conferencePeer', '__indexes', 'active'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferencePeer(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
@@ -8439,8 +8439,8 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
     async allFromConference(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'conference', cid]);
     }
-    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferenceMediaStream', '__indexes', 'conference', cid], limit, after); 
+    createConferenceStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conferenceMediaStream', '__indexes', 'conference', cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferenceMediaStream(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
@@ -8594,8 +8594,8 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
     async allFromConference(ctx: Context, cid: number) {
         return await this._findAll(ctx, ['__indexes', 'conference', cid]);
     }
-    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferenceConnection', '__indexes', 'conference', cid], limit, after); 
+    createConferenceStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conferenceConnection', '__indexes', 'conference', cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferenceConnection(ctx, this.connection, this.namespace, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
@@ -8672,8 +8672,8 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
     async allFromForward(ctx: Context, uid1: number) {
         return await this._findAll(ctx, ['__indexes', 'forward', uid1]);
     }
-    createForwardStream(ctx: Context, uid1: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userEdge', '__indexes', 'forward', uid1], limit, after); 
+    createForwardStream(uid1: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userEdge', '__indexes', 'forward', uid1], limit, after); 
     }
     async allFromReverseAfter(ctx: Context, uid2: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'reverse', uid2], after);
@@ -8690,8 +8690,8 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
     async allFromReverse(ctx: Context, uid2: number) {
         return await this._findAll(ctx, ['__indexes', 'reverse', uid2]);
     }
-    createReverseStream(ctx: Context, uid2: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userEdge', '__indexes', 'reverse', uid2], limit, after); 
+    createReverseStream(uid2: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userEdge', '__indexes', 'reverse', uid2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserEdge(ctx, this.connection, this.namespace, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
@@ -8907,8 +8907,8 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
     async allFromKey(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'key']);
     }
-    createKeyStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'feedSubscriber', '__indexes', 'key'], limit, after); 
+    createKeyStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'feedSubscriber', '__indexes', 'key'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedSubscriber(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
@@ -8998,8 +8998,8 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
     async allFromSubscriber(ctx: Context, sid: number) {
         return await this._findAll(ctx, ['__indexes', 'subscriber', sid]);
     }
-    createSubscriberStream(ctx: Context, sid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'feedSubscription', '__indexes', 'subscriber', sid], limit, after); 
+    createSubscriberStream(sid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'feedSubscription', '__indexes', 'subscriber', sid], limit, after); 
     }
     async allFromTopicAfter(ctx: Context, tid: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'topic', tid], after);
@@ -9016,8 +9016,8 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
     async allFromTopic(ctx: Context, tid: number) {
         return await this._findAll(ctx, ['__indexes', 'topic', tid]);
     }
-    createTopicStream(ctx: Context, tid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'feedSubscription', '__indexes', 'topic', tid], limit, after); 
+    createTopicStream(tid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'feedSubscription', '__indexes', 'topic', tid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedSubscription(ctx, this.connection, this.namespace, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
@@ -9099,8 +9099,8 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
     async allFromKey(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'key']);
     }
-    createKeyStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'feedTopic', '__indexes', 'key'], limit, after); 
+    createKeyStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'feedTopic', '__indexes', 'key'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedTopic(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
@@ -9211,8 +9211,8 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
     async allFromTopic(ctx: Context, tid: number) {
         return await this._findAll(ctx, ['__indexes', 'topic', tid]);
     }
-    createTopicStream(ctx: Context, tid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'feedEvent', '__indexes', 'topic', tid], limit, after); 
+    createTopicStream(tid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'feedEvent', '__indexes', 'topic', tid], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
@@ -9223,8 +9223,8 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
     async allFromUpdated(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'feedEvent', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'feedEvent', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedEvent(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
@@ -9310,8 +9310,8 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
     async allFromKey(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'key']);
     }
-    createKeyStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'appHook', '__indexes', 'key'], limit, after); 
+    createKeyStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'appHook', '__indexes', 'key'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AppHook(ctx, this.connection, this.namespace, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
@@ -9393,8 +9393,8 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
     async allFromNamespace(ctx: Context, ) {
         return await this._findAll(ctx, ['__indexes', 'namespace']);
     }
-    createNamespaceStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userStorageNamespace', '__indexes', 'namespace'], limit, after); 
+    createNamespaceStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userStorageNamespace', '__indexes', 'namespace'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserStorageNamespace(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
@@ -9513,8 +9513,8 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
     async allFromKey(ctx: Context, uid: number, ns: number) {
         return await this._findAll(ctx, ['__indexes', 'key', uid, ns]);
     }
-    createKeyStream(ctx: Context, uid: number, ns: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'userStorageRecord', '__indexes', 'key', uid, ns], limit, after); 
+    createKeyStream(uid: number, ns: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userStorageRecord', '__indexes', 'key', uid, ns], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserStorageRecord(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
@@ -9606,8 +9606,8 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'discoverUserPickedTags', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'discoverUserPickedTags', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new DiscoverUserPickedTags(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
@@ -9697,8 +9697,8 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
     async allFromUser(ctx: Context, uid: number) {
         return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 
     }
     createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
         return this._createLiveStream(ctx, ['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 

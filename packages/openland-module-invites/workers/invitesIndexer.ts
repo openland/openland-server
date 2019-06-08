@@ -4,7 +4,7 @@ import { EmptyContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 
 export function invitesIndexer() {
-    declareSearchIndexer('invites-room-index', 3, 'invites-room', FDB.ChannelInvitation.createUpdatedStream(EmptyContext, 50))
+    declareSearchIndexer('invites-room-index', 3, 'invites-room', FDB.ChannelInvitation.createUpdatedStream(50))
         .withProperties({
             uid: {
                 type: 'long'

@@ -230,8 +230,8 @@ export function generateEntity(entity: EntityModel): string {
         res += '        return await this._findAll(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
         res += '    }\n';
 
-        res += '    create' + Case.pascalCase(i.name) + 'Stream(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
-        res += '        return this._createStream(ctx, [' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
+        res += '    create' + Case.pascalCase(i.name) + 'Stream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
+        res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
         res += '    }\n';
         if (i.streaming) {
             res += '    create' + Case.pascalCase(i.name) + 'LiveStream(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';

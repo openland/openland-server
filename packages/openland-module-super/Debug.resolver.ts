@@ -152,7 +152,7 @@ export default {
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await FDB.DebugEvent.createUserStream(ctx, ctx.auth.uid!, 1).tail();
+            let tail = await FDB.DebugEvent.createUserStream(ctx.auth.uid!, 1).tail();
             return { state: tail };
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {

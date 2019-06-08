@@ -4,7 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 import { EmptyContext } from '@openland/context';
 
 export function dialogSearchIndexer() {
-    declareSearchIndexer('dialog-index', 8, 'dialog', FDB.UserDialog.createUpdatedStream(EmptyContext, 50))
+    declareSearchIndexer('dialog-index', 8, 'dialog', FDB.UserDialog.createUpdatedStream(50))
         .withProperties({
             cid: {
                 type: 'integer'

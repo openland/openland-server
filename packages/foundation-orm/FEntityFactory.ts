@@ -154,11 +154,11 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected _createStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): FStream<T> {
-        return new FStream(this, subspace, limit, (s) => this.doCreateEntity(ctx, s, false), after);
+    protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {
+        return new FStream(this, subspace, limit, (s, ctx) => this.doCreateEntity(ctx, s, false), after);
     }
     protected _createLiveStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): AsyncIterable<FLiveStreamItem<T>> {
-        return new FLiveStream<T>(new FStream(this, subspace, limit, (s) => this.doCreateEntity(ctx, s, false), after)).generator();
+        return new FLiveStream<T>(new FStream(this, subspace, limit, (s, ctx2) => this.doCreateEntity(ctx2, s, false), after)).generator();
     }
 
     protected async _findAll(ctx: Context, key: (string | number)[]) {

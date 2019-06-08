@@ -77,7 +77,7 @@ export default {
     Query: {
         chatState: withUser(async (ctx, args, uid) => {
             let id = IDs.Conversation.parse(args.chatId);
-            let tail = await FDB.ConversationEvent.createUserStream(ctx, id, 1).tail();
+            let tail = await FDB.ConversationEvent.createUserStream(id, 1).tail();
             return {
                 state: tail
             };
