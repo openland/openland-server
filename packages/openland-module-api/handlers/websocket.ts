@@ -8,6 +8,7 @@ import { inTx } from 'foundation-orm/inTx';
 // import { withCache } from 'foundation-orm/withCache';
 
 let rootContext = createNamedContext('ws');
+let rootContextResolve = createNamedContext('resolve');
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     return await inTx(rootContext, async (ctx) => {
@@ -54,7 +55,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
 }
 
 export function buildWebSocketContext(args: any) {
-    let res = rootContext;
+    let res = rootContextResolve;
     if (args.uid && args.tid) {
         res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
     }

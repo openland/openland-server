@@ -9,6 +9,9 @@ import * as https from 'https';
 import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
+import { Context } from '@openland/context';
+import { withLogContext } from 'openland-log/withLogContext';
+import { AppContext } from 'openland-modules/AppContext';
 
 interface FuckApolloServerParams {
     server?: http.Server | https.Server;
@@ -17,7 +20,7 @@ interface FuckApolloServerParams {
 
     onAuth(payload: any, req: http.IncomingMessage): Promise<any>;
 
-    context(params: any): Promise<any>;
+    context(params: any): Promise<Context>;
 
     genSessionId(authParams: any): Promise<string>;
 
@@ -41,13 +44,13 @@ class FuckApolloSession {
 
     send = (data: any) => this.socket.send(JSON.stringify(data));
 
-    sendConnectionAck = () => this.send({type: 'connection_ack'});
+    sendConnectionAck = () => this.send({ type: 'connection_ack' });
 
-    sendKeepAlive = () => this.send({type: 'ka'});
+    sendKeepAlive = () => this.send({ type: 'ka' });
 
-    sendData = (id: string, payload: any) => this.send({id, type: 'data', payload});
+    sendData = (id: string, payload: any) => this.send({ id, type: 'data', payload });
 
-    sendComplete = (id: string) => this.send({id, type: 'complete', payload: null});
+    sendComplete = (id: string) => this.send({ id, type: 'complete', payload: null });
 
     addOperation = (id: string, destroy: () => void) => {
         this.stopOperation(id);
@@ -111,7 +114,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         document: query,
                         operationName: message.payload.operationName,
                         variableValues: message.payload.variables,
-                        contextValue: async () => await params.context(session.authParams)
+                        contextValue: async () => new AppContext(withLogContext(await params.context(session.authParams), ['subscription', message.payload.operationName]))
                     });
 
                     if (!isAsyncIterator(iterator)) {
@@ -167,7 +170,7 @@ async function handleConnection(params: FuckApolloServerParams, socket: WebSocke
 }
 
 export async function createFuckApolloWSServer(params: FuckApolloServerParams) {
-    const ws = new WebSocket.Server(params.server ? {server: params.server, path: params.path} : {noServer: true});
+    const ws = new WebSocket.Server(params.server ? { server: params.server, path: params.path } : { noServer: true });
     ws.on('connection', async (socket, req) => {
         await handleConnection(params, socket, req);
     });
