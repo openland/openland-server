@@ -52,6 +52,7 @@ export class SLogImpl implements SLog {
                         ...SLogContext2.get(ctx),
                         context: ContextName.get(ctx),
                         service: this.name,
+                        text: [message, ...optionalParams].join(' ')
                     },
                     message: formatMessage(ctx, this.name, message, optionalParams)
                 });
@@ -74,6 +75,7 @@ export class SLogImpl implements SLog {
                         ...SLogContext2.get(ctx),
                         context: ContextName.get(ctx),
                         service: this.name,
+                        text: [message, ...optionalParams].join(' ')
                     },
                     message: formatMessage(ctx, this.name, message, optionalParams)
                 });
@@ -92,6 +94,7 @@ export class SLogImpl implements SLog {
                         ...SLogContext2.get(ctx),
                         context: ContextName.get(ctx),
                         service: this.name,
+                        text: [message, ...optionalParams].join(' ')
                     },
                     message: formatMessage(ctx, this.name, message, optionalParams)
                 });
