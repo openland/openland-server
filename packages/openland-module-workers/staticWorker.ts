@@ -3,10 +3,8 @@ import { LockRepository } from 'openland-module-sync/LockRepository';
 import { createLogger } from 'openland-log/createLogger';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
-import { withLogContext } from 'openland-log/withLogContext';
-import { randomGlobalInviteKey } from 'openland-utils/random';
 
-const logger = createLogger('loop');
+const logger = createLogger('static-worker');
 
 export function staticWorker(config: { name: string, version?: number, delay?: number, startDelay?: number }, worker: (ctx: Context) => Promise<boolean>) {
     let working = true;
@@ -19,15 +17,12 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         }
         wasStarted = true;
         let res = await (async () => {
-
-            let lockCtx = withLogContext(ctx, ['lock-' + randomGlobalInviteKey(3)]);
-
             // Locking
-            if (!(await LockRepository.tryLock(lockCtx, 'worker_' + config.name, config.version))) {
-                logger.log(lockCtx, 'lock-failed-start');
+            if (!(await LockRepository.tryLock(ctx, 'worker_' + config.name, config.version))) {
+                logger.log(ctx, 'lock-failed-start');
                 return false;
             }
-            logger.log(lockCtx, 'lock-acquired-start');
+            logger.log(ctx, 'lock-acquired-start');
 
             let locked = true;
 
@@ -35,12 +30,12 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
             // tslint:disable-next-line:no-floating-promises
             (async () => {
                 while (locked) {
-                    if (!(await LockRepository.tryLock(lockCtx, 'worker_' + config.name, config.version))) {
-                        logger.log(lockCtx, 'lock-failed');
+                    if (!(await LockRepository.tryLock(ctx, 'worker_' + config.name, config.version))) {
+                        // logger.log(ctx, 'lock-failed');
                         locked = false;
                         break;
                     }
-                    logger.log(lockCtx, 'lock-acquired');
+                    // logger.log(ctx, 'lock-acquired');
                     await delay(5000);
                 }
             })();
@@ -50,12 +45,12 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
                 try {
                     let res2 = await worker(ctx);
                     if (!res2) {
-                        logger.log(lockCtx, 'unlock');
+                        // logger.log(ctx, 'unlock');
                         locked = false;
                         return false;
                     }
                 } catch (e) {
-                    logger.log(lockCtx, 'unlock');
+                    // logger.log(ctx, 'unlock');
                     locked = false;
                     logger.warn(ctx, e);
                     throw e;

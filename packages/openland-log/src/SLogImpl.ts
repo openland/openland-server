@@ -33,6 +33,7 @@ export class SLogImpl implements SLog {
     private readonly name: string;
     private readonly enabled: boolean = true;
     private readonly production = process.env.NODE_ENV === 'production';
+    private readonly jest = !!process.env.JEST_WORKER_ID;
 
     constructor(name: string, enabled: boolean) {
         this.name = name;
@@ -41,7 +42,7 @@ export class SLogImpl implements SLog {
 
     log = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
-        if (this.enabled) {
+        if (this.enabled && !this.jest) {
             if (v.disabled) {
                 return;
             }
@@ -64,7 +65,7 @@ export class SLogImpl implements SLog {
 
     debug = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
-        if (this.enabled) {
+        if (this.enabled && !this.jest) {
             if (this.production) {
                 if (v.disabled) {
                     return;
@@ -84,7 +85,7 @@ export class SLogImpl implements SLog {
     }
     warn = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         // let v = SLogContext.get(ctx);
-        if (this.enabled) {
+        if (this.enabled && !this.jest) {
             // if (v.disabled) {
             //     return;
             // }

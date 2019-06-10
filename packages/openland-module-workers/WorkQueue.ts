@@ -11,8 +11,10 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { getTransaction } from 'foundation-orm/getTransaction';
 import { Context, createNamedContext } from '@openland/context';
 
+const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
+
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
     private pubSubTopic: string;
@@ -42,7 +44,6 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
     addWorker = (handler: (item: ARGS, ctx: Context) => RES | Promise<RES>) => {
         let working = true;
         const lockSeed = uuid();
-        const log = createLogger('handler');
         let awaiter: (() => void) | undefined;
         EventBus.subscribe(this.pubSubTopic, () => {
             if (awaiter) {

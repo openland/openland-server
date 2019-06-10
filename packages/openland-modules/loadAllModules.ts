@@ -91,7 +91,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadInvitesModule();
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
-    container.bind(CommentsModule).toSelf().inSingletonScope();
     container.bind(NotificationCenterModule).toSelf().inSingletonScope();
     container.bind(DiscoverModule).toSelf().inSingletonScope();
     loadCallsModule();
