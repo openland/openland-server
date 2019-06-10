@@ -1,7 +1,13 @@
 union GlobalSearchEntry = Organization | User | SharedRoom
 
+enum GlobalSearchEntryKind {
+    ORGANIZATION
+    USER
+    SHAREDROOM
+}
+
 extend type Query {
-    alphaGlobalSearch(query: String!): [GlobalSearchEntry!]!
+    alphaGlobalSearch(query: String!, kinds: [GlobalSearchEntryKind!]): [GlobalSearchEntry!]!
     featuredGroups: [SharedRoom!]
     featuredCommunities: [Organization!]
 }

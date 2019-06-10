@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3e043aeee18ecb598358e55679ab8f83';
+export const GQL_SPEC_VERSION = 'aab4248ba31ea90db31746d49bb1f239';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2350,6 +2350,7 @@ export namespace GQL {
     }
     export interface QueryAlphaGlobalSearchArgs {
         query: string;
+        kinds: OptionalNullable<GlobalSearchEntryKind[]>;
     }
     export interface QueryRoomArgs {
         id: string;
@@ -2546,6 +2547,7 @@ export namespace GQL {
         pageInfo: PageInfo;
     }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
+    export type GlobalSearchEntryKind = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
     export type Room = PrivateRoom | SharedRoom;
     export interface PrivateRoom {
         id: string;
