@@ -48,9 +48,11 @@ export class SLogImpl implements SLog {
 
             if (this.production) {
                 logger.info({
-                    ...SLogContext2.get(ctx),
-                    context: ContextName.get(ctx),
-                    service: this.name,
+                    app: {
+                        ...SLogContext2.get(ctx),
+                        context: ContextName.get(ctx),
+                        service: this.name,
+                    },
                     message: formatMessage(ctx, this.name, message, optionalParams)
                 });
             } else {
@@ -68,9 +70,11 @@ export class SLogImpl implements SLog {
                 }
 
                 logger.debug({
-                    ...SLogContext2.get(ctx),                   
-                    context: ContextName.get(ctx),
-                    service: this.name,
+                    app: {
+                        ...SLogContext2.get(ctx),
+                        context: ContextName.get(ctx),
+                        service: this.name,
+                    },
                     message: formatMessage(ctx, this.name, message, optionalParams)
                 });
             }
@@ -84,9 +88,11 @@ export class SLogImpl implements SLog {
             // }
             if (this.production) {
                 logger.warn({
-                    ...SLogContext2.get(ctx),
-                    context: ContextName.get(ctx),
-                    service: this.name,
+                    app: {
+                        ...SLogContext2.get(ctx),
+                        context: ContextName.get(ctx),
+                        service: this.name,
+                    },
                     message: formatMessage(ctx, this.name, message, optionalParams)
                 });
             } else {
