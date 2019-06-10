@@ -4,7 +4,7 @@ import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contex
 import { FTransactionReadOnly } from './tx/FTransactionReadOnly';
 import { createLogger } from 'openland-log/createLogger';
 
-const log = createLogger('ephermal');
+const log = createLogger('ephermal', false);
 export function getTransaction(ctx: Context): FTransaction {
     let tx = FTransactionContext.get(ctx);
     if (tx) {
