@@ -3367,6 +3367,7 @@ export interface UserSettingsShape {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
+    commentNotifications?: 'all' | 'direct' | 'none'| null;
     mobileAlert?: boolean| null;
     mobileIncludeText?: boolean| null;
     notificationsDelay?: 'none' | '1min' | '15min'| null;
@@ -3400,6 +3401,17 @@ export class UserSettings extends FEntity {
         this._checkIsWritable();
         if (value === this._value.mobileNotifications) { return; }
         this._value.mobileNotifications = value;
+        this.markDirty();
+    }
+    get commentNotifications(): 'all' | 'direct' | 'none' | null {
+        let res = this._value.commentNotifications;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set commentNotifications(value: 'all' | 'direct' | 'none' | null) {
+        this._checkIsWritable();
+        if (value === this._value.commentNotifications) { return; }
+        this._value.commentNotifications = value;
         this.markDirty();
     }
     get mobileAlert(): boolean | null {
@@ -3448,6 +3460,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
             { name: 'emailFrequency', type: 'enum', enumValues: ['1hour', '15min', 'never', '24hour', '1week'] },
             { name: 'desktopNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
             { name: 'mobileNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
+            { name: 'commentNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
             { name: 'mobileAlert', type: 'boolean' },
             { name: 'mobileIncludeText', type: 'boolean' },
             { name: 'notificationsDelay', type: 'enum', enumValues: ['none', '1min', '15min'] },
@@ -3465,6 +3478,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isEnum('desktopNotifications', src.desktopNotifications, ['all', 'direct', 'none']);
         validators.notNull('mobileNotifications', src.mobileNotifications);
         validators.isEnum('mobileNotifications', src.mobileNotifications, ['all', 'direct', 'none']);
+        validators.isEnum('commentNotifications', src.commentNotifications, ['all', 'direct', 'none']);
         validators.isBoolean('mobileAlert', src.mobileAlert);
         validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
@@ -5973,6 +5987,113 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new CommentEvent(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
+    }
+}
+export interface CommentsSubscriptionShape {
+    kind: 'all' | 'direct';
+    status: 'active' | 'disabled';
+}
+
+export class CommentsSubscription extends FEntity {
+    readonly entityName: 'CommentsSubscription' = 'CommentsSubscription';
+    get peerType(): string { return this._value.peerType; }
+    get peerId(): number { return this._value.peerId; }
+    get uid(): number { return this._value.uid; }
+    get kind(): 'all' | 'direct' {
+        return this._value.kind;
+    }
+    set kind(value: 'all' | 'direct') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+    get status(): 'active' | 'disabled' {
+        return this._value.status;
+    }
+    set status(value: 'active' | 'disabled') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
+}
+
+export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscription> {
+    static schema: FEntitySchema = {
+        name: 'CommentsSubscription',
+        editable: false,
+        primaryKeys: [
+            { name: 'peerType', type: 'string' },
+            { name: 'peerId', type: 'number' },
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'kind', type: 'enum', enumValues: ['all', 'direct'] },
+            { name: 'status', type: 'enum', enumValues: ['active', 'disabled'] },
+        ],
+        indexes: [
+            { name: 'peer', type: 'range', fields: ['peerType', 'peerId', 'uid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('peerType', src.peerType);
+        validators.isString('peerType', src.peerType);
+        validators.notNull('peerId', src.peerId);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['all', 'direct']);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['active', 'disabled']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'commentsSubscription'),
+            { enableVersioning: false, enableTimestamps: false, validator: CommentsSubscriptionFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('peer', ['peerType', 'peerId', 'uid'], false)],
+            'CommentsSubscription'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 3) { throw Error('Invalid key length!'); }
+        return { 'peerType': rawId[0], 'peerId': rawId[1], 'uid': rawId[2] };
+    }
+    async findById(ctx: Context, peerType: string, peerId: number, uid: number) {
+        return await this._findById(ctx, [peerType, peerId, uid]);
+    }
+    async create(ctx: Context, peerType: string, peerId: number, uid: number, shape: CommentsSubscriptionShape) {
+        return await this._create(ctx, [peerType, peerId, uid], { peerType, peerId, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, peerType: string, peerId: number, uid: number, shape: CommentsSubscriptionShape) {
+        return await this._create_UNSAFE(ctx, [peerType, peerId, uid], { peerType, peerId, uid, ...shape });
+    }
+    watch(ctx: Context, peerType: string, peerId: number, uid: number, cb: () => void) {
+        return this._watch(ctx, [peerType, peerId, uid], cb);
+    }
+    async allFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'peer', peerType, peerId], after);
+    }
+    async rangeFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'peer', peerType, peerId], after, limit, reversed);
+    }
+    async rangeFromPeer(ctx: Context, peerType: string, peerId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'peer', peerType, peerId], limit, reversed);
+    }
+    async rangeFromPeerWithCursor(ctx: Context, peerType: string, peerId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'peer', peerType, peerId], limit, after, reversed);
+    }
+    async allFromPeer(ctx: Context, peerType: string, peerId: number) {
+        return await this._findAll(ctx, ['__indexes', 'peer', peerType, peerId]);
+    }
+    createPeerStream(peerType: string, peerId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'commentsSubscription', '__indexes', 'peer', peerType, peerId], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentsSubscription(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
     }
 }
 export interface ConversationSeqShape {
@@ -10335,6 +10456,7 @@ export interface AllEntities {
     readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
+    readonly CommentsSubscription: CommentsSubscriptionFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -10425,6 +10547,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         CommentStateFactory.schema,
         CommentSeqFactory.schema,
         CommentEventFactory.schema,
+        CommentsSubscriptionFactory.schema,
         ConversationSeqFactory.schema,
         ConversationEventFactory.schema,
         UserDialogFactory.schema,
@@ -10507,6 +10630,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
+    readonly CommentsSubscription: CommentsSubscriptionFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -10638,6 +10762,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.CommentSeq);
         this.CommentEvent = new CommentEventFactory(connection);
         this.allEntities.push(this.CommentEvent);
+        this.CommentsSubscription = new CommentsSubscriptionFactory(connection);
+        this.allEntities.push(this.CommentsSubscription);
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.allEntities.push(this.ConversationSeq);
         this.ConversationEvent = new ConversationEventFactory(connection);
@@ -10851,6 +10977,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get CommentEvent(): CommentEventFactory {
         return this.resolver().CommentEvent;
+    }
+    get CommentsSubscription(): CommentsSubscriptionFactory {
+        return this.resolver().CommentsSubscription;
     }
     get ConversationSeq(): ConversationSeqFactory {
         return this.resolver().ConversationSeq;

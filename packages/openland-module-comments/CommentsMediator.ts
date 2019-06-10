@@ -8,6 +8,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Modules } from '../openland-modules/Modules';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
+import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
 
 @injectable()
 export class CommentsMediator {
@@ -17,6 +18,8 @@ export class CommentsMediator {
     private readonly entities!: AllEntities;
     @lazyInject('CommentAugmentationMediator')
     private readonly augmentation!: CommentAugmentationMediator;
+    @lazyInject('CommentsNotificationsMediator')
+    private readonly notificationsMediator!: CommentsNotificationsMediator;
 
     async addMessageComment(parent: Context, messageId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
@@ -30,6 +33,16 @@ export class CommentsMediator {
             // Create comment
             //
             let res = await this.repo.createComment(ctx, 'message', messageId, uid, commentInput);
+
+            //
+            //  Subscribe to notifications
+            //
+            await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid);
+
+            // //
+            // // Send notifications
+            // //
+            // await this.notificationsMediator.onNewComment(ctx, res);
 
             //
             // Send message updated event

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3e043aeee18ecb598358e55679ab8f83';
+export const GQL_SPEC_VERSION = '6bc3d9e1fe7ff5c13b26a91943016489';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -406,11 +406,13 @@ export namespace GQL {
     }
     export type EmailFrequency = 'NEVER' | 'MIN_15' | 'HOUR_1' | 'HOUR_24' | 'WEEK_1';
     export type NotificationMessages = 'ALL' | 'DIRECT' | 'NONE';
+    export type NotificationComments = 'ALL' | 'DIRECT' | 'NONE';
     export type NotificationsDelay = 'NONE' | 'MIN_1' | 'MIN_15';
     export interface UpdateSettingsInput {
         emailFrequency: Nullable<EmailFrequency>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
+        commentNotifications: Nullable<NotificationComments>;
         mobileAlert: Nullable<boolean>;
         mobileIncludeText: Nullable<boolean>;
         mute: Nullable<boolean>;
@@ -422,6 +424,7 @@ export namespace GQL {
         emailFrequency: EmailFrequency;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
+        commentNotifications: NotificationComments;
         mobileAlert: boolean;
         mobileIncludeText: boolean;
         mute: Nullable<boolean>;

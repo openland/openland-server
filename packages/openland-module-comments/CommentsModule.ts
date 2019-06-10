@@ -1,9 +1,10 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
-import { CommentInput } from './CommentsRepository';
+import { CommentInput, CommentPeerType } from './CommentsRepository';
 import { Context } from '@openland/context';
 import { CommentsMediator } from './CommentsMediator';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
+import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
 
 @injectable()
 export class CommentsModule {
@@ -11,6 +12,8 @@ export class CommentsModule {
     private readonly mediator!: CommentsMediator;
     @lazyInject('CommentAugmentationMediator')
     private readonly augmentation!: CommentAugmentationMediator;
+    @lazyInject('CommentsNotificationsMediator')
+    private readonly notificationsMediator!: CommentsNotificationsMediator;
 
     start = () => {
         this.augmentation.start();
@@ -35,5 +38,9 @@ export class CommentsModule {
 
     async setReaction(ctx: Context, commentId: number, uid: number, reaction: string, reset: boolean = false) {
         return this.mediator.setReaction(ctx, commentId, uid, reaction, reset);
+    }
+
+    async subscribeToComments(ctx: Context, peerType: CommentPeerType, peerId: number, uid: number) {
+        return this.notificationsMediator.subscribeToComments(ctx, peerType, peerId, uid);
     }
 }

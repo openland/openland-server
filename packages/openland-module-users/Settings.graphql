@@ -12,6 +12,12 @@ enum NotificationMessages {
     NONE
 }
 
+enum NotificationComments {
+    ALL
+    DIRECT
+    NONE
+}
+
 enum NotificationsDelay {
     NONE
     MIN_1
@@ -22,6 +28,7 @@ input UpdateSettingsInput {
     emailFrequency: EmailFrequency
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
+    commentNotifications: NotificationComments
     mobileAlert: Boolean
     mobileIncludeText: Boolean
     mute: Boolean
@@ -34,6 +41,7 @@ type Settings {
     emailFrequency: EmailFrequency!
     desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
+    commentNotifications: NotificationComments!
     mobileAlert: Boolean!
     mobileIncludeText: Boolean!
     mute: Boolean
