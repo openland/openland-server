@@ -5,6 +5,7 @@ import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
+import { withLogData } from 'openland-log/withLogContext';
 // import { withCache } from 'foundation-orm/withCache';
 
 let rootContext = createNamedContext('ws');
@@ -58,6 +59,7 @@ export function buildWebSocketContext(args: any) {
     let res = rootContextResolve;
     if (args.uid && args.tid) {
         res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
+        res = withLogData(res, { uid: args.uid, tid: args.tid });
     }
     if (args.oid) {
         res = AuthContext.set(res, { ...AuthContext.get(res), oid: args.oid });
