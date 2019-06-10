@@ -10049,6 +10049,7 @@ export interface NotificationShape {
     ncid: number;
     text?: string| null;
     deleted?: boolean| null;
+    content?: ({ type: 'new_comment', commentId: number, })[]| null;
 }
 
 export class Notification extends FEntity {
@@ -10085,6 +10086,17 @@ export class Notification extends FEntity {
         this._value.deleted = value;
         this.markDirty();
     }
+    get content(): ({ type: 'new_comment', commentId: number, })[] | null {
+        let res = this._value.content;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set content(value: ({ type: 'new_comment', commentId: number, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.content) { return; }
+        this._value.content = value;
+        this.markDirty();
+    }
 }
 
 export class NotificationFactory extends FEntityFactory<Notification> {
@@ -10098,6 +10110,7 @@ export class NotificationFactory extends FEntityFactory<Notification> {
             { name: 'ncid', type: 'number' },
             { name: 'text', type: 'string', secure: true },
             { name: 'deleted', type: 'boolean' },
+            { name: 'content', type: 'json' },
         ],
         indexes: [
             { name: 'notificationCenter', type: 'range', fields: ['ncid', 'id'] },
@@ -10111,6 +10124,12 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         validators.isNumber('ncid', src.ncid);
         validators.isString('text', src.text);
         validators.isBoolean('deleted', src.deleted);
+        validators.isJson('content', src.content, jVec(jEnum(
+            json(() => {
+                jField('type', jString('new_comment'));
+                jField('commentId', jNumber());
+            })
+        )));
     }
 
     constructor(connection: FConnection) {

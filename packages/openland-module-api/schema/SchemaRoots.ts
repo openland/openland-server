@@ -31,6 +31,10 @@ import {
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
 import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
+import {
+    NewCommentNotification,
+    NotificationContent
+} from '../../openland-module-notification-center/NotificationCenterRepository';
 
 //
 //  Root types
@@ -299,5 +303,7 @@ export namespace GQLRoots {
     export type NotificationCenterUpdateRoot = NotificationCenterEvent;
     export type NotificationReceivedRoot = NotificationCenterEvent;
     export type NotificationReadRoot = NotificationCenterEvent;
+    export type NotificationContentRoot = NotificationContent;
+    export type NewCommentNotificationRoot = NewCommentNotification;
 
 }

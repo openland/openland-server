@@ -45,6 +45,7 @@ export class CommentsNotificationsRepository {
                     continue;
                 }
                 // send notification here
+                await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
             }
         });
     }

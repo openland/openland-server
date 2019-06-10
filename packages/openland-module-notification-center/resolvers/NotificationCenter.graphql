@@ -7,6 +7,14 @@ type NotificationCenter {
 type Notification {
     id: ID!
     text: String
+    content: [NotificationContent]
+}
+
+union NotificationContent = NewCommentNotification
+
+type NewCommentNotification {
+    peer: CommentsPeer!
+    comment: CommentEntry!
 }
 
 extend type Query {

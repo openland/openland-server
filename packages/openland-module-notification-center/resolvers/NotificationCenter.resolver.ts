@@ -3,6 +3,7 @@ import { withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 
 export default {
     NotificationCenter: {
@@ -16,7 +17,34 @@ export default {
 
     Notification: {
         id: src => IDs.Notification.serialize(src.id),
-        text: src => src.text
+        text: src => src.text,
+        content: src => src.content,
+    },
+
+    NotificationContent: {
+        __resolveType(src: GQLRoots.NotificationContentRoot) {
+            if (src.type === 'new_comment') {
+                return 'NewCommentNotification';
+            } else {
+                throw new Error('Unknown notification content type: ' + src.type);
+            }
+        }
+    },
+
+    NewCommentNotification: {
+        peer: async (src, args, ctx) => {
+            let comment = (await FDB.Comment.findById(ctx, src.commentId))!;
+            let comments = await FDB.Comment.allFromPeer(ctx, comment.peerType, comment.peerId);
+
+            return {
+                comments: comments.filter(c => c.visible),
+                peerType: comment.peerType,
+                peerId: comment.peerId
+            };
+        },
+        comment: async (src, args, ctx) => {
+            return await FDB.Comment.findById(ctx, src.commentId);
+        },
     },
 
     Query: {

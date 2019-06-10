@@ -17,6 +17,7 @@ export class CommentsModule {
 
     start = () => {
         this.augmentation.start();
+        this.notificationsMediator.start();
         // Nothing to do
     }
 

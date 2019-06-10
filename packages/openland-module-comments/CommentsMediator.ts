@@ -39,10 +39,10 @@ export class CommentsMediator {
             //
             await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid);
 
-            // //
-            // // Send notifications
-            // //
-            // await this.notificationsMediator.onNewComment(ctx, res);
+            //
+            // Send notifications
+            //
+            await this.notificationsMediator.onNewComment(ctx, res);
 
             //
             // Send message updated event

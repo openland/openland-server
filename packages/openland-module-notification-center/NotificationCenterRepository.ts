@@ -5,8 +5,16 @@ import { Context } from '@openland/context';
 import { inTx } from '../foundation-orm/inTx';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 
+export type NotificationContent = NewCommentNotification;
+
+export type NewCommentNotification = {
+    type: 'new_comment'
+    commentId: number;
+};
+
 export interface NotificationInput {
     text?: string | null;
+    content?: NotificationContent[] | null;
 }
 
 @injectable()
@@ -21,8 +29,9 @@ export class NotificationCenterRepository {
             //
             let nid = await this.fetchNotificationId(ctx);
             let notification = await this.fdb.Notification.create(ctx, nid, {
-               ncid,
-               text: notificationInput.text
+                ncid,
+                text: notificationInput.text,
+                content: notificationInput.content
             });
 
             //
@@ -62,7 +71,7 @@ export class NotificationCenterRepository {
                 if (remainingCount === 0) { // Just additional case for self-healing of a broken counters
                     delta = -localUnread;
                 } else {
-                    delta = - (localUnread - remainingCount);
+                    delta = -(localUnread - remainingCount);
                 }
                 // Crazy hack to avoid -0 values
                 if (delta === 0) {
@@ -93,8 +102,8 @@ export class NotificationCenterRepository {
             }
 
             let ncid = await this.fetchNotificationCenterId(ctx);
-            await this.fdb.NotificationCenter.create(ctx, ncid, { kind: 'user' });
-            return await this.fdb.UserNotificationCenter.create(ctx, ncid, { uid });
+            await this.fdb.NotificationCenter.create(ctx, ncid, {kind: 'user'});
+            return await this.fdb.UserNotificationCenter.create(ctx, ncid, {uid});
         });
     }
 
@@ -104,7 +113,7 @@ export class NotificationCenterRepository {
             if (existing) {
                 return existing;
             }
-            return await this.fdb.NotificationCenterState.create(ctx, ncid, { seq: 1 });
+            return await this.fdb.NotificationCenterState.create(ctx, ncid, {seq: 1});
         });
     }
 
@@ -116,7 +125,7 @@ export class NotificationCenterRepository {
                 await ex.flush(ctx);
                 return res;
             } else {
-                await this.fdb.Sequence.create(ctx, 'notification-id', { value: 1 });
+                await this.fdb.Sequence.create(ctx, 'notification-id', {value: 1});
                 return 1;
             }
         });
@@ -130,7 +139,7 @@ export class NotificationCenterRepository {
                 await ex.flush(ctx);
                 return res;
             } else {
-                await this.fdb.Sequence.create(ctx, 'notification-center-id', { value: 1 });
+                await this.fdb.Sequence.create(ctx, 'notification-center-id', {value: 1});
                 return 1;
             }
         });

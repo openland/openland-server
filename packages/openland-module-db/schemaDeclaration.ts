@@ -748,7 +748,6 @@ const Schema = declareSchema(() => {
         rangeIndex('peer', ['peerType', 'peerId', 'uid']);
     });
 
-
     //
     //  Comments end
     //
@@ -1183,6 +1182,13 @@ const Schema = declareSchema(() => {
         field('text', 'string').nullable().secure();
 
         field('deleted', 'boolean').nullable();
+
+        jsonField('content', jVec(jEnum(
+            json(() => {
+                jField('type', jString('new_comment'));
+                jField('commentId', jNumber());
+            }),
+        ))).nullable();
 
         rangeIndex('notificationCenter', ['ncid', 'id']);
         enableVersioning();
