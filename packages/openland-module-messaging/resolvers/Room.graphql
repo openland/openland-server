@@ -200,6 +200,7 @@ extend type Mutation {
     betaRoomUpdateUserNotificationSettings(settings: RoomUserNotificaionSettingsInput!, roomId: ID!): RoomUserNotificaionSettings!
     
     # Admin tools
+    betaRoomsInviteUser(userId: ID!, roomIds: [ID!]!): [Room!]!
     betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): RoomSuper!
     betaRoomAlterListed(roomId: ID!, listed: Boolean!): RoomSuper!
 
