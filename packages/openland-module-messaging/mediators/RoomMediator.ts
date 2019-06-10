@@ -139,7 +139,10 @@ export class RoomMediator {
                                 await this.messaging.bumpDialog(ctx, u, cid);
                             }
                         } else {
-                            await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+                            let skipAccessCheck = isSuperAdmin && conv.kind === 'public';
+
+                            await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid), skipAccessCheck);
                         }
                         // await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
                     } else {
