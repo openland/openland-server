@@ -14,6 +14,7 @@ import { CacheContext } from './CacheContext';
 import { FDB } from 'openland-module-db/FDB';
 import { AppContext } from 'openland-modules/AppContext';
 import { EmptyContext } from '@openland/context';
+import { withLogData } from 'openland-log/withLogContext';
 
 @injectable()
 export class ApiModule {
@@ -45,6 +46,7 @@ export class ApiModule {
         let ctx = EmptyContext;
         if (args.uid && args.tid) {
             ctx = AuthContext.set(ctx, { uid: args.uid, tid: args.tid });
+            ctx = withLogData(ctx, { uid: args.uid, tid: args.tid });
         }
         ctx = CacheContext.set(ctx, new Map());
         return new ApolloClient({

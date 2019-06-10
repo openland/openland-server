@@ -1,17 +1,24 @@
 import { SLog } from '../SLog';
 import winston from 'winston';
 import { Context, ContextName } from '@openland/context';
-import { SLogContext } from './SLogContext';
+import { SLogContext, SLogContext2 } from './SLogContext';
 import { AnyFighter } from 'openland-utils/anyfighter';
 
-const logger = winston.createLogger({
-    level: 'debug',
-    format: winston.format.combine(
+const format = process.env.NODE_ENV === 'production' ?
+    winston.format.combine(
+        winston.format.json(),
+        winston.format.timestamp()
+    ) :
+    winston.format.combine(
         winston.format.simple(),
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'
         })
-    ),
+    );
+
+const logger = winston.createLogger({
+    level: 'debug',
+    format: format,
     transports: [
         new winston.transports.Console(),
     ]
@@ -39,7 +46,16 @@ export class SLogImpl implements SLog {
                 return;
             }
 
-            logger.info(formatMessage(ctx, this.name, message, optionalParams));
+            if (this.production) {
+                logger.info({
+                    ...SLogContext2.get(ctx),
+                    context: ContextName.get(ctx),
+                    service: this.name,
+                    message: formatMessage(ctx, this.name, message, optionalParams)
+                });
+            } else {
+                logger.info(formatMessage(ctx, this.name, message, optionalParams));
+            }
         }
     }
 
@@ -51,7 +67,12 @@ export class SLogImpl implements SLog {
                     return;
                 }
 
-                logger.debug(formatMessage(ctx, this.name, message, optionalParams));
+                logger.debug({
+                    ...SLogContext2.get(ctx),                   
+                    context: ContextName.get(ctx),
+                    service: this.name,
+                    message: formatMessage(ctx, this.name, message, optionalParams)
+                });
             }
         }
     }
@@ -61,7 +82,16 @@ export class SLogImpl implements SLog {
             // if (v.disabled) {
             //     return;
             // }
-            logger.warn(formatMessage(ctx, this.name, message, optionalParams));
+            if (this.production) {
+                logger.warn({
+                    ...SLogContext2.get(ctx),
+                    context: ContextName.get(ctx),
+                    service: this.name,
+                    message: formatMessage(ctx, this.name, message, optionalParams)
+                });
+            } else {
+                logger.warn(formatMessage(ctx, this.name, message, optionalParams));
+            }
         }
     }
 }
