@@ -6,6 +6,7 @@ import { currentTime } from 'openland-utils/timer';
 import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
+import { randomGlobalInviteKey } from 'openland-utils/random';
 
 const log = createLogger('fdb');
 
@@ -26,12 +27,13 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
 
     let start = currentTime();
     // Implementation is copied from database.js from foundationdb library.
-    log.log(ctx, 'start tx');
+    let rtx = withLogData(ctx, { txid: randomGlobalInviteKey(8) });
+    log.log(rtx, 'start tx');
     try {
         let isRetry = false;
         do {
             let tx = new FTransactionReadWrite();
-            let ctxi = FTransactionContext.set(ctx, tx);
+            let ctxi = FTransactionContext.set(rtx, tx);
             ctxi = withLogContext(ctxi, ['transaction', tx.id.toString()]);
             try {
                 const result = await tracer.trace(ctxi, isRetry ? 'tx-retry' : 'tx', async (ctx2) => await callback(ctx2));
@@ -39,7 +41,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
                 return result;
             } catch (err) {
                 if (err instanceof FDBError) {
-                    await tx.handleError(err.code); 
+                    await tx.handleError(err.code);
                     log.log(withLogData(ctxi, { errorCode: err.code }), 'retry tx');
                     isRetry = true;
                 } else {
@@ -48,7 +50,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
             }
         } while (true);
     } finally {
-        log.metric(ctx, 'tx time', (currentTime() - start), 'ms');
+        log.metric(rtx, 'tx time', (currentTime() - start), 'ms');
     }
 }
 
