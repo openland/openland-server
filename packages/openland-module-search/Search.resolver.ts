@@ -133,6 +133,17 @@ export default {
                 if (!item) {
                     return false;
                 }
+                if (args.kinds && args.kinds.length > 0) {
+                    if ((item instanceof Organization) && args.kinds.indexOf('ORGANIZATION') >= 0) {
+                        return true;
+                    } else if ((item instanceof User) && args.kinds.indexOf('USER') >= 0) {
+                        return true;
+                    } else if ((item instanceof Conversation) && args.kinds.indexOf('SHAREDROOM') >= 0) {
+                        return item.kind !== 'private';
+                    }
+
+                    return false;
+                }
                 if (item instanceof Conversation) {
                     return item.kind !== 'private';
                 }
