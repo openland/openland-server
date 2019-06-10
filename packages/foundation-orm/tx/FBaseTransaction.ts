@@ -3,13 +3,9 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { FTransaction } from 'foundation-orm/FTransaction';
 import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
-import { createLogger } from 'openland-log/createLogger';
-import { SLog } from 'openland-log/SLog';
 import { Context } from '@openland/context';
 import { ReadWriteLock } from '../utils/readWriteLock';
 import { FRawTransaction } from './FRawTransaction';
-
-const log = createLogger('tx', false);
 
 export abstract class FBaseTransaction implements FTransaction {
     private static nextId = 1;
@@ -17,7 +13,6 @@ export abstract class FBaseTransaction implements FTransaction {
     readonly id = FBaseTransaction.nextId++;
     abstract isReadOnly: boolean;
     abstract isCompleted: boolean;
-    protected readonly log: SLog = log;
     protected connection: FConnection | null = null;
     protected tx!: FRawTransaction;
     protected rawTx!: Transaction<Buffer, Buffer>;

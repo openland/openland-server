@@ -5,7 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { createLogger } from 'openland-log/createLogger';
 import { Context } from '@openland/context';
 
-const log = createLogger('indexer');
+const log = createLogger('elastic-indexer');
 
 export class SearchIndexer<T extends FEntity> {
     readonly name: string;

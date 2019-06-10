@@ -1,19 +1,19 @@
 import { FTransactionReadWrite } from './tx/FTransactionReadWrite';
 import { FDBError } from 'foundationdb';
-import { withLogContext } from 'openland-log/withLogContext';
+import { withLogContext, withLogData } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { currentTime } from 'openland-utils/timer';
 import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 
-const log = createLogger('tx');
+const log = createLogger('fdb');
 
 async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
     let ex = FTransactionContext.get(ctx);
     if (ex) {
         if (!leaky) {
-             // Flush all pending operations to avoid nasty bugs during compose
+            // Flush all pending operations to avoid nasty bugs during compose
             await tracer.trace(ctx, 'pre-sub-tx-flush', async (ctx2) => await ex!.flushPending(ctx2));
         }
         let res = await tracer.trace(ctx, 'sub-tx', async (ctx2) => await callback(ctx2));
@@ -39,8 +39,8 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
                 return result;
             } catch (err) {
                 if (err instanceof FDBError) {
-                    await tx.handleError(err.code);
-                    log.log(ctxi, 'retry with code ' + err.code);
+                    await tx.handleError(err.code); 
+                    log.log(withLogData(ctxi, { errorCode: err.code }), 'retry tx');
                     isRetry = true;
                 } else {
                     throw err;
@@ -48,7 +48,7 @@ async function doInTx<T>(leaky: boolean, ctx: Context, callback: (ctx: Context) 
             }
         } while (true);
     } finally {
-        log.log(ctx, 'full tx time: ' + (currentTime() - start) + ' ms');
+        log.metric(ctx, 'tx time', (currentTime() - start), 'ms');
     }
 }
 

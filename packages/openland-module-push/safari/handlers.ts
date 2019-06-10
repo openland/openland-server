@@ -5,8 +5,8 @@ import { Modules } from '../../openland-modules/Modules';
 import { resolve } from 'path';
 import { createNamedContext } from '@openland/context';
 
-let log = createLogger('safari push');
-let ctx = createNamedContext('safari-push-handler');
+let log = createLogger('safari-push');
+let ctx = createNamedContext('safari-push');
 
 export function initSafariPush(app: Express) {
     app.post('/push/safari/v1/log', handleLog);

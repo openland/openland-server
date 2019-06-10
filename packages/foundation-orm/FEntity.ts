@@ -17,7 +17,7 @@ export interface FEntityOptions {
     validator: (value: any) => void;
 }
 
-const log = createLogger('FEntity', false);
+const log = createLogger('fdb');
 
 export abstract class FEntity {
     abstract readonly entityName: string;

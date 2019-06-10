@@ -9,7 +9,7 @@ import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlog
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
 
-const log = createLogger('web_push');
+const log = createLogger('web-push');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');
 const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, statusCode: number, disabled: boolean }>('push_web_failed');
 

@@ -16,7 +16,7 @@ import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { FSubspace } from './FSubspace';
 import { FEncoders } from './encoding/FEncoders';
 
-const log = createLogger('entity-factory');
+const log = createLogger('fdb');
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;

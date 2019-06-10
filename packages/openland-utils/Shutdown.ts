@@ -7,7 +7,7 @@ interface StoppableWork {
     shutdown(ctx: Context): Promise<void>;
 }
 
-const logger = createLogger('Shutdown');
+const logger = createLogger('shutdown');
 let ctx = withLogContext(createNamedContext('shutdown'), ['shutdown']);
 
 class ShutdownImpl {

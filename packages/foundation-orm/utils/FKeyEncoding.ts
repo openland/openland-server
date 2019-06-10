@@ -8,7 +8,7 @@ const byteFF = Buffer.alloc(1);
 byteFF.writeUInt8(0xff, 0);
 const byteZero = Buffer.alloc(1);
 byteZero.writeUInt8(0, 0);
-const log = createLogger('key-encoding');
+const log = createLogger('fdb');
 const unknownContext = createNamedContext('unknown');
 
 export const FKeyEncoding = {

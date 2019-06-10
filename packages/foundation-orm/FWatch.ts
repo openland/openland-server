@@ -17,7 +17,7 @@ interface FWatchSubscription {
     onEnd?(e: any): void;
 }
 
-const log = createLogger('watch', false);
+const log = createLogger('fdb');
 
 export class FWatch {
     public static POOL_TIMEOUT = 100;

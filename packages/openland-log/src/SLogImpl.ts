@@ -104,4 +104,27 @@ export class SLogImpl implements SLog {
             }
         }
     }
+    metric = <C extends AnyFighter<C, never, Context>>(ctx: C, name: string, value: number, dimension: string) => {
+        let v = SLogContext.get(ctx);
+        if (this.enabled && !this.jest) {
+            if (v.disabled) {
+                return;
+            }
+
+            if (this.production) {
+                logger.info({
+                    app: {
+                        ...SLogContext2.get(ctx),
+                        context: ContextName.get(ctx),
+                        service: this.name,
+                        text: name + ': ' + value,
+                        metric: value
+                    },
+                    message: name + ': ' + value
+                });
+            } else {
+                logger.info(formatMessage(ctx, this.name, name + ': ' + value + ' ' + dimension, []));
+            }
+        }
+    }
 }

@@ -32,7 +32,7 @@ let queries: any = {};
 let mutations: any = {};
 let subscriptions: any = {};
 
-const log = createLogger('rebuild_index');
+const log = createLogger('graphql-admin');
 
 subscriptions.healthCheck = {
     type: GraphQLString,
