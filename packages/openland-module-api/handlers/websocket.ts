@@ -6,6 +6,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 import { withLogData } from 'openland-log/withLogContext';
+import { randomGlobalInviteKey } from 'openland-utils/random';
 // import { withCache } from 'foundation-orm/withCache';
 
 let rootContext = createNamedContext('ws');
@@ -65,6 +66,7 @@ export function buildWebSocketContext(args: any) {
         res = AuthContext.set(res, { ...AuthContext.get(res), oid: args.oid });
     }
     res = CacheContext.set(res, new Map());
+    res = withLogData(res, { connection: randomGlobalInviteKey(8) });
     // res = withCache(res);
     return new AppContext(res);
 }
