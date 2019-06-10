@@ -52,6 +52,7 @@ export const IDs = {
     MessageAttachment: IdsFactory.createStringId('MessageAttachment'),
     Comment: IdsFactory.createId('Comment'),
     KeyboardButton: IdsFactory.createStringId('KeyboardButton'),
-    
     UserStorageRecord: IdsFactory.createId('UserStorageRecord'),
+    NotificationCenter: IdsFactory.createId('NotificationCenter'),
+    Notification: IdsFactory.createId('Notification'),
 };

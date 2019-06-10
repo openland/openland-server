@@ -9774,6 +9774,458 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
         return new DebugEventState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
     }
 }
+export interface NotificationCenterShape {
+    kind: 'user';
+}
+
+export class NotificationCenter extends FEntity {
+    readonly entityName: 'NotificationCenter' = 'NotificationCenter';
+    get id(): number { return this._value.id; }
+    get kind(): 'user' {
+        return this._value.kind;
+    }
+    set kind(value: 'user') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class NotificationCenterFactory extends FEntityFactory<NotificationCenter> {
+    static schema: FEntitySchema = {
+        name: 'NotificationCenter',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'kind', type: 'enum', enumValues: ['user'] },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['user']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'notificationCenter'),
+            { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterFactory.validate, hasLiveStreams: false },
+            [],
+            'NotificationCenter'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: NotificationCenterShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: NotificationCenterShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new NotificationCenter(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NotificationCenter');
+    }
+}
+export interface UserNotificationCenterShape {
+    uid: number;
+}
+
+export class UserNotificationCenter extends FEntity {
+    readonly entityName: 'UserNotificationCenter' = 'UserNotificationCenter';
+    get id(): number { return this._value.id; }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+}
+
+export class UserNotificationCenterFactory extends FEntityFactory<UserNotificationCenter> {
+    static schema: FEntitySchema = {
+        name: 'UserNotificationCenter',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'uid', type: 'number' },
+        ],
+        indexes: [
+            { name: 'user', type: 'unique', fields: ['uid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'userNotificationCenter'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserNotificationCenterFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('user', ['uid'], true)],
+            'UserNotificationCenter'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: UserNotificationCenterShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: UserNotificationCenterShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async findFromUser(ctx: Context, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'user', uid]);
+    }
+    async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user'], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user'], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'user']);
+    }
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userNotificationCenter', '__indexes', 'user'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserNotificationCenter(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserNotificationCenter');
+    }
+}
+export interface NotificationShape {
+    ncid: number;
+    text?: string| null;
+    deleted?: boolean| null;
+}
+
+export class Notification extends FEntity {
+    readonly entityName: 'Notification' = 'Notification';
+    get id(): number { return this._value.id; }
+    get ncid(): number {
+        return this._value.ncid;
+    }
+    set ncid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.ncid) { return; }
+        this._value.ncid = value;
+        this.markDirty();
+    }
+    get text(): string | null {
+        let res = this._value.text;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set text(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.text) { return; }
+        this._value.text = value;
+        this.markDirty();
+    }
+    get deleted(): boolean | null {
+        let res = this._value.deleted;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set deleted(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
+}
+
+export class NotificationFactory extends FEntityFactory<Notification> {
+    static schema: FEntitySchema = {
+        name: 'Notification',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'ncid', type: 'number' },
+            { name: 'text', type: 'string', secure: true },
+            { name: 'deleted', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'notificationCenter', type: 'range', fields: ['ncid', 'id'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('ncid', src.ncid);
+        validators.isNumber('ncid', src.ncid);
+        validators.isString('text', src.text);
+        validators.isBoolean('deleted', src.deleted);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'notification'),
+            { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('notificationCenter', ['ncid', 'id'], false)],
+            'Notification'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: NotificationShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: NotificationShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromNotificationCenterAfter(ctx: Context, ncid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'notificationCenter', ncid], after);
+    }
+    async rangeFromNotificationCenterAfter(ctx: Context, ncid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'notificationCenter', ncid], after, limit, reversed);
+    }
+    async rangeFromNotificationCenter(ctx: Context, ncid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'notificationCenter', ncid], limit, reversed);
+    }
+    async rangeFromNotificationCenterWithCursor(ctx: Context, ncid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'notificationCenter', ncid], limit, after, reversed);
+    }
+    async allFromNotificationCenter(ctx: Context, ncid: number) {
+        return await this._findAll(ctx, ['__indexes', 'notificationCenter', ncid]);
+    }
+    createNotificationCenterStream(ncid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'notification', '__indexes', 'notificationCenter', ncid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Notification(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Notification');
+    }
+}
+export interface NotificationCenterStateShape {
+    seq: number;
+    readNotificationId?: number| null;
+}
+
+export class NotificationCenterState extends FEntity {
+    readonly entityName: 'NotificationCenterState' = 'NotificationCenterState';
+    get ncid(): number { return this._value.ncid; }
+    get seq(): number {
+        return this._value.seq;
+    }
+    set seq(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.seq) { return; }
+        this._value.seq = value;
+        this.markDirty();
+    }
+    get readNotificationId(): number | null {
+        let res = this._value.readNotificationId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set readNotificationId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.readNotificationId) { return; }
+        this._value.readNotificationId = value;
+        this.markDirty();
+    }
+}
+
+export class NotificationCenterStateFactory extends FEntityFactory<NotificationCenterState> {
+    static schema: FEntitySchema = {
+        name: 'NotificationCenterState',
+        editable: false,
+        primaryKeys: [
+            { name: 'ncid', type: 'number' },
+        ],
+        fields: [
+            { name: 'seq', type: 'number' },
+            { name: 'readNotificationId', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('ncid', src.ncid);
+        validators.isNumber('ncid', src.ncid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isNumber('readNotificationId', src.readNotificationId);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'notificationCenterState'),
+            { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterStateFactory.validate, hasLiveStreams: false },
+            [],
+            'NotificationCenterState'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'ncid': rawId[0] };
+    }
+    async findById(ctx: Context, ncid: number) {
+        return await this._findById(ctx, [ncid]);
+    }
+    async create(ctx: Context, ncid: number, shape: NotificationCenterStateShape) {
+        return await this._create(ctx, [ncid], { ncid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, ncid: number, shape: NotificationCenterStateShape) {
+        return await this._create_UNSAFE(ctx, [ncid], { ncid, ...shape });
+    }
+    watch(ctx: Context, ncid: number, cb: () => void) {
+        return this._watch(ctx, [ncid], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new NotificationCenterState(ctx, this.connection, this.namespace, this.directory, [value.ncid], value, this.options, isNew, this.indexes, 'NotificationCenterState');
+    }
+}
+export interface NotificationCenterEventShape {
+    notificationId?: number| null;
+    kind: 'notification_received' | 'notification_read';
+}
+
+export class NotificationCenterEvent extends FEntity {
+    readonly entityName: 'NotificationCenterEvent' = 'NotificationCenterEvent';
+    get ncid(): number { return this._value.ncid; }
+    get seq(): number { return this._value.seq; }
+    get notificationId(): number | null {
+        let res = this._value.notificationId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set notificationId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.notificationId) { return; }
+        this._value.notificationId = value;
+        this.markDirty();
+    }
+    get kind(): 'notification_received' | 'notification_read' {
+        return this._value.kind;
+    }
+    set kind(value: 'notification_received' | 'notification_read') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class NotificationCenterEventFactory extends FEntityFactory<NotificationCenterEvent> {
+    static schema: FEntitySchema = {
+        name: 'NotificationCenterEvent',
+        editable: false,
+        primaryKeys: [
+            { name: 'ncid', type: 'number' },
+            { name: 'seq', type: 'number' },
+        ],
+        fields: [
+            { name: 'notificationId', type: 'number' },
+            { name: 'kind', type: 'enum', enumValues: ['notification_received', 'notification_read'] },
+        ],
+        indexes: [
+            { name: 'notificationCenter', type: 'range', fields: ['ncid', 'seq'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('ncid', src.ncid);
+        validators.isNumber('ncid', src.ncid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isNumber('notificationId', src.notificationId);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['notification_received', 'notification_read']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace(connection, 'entity', 'notificationCenterEvent'),
+            { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterEventFactory.validate, hasLiveStreams: true },
+            [new FEntityIndex('notificationCenter', ['ncid', 'seq'], false)],
+            'NotificationCenterEvent'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'ncid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(ctx: Context, ncid: number, seq: number) {
+        return await this._findById(ctx, [ncid, seq]);
+    }
+    async create(ctx: Context, ncid: number, seq: number, shape: NotificationCenterEventShape) {
+        return await this._create(ctx, [ncid, seq], { ncid, seq, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, ncid: number, seq: number, shape: NotificationCenterEventShape) {
+        return await this._create_UNSAFE(ctx, [ncid, seq], { ncid, seq, ...shape });
+    }
+    watch(ctx: Context, ncid: number, seq: number, cb: () => void) {
+        return this._watch(ctx, [ncid, seq], cb);
+    }
+    async allFromNotificationCenterAfter(ctx: Context, ncid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'notificationCenter', ncid], after);
+    }
+    async rangeFromNotificationCenterAfter(ctx: Context, ncid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'notificationCenter', ncid], after, limit, reversed);
+    }
+    async rangeFromNotificationCenter(ctx: Context, ncid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'notificationCenter', ncid], limit, reversed);
+    }
+    async rangeFromNotificationCenterWithCursor(ctx: Context, ncid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'notificationCenter', ncid], limit, after, reversed);
+    }
+    async allFromNotificationCenter(ctx: Context, ncid: number) {
+        return await this._findAll(ctx, ['__indexes', 'notificationCenter', ncid]);
+    }
+    createNotificationCenterStream(ncid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'notificationCenterEvent', '__indexes', 'notificationCenter', ncid], limit, after); 
+    }
+    createNotificationCenterLiveStream(ctx: Context, ncid: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, ['entity', 'notificationCenterEvent', '__indexes', 'notificationCenter', ncid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new NotificationCenterEvent(ctx, this.connection, this.namespace, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
+    }
+}
 export class UserCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
         super(connection, new FNamespace(connection, 'atomic', 'userCounter'));
@@ -9828,6 +10280,14 @@ export class UserDialogHaveMentionFactory extends FAtomicBooleanFactory {
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
+    }
+}
+export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace(connection, 'atomic', 'notificationCenterCounter'));
+    }
+    byId(ncid: number) {
+        return this._findById([ncid]);
     }
 }
 
@@ -9908,6 +10368,11 @@ export interface AllEntities {
     readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly NotificationCenter: NotificationCenterFactory;
+    readonly UserNotificationCenter: UserNotificationCenterFactory;
+    readonly Notification: NotificationFactory;
+    readonly NotificationCenterState: NotificationCenterStateFactory;
+    readonly NotificationCenterEvent: NotificationCenterEventFactory;
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
@@ -9915,6 +10380,7 @@ export interface AllEntities {
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
+    readonly NotificationCenterCounter: NotificationCenterCounterFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -9992,6 +10458,11 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         DiscoverUserPickedTagsFactory.schema,
         DebugEventFactory.schema,
         DebugEventStateFactory.schema,
+        NotificationCenterFactory.schema,
+        UserNotificationCenterFactory.schema,
+        NotificationFactory.schema,
+        NotificationCenterStateFactory.schema,
+        NotificationCenterEventFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: FDirectory;
@@ -10069,6 +10540,11 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly NotificationCenter: NotificationCenterFactory;
+    readonly UserNotificationCenter: UserNotificationCenterFactory;
+    readonly Notification: NotificationFactory;
+    readonly NotificationCenterState: NotificationCenterStateFactory;
+    readonly NotificationCenterEvent: NotificationCenterEventFactory;
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
@@ -10076,6 +10552,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
+    readonly NotificationCenterCounter: NotificationCenterCounterFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -10227,6 +10704,16 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.DebugEvent);
         this.DebugEventState = new DebugEventStateFactory(connection);
         this.allEntities.push(this.DebugEventState);
+        this.NotificationCenter = new NotificationCenterFactory(connection);
+        this.allEntities.push(this.NotificationCenter);
+        this.UserNotificationCenter = new UserNotificationCenterFactory(connection);
+        this.allEntities.push(this.UserNotificationCenter);
+        this.Notification = new NotificationFactory(connection);
+        this.allEntities.push(this.Notification);
+        this.NotificationCenterState = new NotificationCenterStateFactory(connection);
+        this.allEntities.push(this.NotificationCenterState);
+        this.NotificationCenterEvent = new NotificationCenterEventFactory(connection);
+        this.allEntities.push(this.NotificationCenterEvent);
         this.UserCounter = new UserCounterFactory(connection);
         this.UserMessagesSentCounter = new UserMessagesSentCounterFactory(connection);
         this.UserMessagesReceivedCounter = new UserMessagesReceivedCounterFactory(connection);
@@ -10234,6 +10721,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.UserMessagesDirectChatsCounter = new UserMessagesDirectChatsCounterFactory(connection);
         this.UserDialogCounter = new UserDialogCounterFactory(connection);
         this.UserDialogHaveMention = new UserDialogHaveMentionFactory(connection);
+        this.NotificationCenterCounter = new NotificationCenterCounterFactory(connection);
         this.NeedNotificationFlagDirectory = connection.directories.getDirectory(['custom', 'needNotificationFlag']);
     }
 }
@@ -10463,6 +10951,21 @@ export class AllEntitiesProxy implements AllEntities {
     get DebugEventState(): DebugEventStateFactory {
         return this.resolver().DebugEventState;
     }
+    get NotificationCenter(): NotificationCenterFactory {
+        return this.resolver().NotificationCenter;
+    }
+    get UserNotificationCenter(): UserNotificationCenterFactory {
+        return this.resolver().UserNotificationCenter;
+    }
+    get Notification(): NotificationFactory {
+        return this.resolver().Notification;
+    }
+    get NotificationCenterState(): NotificationCenterStateFactory {
+        return this.resolver().NotificationCenterState;
+    }
+    get NotificationCenterEvent(): NotificationCenterEventFactory {
+        return this.resolver().NotificationCenterEvent;
+    }
     get UserCounter(): UserCounterFactory {
         return this.resolver().UserCounter;
     }
@@ -10483,6 +10986,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserDialogHaveMention(): UserDialogHaveMentionFactory {
         return this.resolver().UserDialogHaveMention;
+    }
+    get NotificationCenterCounter(): NotificationCenterCounterFactory {
+        return this.resolver().NotificationCenterCounter;
     }
     get NeedNotificationFlagDirectory(): FDirectory {
         return this.resolver().NeedNotificationFlagDirectory;

@@ -1141,6 +1141,66 @@ const Schema = declareSchema(() => {
     });
 
     directory('NeedNotificationFlag');
+
+    //
+    // Notification Center
+    //
+
+    entity('NotificationCenter', () => {
+        primaryKey('id', 'number');
+        enumField('kind', ['user']);
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('UserNotificationCenter', () => {
+        primaryKey('id', 'number');
+        field('uid', 'number');
+
+        uniqueIndex('user', ['uid']);
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('Notification', () => {
+        primaryKey('id', 'number');
+        field('ncid', 'number');
+
+        field('text', 'string').nullable().secure();
+
+        field('deleted', 'boolean').nullable();
+
+        rangeIndex('notificationCenter', ['ncid', 'id']);
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('NotificationCenterState', () => {
+        primaryKey('ncid', 'number');
+        field('seq', 'number');
+        field('readNotificationId', 'number').nullable();
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    atomic('NotificationCenterCounter', () => {
+        primaryKey('ncid', 'number');
+    });
+
+    entity('NotificationCenterEvent', () => {
+        primaryKey('ncid', 'number');
+        primaryKey('seq', 'number');
+        field('notificationId', 'number').nullable();
+        enumField('kind', ['notification_received', 'notification_read']);
+
+        rangeIndex('notificationCenter', ['ncid', 'seq']).withStreaming();
+
+        enableVersioning();
+        enableTimestamps();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

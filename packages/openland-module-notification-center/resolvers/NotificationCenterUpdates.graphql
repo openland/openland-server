@@ -1,0 +1,35 @@
+type NotificationCenterUpdatesState {
+    state: String
+}
+
+type NotificationCenterUpdateSingle {
+    seq: Int!
+    state: String!
+    update: NotificationCenterUpdate!
+}
+
+type NotificationCenterUpdateBatch {
+    seq: Int!
+    state: String!
+    fromSeq: Int!
+    updates: [NotificationCenterUpdate!]!
+}
+
+union NotificationCenterUpdate = NotificationReceived | NotificationRead
+
+type NotificationReceived {
+    center: NotificationCenter!
+    notification: Notification!
+    unread: Int!
+}
+
+type NotificationRead {
+    center: NotificationCenter!
+    unread: Int!
+}
+
+union NotificationCenterUpdateContainer = NotificationCenterUpdateSingle | NotificationCenterUpdateBatch
+
+extend type Subscription {
+    notificationCenterUpdates(fromState: String): NotificationCenterUpdateContainer
+}

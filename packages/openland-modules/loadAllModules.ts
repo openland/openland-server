@@ -44,6 +44,8 @@ import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { loadCommentsModule } from '../openland-module-comments/CommentsModule.container';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 import { Context } from '@openland/context';
+import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
+import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
@@ -63,6 +65,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadShortnameModule();
     loadBotsModule();
     loadCommentsModule();
+    loadNotificationCenterModule();
     loadOrganizationModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
@@ -89,6 +92,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
     container.bind(CommentsModule).toSelf().inSingletonScope();
+    container.bind(NotificationCenterModule).toSelf().inSingletonScope();
     container.bind(DiscoverModule).toSelf().inSingletonScope();
     loadCallsModule();
     loadFeedModule();

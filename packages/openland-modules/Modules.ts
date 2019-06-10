@@ -26,6 +26,7 @@ import { FeedModule } from 'openland-module-feed/FeedModule';
 import { AppsModule } from '../openland-module-apps/AppsModule';
 import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
+import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 
 class ModulesImpl {
 
@@ -109,6 +110,9 @@ class ModulesImpl {
     }
     get Discover() {
         return container.get(DiscoverModule);
+    }
+    get NotificationCenter() {
+        return container.get(NotificationCenterModule);
     }
 }
 

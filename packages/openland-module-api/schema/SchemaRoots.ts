@@ -17,7 +17,7 @@ import {
     Comment,
     CommentEvent,
     UserStorageRecord,
-    DebugEvent
+    DebugEvent, Notification, NotificationCenter, UserNotificationCenter, NotificationCenterEvent
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
@@ -286,4 +286,18 @@ export namespace GQLRoots {
     //
     export type DebugEventRoot = DebugEvent;
     export type DebugEventsStateRoot = { state: string };
+
+    //
+    //  Notification Center
+    //
+    export type NotificationCenterRoot = NotificationCenter | UserNotificationCenter;
+    export type NotificationRoot = Notification;
+    export type NotificationCenterUpdatesStateRoot = { state: string };
+    export type NotificationCenterUpdateSingleRoot = FLiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateBatchRoot = FLiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateContainerRoot = FLiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateRoot = NotificationCenterEvent;
+    export type NotificationReceivedRoot = NotificationCenterEvent;
+    export type NotificationReadRoot = NotificationCenterEvent;
+
 }

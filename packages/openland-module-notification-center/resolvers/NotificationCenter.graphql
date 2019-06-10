@@ -1,0 +1,20 @@
+type NotificationCenter {
+    id: ID!
+    unread: Int!
+    state: NotificationCenterUpdatesState!
+}
+
+type Notification {
+    id: ID!
+    text: String
+}
+
+extend type Query {
+    myNotificationCenter: NotificationCenter!
+    myNotifications(first: Int!, before: ID): [Notification!]!
+}
+
+extend type Mutation {
+    debugCreateNotification(uid: ID!, text: String!): Boolean!
+    readNotification(notificationId: ID!): NotificationCenter!
+}
