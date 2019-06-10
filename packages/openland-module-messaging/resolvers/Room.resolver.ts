@@ -614,5 +614,15 @@ export default {
 
             return await Modules.Messaging.room.updateWelcomeMessage(ctx, cid, uid, welcomeMessageIsOn, welcomeMessageSender, welcomeMessageText);
         }),
+        betaRoomsJoinUser: withPermission('super-admin', async (ctx, args) => {
+            let res = [];
+            let uid = IDs.User.parse(args.userId);
+
+            for (let id of args.roomIds) {
+                res.push(await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(id), uid, true));
+            }
+
+            return res;
+        }),
     }
 } as GQLResolver;
