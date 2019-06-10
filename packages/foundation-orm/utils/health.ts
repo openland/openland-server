@@ -1,7 +1,7 @@
 import { FEntity } from '../FEntity';
 import { FEntityFactory } from '../FEntityFactory';
 import { inTx } from '../inTx';
-import { EmptyContext, Context } from '@openland/context';
+import { Context } from '@openland/context';
 
 export async function checkIndexConsistency<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
     // Find index inconsistency
@@ -40,7 +40,7 @@ export async function fixIndexConsistency<T extends FEntity>(parent: Context, en
     });
 
     // Reindex all
-    await inTx(EmptyContext, async (ctx) => {
+    await inTx(parent, async (ctx) => {
         let data = await getData(ctx);
         for (let item of data) {
             await item.flush(ctx);

@@ -10,7 +10,9 @@ import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { inTx } from 'foundation-orm/inTx';
-import { EmptyContext, Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
+
+let rootCtx = createNamedContext('prepare');
 faker.seed(123);
 
 async function createUser(ctx: Context, email: string) {
@@ -39,11 +41,11 @@ export async function prepare() {
         // Init DB
         let connection = new FConnection(FConnection.create(), EventBus);
         let entities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(rootCtx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();
-        let ctx = EmptyContext;
+        let ctx = rootCtx;
         if (await FDB.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');
         }
@@ -52,7 +54,7 @@ export async function prepare() {
         await FDB.connection.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
-        await loadAllModules(EmptyContext, false);
+        await loadAllModules(rootCtx, false);
 
         // Create entities
         await createUser(ctx, 'test1111@openland.com');
@@ -69,14 +71,14 @@ export async function prepare() {
         // for (let i = 0; i < 150; i++) {
         //     console.log('create user #' + i);
         let users: number[] = [];
-        await inTx(EmptyContext, async (ctx2) => {
+        await inTx(rootCtx, async (ctx2) => {
             for (let j = 0; j < 10; j++) {
                 let u = await createUser(ctx2, 'testmember' + j + '@openland.com');
                 await Modules.Orgs.addUserToOrganization(ctx2, u, org.id, uid, false, false);
                 users.push(u);
             }
         });
-        await Modules.Messaging.room.inviteToRoom(EmptyContext, group.id, uid, users);
+        await Modules.Messaging.room.inviteToRoom(rootCtx, group.id, uid, users);
         // }
 
         process.exit();

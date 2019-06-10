@@ -8,7 +8,7 @@ import { DoubleInvokeError } from './DoubleInvokeError';
 import { AccessDeniedError } from './AccessDeniedError';
 import { IDs } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 interface FormattedError {
     uuid: string;
@@ -27,14 +27,14 @@ export interface QueryInfo {
     transport: 'http' | 'ws';
 }
 
+const ctx = createNamedContext('unexpected-error');
+
 const handleUnexpectedError = (uuid: string, error: { message: string, originalError: any }, info?: QueryInfo) => {
     // Raven.captureException(error.originalError);
     console.warn('unexpected_error', uuid, error.originalError, error);
 
     // tslint:disable:no-floating-promises
     (async () => {
-        let ctx = EmptyContext;
-
         if (!await Modules.Super.getEnvVar<boolean>(ctx, 'api-error-reporting-enabled')) {
             return;
         }
@@ -57,7 +57,7 @@ const handleUnexpectedError = (uuid: string, error: { message: string, originalE
             'Error: ' + error.originalError.message + '\n' +
             'UUID: ' + uuid;
 
-        await Modules.Messaging.sendMessage(EmptyContext, chatId, botId, { message: report, ignoreAugmentation: true });
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: report, ignoreAugmentation: true });
     })();
 };
 

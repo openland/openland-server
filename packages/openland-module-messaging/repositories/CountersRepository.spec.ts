@@ -5,8 +5,8 @@ import { CountersRepository } from './CountersRepository';
 import { MessagingRepository } from './MessagingRepository';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { loadMessagingTestModule } from '../Messaging.container.test';
-import { EmptyContext } from '@openland/context';
 import { FDB } from 'openland-module-db/FDB';
+import { createNamedContext } from '@openland/context';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('CountersRepository', () => {
         testEnvironmentEnd();
     });
     it('should increment counter and decrement', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -57,7 +57,7 @@ describe('CountersRepository', () => {
     });
 
     it('should properly decrement on middle-read', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -93,7 +93,7 @@ describe('CountersRepository', () => {
     });
 
     it('should be order-independent', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -114,7 +114,7 @@ describe('CountersRepository', () => {
     });
 
     // it('should be tolerant to double invoke', async () => {
-    //     let ctx = createEmptyContext();
+    //     let ctx = createNamedContext('test')();
     //     let urepo = container.get<UserStateRepository>('UserStateRepository');
     //     let mrepo = container.get<MessagingRepository>('MessagingRepository');
     //     let repo = container.get<CountersRepository>('CountersRepository');
@@ -134,7 +134,7 @@ describe('CountersRepository', () => {
     // });
 
     it('should decrement counter on unread message deletion', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -159,7 +159,7 @@ describe('CountersRepository', () => {
     });
 
     it('should mark dialog mention for messages with mentions', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -192,7 +192,7 @@ describe('CountersRepository', () => {
     });
 
     it('should clear mention flag on read', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
@@ -227,7 +227,7 @@ describe('CountersRepository', () => {
     });
 
     // it('should not increment global counter for muted chat', async () => {
-    //     await inTx(createEmptyContext(), async ctx => {
+    //     await inTx(createNamedContext('test')(), async ctx => {
     //         let urepo = container.get<UserStateRepository>('UserStateRepository');
     //         let mrepo = container.get<MessagingRepository>('MessagingRepository');
     //         let repo = container.get<CountersRepository>('CountersRepository');
@@ -270,7 +270,7 @@ describe('CountersRepository', () => {
     // });
     //
     // it('should decrease global unread on dialog mute', async () => {
-    //     await inTx(createEmptyContext(), async ctx => {
+    //     await inTx(createNamedContext('test')(), async ctx => {
     //         let urepo = container.get<UserStateRepository>('UserStateRepository');
     //         let mrepo = container.get<MessagingRepository>('MessagingRepository');
     //         let repo = container.get<CountersRepository>('CountersRepository');

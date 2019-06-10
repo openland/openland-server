@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('FEntity with unique index', () => {
 
@@ -20,11 +20,11 @@ describe('FEntity with unique index', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
     });
 
     it('should create indexes', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             let res1 = await inTx(parent, async (ctx) => { return await testEntities.IndexedEntity.create(ctx, 0, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');
@@ -37,7 +37,7 @@ describe('FEntity with unique index', () => {
     });
 
     it('should update indexes', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { return await testEntities.IndexedEntity.create(ctx, 1, { data1: 'hello', data2: 'world', data3: '' }); });
             await inTx(parent, async (ctx) => {
@@ -55,7 +55,7 @@ describe('FEntity with unique index', () => {
     });
 
     it('should update content', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { return await testEntities.IndexedEntity.create(ctx, 3, { data1: 'hello', data2: 'world', data3: '' }); });
             await inTx(parent, async (ctx) => {

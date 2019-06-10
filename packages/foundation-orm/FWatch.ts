@@ -3,7 +3,7 @@ import { FKeyEncoding } from './utils/FKeyEncoding';
 import { delay } from '../openland-utils/timer';
 import { fastDeepEquals } from '../openland-utils/fastDeepEquals';
 import { createLogger } from 'openland-log/createLogger';
-import { Context, EmptyContext } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
@@ -23,6 +23,7 @@ export class FWatch {
     public static POOL_TIMEOUT = 100;
 
     private subscriptions = new Map<Buffer, FWatchSubscription[]>();
+    private ctx = createNamedContext('watch');
 
     constructor(
         private connection: FConnection
@@ -51,18 +52,17 @@ export class FWatch {
     }
 
     private async startWatching(key: Buffer) {
-        let ctx = EmptyContext;
         try {
             await this.doWatch(key);
         } catch (e) {
-            log.warn(ctx, e);
+            log.warn(this.ctx, e);
             // fallback to polling
             try {
-                log.debug(ctx, 'fallback to pooling');
+                log.debug(this.ctx, 'fallback to pooling');
                 await this.doPolling(key);
             } catch (e) {
-                log.debug(ctx, 'something happend');
-                log.warn(ctx, e);
+                log.debug(this.ctx, 'something happend');
+                log.warn(this.ctx, e);
                 // notify subscribers about end
                 let subs = this.subscriptions.get(key);
                 if (subs && subs.length > 0) {
@@ -93,7 +93,7 @@ export class FWatch {
     private async doWatch(key: Buffer) {
         while (true) {
             let subscription = await this.connection.fdb.getAndWatch(key);
-            log.debug(EmptyContext, 'subscribe');
+            log.debug(this.ctx, 'subscribe');
 
             let res = await subscription.promise;
 

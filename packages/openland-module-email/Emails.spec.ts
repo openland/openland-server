@@ -27,7 +27,7 @@ import { OrganizationRepository } from '../openland-module-organization/reposito
 import { OrganizationModule } from '../openland-module-organization/OrganizationModule';
 import { SuperModule } from '../openland-module-super/SuperModule';
 import { loadInvitesModule } from '../openland-module-invites/Invites.container';
-import { EmptyContext, Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 // Welcome and Organization activated email delivery rules:
 //
@@ -72,7 +72,7 @@ describe('Emails', () => {
     }
 
     it('should send welcome email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
         await Modules.Users.activateUser(ctx, uid, true);
@@ -83,7 +83,7 @@ describe('Emails', () => {
     });
 
     it('should send welcome email if joined with invite', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {uid, email} = await randomUser(ctx);
         let {uid: uid2} = await randomUser(ctx);
 
@@ -101,7 +101,7 @@ describe('Emails', () => {
     });
 
     it('should send unread message email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
@@ -118,7 +118,7 @@ describe('Emails', () => {
     });
 
     it('should send unread messages email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
 
@@ -139,7 +139,7 @@ describe('Emails', () => {
     });
 
     it('should send account activated Email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
         let {uid: uid2, email: email2} = await randomUser(ctx);
@@ -164,7 +164,7 @@ describe('Emails', () => {
     });
 
     it('should send account deactivated Email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {uid, email} = await randomUser(ctx);
         let {uid: uid2, email: email2} = await randomUser(ctx);
 
@@ -187,7 +187,7 @@ describe('Emails', () => {
     });
 
     it('should send member removed email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {uid} = await randomUser(ctx);
         let {uid: uid2, email: email2} = await randomUser(ctx);
 
@@ -207,7 +207,7 @@ describe('Emails', () => {
     });
 
     it('should send membership level changed email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {uid} = await randomUser(ctx);
         let {uid: uid2, email: email2} = await randomUser(ctx);
 
@@ -225,7 +225,7 @@ describe('Emails', () => {
     });
 
     it('should send organization invite email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {uid} = await randomUser(ctx);
         let {email: email2} = await randomUser(ctx);
 
@@ -271,7 +271,7 @@ describe('Emails', () => {
     // });
 
     it('should send activation code email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {email} = await randomUser(ctx);
 
         let spy = getSpy();
@@ -289,7 +289,7 @@ describe('Emails', () => {
     });
 
     it('should send room invite email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let spy = getSpy();
         let {uid} = await randomUser(ctx);
         let {email: email2} = await randomUser(ctx);
@@ -312,7 +312,7 @@ describe('Emails', () => {
     });
 
     it('should send room invite accepted email', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let {uid, email} = await randomUser(ctx);
         let {uid: uid2, email: email2} = await randomUser(ctx);
 

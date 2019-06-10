@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('FEntity Timestamped', () => {
 
@@ -20,11 +20,11 @@ describe('FEntity Timestamped', () => {
         let connection = new FConnection(db, NoOpBus);
         await db.clearRange(FKeyEncoding.encodeKey([]));
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
     });
 
     it('should create with correct timestamps', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             let start = Date.now();
             let res1 = await inTx(parent, async (ctx) => { return await testEntities.TimestampedEntity.create(ctx, 0, { data: 'hello world' }); });
@@ -44,7 +44,7 @@ describe('FEntity Timestamped', () => {
     });
 
     it('should update with correct timestamps', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.TimestampedEntity.create(ctx, 1, { data: 'hello world' }); });
             let start = Date.now();

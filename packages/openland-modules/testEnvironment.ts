@@ -8,7 +8,7 @@ import { DBModule } from 'openland-module-db/DBModule';
 import { EmailModuleMock } from 'openland-module-email/EmailModule.mock';
 import { randomKey } from 'openland-utils/random';
 import { HooksModuleMock } from 'openland-module-hooks/HooksModule.mock';
-import { Context, EmptyContext } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { UsersModule } from '../openland-module-users/UsersModule';
 
 export async function testEnvironmentStart(name: string) {
@@ -27,7 +27,7 @@ export async function testEnvironmentStart(name: string) {
     await connection.clearRange(FKeyEncoding.encodeKey([]));
     let cnn = new FConnection(connection, EventBus);
     let entities = new AllEntitiesDirect(cnn);
-    await cnn.ready(EmptyContext);
+    await cnn.ready(createNamedContext('text-' + name));
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind<AllEntities>('FDB')
         .toConstantValue(entities);

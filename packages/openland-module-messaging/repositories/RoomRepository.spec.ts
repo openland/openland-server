@@ -2,7 +2,7 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { container } from 'openland-modules/Modules.container';
 import { RoomRepository } from './RoomRepository';
 import { FDB } from 'openland-module-db/FDB';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('RoomRepository', () => {
     beforeAll(async () => {
@@ -13,7 +13,7 @@ describe('RoomRepository', () => {
         testEnvironmentEnd();
     });
     it('should create rooms', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         let USER_ID = 2;
         let ORG_ID = 1;
@@ -62,7 +62,7 @@ describe('RoomRepository', () => {
     });
 
     it('should add members', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         let USER_ID = 2;
         let ORG_ID = 1;
@@ -87,7 +87,7 @@ describe('RoomRepository', () => {
     });
 
     it('should kick members', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         let USER_ID = 2;
         let ORG_ID = 1;
@@ -100,7 +100,7 @@ describe('RoomRepository', () => {
     });
 
     it('should be able to leave room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         let USER_ID = 2;
         let ORG_ID = 1;
@@ -113,7 +113,7 @@ describe('RoomRepository', () => {
     });
 
     it('should update inivited by value on re-adding user to a room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         let USER_ID = 2;
         let USER2_ID = 3;
@@ -143,7 +143,7 @@ describe('RoomRepository', () => {
     });
 
     it('should be able to join rooms', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         let USER_ID = 2;
         let USER2_ID = 3;
@@ -167,7 +167,7 @@ describe('RoomRepository', () => {
     });
 
     it('should should crash if room does not exist', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<RoomRepository>('RoomRepository');
         await expect(repo.checkRoomExists(ctx, 100000)).rejects.toThrowError();
     });

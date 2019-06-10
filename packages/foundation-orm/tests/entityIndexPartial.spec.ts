@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('Partial Index', () => {
 
@@ -20,11 +20,11 @@ describe('Partial Index', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
     });
 
     it('should create indexes if condition true', async () => {
-        let root = EmptyContext;
+        let root = createNamedContext('test');
         await withLogDisabled(async () => {
             let res1 = await inTx(root, async (ctx) => { return await testEntities.IndexedPartialEntity.create(ctx, 0, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');
@@ -46,7 +46,7 @@ describe('Partial Index', () => {
     });
 
     it('should not create indexes if condition false', async () => {
-        let root = EmptyContext;
+        let root = createNamedContext('test');
         await withLogDisabled(async () => {
             let res1 = await inTx(root, async (ctx) => { return await testEntities.IndexedPartialEntity.create(ctx, 1, { data1: 'hello2', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello2');
@@ -60,7 +60,7 @@ describe('Partial Index', () => {
     });
 
     it('should create indexes if condition was changed from false to true', async () => {
-        let root = EmptyContext;
+        let root = createNamedContext('test');
         await withLogDisabled(async () => {
             let res1 = await inTx(root, async (ctx) => { return await testEntities.IndexedPartialEntity.create(ctx, 3, { data1: 'hello2', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello2');
@@ -96,7 +96,7 @@ describe('Partial Index', () => {
     });
 
     it('should delete indexes if condition was changed from true to false', async () => {
-        let root = EmptyContext;
+        let root = createNamedContext('test');
         await withLogDisabled(async () => {
             let res1 = await inTx(root, async (ctx) => { return await testEntities.IndexedPartialEntity.create(ctx, 4, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');

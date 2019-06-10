@@ -10,7 +10,7 @@ import { OrganizationRepository } from '../../openland-module-organization/repos
 import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
 import { Modules } from '../../openland-modules/Modules';
 import { HooksModule } from '../../openland-module-hooks/HooksModule';
-import { EmptyContext, Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
@@ -35,7 +35,7 @@ describe('RoomMediator', () => {
     }
 
     it('should create room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = (await randomTestUser(ctx)).uid;
         let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
@@ -54,7 +54,7 @@ describe('RoomMediator', () => {
     });
 
     it('should be able to join room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = await randomUser(ctx);
         let USER2_ID = await randomUser(ctx);
@@ -81,7 +81,7 @@ describe('RoomMediator', () => {
     });
 
     it('should join community on room join', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let orgs = await container.get<OrganizationModule>(OrganizationModule);
         let USER_ID = await randomUser(ctx);
@@ -99,7 +99,7 @@ describe('RoomMediator', () => {
     });
 
     it('should not join organization on room join', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = await randomUser(ctx);
         let USER2_ID = await randomUser(ctx);
@@ -154,7 +154,7 @@ describe('RoomMediator', () => {
     // });
 
     it('should be able to join organization chat if member', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = await randomUser(ctx);
         let USER2_ID = await randomUser(ctx);
@@ -179,7 +179,7 @@ describe('RoomMediator', () => {
     });
 
     it('should be able to join community chat regardless of membership', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = await randomUser(ctx);
         let USER2_ID = await randomUser(ctx);
@@ -205,7 +205,7 @@ describe('RoomMediator', () => {
     });
 
     it('should not be able to join secret chat', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = await randomUser(ctx);
         let USER2_ID = await randomUser(ctx);
@@ -227,7 +227,7 @@ describe('RoomMediator', () => {
     });
 
     it('should be able to join secret chat if was invited', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let USER_ID = await randomUser(ctx);
         let USER2_ID = await randomUser(ctx);
@@ -252,7 +252,7 @@ describe('RoomMediator', () => {
     });
 
     it('should be able to kick from room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let orgs = await container.get<OrganizationModule>(OrganizationModule);
         let USER_ID = await randomUser(ctx);

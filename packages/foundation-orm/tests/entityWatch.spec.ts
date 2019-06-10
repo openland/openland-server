@@ -8,7 +8,7 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
 import { FWatch } from '../FWatch';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('FWatch', () => {
 
@@ -21,12 +21,12 @@ describe('FWatch', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
         FWatch.POOL_TIMEOUT = 10;
     });
 
     it('should call callback on entity change', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.SimpleEntity.create(ctx, 100, { data: 'test' });
@@ -48,7 +48,7 @@ describe('FWatch', () => {
     });
 
     it('should call callback on entity change multiply times', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.SimpleEntity.create(ctx, 101, { data: 'test' });
@@ -73,7 +73,7 @@ describe('FWatch', () => {
     });
 
     it('should not call callback if subscription was canceled', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => {
                 await testEntities.SimpleEntity.create(ctx, 103, { data: 'test' });

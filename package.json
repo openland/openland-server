@@ -16,7 +16,6 @@
     "@types/bignumber.js": "^5.0.0",
     "@types/body-parser": "^1.16.4",
     "@types/cheerio": "^0.22.7",
-    "@types/cls-hooked": "^4.2.1",
     "@types/compression": "^0.0.35",
     "@types/cors": "^2.8.1",
     "@types/csv-parse": "^1.1.11",

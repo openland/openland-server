@@ -15,7 +15,7 @@ import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { InvitesOrganizationRepository } from 'openland-module-invites/repositories/InvitesOrganizationRepository';
 import { Modules } from 'openland-modules/Modules';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('InvitesMediator', () => {
 
@@ -43,7 +43,7 @@ describe('InvitesMediator', () => {
     });
 
     it('should add to channel via invite', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let USER_ID = (await randomTestUser(ctx)).uid;
         let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
@@ -73,7 +73,7 @@ describe('InvitesMediator', () => {
     });
 
     it('should activate via invite', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let USER_ID = (await users.createUser(ctx, 'user_app_1', 'email_app_1')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
 
@@ -96,7 +96,7 @@ describe('InvitesMediator', () => {
     });
 
     it('should add to organization via email invite', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let USER_ID = (await users.createUser(ctx, 'user_org_1', 'email_org_1')).id;
         let USER2_ID = (await users.createUser(ctx, 'user_org_2', 'email_org_2')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
@@ -126,7 +126,7 @@ describe('InvitesMediator', () => {
     });
 
     it('should add to organization via public invite', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let USER_ID = (await users.createUser(ctx, 'user_org_p_1', 'email_org_p_1')).id;
         let USER2_ID = (await users.createUser(ctx, 'user_org_p_2', 'email_org_p_2')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });

@@ -1318,13 +1318,6 @@
   version "0.22.10"
   resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.10.tgz#780d552467824be4a241b29510a7873a7432c4a6"
 
-"@types/cls-hooked@^4.2.1":
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/@types/cls-hooked/-/cls-hooked-4.2.1.tgz#1ac4bc483a5617157abf17948b55bcf9aea718ad"
-  dependencies:
-    "@types/events" "*"
-    "@types/node" "*"
-
 "@types/compression@^0.0.35":
   version "0.0.35"
   resolved "https://registry.yarnpkg.com/@types/compression/-/compression-0.0.35.tgz#7673a9c4b075e5194ada8c5938291015652a21e1"

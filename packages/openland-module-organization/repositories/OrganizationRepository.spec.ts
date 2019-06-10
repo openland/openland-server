@@ -6,7 +6,7 @@ import { DBModule } from '../../openland-module-db/DBModule';
 import { UsersModule } from '../../openland-module-users/UsersModule';
 import { UserRepository } from '../../openland-module-users/repositories/UserRepository';
 import { Modules } from '../../openland-modules/Modules';
-import { Context, EmptyContext } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 describe('OrganizationRepository', () => {
     async function createUser(ctx: Context, index: number) {
@@ -29,7 +29,7 @@ describe('OrganizationRepository', () => {
     it('should create pending organization correctly', async () => {
         let repo = container.get<OrganizationRepository>('OrganizationRepository');
         let db = container.get<DBModule>('DBModule');
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
 
         // Create Organization
         let id = (await repo.createOrganization(ctx, 1, { name: 'my nice org ' }, { editorial: false, status: 'pending' })).id;
@@ -65,7 +65,7 @@ describe('OrganizationRepository', () => {
         let repo = container.get<OrganizationRepository>('OrganizationRepository');
         let db = container.get<DBModule>('DBModule');
 
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let id = (await repo.createOrganization(ctx, 1, { name: 'title' }, { editorial: false, status: 'activated' })).id;
         let org = await db.entities.Organization.findById(ctx, id);
         expect(org).not.toBeNull();
@@ -90,7 +90,7 @@ describe('OrganizationRepository', () => {
         let db = container.get<DBModule>('DBModule');
         let userRepo = container.get<UserRepository>('UserRepository');
 
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
 
         let user = await createUser(ctx, 1);
 

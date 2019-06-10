@@ -9,7 +9,7 @@ import { OrganizationModule } from 'openland-module-organization/OrganizationMod
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { Modules } from '../openland-modules/Modules';
 import { SuperModule } from 'openland-module-super/SuperModule';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
@@ -26,7 +26,7 @@ describe('RoomMediator', () => {
     });
 
     it('should create room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
@@ -47,7 +47,7 @@ describe('RoomMediator', () => {
     });
 
     it('should be able to join room', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await randomTestUser(ctx)).uid;

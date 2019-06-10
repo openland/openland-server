@@ -7,7 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NoOpBus } from './NoOpBus';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('FEntity Versioned', () => {
 
@@ -20,11 +20,11 @@ describe('FEntity Versioned', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
     });
 
     it('should create with version number eq to one', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 0, { data: 'hello world' }); });
             let res = (await testEntities.VersionedEntity.findById(parent, 0))!;
@@ -33,7 +33,7 @@ describe('FEntity Versioned', () => {
     });
 
     it('should update version number by one', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 1, { data: 'hello world' }); });
             await inTx(parent, async (ctx) => {
@@ -46,7 +46,7 @@ describe('FEntity Versioned', () => {
     });
 
     it('should create with version number eq to one', async () => {
-        let parent = EmptyContext;
+        let parent = createNamedContext('test');
         await withLogDisabled(async () => {
             await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 2, { data: 'hello world' }); });
             let res = (await testEntities.VersionedEntity.findById(parent, 2))!;

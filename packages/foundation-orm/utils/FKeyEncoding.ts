@@ -1,7 +1,7 @@
 import { encoders } from 'foundationdb';
 import { createLogger } from 'openland-log/createLogger';
 import { FTuple } from 'foundation-orm/encoding/FTuple';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 // import { pack } from './TupleEncoder';
 
 const byteFF = Buffer.alloc(1);
@@ -9,6 +9,8 @@ byteFF.writeUInt8(0xff, 0);
 const byteZero = Buffer.alloc(1);
 byteZero.writeUInt8(0, 0);
 const log = createLogger('key-encoding');
+const unknownContext = createNamedContext('unknown');
+
 export const FKeyEncoding = {
     encodeKey: (key: (string | boolean | number)[]) => {
         // try {
@@ -19,7 +21,7 @@ export const FKeyEncoding = {
         try {
             return encoders.tuple.pack(key) as Buffer;
         } catch (e) {
-            log.warn(EmptyContext, 'Unable to encode key', key, e);
+            log.warn(unknownContext, 'Unable to encode key', key, e);
             throw e;
         }
     },

@@ -6,7 +6,7 @@ import { AllEntitiesDirect, AllEntities } from './testSchema';
 import { NoOpBus } from './NoOpBus';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { inTx } from 'foundation-orm/inTx';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('atomics', () => {
     let db: fdb.Database<NativeValue, any>;
@@ -17,11 +17,11 @@ describe('atomics', () => {
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
     });
 
     it('should set and get', async () => {
-        let rootctx = EmptyContext;
+        let rootctx = createNamedContext('test');
         await inTx(rootctx, async (ctx) => {
             let atomic = testEntities.SampleAtomic.byId('some');
             await atomic.set(ctx, 1339);
@@ -37,7 +37,7 @@ describe('atomics', () => {
     });
 
     it('should increment and decrement', async () => {
-        let rootctx = EmptyContext;
+        let rootctx = createNamedContext('test');
         await inTx(rootctx, async (ctx) => {
             let atomic = testEntities.SampleAtomic.byId('some-1');
             await atomic.set(ctx, 1339);
@@ -78,7 +78,7 @@ describe('atomics', () => {
     });
 
     it('should set and get booleans', async () => {
-        let rootctx = EmptyContext;
+        let rootctx = createNamedContext('test');
 
         let res = await (testEntities.SampleAtomicBoolean.byId('some-1')).get(rootctx);
         expect(res).toEqual(false);

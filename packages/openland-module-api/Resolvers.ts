@@ -6,7 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { MaybePromise } from './schema/SchemaUtils';
 import { CacheContext } from './CacheContext';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 async function fetchPermissions(ctx: AppContext) {
     if (ctx.cache.has('permissions')) {
@@ -88,6 +88,7 @@ export function resolveUser<T extends { userId: number }>() {
 }
 
 type FieldHandler = (type: GraphQLObjectType, field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
+const defaultContext = createNamedContext('default-resolver');
 export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
     let types = schema.getTypeMap();
 
@@ -112,7 +113,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
                 if (field.resolve) {
                     field.resolve = async (root: any, args: any, context: AppContext, info: any) => {
                         if (!context || !context.ctx) {
-                            let res = EmptyContext;
+                            let res = defaultContext;
                             res = CacheContext.set(res, new Map());
                             context = new GQLAppContext(res, info);
                         }

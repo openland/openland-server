@@ -7,23 +7,24 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('PushRepository', () => {
     // Database Init
     let db: fdb.Database<NativeValue, any>;
     let entities: AllEntities;
+    
     beforeAll(async () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_push']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
         entities = new AllEntitiesDirect(connection);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
     });
 
     it('should register web push', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         await withLogDisabled(async () => {
             let repo = new PushRepository(entities);
             await repo.registerPushWeb(ctx, 1, 'token1', 'endpoint!');
@@ -36,7 +37,7 @@ describe('PushRepository', () => {
     });
 
     it('should move web push registration to new user/token', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         await withLogDisabled(async () => {
             let repo = new PushRepository(entities);
             await repo.registerPushWeb(ctx, 2, 'token2', 'endpoint2');
@@ -52,7 +53,7 @@ describe('PushRepository', () => {
     });
 
     it('should register android push', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         await withLogDisabled(async () => {
             let repo = new PushRepository(entities);
             await repo.registerPushAndroid(ctx, 1, 'token1', 'endpoint!', 'package', false);
@@ -67,7 +68,7 @@ describe('PushRepository', () => {
     });
 
     it('should move android push registration to new user/token', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         await withLogDisabled(async () => {
             let repo = new PushRepository(entities);
             await repo.registerPushAndroid(ctx, 2, 'token1', 'endpoint!', 'package', false);
@@ -83,7 +84,7 @@ describe('PushRepository', () => {
     });
 
     it('should register apple push', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         await withLogDisabled(async () => {
             let repo = new PushRepository(entities);
             await repo.registerPushApple(ctx, 1, 'token1', 'endpoint!', 'package', false);
@@ -98,7 +99,7 @@ describe('PushRepository', () => {
     });
 
     it('should move apple push registration to new user/token', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         await withLogDisabled(async () => {
             let repo = new PushRepository(entities);
             await repo.registerPushApple(ctx, 2, 'token1', 'endpoint!', 'package', false);

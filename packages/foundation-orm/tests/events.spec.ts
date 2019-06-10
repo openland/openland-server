@@ -6,7 +6,7 @@ import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
 import { FEventStore } from 'foundation-orm/FEventStore';
 import { inTx } from 'foundation-orm/inTx';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
 describe('events', () => {
     let db: fdb.Database<NativeValue, any>;
@@ -18,22 +18,22 @@ describe('events', () => {
 
     it('should create singe events', async () => {
         let connection = new FConnection(db, NoOpBus, true);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
         let factory = new FEventStore('test1', connection);
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(createNamedContext('test'), async (ctx) => {
             await factory.create(ctx, [1], { event: 1 });
         });
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(createNamedContext('test'), async (ctx) => {
             await factory.create(ctx, [1], { event: 2 });
         });
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(createNamedContext('test'), async (ctx) => {
             await factory.create(ctx, [1], { event: 2 });
         });
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(createNamedContext('test'), async (ctx) => {
             await factory.create(ctx, [1], { event: 3 });
         });
 
-        let events = await factory.findAll(EmptyContext, [1]);
+        let events = await factory.findAll(createNamedContext('test'), [1]);
         expect(events.length).toBe(4);
         expect(events[0].value.event).toBe(1);
         expect(events[1].value.event).toBe(2);
@@ -43,16 +43,16 @@ describe('events', () => {
 
     it('should create multiple events', async () => {
         let connection = new FConnection(db, NoOpBus, true);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
         let factory = new FEventStore('test2', connection);
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(createNamedContext('test'), async (ctx) => {
             await factory.create(ctx, [1], { event: 1 });
             await factory.create(ctx, [1], { event: 2 });
             await factory.create(ctx, [1], { event: 2 });
             await factory.create(ctx, [1], { event: 3 });
         });
 
-        let events = await factory.findAll(EmptyContext, [1]);
+        let events = await factory.findAll(createNamedContext('test'), [1]);
         expect(events.length).toBe(4);
         expect(events[0].value.event).toBe(1);
         expect(events[1].value.event).toBe(2);
@@ -62,30 +62,30 @@ describe('events', () => {
 
     it('range should work', async () => {
         let connection = new FConnection(db, NoOpBus, true);
-        await connection.ready(EmptyContext);
+        await connection.ready(createNamedContext('test'));
         let factory = new FEventStore('test3', connection);
-        await inTx(EmptyContext, async (ctx) => {
+        await inTx(createNamedContext('test'), async (ctx) => {
             await factory.create(ctx, [1], { event: 1 });
             await factory.create(ctx, [1], { event: 2 });
             await factory.create(ctx, [1], { event: 2 });
             await factory.create(ctx, [1], { event: 3 });
         });
 
-        let events = await factory.range(EmptyContext, [1], { limit: 1 });
+        let events = await factory.range(createNamedContext('test'), [1], { limit: 1 });
         expect(events.length).toBe(1);
         expect(events[0].value.event).toBe(1);
 
-        events = await factory.range(EmptyContext, [1], { limit: 2, after: events[0].key });
+        events = await factory.range(createNamedContext('test'), [1], { limit: 2, after: events[0].key });
         expect(events.length).toBe(2);
         expect(events[0].value.event).toBe(2);
         expect(events[1].value.event).toBe(2);
 
-        events = await factory.range(EmptyContext, [1], { limit: 2, after: events[1].key });
+        events = await factory.range(createNamedContext('test'), [1], { limit: 2, after: events[1].key });
         console.warn(events);
         expect(events.length).toBe(1);
         expect(events[0].value.event).toBe(3);
 
-        events = await factory.range(EmptyContext, [1], { limit: 2, after: events[0].key });
+        events = await factory.range(createNamedContext('test'), [1], { limit: 2, after: events[0].key });
         expect(events.length).toBe(0);
     });
 });

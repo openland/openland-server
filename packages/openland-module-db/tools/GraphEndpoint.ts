@@ -23,8 +23,9 @@ import { batch } from 'openland-utils/batch';
 import { withLogContext } from 'openland-log/withLogContext';
 import { uuid } from 'openland-utils/uuid';
 import { createLogger } from 'openland-log/createLogger';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 
+let rootCtx = createNamedContext('graphql-admin');
 let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)); // WTF? Why separate connection?
 let entitiesMap: any = {};
 let queries: any = {};
@@ -156,7 +157,7 @@ for (let e of AllEntitiesDirect.schema) {
             for (let f of e.primaryKeys) {
                 ids.push(a[f.name]);
             }
-            return (FDB as any)[e.name].findById(EmptyContext, ...ids);
+            return (FDB as any)[e.name].findById(rootCtx, ...ids);
         }
     };
 
@@ -173,7 +174,7 @@ for (let e of AllEntitiesDirect.schema) {
                 for (let f of e.primaryKeys) {
                     ids.push(a[f.name]);
                 }
-                yield (FDB as any)[e.name].findById(EmptyContext, ...ids);
+                yield (FDB as any)[e.name].findById(rootCtx, ...ids);
                 await delay(1000);
             }
         },
@@ -186,7 +187,7 @@ for (let e of AllEntitiesDirect.schema) {
     queries[Case.camelCase(e.name) + 'All'] = {
         type: new GraphQLList(obj),
         resolve() {
-            return (FDB as any)[e.name].findAll(EmptyContext);
+            return (FDB as any)[e.name].findAll(rootCtx);
         }
     };
 
@@ -201,7 +202,7 @@ for (let e of AllEntitiesDirect.schema) {
                     },
                     resolve: async (_: any, arg: any) => {
                         // let argm = extractArguments(arg, e, i, 0);
-                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](EmptyContext, arg.first, arg.after, arg.reversed);
+                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](rootCtx, arg.first, arg.after, arg.reversed);
                         console.log(res);
                         return res;
                     }
@@ -232,7 +233,7 @@ for (let e of AllEntitiesDirect.schema) {
                     },
                     resolve: async (_: any, arg: any) => {
                         let argm = extractArguments(arg, e, i, 1);
-                        return await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](EmptyContext, ...argm, arg.first, arg.after, arg.reversed);
+                        return await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](rootCtx, ...argm, arg.first, arg.after, arg.reversed);
                     }
                 };
             }
@@ -243,7 +244,7 @@ for (let e of AllEntitiesDirect.schema) {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
 
-            let lctx = EmptyContext;
+            let lctx = rootCtx;
             lctx = withLogContext(lctx, [Case.camelCase(e.name) + 'Rebuild', uuid()]);
 
             log.debug(lctx, 'fetching keys...');
@@ -291,7 +292,7 @@ for (let e of AllEntitiesDirect.schema) {
                 for (let f of e.primaryKeys) {
                     ids.push(a[f.name]);
                 }
-                return inTx(EmptyContext, async (ctx) => {
+                return inTx(rootCtx, async (ctx) => {
                     return await (FDB as any)[e.name].create(ctx, ...ids, a.input);
                 });
             }
@@ -305,7 +306,7 @@ for (let e of AllEntitiesDirect.schema) {
                 for (let f of e.primaryKeys) {
                     ids.push(a[f.name]);
                 }
-                return inTx(EmptyContext, async (ctx) => {
+                return inTx(rootCtx, async (ctx) => {
                     let item = await (FDB as any)[e.name].findById(ctx, ...ids);
                     if (!item) {
                         throw Error('Not found');

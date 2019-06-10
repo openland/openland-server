@@ -3,7 +3,7 @@ import { container } from 'openland-modules/Modules.container';
 import { MessagingRepository } from './MessagingRepository';
 import { AllEntities } from 'openland-module-db/schema';
 import { UserStateRepository } from './UserStateRepository';
-import { EmptyContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 
 describe('MessagingRepository', () => {
@@ -18,7 +18,7 @@ describe('MessagingRepository', () => {
     });
 
     it('should create message and event', async () => {
-        let ctx = EmptyContext;
+        let ctx = createNamedContext('test');
         let repo = container.get<MessagingRepository>('MessagingRepository');
         let entities = container.get<AllEntities>('FDB');
         let res = (await repo.createMessage(ctx, 1, 2, { message: 'text' }));
