@@ -43,7 +43,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findByRawId(ctx: Context, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
-            let res = await this.directory.get(ctx, key);
+            let res = await this.namespace.keySpace.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }
@@ -57,7 +57,8 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllKeys(ctx: Context, limit?: number) {
         return this.readOp(ctx, async () => {
-            let res = await this.directory.range(ctx, [], { limit });
+            let res = await this.namespace.keySpace.range(ctx, [], { limit });
+            res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
             return res.map((v) => v.key);
         });
     }
@@ -240,7 +241,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 return cached;
             } else {
                 let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                    let r = await this.directory.get(ctx, key);
+                    let r = await this.namespace.keySpace.get(ctx, key);
                     if (r) {
                         return this.doCreateEntity(ctx, r, false);
                     } else {
@@ -254,7 +255,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
         // Uncached (Obsolete: Might never happen)
         return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-            let res = await this.directory.get(ctx, key);
+            let res = await this.namespace.keySpace.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }
