@@ -1,8 +1,11 @@
+union CommentPeerRoot = GeneralMessage
+
 type CommentsPeer {
     id: ID!
     state: CommentUpdatesState!
     count: Int!
     comments: [CommentEntry!]!
+    peerRoot: CommentPeerRoot!
 }
 
 type CommentEntry {

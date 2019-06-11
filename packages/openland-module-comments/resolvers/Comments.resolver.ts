@@ -8,6 +8,7 @@ import {
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../CommentsRepository';
+import { Message } from '../../openland-module-db/schema';
 
 export default {
     CommentsPeer: {
@@ -24,6 +25,13 @@ export default {
         },
         count: src => src.comments.length,
         comments: src => src.comments,
+        peerRoot: async (src, args, ctx) => {
+            if (src.peerType === 'message') {
+                return await FDB.Message.findById(ctx, src.peerId);
+            } else {
+                throw new Error('Unknown comments peer type: ' + src.peerType);
+            }
+        }
     },
     CommentEntry: {
         id: src => IDs.CommentEntry.serialize(src.id),
@@ -31,6 +39,15 @@ export default {
         comment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
         childComments: async (src, args, ctx) => (await FDB.Comment.allFromChild(ctx, src.id)).filter(c => c.visible)
+    },
+    CommentPeerRoot: {
+        __resolveType(obj: any) {
+            if (obj instanceof Message) {
+                return 'GeneralMessage';
+            } else {
+                throw new Error('Unknown comments peer root type: ' + obj);
+            }
+        }
     },
 
     Mutation: {
