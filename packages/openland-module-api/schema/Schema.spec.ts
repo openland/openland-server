@@ -4,8 +4,8 @@ import { buildSchema } from '../../openland-graphql/buildSchema';
 import { buildResolvers } from '../../openland-graphql/buildResolvers';
 import { makeExecutableSchema } from 'graphql-tools';
 import { Directives } from './Directives2';
-import { merge } from 'lodash';
 import * as Basics from './Date';
+import { merge } from '../../openland-utils/merge';
 
 describe('GQLSchema', () => {
     it('should be valid', () => {
@@ -17,8 +17,8 @@ describe('GQLSchema', () => {
         let executableSchema = makeExecutableSchema({
             typeDefs: schema,
             resolvers: merge(
-                Basics.Resolvers,
-                ...resolvers
+              Basics.Resolvers,
+              ...resolvers
             ),
             schemaDirectives: Directives
         });

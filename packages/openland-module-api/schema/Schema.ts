@@ -1,18 +1,14 @@
-import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Basics from './Date';
 
 import { Directives } from './Directives2';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
 import { wrapAllResolvers } from '../Resolvers';
-// import { trace } from 'openland-log/trace';
-// import { gqlTracer } from 'openland-graphql/gqlTracer';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { gqlTracer } from 'openland-graphql/gqlTracer';
-// import { withTracingSpan } from 'openland-log/withTracing';
-// import { withCache } from 'foundation-orm/withCache';
+import { merge } from '../../openland-utils/merge';
 
 export const Schema = (forTest: boolean = false) => {
     let schema = buildSchema(__dirname + '/../../');
