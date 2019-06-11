@@ -6,6 +6,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
 import { FDB } from 'openland-module-db/FDB';
+import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -38,7 +39,7 @@ export function createPushWorker(repo: PushRepository) {
     if (serverRoleEnabled('workers')) {
         for (let i = 0; i < 10; i++) {
             queue.addWorker(async (args, parent) => {
-                return tracer.trace(parent, 'sorting', async (ctx) => {
+                return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
                     if (args.desktop) {
                         //
                         // Web Push

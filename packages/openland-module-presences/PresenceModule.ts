@@ -179,29 +179,30 @@ export class PresenceModule {
         let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
 
         // Send initial state
-        let ctx = this.rootCtx;
-        for (let userId of users) {
-            if (userId === await Modules.Users.getSupportUserId(ctx)) {
-                iterator.push({
-                    userId,
-                    timeout: 0,
-                    online: true,
-                    active: true,
-                    lastSeen: Date.now() + 5000
-                });
+        await inTx(this.rootCtx, async (ctx) => {
+            for (let userId of users) {
+                if (userId === await Modules.Users.getSupportUserId(ctx)) {
+                    iterator.push({
+                        userId,
+                        timeout: 0,
+                        online: true,
+                        active: true,
+                        lastSeen: Date.now() + 5000
+                    });
+                }
+                if (this.onlines.get(userId)) {
+                    let online = this.onlines.get(userId)!;
+                    let isOnline = (online.lastSeen > Date.now());
+                    iterator.push({
+                        userId,
+                        timeout: isOnline ? 5000 : 0,
+                        online: isOnline,
+                        active: false,
+                        lastSeen: Date.now() + (isOnline ? 5000 : 0)
+                    });
+                }
             }
-            if (this.onlines.get(userId)) {
-                let online = this.onlines.get(userId)!;
-                let isOnline = (online.lastSeen > Date.now());
-                iterator.push({
-                    userId,
-                    timeout: isOnline ? 5000 : 0,
-                    online: isOnline,
-                    active: false,
-                    lastSeen: Date.now() + (isOnline ? 5000 : 0)
-                });
-            }
-        }
+        });
 
         for (let userId of users) {
             subscriptions.push(await this.localSub.subscribe(userId.toString(10), iterator.push));
