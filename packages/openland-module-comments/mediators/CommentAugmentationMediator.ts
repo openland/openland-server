@@ -1,12 +1,12 @@
-import { WorkQueue } from '../openland-module-workers/WorkQueue';
-import { AllEntities, Comment } from '../openland-module-db/schema';
+import { WorkQueue } from '../../openland-module-workers/WorkQueue';
+import { AllEntities, Comment } from '../../openland-module-db/schema';
 import { injectable } from 'inversify';
-import { lazyInject } from '../openland-modules/Modules.container';
-import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
-import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
-import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
-import { CommentsRepository } from './CommentsRepository';
-import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
+import { createUrlInfoService } from '../../openland-module-messaging/workers/UrlInfoService';
+import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../../openland-module-messaging/MessageInput';
+import { CommentsRepository } from '../repositories/CommentsRepository';
+import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { Context } from '@openland/context';
 
 const linkifyInstance = createLinkifyInstance();

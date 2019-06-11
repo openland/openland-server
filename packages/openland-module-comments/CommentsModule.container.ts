@@ -1,10 +1,10 @@
 import { container } from 'openland-modules/Modules.container';
-import { CommentsRepository } from './CommentsRepository';
-import { CommentsMediator } from './CommentsMediator';
-import { CommentAugmentationMediator } from './CommentAugmentationMediator';
-import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
-import { CommentsNotificationsRepository } from './CommentsNotificationsRepository';
+import { CommentsRepository } from './repositories/CommentsRepository';
+import { CommentsMediator } from './mediators/CommentsMediator';
+import { CommentsNotificationsMediator } from './mediators/CommentsNotificationsMediator';
+import { CommentsNotificationsRepository } from './repositories/CommentsNotificationsRepository';
 import { CommentsModule } from './CommentsModule';
+import { CommentAugmentationMediator } from './mediators/CommentAugmentationMediator';
 
 export function loadCommentsModule() {
     container.bind('CommentsRepository').to(CommentsRepository);

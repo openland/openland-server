@@ -6,6 +6,7 @@ type CommentsPeer {
     count: Int!
     comments: [CommentEntry!]!
     peerRoot: CommentPeerRoot!
+    subscription: CommentSubscription
 }
 
 type CommentEntry {
@@ -14,6 +15,15 @@ type CommentEntry {
     comment: GeneralMessage!
     parentComment: CommentEntry
     childComments: [CommentEntry!]!
+}
+
+enum CommentSubscriptionType {
+    ALL,
+    DIRECT
+}
+
+type CommentSubscription {
+    type: CommentSubscriptionType
 }
 
 extend type Query {
@@ -29,4 +39,7 @@ extend type Mutation {
 
     commentReactionAdd(commentId: ID!, reaction: MessageReactionType!): Boolean!
     commentReactionRemove(commentId: ID!, reaction: MessageReactionType!): Boolean!
+
+    subscribeMessageComments(messageId: ID!, type: CommentSubscriptionType!): Boolean!
+    unSubscribeMessageComments(messageId: ID!): Boolean!
 }

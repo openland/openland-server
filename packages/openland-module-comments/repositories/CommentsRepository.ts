@@ -1,9 +1,9 @@
 import { injectable } from 'inversify';
-import { lazyInject } from '../openland-modules/Modules.container';
-import { AllEntities, Comment } from '../openland-module-db/schema';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { AllEntities, Comment } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
-import { inTx } from '../foundation-orm/inTx';
-import { NotFoundError } from '../openland-errors/NotFoundError';
+import { inTx } from '../../foundation-orm/inTx';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
 import {
     AllMentionSpan,
     BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
@@ -13,8 +13,8 @@ import {
     MultiUserMentionSpan,
     RoomMentionSpan, RotatingTextSpan,
     UserMentionSpan
-} from '../openland-module-messaging/MessageInput';
-import { createLinkifyInstance } from '../openland-utils/createLinkifyInstance';
+} from '../../openland-module-messaging/MessageInput';
+import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
 
 const linkifyInstance = createLinkifyInstance();

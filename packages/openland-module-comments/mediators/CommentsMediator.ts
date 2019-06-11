@@ -1,12 +1,12 @@
 import { injectable } from 'inversify';
-import { lazyInject } from '../openland-modules/Modules.container';
-import { CommentInput, CommentsRepository } from './CommentsRepository';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { CommentInput, CommentsRepository } from '../repositories/CommentsRepository';
 import { Context } from '@openland/context';
-import { inTx } from '../foundation-orm/inTx';
-import { AllEntities } from '../openland-module-db/schema';
-import { NotFoundError } from '../openland-errors/NotFoundError';
-import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
-import { Modules } from '../openland-modules/Modules';
+import { inTx } from '../../foundation-orm/inTx';
+import { AllEntities } from '../../openland-module-db/schema';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { Modules } from '../../openland-modules/Modules';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
 
@@ -37,7 +37,7 @@ export class CommentsMediator {
             //
             //  Subscribe to notifications
             //
-            await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid);
+            await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid, 'all');
 
             //
             // Send notifications

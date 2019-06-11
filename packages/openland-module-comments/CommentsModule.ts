@@ -1,10 +1,10 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
-import { CommentInput, CommentPeerType } from './CommentsRepository';
+import { CommentInput, CommentPeerType } from './repositories/CommentsRepository';
 import { Context } from '@openland/context';
-import { CommentsMediator } from './CommentsMediator';
-import { CommentAugmentationMediator } from './CommentAugmentationMediator';
-import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
+import { CommentsMediator } from './mediators/CommentsMediator';
+import { CommentsNotificationsMediator } from './mediators/CommentsNotificationsMediator';
+import { CommentAugmentationMediator } from './mediators/CommentAugmentationMediator';
 
 @injectable()
 export class CommentsModule {
@@ -41,7 +41,11 @@ export class CommentsModule {
         return this.mediator.setReaction(ctx, commentId, uid, reaction, reset);
     }
 
-    async subscribeToComments(ctx: Context, peerType: CommentPeerType, peerId: number, uid: number) {
-        return this.notificationsMediator.subscribeToComments(ctx, peerType, peerId, uid);
+    async subscribeToComments(ctx: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
+        return this.notificationsMediator.subscribeToComments(ctx, peerType, peerId, uid, type);
+    }
+
+    async unsubscribeFromComments(ctx: Context, peerType: CommentPeerType, peerId: number, uid: number) {
+        return this.notificationsMediator.unsubscribeFromComments(ctx, peerType, peerId, uid);
     }
 }

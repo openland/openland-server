@@ -1,11 +1,11 @@
 import { injectable } from 'inversify';
-import { lazyInject } from '../openland-modules/Modules.container';
-import { CommentsNotificationsRepository } from './CommentsNotificationsRepository';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { CommentsNotificationsRepository } from '../repositories/CommentsNotificationsRepository';
 import { Context } from '@openland/context';
-import { CommentPeerType } from './CommentsRepository';
-import { Comment } from '../openland-module-db/schema';
-import { WorkQueue } from '../openland-module-workers/WorkQueue';
-import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
+import { CommentPeerType } from '../repositories/CommentsRepository';
+import { Comment } from '../../openland-module-db/schema';
+import { WorkQueue } from '../../openland-module-workers/WorkQueue';
+import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 
 @injectable()
 export class CommentsNotificationsMediator {
@@ -23,8 +23,12 @@ export class CommentsNotificationsMediator {
         }
     }
 
-    async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
-        return this.repo.subscribeToComments(parent, peerType, peerId, uid);
+    async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
+        return this.repo.subscribeToComments(parent, peerType, peerId, uid, type);
+    }
+
+    async unsubscribeFromComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
+        return this.repo.unsubscribeFromComments(parent, peerType, peerId, uid);
     }
 
     async getCommentsSubscription(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {

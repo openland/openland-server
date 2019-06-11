@@ -7,7 +7,7 @@ import {
     MessageAttachmentFileInput, MessageAttachmentInput,
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { CommentSpan } from '../CommentsRepository';
+import { CommentSpan } from '../repositories/CommentsRepository';
 import { Message } from '../../openland-module-db/schema';
 
 export default {
@@ -31,6 +31,13 @@ export default {
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
+        },
+        subscription: async (src, args, ctx) => {
+            let subscription = await FDB.CommentsSubscription.findById(ctx, src.peerType, src.peerId, ctx.auth.uid!);
+            if (subscription && subscription.status === 'active') {
+                return subscription;
+            }
+            return null;
         }
     },
     CommentEntry: {
@@ -48,6 +55,9 @@ export default {
                 throw new Error('Unknown comments peer root type: ' + obj);
             }
         }
+    },
+    CommentSubscription: {
+        type: src => src.kind.toUpperCase()
     },
 
     Mutation: {
@@ -387,6 +397,17 @@ export default {
         commentReactionRemove: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.commentId);
             await Modules.Comments.setReaction(ctx, commentId, uid, args.reaction, true);
+            return true;
+        }),
+
+        subscribeMessageComments: withUser(async (ctx, args, uid) => {
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+            await Modules.Comments.subscribeToComments(ctx, 'message', messageId, uid, args.type.toLowerCase() as any);
+            return true;
+        }),
+        unSubscribeMessageComments: withUser(async (ctx, args, uid) => {
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+            await Modules.Comments.unsubscribeFromComments(ctx, 'message', messageId, uid);
             return true;
         }),
     },

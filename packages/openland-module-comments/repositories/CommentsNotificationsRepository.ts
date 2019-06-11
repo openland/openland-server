@@ -1,10 +1,10 @@
 import { injectable } from 'inversify';
-import { lazyInject } from '../openland-modules/Modules.container';
-import { AllEntities } from '../openland-module-db/schema';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
-import { inTx } from '../foundation-orm/inTx';
+import { inTx } from '../../foundation-orm/inTx';
 import { CommentPeerType } from './CommentsRepository';
-import { Modules } from '../openland-modules/Modules';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class CommentsNotificationsRepository {
@@ -12,13 +12,26 @@ export class CommentsNotificationsRepository {
     private readonly entities!: AllEntities;
     @lazyInject('UserStateRepository')
 
-    async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
+    async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
             if (existing) {
+                existing.status = 'active';
+                existing.kind = type;
                 return true;
             }
-            await this.entities.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: 'all', status: 'active' });
+            await this.entities.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: type, status: 'active' });
+            return true;
+        });
+    }
+
+    async unsubscribeFromComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
+            if (!existing) {
+                return true;
+            }
+            existing.status = 'disabled';
             return true;
         });
     }
