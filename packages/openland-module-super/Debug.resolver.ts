@@ -43,7 +43,6 @@ export async function fetchAllUids(ctx: Context) {
     let allUsers = await FDB.User.findAllKeys(ctx);
     let allUids: number[] = [];
     for (let key of allUsers) {
-        key.splice(0, 2);
         allUids.push(key[0] as number);
     }
 
