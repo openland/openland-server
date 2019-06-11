@@ -59,7 +59,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         let root = createNamedContext('worker-' + this.taskType);
         let workLoop = foreverBreakable(async () => {
             let task = await inTx(root, async (ctx) => {
-                let pend = await FDB.Task.rangeFromPending(ctx, this.taskType, 1);
+                let pend = await FDB.Task.allFromPending(ctx, this.taskType);
                 if (pend.length === 0) {
                     return null;
                 }
