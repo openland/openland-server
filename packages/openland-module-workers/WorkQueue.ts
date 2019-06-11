@@ -63,7 +63,9 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 if (pend.length === 0) {
                     return null;
                 }
-                let res = pend[Math.floor(Math.random() * (pend.length))];
+                let index = Math.floor(Math.random() * (pend.length));
+                let res = pend[index];
+                log.log(ctx, 'found ' + pend.length + ', selecting ' + index);
                 return res;
             });
             let locked = task && await inTx(root, async (ctx) => {
@@ -84,7 +86,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 try {
                     res = await handler(task.arguments, root);
                 } catch (e) {
-                    console.warn(e);
+                    log.warn(root, e);
                     await inTx(root, async (ctx) => {
                         let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
                         if (res2) {
