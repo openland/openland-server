@@ -2,8 +2,8 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { DirectoryAllocator } from './directory/DirectoryAllocator';
 import { FDirectory } from 'foundation-orm/FDirectory';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { createLogger } from 'openland-log/createLogger';
 import { Context } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('directory-layer');
 

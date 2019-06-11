@@ -1,18 +1,18 @@
 import { FConnection } from './FConnection';
-import { createLogger } from 'openland-log/createLogger';
-import { SLog } from 'openland-log/SLog';
 import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { withLogContext } from 'openland-log/withLogContext';
 import { Context } from '@openland/context';
 import { encoders } from 'foundationdb';
+import { createLogger, Logger } from '@openland/log';
 
 export interface FMigration {
     key: string;
-    migration: (ctx: Context, log: SLog) => Promise<void>;
+    migration: (ctx: Context, log: Logger) => Promise<void>;
 }
 
 let log = createLogger('migration');
+
 export async function performMigrations(parent: Context, connection: FConnection, migrations: FMigration[]) {
     try {
         if (migrations.length === 0) {

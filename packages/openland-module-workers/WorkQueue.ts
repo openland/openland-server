@@ -3,13 +3,13 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx, inTxLeaky } from 'foundation-orm/inTx';
 import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
-import { createLogger } from 'openland-log/createLogger';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { getTransaction } from 'foundation-orm/getTransaction';
 import { Context, createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');

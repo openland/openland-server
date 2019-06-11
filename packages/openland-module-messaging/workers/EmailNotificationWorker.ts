@@ -5,7 +5,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Message } from '../../openland-module-db/schema';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
-import { createLogger } from 'openland-log/createLogger';
+import { createLogger } from '@openland/log';
 
 const Delays = {
     '15min': 15 * 60 * 1000,

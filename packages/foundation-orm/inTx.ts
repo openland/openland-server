@@ -1,12 +1,12 @@
 import { FTransactionReadWrite } from './tx/FTransactionReadWrite';
 import { FDBError } from 'foundationdb';
 import { withLogContext, withLogData } from 'openland-log/withLogContext';
-import { createLogger } from 'openland-log/createLogger';
 import { currentTime } from 'openland-utils/timer';
 import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
 import { randomGlobalInviteKey } from 'openland-utils/random';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('fdb');
 

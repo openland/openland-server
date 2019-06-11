@@ -2,7 +2,7 @@ import { FTransaction } from './FTransaction';
 import { Context } from '@openland/context';
 import { FTransactionContext, FTransactionReadOnlyContext } from './utils/contexts';
 import { FTransactionReadOnly } from './tx/FTransactionReadOnly';
-import { createLogger } from 'openland-log/createLogger';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('fdb');
 export function getTransaction(ctx: Context): FTransaction {

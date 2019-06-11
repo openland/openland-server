@@ -1,7 +1,6 @@
 import * as express from 'express';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
-import { createLogger } from 'openland-log/createLogger';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
@@ -11,6 +10,7 @@ import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 import { withLogData } from 'openland-log/withLogContext';
 import { randomGlobalInviteKey } from 'openland-utils/random';
+import { createLogger } from '@openland/log';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');

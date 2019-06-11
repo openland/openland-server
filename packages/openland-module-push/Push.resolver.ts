@@ -1,8 +1,8 @@
 import { Modules } from 'openland-modules/Modules';
-import { createLogger } from 'openland-log/createLogger';
 import { PushConfig } from './PushConfig';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { createLogger } from '@openland/log';
 
 const pushLog = createLogger('push');
 

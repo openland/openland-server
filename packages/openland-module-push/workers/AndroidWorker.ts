@@ -1,6 +1,5 @@
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { FirebasePushTask } from './types';
-import { createLogger } from 'openland-log/createLogger';
 import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -8,6 +7,7 @@ import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('firebase');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_firebase_sent');

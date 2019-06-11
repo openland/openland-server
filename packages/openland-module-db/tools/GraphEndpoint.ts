@@ -22,8 +22,8 @@ import { EventBus } from 'openland-module-pubsub/EventBus';
 import { batch } from 'openland-utils/batch';
 import { withLogContext } from 'openland-log/withLogContext';
 import { uuid } from 'openland-utils/uuid';
-import { createLogger } from 'openland-log/createLogger';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 let rootCtx = createNamedContext('graphql-admin');
 let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)); // WTF? Why separate connection?

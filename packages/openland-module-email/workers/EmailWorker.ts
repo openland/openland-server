@@ -3,7 +3,7 @@ import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
-import { createLogger } from '../../openland-log/createLogger';
+import { createLogger } from '@openland/log';
 
 export const SENDGRID_KEY = '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';
 
@@ -22,7 +22,7 @@ let devTeamEmails = [
 
 const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
 const emailFailed = createHyperlogger<{ to: string, templateId: string }>('email_failed');
-const log = createLogger('sendgrid', true);
+const log = createLogger('sendgrid');
 
 export function createEmailWorker() {
     let queue = new WorkQueue<EmailTask, { result: string }>('emailSender');

@@ -2,8 +2,8 @@ import { FConnection } from './FConnection';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { delay } from '../openland-utils/timer';
 import { fastDeepEquals } from '../openland-utils/fastDeepEquals';
-import { createLogger } from 'openland-log/createLogger';
 import { Context, createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
@@ -61,8 +61,7 @@ export class FWatch {
                 log.debug(this.ctx, 'fallback to pooling');
                 await this.doPolling(key);
             } catch (e) {
-                log.debug(this.ctx, 'something happend');
-                log.warn(this.ctx, e);
+                log.warn(this.ctx, e, 'something happend');
                 // notify subscribers about end
                 let subs = this.subscriptions.get(key);
                 if (subs && subs.length > 0) {

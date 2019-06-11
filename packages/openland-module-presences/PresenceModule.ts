@@ -6,12 +6,12 @@ import { Pubsub, PubsubSubcription } from '../openland-module-pubsub/pubsub';
 import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { injectable } from 'inversify';
-import { createLogger } from 'openland-log/createLogger';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
 import { getTransaction } from 'foundation-orm/getTransaction';
 import { Context, createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 // const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');

@@ -2,12 +2,12 @@ import { staticWorker } from 'openland-module-workers/staticWorker';
 import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { inTx } from 'foundation-orm/inTx';
-import { createLogger } from 'openland-log/createLogger';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { MessageAttachmentFile } from '../MessageInput';
 import { hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
+import { createLogger } from '@openland/log';
 
 const Delays = {
     'none': 10 * 1000,

@@ -5,7 +5,6 @@ import { FWatch } from './FWatch';
 import { FEntityIndex } from './FEntityIndex';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FStream } from './FStream';
-import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { Context } from '@openland/context';
@@ -15,6 +14,7 @@ import { FTuple } from './encoding/FTuple';
 import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { FSubspace } from './FSubspace';
 import { FEncoders } from './encoding/FEncoders';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('fdb');
 
@@ -224,7 +224,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 return res;
             }
         } catch (e) {
-            log.warn(ctx, 'Unable to create entity from ', JSON.stringify(value), e);
+            log.warn(ctx, e, 'Unable to create entity from ', value);
             throw e;
         }
     }

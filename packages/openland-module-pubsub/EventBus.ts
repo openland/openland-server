@@ -1,8 +1,8 @@
 import { FPubsub } from 'foundation-orm/FPubsub';
 import { createRedisClient, isRedisConfigured } from './redis/createRedisClient';
 import { backoff } from 'openland-utils/timer';
-import { createLogger } from 'openland-log/createLogger';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const logger = createLogger('eventbus');
 const rootCtx = createNamedContext('eventbus');

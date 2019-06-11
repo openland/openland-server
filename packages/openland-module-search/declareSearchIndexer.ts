@@ -2,8 +2,8 @@ import { FStream } from 'foundation-orm/FStream';
 import { FEntity } from 'foundation-orm/FEntity';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { Modules } from 'openland-modules/Modules';
-import { createLogger } from 'openland-log/createLogger';
 import { Context } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('elastic-indexer');
 

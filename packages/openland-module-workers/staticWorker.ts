@@ -1,8 +1,8 @@
 import { delay, delayBreakable, foreverBreakable } from '../openland-utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
-import { createLogger } from 'openland-log/createLogger';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const logger = createLogger('static-worker');
 

@@ -1,9 +1,9 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { createLogger } from 'openland-log/createLogger';
 import { Context } from '@openland/context';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
+import { createLogger } from '@openland/log';
 
 const logger = createLogger('fixer');
 

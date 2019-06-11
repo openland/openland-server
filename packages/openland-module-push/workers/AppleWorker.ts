@@ -1,13 +1,13 @@
 import APN from 'apn';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { ApplePushTask } from './types';
-import { createLogger } from 'openland-log/createLogger';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
+import { createLogger } from '@openland/log';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 const log = createLogger('apns');

@@ -1,9 +1,9 @@
 import { Express } from 'express';
 import express from 'express';
-import { createLogger } from '../../openland-log/createLogger';
 import { Modules } from '../../openland-modules/Modules';
 import { resolve } from 'path';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 let log = createLogger('safari-push');
 let ctx = createNamedContext('safari-push');

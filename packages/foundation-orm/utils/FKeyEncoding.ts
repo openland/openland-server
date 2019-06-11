@@ -1,7 +1,7 @@
 import { encoders } from 'foundationdb';
-import { createLogger } from 'openland-log/createLogger';
 import { FTuple } from 'foundation-orm/encoding/FTuple';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 // import { pack } from './TupleEncoder';
 
 const byteFF = Buffer.alloc(1);

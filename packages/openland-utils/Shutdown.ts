@@ -1,6 +1,6 @@
-import { createLogger } from '../openland-log/createLogger';
 import { withLogContext } from 'openland-log/withLogContext';
 import { Context, createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 interface StoppableWork {
     name: string;

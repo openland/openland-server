@@ -3,11 +3,11 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { WebPushTask } from './types';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { createLogger } from '../../openland-log/createLogger';
 import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
+import { createLogger } from '@openland/log';
 
 const log = createLogger('web-push');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');

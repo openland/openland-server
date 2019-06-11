@@ -1,7 +1,6 @@
 import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
-import { createLogger } from 'openland-log/createLogger';
 import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
@@ -9,6 +8,7 @@ import { FTransaction } from './FTransaction';
 import { getTransaction } from './getTransaction';
 import { FSubspace } from './FSubspace';
 import { FTuple } from './encoding/FTuple';
+import { createLogger } from '@openland/log';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -257,7 +257,7 @@ export abstract class FEntity {
                     ...value
                 };
             } catch (e) {
-                log.warn(ctx, 'Unable to flush entity', JSON.stringify(this._value), e);
+                log.warn(ctx, e, 'Unable to flush entity', this._value);
                 throw e;
             }
         };

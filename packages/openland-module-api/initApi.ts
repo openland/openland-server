@@ -14,7 +14,6 @@ import { withAudit } from '../openland-module-auth/providers/email';
 import { IDs } from './IDs';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
-import { createLogger } from 'openland-log/createLogger';
 import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
 import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
@@ -33,6 +32,7 @@ import * as url from 'url';
 import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 

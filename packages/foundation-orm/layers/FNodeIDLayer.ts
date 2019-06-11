@@ -2,12 +2,12 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createNamedContext } from '@openland/context';
 import { randomKey } from 'openland-utils/random';
-import { createLogger } from 'openland-log/createLogger';
 import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 import { FSubspace } from 'foundation-orm/FSubspace';
 import { FTuple } from 'foundation-orm/encoding/FTuple';
 import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-utils/timer';
+import { createLogger } from '@openland/log';
 
 const rootCtx = withLogContext(createNamedContext('fdb-node-id'), ['fdb-layers-node']);
 const log = createLogger('node-id-layer');

@@ -9,6 +9,9 @@ if (Symbol.asyncIterator === undefined) {
 // Register Modules
 require('module-alias/register');
 
+// Logs
+import './logs';
+
 // Register crash reporting
 import Raven from 'raven';
 if (process.env.NODE_ENV !== 'development') {
