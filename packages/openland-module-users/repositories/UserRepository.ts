@@ -17,7 +17,7 @@ const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_crea
 @injectable()
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
-    
+
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
@@ -36,7 +36,12 @@ export class UserRepository {
             let id = ++seq.value;
             await seq.flush(ctx);
 
-            let res = (await this.entities.User.create(ctx, id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
+            let res = (await this.entities.User.create(ctx, id, {
+                authId: authId,
+                email: email.toLowerCase(),
+                isBot: false,
+                status: 'pending'
+            }));
             await res.flush(ctx);
             await userCreated.event(ctx, { uid: id });
             return res;
@@ -104,9 +109,9 @@ export class UserRepository {
             }
 
             await validate(
-                stringNotEmpty('First name can\'t be empty!'),
-                input.firstName,
-                'input.firstName'
+              stringNotEmpty('First name can\'t be empty!'),
+              input.firstName,
+              'input.firstName'
             );
 
             // Create pfofile
@@ -133,7 +138,11 @@ export class UserRepository {
 
     async createSystemBot(ctx: Context, key: string, name: string, photoRef: ImageRef) {
         let user = await this.createUser(ctx, 'system-bot|' + key, 'hello@openland.com');
-        await this.createUserProfile(ctx, user.id, { firstName: name, photoRef: photoRef, email: 'hello@openland.com' });
+        await this.createUserProfile(ctx, user.id, {
+            firstName: name,
+            photoRef: photoRef,
+            email: 'hello@openland.com'
+        });
         await this.activateUser(ctx, user.id);
         return user.id;
     }
@@ -171,9 +180,9 @@ export class UserRepository {
 
     async waitForNextSettings(ctx: Context, uid: number) {
         await new Promise<number>((resolver) =>
-            this.entities.UserSettings.watch(ctx, uid, () => {
-                resolver();
-            })
+          this.entities.UserSettings.watch(ctx, uid, () => {
+              resolver();
+          })
         );
     }
 
@@ -205,18 +214,17 @@ export class UserRepository {
         if (this.userAuthIdCache.has(authId)) {
             return this.userAuthIdCache.get(authId);
         } else {
-            let exists = (await this.entities.User.findAll(ctx)).find((v) => v.authId === authId);
-            if (exists != null) {
-                if (!this.userAuthIdCache.has(authId)) {
-                    this.userAuthIdCache.set(authId, exists.id!!);
-                }
-                return exists.id;
-            } else {
-                if (!this.userAuthIdCache.has(authId)) {
-                    this.userAuthIdCache.set(authId, undefined);
-                }
-                return undefined;
+            const user = await this.entities.User.findFromAuthId(ctx, authId);
+
+            if (user === null) {
+                return;
             }
+
+            if (!this.userAuthIdCache.has(authId)) {
+                this.userAuthIdCache.set(authId, user.id);
+            }
+            return user.id;
+
         }
     }
 
