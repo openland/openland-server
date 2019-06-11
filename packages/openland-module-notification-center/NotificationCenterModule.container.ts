@@ -1,6 +1,6 @@
 import { container } from '../openland-modules/Modules.container';
-import { NotificationCenterRepository } from './NotificationCenterRepository';
-import { NotificationCenterMediator } from './NotificationCenterMediator';
+import { NotificationCenterRepository } from './repositories/NotificationCenterRepository';
+import { NotificationCenterMediator } from './mediators/NotificationCenterMediator';
 
 export function loadNotificationCenterModule() {
     container.bind('NotificationCenterRepository').to(NotificationCenterRepository);

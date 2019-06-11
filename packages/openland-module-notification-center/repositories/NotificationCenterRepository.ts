@@ -4,6 +4,7 @@ import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { inTx } from '../../foundation-orm/inTx';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 
 export type NotificationContent = NewCommentNotification;
 
@@ -100,7 +101,6 @@ export class NotificationCenterRepository {
             if (existing) {
                 return existing;
             }
-
             let ncid = await this.fetchNotificationCenterId(ctx);
             await this.fdb.NotificationCenter.create(ctx, ncid, {kind: 'user'});
             return await this.fdb.UserNotificationCenter.create(ctx, ncid, {uid});
@@ -118,31 +118,11 @@ export class NotificationCenterRepository {
     }
 
     private async fetchNotificationId(parent: Context) {
-        return await inTx(parent, async (ctx) => {
-            let ex = await this.fdb.Sequence.findById(ctx, 'notification-id');
-            if (ex) {
-                let res = ++ex.value;
-                await ex.flush(ctx);
-                return res;
-            } else {
-                await this.fdb.Sequence.create(ctx, 'notification-id', {value: 1});
-                return 1;
-            }
-        });
+        return fetchNextDBSeq(parent, 'notification-id');
     }
 
     private async fetchNotificationCenterId(parent: Context) {
-        return await inTx(parent, async (ctx) => {
-            let ex = await this.fdb.Sequence.findById(ctx, 'notification-center-id');
-            if (ex) {
-                let res = ++ex.value;
-                await ex.flush(ctx);
-                return res;
-            } else {
-                await this.fdb.Sequence.create(ctx, 'notification-center-id', {value: 1});
-                return 1;
-            }
-        });
+        return fetchNextDBSeq(parent, 'notification-center-id');
     }
 
     private async nextEventSeq(parent: Context, ncid: number) {

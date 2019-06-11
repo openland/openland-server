@@ -34,7 +34,7 @@ import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
 import {
     NewCommentNotification,
     NotificationContent
-} from '../../openland-module-notification-center/NotificationCenterRepository';
+} from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 
 //
 //  Root types

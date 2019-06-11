@@ -1,8 +1,8 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
-import { NotificationInput } from './NotificationCenterRepository';
 import { lazyInject } from '../openland-modules/Modules.container';
-import { NotificationCenterMediator } from './NotificationCenterMediator';
+import { NotificationCenterMediator } from './mediators/NotificationCenterMediator';
+import { NotificationInput } from './repositories/NotificationCenterRepository';
 
 @injectable()
 export class NotificationCenterModule {
