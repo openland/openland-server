@@ -1,9 +1,9 @@
 import { injectable } from 'inversify';
-import { lazyInject } from '../openland-modules/Modules.container';
-import { AllEntities } from '../openland-module-db/schema';
+import { lazyInject } from 'openland-modules/Modules.container';
+import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
-import { inTx } from '../foundation-orm/inTx';
-import { NotFoundError } from '../openland-errors/NotFoundError';
+import { inTx } from '../../foundation-orm/inTx';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
 
 export type NotificationContent = NewCommentNotification;
 
