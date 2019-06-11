@@ -64,7 +64,7 @@ setLogProvider({
                     parent: LogPathContext.get(ctx),
                     context: ContextName.get(ctx),
                     service,
-                    text: name + ': ' + value,
+                    text: name,
                     metric: value
                 },
                 message: name + ': ' + value
