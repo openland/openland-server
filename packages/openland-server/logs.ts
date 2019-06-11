@@ -1,7 +1,6 @@
-import { setLogProvider } from '@openland/log';
+import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
 import winston from 'winston';
-import { SLogContext, SLogContext2 } from 'openland-log/src/SLogContext';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -26,8 +25,8 @@ const logger = winston.createLogger({
 });
 
 function formatMessage(ctx: Context, name: string, message: string) {
-    let v = SLogContext.get(ctx);
-    return ContextName.get(ctx) + ' | ' + [...v.path, name].join(' ') + ': ' + message;
+    let v = LogPathContext.get(ctx);
+    return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
 }
 
 setLogProvider({
@@ -36,7 +35,8 @@ setLogProvider({
         if (isProduction) {
             obj = {
                 app: {
-                    ...SLogContext2.get(ctx),
+                    ...LogMetaContext.get(ctx),
+                    parent: LogPathContext.get(ctx),
                     context: ContextName.get(ctx),
                     service,
                     text: message
@@ -60,7 +60,8 @@ setLogProvider({
         if (isProduction) {
             logger.info({
                 app: {
-                    ...SLogContext2.get(ctx),
+                    ...LogMetaContext.get(ctx),
+                    parent: LogPathContext.get(ctx),
                     context: ContextName.get(ctx),
                     service,
                     text: name + ': ' + value,

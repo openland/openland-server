@@ -5,7 +5,6 @@ import * as Basics from './Date';
 import { Directives } from './Directives2';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
 import { wrapAllResolvers } from '../Resolvers';
-import { withLogContext } from '../../openland-log/withLogContext';
 // import { trace } from 'openland-log/trace';
 // import { gqlTracer } from 'openland-graphql/gqlTracer';
 import { buildSchema } from 'openland-graphql/buildSchema';
@@ -43,7 +42,6 @@ export const Schema = (forTest: boolean = false) => {
             info: any
         ) => {
             let ctx = (context as AppContext).ctx;
-            ctx = withLogContext(ctx, [field.name]);
             let name = 'Field:' + field.name;
             if (type.name === 'Query') {
                 name = 'Query:' + field.name;

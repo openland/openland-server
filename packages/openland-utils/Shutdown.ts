@@ -1,4 +1,3 @@
-import { withLogContext } from 'openland-log/withLogContext';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 
@@ -8,7 +7,7 @@ interface StoppableWork {
 }
 
 const logger = createLogger('shutdown');
-let ctx = withLogContext(createNamedContext('shutdown'), ['shutdown']);
+let ctx = createNamedContext('shutdown');
 
 class ShutdownImpl {
     private works: StoppableWork[] = [];

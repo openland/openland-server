@@ -10,8 +10,8 @@ import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
 import { Context } from '@openland/context';
-import { withLogContext } from 'openland-log/withLogContext';
 import { AppContext } from 'openland-modules/AppContext';
+import { withLogPath } from '@openland/log';
 
 interface FuckApolloServerParams {
     server?: http.Server | https.Server;
@@ -114,7 +114,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         document: query,
                         operationName: message.payload.operationName,
                         variableValues: message.payload.variables,
-                        contextValue: async () => new AppContext(withLogContext(await params.context(session.authParams), ['subscription', message.payload.operationName]))
+                        contextValue: async () => new AppContext(withLogPath(await params.context(session.authParams), 'subscription ' + message.payload.operationName))
                     });
 
                     if (!isAsyncIterator(iterator)) {

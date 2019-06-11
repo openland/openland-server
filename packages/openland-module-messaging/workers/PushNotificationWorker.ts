@@ -1,13 +1,12 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
 import { Modules } from 'openland-modules/Modules';
-import { withLogContext } from 'openland-log/withLogContext';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { MessageAttachmentFile } from '../MessageInput';
 import { hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
-import { createLogger } from '@openland/log';
+import { createLogger, withLogPath } from '@openland/log';
 
 const Delays = {
     'none': 10 * 1000,
@@ -25,7 +24,7 @@ export function startPushNotificationWorker() {
         // let workDone = false;
         for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
-                ctx = withLogContext(ctx, ['user', '' + uid]);
+                ctx = withLogPath(ctx, 'user ' + uid);
 
                 // Loading user's settings and state
                 let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);

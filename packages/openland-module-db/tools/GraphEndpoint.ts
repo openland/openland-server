@@ -20,8 +20,6 @@ import { IdsFactory } from 'openland-module-api/IDs';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { batch } from 'openland-utils/batch';
-import { withLogContext } from 'openland-log/withLogContext';
-import { uuid } from 'openland-utils/uuid';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 
@@ -245,7 +243,6 @@ for (let e of AllEntitiesDirect.schema) {
         resolve: async (_: any, arg: any) => {
 
             let lctx = rootCtx;
-            lctx = withLogContext(lctx, [Case.camelCase(e.name) + 'Rebuild', uuid()]);
 
             log.debug(lctx, 'fetching keys...');
             let all: any[] = await (FDB as any)[e.name].findAllKeys(lctx);

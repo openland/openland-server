@@ -1,10 +1,9 @@
 import { FConnection } from './FConnection';
 import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from './utils/FKeyEncoding';
-import { withLogContext } from 'openland-log/withLogContext';
 import { Context } from '@openland/context';
 import { encoders } from 'foundationdb';
-import { createLogger, Logger } from '@openland/log';
+import { createLogger, Logger, withLogPath } from '@openland/log';
 
 export interface FMigration {
     key: string;
@@ -24,7 +23,7 @@ export async function performMigrations(parent: Context, connection: FConnection
             log.log(parent, 'Remaining migrations: ' + remaining.length);
             for (let m of remaining) {
                 log.log(parent, 'Starting migration: ' + m.key);
-                let ctx = withLogContext(parent, [m.key]);
+                let ctx = withLogPath(parent, m.key);
                 await m.migration(ctx, log);
                 await connection.fdb.set(FKeyEncoding.encodeKey(['__meta', 'migrations', m.key]), encoders.json.pack({ key: m.key }) as Buffer);
                 log.log(parent, 'Completed migration: ' + m.key);

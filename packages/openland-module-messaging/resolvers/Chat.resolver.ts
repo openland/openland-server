@@ -16,7 +16,6 @@ import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -544,7 +543,7 @@ export default {
             return 'ok';
         }),
         alphaSendMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, ['send-message']);
+            let ctx = parent;
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));

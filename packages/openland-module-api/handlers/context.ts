@@ -8,9 +8,8 @@ import { AppContext } from 'openland-modules/AppContext';
 import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
 import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
-import { withLogData } from 'openland-log/withLogContext';
 import { randomGlobalInviteKey } from 'openland-utils/random';
-import { createLogger } from '@openland/log';
+import { createLogger, withLogMeta } from '@openland/log';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
@@ -51,14 +50,14 @@ async function context(src: express.Request): Promise<AppContext> {
         // Auth Context
         res = AuthContext.set(res, { tid, uid, oid });
         if (uid && tid) {
-            ctx = withLogData(ctx, { uid: uid, tid: tid });
+            ctx = withLogMeta(ctx, { uid: uid, tid: tid });
         }
 
         // Tracing Context
         res = TracingContext.set(res, { span: tracer.startSpan('http') });
         res = CacheContext.set(res, new Map());
         res = withReadOnlyTransaction(res);
-        res = withLogData(res, { connection: randomGlobalInviteKey(8) });
+        res = withLogMeta(res, { connection: randomGlobalInviteKey(8) });
 
         return new AppContext(res);
     });
