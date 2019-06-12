@@ -872,12 +872,12 @@ migrations.push({
 migrations.push({
     key: '58-sync-indexes',
     migration: async (root, log) => {
-        await Promise.all(FDB.allEntities.map(async (v) => {
+        for (let v of FDB.allEntities) {
             let ctx = withLogPath(root, v.name);
             for (let i of v.indexes) {
                 await syncSubspaces(withLogPath(ctx, i.name), i.namespace.keySpaceRaw, i.directoryRaw);
             }
-        }));
+        }
     }
 });
 
