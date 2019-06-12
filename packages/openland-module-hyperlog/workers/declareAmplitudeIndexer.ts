@@ -34,6 +34,7 @@ const saveEvents = async (events: any[], isProd: boolean) => {
 };
 
 export function declareAmplitudeIndexer() {
+    return;
     if (process.env.AMPLITUDE_KEY) {
         updateReader('amplitude-indexer', 3, FDB.HyperLog.createUserEventsStream(50), async (items, first, parent) => {
             await inTx(parent, async (ctx) => {
