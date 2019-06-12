@@ -888,7 +888,7 @@ migrations.push({
     }
 });
 
-async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSubspace) {
+async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSubspace, bachSize: number) {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
@@ -896,7 +896,7 @@ async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSu
     while (!completed) {
         log.log(parent, 'Copying subspace iteration: ' + iteration);
         await inTx(parent, async (ctx2) => {
-            let r = await from.range(ctx2, emptyBuffer, { after: cursor, limit: 10000 });
+            let r = await from.range(ctx2, emptyBuffer, { after: cursor, limit: bachSize });
             for (let i of r) {
                 cursor = i.key;
                 let r2 = FEncoders.tuple.unpack(i.key);
@@ -911,7 +911,6 @@ async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSu
         });
         iteration++;
     }
-
 }
 
 migrations.push({
@@ -919,12 +918,12 @@ migrations.push({
     migration: async (root, log) => {
         for (let v of FDB.allEntities) {
             let ctx = withLogPath(root, v.name);
-            // let batchSize = 10000;
-            // if (v.name === FDB.ServiceCache.name) {
-            //     batchSize = 1000;
-            // }
+            let batchSize = 10000;
+            if (v.name === FDB.ServiceCache.name) {
+                batchSize = 1000;
+            }
 
-            await copyEntity(ctx, log, v.namespace.keySpaceRaw, v.directoryRaw);
+            await copyEntity(ctx, log, v.namespace.keySpaceRaw, v.directoryRaw, batchSize);
         }
     }
 });
