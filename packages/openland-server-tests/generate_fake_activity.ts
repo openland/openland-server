@@ -7,7 +7,7 @@ import { loadAllModules } from 'openland-modules/loadAllModules';
 import faker from 'faker';
 import { FDB } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
-import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
+import { AllEntities, AllEntitiesDirect, Conversation } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { Context, createNamedContext } from '@openland/context';
@@ -36,11 +36,16 @@ export async function createUser(ctx: Context, email: string) {
     return user.id;
 }
 
-async function generateFakeRoomWithMembers(adminId: number, oid: number, membersCount: number, processAmount: number = 10) {
+async function generateFakeRoomWithMembers(adminId: number, oid: number, groupAmount: number, membersCount: number, processAmount: number = 10) {
 
     const ranges = range(0, membersCount, processAmount);
 
-    const group = await Modules.Messaging.room.createRoom(rootCtx, 'group', oid, adminId, [], {title: `Test Group.${Date.now()}`});
+    const groups: Conversation[] = [];
+
+    for (let i = 0; i < groupAmount; i++) {
+        const group = await Modules.Messaging.room.createRoom(rootCtx, 'group', oid, adminId, [], { title: `Test Group.${Date.now()}` });
+        groups.push(group);
+    }
 
     for (let rangeIndex = 0; rangeIndex < ranges.length; rangeIndex++) {
 
@@ -53,6 +58,7 @@ async function generateFakeRoomWithMembers(adminId: number, oid: number, members
                 usersIds.push(uid);
             }
 
+            const group = groups[Math.floor(Math.random() * groups.length)];
             await Modules.Messaging.room.inviteToRoom(ctx2, group.id, adminId, usersIds);
         });
     }
@@ -87,11 +93,11 @@ export async function prepare() {
         let adminId = await createUser(ctx, adminMail);
         await Modules.Super.makeSuperAdmin(ctx, adminId, 'super-admin');
         await Modules.Users.activateUser(ctx, adminId, false);
-        let org = await Modules.Orgs.createOrganization(ctx, adminId, {name: 'Developer Organization'});
+        let org = await Modules.Orgs.createOrganization(ctx, adminId, { name: 'Developer Organization' });
         const start = Date.now();
 
         const count = 1000;
-        await generateFakeRoomWithMembers(adminId, org.id, count, 100);
+        await generateFakeRoomWithMembers(adminId, org.id, 10, count, 100);
         console.log(`processed in ${(Date.now() - start) / 1000} with approx ${count / ((Date.now() - start) / 1000)} per s`);
 
         process.exit();
