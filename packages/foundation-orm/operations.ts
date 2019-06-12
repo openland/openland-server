@@ -97,6 +97,7 @@ export async function isSubspaceEquals(parent: Context, a: FSubspace, b: FSubspa
         if (!equals) {
             return false;
         }
+        iteration++;
     }
     return true;
 }
