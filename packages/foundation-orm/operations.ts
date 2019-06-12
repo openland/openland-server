@@ -5,7 +5,7 @@ import { createLogger, withLogPath } from '@openland/log';
 
 const logger = createLogger('operations');
 
-export async function copySubspace(parent: Context, from: FSubspace, to: FSubspace) {
+export async function copySubspace(parent: Context, from: FSubspace, to: FSubspace, batchSize: number = 10000) {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
@@ -13,7 +13,7 @@ export async function copySubspace(parent: Context, from: FSubspace, to: FSubspa
     while (!completed) {
         logger.log(parent, 'Copying subspace iteration: ' + iteration);
         await inTx(parent, async (ctx) => {
-            let r = await from.range(ctx, emptyBuffer, { after: cursor, limit: 10000 });
+            let r = await from.range(ctx, emptyBuffer, { after: cursor, limit: batchSize });
             for (let i of r) {
                 cursor = i.key;
                 to.set(ctx, i.key, i.value);
@@ -26,7 +26,7 @@ export async function copySubspace(parent: Context, from: FSubspace, to: FSubspa
     }
 }
 
-export async function deleteMissing(parent: Context, from: FSubspace, to: FSubspace) {
+export async function deleteMissing(parent: Context, from: FSubspace, to: FSubspace, batchSize: number = 10000) {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
@@ -34,7 +34,7 @@ export async function deleteMissing(parent: Context, from: FSubspace, to: FSubsp
     while (!completed) {
         logger.log(parent, 'Delete missing keys iteration: ' + iteration);
         await inTx(parent, async (ctx) => {
-            let r2 = await to.range(ctx, emptyBuffer, { after: cursor, limit: 10000 });
+            let r2 = await to.range(ctx, emptyBuffer, { after: cursor, limit: batchSize });
 
             await Promise.all(r2.map(async (i) => {
                 let ex = await from.get(ctx, i.key);
@@ -53,26 +53,26 @@ export async function deleteMissing(parent: Context, from: FSubspace, to: FSubsp
     }
 }
 
-export async function syncSubspaces(parent: Context, from: FSubspace, to: FSubspace) {
+export async function syncSubspaces(parent: Context, from: FSubspace, to: FSubspace, batchSize: number = 10000) {
     let iteration = 0;
-    while (!await isSubspaceEquals(parent, from, to)) {
+    while (!await isSubspaceEquals(parent, from, to, batchSize)) {
         let ctx = withLogPath(parent, 'sync');
         logger.log(ctx, 'Subspace sync iteration: ' + iteration);
-        await copySubspace(ctx, from, to);
-        await deleteMissing(ctx, from, to);
+        await copySubspace(ctx, from, to, batchSize);
+        await deleteMissing(ctx, from, to, batchSize);
         iteration++;
     }
     logger.log(parent, 'Subspace sync completed');
 }
 
-export async function isSubspaceEquals(parent: Context, a: FSubspace, b: FSubspace): Promise<boolean> {
+export async function isSubspaceEquals(parent: Context, a: FSubspace, b: FSubspace, batchSize: number = 10000): Promise<boolean> {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
     while (!completed) {
         let equals = await inTx(parent, async (ctx) => {
-            let r = await a.range(ctx, emptyBuffer, { after: cursor, limit: 10000 });
-            let r2 = await b.range(ctx, emptyBuffer, { after: cursor, limit: 10000 });
+            let r = await a.range(ctx, emptyBuffer, { after: cursor, limit: batchSize });
+            let r2 = await b.range(ctx, emptyBuffer, { after: cursor, limit: batchSize });
             if (r.length !== r2.length) {
                 return false;
             }

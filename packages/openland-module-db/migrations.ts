@@ -875,7 +875,7 @@ migrations.push({
         for (let v of FDB.allEntities) {
             let ctx = withLogPath(root, v.name);
             for (let i of v.indexes) {
-                await syncSubspaces(withLogPath(ctx, i.name), i.namespace.keySpaceRaw, i.directoryRaw);
+                await syncSubspaces(withLogPath(ctx, i.name), i.namespace.keySpaceRaw, i.directoryRaw, 1000);
             }
         }
     }
