@@ -17,6 +17,8 @@ import { UserError } from '../openland-errors/UserError';
 import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { NotFoundError } from '../openland-errors/NotFoundError';
+import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -745,6 +747,22 @@ export default {
                     yield data;
                     await delay(1000);
                     i++;
+                }
+            }
+        },
+        debugReaderState: {
+            resolve: async msg => {
+                return msg;
+            },
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: AppContext) {
+                let state = await FDB.ReaderState.findById(ctx, args.reader);
+                if (!state) {
+                    throw new NotFoundError();
+                }
+                while (true) {
+                    state = await FDB.ReaderState.findById(ctx, args.reader);
+                    yield JSON.stringify(FKeyEncoding.decodeFromString(state!.cursor));
+                    await delay(1000);
                 }
             }
         },
