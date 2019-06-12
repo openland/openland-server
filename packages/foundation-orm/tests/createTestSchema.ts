@@ -34,14 +34,14 @@ const Schema = declareSchema(() => {
         field('data1', 'string');
         field('data2', 'string');
         field('data3', 'string');
-        uniqueIndex('default', ['data1', 'data2', 'id']);
+        uniqueIndex('default', ['data1', 'data2', 'id']).withStreaming();
     });
     entity('IndexedRangeEntity', () => {
         primaryKey('id', 'number');
         field('data1', 'string');
         field('data2', 'string');
         field('data3', 'string');
-        rangeIndex('default', ['data1', 'data2']);
+        rangeIndex('default', ['data1', 'data2']).withStreaming();
     });
 
     entity('IndexedPartialEntity', () => {
@@ -49,7 +49,7 @@ const Schema = declareSchema(() => {
         field('data1', 'string');
         field('data2', 'string');
         field('data3', 'string');
-        uniqueIndex('default', ['data1', 'data2', 'id']).withCondition((src) => src.data1 === 'hello');
+        uniqueIndex('default', ['data1', 'data2', 'id']).withCondition((src) => src.data1 === 'hello').withStreaming();
     });
 
     entity('NullableEntity', () => {
@@ -60,7 +60,7 @@ const Schema = declareSchema(() => {
     entity('RangeTest', () => {
         primaryKey('id', 'number');
         field('key', 'number');
-        rangeIndex('default', ['key', 'id']);
+        rangeIndex('default', ['key', 'id']).withStreaming();
     });
 
     entity('ComplexRangeTest', () => {
@@ -69,8 +69,8 @@ const Schema = declareSchema(() => {
         field('subId1', 'number');
         field('subId2', 'number');
 
-        rangeIndex('nonUnique', ['subId1', 'subId2']);
-        uniqueIndex('unique', ['subId1', 'subId2']).withRange();
+        rangeIndex('nonUnique', ['subId1', 'subId2']).withStreaming();
+        uniqueIndex('unique', ['subId1', 'subId2']).withRange().withStreaming();
     });
 
     entity('JsonTest', () => {

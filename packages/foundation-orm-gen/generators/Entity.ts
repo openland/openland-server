@@ -135,7 +135,12 @@ export function generateEntity(entity: EntityModel): string {
     res += '        ],\n';
     // res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, secure: ${v.isSecure}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] } `).join(', ') + ']\n';
     res += '    };\n\n';
-
+    for (let index of entity.indexes) {
+        res += '    readonly index' + Case.pascalCase(index.name) + ': FEntityIndex;\n';
+    }
+    if (entity.indexes.length > 0) {
+        res += '\n';
+    }
     res += '    private static validate(src: any) {\n';
     for (let k of entity.keys) {
         res += '        validators.notNull(\'' + k.name + '\', src.' + k.name + ');\n';
@@ -170,12 +175,17 @@ export function generateEntity(entity: EntityModel): string {
     res += '    }\n\n';
 
     res += '    constructor(connection: FConnection) {\n';
-    res += '        super(connection,\n';
-    res += '            new FNamespace(connection, \'entity\', \'' + entityKey + '\'),\n';
+    for (let index of entity.indexes) {
+        res += '        let index' + Case.pascalCase(index.name) + ' = ' + buildIndex(index) + ';\n';
+    }
+    res += '        super(\'' + entity.name + '\', \'' + entityKey + '\', \n';
     res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' },\n';
-    res += '            [' + entity.indexes.map(buildIndex).join(', ') + '],\n';
-    res += '            \'' + entity.name + '\'\n';
+    res += '            [' + entity.indexes.map((v) => 'index' + Case.pascalCase(v.name)).join(', ') + '],\n';
+    res += '            connection\n';
     res += '        );\n';
+    for (let index of entity.indexes) {
+        res += '        this.index' + Case.pascalCase(index.name) + ' = index' + Case.pascalCase(index.name) + ';\n';
+    }
     res += '    }\n';
 
     res += '    extractId(rawId: any[]) {\n';
@@ -202,7 +212,7 @@ export function generateEntity(entity: EntityModel): string {
     for (let i of entity.indexes) {
         if (i.unique) {
             res += '    async findFrom' + Case.pascalCase(i.name) + '(ctx: Context, ' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
-            res += '        return await this._findFromIndex(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
+            res += '        return await this._findFromIndex(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + i.fields.join(', ') + ']);\n';
             res += '    }\n';
         }
         // if (!i.unique || i.range) {
@@ -210,32 +220,32 @@ export function generateEntity(entity: EntityModel): string {
         fs.splice(-1);
         if (i.fields.length > 1) {
             res += '    async allFrom' + Case.pascalCase(i.name) + 'After(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1]))].join(', ') + ') {\n';
-            res += '        return await this._findRangeAllAfter(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after);\n';
+            res += '        return await this._findRangeAllAfter(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + '], after);\n';
             res += '    }\n';
 
             res += '    async rangeFrom' + Case.pascalCase(i.name) + 'After(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1])), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
-            res += '        return await this._findRangeAfter(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after, limit, reversed);\n';
+            res += '        return await this._findRangeAfter(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + '], after, limit, reversed);\n';
             res += '    }\n';
         }
 
         res += '    async rangeFrom' + Case.pascalCase(i.name) + '(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
-        res += '        return await this._findRange(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, reversed);\n';
+        res += '        return await this._findRange(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + '], limit, reversed);\n';
         res += '    }\n';
 
         res += '    async rangeFrom' + Case.pascalCase(i.name) + 'WithCursor(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string', 'reversed?: boolean'].join(', ') + ') {\n';
-        res += '        return await this._findRangeWithCursor(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after, reversed);\n';
+        res += '        return await this._findRangeWithCursor(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + '], limit, after, reversed);\n';
         res += '    }\n';
 
         res += '    async allFrom' + Case.pascalCase(i.name) + '(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v)))].join(', ') + ') {\n';
-        res += '        return await this._findAll(ctx, [' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
+        res += '        return await this._findAll(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + ']);\n';
         res += '    }\n';
 
         res += '    create' + Case.pascalCase(i.name) + 'Stream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
-        res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
+        res += '        return this._createStream(this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + '], limit, after); \n';
         res += '    }\n';
         if (i.streaming) {
             res += '    create' + Case.pascalCase(i.name) + 'LiveStream(ctx: Context, ' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
-            res += '        return this._createLiveStream(ctx, [' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
+            res += '        return this._createLiveStream(ctx, this.index' + Case.pascalCase(i.name) + '.directory, [' + fs.join(', ') + '], limit, after); \n';
             res += '    }\n';
         }
         // }

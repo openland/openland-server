@@ -66,11 +66,10 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'simpleEntity'),
+        super('SimpleEntity', 'simpleEntity', 
             { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false },
             [],
-            'SimpleEntity'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -133,11 +132,10 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'versionedEntity'),
+        super('VersionedEntity', 'versionedEntity', 
             { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false },
             [],
-            'VersionedEntity'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -200,11 +198,10 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'timestampedEntity'),
+        super('TimestampedEntity', 'timestampedEntity', 
             { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false },
             [],
-            'TimestampedEntity'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -282,6 +279,8 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         ],
     };
 
+    readonly indexDefault: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -294,12 +293,13 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'indexedEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'indexedEntity', 'default', ['data1', 'data2', 'id'], true)],
-            'IndexedEntity'
+        let indexDefault = new FEntityIndex(connection, 'indexedEntity', 'default', ['data1', 'data2', 'id'], true);
+        super('IndexedEntity', 'indexedEntity', 
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: true },
+            [indexDefault],
+            connection
         );
+        this.indexDefault = indexDefault;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -318,25 +318,28 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return this._watch(ctx, [id], cb);
     }
     async findFromDefault(ctx: Context, data1: string, data2: string, id: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'default', data1, data2, id]);
+        return await this._findFromIndex(ctx, this.indexDefault.directory, [data1, data2, id]);
     }
     async allFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', data1, data2], after);
+        return await this._findRangeAllAfter(ctx, this.indexDefault.directory, [data1, data2], after);
     }
     async rangeFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'default', data1, data2], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexDefault.directory, [data1, data2], after, limit, reversed);
     }
     async rangeFromDefault(ctx: Context, data1: string, data2: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'default', data1, data2], limit, reversed);
+        return await this._findRange(ctx, this.indexDefault.directory, [data1, data2], limit, reversed);
     }
     async rangeFromDefaultWithCursor(ctx: Context, data1: string, data2: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', data1, data2], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexDefault.directory, [data1, data2], limit, after, reversed);
     }
     async allFromDefault(ctx: Context, data1: string, data2: string) {
-        return await this._findAll(ctx, ['__indexes', 'default', data1, data2]);
+        return await this._findAll(ctx, this.indexDefault.directory, [data1, data2]);
     }
     createDefaultStream(data1: string, data2: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedEntity', '__indexes', 'default', data1, data2], limit, after); 
+        return this._createStream(this.indexDefault.directory, [data1, data2], limit, after); 
+    }
+    createDefaultLiveStream(ctx: Context, data1: string, data2: string, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexDefault.directory, [data1, data2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new IndexedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
@@ -397,6 +400,8 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         ],
     };
 
+    readonly indexDefault: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -409,12 +414,13 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'indexedRangeEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'indexedRangeEntity', 'default', ['data1', 'data2'], false)],
-            'IndexedRangeEntity'
+        let indexDefault = new FEntityIndex(connection, 'indexedRangeEntity', 'default', ['data1', 'data2'], false);
+        super('IndexedRangeEntity', 'indexedRangeEntity', 
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: true },
+            [indexDefault],
+            connection
         );
+        this.indexDefault = indexDefault;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -433,22 +439,25 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         return this._watch(ctx, [id], cb);
     }
     async allFromDefaultAfter(ctx: Context, data1: string, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', data1], after);
+        return await this._findRangeAllAfter(ctx, this.indexDefault.directory, [data1], after);
     }
     async rangeFromDefaultAfter(ctx: Context, data1: string, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'default', data1], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexDefault.directory, [data1], after, limit, reversed);
     }
     async rangeFromDefault(ctx: Context, data1: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'default', data1], limit, reversed);
+        return await this._findRange(ctx, this.indexDefault.directory, [data1], limit, reversed);
     }
     async rangeFromDefaultWithCursor(ctx: Context, data1: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', data1], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexDefault.directory, [data1], limit, after, reversed);
     }
     async allFromDefault(ctx: Context, data1: string) {
-        return await this._findAll(ctx, ['__indexes', 'default', data1]);
+        return await this._findAll(ctx, this.indexDefault.directory, [data1]);
     }
     createDefaultStream(data1: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
+        return this._createStream(this.indexDefault.directory, [data1], limit, after); 
+    }
+    createDefaultLiveStream(ctx: Context, data1: string, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexDefault.directory, [data1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new IndexedRangeEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
@@ -509,6 +518,8 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         ],
     };
 
+    readonly indexDefault: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -521,12 +532,13 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'indexedPartialEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'indexedPartialEntity', 'default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
-            'IndexedPartialEntity'
+        let indexDefault = new FEntityIndex(connection, 'indexedPartialEntity', 'default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello');
+        super('IndexedPartialEntity', 'indexedPartialEntity', 
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: true },
+            [indexDefault],
+            connection
         );
+        this.indexDefault = indexDefault;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -545,25 +557,28 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return this._watch(ctx, [id], cb);
     }
     async findFromDefault(ctx: Context, data1: string, data2: string, id: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'default', data1, data2, id]);
+        return await this._findFromIndex(ctx, this.indexDefault.directory, [data1, data2, id]);
     }
     async allFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', data1, data2], after);
+        return await this._findRangeAllAfter(ctx, this.indexDefault.directory, [data1, data2], after);
     }
     async rangeFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'default', data1, data2], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexDefault.directory, [data1, data2], after, limit, reversed);
     }
     async rangeFromDefault(ctx: Context, data1: string, data2: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'default', data1, data2], limit, reversed);
+        return await this._findRange(ctx, this.indexDefault.directory, [data1, data2], limit, reversed);
     }
     async rangeFromDefaultWithCursor(ctx: Context, data1: string, data2: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', data1, data2], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexDefault.directory, [data1, data2], limit, after, reversed);
     }
     async allFromDefault(ctx: Context, data1: string, data2: string) {
-        return await this._findAll(ctx, ['__indexes', 'default', data1, data2]);
+        return await this._findAll(ctx, this.indexDefault.directory, [data1, data2]);
     }
     createDefaultStream(data1: string, data2: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedPartialEntity', '__indexes', 'default', data1, data2], limit, after); 
+        return this._createStream(this.indexDefault.directory, [data1, data2], limit, after); 
+    }
+    createDefaultLiveStream(ctx: Context, data1: string, data2: string, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexDefault.directory, [data1, data2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new IndexedPartialEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
@@ -610,11 +625,10 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'nullableEntity'),
+        super('NullableEntity', 'nullableEntity', 
             { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, hasLiveStreams: false },
             [],
-            'NullableEntity'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -670,6 +684,8 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         ],
     };
 
+    readonly indexDefault: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -678,12 +694,13 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'rangeTest'),
-            { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'rangeTest', 'default', ['key', 'id'], false)],
-            'RangeTest'
+        let indexDefault = new FEntityIndex(connection, 'rangeTest', 'default', ['key', 'id'], false);
+        super('RangeTest', 'rangeTest', 
+            { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: true },
+            [indexDefault],
+            connection
         );
+        this.indexDefault = indexDefault;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -702,22 +719,25 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         return this._watch(ctx, [id], cb);
     }
     async allFromDefaultAfter(ctx: Context, key: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', key], after);
+        return await this._findRangeAllAfter(ctx, this.indexDefault.directory, [key], after);
     }
     async rangeFromDefaultAfter(ctx: Context, key: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'default', key], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexDefault.directory, [key], after, limit, reversed);
     }
     async rangeFromDefault(ctx: Context, key: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'default', key], limit, reversed);
+        return await this._findRange(ctx, this.indexDefault.directory, [key], limit, reversed);
     }
     async rangeFromDefaultWithCursor(ctx: Context, key: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', key], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexDefault.directory, [key], limit, after, reversed);
     }
     async allFromDefault(ctx: Context, key: number) {
-        return await this._findAll(ctx, ['__indexes', 'default', key]);
+        return await this._findAll(ctx, this.indexDefault.directory, [key]);
     }
     createDefaultStream(key: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'rangeTest', '__indexes', 'default', key], limit, after); 
+        return this._createStream(this.indexDefault.directory, [key], limit, after); 
+    }
+    createDefaultLiveStream(ctx: Context, key: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexDefault.directory, [key], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
@@ -779,6 +799,9 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         ],
     };
 
+    readonly indexNonUnique: FEntityIndex;
+    readonly indexUnique: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -791,12 +814,15 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'complexRangeTest'),
-            { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'complexRangeTest', 'nonUnique', ['subId1', 'subId2'], false), new FEntityIndex(connection, 'complexRangeTest', 'unique', ['subId1', 'subId2'], true)],
-            'ComplexRangeTest'
+        let indexNonUnique = new FEntityIndex(connection, 'complexRangeTest', 'nonUnique', ['subId1', 'subId2'], false);
+        let indexUnique = new FEntityIndex(connection, 'complexRangeTest', 'unique', ['subId1', 'subId2'], true);
+        super('ComplexRangeTest', 'complexRangeTest', 
+            { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: true },
+            [indexNonUnique, indexUnique],
+            connection
         );
+        this.indexNonUnique = indexNonUnique;
+        this.indexUnique = indexUnique;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -815,43 +841,49 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         return this._watch(ctx, [id], cb);
     }
     async allFromNonUniqueAfter(ctx: Context, subId1: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'nonUnique', subId1], after);
+        return await this._findRangeAllAfter(ctx, this.indexNonUnique.directory, [subId1], after);
     }
     async rangeFromNonUniqueAfter(ctx: Context, subId1: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'nonUnique', subId1], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexNonUnique.directory, [subId1], after, limit, reversed);
     }
     async rangeFromNonUnique(ctx: Context, subId1: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'nonUnique', subId1], limit, reversed);
+        return await this._findRange(ctx, this.indexNonUnique.directory, [subId1], limit, reversed);
     }
     async rangeFromNonUniqueWithCursor(ctx: Context, subId1: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'nonUnique', subId1], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexNonUnique.directory, [subId1], limit, after, reversed);
     }
     async allFromNonUnique(ctx: Context, subId1: number) {
-        return await this._findAll(ctx, ['__indexes', 'nonUnique', subId1]);
+        return await this._findAll(ctx, this.indexNonUnique.directory, [subId1]);
     }
     createNonUniqueStream(subId1: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'complexRangeTest', '__indexes', 'nonUnique', subId1], limit, after); 
+        return this._createStream(this.indexNonUnique.directory, [subId1], limit, after); 
+    }
+    createNonUniqueLiveStream(ctx: Context, subId1: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexNonUnique.directory, [subId1], limit, after); 
     }
     async findFromUnique(ctx: Context, subId1: number, subId2: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'unique', subId1, subId2]);
+        return await this._findFromIndex(ctx, this.indexUnique.directory, [subId1, subId2]);
     }
     async allFromUniqueAfter(ctx: Context, subId1: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'unique', subId1], after);
+        return await this._findRangeAllAfter(ctx, this.indexUnique.directory, [subId1], after);
     }
     async rangeFromUniqueAfter(ctx: Context, subId1: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'unique', subId1], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUnique.directory, [subId1], after, limit, reversed);
     }
     async rangeFromUnique(ctx: Context, subId1: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'unique', subId1], limit, reversed);
+        return await this._findRange(ctx, this.indexUnique.directory, [subId1], limit, reversed);
     }
     async rangeFromUniqueWithCursor(ctx: Context, subId1: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'unique', subId1], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUnique.directory, [subId1], limit, after, reversed);
     }
     async allFromUnique(ctx: Context, subId1: number) {
-        return await this._findAll(ctx, ['__indexes', 'unique', subId1]);
+        return await this._findAll(ctx, this.indexUnique.directory, [subId1]);
     }
     createUniqueStream(subId1: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'complexRangeTest', '__indexes', 'unique', subId1], limit, after); 
+        return this._createStream(this.indexUnique.directory, [subId1], limit, after); 
+    }
+    createUniqueLiveStream(ctx: Context, subId1: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexUnique.directory, [subId1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ComplexRangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ComplexRangeTest');
@@ -902,11 +934,10 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'jsonTest'),
+        super('JsonTest', 'jsonTest', 
             { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, hasLiveStreams: false },
             [],
-            'JsonTest'
+            connection
         );
     }
     extractId(rawId: any[]) {
