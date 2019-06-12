@@ -900,7 +900,7 @@ async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSu
             for (let i of r) {
                 cursor = i.key;
                 let r2 = FEncoders.tuple.unpack(i.key);
-                if (r2[3] === '__index') {
+                if (r2[3] === '__indexes') {
                     continue;
                 }
                 to.set(ctx2, i.key, i.value);
