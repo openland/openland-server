@@ -69,7 +69,9 @@ export async function isSubspaceEquals(parent: Context, a: FSubspace, b: FSubspa
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
+    let iteration = 0;
     while (!completed) {
+        logger.log(parent, 'isSubspaceEquals iteration: ' + iteration);
         let equals = await inTx(parent, async (ctx) => {
             let r = await a.range(ctx, emptyBuffer, { after: cursor, limit: batchSize });
             let r2 = await b.range(ctx, emptyBuffer, { after: cursor, limit: batchSize });
