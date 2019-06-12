@@ -109,6 +109,6 @@ export function declareBatchAmplitudeIndexer() {
                 await saveEvents(ctx, eventsProd);
             }
         });
-        await delay(1000);
+        await delay(5000);
     });
 }
