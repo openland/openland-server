@@ -4,6 +4,7 @@ import { Context } from '@openland/context';
 import { inTx } from '../../foundation-orm/inTx';
 import { createLogger } from '@openland/log';
 import request, { Response } from 'request';
+import { randomKey } from '../../openland-utils/random';
 
 const log = createLogger('amplitude-batch-indexer');
 
@@ -11,10 +12,14 @@ const API_KEY = 'afbda859ebe1726f971f96a82665399e';
 
 const mapEvent = (body: any) => {
     let event = body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android' | 'iOS' | 'WEB', isProd: boolean, time: number };
+
+    // Amplitude doc says: user_id Must have a minimum length of 5 characters.
+    let userId = event.uid ? '00000' + event.uid : 'anon ' + randomKey();
+    let deviceId = event.did ? '00000' + event.did : undefined;
+
     return {
-        // Amplitude doc says: user_id Must have a minimum length of 5 characters.
-        user_id: '00000' + event.uid,
-        device_id: '00000' + event.did,
+        user_id: userId,
+        device_id: deviceId,
         event_type: event.name,
         event_properties: event.args,
         insert_id: event.id,
