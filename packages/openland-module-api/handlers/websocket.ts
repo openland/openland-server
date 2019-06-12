@@ -6,11 +6,12 @@ import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { inTx } from 'foundation-orm/inTx';
 import { randomGlobalInviteKey } from 'openland-utils/random';
-import { withLogMeta } from '@openland/log';
+import { withLogMeta, createLogger } from '@openland/log';
 // import { withCache } from 'foundation-orm/withCache';
 
 let rootContext = createNamedContext('ws');
 let rootContextResolve = createNamedContext('resolve');
+let logger = createLogger('ws');
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     return await inTx(rootContext, async (ctx) => {
@@ -38,7 +39,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                                 res.oid = porgId;
                             }
                         } catch (e) {
-                            console.debug(e);
+                            logger.debug(ctx, e);
                         }
                     }
                 } else {

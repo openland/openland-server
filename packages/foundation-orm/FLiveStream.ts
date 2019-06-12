@@ -43,7 +43,7 @@ export class FLiveStream<T extends FEntity> {
                             if (res.length > 0) {
                                 yield { items: res, cursor: t.baseStream.cursor };
                             } else {
-                                let w = delayBreakable(1000 + Math.random() * 5000);
+                                let w = delayBreakable(10000 + Math.random() * 15000);
                                 t.awaiter = w.resolver;
                                 await w.promise;
                                 t.awaiter = undefined;

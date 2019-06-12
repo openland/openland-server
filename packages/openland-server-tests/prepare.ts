@@ -83,7 +83,9 @@ export async function prepare() {
 
         process.exit();
     } catch (e) {
+        // tslint:disable
         console.warn(e);
+        // tslint:enable
         process.abort();
     }
 }

@@ -23,14 +23,15 @@ import '../openland-utils/Shutdown';
 
 import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
+const logger = createLogger('startup');
 async function initServer() {
+    let ctx = createNamedContext('launcher');
     try {
-        let ctx = createNamedContext('launcher');
         await loadAllModules(ctx);
         await startAllModules();
     } catch (e) {
-        console.error('Unable to init server');
-        console.error(e);
+        logger.error(ctx, e, 'Unable to init server');
         process.abort();
     }
 }

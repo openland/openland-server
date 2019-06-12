@@ -1,4 +1,7 @@
 import express from 'express';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
+const logger = createLogger('api-module');
 
 export async function initHealthcheck() {
     let port = process.env.PORT;
@@ -16,7 +19,7 @@ export async function initHealthcheck() {
     app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
 
     if (dport > 0) {
-        console.info('Binding to port ' + dport);
+        logger.log(createNamedContext('api-module'), 'Binding to port ' + dport);
 
         app.listen(dport);
     }

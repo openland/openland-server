@@ -14,16 +14,17 @@ import { CacheContext } from './CacheContext';
 import { FDB } from 'openland-module-db/FDB';
 import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
-import { withLogMeta } from '@openland/log';
+import { withLogMeta, createLogger } from '@openland/log';
 
 const defaultCtx = createNamedContext('ctx');
+const logger = createLogger('api-module');
 
 @injectable()
 export class ApiModule {
     private schema = Schema(process.env.TESTING === 'true');
 
     start = async () => {
-        console.log('start API Module');
+        logger.log(defaultCtx, 'Start API Module');
         if (serverRoleEnabled('api')) {
             let currentSchemeSpecVersion = getSchemeVersion(buildSchema(__dirname + '/../'));
 

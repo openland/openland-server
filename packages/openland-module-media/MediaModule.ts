@@ -12,10 +12,12 @@ import { FileInfo } from './FileInfo';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createTracer } from 'openland-log/createTracer';
+import { createLogger } from '@openland/log';
 
 const writeFileAsync = promisify(writeFile);
 const unlinkFile = promisify(unlink);
 const tracer = createTracer('uploadcare');
+const logger = createLogger('uploadcare');
 
 @injectable()
 export class MediaModule {
@@ -50,13 +52,13 @@ export class MediaModule {
         };
     }
 
-    sanitizeFileInfo(input: any): FileInfo|null {
+    sanitizeFileInfo(input: any): FileInfo | null {
         if (input === null) {
             return null;
         }
         return {
             isStored: Boolean(input.isStored),
-            isImage:  Boolean(input.isImage),
+            isImage: Boolean(input.isImage),
             imageWidth: Number(input.imageWidth) || null,
             imageHeight: Number(input.imageHeight) || null,
             imageFormat: String(input.imageFormat) || null,
@@ -78,7 +80,7 @@ export class MediaModule {
     }
 
     async fetchLowResPreview(ctx: Context, uuid: string): Promise<string> {
-        console.log(`https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`);
+        logger.log(ctx, `https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`);
         let res = await new Promise<any>((resolve, reject) => {
             request({
                 encoding: null,
@@ -87,11 +89,11 @@ export class MediaModule {
                     // 'Authorization': UploadCare.UPLOAD_CARE_AUTH
                 }
             }, (error, response, body) => {
-                console.log(error, response.statusCode);
+                logger.warn(ctx, error, response.statusCode);
                 if (!error && response.statusCode === 200) {
                     resolve(body);
                 } else {
-                    console.warn(error);
+                    logger.warn(ctx, error);
                     reject(new Error('File error'));
                 }
             });
@@ -143,7 +145,7 @@ export class MediaModule {
                     if (!error && response.statusCode === 200) {
                         resolve(JSON.parse(body));
                     } else {
-                        console.warn(error);
+                        logger.warn(ctx, error);
                         reject(new Error('File error'));
                         // reject(error);
                     }

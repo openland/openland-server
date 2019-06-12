@@ -125,7 +125,7 @@ export function startEmailNotificationWorker() {
 
                 // Send email notification if there are some
                 if (hasNonMuted) {
-                    console.log(tag, 'new_email_notification');
+                    log.log(ctx, tag, 'new_email_notification');
                     await Emails.sendUnreadMessages(ctx, uid, msgs);
                     state.lastEmailNotification = Date.now();
                 }

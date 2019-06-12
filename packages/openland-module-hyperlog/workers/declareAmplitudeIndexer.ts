@@ -2,9 +2,13 @@ import { updateReader } from 'openland-module-workers/updateReader';
 import { FDB } from 'openland-module-db/FDB';
 import request, { Response } from 'request';
 import { inTx } from '../../foundation-orm/inTx';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 
 const AMPLITUDE_TEST_KEY = '158a2c0e7619751c92cdf1943462a44e';
 const AMPLITUDE_KEY = process.env.AMPLITUDE_KEY;
+
+const logger = createLogger('amplitude-api');
 
 const saveEvents = async (events: any[], isProd: boolean) => {
     await new Promise((resolve, reject) => {
@@ -16,13 +20,13 @@ const saveEvents = async (events: any[], isProd: boolean) => {
             }
         }, function (err: any, response: Response, body: any) {
             if (err) {
-                console.warn(err);
+                logger.warn(createNamedContext('unknown'), err);
                 reject(err);
             } else if (response.statusCode !== 200) {
-                console.warn(response);
+                logger.warn(createNamedContext('unknown'), response);
                 reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
             } else {
-                console.log('Export successful...');
+                logger.warn(createNamedContext('unknown'), 'Export successful...');
                 resolve();
             }
         });

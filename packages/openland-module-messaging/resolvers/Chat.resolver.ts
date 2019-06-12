@@ -23,6 +23,9 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
+import { createLogger } from '@openland/log';
+
+const logger = createLogger('chat');
 
 export default {
     Conversation: {
@@ -34,7 +37,7 @@ export default {
             } else {
                 let room = (await FDB.ConversationRoom.findById(ctx, src.id!));
                 if (!room) {
-                    console.warn('Unable to find room: ' + src.id);
+                    logger.warn(ctx, 'Unable to find room: ' + src.id);
                 }
                 let kind = room!.kind;
                 if (kind === 'group') {
@@ -76,7 +79,7 @@ export default {
         flexibleId: async (src: Conversation, _: any, ctx: AppContext) => {
             let conv = (await FDB.ConversationPrivate.findById(ctx, src.id))!;
             if (!conv) {
-                console.warn('Unable to find private conversation: ' + src.id);
+                logger.warn(ctx, 'Unable to find private conversation: ' + src.id);
             }
             if (conv.uid1 === ctx.auth.uid) {
                 return IDs.User.serialize(conv.uid2);
@@ -142,7 +145,7 @@ export default {
         title: async (src: Conversation, _: any, ctx: AppContext) => {
             let conv = (await FDB.RoomProfile.findById(ctx, src.id))!;
             if (!conv) {
-                console.warn('Unable to find room for id: ' + src.id);
+                logger.warn(ctx, 'Unable to find room for id: ' + src.id);
             }
             if (conv.title !== '') {
                 return conv.title;

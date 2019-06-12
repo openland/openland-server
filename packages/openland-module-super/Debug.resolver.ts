@@ -16,9 +16,11 @@ import { debugTask } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
 import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
+const logger = createLogger('debug');
 
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await FDB.DebugEventState.findById(ctx, uid!);
@@ -345,7 +347,7 @@ export default {
                         let messagesReceived = FDB.UserMessagesReceivedCounter.byId(user.id);
                         messagesReceived.set(ctx, totalReceived);
                     } catch (e) {
-                        console.log('debugCalcUsersMessagingStatsError', e);
+                        logger.log(rootCtx, e, 'debugCalcUsersMessagingStatsError');
                     }
                 });
             }
@@ -397,7 +399,7 @@ export default {
                             await existing.flush(ctx);
                         }
                     } catch (e) {
-                        console.log('debugCalcUsersChatsStats', e);
+                        logger.log(rootCtx, e, 'debugCalcUsersChatsStats');
                     }
                 });
             }
@@ -471,24 +473,24 @@ export default {
                     let conv = await FDB.Conversation.findById(ctx, chat.id);
                     if (conv && conv.deleted) {
                         // ignore already deleted chats
-                        console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
+                        logger.log(ctx, 'debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
                         i++;
                         return;
                     }
                     if (conv && conv.kind !== 'organization') {
                         // ignore already converted chats
-                        console.log('debugDeleteEmptyOrgChats', chat.id, i, 'ignore already converted');
+                        logger.log(ctx, 'debugDeleteEmptyOrgChats', chat.id, i, 'ignore already converted');
                         i++;
                         return;
                     }
 
-                    console.log('debugDeleteEmptyOrgChats', chat.id, i);
+                    logger.log(ctx, 'debugDeleteEmptyOrgChats', chat.id, i);
                     try {
                         await Modules.Messaging.room.deleteRoom(ctx, chat.id, parent.auth!.uid!);
                         i++;
                     } catch (e) {
-                        console.log('debugDeleteEmptyOrgChatsError', e);
-                        console.log(e);
+                        logger.log(ctx, 'debugDeleteEmptyOrgChatsError', e);
+                        logger.log(ctx, e);
                     }
                 });
             }
@@ -739,7 +741,7 @@ export default {
                         throw new UserError('LOL');
                     }
                     let data = 'pong ' + Date.now();
-                    console.log('send lifecheck', data);
+                    logger.log(ctx, 'send lifecheck', data);
                     yield data;
                     await delay(1000);
                     i++;

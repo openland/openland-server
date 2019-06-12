@@ -3,6 +3,8 @@ import WebSocket = require('ws');
 import * as http from 'http';
 import * as https from 'https';
 import { isAsyncIterator, isSubscriptionQuery } from './utils';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 
 interface MTProtoServerParams {
     server: http.Server | https.Server;
@@ -14,6 +16,7 @@ interface MTProtoServerParams {
 }
 
 const SessionsCache = new Map<string, MTProtoSession>();
+const logger = createLogger('mtproto');
 
 //
 //  MTProto3 protocol
@@ -31,7 +34,7 @@ class MTProtoSession {
     public operations: { [operationId: string]: { destroy(): void } } = {};
     public waitAuth: Promise<any> = Promise.resolve();
     public socket: WebSocket;
-    public sessionId: string|undefined;
+    public sessionId: string | undefined;
     private cache: any[] = [];
     private lastId = 0;
 
@@ -63,7 +66,7 @@ class MTProtoSession {
 
     send(data: any) {
         if (this.state !== 'SUSPENDED') {
-            console.log('send', data);
+            logger.log(createNamedContext('mtproto'), 'send', data);
             this.socket.send(JSON.stringify(data));
         } else {
             this.cache.push(data);
@@ -95,7 +98,7 @@ async function handleMessage(params: MTProtoServerParams, socket: WebSocket, req
             let sessionId: string;
 
             if (message.session_id && SessionsCache.has(message.session_id)) {
-                console.log('got session from cache');
+                logger.log(createNamedContext('mtproto'), 'got session from cache');
 
                 session = SessionsCache.get(message.session_id)!;
                 session.sessionId = message.session_id;
@@ -142,15 +145,15 @@ async function handleMessage(params: MTProtoServerParams, socket: WebSocket, req
 
                     if (!isAsyncIterator(iterator)) {
                         // handle error
-                        session.send({id: message.id, type: 'data', payload: iterator });
-                        session.send({id: message.id, type: 'complete', payload: null });
+                        session.send({ id: message.id, type: 'data', payload: iterator });
+                        session.send({ id: message.id, type: 'complete', payload: null });
                         return;
                     }
                     for await (let event of iterator) {
                         if (!working) {
                             return;
                         }
-                        session.send({id: message.id, type: 'data', payload: event });
+                        session.send({ id: message.id, type: 'data', payload: event });
                     }
                 })();
                 session.operations[message.id] = {
@@ -174,7 +177,7 @@ async function handleMessage(params: MTProtoServerParams, socket: WebSocket, req
         } else if (message.type && message.type === 'stop') {
             if (session.operations[message.id]) {
                 session.operations[message.id].destroy();
-                session.send({id: message.id, type: 'complete', payload: null });
+                session.send({ id: message.id, type: 'complete', payload: null });
             }
         } else if (message.type && message.type === 'connection_close') {
             for (let operationId in session.operations) {
@@ -191,20 +194,20 @@ async function handleConnection(params: MTProtoServerParams, socket: WebSocket, 
     let session = new MTProtoSession(socket);
 
     socket.on('message', async data => {
-        console.log('got data', data.toString());
+        logger.log(createNamedContext('mtproto'), 'got data', data.toString());
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
-        console.log('close connection', code, reason);
+        logger.log(createNamedContext('mtproto'), 'close connection', code, reason);
         session.setSuspended();
     });
     socket.on('error', (err) => {
-        console.log('connection error', err);
+        logger.log(createNamedContext('mtproto'), 'connection error', err);
     });
 }
 
 export async function createMTProtoWSServer(params: MTProtoServerParams) {
-    const ws = new WebSocket.Server({server: params.server, path: params.path});
+    const ws = new WebSocket.Server({ server: params.server, path: params.path });
     ws.on('connection', async (socket, req) => {
         await handleConnection(params, socket, req);
     });

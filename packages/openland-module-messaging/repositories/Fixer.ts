@@ -59,7 +59,7 @@ export class FixerRepository {
 
                 return true;
             } catch (e) {
-                console.log('counter_fix_error', e);
+                logger.warn(ctx, 'counter_fix_error', e);
                 return false;
             }
         });

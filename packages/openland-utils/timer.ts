@@ -1,4 +1,6 @@
 import { exponentialBackoffDelay } from './exponentialBackoffDelay';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 // import { createLogger } from 'openland-log/createLogger';
 
 export function delayBreakable(ms: number) {
@@ -53,7 +55,7 @@ export function debounce(ms: number, func: (...args: any[]) => any) {
     };
 }
 
-// const log = createLogger('backoff');
+const log = createLogger('backoff');
 
 export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
     let currentFailureCount = 0;
@@ -65,7 +67,7 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
             return await callback();
         } catch (e) {
             if (currentFailureCount > 3) {
-                console.warn(e);
+                log.warn(createNamedContext('unknown'), e);
             }
             if (currentFailureCount < maxFailureCount) {
                 currentFailureCount++;
@@ -124,12 +126,6 @@ export function foreverBreakable(callback: () => Promise<void>) {
 
 export function currentTime(): number {
     return new Date().getTime();
-}
-
-export function printElapsed(tag: string, src: number) {
-    let time = currentTime();
-    console.warn(`${tag} in ${time - src} ms`);
-    return time;
 }
 
 export class AsyncLock {

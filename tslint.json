@@ -31,11 +31,12 @@
         "no-arg": true,
         "no-bitwise": false,
         "no-console": [
-            false,
+            true,
             "log",
             "error",
             "debug",
             "info",
+            "warn",
             "time",
             "timeEnd",
             "trace"

@@ -1,6 +1,9 @@
 import { FDB } from 'openland-module-db/FDB';
 import { inTxLeaky } from 'foundation-orm/inTx';
 import { Context } from '@openland/context';
+import { createLogger } from '@openland/log';
+
+const logger = createLogger('hyperlog');
 
 export function createHyperlogger<T>(type: string) {
     return {
@@ -14,7 +17,7 @@ export function createHyperlogger<T>(type: string) {
                     });
                 });
             } catch (e) {
-                console.warn(e);
+                logger.warn(parent, e);
             }
         }
     };

@@ -201,7 +201,7 @@ for (let e of AllEntitiesDirect.schema) {
                     resolve: async (_: any, arg: any) => {
                         // let argm = extractArguments(arg, e, i, 0);
                         let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](rootCtx, arg.first, arg.after, arg.reversed);
-                        console.log(res);
+                        log.log(rootCtx, res);
                         return res;
                     }
                 };
@@ -339,7 +339,7 @@ mutations.diagnoseAll = {
             if (e.name === 'ConversationEvent') {
                 continue;
             }
-            console.log(e.name);
+            log.log(rootCtx, e.name);
             diag += await FDB.connection.diagnostics.runEntityDiagnostics(e);
         }
         return diag;

@@ -2,12 +2,15 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { backoff } from 'openland-utils/timer';
 import { encoders } from 'foundationdb';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 
 const rootPrefix = Buffer.from('f0', 'hex');
 const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);
 const metaPrefix = Buffer.concat([rootPrefix, Buffer.from('fd', 'hex')]);
 const regsPrefix = Buffer.concat([metaPrefix, Buffer.from('01', 'hex')]);
 const counterKey = Buffer.concat([metaPrefix, Buffer.from('02', 'hex')]);
+const logger = createLogger('directory-allocator');
 
 function buildDataPrefix(counter: number) {
     let res = Buffer.alloc(2);
@@ -45,7 +48,7 @@ export class DirectoryAllocator {
                 return buildDataPrefix(nextCounter);
             }));
         } catch (e) {
-            console.warn(e);
+            logger.warn(createNamedContext('unknown'), e);
             throw Error('Unable to allocate key!');
         }
     }

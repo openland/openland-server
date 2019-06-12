@@ -7,11 +7,13 @@ import { FDBGraphqlSchema } from 'openland-module-db/tools/GraphEndpoint';
 import { Modules } from 'openland-modules/Modules';
 import * as http from 'http';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const rootCtx = createNamedContext('admin');
+const logger = createLogger('admin');
 
 export function startAdminInterface() {
-    console.log('Starting Admin Interface...');
+    logger.log(rootCtx, 'Starting Admin Interface...');
 
     const app = express();
 

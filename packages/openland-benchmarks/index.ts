@@ -14,8 +14,10 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 let rootCtx = createNamedContext('benchmark');
+let logger = createLogger('benchmark');
 
 fdb.setAPIVersion(510);
 let db1 = fdb.openSync()
@@ -165,7 +167,7 @@ addAsync('orm-10000-empty', async function orm10000Empty() {
 });
 
 suite.on('cycle', function (event: any) {
-    console.log(String(event.target));
+    logger.log(rootCtx, String(event.target));
 });
 
 (async () => {
@@ -173,7 +175,7 @@ suite.on('cycle', function (event: any) {
     let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
     // let keySize = 4096;
     let p: any[] = [];
-    console.log('Prepare');
+    logger.log(rootCtx, 'Prepare');
     for (let i = 0; i < 10000; i++) {
         let p2 = inTx(rootCtx, async (ctx) => {
             await entities.SimpleEntity.create(ctx, i, { data: 'data-0' });
@@ -187,6 +189,6 @@ suite.on('cycle', function (event: any) {
         p.push(p3);
     }
     await Promise.all(p);
-    console.log('Starting');
+    logger.log(rootCtx, 'Starting');
     suite.run({ async: false });
 })();

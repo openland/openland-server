@@ -8,8 +8,10 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const rootContext = createNamedContext('auth-v2');
+const logger = createLogger('auth-v2');
 
 //
 // Main JWT verifier
@@ -49,7 +51,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
             }
         }
     } catch (e) {
-        console.warn(e);
+        logger.warn(rootContext, e);
         response.status(500).send({ error: 'Internal server error' });
         return;
     }
@@ -71,14 +73,6 @@ export const Authenticator = async function (req: express.Request, response: exp
             }
         });
         let profile = await res.json<Profile>();
-
-        // let r = await (await fetch('https://statecraft.auth0.com/api/v2/users/' + (profile as any).sub, {
-        //     method: 'GET',
-        //     headers: {
-        //         authorization: 'Bearer <TOKEN>'
-        //     }
-        // })).json();
-        // console.warn(r);
 
         let firstName: string | null = null;
         let lastName: string | null = null;
@@ -123,7 +117,7 @@ export const Authenticator = async function (req: express.Request, response: exp
 
         response.json({ ok: true, token: token.salt });
     } catch (e) {
-        console.warn('authenticator_error', e);
+        logger.warn(rootContext, e, 'authentication_error');
         response.status(500).send({ error: 'Internal server error' });
     }
 };

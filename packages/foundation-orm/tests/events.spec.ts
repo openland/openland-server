@@ -81,7 +81,6 @@ describe('events', () => {
         expect(events[1].value.event).toBe(2);
 
         events = await factory.range(createNamedContext('test'), [1], { limit: 2, after: events[1].key });
-        console.warn(events);
         expect(events.length).toBe(1);
         expect(events[0].value.event).toBe(3);
 

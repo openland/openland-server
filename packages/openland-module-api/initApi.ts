@@ -36,13 +36,14 @@ import { createLogger } from '@openland/log';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
-const logger = createLogger('ws');
+const loggerWs = createLogger('ws');
 const ws = createTracer('ws');
 const integrationCtx = createNamedContext('integration-ctx');
+const logger = createLogger('api-module');
 
 export async function initApi(isTest: boolean) {
-
-    console.info('Starting...');
+    const rootCtx = createNamedContext('init');
+    logger.log(rootCtx, 'Starting...');
 
     //
     // Fetching Port
@@ -54,12 +55,6 @@ export async function initApi(isTest: boolean) {
     }
     if (isTest) {
         dport = 0;
-    }
-
-    // Fetchin Apollo Engine
-    let engineKey = process.env.APOLLO_ENGINE_KEY;
-    if (engineKey) {
-        console.log('Starting with Apollo Engine');
     }
 
     //
@@ -142,7 +137,7 @@ export async function initApi(isTest: boolean) {
         introspection: true,
         tracing: process.env.NODE_ENV !== 'production',
         formatError: (err: any) => {
-            console.warn(err);
+            logger.warn(rootCtx, err);
             return {
                 ...errorHandler(err),
                 locations: err.locations,
@@ -178,10 +173,10 @@ export async function initApi(isTest: boolean) {
 
     // Starting Api
     if (dport > 0) {
-        console.info('Binding to port ' + dport);
+        logger.log(rootCtx, 'Binding to port ' + dport);
 
         let formatError = (err: any, info?: QueryInfo) => {
-            console.warn(err);
+            logger.warn(rootCtx, err);
             return {
                 ...errorHandler(err, info),
                 locations: err.locations,
@@ -222,9 +217,9 @@ export async function initApi(isTest: boolean) {
                     let ctx = buildWebSocketContext(webSocket.__params);
                     if (!isTest) {
                         if (webSocket.__params.uid) {
-                            logger.log(ctx, 'GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
+                            loggerWs.log(ctx, 'GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
                         } else {
-                            logger.log(ctx, 'WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+                            loggerWs.log(ctx, 'WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
                         }
                     }
 

@@ -7,6 +7,9 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { createLogger } from '@openland/log';
+
+const logger = createLogger('dialogs');
 
 export default {
     Dialog: {
@@ -120,7 +123,7 @@ export default {
             let index = 0;
             for (let r of res) {
                 if (!r) {
-                    console.warn('Unable to find conversation: ' + conversations.items[index].cid);
+                    logger.warn(ctx, 'Unable to find conversation: ' + conversations.items[index].cid);
                 }
                 index++;
             }

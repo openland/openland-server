@@ -9,9 +9,11 @@ import * as https from 'https';
 import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { AppContext } from 'openland-modules/AppContext';
-import { withLogPath } from '@openland/log';
+import { withLogPath, createLogger } from '@openland/log';
+
+const logger = createLogger('apollo');
 
 interface FuckApolloServerParams {
     server?: http.Server | https.Server;
@@ -160,11 +162,11 @@ async function handleConnection(params: FuckApolloServerParams, socket: WebSocke
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
-        console.log('close connection', code, reason);
+        logger.log(createNamedContext('apollo'), 'close connection', code, reason);
         session.stopAllOperations();
     });
     socket.on('error', (err) => {
-        console.log('connection error', err);
+        logger.log(createNamedContext('apollo'), 'connection error', err);
         session.stopAllOperations();
     });
 }

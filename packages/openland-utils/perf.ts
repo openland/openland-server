@@ -34,20 +34,28 @@ export class Perf {
         }
         text += (`---ENDPERF-${this.name}---\n\n\n`);
 
+        // tslint:disable
         console.log(text);
+        // tslint:enable
     }
 }
 
 export async function perf<T>(name: string, cb: () => Promise<T>): Promise<T> {
     let start = Date.now();
     let res = await cb();
+    
+    // tslint:disable
     console.log(`perf ${name}: ${Date.now() - start} ms`);
+    // tslint:enable
+
     return res;
 }
 
 export function perfSync<T>(name: string, cb: () => T): T {
     let start = Date.now();
     let res = cb();
+    // tslint:disable
     console.log(`perf ${name}: ${Date.now() - start}`);
+    // tslint:enable
     return res;
 }

@@ -9,6 +9,7 @@ import { AccessDeniedError } from './AccessDeniedError';
 import { IDs } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 interface FormattedError {
     uuid: string;
@@ -28,10 +29,11 @@ export interface QueryInfo {
 }
 
 const ctx = createNamedContext('unexpected-error');
+const logger = createLogger('error-formatter');
 
 const handleUnexpectedError = (uuid: string, error: { message: string, originalError: any }, info?: QueryInfo) => {
     // Raven.captureException(error.originalError);
-    console.warn('unexpected_error', uuid, error.originalError, error);
+    logger.warn(ctx, error.originalError, 'unexpected_error', uuid, error);
 
     // tslint:disable:no-floating-promises
     (async () => {

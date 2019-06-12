@@ -7,6 +7,7 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
 import { URLAugmentation } from './UrlInfoService';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 export interface URLInfo {
     url: string;
@@ -36,7 +37,7 @@ class URLInfoFetcher {
     private specialUrls: { condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLInfo | null | boolean> }[] = [];
 
     public async fetchURLInfo(url: string): Promise<URLInfo | null> {
-        let {hostname} = URL.parse(url);
+        let { hostname } = URL.parse(url);
 
         for (let specialUrl of this.specialUrls) {
             if (specialUrl.condition(url, hostname || '')) {
@@ -65,7 +66,7 @@ class URLInfoFetcher {
     }
 
     public specialUrl(condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLAugmentation | null | boolean>) {
-        this.specialUrls.push({condition, handler});
+        this.specialUrls.push({ condition, handler });
         return this;
     }
 }
@@ -121,8 +122,8 @@ function createURLInfoFetcher() {
     return (url: string) => fetcher.fetchURLInfo(url);
 }
 
-async function fetchRawURLInfo(url: string): Promise< { info: RawURLInfo, doc?: CheerioStatic } | null> {
-    let {hostname} = URL.parse(url);
+async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: CheerioStatic } | null> {
+    let { hostname } = URL.parse(url);
 
     let res = await fetch(encodeURI(url), FetchParams);
 
@@ -133,7 +134,7 @@ async function fetchRawURLInfo(url: string): Promise< { info: RawURLInfo, doc?: 
     let contentType = res.headers.get('content-type');
 
     if (contentType && contentType.startsWith('image')) {
-        return { info: {url, imageURL: url} };
+        return { info: { url, imageURL: url } };
     }
 
     let text = await res.text();
@@ -184,6 +185,7 @@ async function fetchRawURLInfo(url: string): Promise< { info: RawURLInfo, doc?: 
 }
 
 const rootCtx = createNamedContext('url-info');
+const logger = createLogger('url-info');
 
 async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     if (!params) {
@@ -197,7 +199,7 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
         iconURL
     } = params;
 
-    let {hostname} = URL.parse(url);
+    let { hostname } = URL.parse(url);
 
     let imageInfo: FileInfo | null = null;
     let imageRef: ImageRef | null = null;
@@ -205,11 +207,11 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     if (imageURL) {
         imageURL = URL.resolve(url, imageURL);
         try {
-            let {file} = await Modules.Media.uploadFromUrl(rootCtx, imageURL);
-            imageRef = {uuid: file, crop: null};
+            let { file } = await Modules.Media.uploadFromUrl(rootCtx, imageURL);
+            imageRef = { uuid: file, crop: null };
             imageInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
         } catch (e) {
-            console.warn('Cant fetch image ' + imageURL);
+            logger.warn(rootCtx, 'Cant fetch image ' + imageURL);
         }
     }
 
@@ -218,11 +220,11 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
 
     if (iconURL) {
         try {
-            let {file} = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
-            iconRef = {uuid: file, crop: null};
+            let { file } = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
+            iconRef = { uuid: file, crop: null };
             iconInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
         } catch (e) {
-            console.warn('Cant fetch image ' + iconURL);
+            logger.warn(rootCtx, 'Cant fetch image ' + iconURL);
         }
     }
 
