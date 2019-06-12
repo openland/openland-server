@@ -89,15 +89,16 @@ const saveEvents = async (ctx: Context, events: any[]) => {
 };
 
 export function declareBatchAmplitudeIndexer() {
-    updateReader('amplitude-batch-indexer', 3, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
+    updateReader('amplitude-batch-indexer', 7, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
         await inTx(parent, async (ctx) => {
             let eventsProd = await Promise.all(items.filter(i => i.body.isProd === true).map(i => addUserProps(ctx, mapEvent(i.body))));
             // let eventsTest = await Promise.all(items.filter(i => i.body.isProd === false).map(i => addUserProps(ctx, mapEvent(i.body))));
 
             log.debug(ctx, 'prod events length: ', eventsProd.length);
             // log.debug(ctx, 'test events length: ', eventsTest.length);
-
-            await saveEvents(ctx, eventsProd);
+            if (eventsProd.length > 0) {
+                await saveEvents(ctx, eventsProd);
+            }
         });
     });
 }

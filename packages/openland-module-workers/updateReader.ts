@@ -21,7 +21,7 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
             first = true;
         }
 
-        let res = await stream.next(root);
+        let res = await inTx(root, async ctx => await stream.next(ctx));
         if (res.length > 0) {
 
             // Handling elements
