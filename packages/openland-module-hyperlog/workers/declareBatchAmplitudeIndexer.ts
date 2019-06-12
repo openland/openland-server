@@ -5,6 +5,7 @@ import { inTx } from '../../foundation-orm/inTx';
 import { createLogger } from '@openland/log';
 import request, { Response } from 'request';
 import { randomKey } from '../../openland-utils/random';
+import { delay } from '../../openland-utils/timer';
 
 const log = createLogger('amplitude-batch-indexer');
 
@@ -108,5 +109,6 @@ export function declareBatchAmplitudeIndexer() {
                 await saveEvents(ctx, eventsProd);
             }
         });
+        await delay(1000);
     });
 }
