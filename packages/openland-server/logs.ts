@@ -67,7 +67,7 @@ setLogProvider({
                     text: name,
                     metric: value
                 },
-                message: name + ': ' + value
+                message: formatMessage(ctx, service, name + ': ' + value + ' ' + dimension)
             });
         } else {
             logger.info(formatMessage(ctx, service, name + ': ' + value + ' ' + dimension));
