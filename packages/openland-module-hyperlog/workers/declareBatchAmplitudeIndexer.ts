@@ -16,6 +16,9 @@ const mapEvent = (body: any) => {
     // Amplitude doc says: user_id Must have a minimum length of 5 characters.
     let userId = event.uid ? '00000' + event.uid : 'anon ' + randomKey();
     let deviceId = event.did ? '00000' + event.did : undefined;
+    if (event.did === 'server') {
+        deviceId = 'server ' + randomKey();
+    }
 
     return {
         user_id: userId,
