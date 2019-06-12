@@ -94,15 +94,15 @@ export async function prepare() {
         await Modules.Super.makeSuperAdmin(ctx, adminId, 'super-admin');
         await Modules.Users.activateUser(ctx, adminId, false);
         let org = await Modules.Orgs.createOrganization(ctx, adminId, { name: 'Developer Organization' });
-        const start = Date.now();
+        // const start = Date.now();
 
         const count = 1000;
         await generateFakeRoomWithMembers(adminId, org.id, 10, count, 100);
-        console.log(`processed in ${(Date.now() - start) / 1000} with approx ${count / ((Date.now() - start) / 1000)} per s`);
+        // console.log(`processed in ${(Date.now() - start) / 1000} with approx ${count / ((Date.now() - start) / 1000)} per s`);
 
         process.exit();
     } catch (e) {
-        console.warn(e);
+        // console.warn(e);
         process.abort();
     }
 }
