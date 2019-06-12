@@ -20,6 +20,7 @@ const log = createLogger('fdb');
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
+    readonly directoryRaw: FSubspace;
     readonly directory: FSubspace<FTuple[], any>;
     readonly connection: FConnection;
     readonly options: FEntityOptions;
@@ -31,7 +32,8 @@ export abstract class FEntityFactory<T extends FEntity> {
     constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[], name: string) {
         // this.tracer = createTracer(name);
         this.namespace = namespace;
-        this.directory = connection.directories.getDirectory(namespace.namespace)
+        this.directoryRaw = connection.directories.getDirectory(namespace.namespace);
+        this.directory = this.directoryRaw
             .withKeyEncoding(FEncoders.tuple)
             .withValueEncoding(FEncoders.json);
         this.connection = connection;

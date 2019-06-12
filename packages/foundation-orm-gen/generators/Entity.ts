@@ -96,7 +96,7 @@ export function generateEntity(entity: EntityModel): string {
             let body = index.condition.toString();
             condition = ', ' + body;
         }
-        return 'new FEntityIndex(\'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
+        return 'new FEntityIndex(connection, \'' + entityKey + '\', \'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
     }
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
 

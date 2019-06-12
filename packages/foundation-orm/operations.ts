@@ -62,6 +62,7 @@ export async function syncSubspaces(parent: Context, from: FSubspace, to: FSubsp
         await deleteMissing(ctx, from, to);
         iteration++;
     }
+    logger.log(parent, 'Subspace sync completed');
 }
 
 export async function isSubspaceEquals(parent: Context, a: FSubspace, b: FSubspace): Promise<boolean> {

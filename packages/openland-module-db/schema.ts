@@ -343,7 +343,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         super(connection,
             new FNamespace(connection, 'entity', 'presence'),
             { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'lastSeen'], false)],
+            [new FEntityIndex(connection, 'presence', 'user', ['uid', 'lastSeen'], false)],
             'Presence'
         );
     }
@@ -470,7 +470,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         super(connection,
             new FNamespace(connection, 'entity', 'authToken'),
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('salt', ['salt'], true), new FEntityIndex('user', ['uid', 'uuid'], false, src => src.enabled !== false)],
+            [new FEntityIndex(connection, 'authToken', 'salt', ['salt'], true), new FEntityIndex(connection, 'authToken', 'user', ['uid', 'uuid'], false, src => src.enabled !== false)],
             'AuthToken'
         );
     }
@@ -576,7 +576,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         super(connection,
             new FNamespace(connection, 'entity', 'serviceCache'),
             { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('fromService', ['service', 'key'], false)],
+            [new FEntityIndex(connection, 'serviceCache', 'fromService', ['service', 'key'], false)],
             'ServiceCache'
         );
     }
@@ -869,7 +869,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         super(connection,
             new FNamespace(connection, 'entity', 'task'),
             { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex('executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex('failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')],
+            [new FEntityIndex(connection, 'task', 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex(connection, 'task', 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex(connection, 'task', 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')],
             'Task'
         );
     }
@@ -1101,7 +1101,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         super(connection,
             new FNamespace(connection, 'entity', 'pushFirebase'),
             { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)],
+            [new FEntityIndex(connection, 'pushFirebase', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushFirebase', 'token', ['token'], true, src => src.enabled)],
             'PushFirebase'
         );
     }
@@ -1324,7 +1324,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         super(connection,
             new FNamespace(connection, 'entity', 'pushApple'),
             { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)],
+            [new FEntityIndex(connection, 'pushApple', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushApple', 'token', ['token'], true, src => src.enabled)],
             'PushApple'
         );
     }
@@ -1521,7 +1521,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         super(connection,
             new FNamespace(connection, 'entity', 'pushWeb'),
             { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('endpoint', ['endpoint'], true, src => src.enabled)],
+            [new FEntityIndex(connection, 'pushWeb', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushWeb', 'endpoint', ['endpoint'], true, src => src.enabled)],
             'PushWeb'
         );
     }
@@ -1731,7 +1731,7 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         super(connection,
             new FNamespace(connection, 'entity', 'pushSafari'),
             { enableVersioning: true, enableTimestamps: true, validator: PushSafariFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)],
+            [new FEntityIndex(connection, 'pushSafari', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushSafari', 'token', ['token'], true, src => src.enabled)],
             'PushSafari'
         );
     }
@@ -2012,7 +2012,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace(connection, 'entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner), new FEntityIndex('superBots', [], false, src => src.isBot === true && src.isSuperBot)],
+            [new FEntityIndex(connection, 'user', 'authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex(connection, 'user', 'email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex(connection, 'user', 'owner', ['botOwner', 'id'], false, src => src.botOwner), new FEntityIndex(connection, 'user', 'superBots', [], false, src => src.isBot === true && src.isSuperBot)],
             'User'
         );
     }
@@ -2306,7 +2306,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         super(connection,
             new FNamespace(connection, 'entity', 'userProfile'),
             { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('byUpdatedAt', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'userProfile', 'byUpdatedAt', ['updatedAt'], false)],
             'UserProfile'
         );
     }
@@ -2373,7 +2373,7 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         super(connection,
             new FNamespace(connection, 'entity', 'userIndexingQueue'),
             { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'userIndexingQueue', 'updated', ['updatedAt'], false)],
             'UserIndexingQueue'
         );
     }
@@ -2506,7 +2506,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         super(connection,
             new FNamespace(connection, 'entity', 'organization'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('community', [], false, (src) => src.kind === 'community' && src.status === 'activated')],
+            [new FEntityIndex(connection, 'organization', 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated')],
             'Organization'
         );
     }
@@ -2826,7 +2826,7 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         super(connection,
             new FNamespace(connection, 'entity', 'organizationIndexingQueue'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'organizationIndexingQueue', 'updated', ['updatedAt'], false)],
             'OrganizationIndexingQueue'
         );
     }
@@ -2939,7 +2939,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         super(connection,
             new FNamespace(connection, 'entity', 'organizationMember'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('ids', ['oid', 'uid'], true), new FEntityIndex('organization', ['status', 'oid', 'uid'], false), new FEntityIndex('user', ['status', 'uid', 'oid'], false)],
+            [new FEntityIndex(connection, 'organizationMember', 'ids', ['oid', 'uid'], true), new FEntityIndex(connection, 'organizationMember', 'organization', ['status', 'oid', 'uid'], false), new FEntityIndex(connection, 'organizationMember', 'user', ['status', 'uid', 'oid'], false)],
             'OrganizationMember'
         );
     }
@@ -3157,7 +3157,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         super(connection,
             new FNamespace(connection, 'entity', 'organizationFeatures'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)],
+            [new FEntityIndex(connection, 'organizationFeatures', 'organization', ['organizationId', 'featureKey'], true)],
             'OrganizationFeatures'
         );
     }
@@ -3583,7 +3583,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         super(connection,
             new FNamespace(connection, 'entity', 'shortnameReservation'),
             { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex('org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)],
+            [new FEntityIndex(connection, 'shortnameReservation', 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex(connection, 'shortnameReservation', 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)],
             'ShortnameReservation'
         );
     }
@@ -3923,7 +3923,7 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         super(connection,
             new FNamespace(connection, 'entity', 'conversationPrivate'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationPrivateFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('users', ['uid1', 'uid2'], true)],
+            [new FEntityIndex(connection, 'conversationPrivate', 'users', ['uid1', 'uid2'], true)],
             'ConversationPrivate'
         );
     }
@@ -4012,7 +4012,7 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         super(connection,
             new FNamespace(connection, 'entity', 'conversationOrganization'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationOrganizationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid'], true)],
+            [new FEntityIndex(connection, 'conversationOrganization', 'organization', ['oid'], true)],
             'ConversationOrganization'
         );
     }
@@ -4166,7 +4166,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         super(connection,
             new FNamespace(connection, 'entity', 'conversationRoom'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal'), new FEntityIndex('organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public')],
+            [new FEntityIndex(connection, 'conversationRoom', 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal'), new FEntityIndex(connection, 'conversationRoom', 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public')],
             'ConversationRoom'
         );
     }
@@ -4377,7 +4377,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         super(connection,
             new FNamespace(connection, 'entity', 'roomProfile'),
             { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'roomProfile', 'updated', ['updatedAt'], false)],
             'RoomProfile'
         );
     }
@@ -4489,7 +4489,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         super(connection,
             new FNamespace(connection, 'entity', 'roomParticipant'),
             { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('active', ['cid', 'uid'], true, (src) => src.status === 'joined'), new FEntityIndex('requests', ['cid', 'uid'], true, (src) => src.status === 'requested'), new FEntityIndex('userActive', ['uid', 'cid'], true, (src) => src.status === 'joined')],
+            [new FEntityIndex(connection, 'roomParticipant', 'active', ['cid', 'uid'], true, (src) => src.status === 'joined'), new FEntityIndex(connection, 'roomParticipant', 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested'), new FEntityIndex(connection, 'roomParticipant', 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined')],
             'RoomParticipant'
         );
     }
@@ -4624,7 +4624,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         super(connection,
             new FNamespace(connection, 'entity', 'conversationReceiver'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationReceiverFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('conversation', ['cid', 'uid'], true, (src) => src.enabled)],
+            [new FEntityIndex(connection, 'conversationReceiver', 'conversation', ['cid', 'uid'], true, (src) => src.enabled)],
             'ConversationReceiver'
         );
     }
@@ -5254,7 +5254,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         super(connection,
             new FNamespace(connection, 'entity', 'message'),
             { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted), new FEntityIndex('updated', ['updatedAt'], false), new FEntityIndex('repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey)],
+            [new FEntityIndex(connection, 'message', 'chat', ['cid', 'id'], false, (src) => !src.deleted), new FEntityIndex(connection, 'message', 'updated', ['updatedAt'], false), new FEntityIndex(connection, 'message', 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey)],
             'Message'
         );
     }
@@ -5662,7 +5662,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
         super(connection,
             new FNamespace(connection, 'entity', 'comment'),
             { enableVersioning: true, enableTimestamps: true, validator: CommentFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('peer', ['peerType', 'peerId', 'id'], false), new FEntityIndex('child', ['parentCommentId', 'id'], false)],
+            [new FEntityIndex(connection, 'comment', 'peer', ['peerType', 'peerId', 'id'], false), new FEntityIndex(connection, 'comment', 'child', ['parentCommentId', 'id'], false)],
             'Comment'
         );
     }
@@ -5944,7 +5944,7 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         super(connection,
             new FNamespace(connection, 'entity', 'commentEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: CommentEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex('user', ['peerType', 'peerId', 'seq'], false)],
+            [new FEntityIndex(connection, 'commentEvent', 'user', ['peerType', 'peerId', 'seq'], false)],
             'CommentEvent'
         );
     }
@@ -6054,7 +6054,7 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         super(connection,
             new FNamespace(connection, 'entity', 'commentsSubscription'),
             { enableVersioning: false, enableTimestamps: false, validator: CommentsSubscriptionFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('peer', ['peerType', 'peerId', 'uid'], false)],
+            [new FEntityIndex(connection, 'commentsSubscription', 'peer', ['peerType', 'peerId', 'uid'], false)],
             'CommentsSubscription'
         );
     }
@@ -6239,7 +6239,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         super(connection,
             new FNamespace(connection, 'entity', 'conversationEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex('user', ['cid', 'seq'], false)],
+            [new FEntityIndex(connection, 'conversationEvent', 'user', ['cid', 'seq'], false)],
             'ConversationEvent'
         );
     }
@@ -6431,7 +6431,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         super(connection,
             new FNamespace(connection, 'entity', 'userDialog'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden), new FEntityIndex('conversation', ['cid', 'uid'], true), new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'userDialog', 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden), new FEntityIndex(connection, 'userDialog', 'conversation', ['cid', 'uid'], true), new FEntityIndex(connection, 'userDialog', 'updated', ['updatedAt'], false)],
             'UserDialog'
         );
     }
@@ -6798,7 +6798,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         super(connection,
             new FNamespace(connection, 'entity', 'userDialogEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex('user', ['uid', 'seq'], false)],
+            [new FEntityIndex(connection, 'userDialogEvent', 'user', ['uid', 'seq'], false)],
             'UserDialogEvent'
         );
     }
@@ -6956,7 +6956,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         super(connection,
             new FNamespace(connection, 'entity', 'userMessagingState'),
             { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('hasUnread', [], false, (src) => src.unread && src.unread > 0)],
+            [new FEntityIndex(connection, 'userMessagingState', 'hasUnread', [], false, (src) => src.unread && src.unread > 0)],
             'UserMessagingState'
         );
     }
@@ -7187,7 +7187,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         super(connection,
             new FNamespace(connection, 'entity', 'hyperLog'),
             { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('created', ['createdAt'], false), new FEntityIndex('userEvents', ['createdAt'], false, (src) => src.type === 'track'), new FEntityIndex('onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status')],
+            [new FEntityIndex(connection, 'hyperLog', 'created', ['createdAt'], false), new FEntityIndex(connection, 'hyperLog', 'userEvents', ['createdAt'], false, (src) => src.type === 'track'), new FEntityIndex(connection, 'hyperLog', 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status')],
             'HyperLog'
         );
     }
@@ -7458,7 +7458,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         super(connection,
             new FNamespace(connection, 'entity', 'channelInvitation'),
             { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('channel', ['createdAt', 'channelId'], false), new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'channelInvitation', 'channel', ['createdAt', 'channelId'], false), new FEntityIndex(connection, 'channelInvitation', 'updated', ['updatedAt'], false)],
             'ChannelInvitation'
         );
     }
@@ -7582,7 +7582,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         super(connection,
             new FNamespace(connection, 'entity', 'channelLink'),
             { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('channel', ['channelId', 'createdAt'], false)],
+            [new FEntityIndex(connection, 'channelLink', 'channel', ['channelId', 'createdAt'], false)],
             'ChannelLink'
         );
     }
@@ -7668,7 +7668,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         super(connection,
             new FNamespace(connection, 'entity', 'appInviteLink'),
             { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid'], true)],
+            [new FEntityIndex(connection, 'appInviteLink', 'user', ['uid'], true)],
             'AppInviteLink'
         );
     }
@@ -7844,7 +7844,7 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         super(connection,
             new FNamespace(connection, 'entity', 'organizationPublicInviteLink'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('userInOrganization', ['uid', 'oid'], true, src => src.enabled)],
+            [new FEntityIndex(connection, 'organizationPublicInviteLink', 'userInOrganization', ['uid', 'oid'], true, src => src.enabled)],
             'OrganizationPublicInviteLink'
         );
     }
@@ -8055,7 +8055,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         super(connection,
             new FNamespace(connection, 'entity', 'organizationInviteLink'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex('emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
+            [new FEntityIndex(connection, 'organizationInviteLink', 'organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex(connection, 'organizationInviteLink', 'emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
             'OrganizationInviteLink'
         );
     }
@@ -8301,7 +8301,7 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         super(connection,
             new FNamespace(connection, 'entity', 'conferencePeer'),
             { enableVersioning: true, enableTimestamps: true, validator: ConferencePeerFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled), new FEntityIndex('conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled), new FEntityIndex('active', ['keepAliveTimeout'], false, (src) => src.enabled)],
+            [new FEntityIndex(connection, 'conferencePeer', 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled), new FEntityIndex(connection, 'conferencePeer', 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled), new FEntityIndex(connection, 'conferencePeer', 'active', ['keepAliveTimeout'], false, (src) => src.enabled)],
             'ConferencePeer'
         );
     }
@@ -8525,7 +8525,7 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         super(connection,
             new FNamespace(connection, 'entity', 'conferenceMediaStream'),
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceMediaStreamFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
+            [new FEntityIndex(connection, 'conferenceMediaStream', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
             'ConferenceMediaStream'
         );
     }
@@ -8680,7 +8680,7 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         super(connection,
             new FNamespace(connection, 'entity', 'conferenceConnection'),
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
+            [new FEntityIndex(connection, 'conferenceConnection', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
             'ConferenceConnection'
         );
     }
@@ -8758,7 +8758,7 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         super(connection,
             new FNamespace(connection, 'entity', 'userEdge'),
             { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('forward', ['uid1', 'uid2'], false), new FEntityIndex('reverse', ['uid2', 'uid1'], false)],
+            [new FEntityIndex(connection, 'userEdge', 'forward', ['uid1', 'uid2'], false), new FEntityIndex(connection, 'userEdge', 'reverse', ['uid2', 'uid1'], false)],
             'UserEdge'
         );
     }
@@ -8996,7 +8996,7 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         super(connection,
             new FNamespace(connection, 'entity', 'feedSubscriber'),
             { enableVersioning: true, enableTimestamps: true, validator: FeedSubscriberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('key', ['key'], true)],
+            [new FEntityIndex(connection, 'feedSubscriber', 'key', ['key'], true)],
             'FeedSubscriber'
         );
     }
@@ -9084,7 +9084,7 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         super(connection,
             new FNamespace(connection, 'entity', 'feedSubscription'),
             { enableVersioning: false, enableTimestamps: false, validator: FeedSubscriptionFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('subscriber', ['sid', 'tid'], false, (state) => state.enabled), new FEntityIndex('topic', ['tid', 'sid'], false, (state) => state.enabled)],
+            [new FEntityIndex(connection, 'feedSubscription', 'subscriber', ['sid', 'tid'], false, (state) => state.enabled), new FEntityIndex(connection, 'feedSubscription', 'topic', ['tid', 'sid'], false, (state) => state.enabled)],
             'FeedSubscription'
         );
     }
@@ -9188,7 +9188,7 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         super(connection,
             new FNamespace(connection, 'entity', 'feedTopic'),
             { enableVersioning: true, enableTimestamps: true, validator: FeedTopicFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('key', ['key'], true)],
+            [new FEntityIndex(connection, 'feedTopic', 'key', ['key'], true)],
             'FeedTopic'
         );
     }
@@ -9297,7 +9297,7 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         super(connection,
             new FNamespace(connection, 'entity', 'feedEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: FeedEventFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('topic', ['tid', 'createdAt'], false), new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex(connection, 'feedEvent', 'topic', ['tid', 'createdAt'], false), new FEntityIndex(connection, 'feedEvent', 'updated', ['updatedAt'], false)],
             'FeedEvent'
         );
     }
@@ -9399,7 +9399,7 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         super(connection,
             new FNamespace(connection, 'entity', 'appHook'),
             { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('key', ['key'], true)],
+            [new FEntityIndex(connection, 'appHook', 'key', ['key'], true)],
             'AppHook'
         );
     }
@@ -9482,7 +9482,7 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         super(connection,
             new FNamespace(connection, 'entity', 'userStorageNamespace'),
             { enableVersioning: true, enableTimestamps: true, validator: UserStorageNamespaceFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('namespace', ['ns'], true)],
+            [new FEntityIndex(connection, 'userStorageNamespace', 'namespace', ['ns'], true)],
             'UserStorageNamespace'
         );
     }
@@ -9596,7 +9596,7 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         super(connection,
             new FNamespace(connection, 'entity', 'userStorageRecord'),
             { enableVersioning: true, enableTimestamps: true, validator: UserStorageRecordFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('key', ['uid', 'ns', 'key'], true)],
+            [new FEntityIndex(connection, 'userStorageRecord', 'key', ['uid', 'ns', 'key'], true)],
             'UserStorageRecord'
         );
     }
@@ -9689,7 +9689,7 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         super(connection,
             new FNamespace(connection, 'entity', 'discoverUserPickedTags'),
             { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'id'], true, (src) => !src.deleted)],
+            [new FEntityIndex(connection, 'discoverUserPickedTags', 'user', ['uid', 'id'], true, (src) => !src.deleted)],
             'DiscoverUserPickedTags'
         );
     }
@@ -9783,7 +9783,7 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         super(connection,
             new FNamespace(connection, 'entity', 'debugEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex('user', ['uid', 'seq'], false)],
+            [new FEntityIndex(connection, 'debugEvent', 'user', ['uid', 'seq'], false)],
             'DebugEvent'
         );
     }
@@ -10006,7 +10006,7 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         super(connection,
             new FNamespace(connection, 'entity', 'userNotificationCenter'),
             { enableVersioning: true, enableTimestamps: true, validator: UserNotificationCenterFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid'], true)],
+            [new FEntityIndex(connection, 'userNotificationCenter', 'user', ['uid'], true)],
             'UserNotificationCenter'
         );
     }
@@ -10136,7 +10136,7 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         super(connection,
             new FNamespace(connection, 'entity', 'notification'),
             { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('notificationCenter', ['ncid', 'id'], false)],
+            [new FEntityIndex(connection, 'notification', 'notificationCenter', ['ncid', 'id'], false)],
             'Notification'
         );
     }
@@ -10321,7 +10321,7 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         super(connection,
             new FNamespace(connection, 'entity', 'notificationCenterEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex('notificationCenter', ['ncid', 'seq'], false)],
+            [new FEntityIndex(connection, 'notificationCenterEvent', 'notificationCenter', ['ncid', 'seq'], false)],
             'NotificationCenterEvent'
         );
     }
@@ -10433,6 +10433,7 @@ export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
 
 export interface AllEntities {
     readonly connection: FConnection;
+    readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: FDirectory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
@@ -10606,7 +10607,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         NotificationCenterStateFactory.schema,
         NotificationCenterEventFactory.schema,
     ];
-    allEntities: FEntityFactory<FEntity>[] = [];
+    readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: FDirectory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
@@ -11140,6 +11141,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get NeedNotificationFlagDirectory(): FDirectory {
         return this.resolver().NeedNotificationFlagDirectory;
+    }
+    get allEntities(): FEntityFactory<FEntity>[] {
+        return this.resolver().allEntities;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

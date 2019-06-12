@@ -5,6 +5,8 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Modules } from 'openland-modules/Modules';
 import { batch } from 'openland-utils/batch';
 import { inTx } from 'foundation-orm/inTx';
+import { syncSubspaces } from 'foundation-orm/operations';
+import { withLogPath } from '@openland/log';
 
 var migrations: FMigration[] = [];
 migrations.push({
@@ -864,6 +866,18 @@ migrations.push({
                 }
             });
         }
+    }
+});
+
+migrations.push({
+    key: '58-sync-indexes',
+    migration: async (root, log) => {
+        await Promise.all(FDB.allEntities.map(async (v) => {
+            let ctx = withLogPath(root, v.name);
+            for (let i of v.indexes) {
+                await syncSubspaces(withLogPath(ctx, i.name), i.namespace.keySpaceRaw, i.directoryRaw);
+            }
+        }));
     }
 });
 

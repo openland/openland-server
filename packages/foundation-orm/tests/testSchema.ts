@@ -297,7 +297,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         super(connection,
             new FNamespace(connection, 'entity', 'indexedEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'], true)],
+            [new FEntityIndex(connection, 'indexedEntity', 'default', ['data1', 'data2', 'id'], true)],
             'IndexedEntity'
         );
     }
@@ -412,7 +412,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         super(connection,
             new FNamespace(connection, 'entity', 'indexedRangeEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('default', ['data1', 'data2'], false)],
+            [new FEntityIndex(connection, 'indexedRangeEntity', 'default', ['data1', 'data2'], false)],
             'IndexedRangeEntity'
         );
     }
@@ -524,7 +524,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         super(connection,
             new FNamespace(connection, 'entity', 'indexedPartialEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
+            [new FEntityIndex(connection, 'indexedPartialEntity', 'default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
             'IndexedPartialEntity'
         );
     }
@@ -681,7 +681,7 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         super(connection,
             new FNamespace(connection, 'entity', 'rangeTest'),
             { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('default', ['key', 'id'], false)],
+            [new FEntityIndex(connection, 'rangeTest', 'default', ['key', 'id'], false)],
             'RangeTest'
         );
     }
@@ -794,7 +794,7 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         super(connection,
             new FNamespace(connection, 'entity', 'complexRangeTest'),
             { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('nonUnique', ['subId1', 'subId2'], false), new FEntityIndex('unique', ['subId1', 'subId2'], true)],
+            [new FEntityIndex(connection, 'complexRangeTest', 'nonUnique', ['subId1', 'subId2'], false), new FEntityIndex(connection, 'complexRangeTest', 'unique', ['subId1', 'subId2'], true)],
             'ComplexRangeTest'
         );
     }
@@ -948,6 +948,7 @@ export class SampleAtomicBooleanFactory extends FAtomicBooleanFactory {
 
 export interface AllEntities {
     readonly connection: FConnection;
+    readonly allEntities: FEntityFactory<FEntity>[];
     readonly SimpleEntity: SimpleEntityFactory;
     readonly VersionedEntity: VersionedEntityFactory;
     readonly TimestampedEntity: TimestampedEntityFactory;
@@ -974,7 +975,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         ComplexRangeTestFactory.schema,
         JsonTestFactory.schema,
     ];
-    allEntities: FEntityFactory<FEntity>[] = [];
+    readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly SimpleEntity: SimpleEntityFactory;
     readonly VersionedEntity: VersionedEntityFactory;
     readonly TimestampedEntity: TimestampedEntityFactory;
@@ -1053,6 +1054,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get SampleAtomicBoolean(): SampleAtomicBooleanFactory {
         return this.resolver().SampleAtomicBoolean;
+    }
+    get allEntities(): FEntityFactory<FEntity>[] {
+        return this.resolver().allEntities;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

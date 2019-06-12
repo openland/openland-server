@@ -184,8 +184,10 @@ export abstract class FEntity {
                                 }
                             }
                             this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
+                            index.directory.set(ctx, key, value);
                         } else {
                             this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            index.directory.set(ctx, [...key, ...this.rawId], value);
                         }
                     }
                 } else {
@@ -227,6 +229,7 @@ export abstract class FEntity {
                         if (index.unique) {
                             if (needToDeleteOld) {
                                 this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey]);
+                                index.directory.delete(ctx, oldkey);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
@@ -237,16 +240,20 @@ export abstract class FEntity {
                             }
                             if (needToCreateNew || needToUpdateNew) {
                                 this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
+                                index.directory.set(ctx, key, value);
                             }
                         } else {
                             if (needToDeleteOld) {
                                 this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                                index.directory.delete(ctx, [...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
                                 this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                index.directory.set(ctx, [...key, ...this.rawId], value);
                             }
                             if (needToCreateNew || needToUpdateNew) {
                                 this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
+                                index.directory.set(ctx, [...key, ...this.rawId], value);
                             }
                         }
                     }

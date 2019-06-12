@@ -5,6 +5,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
     let res = '';
     res += 'export interface AllEntities {\n';
     res += '    readonly connection: FConnection;\n';
+    res += '    readonly allEntities: FEntityFactory<FEntity>[];\n';
     for (let d of directories) {
         res += '    readonly ' + d.name + 'Directory: FDirectory;\n';
     }
@@ -21,7 +22,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
         res += '        ' + e.name + 'Factory.schema,\n';
     }
     res += '    ];\n';
-    res += '    allEntities: FEntityFactory<FEntity>[] = [];\n';
+    res += '    readonly allEntities: FEntityFactory<FEntity>[] = [];\n';
     for (let d of directories) {
         res += '    readonly ' + d.name + 'Directory: FDirectory;\n';
     }
@@ -65,6 +66,9 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
         res += '        return this.resolver().' + e.name + 'Directory;\n';
         res += '    }\n';
     }
+    res += '    get allEntities(): FEntityFactory<FEntity>[] {\n';
+    res += '        return this.resolver().allEntities;\n';
+    res += '    }\n';
 
     res += '    private resolver: () => AllEntities;\n';
     res += '    constructor(resolver: () => AllEntities) {\n';
