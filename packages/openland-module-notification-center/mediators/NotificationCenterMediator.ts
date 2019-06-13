@@ -43,4 +43,19 @@ export class NotificationCenterMediator {
             return this.repo.readNotification(ctx, nid);
         });
     }
+
+    async deleteUserNotification(parent: Context, nid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let notification = await this.fdb.Notification.findById(ctx, nid);
+            if (!notification) {
+                throw new NotFoundError();
+            }
+            let userNotificationCenter = await this.notificationCenterForUser(ctx, uid);
+            if (userNotificationCenter.id !== notification.ncid) {
+                throw new AccessDeniedError();
+            }
+
+            return this.repo.deleteNotification(ctx, nid);
+        });
+    }
 }

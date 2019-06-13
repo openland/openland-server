@@ -23,6 +23,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    debugCreateNotification(uid: ID!, text: String!): Boolean!
     readNotification(notificationId: ID!): NotificationCenter!
+    deleteNotification(notificationId: ID!): Boolean!
+    debugCreateNotification(uid: ID!, text: String!): Boolean!
 }

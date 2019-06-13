@@ -10348,7 +10348,7 @@ export class NotificationFactory extends FEntityFactory<Notification> {
     }
 
     constructor(connection: FConnection) {
-        let indexNotificationCenter = new FEntityIndex(connection, 'notification', 'notificationCenter', ['ncid', 'id'], false);
+        let indexNotificationCenter = new FEntityIndex(connection, 'notification', 'notificationCenter', ['ncid', 'id'], false, (src) => !src.deleted);
         super('Notification', 'notification', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false },
             [indexNotificationCenter],
@@ -10476,7 +10476,7 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
 }
 export interface NotificationCenterEventShape {
     notificationId?: number| null;
-    kind: 'notification_received' | 'notification_read';
+    kind: 'notification_received' | 'notification_read' | 'notification_deleted';
 }
 
 export class NotificationCenterEvent extends FEntity {
@@ -10494,10 +10494,10 @@ export class NotificationCenterEvent extends FEntity {
         this._value.notificationId = value;
         this.markDirty();
     }
-    get kind(): 'notification_received' | 'notification_read' {
+    get kind(): 'notification_received' | 'notification_read' | 'notification_deleted' {
         return this._value.kind;
     }
-    set kind(value: 'notification_received' | 'notification_read') {
+    set kind(value: 'notification_received' | 'notification_read' | 'notification_deleted') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -10515,7 +10515,7 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         ],
         fields: [
             { name: 'notificationId', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['notification_received', 'notification_read'] },
+            { name: 'kind', type: 'enum', enumValues: ['notification_received', 'notification_read', 'notification_deleted'] },
         ],
         indexes: [
             { name: 'notificationCenter', type: 'range', fields: ['ncid', 'seq'] },
@@ -10531,7 +10531,7 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         validators.isNumber('seq', src.seq);
         validators.isNumber('notificationId', src.notificationId);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['notification_received', 'notification_read']);
+        validators.isEnum('kind', src.kind, ['notification_received', 'notification_read', 'notification_deleted']);
     }
 
     constructor(connection: FConnection) {

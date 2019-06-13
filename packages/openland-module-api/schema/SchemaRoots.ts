@@ -305,6 +305,7 @@ export namespace GQLRoots {
     export type NotificationCenterUpdateContainerRoot = FLiveStreamItem<NotificationCenterEvent>;
     export type NotificationCenterUpdateRoot = NotificationCenterEvent;
     export type NotificationReceivedRoot = NotificationCenterEvent;
+    export type NotificationDeletedRoot = NotificationCenterEvent;
     export type NotificationReadRoot = NotificationCenterEvent;
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;

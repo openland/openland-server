@@ -24,4 +24,8 @@ export class NotificationCenterModule {
     async readUserNotification(ctx: Context, nid: number, uid: number) {
         return this.mediator.readUserNotification(ctx, nid, uid);
     }
+
+    async deleteUserNotification(ctx: Context, nid: number, uid: number) {
+        return this.mediator.deleteUserNotification(ctx, nid, uid);
+    }
 }

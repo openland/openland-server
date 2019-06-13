@@ -64,13 +64,17 @@ export default {
         }),
     },
     Mutation: {
-        debugCreateNotification: withUser(async (ctx, args, uid) => {
-            await Modules.NotificationCenter.sendNotification(ctx, IDs.User.parse(args.uid), {text: args.text});
-            return true;
-        }),
         readNotification: withUser(async (ctx, args, uid) => {
             await Modules.NotificationCenter.readUserNotification(ctx, IDs.Notification.parse(args.notificationId), uid);
             return await Modules.NotificationCenter.notificationCenterForUser(ctx, uid);
+        }),
+        deleteNotification: withUser(async (ctx, args, uid) => {
+            await Modules.NotificationCenter.deleteUserNotification(ctx, IDs.Notification.parse(args.notificationId), uid);
+            return true;
+        }),
+        debugCreateNotification: withUser(async (ctx, args, uid) => {
+            await Modules.NotificationCenter.sendNotification(ctx, IDs.User.parse(args.uid), {text: args.text});
+            return true;
         }),
     }
 } as GQLResolver;

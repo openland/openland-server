@@ -1190,7 +1190,7 @@ const Schema = declareSchema(() => {
             }),
         ))).nullable();
 
-        rangeIndex('notificationCenter', ['ncid', 'id']);
+        rangeIndex('notificationCenter', ['ncid', 'id']).withCondition((src) => !src.deleted);
         enableVersioning();
         enableTimestamps();
     });
@@ -1212,7 +1212,7 @@ const Schema = declareSchema(() => {
         primaryKey('ncid', 'number');
         primaryKey('seq', 'number');
         field('notificationId', 'number').nullable();
-        enumField('kind', ['notification_received', 'notification_read']);
+        enumField('kind', ['notification_received', 'notification_read', 'notification_deleted']);
 
         rangeIndex('notificationCenter', ['ncid', 'seq']).withStreaming();
 
