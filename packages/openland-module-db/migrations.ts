@@ -920,10 +920,14 @@ migrations.push({
             let ctx = withLogPath(root, v.name);
             let batchSize = 10000;
             if (v.name === FDB.ServiceCache.name) {
-                batchSize = 1000;
+                continue;
             } else if (v.name === FDB.Task.name) {
-                batchSize = 1000;
+                continue;
             } else if (v.name === FDB.Message.name) {
+                continue;
+            } else if (v.name === FDB.HyperLog.name) {
+                continue;
+            } else if (v.name === FDB.ConferenceMediaStream.name) {
                 batchSize = 1000;
             }
 
