@@ -8,8 +8,6 @@ import { FEntitySchema } from 'foundation-orm/FEntitySchema';
 // @ts-ignore
 import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 // @ts-ignore
-import { FNamespace } from 'foundation-orm/FNamespace';
-// @ts-ignore
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 // @ts-ignore
 import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
@@ -85,11 +83,11 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
     async create_UNSAFE(ctx: Context, production: number, shape: EnvironmentShape) {
         return await this._create_UNSAFE(ctx, [production], { production, ...shape });
     }
-    watch(ctx: Context, production: number, cb: () => void) {
-        return this._watch(ctx, [production], cb);
+    watch(ctx: Context, production: number) {
+        return this._watch(ctx, [production]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Environment(ctx, this.connection, this.namespace, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
+        return new Environment(ctx, this.connection, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
     }
 }
 export interface EnvironmentVariableShape {
@@ -151,11 +149,11 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
     async create_UNSAFE(ctx: Context, name: string, shape: EnvironmentVariableShape) {
         return await this._create_UNSAFE(ctx, [name], { name, ...shape });
     }
-    watch(ctx: Context, name: string, cb: () => void) {
-        return this._watch(ctx, [name], cb);
+    watch(ctx: Context, name: string) {
+        return this._watch(ctx, [name]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new EnvironmentVariable(ctx, this.connection, this.namespace, this.directory, [value.name], value, this.options, isNew, this.indexes, 'EnvironmentVariable');
+        return new EnvironmentVariable(ctx, this.connection, this.directory, [value.name], value, this.options, isNew, this.indexes, 'EnvironmentVariable');
     }
 }
 export interface OnlineShape {
@@ -245,11 +243,11 @@ export class OnlineFactory extends FEntityFactory<Online> {
     async create_UNSAFE(ctx: Context, uid: number, shape: OnlineShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: number, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Online(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
+        return new Online(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
     }
 }
 export interface PresenceShape {
@@ -360,8 +358,8 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     async create_UNSAFE(ctx: Context, uid: number, tid: string, shape: PresenceShape) {
         return await this._create_UNSAFE(ctx, [uid, tid], { uid, tid, ...shape });
     }
-    watch(ctx: Context, uid: number, tid: string, cb: () => void) {
-        return this._watch(ctx, [uid, tid], cb);
+    watch(ctx: Context, uid: number, tid: string) {
+        return this._watch(ctx, [uid, tid]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -382,7 +380,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Presence(ctx, this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
+        return new Presence(ctx, this.connection, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
     }
 }
 export interface AuthTokenShape {
@@ -493,8 +491,8 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     async create_UNSAFE(ctx: Context, uuid: string, shape: AuthTokenShape) {
         return await this._create_UNSAFE(ctx, [uuid], { uuid, ...shape });
     }
-    watch(ctx: Context, uuid: string, cb: () => void) {
-        return this._watch(ctx, [uuid], cb);
+    watch(ctx: Context, uuid: string) {
+        return this._watch(ctx, [uuid]);
     }
     async findFromSalt(ctx: Context, salt: string) {
         return await this._findFromIndex(ctx, this.indexSalt.directory, [salt]);
@@ -530,7 +528,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AuthToken(ctx, this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
+        return new AuthToken(ctx, this.connection, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
 }
 export interface ServiceCacheShape {
@@ -602,8 +600,8 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     async create_UNSAFE(ctx: Context, service: string, key: string, shape: ServiceCacheShape) {
         return await this._create_UNSAFE(ctx, [service, key], { service, key, ...shape });
     }
-    watch(ctx: Context, service: string, key: string, cb: () => void) {
-        return this._watch(ctx, [service, key], cb);
+    watch(ctx: Context, service: string, key: string) {
+        return this._watch(ctx, [service, key]);
     }
     async allFromFromServiceAfter(ctx: Context, service: string, after: string) {
         return await this._findRangeAllAfter(ctx, this.indexFromService.directory, [service], after);
@@ -624,7 +622,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         return this._createStream(this.indexFromService.directory, [service], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ServiceCache(ctx, this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
+        return new ServiceCache(ctx, this.connection, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
     }
 }
 export interface LockShape {
@@ -725,11 +723,11 @@ export class LockFactory extends FEntityFactory<Lock> {
     async create_UNSAFE(ctx: Context, key: string, shape: LockShape) {
         return await this._create_UNSAFE(ctx, [key], { key, ...shape });
     }
-    watch(ctx: Context, key: string, cb: () => void) {
-        return this._watch(ctx, [key], cb);
+    watch(ctx: Context, key: string) {
+        return this._watch(ctx, [key]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Lock(ctx, this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
+        return new Lock(ctx, this.connection, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
     }
 }
 export interface TaskShape {
@@ -903,8 +901,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async create_UNSAFE(ctx: Context, taskType: string, uid: string, shape: TaskShape) {
         return await this._create_UNSAFE(ctx, [taskType, uid], { taskType, uid, ...shape });
     }
-    watch(ctx: Context, taskType: string, uid: string, cb: () => void) {
-        return this._watch(ctx, [taskType, uid], cb);
+    watch(ctx: Context, taskType: string, uid: string) {
+        return this._watch(ctx, [taskType, uid]);
     }
     async allFromPendingAfter(ctx: Context, taskType: string, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexPending.directory, [taskType], after);
@@ -949,7 +947,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return this._createStream(this.indexFailing.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Task(ctx, this.connection, this.namespace, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
+        return new Task(ctx, this.connection, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
     }
 }
 export interface PushFirebaseShape {
@@ -1141,8 +1139,8 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async create_UNSAFE(ctx: Context, id: string, shape: PushFirebaseShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -1178,7 +1176,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushFirebase(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
+        return new PushFirebase(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
     }
 }
 export interface PushAppleShape {
@@ -1370,8 +1368,8 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async create_UNSAFE(ctx: Context, id: string, shape: PushAppleShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -1407,7 +1405,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushApple(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
+        return new PushApple(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
     }
 }
 export interface PushWebShape {
@@ -1573,8 +1571,8 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     async create_UNSAFE(ctx: Context, id: string, shape: PushWebShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -1610,7 +1608,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return this._createStream(this.indexEndpoint.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushWeb(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
+        return new PushWeb(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
     }
 }
 export interface PushSafariShape {
@@ -1789,8 +1787,8 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
     async create_UNSAFE(ctx: Context, id: string, shape: PushSafariShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -1826,7 +1824,7 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushSafari(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
+        return new PushSafari(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
     }
 }
 export interface UserProfilePrefilShape {
@@ -1917,11 +1915,11 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
     async create_UNSAFE(ctx: Context, id: number, shape: UserProfilePrefilShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserProfilePrefil(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
+        return new UserProfilePrefil(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
     }
 }
 export interface UserShape {
@@ -2081,8 +2079,8 @@ export class UserFactory extends FEntityFactory<User> {
     async create_UNSAFE(ctx: Context, id: number, shape: UserShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromAuthId(ctx: Context, authId: string) {
         return await this._findFromIndex(ctx, this.indexAuthId.directory, [authId]);
@@ -2145,7 +2143,7 @@ export class UserFactory extends FEntityFactory<User> {
         return this._createStream(this.indexSuperBots.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
+        return new User(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
     }
 }
 export interface UserProfileShape {
@@ -2378,8 +2376,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     async create_UNSAFE(ctx: Context, id: number, shape: UserProfileShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromByUpdatedAt(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexByUpdatedAt.directory, [], limit, reversed);
@@ -2394,7 +2392,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return this._createStream(this.indexByUpdatedAt.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
+        return new UserProfile(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
 export interface UserIndexingQueueShape {
@@ -2448,8 +2446,8 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
     async create_UNSAFE(ctx: Context, id: number, shape: UserIndexingQueueShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
@@ -2464,7 +2462,7 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
+        return new UserIndexingQueue(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
     }
 }
 export interface OrganizationShape {
@@ -2584,8 +2582,8 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
     async create_UNSAFE(ctx: Context, id: number, shape: OrganizationShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromCommunity(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexCommunity.directory, [], limit, reversed);
@@ -2600,7 +2598,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         return this._createStream(this.indexCommunity.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Organization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
+        return new Organization(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
     }
 }
 export interface OrganizationProfileShape {
@@ -2768,11 +2766,11 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
     async create_UNSAFE(ctx: Context, id: number, shape: OrganizationProfileShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
+        return new OrganizationProfile(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
     }
 }
 export interface OrganizationEditorialShape {
@@ -2847,11 +2845,11 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
     async create_UNSAFE(ctx: Context, id: number, shape: OrganizationEditorialShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationEditorial(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
+        return new OrganizationEditorial(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
     }
 }
 export interface OrganizationIndexingQueueShape {
@@ -2905,8 +2903,8 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
     async create_UNSAFE(ctx: Context, id: number, shape: OrganizationIndexingQueueShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
@@ -2921,7 +2919,7 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
+        return new OrganizationIndexingQueue(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
     }
 }
 export interface OrganizationMemberShape {
@@ -3027,8 +3025,8 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     async create_UNSAFE(ctx: Context, oid: number, uid: number, shape: OrganizationMemberShape) {
         return await this._create_UNSAFE(ctx, [oid, uid], { oid, uid, ...shape });
     }
-    watch(ctx: Context, oid: number, uid: number, cb: () => void) {
-        return this._watch(ctx, [oid, uid], cb);
+    watch(ctx: Context, oid: number, uid: number) {
+        return this._watch(ctx, [oid, uid]);
     }
     async findFromIds(ctx: Context, oid: number, uid: number) {
         return await this._findFromIndex(ctx, this.indexIds.directory, [oid, uid]);
@@ -3088,7 +3086,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         return this._createStream(this.indexUser.directory, [status, uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationMember(ctx, this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
+        return new OrganizationMember(ctx, this.connection, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
     }
 }
 export interface FeatureFlagShape {
@@ -3150,11 +3148,11 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
     async create_UNSAFE(ctx: Context, key: string, shape: FeatureFlagShape) {
         return await this._create_UNSAFE(ctx, [key], { key, ...shape });
     }
-    watch(ctx: Context, key: string, cb: () => void) {
-        return this._watch(ctx, [key], cb);
+    watch(ctx: Context, key: string) {
+        return this._watch(ctx, [key]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeatureFlag(ctx, this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
+        return new FeatureFlag(ctx, this.connection, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
     }
 }
 export interface OrganizationFeaturesShape {
@@ -3247,8 +3245,8 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     async create_UNSAFE(ctx: Context, id: string, shape: OrganizationFeaturesShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async findFromOrganization(ctx: Context, organizationId: number, featureKey: string) {
         return await this._findFromIndex(ctx, this.indexOrganization.directory, [organizationId, featureKey]);
@@ -3272,7 +3270,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         return this._createStream(this.indexOrganization.directory, [organizationId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationFeatures(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
+        return new OrganizationFeatures(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
     }
 }
 export interface ReaderStateShape {
@@ -3348,11 +3346,11 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     async create_UNSAFE(ctx: Context, id: string, shape: ReaderStateShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ReaderState(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
+        return new ReaderState(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
     }
 }
 export interface SuperAdminShape {
@@ -3427,11 +3425,11 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
     async create_UNSAFE(ctx: Context, id: number, shape: SuperAdminShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SuperAdmin(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
+        return new SuperAdmin(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
     }
 }
 export interface UserSettingsShape {
@@ -3575,11 +3573,11 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
     async create_UNSAFE(ctx: Context, id: number, shape: UserSettingsShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserSettings(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
+        return new UserSettings(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
     }
 }
 export interface ShortnameReservationShape {
@@ -3676,8 +3674,8 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     async create_UNSAFE(ctx: Context, shortname: string, shape: ShortnameReservationShape) {
         return await this._create_UNSAFE(ctx, [shortname], { shortname, ...shape });
     }
-    watch(ctx: Context, shortname: string, cb: () => void) {
-        return this._watch(ctx, [shortname], cb);
+    watch(ctx: Context, shortname: string) {
+        return this._watch(ctx, [shortname]);
     }
     async findFromUser(ctx: Context, ownerId: number) {
         return await this._findFromIndex(ctx, this.indexUser.directory, [ownerId]);
@@ -3710,7 +3708,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return this._createStream(this.indexOrg.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ShortnameReservation(ctx, this.connection, this.namespace, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
+        return new ShortnameReservation(ctx, this.connection, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
     }
 }
 export interface AuthCodeSessionShape {
@@ -3825,11 +3823,11 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     async create_UNSAFE(ctx: Context, uid: string, shape: AuthCodeSessionShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: string, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: string) {
+        return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AuthCodeSession(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
+        return new AuthCodeSession(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
 export interface ConversationShape {
@@ -3919,11 +3917,11 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
     async create_UNSAFE(ctx: Context, id: number, shape: ConversationShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Conversation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
+        return new Conversation(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
     }
 }
 export interface ConversationPrivateShape {
@@ -4017,8 +4015,8 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
     async create_UNSAFE(ctx: Context, id: number, shape: ConversationPrivateShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromUsers(ctx: Context, uid1: number, uid2: number) {
         return await this._findFromIndex(ctx, this.indexUsers.directory, [uid1, uid2]);
@@ -4042,7 +4040,7 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         return this._createStream(this.indexUsers.directory, [uid1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationPrivate(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
+        return new ConversationPrivate(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
     }
 }
 export interface ConversationOrganizationShape {
@@ -4109,8 +4107,8 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
     async create_UNSAFE(ctx: Context, id: number, shape: ConversationOrganizationShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromOrganization(ctx: Context, oid: number) {
         return await this._findFromIndex(ctx, this.indexOrganization.directory, [oid]);
@@ -4128,7 +4126,7 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         return this._createStream(this.indexOrganization.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationOrganization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
+        return new ConversationOrganization(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
     }
 }
 export interface ConversationRoomShape {
@@ -4269,8 +4267,8 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
     async create_UNSAFE(ctx: Context, id: number, shape: ConversationRoomShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromOrganization(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexOrganization.directory, [], limit, reversed);
@@ -4306,7 +4304,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         return this._createStream(this.indexOrganizationPublicRooms.directory, [oid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
+        return new ConversationRoom(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
     }
 }
 export interface RoomProfileShape {
@@ -4483,8 +4481,8 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     async create_UNSAFE(ctx: Context, id: number, shape: RoomProfileShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
@@ -4499,7 +4497,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new RoomProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
+        return new RoomProfile(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
     }
 }
 export interface RoomParticipantShape {
@@ -4604,8 +4602,8 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     async create_UNSAFE(ctx: Context, cid: number, uid: number, shape: RoomParticipantShape) {
         return await this._create_UNSAFE(ctx, [cid, uid], { cid, uid, ...shape });
     }
-    watch(ctx: Context, cid: number, uid: number, cb: () => void) {
-        return this._watch(ctx, [cid, uid], cb);
+    watch(ctx: Context, cid: number, uid: number) {
+        return this._watch(ctx, [cid, uid]);
     }
     async findFromActive(ctx: Context, cid: number, uid: number) {
         return await this._findFromIndex(ctx, this.indexActive.directory, [cid, uid]);
@@ -4671,7 +4669,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._createStream(this.indexUserActive.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new RoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
+        return new RoomParticipant(ctx, this.connection, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
     }
 }
 export interface ConversationReceiverShape {
@@ -4742,8 +4740,8 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
     async create_UNSAFE(ctx: Context, cid: number, uid: number, shape: ConversationReceiverShape) {
         return await this._create_UNSAFE(ctx, [cid, uid], { cid, uid, ...shape });
     }
-    watch(ctx: Context, cid: number, uid: number, cb: () => void) {
-        return this._watch(ctx, [cid, uid], cb);
+    watch(ctx: Context, cid: number, uid: number) {
+        return this._watch(ctx, [cid, uid]);
     }
     async findFromConversation(ctx: Context, cid: number, uid: number) {
         return await this._findFromIndex(ctx, this.indexConversation.directory, [cid, uid]);
@@ -4767,7 +4765,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         return this._createStream(this.indexConversation.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationReceiver(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
+        return new ConversationReceiver(ctx, this.connection, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
     }
 }
 export interface SequenceShape {
@@ -4829,11 +4827,11 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
     async create_UNSAFE(ctx: Context, sequence: string, shape: SequenceShape) {
         return await this._create_UNSAFE(ctx, [sequence], { sequence, ...shape });
     }
-    watch(ctx: Context, sequence: string, cb: () => void) {
-        return this._watch(ctx, [sequence], cb);
+    watch(ctx: Context, sequence: string) {
+        return this._watch(ctx, [sequence]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Sequence(ctx, this.connection, this.namespace, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
+        return new Sequence(ctx, this.connection, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
     }
 }
 export interface MessageShape {
@@ -5380,8 +5378,8 @@ export class MessageFactory extends FEntityFactory<Message> {
     async create_UNSAFE(ctx: Context, id: number, shape: MessageShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromChatAfter(ctx: Context, cid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexChat.directory, [cid], after);
@@ -5435,7 +5433,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         return this._createStream(this.indexRepeat.directory, [uid, cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
+        return new Message(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
     }
 }
 export interface CommentShape {
@@ -5794,8 +5792,8 @@ export class CommentFactory extends FEntityFactory<Comment> {
     async create_UNSAFE(ctx: Context, id: number, shape: CommentShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromPeerAfter(ctx: Context, peerType: 'message', peerId: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexPeer.directory, [peerType, peerId], after);
@@ -5834,7 +5832,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
         return this._createStream(this.indexChild.directory, [parentCommentId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Comment(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
+        return new Comment(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
     }
 }
 export interface CommentStateShape {
@@ -5900,11 +5898,11 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
     async create_UNSAFE(ctx: Context, peerType: string, peerId: number, shape: CommentStateShape) {
         return await this._create_UNSAFE(ctx, [peerType, peerId], { peerType, peerId, ...shape });
     }
-    watch(ctx: Context, peerType: string, peerId: number, cb: () => void) {
-        return this._watch(ctx, [peerType, peerId], cb);
+    watch(ctx: Context, peerType: string, peerId: number) {
+        return this._watch(ctx, [peerType, peerId]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentState(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentState');
+        return new CommentState(ctx, this.connection, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentState');
     }
 }
 export interface CommentSeqShape {
@@ -5970,11 +5968,11 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
     async create_UNSAFE(ctx: Context, peerType: string, peerId: number, shape: CommentSeqShape) {
         return await this._create_UNSAFE(ctx, [peerType, peerId], { peerType, peerId, ...shape });
     }
-    watch(ctx: Context, peerType: string, peerId: number, cb: () => void) {
-        return this._watch(ctx, [peerType, peerId], cb);
+    watch(ctx: Context, peerType: string, peerId: number) {
+        return this._watch(ctx, [peerType, peerId]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentSeq(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentSeq');
+        return new CommentSeq(ctx, this.connection, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentSeq');
     }
 }
 export interface CommentEventShape {
@@ -6077,8 +6075,8 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
     async create_UNSAFE(ctx: Context, peerType: string, peerId: number, seq: number, shape: CommentEventShape) {
         return await this._create_UNSAFE(ctx, [peerType, peerId, seq], { peerType, peerId, seq, ...shape });
     }
-    watch(ctx: Context, peerType: string, peerId: number, seq: number, cb: () => void) {
-        return this._watch(ctx, [peerType, peerId, seq], cb);
+    watch(ctx: Context, peerType: string, peerId: number, seq: number) {
+        return this._watch(ctx, [peerType, peerId, seq]);
     }
     async allFromUserAfter(ctx: Context, peerType: string, peerId: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [peerType, peerId], after);
@@ -6102,7 +6100,7 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         return this._createLiveStream(ctx, this.indexUser.directory, [peerType, peerId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentEvent(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
+        return new CommentEvent(ctx, this.connection, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
     }
 }
 export interface CommentsSubscriptionShape {
@@ -6190,8 +6188,8 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
     async create_UNSAFE(ctx: Context, peerType: string, peerId: number, uid: number, shape: CommentsSubscriptionShape) {
         return await this._create_UNSAFE(ctx, [peerType, peerId, uid], { peerType, peerId, uid, ...shape });
     }
-    watch(ctx: Context, peerType: string, peerId: number, uid: number, cb: () => void) {
-        return this._watch(ctx, [peerType, peerId, uid], cb);
+    watch(ctx: Context, peerType: string, peerId: number, uid: number) {
+        return this._watch(ctx, [peerType, peerId, uid]);
     }
     async allFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexPeer.directory, [peerType, peerId], after);
@@ -6212,7 +6210,7 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         return this._createStream(this.indexPeer.directory, [peerType, peerId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentsSubscription(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
+        return new CommentsSubscription(ctx, this.connection, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
     }
 }
 export interface ConversationSeqShape {
@@ -6274,11 +6272,11 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     async create_UNSAFE(ctx: Context, cid: number, shape: ConversationSeqShape) {
         return await this._create_UNSAFE(ctx, [cid], { cid, ...shape });
     }
-    watch(ctx: Context, cid: number, cb: () => void) {
-        return this._watch(ctx, [cid], cb);
+    watch(ctx: Context, cid: number) {
+        return this._watch(ctx, [cid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationSeq(ctx, this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
+        return new ConversationSeq(ctx, this.connection, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
     }
 }
 export interface ConversationEventShape {
@@ -6377,8 +6375,8 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
     async create_UNSAFE(ctx: Context, cid: number, seq: number, shape: ConversationEventShape) {
         return await this._create_UNSAFE(ctx, [cid, seq], { cid, seq, ...shape });
     }
-    watch(ctx: Context, cid: number, seq: number, cb: () => void) {
-        return this._watch(ctx, [cid, seq], cb);
+    watch(ctx: Context, cid: number, seq: number) {
+        return this._watch(ctx, [cid, seq]);
     }
     async allFromUserAfter(ctx: Context, cid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [cid], after);
@@ -6402,7 +6400,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         return this._createLiveStream(ctx, this.indexUser.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationEvent(ctx, this.connection, this.namespace, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
+        return new ConversationEvent(ctx, this.connection, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
     }
 }
 export interface UserDialogShape {
@@ -6578,8 +6576,8 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: UserDialogShape) {
         return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
     }
-    watch(ctx: Context, uid: number, cid: number, cb: () => void) {
-        return this._watch(ctx, [uid, cid], cb);
+    watch(ctx: Context, uid: number, cid: number) {
+        return this._watch(ctx, [uid, cid]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -6633,7 +6631,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialog(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
+        return new UserDialog(ctx, this.connection, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
     }
 }
 export interface UserDialogHandledMessageShape {
@@ -6690,11 +6688,11 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
     async create_UNSAFE(ctx: Context, uid: number, cid: number, mid: number, shape: UserDialogHandledMessageShape) {
         return await this._create_UNSAFE(ctx, [uid, cid, mid], { uid, cid, mid, ...shape });
     }
-    watch(ctx: Context, uid: number, cid: number, mid: number, cb: () => void) {
-        return this._watch(ctx, [uid, cid, mid], cb);
+    watch(ctx: Context, uid: number, cid: number, mid: number) {
+        return this._watch(ctx, [uid, cid, mid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialogHandledMessage(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
+        return new UserDialogHandledMessage(ctx, this.connection, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
     }
 }
 export interface UserDialogSettingsShape {
@@ -6760,11 +6758,11 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
     async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: UserDialogSettingsShape) {
         return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
     }
-    watch(ctx: Context, uid: number, cid: number, cb: () => void) {
-        return this._watch(ctx, [uid, cid], cb);
+    watch(ctx: Context, uid: number, cid: number) {
+        return this._watch(ctx, [uid, cid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialogSettings(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
+        return new UserDialogSettings(ctx, this.connection, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
     }
 }
 export interface UserDialogEventShape {
@@ -6946,8 +6944,8 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     async create_UNSAFE(ctx: Context, uid: number, seq: number, shape: UserDialogEventShape) {
         return await this._create_UNSAFE(ctx, [uid, seq], { uid, seq, ...shape });
     }
-    watch(ctx: Context, uid: number, seq: number, cb: () => void) {
-        return this._watch(ctx, [uid, seq], cb);
+    watch(ctx: Context, uid: number, seq: number) {
+        return this._watch(ctx, [uid, seq]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -6971,7 +6969,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialogEvent(ctx, this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
+        return new UserDialogEvent(ctx, this.connection, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
     }
 }
 export interface UserMessagingStateShape {
@@ -7107,8 +7105,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
     async create_UNSAFE(ctx: Context, uid: number, shape: UserMessagingStateShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: number, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
     }
     async rangeFromHasUnread(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexHasUnread.directory, [], limit, reversed);
@@ -7123,7 +7121,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         return this._createStream(this.indexHasUnread.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserMessagingState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
+        return new UserMessagingState(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
     }
 }
 export interface UserNotificationsStateShape {
@@ -7242,11 +7240,11 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
     async create_UNSAFE(ctx: Context, uid: number, shape: UserNotificationsStateShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: number, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserNotificationsState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
+        return new UserNotificationsState(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
     }
 }
 export interface HyperLogShape {
@@ -7346,8 +7344,8 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     async create_UNSAFE(ctx: Context, id: string, shape: HyperLogShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async rangeFromCreated(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexCreated.directory, [], limit, reversed);
@@ -7386,7 +7384,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return this._createStream(this.indexOnlineChangeEvents.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new HyperLog(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
+        return new HyperLog(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
     }
 }
 export interface MessageDraftShape {
@@ -7452,11 +7450,11 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: MessageDraftShape) {
         return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
     }
-    watch(ctx: Context, uid: number, cid: number, cb: () => void) {
-        return this._watch(ctx, [uid, cid], cb);
+    watch(ctx: Context, uid: number, cid: number) {
+        return this._watch(ctx, [uid, cid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new MessageDraft(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
+        return new MessageDraft(ctx, this.connection, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
     }
 }
 export interface ChannelInvitationShape {
@@ -7622,8 +7620,8 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     async create_UNSAFE(ctx: Context, id: string, shape: ChannelInvitationShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async allFromChannelAfter(ctx: Context, createdAt: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexChannel.directory, [createdAt], after);
@@ -7656,7 +7654,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChannelInvitation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
+        return new ChannelInvitation(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
     }
 }
 export interface ChannelLinkShape {
@@ -7749,8 +7747,8 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     async create_UNSAFE(ctx: Context, id: string, shape: ChannelLinkShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async allFromChannelAfter(ctx: Context, channelId: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexChannel.directory, [channelId], after);
@@ -7771,7 +7769,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         return this._createStream(this.indexChannel.directory, [channelId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChannelLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
+        return new ChannelLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
     }
 }
 export interface AppInviteLinkShape {
@@ -7838,8 +7836,8 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     async create_UNSAFE(ctx: Context, id: string, shape: AppInviteLinkShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async findFromUser(ctx: Context, uid: number) {
         return await this._findFromIndex(ctx, this.indexUser.directory, [uid]);
@@ -7857,7 +7855,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AppInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
+        return new AppInviteLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
 export interface SampleEntityShape {
@@ -7919,11 +7917,11 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
     async create_UNSAFE(ctx: Context, id: string, shape: SampleEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SampleEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
+        return new SampleEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
     }
 }
 export interface OrganizationPublicInviteLinkShape {
@@ -8016,8 +8014,8 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
     async create_UNSAFE(ctx: Context, id: string, shape: OrganizationPublicInviteLinkShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async findFromUserInOrganization(ctx: Context, uid: number, oid: number) {
         return await this._findFromIndex(ctx, this.indexUserInOrganization.directory, [uid, oid]);
@@ -8041,7 +8039,7 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         return this._createStream(this.indexUserInOrganization.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationPublicInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
+        return new OrganizationPublicInviteLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
     }
 }
 export interface OrganizationInviteLinkShape {
@@ -8233,8 +8231,8 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     async create_UNSAFE(ctx: Context, id: string, shape: OrganizationInviteLinkShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: string, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: string) {
+        return this._watch(ctx, [id]);
     }
     async findFromOrganization(ctx: Context, oid: number, id: string) {
         return await this._findFromIndex(ctx, this.indexOrganization.directory, [oid, id]);
@@ -8279,7 +8277,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         return this._createStream(this.indexEmailInOrganization.directory, [email], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
+        return new OrganizationInviteLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
     }
 }
 export interface ConferenceRoomShape {
@@ -8356,11 +8354,11 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
     async create_UNSAFE(ctx: Context, id: number, shape: ConferenceRoomShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceRoom');
+        return new ConferenceRoom(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceRoom');
     }
 }
 export interface ConferencePeerShape {
@@ -8487,8 +8485,8 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     async create_UNSAFE(ctx: Context, id: number, shape: ConferencePeerShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromAuth(ctx: Context, cid: number, uid: number, tid: string) {
         return await this._findFromIndex(ctx, this.indexAuth.directory, [cid, uid, tid]);
@@ -8542,7 +8540,7 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         return this._createStream(this.indexActive.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferencePeer(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
+        return new ConferencePeer(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
     }
 }
 export interface ConferenceMediaStreamShape {
@@ -8714,8 +8712,8 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
     async create_UNSAFE(ctx: Context, id: number, shape: ConferenceMediaStreamShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexConference.directory, [cid], after);
@@ -8736,7 +8734,7 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceMediaStream(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
+        return new ConferenceMediaStream(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
     }
 }
 export interface ConferenceConnectionShape {
@@ -8872,8 +8870,8 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
     async create_UNSAFE(ctx: Context, peer1: number, peer2: number, shape: ConferenceConnectionShape) {
         return await this._create_UNSAFE(ctx, [peer1, peer2], { peer1, peer2, ...shape });
     }
-    watch(ctx: Context, peer1: number, peer2: number, cb: () => void) {
-        return this._watch(ctx, [peer1, peer2], cb);
+    watch(ctx: Context, peer1: number, peer2: number) {
+        return this._watch(ctx, [peer1, peer2]);
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexConference.directory, [cid], after);
@@ -8894,7 +8892,7 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceConnection(ctx, this.connection, this.namespace, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
+        return new ConferenceConnection(ctx, this.connection, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
     }
 }
 export interface UserEdgeShape {
@@ -8956,8 +8954,8 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
     async create_UNSAFE(ctx: Context, uid1: number, uid2: number, shape: UserEdgeShape) {
         return await this._create_UNSAFE(ctx, [uid1, uid2], { uid1, uid2, ...shape });
     }
-    watch(ctx: Context, uid1: number, uid2: number, cb: () => void) {
-        return this._watch(ctx, [uid1, uid2], cb);
+    watch(ctx: Context, uid1: number, uid2: number) {
+        return this._watch(ctx, [uid1, uid2]);
     }
     async allFromForwardAfter(ctx: Context, uid1: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexForward.directory, [uid1], after);
@@ -8996,7 +8994,7 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         return this._createStream(this.indexReverse.directory, [uid2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserEdge(ctx, this.connection, this.namespace, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
+        return new UserEdge(ctx, this.connection, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
     }
 }
 export interface UserInfluencerUserIndexShape {
@@ -9058,11 +9056,11 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
     async create_UNSAFE(ctx: Context, uid: number, shape: UserInfluencerUserIndexShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: number, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserInfluencerUserIndex(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerUserIndex');
+        return new UserInfluencerUserIndex(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerUserIndex');
     }
 }
 export interface UserInfluencerIndexShape {
@@ -9124,11 +9122,11 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
     async create_UNSAFE(ctx: Context, uid: number, shape: UserInfluencerIndexShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: number, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserInfluencerIndex(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerIndex');
+        return new UserInfluencerIndex(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerIndex');
     }
 }
 export interface FeedSubscriberShape {
@@ -9195,8 +9193,8 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
     async create_UNSAFE(ctx: Context, id: number, shape: FeedSubscriberShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromKey(ctx: Context, key: string) {
         return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
@@ -9214,7 +9212,7 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedSubscriber(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
+        return new FeedSubscriber(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
     }
 }
 export interface FeedSubscriptionShape {
@@ -9289,8 +9287,8 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
     async create_UNSAFE(ctx: Context, sid: number, tid: number, shape: FeedSubscriptionShape) {
         return await this._create_UNSAFE(ctx, [sid, tid], { sid, tid, ...shape });
     }
-    watch(ctx: Context, sid: number, tid: number, cb: () => void) {
-        return this._watch(ctx, [sid, tid], cb);
+    watch(ctx: Context, sid: number, tid: number) {
+        return this._watch(ctx, [sid, tid]);
     }
     async allFromSubscriberAfter(ctx: Context, sid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexSubscriber.directory, [sid], after);
@@ -9329,7 +9327,7 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         return this._createStream(this.indexTopic.directory, [tid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedSubscription(ctx, this.connection, this.namespace, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
+        return new FeedSubscription(ctx, this.connection, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
     }
 }
 export interface FeedTopicShape {
@@ -9396,8 +9394,8 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
     async create_UNSAFE(ctx: Context, id: number, shape: FeedTopicShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromKey(ctx: Context, key: string) {
         return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
@@ -9415,7 +9413,7 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedTopic(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
+        return new FeedTopic(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
     }
 }
 export interface FeedEventShape {
@@ -9511,8 +9509,8 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
     async create_UNSAFE(ctx: Context, id: number, shape: FeedEventShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromTopicAfter(ctx: Context, tid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexTopic.directory, [tid], after);
@@ -9545,7 +9543,7 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedEvent(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
+        return new FeedEvent(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
     }
 }
 export interface AppHookShape {
@@ -9616,8 +9614,8 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
     async create_UNSAFE(ctx: Context, appId: number, chatId: number, shape: AppHookShape) {
         return await this._create_UNSAFE(ctx, [appId, chatId], { appId, chatId, ...shape });
     }
-    watch(ctx: Context, appId: number, chatId: number, cb: () => void) {
-        return this._watch(ctx, [appId, chatId], cb);
+    watch(ctx: Context, appId: number, chatId: number) {
+        return this._watch(ctx, [appId, chatId]);
     }
     async findFromKey(ctx: Context, key: string) {
         return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
@@ -9635,7 +9633,7 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AppHook(ctx, this.connection, this.namespace, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
+        return new AppHook(ctx, this.connection, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
     }
 }
 export interface UserStorageNamespaceShape {
@@ -9702,8 +9700,8 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
     async create_UNSAFE(ctx: Context, id: number, shape: UserStorageNamespaceShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromNamespace(ctx: Context, ns: string) {
         return await this._findFromIndex(ctx, this.indexNamespace.directory, [ns]);
@@ -9721,7 +9719,7 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         return this._createStream(this.indexNamespace.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserStorageNamespace(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
+        return new UserStorageNamespace(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
     }
 }
 export interface UserStorageRecordShape {
@@ -9819,8 +9817,8 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
     async create_UNSAFE(ctx: Context, uid: number, id: number, shape: UserStorageRecordShape) {
         return await this._create_UNSAFE(ctx, [uid, id], { uid, id, ...shape });
     }
-    watch(ctx: Context, uid: number, id: number, cb: () => void) {
-        return this._watch(ctx, [uid, id], cb);
+    watch(ctx: Context, uid: number, id: number) {
+        return this._watch(ctx, [uid, id]);
     }
     async findFromKey(ctx: Context, uid: number, ns: number, key: string) {
         return await this._findFromIndex(ctx, this.indexKey.directory, [uid, ns, key]);
@@ -9844,7 +9842,7 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         return this._createStream(this.indexKey.directory, [uid, ns], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserStorageRecord(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
+        return new UserStorageRecord(ctx, this.connection, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
     }
 }
 export interface DiscoverUserPickedTagsShape {
@@ -9915,8 +9913,8 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
     async create_UNSAFE(ctx: Context, uid: number, id: string, shape: DiscoverUserPickedTagsShape) {
         return await this._create_UNSAFE(ctx, [uid, id], { uid, id, ...shape });
     }
-    watch(ctx: Context, uid: number, id: string, cb: () => void) {
-        return this._watch(ctx, [uid, id], cb);
+    watch(ctx: Context, uid: number, id: string) {
+        return this._watch(ctx, [uid, id]);
     }
     async findFromUser(ctx: Context, uid: number, id: string) {
         return await this._findFromIndex(ctx, this.indexUser.directory, [uid, id]);
@@ -9940,7 +9938,7 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DiscoverUserPickedTags(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
+        return new DiscoverUserPickedTags(ctx, this.connection, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
     }
 }
 export interface DebugEventShape {
@@ -10012,8 +10010,8 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
     async create_UNSAFE(ctx: Context, uid: number, seq: number, shape: DebugEventShape) {
         return await this._create_UNSAFE(ctx, [uid, seq], { uid, seq, ...shape });
     }
-    watch(ctx: Context, uid: number, seq: number, cb: () => void) {
-        return this._watch(ctx, [uid, seq], cb);
+    watch(ctx: Context, uid: number, seq: number) {
+        return this._watch(ctx, [uid, seq]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
@@ -10037,7 +10035,7 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DebugEvent(ctx, this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
+        return new DebugEvent(ctx, this.connection, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
     }
 }
 export interface DebugEventStateShape {
@@ -10099,11 +10097,11 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
     async create_UNSAFE(ctx: Context, uid: number, shape: DebugEventStateShape) {
         return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
     }
-    watch(ctx: Context, uid: number, cb: () => void) {
-        return this._watch(ctx, [uid], cb);
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DebugEventState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
+        return new DebugEventState(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
     }
 }
 export interface NotificationCenterShape {
@@ -10165,11 +10163,11 @@ export class NotificationCenterFactory extends FEntityFactory<NotificationCenter
     async create_UNSAFE(ctx: Context, id: number, shape: NotificationCenterShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NotificationCenter(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NotificationCenter');
+        return new NotificationCenter(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NotificationCenter');
     }
 }
 export interface UserNotificationCenterShape {
@@ -10236,8 +10234,8 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
     async create_UNSAFE(ctx: Context, id: number, shape: UserNotificationCenterShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromUser(ctx: Context, uid: number) {
         return await this._findFromIndex(ctx, this.indexUser.directory, [uid]);
@@ -10255,7 +10253,7 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserNotificationCenter(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserNotificationCenter');
+        return new UserNotificationCenter(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserNotificationCenter');
     }
 }
 export interface NotificationShape {
@@ -10369,8 +10367,8 @@ export class NotificationFactory extends FEntityFactory<Notification> {
     async create_UNSAFE(ctx: Context, id: number, shape: NotificationShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromNotificationCenterAfter(ctx: Context, ncid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexNotificationCenter.directory, [ncid], after);
@@ -10391,7 +10389,7 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         return this._createStream(this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Notification(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Notification');
+        return new Notification(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Notification');
     }
 }
 export interface NotificationCenterStateShape {
@@ -10467,11 +10465,11 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
     async create_UNSAFE(ctx: Context, ncid: number, shape: NotificationCenterStateShape) {
         return await this._create_UNSAFE(ctx, [ncid], { ncid, ...shape });
     }
-    watch(ctx: Context, ncid: number, cb: () => void) {
-        return this._watch(ctx, [ncid], cb);
+    watch(ctx: Context, ncid: number) {
+        return this._watch(ctx, [ncid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NotificationCenterState(ctx, this.connection, this.namespace, this.directory, [value.ncid], value, this.options, isNew, this.indexes, 'NotificationCenterState');
+        return new NotificationCenterState(ctx, this.connection, this.directory, [value.ncid], value, this.options, isNew, this.indexes, 'NotificationCenterState');
     }
 }
 export interface NotificationCenterEventShape {
@@ -10556,8 +10554,8 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
     async create_UNSAFE(ctx: Context, ncid: number, seq: number, shape: NotificationCenterEventShape) {
         return await this._create_UNSAFE(ctx, [ncid, seq], { ncid, seq, ...shape });
     }
-    watch(ctx: Context, ncid: number, seq: number, cb: () => void) {
-        return this._watch(ctx, [ncid, seq], cb);
+    watch(ctx: Context, ncid: number, seq: number) {
+        return this._watch(ctx, [ncid, seq]);
     }
     async allFromNotificationCenterAfter(ctx: Context, ncid: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexNotificationCenter.directory, [ncid], after);
@@ -10581,12 +10579,12 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return this._createLiveStream(ctx, this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NotificationCenterEvent(ctx, this.connection, this.namespace, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
+        return new NotificationCenterEvent(ctx, this.connection, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
 export class UserCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userCounter'));
+        super('userCounter', connection);
     }
     byId(uid: number) {
         return this._findById([uid]);
@@ -10594,7 +10592,7 @@ export class UserCounterFactory extends FAtomicIntegerFactory {
 }
 export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userMessagesSentCounter'));
+        super('userMessagesSentCounter', connection);
     }
     byId(uid: number) {
         return this._findById([uid]);
@@ -10602,7 +10600,7 @@ export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
 }
 export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userMessagesReceivedCounter'));
+        super('userMessagesReceivedCounter', connection);
     }
     byId(uid: number) {
         return this._findById([uid]);
@@ -10610,7 +10608,7 @@ export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
 }
 export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userMessagesChatsCounter'));
+        super('userMessagesChatsCounter', connection);
     }
     byId(uid: number) {
         return this._findById([uid]);
@@ -10618,7 +10616,7 @@ export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
 }
 export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userMessagesDirectChatsCounter'));
+        super('userMessagesDirectChatsCounter', connection);
     }
     byId(uid: number) {
         return this._findById([uid]);
@@ -10626,7 +10624,7 @@ export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory
 }
 export class UserDialogCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userDialogCounter'));
+        super('userDialogCounter', connection);
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
@@ -10634,7 +10632,7 @@ export class UserDialogCounterFactory extends FAtomicIntegerFactory {
 }
 export class UserDialogHaveMentionFactory extends FAtomicBooleanFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'userDialogHaveMention'));
+        super('userDialogHaveMention', connection);
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
@@ -10642,7 +10640,7 @@ export class UserDialogHaveMentionFactory extends FAtomicBooleanFactory {
 }
 export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'notificationCenterCounter'));
+        super('notificationCenterCounter', connection);
     }
     byId(ncid: number) {
         return this._findById([ncid]);

@@ -1,4 +1,3 @@
-import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { Context } from '@openland/context';
@@ -21,7 +20,6 @@ const log = createLogger('fdb');
 
 export abstract class FEntity {
     abstract readonly entityName: string;
-    readonly obsoleteKeySpace: FSubspace<FTuple[], any>;
     readonly keyspace: FSubspace<FTuple[], any>;
 
     readonly rawId: (string | number)[];
@@ -38,9 +36,8 @@ export abstract class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(ctx: Context, connection: FConnection, namespace: FNamespace, keyspace: FSubspace<FTuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(ctx: Context, connection: FConnection, keyspace: FSubspace<FTuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
-        this.obsoleteKeySpace = namespace.keySpace;
         this.keyspace = keyspace;
         this.rawId = id;
         this.connection = connection;
@@ -157,7 +154,6 @@ export abstract class FEntity {
                 };
 
                 // Write to the store
-                this.obsoleteKeySpace.set(ctx, this.rawId, value);
                 this.keyspace.set(ctx, this.rawId, value);
 
                 // Create or Update indexes

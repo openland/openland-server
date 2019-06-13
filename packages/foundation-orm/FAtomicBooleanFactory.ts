@@ -1,4 +1,3 @@
-import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FDirectory } from './FDirectory';
 import { FKeyEncoding } from './utils/FKeyEncoding';
@@ -12,10 +11,10 @@ export class FAtomicBooleanFactory {
     readonly directory: FDirectory;
     readonly keySpace: FSubspace;
 
-    constructor(connection: FConnection, namespace: FNamespace) {
+    constructor(name: string, connection: FConnection) {
         this.connection = connection;
         this.keySpace = connection.keySpace;
-        this.directory = connection.directories.getDirectory(namespace.namespace);
+        this.directory = connection.directories.getDirectory(['atomic', name]);
     }
 
     protected _findById(key: FTuple[]) {

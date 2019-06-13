@@ -1,7 +1,5 @@
-import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntity, FEntityOptions } from './FEntity';
-import { FWatch } from './FWatch';
 import { FEntityIndex } from './FEntityIndex';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FStream } from './FStream';
@@ -19,18 +17,17 @@ import { createLogger } from '@openland/log';
 const log = createLogger('fdb');
 
 export abstract class FEntityFactory<T extends FEntity> {
-    readonly namespace: FNamespace;
     readonly directoryRaw: FSubspace;
     readonly directory: FSubspace<FTuple[], any>;
     readonly connection: FConnection;
     readonly options: FEntityOptions;
     readonly indexes: FEntityIndex[];
     readonly name: string;
-    private watcher: FWatch;
+    readonly storeKey: string;
 
     constructor(name: string, storeKey: string, options: FEntityOptions, indexes: FEntityIndex[], connection: FConnection) {
-        this.namespace = new FNamespace(connection, 'entity', storeKey);
-        this.directoryRaw = connection.directories.getDirectory(this.namespace.namespace);
+        this.storeKey = storeKey;
+        this.directoryRaw = connection.directories.getDirectory(['entity', storeKey]);
         this.directory = this.directoryRaw
             .withKeyEncoding(FEncoders.tuple)
             .withValueEncoding(FEncoders.json);
@@ -38,12 +35,11 @@ export abstract class FEntityFactory<T extends FEntity> {
         this.options = options;
         this.indexes = indexes;
         this.name = name;
-        this.watcher = new FWatch(connection);
     }
 
     async findByRawId(ctx: Context, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.keySpace.get(ctx, key);
+            let res = await this.directory.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }
@@ -57,8 +53,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllKeys(ctx: Context, limit?: number) {
         return this.readOp(ctx, async () => {
-            let res = await this.namespace.keySpace.range(ctx, [], { limit });
-            res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
+            let res = await this.directory.range(ctx, [], { limit });
             return res.map((v) => v.key);
         });
     }
@@ -121,7 +116,7 @@ export abstract class FEntityFactory<T extends FEntity> {
             let subspace = keySpace.subspace(key);
             if (after) {
                 // Fix old cursors
-                let k = fixObsoleteCursor(FKeyEncoding.decodeFromString(after), this.namespace.namespace, key);
+                let k = fixObsoleteCursor(FKeyEncoding.decodeFromString(after), ['entity', this.storeKey], key);
                 res = await subspace.range(ctx, [], { limit: limit + 1, reverse, after: k });
             } else {
                 res = await subspace.range(ctx, [], { limit: limit + 1, reverse });
@@ -197,10 +192,8 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected _watch(ctx: Context, key: (string | number)[], cb: () => void) {
-        let fullKey = [...this.namespace.namespace, ...key];
-
-        return this.watcher.watch(ctx, fullKey, cb);
+    protected _watch(ctx: Context, key: (string | number)[]) {
+        return this.directory.watch(ctx, key);
     }
 
     private doCreateEntity(ctx: Context, value: any, isNew: boolean): T {
@@ -241,7 +234,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 return cached;
             } else {
                 let res = await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-                    let r = await this.namespace.keySpace.get(ctx, key);
+                    let r = await this.directory.get(ctx, key);
                     if (r) {
                         return this.doCreateEntity(ctx, r, false);
                     } else {
@@ -255,7 +248,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
         // Uncached (Obsolete: Might never happen)
         return await tracer.trace(parent, 'FindById:' + this.name, async (ctx) => {
-            let res = await this.namespace.keySpace.get(ctx, key);
+            let res = await this.directory.get(ctx, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);
             }

@@ -15,8 +15,6 @@ export function generate(model: SchemaModel, path: string) {
     res += '// @ts-ignore\n';
     res += 'import { FEntityIndex } from \'foundation-orm/FEntityIndex\';\n';
     res += '// @ts-ignore\n';
-    res += 'import { FNamespace } from \'foundation-orm/FNamespace\';\n';
-    res += '// @ts-ignore\n';
     res += 'import { FEntityFactory } from \'foundation-orm/FEntityFactory\';\n';
     res += '// @ts-ignore\n';
     res += 'import { FAtomicIntegerFactory } from \'foundation-orm/FAtomicIntegerFactory\';\n';

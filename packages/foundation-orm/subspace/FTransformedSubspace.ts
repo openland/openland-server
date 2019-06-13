@@ -1,3 +1,4 @@
+import { FWatch } from './../FWatch';
 import { FSubspace } from 'foundation-orm/FSubspace';
 import { Context } from '@openland/context';
 import { FTransformer } from 'foundation-orm/encoding/FTransformer';
@@ -75,5 +76,9 @@ export class FTransformedSubspace<K, V, SK, SV> implements FSubspace<K, V> {
 
     delete(ctx: Context, key: K) {
         this.ops.delete(ctx, this.keyTf.pack(key));
+    }
+
+    watch(ctx: Context, key: K): FWatch {
+        return this.ops.watch(ctx, this.keyTf.pack(key));
     }
 }

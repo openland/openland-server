@@ -1,6 +1,6 @@
-import { Context } from '@openland/context';
-import { FSubspace } from 'foundation-orm/FSubspace';
-import { FEncoders } from 'foundation-orm/encoding/FEncoders';
+// import { Context } from '@openland/context';
+// import { FSubspace } from 'foundation-orm/FSubspace';
+// import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 import { staticWorker } from 'openland-module-workers/staticWorker';
 import { performMigrations, FMigration } from 'foundation-orm/FMigrator';
 import { FDB } from './FDB';
@@ -8,8 +8,8 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Modules } from 'openland-modules/Modules';
 import { batch } from 'openland-utils/batch';
 import { inTx } from 'foundation-orm/inTx';
-import { syncSubspaces } from 'foundation-orm/operations';
-import { withLogPath, Logger } from '@openland/log';
+// import { syncSubspaces } from 'foundation-orm/operations';
+// import { withLogPath, Logger } from '@openland/log';
 
 var migrations: FMigration[] = [];
 migrations.push({
@@ -872,71 +872,71 @@ migrations.push({
     }
 });
 
-migrations.push({
-    key: '58-sync-indexes',
-    migration: async (root, log) => {
-        for (let v of FDB.allEntities) {
-            let ctx = withLogPath(root, v.name);
-            for (let i of v.indexes) {
-                let batchSize = 10000;
-                if (v.name === FDB.ServiceCache.name) {
-                    batchSize = 1000;
-                }
-                await syncSubspaces(withLogPath(ctx, i.name), i.namespace.keySpaceRaw, i.directoryRaw, batchSize);
-            }
-        }
-    }
-});
+// migrations.push({
+//     key: '58-sync-indexes',
+//     migration: async (root, log) => {
+//         for (let v of FDB.allEntities) {
+//             let ctx = withLogPath(root, v.name);
+//             for (let i of v.indexes) {
+//                 let batchSize = 10000;
+//                 if (v.name === FDB.ServiceCache.name) {
+//                     batchSize = 1000;
+//                 }
+//                 await syncSubspaces(withLogPath(ctx, i.name), i.namespace.keySpaceRaw, i.directoryRaw, batchSize);
+//             }
+//         }
+//     }
+// });
 
-async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSubspace, bachSize: number) {
-    let cursor: Buffer | undefined;
-    let emptyBuffer = Buffer.of();
-    let completed = false;
-    let iteration = 0;
-    while (!completed) {
-        log.log(parent, 'Copying subspace iteration: ' + iteration);
-        await inTx(parent, async (ctx2) => {
-            let r = await from.range(ctx2, emptyBuffer, { after: cursor, limit: bachSize });
-            for (let i of r) {
-                cursor = i.key;
-                let r2 = FEncoders.tuple.unpack(i.key);
-                if (r2[2] === '__indexes') {
-                    continue;
-                }
-                to.set(ctx2, i.key, i.value);
-            }
-            if (r.length === 0) {
-                completed = true;
-            }
-        });
-        iteration++;
-    }
-}
+// async function copyEntity(parent: Context, log: Logger, from: FSubspace, to: FSubspace, bachSize: number) {
+//     let cursor: Buffer | undefined;
+//     let emptyBuffer = Buffer.of();
+//     let completed = false;
+//     let iteration = 0;
+//     while (!completed) {
+//         log.log(parent, 'Copying subspace iteration: ' + iteration);
+//         await inTx(parent, async (ctx2) => {
+//             let r = await from.range(ctx2, emptyBuffer, { after: cursor, limit: bachSize });
+//             for (let i of r) {
+//                 cursor = i.key;
+//                 let r2 = FEncoders.tuple.unpack(i.key);
+//                 if (r2[2] === '__indexes') {
+//                     continue;
+//                 }
+//                 to.set(ctx2, i.key, i.value);
+//             }
+//             if (r.length === 0) {
+//                 completed = true;
+//             }
+//         });
+//         iteration++;
+//     }
+// }
 
-migrations.push({
-    key: '59-sync-values',
-    migration: async (root, log) => {
-        for (let v of FDB.allEntities) {
-            let ctx = withLogPath(root, v.name);
-            let batchSize = 10000;
-            if (v.name === FDB.ServiceCache.name) {
-                continue;
-            } else if (v.name === FDB.Task.name) {
-                continue;
-            } else if (v.name === FDB.Message.name) {
-                continue;
-            } else if (v.name === FDB.HyperLog.name) {
-                continue;
-            } else if (v.name === FDB.ConferenceMediaStream.name) {
-                batchSize = 1000;
-            }
+// migrations.push({
+//     key: '59-sync-values',
+//     migration: async (root, log) => {
+//         for (let v of FDB.allEntities) {
+//             let ctx = withLogPath(root, v.name);
+//             let batchSize = 10000;
+//             if (v.name === FDB.ServiceCache.name) {
+//                 continue;
+//             } else if (v.name === FDB.Task.name) {
+//                 continue;
+//             } else if (v.name === FDB.Message.name) {
+//                 continue;
+//             } else if (v.name === FDB.HyperLog.name) {
+//                 continue;
+//             } else if (v.name === FDB.ConferenceMediaStream.name) {
+//                 batchSize = 1000;
+//             }
 
-            log.log(ctx, 'Begin entity sync');
-            await copyEntity(ctx, log, v.namespace.keySpaceRaw, v.directoryRaw, batchSize);
-            log.log(ctx, 'Sync entity completed');
-        }
-    }
-});
+//             log.log(ctx, 'Begin entity sync');
+//             await copyEntity(ctx, log, v.namespace.keySpaceRaw, v.directoryRaw, batchSize);
+//             log.log(ctx, 'Sync entity completed');
+//         }
+//     }
+// });
 
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {

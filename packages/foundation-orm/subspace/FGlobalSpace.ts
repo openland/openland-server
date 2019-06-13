@@ -1,3 +1,4 @@
+import { FWatch } from './../FWatch';
 import { FConnection } from '../FConnection';
 import { Context } from '@openland/context';
 import { getTransaction } from '../getTransaction';
@@ -89,5 +90,15 @@ export class FGlobalSpace implements FSubspace<Buffer, Buffer> {
     xor(ctx: Context, key: Buffer, value: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.bitXor(key, value);
+    }
+
+    watch(ctx: Context, key: Buffer): FWatch {
+        let tn = getTransaction(ctx);
+        if (getTransaction(ctx).isReadOnly) {
+            throw Error('Unable to init watch in read only transaction!');
+        }
+        let tx = tn.rawTransaction(this.connection);
+        let r = tx.watch(key);
+        return r;
     }
 }
