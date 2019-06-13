@@ -178,15 +178,13 @@ export abstract class FEntity {
                         let key = index.fields.map((v) => value[v]);
                         if (index.unique) {
                             if (!unsafe) {
-                                let ex = await this.obsoleteKeySpace.get(ctx, ['__indexes', index.name, ...key]);
+                                let ex = await index.directory.get(ctx, key);
                                 if (ex) {
                                     throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                                 }
                             }
-                            this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
                             index.directory.set(ctx, key, value);
                         } else {
-                            this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                             index.directory.set(ctx, [...key, ...this.rawId], value);
                         }
                     }
@@ -228,31 +226,26 @@ export abstract class FEntity {
 
                         if (index.unique) {
                             if (needToDeleteOld) {
-                                this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey]);
                                 index.directory.delete(ctx, oldkey);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
-                                    if (await this.obsoleteKeySpace.get(ctx, ['__indexes', index.name, ...key])) {
+                                    if (await index.directory.get(ctx, key)) {
                                         throw Error('Unique index constraint failed for index ' + index.name);
                                     }
                                 }
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key], value);
                                 index.directory.set(ctx, key, value);
                             }
                         } else {
                             if (needToDeleteOld) {
-                                this.obsoleteKeySpace.delete(ctx, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                                 index.directory.delete(ctx, [...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
-                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                                 index.directory.set(ctx, [...key, ...this.rawId], value);
                             }
                             if (needToCreateNew || needToUpdateNew) {
-                                this.obsoleteKeySpace.set(ctx, ['__indexes', index.name, ...key, ...this.rawId], value);
                                 index.directory.set(ctx, [...key, ...this.rawId], value);
                             }
                         }

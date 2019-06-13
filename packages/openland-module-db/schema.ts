@@ -66,11 +66,10 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'environment'),
+        super('Environment', 'environment', 
             { enableVersioning: false, enableTimestamps: false, validator: EnvironmentFactory.validate, hasLiveStreams: false },
             [],
-            'Environment'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -133,11 +132,10 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'environmentVariable'),
+        super('EnvironmentVariable', 'environmentVariable', 
             { enableVersioning: true, enableTimestamps: true, validator: EnvironmentVariableFactory.validate, hasLiveStreams: false },
             [],
-            'EnvironmentVariable'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -228,11 +226,10 @@ export class OnlineFactory extends FEntityFactory<Online> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'online'),
+        super('Online', 'online', 
             { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate, hasLiveStreams: false },
             [],
-            'Online'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -325,6 +322,8 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -340,12 +339,13 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'presence'),
+        let indexUser = new FEntityIndex(connection, 'presence', 'user', ['uid', 'lastSeen'], false);
+        super('Presence', 'presence', 
             { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'presence', 'user', ['uid', 'lastSeen'], false)],
-            'Presence'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -364,22 +364,22 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         return this._watch(ctx, [uid, tid], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'presence', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Presence(ctx, this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
@@ -454,6 +454,9 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         ],
     };
 
+    readonly indexSalt: FEntityIndex;
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uuid', src.uuid);
         validators.isString('uuid', src.uuid);
@@ -467,12 +470,15 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'authToken'),
+        let indexSalt = new FEntityIndex(connection, 'authToken', 'salt', ['salt'], true);
+        let indexUser = new FEntityIndex(connection, 'authToken', 'user', ['uid', 'uuid'], false, src => src.enabled !== false);
+        super('AuthToken', 'authToken', 
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'authToken', 'salt', ['salt'], true), new FEntityIndex(connection, 'authToken', 'user', ['uid', 'uuid'], false, src => src.enabled !== false)],
-            'AuthToken'
+            [indexSalt, indexUser],
+            connection
         );
+        this.indexSalt = indexSalt;
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -491,37 +497,37 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return this._watch(ctx, [uuid], cb);
     }
     async findFromSalt(ctx: Context, salt: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'salt', salt]);
+        return await this._findFromIndex(ctx, this.indexSalt.directory, [salt]);
     }
     async rangeFromSalt(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'salt'], limit, reversed);
+        return await this._findRange(ctx, this.indexSalt.directory, [], limit, reversed);
     }
     async rangeFromSaltWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'salt'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexSalt.directory, [], limit, after, reversed);
     }
     async allFromSalt(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'salt']);
+        return await this._findAll(ctx, this.indexSalt.directory, []);
     }
     createSaltStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'authToken', '__indexes', 'salt'], limit, after); 
+        return this._createStream(this.indexSalt.directory, [], limit, after); 
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'authToken', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AuthToken(ctx, this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
@@ -564,6 +570,8 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         ],
     };
 
+    readonly indexFromService: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('service', src.service);
         validators.isString('service', src.service);
@@ -573,12 +581,13 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'serviceCache'),
+        let indexFromService = new FEntityIndex(connection, 'serviceCache', 'fromService', ['service', 'key'], false);
+        super('ServiceCache', 'serviceCache', 
             { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'serviceCache', 'fromService', ['service', 'key'], false)],
-            'ServiceCache'
+            [indexFromService],
+            connection
         );
+        this.indexFromService = indexFromService;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -597,22 +606,22 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         return this._watch(ctx, [service, key], cb);
     }
     async allFromFromServiceAfter(ctx: Context, service: string, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'fromService', service], after);
+        return await this._findRangeAllAfter(ctx, this.indexFromService.directory, [service], after);
     }
     async rangeFromFromServiceAfter(ctx: Context, service: string, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'fromService', service], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexFromService.directory, [service], after, limit, reversed);
     }
     async rangeFromFromService(ctx: Context, service: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'fromService', service], limit, reversed);
+        return await this._findRange(ctx, this.indexFromService.directory, [service], limit, reversed);
     }
     async rangeFromFromServiceWithCursor(ctx: Context, service: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'fromService', service], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexFromService.directory, [service], limit, after, reversed);
     }
     async allFromFromService(ctx: Context, service: string) {
-        return await this._findAll(ctx, ['__indexes', 'fromService', service]);
+        return await this._findAll(ctx, this.indexFromService.directory, [service]);
     }
     createFromServiceStream(service: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'serviceCache', '__indexes', 'fromService', service], limit, after); 
+        return this._createStream(this.indexFromService.directory, [service], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ServiceCache(ctx, this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
@@ -697,11 +706,10 @@ export class LockFactory extends FEntityFactory<Lock> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'lock'),
+        super('Lock', 'lock', 
             { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate, hasLiveStreams: false },
             [],
-            'Lock'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -850,6 +858,10 @@ export class TaskFactory extends FEntityFactory<Task> {
         ],
     };
 
+    readonly indexPending: FEntityIndex;
+    readonly indexExecuting: FEntityIndex;
+    readonly indexFailing: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('taskType', src.taskType);
         validators.isString('taskType', src.taskType);
@@ -866,12 +878,17 @@ export class TaskFactory extends FEntityFactory<Task> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'task'),
+        let indexPending = new FEntityIndex(connection, 'task', 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending');
+        let indexExecuting = new FEntityIndex(connection, 'task', 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
+        let indexFailing = new FEntityIndex(connection, 'task', 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
+        super('Task', 'task', 
             { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'task', 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex(connection, 'task', 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex(connection, 'task', 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')],
-            'Task'
+            [indexPending, indexExecuting, indexFailing],
+            connection
         );
+        this.indexPending = indexPending;
+        this.indexExecuting = indexExecuting;
+        this.indexFailing = indexFailing;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -890,46 +907,46 @@ export class TaskFactory extends FEntityFactory<Task> {
         return this._watch(ctx, [taskType, uid], cb);
     }
     async allFromPendingAfter(ctx: Context, taskType: string, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'pending', taskType], after);
+        return await this._findRangeAllAfter(ctx, this.indexPending.directory, [taskType], after);
     }
     async rangeFromPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'pending', taskType], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexPending.directory, [taskType], after, limit, reversed);
     }
     async rangeFromPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'pending', taskType], limit, reversed);
+        return await this._findRange(ctx, this.indexPending.directory, [taskType], limit, reversed);
     }
     async rangeFromPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'pending', taskType], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexPending.directory, [taskType], limit, after, reversed);
     }
     async allFromPending(ctx: Context, taskType: string) {
-        return await this._findAll(ctx, ['__indexes', 'pending', taskType]);
+        return await this._findAll(ctx, this.indexPending.directory, [taskType]);
     }
     createPendingStream(taskType: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'pending', taskType], limit, after); 
+        return this._createStream(this.indexPending.directory, [taskType], limit, after); 
     }
     async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'executing'], limit, reversed);
+        return await this._findRange(ctx, this.indexExecuting.directory, [], limit, reversed);
     }
     async rangeFromExecutingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'executing'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexExecuting.directory, [], limit, after, reversed);
     }
     async allFromExecuting(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'executing']);
+        return await this._findAll(ctx, this.indexExecuting.directory, []);
     }
     createExecutingStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'executing'], limit, after); 
+        return this._createStream(this.indexExecuting.directory, [], limit, after); 
     }
     async rangeFromFailing(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'failing'], limit, reversed);
+        return await this._findRange(ctx, this.indexFailing.directory, [], limit, reversed);
     }
     async rangeFromFailingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'failing'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexFailing.directory, [], limit, after, reversed);
     }
     async allFromFailing(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'failing']);
+        return await this._findAll(ctx, this.indexFailing.directory, []);
     }
     createFailingStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'failing'], limit, after); 
+        return this._createStream(this.indexFailing.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Task(ctx, this.connection, this.namespace, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
@@ -1076,6 +1093,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+    readonly indexToken: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -1098,12 +1118,15 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'pushFirebase'),
+        let indexUser = new FEntityIndex(connection, 'pushFirebase', 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(connection, 'pushFirebase', 'token', ['token'], true, src => src.enabled);
+        super('PushFirebase', 'pushFirebase', 
             { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'pushFirebase', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushFirebase', 'token', ['token'], true, src => src.enabled)],
-            'PushFirebase'
+            [indexUser, indexToken],
+            connection
         );
+        this.indexUser = indexUser;
+        this.indexToken = indexToken;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1122,37 +1145,37 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         return this._watch(ctx, [id], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     async findFromToken(ctx: Context, token: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
+        return await this._findFromIndex(ctx, this.indexToken.directory, [token]);
     }
     async rangeFromToken(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'token'], limit, reversed);
+        return await this._findRange(ctx, this.indexToken.directory, [], limit, reversed);
     }
     async rangeFromTokenWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'token'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexToken.directory, [], limit, after, reversed);
     }
     async allFromToken(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'token']);
+        return await this._findAll(ctx, this.indexToken.directory, []);
     }
     createTokenStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
+        return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushFirebase(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
@@ -1299,6 +1322,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+    readonly indexToken: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -1321,12 +1347,15 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'pushApple'),
+        let indexUser = new FEntityIndex(connection, 'pushApple', 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(connection, 'pushApple', 'token', ['token'], true, src => src.enabled);
+        super('PushApple', 'pushApple', 
             { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'pushApple', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushApple', 'token', ['token'], true, src => src.enabled)],
-            'PushApple'
+            [indexUser, indexToken],
+            connection
         );
+        this.indexUser = indexUser;
+        this.indexToken = indexToken;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1345,37 +1374,37 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         return this._watch(ctx, [id], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     async findFromToken(ctx: Context, token: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
+        return await this._findFromIndex(ctx, this.indexToken.directory, [token]);
     }
     async rangeFromToken(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'token'], limit, reversed);
+        return await this._findRange(ctx, this.indexToken.directory, [], limit, reversed);
     }
     async rangeFromTokenWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'token'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexToken.directory, [], limit, after, reversed);
     }
     async allFromToken(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'token']);
+        return await this._findAll(ctx, this.indexToken.directory, []);
     }
     createTokenStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushApple', '__indexes', 'token'], limit, after); 
+        return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushApple(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
@@ -1500,6 +1529,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+    readonly indexEndpoint: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -1518,12 +1550,15 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'pushWeb'),
+        let indexUser = new FEntityIndex(connection, 'pushWeb', 'user', ['uid', 'id'], false);
+        let indexEndpoint = new FEntityIndex(connection, 'pushWeb', 'endpoint', ['endpoint'], true, src => src.enabled);
+        super('PushWeb', 'pushWeb', 
             { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'pushWeb', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushWeb', 'endpoint', ['endpoint'], true, src => src.enabled)],
-            'PushWeb'
+            [indexUser, indexEndpoint],
+            connection
         );
+        this.indexUser = indexUser;
+        this.indexEndpoint = indexEndpoint;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1542,37 +1577,37 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return this._watch(ctx, [id], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     async findFromEndpoint(ctx: Context, endpoint: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'endpoint', endpoint]);
+        return await this._findFromIndex(ctx, this.indexEndpoint.directory, [endpoint]);
     }
     async rangeFromEndpoint(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'endpoint'], limit, reversed);
+        return await this._findRange(ctx, this.indexEndpoint.directory, [], limit, reversed);
     }
     async rangeFromEndpointWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'endpoint'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexEndpoint.directory, [], limit, after, reversed);
     }
     async allFromEndpoint(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'endpoint']);
+        return await this._findAll(ctx, this.indexEndpoint.directory, []);
     }
     createEndpointStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
+        return this._createStream(this.indexEndpoint.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushWeb(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
@@ -1708,6 +1743,9 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+    readonly indexToken: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -1728,12 +1766,15 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'pushSafari'),
+        let indexUser = new FEntityIndex(connection, 'pushSafari', 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(connection, 'pushSafari', 'token', ['token'], true, src => src.enabled);
+        super('PushSafari', 'pushSafari', 
             { enableVersioning: true, enableTimestamps: true, validator: PushSafariFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'pushSafari', 'user', ['uid', 'id'], false), new FEntityIndex(connection, 'pushSafari', 'token', ['token'], true, src => src.enabled)],
-            'PushSafari'
+            [indexUser, indexToken],
+            connection
         );
+        this.indexUser = indexUser;
+        this.indexToken = indexToken;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1752,37 +1793,37 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         return this._watch(ctx, [id], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushSafari', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     async findFromToken(ctx: Context, token: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
+        return await this._findFromIndex(ctx, this.indexToken.directory, [token]);
     }
     async rangeFromToken(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'token'], limit, reversed);
+        return await this._findRange(ctx, this.indexToken.directory, [], limit, reversed);
     }
     async rangeFromTokenWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'token'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexToken.directory, [], limit, after, reversed);
     }
     async allFromToken(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'token']);
+        return await this._findAll(ctx, this.indexToken.directory, []);
     }
     createTokenStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushSafari', '__indexes', 'token'], limit, after); 
+        return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new PushSafari(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
@@ -1857,11 +1898,10 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userProfilePrefil'),
+        super('UserProfilePrefil', 'userProfilePrefil', 
             { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate, hasLiveStreams: false },
             [],
-            'UserProfilePrefil'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -1992,6 +2032,11 @@ export class UserFactory extends FEntityFactory<User> {
         ],
     };
 
+    readonly indexAuthId: FEntityIndex;
+    readonly indexEmail: FEntityIndex;
+    readonly indexOwner: FEntityIndex;
+    readonly indexSuperBots: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -2009,12 +2054,19 @@ export class UserFactory extends FEntityFactory<User> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'user'),
+        let indexAuthId = new FEntityIndex(connection, 'user', 'authId', ['authId'], true, src => src.status !== 'deleted');
+        let indexEmail = new FEntityIndex(connection, 'user', 'email', ['email'], true, src => src.status !== 'deleted');
+        let indexOwner = new FEntityIndex(connection, 'user', 'owner', ['botOwner', 'id'], false, src => src.botOwner);
+        let indexSuperBots = new FEntityIndex(connection, 'user', 'superBots', [], false, src => src.isBot === true && src.isSuperBot);
+        super('User', 'user', 
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'user', 'authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex(connection, 'user', 'email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex(connection, 'user', 'owner', ['botOwner', 'id'], false, src => src.botOwner), new FEntityIndex(connection, 'user', 'superBots', [], false, src => src.isBot === true && src.isSuperBot)],
-            'User'
+            [indexAuthId, indexEmail, indexOwner, indexSuperBots],
+            connection
         );
+        this.indexAuthId = indexAuthId;
+        this.indexEmail = indexEmail;
+        this.indexOwner = indexOwner;
+        this.indexSuperBots = indexSuperBots;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2033,64 +2085,64 @@ export class UserFactory extends FEntityFactory<User> {
         return this._watch(ctx, [id], cb);
     }
     async findFromAuthId(ctx: Context, authId: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'authId', authId]);
+        return await this._findFromIndex(ctx, this.indexAuthId.directory, [authId]);
     }
     async rangeFromAuthId(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'authId'], limit, reversed);
+        return await this._findRange(ctx, this.indexAuthId.directory, [], limit, reversed);
     }
     async rangeFromAuthIdWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'authId'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexAuthId.directory, [], limit, after, reversed);
     }
     async allFromAuthId(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'authId']);
+        return await this._findAll(ctx, this.indexAuthId.directory, []);
     }
     createAuthIdStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'user', '__indexes', 'authId'], limit, after); 
+        return this._createStream(this.indexAuthId.directory, [], limit, after); 
     }
     async findFromEmail(ctx: Context, email: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'email', email]);
+        return await this._findFromIndex(ctx, this.indexEmail.directory, [email]);
     }
     async rangeFromEmail(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'email'], limit, reversed);
+        return await this._findRange(ctx, this.indexEmail.directory, [], limit, reversed);
     }
     async rangeFromEmailWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'email'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexEmail.directory, [], limit, after, reversed);
     }
     async allFromEmail(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'email']);
+        return await this._findAll(ctx, this.indexEmail.directory, []);
     }
     createEmailStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'user', '__indexes', 'email'], limit, after); 
+        return this._createStream(this.indexEmail.directory, [], limit, after); 
     }
     async allFromOwnerAfter(ctx: Context, botOwner: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'owner', botOwner], after);
+        return await this._findRangeAllAfter(ctx, this.indexOwner.directory, [botOwner], after);
     }
     async rangeFromOwnerAfter(ctx: Context, botOwner: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'owner', botOwner], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexOwner.directory, [botOwner], after, limit, reversed);
     }
     async rangeFromOwner(ctx: Context, botOwner: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'owner', botOwner], limit, reversed);
+        return await this._findRange(ctx, this.indexOwner.directory, [botOwner], limit, reversed);
     }
     async rangeFromOwnerWithCursor(ctx: Context, botOwner: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'owner', botOwner], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOwner.directory, [botOwner], limit, after, reversed);
     }
     async allFromOwner(ctx: Context, botOwner: number) {
-        return await this._findAll(ctx, ['__indexes', 'owner', botOwner]);
+        return await this._findAll(ctx, this.indexOwner.directory, [botOwner]);
     }
     createOwnerStream(botOwner: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'user', '__indexes', 'owner', botOwner], limit, after); 
+        return this._createStream(this.indexOwner.directory, [botOwner], limit, after); 
     }
     async rangeFromSuperBots(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'superBots'], limit, reversed);
+        return await this._findRange(ctx, this.indexSuperBots.directory, [], limit, reversed);
     }
     async rangeFromSuperBotsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'superBots'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexSuperBots.directory, [], limit, after, reversed);
     }
     async allFromSuperBots(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'superBots']);
+        return await this._findAll(ctx, this.indexSuperBots.directory, []);
     }
     createSuperBotsStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'user', '__indexes', 'superBots'], limit, after); 
+        return this._createStream(this.indexSuperBots.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
@@ -2285,6 +2337,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         ],
     };
 
+    readonly indexByUpdatedAt: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -2303,12 +2357,13 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userProfile'),
+        let indexByUpdatedAt = new FEntityIndex(connection, 'userProfile', 'byUpdatedAt', ['updatedAt'], false);
+        super('UserProfile', 'userProfile', 
             { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userProfile', 'byUpdatedAt', ['updatedAt'], false)],
-            'UserProfile'
+            [indexByUpdatedAt],
+            connection
         );
+        this.indexByUpdatedAt = indexByUpdatedAt;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2327,16 +2382,16 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return this._watch(ctx, [id], cb);
     }
     async rangeFromByUpdatedAt(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'byUpdatedAt'], limit, reversed);
+        return await this._findRange(ctx, this.indexByUpdatedAt.directory, [], limit, reversed);
     }
     async rangeFromByUpdatedAtWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'byUpdatedAt'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexByUpdatedAt.directory, [], limit, after, reversed);
     }
     async allFromByUpdatedAt(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'byUpdatedAt']);
+        return await this._findAll(ctx, this.indexByUpdatedAt.directory, []);
     }
     createByUpdatedAtStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
+        return this._createStream(this.indexByUpdatedAt.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
@@ -2364,18 +2419,21 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         ],
     };
 
+    readonly indexUpdated: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userIndexingQueue'),
+        let indexUpdated = new FEntityIndex(connection, 'userIndexingQueue', 'updated', ['updatedAt'], false);
+        super('UserIndexingQueue', 'userIndexingQueue', 
             { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userIndexingQueue', 'updated', ['updatedAt'], false)],
-            'UserIndexingQueue'
+            [indexUpdated],
+            connection
         );
+        this.indexUpdated = indexUpdated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2394,16 +2452,16 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         return this._watch(ctx, [id], cb);
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userIndexingQueue', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
@@ -2488,6 +2546,8 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         ],
     };
 
+    readonly indexCommunity: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -2503,12 +2563,13 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organization'),
+        let indexCommunity = new FEntityIndex(connection, 'organization', 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated');
+        super('Organization', 'organization', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'organization', 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated')],
-            'Organization'
+            [indexCommunity],
+            connection
         );
+        this.indexCommunity = indexCommunity;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2527,16 +2588,16 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         return this._watch(ctx, [id], cb);
     }
     async rangeFromCommunity(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'community'], limit, reversed);
+        return await this._findRange(ctx, this.indexCommunity.directory, [], limit, reversed);
     }
     async rangeFromCommunityWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'community'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexCommunity.directory, [], limit, after, reversed);
     }
     async allFromCommunity(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'community']);
+        return await this._findAll(ctx, this.indexCommunity.directory, []);
     }
     createCommunityStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'organization', '__indexes', 'community'], limit, after); 
+        return this._createStream(this.indexCommunity.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Organization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
@@ -2688,11 +2749,10 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationProfile'),
+        super('OrganizationProfile', 'organizationProfile', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationProfileFactory.validate, hasLiveStreams: false },
             [],
-            'OrganizationProfile'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -2768,11 +2828,10 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationEditorial'),
+        super('OrganizationEditorial', 'organizationEditorial', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationEditorialFactory.validate, hasLiveStreams: false },
             [],
-            'OrganizationEditorial'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -2817,18 +2876,21 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         ],
     };
 
+    readonly indexUpdated: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationIndexingQueue'),
+        let indexUpdated = new FEntityIndex(connection, 'organizationIndexingQueue', 'updated', ['updatedAt'], false);
+        super('OrganizationIndexingQueue', 'organizationIndexingQueue', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'organizationIndexingQueue', 'updated', ['updatedAt'], false)],
-            'OrganizationIndexingQueue'
+            [indexUpdated],
+            connection
         );
+        this.indexUpdated = indexUpdated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2847,16 +2909,16 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         return this._watch(ctx, [id], cb);
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationIndexingQueue', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
@@ -2923,6 +2985,10 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         ],
     };
 
+    readonly indexIds: FEntityIndex;
+    readonly indexOrganization: FEntityIndex;
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('oid', src.oid);
         validators.isNumber('oid', src.oid);
@@ -2936,12 +3002,17 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationMember'),
+        let indexIds = new FEntityIndex(connection, 'organizationMember', 'ids', ['oid', 'uid'], true);
+        let indexOrganization = new FEntityIndex(connection, 'organizationMember', 'organization', ['status', 'oid', 'uid'], false);
+        let indexUser = new FEntityIndex(connection, 'organizationMember', 'user', ['status', 'uid', 'oid'], false);
+        super('OrganizationMember', 'organizationMember', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'organizationMember', 'ids', ['oid', 'uid'], true), new FEntityIndex(connection, 'organizationMember', 'organization', ['status', 'oid', 'uid'], false), new FEntityIndex(connection, 'organizationMember', 'user', ['status', 'uid', 'oid'], false)],
-            'OrganizationMember'
+            [indexIds, indexOrganization, indexUser],
+            connection
         );
+        this.indexIds = indexIds;
+        this.indexOrganization = indexOrganization;
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -2960,61 +3031,61 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         return this._watch(ctx, [oid, uid], cb);
     }
     async findFromIds(ctx: Context, oid: number, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'ids', oid, uid]);
+        return await this._findFromIndex(ctx, this.indexIds.directory, [oid, uid]);
     }
     async allFromIdsAfter(ctx: Context, oid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'ids', oid], after);
+        return await this._findRangeAllAfter(ctx, this.indexIds.directory, [oid], after);
     }
     async rangeFromIdsAfter(ctx: Context, oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'ids', oid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexIds.directory, [oid], after, limit, reversed);
     }
     async rangeFromIds(ctx: Context, oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'ids', oid], limit, reversed);
+        return await this._findRange(ctx, this.indexIds.directory, [oid], limit, reversed);
     }
     async rangeFromIdsWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'ids', oid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexIds.directory, [oid], limit, after, reversed);
     }
     async allFromIds(ctx: Context, oid: number) {
-        return await this._findAll(ctx, ['__indexes', 'ids', oid]);
+        return await this._findAll(ctx, this.indexIds.directory, [oid]);
     }
     createIdsStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'ids', oid], limit, after); 
+        return this._createStream(this.indexIds.directory, [oid], limit, after); 
     }
     async allFromOrganizationAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', status, oid], after);
+        return await this._findRangeAllAfter(ctx, this.indexOrganization.directory, [status, oid], after);
     }
     async rangeFromOrganizationAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'organization', status, oid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexOrganization.directory, [status, oid], after, limit, reversed);
     }
     async rangeFromOrganization(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'organization', status, oid], limit, reversed);
+        return await this._findRange(ctx, this.indexOrganization.directory, [status, oid], limit, reversed);
     }
     async rangeFromOrganizationWithCursor(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization', status, oid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [status, oid], limit, after, reversed);
     }
     async allFromOrganization(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number) {
-        return await this._findAll(ctx, ['__indexes', 'organization', status, oid]);
+        return await this._findAll(ctx, this.indexOrganization.directory, [status, oid]);
     }
     createOrganizationStream(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
+        return this._createStream(this.indexOrganization.directory, [status, oid], limit, after); 
     }
     async allFromUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', status, uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [status, uid], after);
     }
     async rangeFromUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', status, uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [status, uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', status, uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [status, uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', status, uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [status, uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', status, uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [status, uid]);
     }
     createUserStream(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [status, uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationMember(ctx, this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
@@ -3060,11 +3131,10 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'featureFlag'),
+        super('FeatureFlag', 'featureFlag', 
             { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate, hasLiveStreams: false },
             [],
-            'FeatureFlag'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -3142,6 +3212,8 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         ],
     };
 
+    readonly indexOrganization: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -3154,12 +3226,13 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationFeatures'),
+        let indexOrganization = new FEntityIndex(connection, 'organizationFeatures', 'organization', ['organizationId', 'featureKey'], true);
+        super('OrganizationFeatures', 'organizationFeatures', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'organizationFeatures', 'organization', ['organizationId', 'featureKey'], true)],
-            'OrganizationFeatures'
+            [indexOrganization],
+            connection
         );
+        this.indexOrganization = indexOrganization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3178,25 +3251,25 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         return this._watch(ctx, [id], cb);
     }
     async findFromOrganization(ctx: Context, organizationId: number, featureKey: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'organization', organizationId, featureKey]);
+        return await this._findFromIndex(ctx, this.indexOrganization.directory, [organizationId, featureKey]);
     }
     async allFromOrganizationAfter(ctx: Context, organizationId: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', organizationId], after);
+        return await this._findRangeAllAfter(ctx, this.indexOrganization.directory, [organizationId], after);
     }
     async rangeFromOrganizationAfter(ctx: Context, organizationId: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'organization', organizationId], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexOrganization.directory, [organizationId], after, limit, reversed);
     }
     async rangeFromOrganization(ctx: Context, organizationId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'organization', organizationId], limit, reversed);
+        return await this._findRange(ctx, this.indexOrganization.directory, [organizationId], limit, reversed);
     }
     async rangeFromOrganizationWithCursor(ctx: Context, organizationId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization', organizationId], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [organizationId], limit, after, reversed);
     }
     async allFromOrganization(ctx: Context, organizationId: number) {
-        return await this._findAll(ctx, ['__indexes', 'organization', organizationId]);
+        return await this._findAll(ctx, this.indexOrganization.directory, [organizationId]);
     }
     createOrganizationStream(organizationId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
+        return this._createStream(this.indexOrganization.directory, [organizationId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationFeatures(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
@@ -3256,11 +3329,10 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'readerState'),
+        super('ReaderState', 'readerState', 
             { enableVersioning: true, enableTimestamps: true, validator: ReaderStateFactory.validate, hasLiveStreams: false },
             [],
-            'ReaderState'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -3336,11 +3408,10 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'superAdmin'),
+        super('SuperAdmin', 'superAdmin', 
             { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate, hasLiveStreams: false },
             [],
-            'SuperAdmin'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -3485,11 +3556,10 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userSettings'),
+        super('UserSettings', 'userSettings', 
             { enableVersioning: true, enableTimestamps: true, validator: UserSettingsFactory.validate, hasLiveStreams: false },
             [],
-            'UserSettings'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -3568,6 +3638,9 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+    readonly indexOrg: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('shortname', src.shortname);
         validators.isString('shortname', src.shortname);
@@ -3580,12 +3653,15 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'shortnameReservation'),
+        let indexUser = new FEntityIndex(connection, 'shortnameReservation', 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled);
+        let indexOrg = new FEntityIndex(connection, 'shortnameReservation', 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled);
+        super('ShortnameReservation', 'shortnameReservation', 
             { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'shortnameReservation', 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex(connection, 'shortnameReservation', 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)],
-            'ShortnameReservation'
+            [indexUser, indexOrg],
+            connection
         );
+        this.indexUser = indexUser;
+        this.indexOrg = indexOrg;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3604,34 +3680,34 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return this._watch(ctx, [shortname], cb);
     }
     async findFromUser(ctx: Context, ownerId: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'user', ownerId]);
+        return await this._findFromIndex(ctx, this.indexUser.directory, [ownerId]);
     }
     async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user'], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [], limit, after, reversed);
     }
     async allFromUser(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'user']);
+        return await this._findAll(ctx, this.indexUser.directory, []);
     }
     createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
+        return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     async findFromOrg(ctx: Context, ownerId: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'org', ownerId]);
+        return await this._findFromIndex(ctx, this.indexOrg.directory, [ownerId]);
     }
     async rangeFromOrg(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'org'], limit, reversed);
+        return await this._findRange(ctx, this.indexOrg.directory, [], limit, reversed);
     }
     async rangeFromOrgWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'org'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrg.directory, [], limit, after, reversed);
     }
     async allFromOrg(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'org']);
+        return await this._findAll(ctx, this.indexOrg.directory, []);
     }
     createOrgStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
+        return this._createStream(this.indexOrg.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ShortnameReservation(ctx, this.connection, this.namespace, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
@@ -3730,11 +3806,10 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'authCodeSession'),
+        super('AuthCodeSession', 'authCodeSession', 
             { enableVersioning: true, enableTimestamps: true, validator: AuthCodeSessionFactory.validate, hasLiveStreams: false },
             [],
-            'AuthCodeSession'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -3825,11 +3900,10 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversation'),
+        super('Conversation', 'conversation', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationFactory.validate, hasLiveStreams: false },
             [],
-            'Conversation'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -3909,6 +3983,8 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         ],
     };
 
+    readonly indexUsers: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -3920,12 +3996,13 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversationPrivate'),
+        let indexUsers = new FEntityIndex(connection, 'conversationPrivate', 'users', ['uid1', 'uid2'], true);
+        super('ConversationPrivate', 'conversationPrivate', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationPrivateFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conversationPrivate', 'users', ['uid1', 'uid2'], true)],
-            'ConversationPrivate'
+            [indexUsers],
+            connection
         );
+        this.indexUsers = indexUsers;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3944,25 +4021,25 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         return this._watch(ctx, [id], cb);
     }
     async findFromUsers(ctx: Context, uid1: number, uid2: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'users', uid1, uid2]);
+        return await this._findFromIndex(ctx, this.indexUsers.directory, [uid1, uid2]);
     }
     async allFromUsersAfter(ctx: Context, uid1: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'users', uid1], after);
+        return await this._findRangeAllAfter(ctx, this.indexUsers.directory, [uid1], after);
     }
     async rangeFromUsersAfter(ctx: Context, uid1: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'users', uid1], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUsers.directory, [uid1], after, limit, reversed);
     }
     async rangeFromUsers(ctx: Context, uid1: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'users', uid1], limit, reversed);
+        return await this._findRange(ctx, this.indexUsers.directory, [uid1], limit, reversed);
     }
     async rangeFromUsersWithCursor(ctx: Context, uid1: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'users', uid1], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUsers.directory, [uid1], limit, after, reversed);
     }
     async allFromUsers(ctx: Context, uid1: number) {
-        return await this._findAll(ctx, ['__indexes', 'users', uid1]);
+        return await this._findAll(ctx, this.indexUsers.directory, [uid1]);
     }
     createUsersStream(uid1: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationPrivate', '__indexes', 'users', uid1], limit, after); 
+        return this._createStream(this.indexUsers.directory, [uid1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationPrivate(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
@@ -4001,6 +4078,8 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         ],
     };
 
+    readonly indexOrganization: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -4009,12 +4088,13 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversationOrganization'),
+        let indexOrganization = new FEntityIndex(connection, 'conversationOrganization', 'organization', ['oid'], true);
+        super('ConversationOrganization', 'conversationOrganization', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationOrganizationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conversationOrganization', 'organization', ['oid'], true)],
-            'ConversationOrganization'
+            [indexOrganization],
+            connection
         );
+        this.indexOrganization = indexOrganization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4033,19 +4113,19 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         return this._watch(ctx, [id], cb);
     }
     async findFromOrganization(ctx: Context, oid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'organization', oid]);
+        return await this._findFromIndex(ctx, this.indexOrganization.directory, [oid]);
     }
     async rangeFromOrganization(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'organization'], limit, reversed);
+        return await this._findRange(ctx, this.indexOrganization.directory, [], limit, reversed);
     }
     async rangeFromOrganizationWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [], limit, after, reversed);
     }
     async allFromOrganization(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'organization']);
+        return await this._findAll(ctx, this.indexOrganization.directory, []);
     }
     createOrganizationStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationOrganization', '__indexes', 'organization'], limit, after); 
+        return this._createStream(this.indexOrganization.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationOrganization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
@@ -4150,6 +4230,9 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         ],
     };
 
+    readonly indexOrganization: FEntityIndex;
+    readonly indexOrganizationPublicRooms: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -4163,12 +4246,15 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversationRoom'),
+        let indexOrganization = new FEntityIndex(connection, 'conversationRoom', 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal');
+        let indexOrganizationPublicRooms = new FEntityIndex(connection, 'conversationRoom', 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public');
+        super('ConversationRoom', 'conversationRoom', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conversationRoom', 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal'), new FEntityIndex(connection, 'conversationRoom', 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public')],
-            'ConversationRoom'
+            [indexOrganization, indexOrganizationPublicRooms],
+            connection
         );
+        this.indexOrganization = indexOrganization;
+        this.indexOrganizationPublicRooms = indexOrganizationPublicRooms;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4187,37 +4273,37 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         return this._watch(ctx, [id], cb);
     }
     async rangeFromOrganization(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'organization'], limit, reversed);
+        return await this._findRange(ctx, this.indexOrganization.directory, [], limit, reversed);
     }
     async rangeFromOrganizationWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [], limit, after, reversed);
     }
     async allFromOrganization(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'organization']);
+        return await this._findAll(ctx, this.indexOrganization.directory, []);
     }
     createOrganizationStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
+        return this._createStream(this.indexOrganization.directory, [], limit, after); 
     }
     async findFromOrganizationPublicRooms(ctx: Context, oid: number, id: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'organizationPublicRooms', oid, id]);
+        return await this._findFromIndex(ctx, this.indexOrganizationPublicRooms.directory, [oid, id]);
     }
     async allFromOrganizationPublicRoomsAfter(ctx: Context, oid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'organizationPublicRooms', oid], after);
+        return await this._findRangeAllAfter(ctx, this.indexOrganizationPublicRooms.directory, [oid], after);
     }
     async rangeFromOrganizationPublicRoomsAfter(ctx: Context, oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'organizationPublicRooms', oid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexOrganizationPublicRooms.directory, [oid], after, limit, reversed);
     }
     async rangeFromOrganizationPublicRooms(ctx: Context, oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'organizationPublicRooms', oid], limit, reversed);
+        return await this._findRange(ctx, this.indexOrganizationPublicRooms.directory, [oid], limit, reversed);
     }
     async rangeFromOrganizationPublicRoomsWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'organizationPublicRooms', oid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrganizationPublicRooms.directory, [oid], limit, after, reversed);
     }
     async allFromOrganizationPublicRooms(ctx: Context, oid: number) {
-        return await this._findAll(ctx, ['__indexes', 'organizationPublicRooms', oid]);
+        return await this._findAll(ctx, this.indexOrganizationPublicRooms.directory, [oid]);
     }
     createOrganizationPublicRoomsStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organizationPublicRooms', oid], limit, after); 
+        return this._createStream(this.indexOrganizationPublicRooms.directory, [oid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
@@ -4360,6 +4446,8 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         ],
     };
 
+    readonly indexUpdated: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -4374,12 +4462,13 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'roomProfile'),
+        let indexUpdated = new FEntityIndex(connection, 'roomProfile', 'updated', ['updatedAt'], false);
+        super('RoomProfile', 'roomProfile', 
             { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'roomProfile', 'updated', ['updatedAt'], false)],
-            'RoomProfile'
+            [indexUpdated],
+            connection
         );
+        this.indexUpdated = indexUpdated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4398,16 +4487,16 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         return this._watch(ctx, [id], cb);
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'roomProfile', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RoomProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
@@ -4472,6 +4561,10 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         ],
     };
 
+    readonly indexActive: FEntityIndex;
+    readonly indexRequests: FEntityIndex;
+    readonly indexUserActive: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('cid', src.cid);
         validators.isNumber('cid', src.cid);
@@ -4486,12 +4579,17 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'roomParticipant'),
+        let indexActive = new FEntityIndex(connection, 'roomParticipant', 'active', ['cid', 'uid'], true, (src) => src.status === 'joined');
+        let indexRequests = new FEntityIndex(connection, 'roomParticipant', 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested');
+        let indexUserActive = new FEntityIndex(connection, 'roomParticipant', 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined');
+        super('RoomParticipant', 'roomParticipant', 
             { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'roomParticipant', 'active', ['cid', 'uid'], true, (src) => src.status === 'joined'), new FEntityIndex(connection, 'roomParticipant', 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested'), new FEntityIndex(connection, 'roomParticipant', 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined')],
-            'RoomParticipant'
+            [indexActive, indexRequests, indexUserActive],
+            connection
         );
+        this.indexActive = indexActive;
+        this.indexRequests = indexRequests;
+        this.indexUserActive = indexUserActive;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -4510,67 +4608,67 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._watch(ctx, [cid, uid], cb);
     }
     async findFromActive(ctx: Context, cid: number, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'active', cid, uid]);
+        return await this._findFromIndex(ctx, this.indexActive.directory, [cid, uid]);
     }
     async allFromActiveAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'active', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexActive.directory, [cid], after);
     }
     async rangeFromActiveAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'active', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexActive.directory, [cid], after, limit, reversed);
     }
     async rangeFromActive(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'active', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexActive.directory, [cid], limit, reversed);
     }
     async rangeFromActiveWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'active', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexActive.directory, [cid], limit, after, reversed);
     }
     async allFromActive(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'active', cid]);
+        return await this._findAll(ctx, this.indexActive.directory, [cid]);
     }
     createActiveStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
+        return this._createStream(this.indexActive.directory, [cid], limit, after); 
     }
     async findFromRequests(ctx: Context, cid: number, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'requests', cid, uid]);
+        return await this._findFromIndex(ctx, this.indexRequests.directory, [cid, uid]);
     }
     async allFromRequestsAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'requests', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexRequests.directory, [cid], after);
     }
     async rangeFromRequestsAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'requests', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexRequests.directory, [cid], after, limit, reversed);
     }
     async rangeFromRequests(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'requests', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexRequests.directory, [cid], limit, reversed);
     }
     async rangeFromRequestsWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'requests', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexRequests.directory, [cid], limit, after, reversed);
     }
     async allFromRequests(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'requests', cid]);
+        return await this._findAll(ctx, this.indexRequests.directory, [cid]);
     }
     createRequestsStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
+        return this._createStream(this.indexRequests.directory, [cid], limit, after); 
     }
     async findFromUserActive(ctx: Context, uid: number, cid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'userActive', uid, cid]);
+        return await this._findFromIndex(ctx, this.indexUserActive.directory, [uid, cid]);
     }
     async allFromUserActiveAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'userActive', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUserActive.directory, [uid], after);
     }
     async rangeFromUserActiveAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'userActive', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUserActive.directory, [uid], after, limit, reversed);
     }
     async rangeFromUserActive(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'userActive', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUserActive.directory, [uid], limit, reversed);
     }
     async rangeFromUserActiveWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'userActive', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUserActive.directory, [uid], limit, after, reversed);
     }
     async allFromUserActive(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'userActive', uid]);
+        return await this._findAll(ctx, this.indexUserActive.directory, [uid]);
     }
     createUserActiveStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
+        return this._createStream(this.indexUserActive.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
@@ -4611,6 +4709,8 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         ],
     };
 
+    readonly indexConversation: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('cid', src.cid);
         validators.isNumber('cid', src.cid);
@@ -4621,12 +4721,13 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversationReceiver'),
+        let indexConversation = new FEntityIndex(connection, 'conversationReceiver', 'conversation', ['cid', 'uid'], true, (src) => src.enabled);
+        super('ConversationReceiver', 'conversationReceiver', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationReceiverFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conversationReceiver', 'conversation', ['cid', 'uid'], true, (src) => src.enabled)],
-            'ConversationReceiver'
+            [indexConversation],
+            connection
         );
+        this.indexConversation = indexConversation;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -4645,25 +4746,25 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         return this._watch(ctx, [cid, uid], cb);
     }
     async findFromConversation(ctx: Context, cid: number, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'conversation', cid, uid]);
+        return await this._findFromIndex(ctx, this.indexConversation.directory, [cid, uid]);
     }
     async allFromConversationAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'conversation', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexConversation.directory, [cid], after);
     }
     async rangeFromConversationAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'conversation', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexConversation.directory, [cid], after, limit, reversed);
     }
     async rangeFromConversation(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'conversation', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexConversation.directory, [cid], limit, reversed);
     }
     async rangeFromConversationWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'conversation', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexConversation.directory, [cid], limit, after, reversed);
     }
     async allFromConversation(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'conversation', cid]);
+        return await this._findAll(ctx, this.indexConversation.directory, [cid]);
     }
     createConversationStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
+        return this._createStream(this.indexConversation.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationReceiver(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
@@ -4709,11 +4810,10 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'sequence'),
+        super('Sequence', 'sequence', 
             { enableVersioning: false, enableTimestamps: false, validator: SequenceFactory.validate, hasLiveStreams: false },
             [],
-            'Sequence'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -5064,6 +5164,10 @@ export class MessageFactory extends FEntityFactory<Message> {
         ],
     };
 
+    readonly indexChat: FEntityIndex;
+    readonly indexUpdated: FEntityIndex;
+    readonly indexRepeat: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -5251,12 +5355,17 @@ export class MessageFactory extends FEntityFactory<Message> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'message'),
+        let indexChat = new FEntityIndex(connection, 'message', 'chat', ['cid', 'id'], false, (src) => !src.deleted);
+        let indexUpdated = new FEntityIndex(connection, 'message', 'updated', ['updatedAt'], false);
+        let indexRepeat = new FEntityIndex(connection, 'message', 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey);
+        super('Message', 'message', 
             { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'message', 'chat', ['cid', 'id'], false, (src) => !src.deleted), new FEntityIndex(connection, 'message', 'updated', ['updatedAt'], false), new FEntityIndex(connection, 'message', 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey)],
-            'Message'
+            [indexChat, indexUpdated, indexRepeat],
+            connection
         );
+        this.indexChat = indexChat;
+        this.indexUpdated = indexUpdated;
+        this.indexRepeat = indexRepeat;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -5275,55 +5384,55 @@ export class MessageFactory extends FEntityFactory<Message> {
         return this._watch(ctx, [id], cb);
     }
     async allFromChatAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'chat', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexChat.directory, [cid], after);
     }
     async rangeFromChatAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'chat', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexChat.directory, [cid], after, limit, reversed);
     }
     async rangeFromChat(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'chat', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexChat.directory, [cid], limit, reversed);
     }
     async rangeFromChatWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'chat', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexChat.directory, [cid], limit, after, reversed);
     }
     async allFromChat(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'chat', cid]);
+        return await this._findAll(ctx, this.indexChat.directory, [cid]);
     }
     createChatStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'message', '__indexes', 'chat', cid], limit, after); 
+        return this._createStream(this.indexChat.directory, [cid], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'message', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     async findFromRepeat(ctx: Context, uid: number, cid: number, repeatKey: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'repeat', uid, cid, repeatKey]);
+        return await this._findFromIndex(ctx, this.indexRepeat.directory, [uid, cid, repeatKey]);
     }
     async allFromRepeatAfter(ctx: Context, uid: number, cid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'repeat', uid, cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexRepeat.directory, [uid, cid], after);
     }
     async rangeFromRepeatAfter(ctx: Context, uid: number, cid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'repeat', uid, cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexRepeat.directory, [uid, cid], after, limit, reversed);
     }
     async rangeFromRepeat(ctx: Context, uid: number, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'repeat', uid, cid], limit, reversed);
+        return await this._findRange(ctx, this.indexRepeat.directory, [uid, cid], limit, reversed);
     }
     async rangeFromRepeatWithCursor(ctx: Context, uid: number, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'repeat', uid, cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexRepeat.directory, [uid, cid], limit, after, reversed);
     }
     async allFromRepeat(ctx: Context, uid: number, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'repeat', uid, cid]);
+        return await this._findAll(ctx, this.indexRepeat.directory, [uid, cid]);
     }
     createRepeatStream(uid: number, cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'message', '__indexes', 'repeat', uid, cid], limit, after); 
+        return this._createStream(this.indexRepeat.directory, [uid, cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
@@ -5488,6 +5597,9 @@ export class CommentFactory extends FEntityFactory<Comment> {
             { name: 'child', type: 'range', fields: ['parentCommentId', 'id'] },
         ],
     };
+
+    readonly indexPeer: FEntityIndex;
+    readonly indexChild: FEntityIndex;
 
     private static validate(src: any) {
         validators.notNull('id', src.id);
@@ -5659,12 +5771,15 @@ export class CommentFactory extends FEntityFactory<Comment> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'comment'),
+        let indexPeer = new FEntityIndex(connection, 'comment', 'peer', ['peerType', 'peerId', 'id'], false);
+        let indexChild = new FEntityIndex(connection, 'comment', 'child', ['parentCommentId', 'id'], false);
+        super('Comment', 'comment', 
             { enableVersioning: true, enableTimestamps: true, validator: CommentFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'comment', 'peer', ['peerType', 'peerId', 'id'], false), new FEntityIndex(connection, 'comment', 'child', ['parentCommentId', 'id'], false)],
-            'Comment'
+            [indexPeer, indexChild],
+            connection
         );
+        this.indexPeer = indexPeer;
+        this.indexChild = indexChild;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -5683,40 +5798,40 @@ export class CommentFactory extends FEntityFactory<Comment> {
         return this._watch(ctx, [id], cb);
     }
     async allFromPeerAfter(ctx: Context, peerType: 'message', peerId: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'peer', peerType, peerId], after);
+        return await this._findRangeAllAfter(ctx, this.indexPeer.directory, [peerType, peerId], after);
     }
     async rangeFromPeerAfter(ctx: Context, peerType: 'message', peerId: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'peer', peerType, peerId], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexPeer.directory, [peerType, peerId], after, limit, reversed);
     }
     async rangeFromPeer(ctx: Context, peerType: 'message', peerId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'peer', peerType, peerId], limit, reversed);
+        return await this._findRange(ctx, this.indexPeer.directory, [peerType, peerId], limit, reversed);
     }
     async rangeFromPeerWithCursor(ctx: Context, peerType: 'message', peerId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'peer', peerType, peerId], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexPeer.directory, [peerType, peerId], limit, after, reversed);
     }
     async allFromPeer(ctx: Context, peerType: 'message', peerId: number) {
-        return await this._findAll(ctx, ['__indexes', 'peer', peerType, peerId]);
+        return await this._findAll(ctx, this.indexPeer.directory, [peerType, peerId]);
     }
     createPeerStream(peerType: 'message', peerId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'comment', '__indexes', 'peer', peerType, peerId], limit, after); 
+        return this._createStream(this.indexPeer.directory, [peerType, peerId], limit, after); 
     }
     async allFromChildAfter(ctx: Context, parentCommentId: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'child', parentCommentId], after);
+        return await this._findRangeAllAfter(ctx, this.indexChild.directory, [parentCommentId], after);
     }
     async rangeFromChildAfter(ctx: Context, parentCommentId: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'child', parentCommentId], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexChild.directory, [parentCommentId], after, limit, reversed);
     }
     async rangeFromChild(ctx: Context, parentCommentId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'child', parentCommentId], limit, reversed);
+        return await this._findRange(ctx, this.indexChild.directory, [parentCommentId], limit, reversed);
     }
     async rangeFromChildWithCursor(ctx: Context, parentCommentId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'child', parentCommentId], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexChild.directory, [parentCommentId], limit, after, reversed);
     }
     async allFromChild(ctx: Context, parentCommentId: number) {
-        return await this._findAll(ctx, ['__indexes', 'child', parentCommentId]);
+        return await this._findAll(ctx, this.indexChild.directory, [parentCommentId]);
     }
     createChildStream(parentCommentId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'comment', '__indexes', 'child', parentCommentId], limit, after); 
+        return this._createStream(this.indexChild.directory, [parentCommentId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Comment(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
@@ -5766,11 +5881,10 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'commentState'),
+        super('CommentState', 'commentState', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentStateFactory.validate, hasLiveStreams: false },
             [],
-            'CommentState'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -5837,11 +5951,10 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'commentSeq'),
+        super('CommentSeq', 'commentSeq', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentSeqFactory.validate, hasLiveStreams: false },
             [],
-            'CommentSeq'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -5927,6 +6040,8 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('peerType', src.peerType);
         validators.isString('peerType', src.peerType);
@@ -5941,12 +6056,13 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'commentEvent'),
+        let indexUser = new FEntityIndex(connection, 'commentEvent', 'user', ['peerType', 'peerId', 'seq'], false);
+        super('CommentEvent', 'commentEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: CommentEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex(connection, 'commentEvent', 'user', ['peerType', 'peerId', 'seq'], false)],
-            'CommentEvent'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 3) { throw Error('Invalid key length!'); }
@@ -5965,25 +6081,25 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         return this._watch(ctx, [peerType, peerId, seq], cb);
     }
     async allFromUserAfter(ctx: Context, peerType: string, peerId: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', peerType, peerId], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [peerType, peerId], after);
     }
     async rangeFromUserAfter(ctx: Context, peerType: string, peerId: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', peerType, peerId], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [peerType, peerId], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, peerType: string, peerId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', peerType, peerId], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [peerType, peerId], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, peerType: string, peerId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', peerType, peerId], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [peerType, peerId], limit, after, reversed);
     }
     async allFromUser(ctx: Context, peerType: string, peerId: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', peerType, peerId]);
+        return await this._findAll(ctx, this.indexUser.directory, [peerType, peerId]);
     }
     createUserStream(peerType: string, peerId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
+        return this._createStream(this.indexUser.directory, [peerType, peerId], limit, after); 
     }
     createUserLiveStream(ctx: Context, peerType: string, peerId: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, ['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
+        return this._createLiveStream(ctx, this.indexUser.directory, [peerType, peerId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new CommentEvent(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
@@ -6037,6 +6153,8 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         ],
     };
 
+    readonly indexPeer: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('peerType', src.peerType);
         validators.isString('peerType', src.peerType);
@@ -6051,12 +6169,13 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'commentsSubscription'),
+        let indexPeer = new FEntityIndex(connection, 'commentsSubscription', 'peer', ['peerType', 'peerId', 'uid'], false);
+        super('CommentsSubscription', 'commentsSubscription', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentsSubscriptionFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'commentsSubscription', 'peer', ['peerType', 'peerId', 'uid'], false)],
-            'CommentsSubscription'
+            [indexPeer],
+            connection
         );
+        this.indexPeer = indexPeer;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 3) { throw Error('Invalid key length!'); }
@@ -6075,22 +6194,22 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         return this._watch(ctx, [peerType, peerId, uid], cb);
     }
     async allFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'peer', peerType, peerId], after);
+        return await this._findRangeAllAfter(ctx, this.indexPeer.directory, [peerType, peerId], after);
     }
     async rangeFromPeerAfter(ctx: Context, peerType: string, peerId: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'peer', peerType, peerId], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexPeer.directory, [peerType, peerId], after, limit, reversed);
     }
     async rangeFromPeer(ctx: Context, peerType: string, peerId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'peer', peerType, peerId], limit, reversed);
+        return await this._findRange(ctx, this.indexPeer.directory, [peerType, peerId], limit, reversed);
     }
     async rangeFromPeerWithCursor(ctx: Context, peerType: string, peerId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'peer', peerType, peerId], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexPeer.directory, [peerType, peerId], limit, after, reversed);
     }
     async allFromPeer(ctx: Context, peerType: string, peerId: number) {
-        return await this._findAll(ctx, ['__indexes', 'peer', peerType, peerId]);
+        return await this._findAll(ctx, this.indexPeer.directory, [peerType, peerId]);
     }
     createPeerStream(peerType: string, peerId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'commentsSubscription', '__indexes', 'peer', peerType, peerId], limit, after); 
+        return this._createStream(this.indexPeer.directory, [peerType, peerId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new CommentsSubscription(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
@@ -6136,11 +6255,10 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversationSeq'),
+        super('ConversationSeq', 'conversationSeq', 
             { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate, hasLiveStreams: false },
             [],
-            'ConversationSeq'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -6224,6 +6342,8 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('cid', src.cid);
         validators.isNumber('cid', src.cid);
@@ -6236,12 +6356,13 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conversationEvent'),
+        let indexUser = new FEntityIndex(connection, 'conversationEvent', 'user', ['cid', 'seq'], false);
+        super('ConversationEvent', 'conversationEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex(connection, 'conversationEvent', 'user', ['cid', 'seq'], false)],
-            'ConversationEvent'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6260,25 +6381,25 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         return this._watch(ctx, [cid, seq], cb);
     }
     async allFromUserAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [cid], after);
     }
     async rangeFromUserAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [cid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [cid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [cid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', cid]);
+        return await this._findAll(ctx, this.indexUser.directory, [cid]);
     }
     createUserStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+        return this._createStream(this.indexUser.directory, [cid], limit, after); 
     }
     createUserLiveStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, ['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+        return this._createLiveStream(ctx, this.indexUser.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConversationEvent(ctx, this.connection, this.namespace, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
@@ -6412,6 +6533,10 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+    readonly indexConversation: FEntityIndex;
+    readonly indexUpdated: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -6428,12 +6553,17 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userDialog'),
+        let indexUser = new FEntityIndex(connection, 'userDialog', 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden);
+        let indexConversation = new FEntityIndex(connection, 'userDialog', 'conversation', ['cid', 'uid'], true);
+        let indexUpdated = new FEntityIndex(connection, 'userDialog', 'updated', ['updatedAt'], false);
+        super('UserDialog', 'userDialog', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userDialog', 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden), new FEntityIndex(connection, 'userDialog', 'conversation', ['cid', 'uid'], true), new FEntityIndex(connection, 'userDialog', 'updated', ['updatedAt'], false)],
-            'UserDialog'
+            [indexUser, indexConversation, indexUpdated],
+            connection
         );
+        this.indexUser = indexUser;
+        this.indexConversation = indexConversation;
+        this.indexUpdated = indexUpdated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6452,55 +6582,55 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         return this._watch(ctx, [uid, cid], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     async findFromConversation(ctx: Context, cid: number, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'conversation', cid, uid]);
+        return await this._findFromIndex(ctx, this.indexConversation.directory, [cid, uid]);
     }
     async allFromConversationAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'conversation', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexConversation.directory, [cid], after);
     }
     async rangeFromConversationAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'conversation', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexConversation.directory, [cid], after, limit, reversed);
     }
     async rangeFromConversation(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'conversation', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexConversation.directory, [cid], limit, reversed);
     }
     async rangeFromConversationWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'conversation', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexConversation.directory, [cid], limit, after, reversed);
     }
     async allFromConversation(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'conversation', cid]);
+        return await this._findAll(ctx, this.indexConversation.directory, [cid]);
     }
     createConversationStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'conversation', cid], limit, after); 
+        return this._createStream(this.indexConversation.directory, [cid], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserDialog(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
@@ -6541,11 +6671,10 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userDialogHandledMessage'),
+        super('UserDialogHandledMessage', 'userDialogHandledMessage', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogHandledMessageFactory.validate, hasLiveStreams: false },
             [],
-            'UserDialogHandledMessage'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -6612,11 +6741,10 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userDialogSettings'),
+        super('UserDialogSettings', 'userDialogSettings', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogSettingsFactory.validate, hasLiveStreams: false },
             [],
-            'UserDialogSettings'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -6778,6 +6906,8 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -6795,12 +6925,13 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userDialogEvent'),
+        let indexUser = new FEntityIndex(connection, 'userDialogEvent', 'user', ['uid', 'seq'], false);
+        super('UserDialogEvent', 'userDialogEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex(connection, 'userDialogEvent', 'user', ['uid', 'seq'], false)],
-            'UserDialogEvent'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6819,25 +6950,25 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         return this._watch(ctx, [uid, seq], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, ['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
+        return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserDialogEvent(ctx, this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
@@ -6939,6 +7070,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         ],
     };
 
+    readonly indexHasUnread: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -6953,12 +7086,13 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userMessagingState'),
+        let indexHasUnread = new FEntityIndex(connection, 'userMessagingState', 'hasUnread', [], false, (src) => src.unread && src.unread > 0);
+        super('UserMessagingState', 'userMessagingState', 
             { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userMessagingState', 'hasUnread', [], false, (src) => src.unread && src.unread > 0)],
-            'UserMessagingState'
+            [indexHasUnread],
+            connection
         );
+        this.indexHasUnread = indexHasUnread;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -6977,16 +7111,16 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         return this._watch(ctx, [uid], cb);
     }
     async rangeFromHasUnread(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'hasUnread'], limit, reversed);
+        return await this._findRange(ctx, this.indexHasUnread.directory, [], limit, reversed);
     }
     async rangeFromHasUnreadWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'hasUnread'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexHasUnread.directory, [], limit, after, reversed);
     }
     async allFromHasUnread(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'hasUnread']);
+        return await this._findAll(ctx, this.indexHasUnread.directory, []);
     }
     createHasUnreadStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
+        return this._createStream(this.indexHasUnread.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserMessagingState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
@@ -7089,11 +7223,10 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userNotificationsState'),
+        super('UserNotificationsState', 'userNotificationsState', 
             { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate, hasLiveStreams: false },
             [],
-            'UserNotificationsState'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -7173,6 +7306,10 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         ],
     };
 
+    readonly indexCreated: FEntityIndex;
+    readonly indexUserEvents: FEntityIndex;
+    readonly indexOnlineChangeEvents: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -7184,12 +7321,17 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'hyperLog'),
+        let indexCreated = new FEntityIndex(connection, 'hyperLog', 'created', ['createdAt'], false);
+        let indexUserEvents = new FEntityIndex(connection, 'hyperLog', 'userEvents', ['createdAt'], false, (src) => src.type === 'track');
+        let indexOnlineChangeEvents = new FEntityIndex(connection, 'hyperLog', 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status');
+        super('HyperLog', 'hyperLog', 
             { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'hyperLog', 'created', ['createdAt'], false), new FEntityIndex(connection, 'hyperLog', 'userEvents', ['createdAt'], false, (src) => src.type === 'track'), new FEntityIndex(connection, 'hyperLog', 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status')],
-            'HyperLog'
+            [indexCreated, indexUserEvents, indexOnlineChangeEvents],
+            connection
         );
+        this.indexCreated = indexCreated;
+        this.indexUserEvents = indexUserEvents;
+        this.indexOnlineChangeEvents = indexOnlineChangeEvents;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7208,40 +7350,40 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return this._watch(ctx, [id], cb);
     }
     async rangeFromCreated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'created'], limit, reversed);
+        return await this._findRange(ctx, this.indexCreated.directory, [], limit, reversed);
     }
     async rangeFromCreatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'created'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexCreated.directory, [], limit, after, reversed);
     }
     async allFromCreated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'created']);
+        return await this._findAll(ctx, this.indexCreated.directory, []);
     }
     createCreatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
+        return this._createStream(this.indexCreated.directory, [], limit, after); 
     }
     async rangeFromUserEvents(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'userEvents'], limit, reversed);
+        return await this._findRange(ctx, this.indexUserEvents.directory, [], limit, reversed);
     }
     async rangeFromUserEventsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'userEvents'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUserEvents.directory, [], limit, after, reversed);
     }
     async allFromUserEvents(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'userEvents']);
+        return await this._findAll(ctx, this.indexUserEvents.directory, []);
     }
     createUserEventsStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'hyperLog', '__indexes', 'userEvents'], limit, after); 
+        return this._createStream(this.indexUserEvents.directory, [], limit, after); 
     }
     async rangeFromOnlineChangeEvents(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'onlineChangeEvents'], limit, reversed);
+        return await this._findRange(ctx, this.indexOnlineChangeEvents.directory, [], limit, reversed);
     }
     async rangeFromOnlineChangeEventsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'onlineChangeEvents'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOnlineChangeEvents.directory, [], limit, after, reversed);
     }
     async allFromOnlineChangeEvents(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'onlineChangeEvents']);
+        return await this._findAll(ctx, this.indexOnlineChangeEvents.directory, []);
     }
     createOnlineChangeEventsStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'hyperLog', '__indexes', 'onlineChangeEvents'], limit, after); 
+        return this._createStream(this.indexOnlineChangeEvents.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new HyperLog(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
@@ -7291,11 +7433,10 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'messageDraft'),
+        super('MessageDraft', 'messageDraft', 
             { enableVersioning: true, enableTimestamps: true, validator: MessageDraftFactory.validate, hasLiveStreams: false },
             [],
-            'MessageDraft'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -7437,6 +7578,9 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         ],
     };
 
+    readonly indexChannel: FEntityIndex;
+    readonly indexUpdated: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -7455,12 +7599,15 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'channelInvitation'),
+        let indexChannel = new FEntityIndex(connection, 'channelInvitation', 'channel', ['createdAt', 'channelId'], false);
+        let indexUpdated = new FEntityIndex(connection, 'channelInvitation', 'updated', ['updatedAt'], false);
+        super('ChannelInvitation', 'channelInvitation', 
             { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'channelInvitation', 'channel', ['createdAt', 'channelId'], false), new FEntityIndex(connection, 'channelInvitation', 'updated', ['updatedAt'], false)],
-            'ChannelInvitation'
+            [indexChannel, indexUpdated],
+            connection
         );
+        this.indexChannel = indexChannel;
+        this.indexUpdated = indexUpdated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7479,34 +7626,34 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         return this._watch(ctx, [id], cb);
     }
     async allFromChannelAfter(ctx: Context, createdAt: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'channel', createdAt], after);
+        return await this._findRangeAllAfter(ctx, this.indexChannel.directory, [createdAt], after);
     }
     async rangeFromChannelAfter(ctx: Context, createdAt: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'channel', createdAt], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexChannel.directory, [createdAt], after, limit, reversed);
     }
     async rangeFromChannel(ctx: Context, createdAt: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'channel', createdAt], limit, reversed);
+        return await this._findRange(ctx, this.indexChannel.directory, [createdAt], limit, reversed);
     }
     async rangeFromChannelWithCursor(ctx: Context, createdAt: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'channel', createdAt], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexChannel.directory, [createdAt], limit, after, reversed);
     }
     async allFromChannel(ctx: Context, createdAt: number) {
-        return await this._findAll(ctx, ['__indexes', 'channel', createdAt]);
+        return await this._findAll(ctx, this.indexChannel.directory, [createdAt]);
     }
     createChannelStream(createdAt: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
+        return this._createStream(this.indexChannel.directory, [createdAt], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'channelInvitation', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ChannelInvitation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
@@ -7567,6 +7714,8 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         ],
     };
 
+    readonly indexChannel: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -7579,12 +7728,13 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'channelLink'),
+        let indexChannel = new FEntityIndex(connection, 'channelLink', 'channel', ['channelId', 'createdAt'], false);
+        super('ChannelLink', 'channelLink', 
             { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'channelLink', 'channel', ['channelId', 'createdAt'], false)],
-            'ChannelLink'
+            [indexChannel],
+            connection
         );
+        this.indexChannel = indexChannel;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7603,22 +7753,22 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         return this._watch(ctx, [id], cb);
     }
     async allFromChannelAfter(ctx: Context, channelId: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'channel', channelId], after);
+        return await this._findRangeAllAfter(ctx, this.indexChannel.directory, [channelId], after);
     }
     async rangeFromChannelAfter(ctx: Context, channelId: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'channel', channelId], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexChannel.directory, [channelId], after, limit, reversed);
     }
     async rangeFromChannel(ctx: Context, channelId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'channel', channelId], limit, reversed);
+        return await this._findRange(ctx, this.indexChannel.directory, [channelId], limit, reversed);
     }
     async rangeFromChannelWithCursor(ctx: Context, channelId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'channel', channelId], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexChannel.directory, [channelId], limit, after, reversed);
     }
     async allFromChannel(ctx: Context, channelId: number) {
-        return await this._findAll(ctx, ['__indexes', 'channel', channelId]);
+        return await this._findAll(ctx, this.indexChannel.directory, [channelId]);
     }
     createChannelStream(channelId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'channelLink', '__indexes', 'channel', channelId], limit, after); 
+        return this._createStream(this.indexChannel.directory, [channelId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ChannelLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
@@ -7657,6 +7807,8 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -7665,12 +7817,13 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'appInviteLink'),
+        let indexUser = new FEntityIndex(connection, 'appInviteLink', 'user', ['uid'], true);
+        super('AppInviteLink', 'appInviteLink', 
             { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'appInviteLink', 'user', ['uid'], true)],
-            'AppInviteLink'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7689,19 +7842,19 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return this._watch(ctx, [id], cb);
     }
     async findFromUser(ctx: Context, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'user', uid]);
+        return await this._findFromIndex(ctx, this.indexUser.directory, [uid]);
     }
     async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user'], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [], limit, after, reversed);
     }
     async allFromUser(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'user']);
+        return await this._findAll(ctx, this.indexUser.directory, []);
     }
     createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
+        return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AppInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
@@ -7747,11 +7900,10 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'sampleEntity'),
+        super('SampleEntity', 'sampleEntity', 
             { enableVersioning: true, enableTimestamps: true, validator: SampleEntityFactory.validate, hasLiveStreams: false },
             [],
-            'SampleEntity'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -7829,6 +7981,8 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         ],
     };
 
+    readonly indexUserInOrganization: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -7841,12 +7995,13 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationPublicInviteLink'),
+        let indexUserInOrganization = new FEntityIndex(connection, 'organizationPublicInviteLink', 'userInOrganization', ['uid', 'oid'], true, src => src.enabled);
+        super('OrganizationPublicInviteLink', 'organizationPublicInviteLink', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'organizationPublicInviteLink', 'userInOrganization', ['uid', 'oid'], true, src => src.enabled)],
-            'OrganizationPublicInviteLink'
+            [indexUserInOrganization],
+            connection
         );
+        this.indexUserInOrganization = indexUserInOrganization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7865,25 +8020,25 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         return this._watch(ctx, [id], cb);
     }
     async findFromUserInOrganization(ctx: Context, uid: number, oid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'userInOrganization', uid, oid]);
+        return await this._findFromIndex(ctx, this.indexUserInOrganization.directory, [uid, oid]);
     }
     async allFromUserInOrganizationAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'userInOrganization', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUserInOrganization.directory, [uid], after);
     }
     async rangeFromUserInOrganizationAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'userInOrganization', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUserInOrganization.directory, [uid], after, limit, reversed);
     }
     async rangeFromUserInOrganization(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'userInOrganization', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUserInOrganization.directory, [uid], limit, reversed);
     }
     async rangeFromUserInOrganizationWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'userInOrganization', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUserInOrganization.directory, [uid], limit, after, reversed);
     }
     async allFromUserInOrganization(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'userInOrganization', uid]);
+        return await this._findAll(ctx, this.indexUserInOrganization.directory, [uid]);
     }
     createUserInOrganizationStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationPublicInviteLink', '__indexes', 'userInOrganization', uid], limit, after); 
+        return this._createStream(this.indexUserInOrganization.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationPublicInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
@@ -8030,6 +8185,9 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         ],
     };
 
+    readonly indexOrganization: FEntityIndex;
+    readonly indexEmailInOrganization: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -8052,12 +8210,15 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'organizationInviteLink'),
+        let indexOrganization = new FEntityIndex(connection, 'organizationInviteLink', 'organization', ['oid', 'id'], true, src => src.enabled);
+        let indexEmailInOrganization = new FEntityIndex(connection, 'organizationInviteLink', 'emailInOrganization', ['email', 'oid'], true, src => src.enabled);
+        super('OrganizationInviteLink', 'organizationInviteLink', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'organizationInviteLink', 'organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex(connection, 'organizationInviteLink', 'emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
-            'OrganizationInviteLink'
+            [indexOrganization, indexEmailInOrganization],
+            connection
         );
+        this.indexOrganization = indexOrganization;
+        this.indexEmailInOrganization = indexEmailInOrganization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8076,46 +8237,46 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         return this._watch(ctx, [id], cb);
     }
     async findFromOrganization(ctx: Context, oid: number, id: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'organization', oid, id]);
+        return await this._findFromIndex(ctx, this.indexOrganization.directory, [oid, id]);
     }
     async allFromOrganizationAfter(ctx: Context, oid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', oid], after);
+        return await this._findRangeAllAfter(ctx, this.indexOrganization.directory, [oid], after);
     }
     async rangeFromOrganizationAfter(ctx: Context, oid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'organization', oid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexOrganization.directory, [oid], after, limit, reversed);
     }
     async rangeFromOrganization(ctx: Context, oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'organization', oid], limit, reversed);
+        return await this._findRange(ctx, this.indexOrganization.directory, [oid], limit, reversed);
     }
     async rangeFromOrganizationWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization', oid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [oid], limit, after, reversed);
     }
     async allFromOrganization(ctx: Context, oid: number) {
-        return await this._findAll(ctx, ['__indexes', 'organization', oid]);
+        return await this._findAll(ctx, this.indexOrganization.directory, [oid]);
     }
     createOrganizationStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
+        return this._createStream(this.indexOrganization.directory, [oid], limit, after); 
     }
     async findFromEmailInOrganization(ctx: Context, email: string, oid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'emailInOrganization', email, oid]);
+        return await this._findFromIndex(ctx, this.indexEmailInOrganization.directory, [email, oid]);
     }
     async allFromEmailInOrganizationAfter(ctx: Context, email: string, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'emailInOrganization', email], after);
+        return await this._findRangeAllAfter(ctx, this.indexEmailInOrganization.directory, [email], after);
     }
     async rangeFromEmailInOrganizationAfter(ctx: Context, email: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'emailInOrganization', email], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexEmailInOrganization.directory, [email], after, limit, reversed);
     }
     async rangeFromEmailInOrganization(ctx: Context, email: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'emailInOrganization', email], limit, reversed);
+        return await this._findRange(ctx, this.indexEmailInOrganization.directory, [email], limit, reversed);
     }
     async rangeFromEmailInOrganizationWithCursor(ctx: Context, email: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'emailInOrganization', email], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexEmailInOrganization.directory, [email], limit, after, reversed);
     }
     async allFromEmailInOrganization(ctx: Context, email: string) {
-        return await this._findAll(ctx, ['__indexes', 'emailInOrganization', email]);
+        return await this._findAll(ctx, this.indexEmailInOrganization.directory, [email]);
     }
     createEmailInOrganizationStream(email: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'emailInOrganization', email], limit, after); 
+        return this._createStream(this.indexEmailInOrganization.directory, [email], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new OrganizationInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
@@ -8176,11 +8337,10 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conferenceRoom'),
+        super('ConferenceRoom', 'conferenceRoom', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomFactory.validate, hasLiveStreams: false },
             [],
-            'ConferenceRoom'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -8282,6 +8442,10 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         ],
     };
 
+    readonly indexAuth: FEntityIndex;
+    readonly indexConference: FEntityIndex;
+    readonly indexActive: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -8298,12 +8462,17 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conferencePeer'),
+        let indexAuth = new FEntityIndex(connection, 'conferencePeer', 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled);
+        let indexConference = new FEntityIndex(connection, 'conferencePeer', 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled);
+        let indexActive = new FEntityIndex(connection, 'conferencePeer', 'active', ['keepAliveTimeout'], false, (src) => src.enabled);
+        super('ConferencePeer', 'conferencePeer', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferencePeerFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conferencePeer', 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled), new FEntityIndex(connection, 'conferencePeer', 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled), new FEntityIndex(connection, 'conferencePeer', 'active', ['keepAliveTimeout'], false, (src) => src.enabled)],
-            'ConferencePeer'
+            [indexAuth, indexConference, indexActive],
+            connection
         );
+        this.indexAuth = indexAuth;
+        this.indexConference = indexConference;
+        this.indexActive = indexActive;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8322,55 +8491,55 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         return this._watch(ctx, [id], cb);
     }
     async findFromAuth(ctx: Context, cid: number, uid: number, tid: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'auth', cid, uid, tid]);
+        return await this._findFromIndex(ctx, this.indexAuth.directory, [cid, uid, tid]);
     }
     async allFromAuthAfter(ctx: Context, cid: number, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'auth', cid, uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexAuth.directory, [cid, uid], after);
     }
     async rangeFromAuthAfter(ctx: Context, cid: number, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'auth', cid, uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexAuth.directory, [cid, uid], after, limit, reversed);
     }
     async rangeFromAuth(ctx: Context, cid: number, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'auth', cid, uid], limit, reversed);
+        return await this._findRange(ctx, this.indexAuth.directory, [cid, uid], limit, reversed);
     }
     async rangeFromAuthWithCursor(ctx: Context, cid: number, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'auth', cid, uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexAuth.directory, [cid, uid], limit, after, reversed);
     }
     async allFromAuth(ctx: Context, cid: number, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'auth', cid, uid]);
+        return await this._findAll(ctx, this.indexAuth.directory, [cid, uid]);
     }
     createAuthStream(cid: number, uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conferencePeer', '__indexes', 'auth', cid, uid], limit, after); 
+        return this._createStream(this.indexAuth.directory, [cid, uid], limit, after); 
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexConference.directory, [cid], after);
     }
     async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexConference.directory, [cid], after, limit, reversed);
     }
     async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexConference.directory, [cid], limit, reversed);
     }
     async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexConference.directory, [cid], limit, after, reversed);
     }
     async allFromConference(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+        return await this._findAll(ctx, this.indexConference.directory, [cid]);
     }
     createConferenceStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conferencePeer', '__indexes', 'conference', cid], limit, after); 
+        return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     async rangeFromActive(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'active'], limit, reversed);
+        return await this._findRange(ctx, this.indexActive.directory, [], limit, reversed);
     }
     async rangeFromActiveWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'active'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexActive.directory, [], limit, after, reversed);
     }
     async allFromActive(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'active']);
+        return await this._findAll(ctx, this.indexActive.directory, []);
     }
     createActiveStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'conferencePeer', '__indexes', 'active'], limit, after); 
+        return this._createStream(this.indexActive.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferencePeer(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
@@ -8503,6 +8672,8 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         ],
     };
 
+    readonly indexConference: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -8522,12 +8693,13 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conferenceMediaStream'),
+        let indexConference = new FEntityIndex(connection, 'conferenceMediaStream', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
+        super('ConferenceMediaStream', 'conferenceMediaStream', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceMediaStreamFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conferenceMediaStream', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
-            'ConferenceMediaStream'
+            [indexConference],
+            connection
         );
+        this.indexConference = indexConference;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8546,22 +8718,22 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         return this._watch(ctx, [id], cb);
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexConference.directory, [cid], after);
     }
     async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexConference.directory, [cid], after, limit, reversed);
     }
     async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexConference.directory, [cid], limit, reversed);
     }
     async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexConference.directory, [cid], limit, after, reversed);
     }
     async allFromConference(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+        return await this._findAll(ctx, this.indexConference.directory, [cid]);
     }
     createConferenceStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conferenceMediaStream', '__indexes', 'conference', cid], limit, after); 
+        return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferenceMediaStream(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
@@ -8661,6 +8833,8 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         ],
     };
 
+    readonly indexConference: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('peer1', src.peer1);
         validators.isNumber('peer1', src.peer1);
@@ -8677,12 +8851,13 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'conferenceConnection'),
+        let indexConference = new FEntityIndex(connection, 'conferenceConnection', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
+        super('ConferenceConnection', 'conferenceConnection', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'conferenceConnection', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
-            'ConferenceConnection'
+            [indexConference],
+            connection
         );
+        this.indexConference = indexConference;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -8701,22 +8876,22 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         return this._watch(ctx, [peer1, peer2], cb);
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+        return await this._findRangeAllAfter(ctx, this.indexConference.directory, [cid], after);
     }
     async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexConference.directory, [cid], after, limit, reversed);
     }
     async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+        return await this._findRange(ctx, this.indexConference.directory, [cid], limit, reversed);
     }
     async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexConference.directory, [cid], limit, after, reversed);
     }
     async allFromConference(ctx: Context, cid: number) {
-        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+        return await this._findAll(ctx, this.indexConference.directory, [cid]);
     }
     createConferenceStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conferenceConnection', '__indexes', 'conference', cid], limit, after); 
+        return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferenceConnection(ctx, this.connection, this.namespace, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
@@ -8747,6 +8922,9 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         ],
     };
 
+    readonly indexForward: FEntityIndex;
+    readonly indexReverse: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid1', src.uid1);
         validators.isNumber('uid1', src.uid1);
@@ -8755,12 +8933,15 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userEdge'),
+        let indexForward = new FEntityIndex(connection, 'userEdge', 'forward', ['uid1', 'uid2'], false);
+        let indexReverse = new FEntityIndex(connection, 'userEdge', 'reverse', ['uid2', 'uid1'], false);
+        super('UserEdge', 'userEdge', 
             { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userEdge', 'forward', ['uid1', 'uid2'], false), new FEntityIndex(connection, 'userEdge', 'reverse', ['uid2', 'uid1'], false)],
-            'UserEdge'
+            [indexForward, indexReverse],
+            connection
         );
+        this.indexForward = indexForward;
+        this.indexReverse = indexReverse;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -8779,40 +8960,40 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         return this._watch(ctx, [uid1, uid2], cb);
     }
     async allFromForwardAfter(ctx: Context, uid1: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'forward', uid1], after);
+        return await this._findRangeAllAfter(ctx, this.indexForward.directory, [uid1], after);
     }
     async rangeFromForwardAfter(ctx: Context, uid1: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'forward', uid1], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexForward.directory, [uid1], after, limit, reversed);
     }
     async rangeFromForward(ctx: Context, uid1: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'forward', uid1], limit, reversed);
+        return await this._findRange(ctx, this.indexForward.directory, [uid1], limit, reversed);
     }
     async rangeFromForwardWithCursor(ctx: Context, uid1: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'forward', uid1], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexForward.directory, [uid1], limit, after, reversed);
     }
     async allFromForward(ctx: Context, uid1: number) {
-        return await this._findAll(ctx, ['__indexes', 'forward', uid1]);
+        return await this._findAll(ctx, this.indexForward.directory, [uid1]);
     }
     createForwardStream(uid1: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userEdge', '__indexes', 'forward', uid1], limit, after); 
+        return this._createStream(this.indexForward.directory, [uid1], limit, after); 
     }
     async allFromReverseAfter(ctx: Context, uid2: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'reverse', uid2], after);
+        return await this._findRangeAllAfter(ctx, this.indexReverse.directory, [uid2], after);
     }
     async rangeFromReverseAfter(ctx: Context, uid2: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'reverse', uid2], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexReverse.directory, [uid2], after, limit, reversed);
     }
     async rangeFromReverse(ctx: Context, uid2: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'reverse', uid2], limit, reversed);
+        return await this._findRange(ctx, this.indexReverse.directory, [uid2], limit, reversed);
     }
     async rangeFromReverseWithCursor(ctx: Context, uid2: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'reverse', uid2], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexReverse.directory, [uid2], limit, after, reversed);
     }
     async allFromReverse(ctx: Context, uid2: number) {
-        return await this._findAll(ctx, ['__indexes', 'reverse', uid2]);
+        return await this._findAll(ctx, this.indexReverse.directory, [uid2]);
     }
     createReverseStream(uid2: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userEdge', '__indexes', 'reverse', uid2], limit, after); 
+        return this._createStream(this.indexReverse.directory, [uid2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserEdge(ctx, this.connection, this.namespace, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
@@ -8858,11 +9039,10 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userInfluencerUserIndex'),
+        super('UserInfluencerUserIndex', 'userInfluencerUserIndex', 
             { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerUserIndexFactory.validate, hasLiveStreams: false },
             [],
-            'UserInfluencerUserIndex'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -8925,11 +9105,10 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userInfluencerIndex'),
+        super('UserInfluencerIndex', 'userInfluencerIndex', 
             { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerIndexFactory.validate, hasLiveStreams: false },
             [],
-            'UserInfluencerIndex'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -8985,6 +9164,8 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         ],
     };
 
+    readonly indexKey: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -8993,12 +9174,13 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'feedSubscriber'),
+        let indexKey = new FEntityIndex(connection, 'feedSubscriber', 'key', ['key'], true);
+        super('FeedSubscriber', 'feedSubscriber', 
             { enableVersioning: true, enableTimestamps: true, validator: FeedSubscriberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'feedSubscriber', 'key', ['key'], true)],
-            'FeedSubscriber'
+            [indexKey],
+            connection
         );
+        this.indexKey = indexKey;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9017,19 +9199,19 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         return this._watch(ctx, [id], cb);
     }
     async findFromKey(ctx: Context, key: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'key', key]);
+        return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
     }
     async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'key'], limit, reversed);
+        return await this._findRange(ctx, this.indexKey.directory, [], limit, reversed);
     }
     async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'key'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexKey.directory, [], limit, after, reversed);
     }
     async allFromKey(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'key']);
+        return await this._findAll(ctx, this.indexKey.directory, []);
     }
     createKeyStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'feedSubscriber', '__indexes', 'key'], limit, after); 
+        return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedSubscriber(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
@@ -9071,6 +9253,9 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         ],
     };
 
+    readonly indexSubscriber: FEntityIndex;
+    readonly indexTopic: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('sid', src.sid);
         validators.isNumber('sid', src.sid);
@@ -9081,12 +9266,15 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'feedSubscription'),
+        let indexSubscriber = new FEntityIndex(connection, 'feedSubscription', 'subscriber', ['sid', 'tid'], false, (state) => state.enabled);
+        let indexTopic = new FEntityIndex(connection, 'feedSubscription', 'topic', ['tid', 'sid'], false, (state) => state.enabled);
+        super('FeedSubscription', 'feedSubscription', 
             { enableVersioning: false, enableTimestamps: false, validator: FeedSubscriptionFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'feedSubscription', 'subscriber', ['sid', 'tid'], false, (state) => state.enabled), new FEntityIndex(connection, 'feedSubscription', 'topic', ['tid', 'sid'], false, (state) => state.enabled)],
-            'FeedSubscription'
+            [indexSubscriber, indexTopic],
+            connection
         );
+        this.indexSubscriber = indexSubscriber;
+        this.indexTopic = indexTopic;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9105,40 +9293,40 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         return this._watch(ctx, [sid, tid], cb);
     }
     async allFromSubscriberAfter(ctx: Context, sid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'subscriber', sid], after);
+        return await this._findRangeAllAfter(ctx, this.indexSubscriber.directory, [sid], after);
     }
     async rangeFromSubscriberAfter(ctx: Context, sid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'subscriber', sid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexSubscriber.directory, [sid], after, limit, reversed);
     }
     async rangeFromSubscriber(ctx: Context, sid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'subscriber', sid], limit, reversed);
+        return await this._findRange(ctx, this.indexSubscriber.directory, [sid], limit, reversed);
     }
     async rangeFromSubscriberWithCursor(ctx: Context, sid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'subscriber', sid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexSubscriber.directory, [sid], limit, after, reversed);
     }
     async allFromSubscriber(ctx: Context, sid: number) {
-        return await this._findAll(ctx, ['__indexes', 'subscriber', sid]);
+        return await this._findAll(ctx, this.indexSubscriber.directory, [sid]);
     }
     createSubscriberStream(sid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'feedSubscription', '__indexes', 'subscriber', sid], limit, after); 
+        return this._createStream(this.indexSubscriber.directory, [sid], limit, after); 
     }
     async allFromTopicAfter(ctx: Context, tid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'topic', tid], after);
+        return await this._findRangeAllAfter(ctx, this.indexTopic.directory, [tid], after);
     }
     async rangeFromTopicAfter(ctx: Context, tid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'topic', tid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexTopic.directory, [tid], after, limit, reversed);
     }
     async rangeFromTopic(ctx: Context, tid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'topic', tid], limit, reversed);
+        return await this._findRange(ctx, this.indexTopic.directory, [tid], limit, reversed);
     }
     async rangeFromTopicWithCursor(ctx: Context, tid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'topic', tid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexTopic.directory, [tid], limit, after, reversed);
     }
     async allFromTopic(ctx: Context, tid: number) {
-        return await this._findAll(ctx, ['__indexes', 'topic', tid]);
+        return await this._findAll(ctx, this.indexTopic.directory, [tid]);
     }
     createTopicStream(tid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'feedSubscription', '__indexes', 'topic', tid], limit, after); 
+        return this._createStream(this.indexTopic.directory, [tid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedSubscription(ctx, this.connection, this.namespace, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
@@ -9177,6 +9365,8 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         ],
     };
 
+    readonly indexKey: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -9185,12 +9375,13 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'feedTopic'),
+        let indexKey = new FEntityIndex(connection, 'feedTopic', 'key', ['key'], true);
+        super('FeedTopic', 'feedTopic', 
             { enableVersioning: true, enableTimestamps: true, validator: FeedTopicFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'feedTopic', 'key', ['key'], true)],
-            'FeedTopic'
+            [indexKey],
+            connection
         );
+        this.indexKey = indexKey;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9209,19 +9400,19 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         return this._watch(ctx, [id], cb);
     }
     async findFromKey(ctx: Context, key: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'key', key]);
+        return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
     }
     async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'key'], limit, reversed);
+        return await this._findRange(ctx, this.indexKey.directory, [], limit, reversed);
     }
     async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'key'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexKey.directory, [], limit, after, reversed);
     }
     async allFromKey(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'key']);
+        return await this._findAll(ctx, this.indexKey.directory, []);
     }
     createKeyStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'feedTopic', '__indexes', 'key'], limit, after); 
+        return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedTopic(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
@@ -9283,6 +9474,9 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         ],
     };
 
+    readonly indexTopic: FEntityIndex;
+    readonly indexUpdated: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -9294,12 +9488,15 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'feedEvent'),
+        let indexTopic = new FEntityIndex(connection, 'feedEvent', 'topic', ['tid', 'createdAt'], false);
+        let indexUpdated = new FEntityIndex(connection, 'feedEvent', 'updated', ['updatedAt'], false);
+        super('FeedEvent', 'feedEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: FeedEventFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'feedEvent', 'topic', ['tid', 'createdAt'], false), new FEntityIndex(connection, 'feedEvent', 'updated', ['updatedAt'], false)],
-            'FeedEvent'
+            [indexTopic, indexUpdated],
+            connection
         );
+        this.indexTopic = indexTopic;
+        this.indexUpdated = indexUpdated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9318,34 +9515,34 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         return this._watch(ctx, [id], cb);
     }
     async allFromTopicAfter(ctx: Context, tid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'topic', tid], after);
+        return await this._findRangeAllAfter(ctx, this.indexTopic.directory, [tid], after);
     }
     async rangeFromTopicAfter(ctx: Context, tid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'topic', tid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexTopic.directory, [tid], after, limit, reversed);
     }
     async rangeFromTopic(ctx: Context, tid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'topic', tid], limit, reversed);
+        return await this._findRange(ctx, this.indexTopic.directory, [tid], limit, reversed);
     }
     async rangeFromTopicWithCursor(ctx: Context, tid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'topic', tid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexTopic.directory, [tid], limit, after, reversed);
     }
     async allFromTopic(ctx: Context, tid: number) {
-        return await this._findAll(ctx, ['__indexes', 'topic', tid]);
+        return await this._findAll(ctx, this.indexTopic.directory, [tid]);
     }
     createTopicStream(tid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'feedEvent', '__indexes', 'topic', tid], limit, after); 
+        return this._createStream(this.indexTopic.directory, [tid], limit, after); 
     }
     async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
     }
     async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
     }
     async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'updated']);
+        return await this._findAll(ctx, this.indexUpdated.directory, []);
     }
     createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'feedEvent', '__indexes', 'updated'], limit, after); 
+        return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new FeedEvent(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
@@ -9386,6 +9583,8 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         ],
     };
 
+    readonly indexKey: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('appId', src.appId);
         validators.isNumber('appId', src.appId);
@@ -9396,12 +9595,13 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'appHook'),
+        let indexKey = new FEntityIndex(connection, 'appHook', 'key', ['key'], true);
+        super('AppHook', 'appHook', 
             { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'appHook', 'key', ['key'], true)],
-            'AppHook'
+            [indexKey],
+            connection
         );
+        this.indexKey = indexKey;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9420,19 +9620,19 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         return this._watch(ctx, [appId, chatId], cb);
     }
     async findFromKey(ctx: Context, key: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'key', key]);
+        return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
     }
     async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'key'], limit, reversed);
+        return await this._findRange(ctx, this.indexKey.directory, [], limit, reversed);
     }
     async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'key'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexKey.directory, [], limit, after, reversed);
     }
     async allFromKey(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'key']);
+        return await this._findAll(ctx, this.indexKey.directory, []);
     }
     createKeyStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'appHook', '__indexes', 'key'], limit, after); 
+        return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AppHook(ctx, this.connection, this.namespace, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
@@ -9471,6 +9671,8 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         ],
     };
 
+    readonly indexNamespace: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -9479,12 +9681,13 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userStorageNamespace'),
+        let indexNamespace = new FEntityIndex(connection, 'userStorageNamespace', 'namespace', ['ns'], true);
+        super('UserStorageNamespace', 'userStorageNamespace', 
             { enableVersioning: true, enableTimestamps: true, validator: UserStorageNamespaceFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userStorageNamespace', 'namespace', ['ns'], true)],
-            'UserStorageNamespace'
+            [indexNamespace],
+            connection
         );
+        this.indexNamespace = indexNamespace;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9503,19 +9706,19 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         return this._watch(ctx, [id], cb);
     }
     async findFromNamespace(ctx: Context, ns: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'namespace', ns]);
+        return await this._findFromIndex(ctx, this.indexNamespace.directory, [ns]);
     }
     async rangeFromNamespace(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'namespace'], limit, reversed);
+        return await this._findRange(ctx, this.indexNamespace.directory, [], limit, reversed);
     }
     async rangeFromNamespaceWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'namespace'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexNamespace.directory, [], limit, after, reversed);
     }
     async allFromNamespace(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'namespace']);
+        return await this._findAll(ctx, this.indexNamespace.directory, []);
     }
     createNamespaceStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userStorageNamespace', '__indexes', 'namespace'], limit, after); 
+        return this._createStream(this.indexNamespace.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserStorageNamespace(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
@@ -9580,6 +9783,8 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         ],
     };
 
+    readonly indexKey: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -9593,12 +9798,13 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userStorageRecord'),
+        let indexKey = new FEntityIndex(connection, 'userStorageRecord', 'key', ['uid', 'ns', 'key'], true);
+        super('UserStorageRecord', 'userStorageRecord', 
             { enableVersioning: true, enableTimestamps: true, validator: UserStorageRecordFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userStorageRecord', 'key', ['uid', 'ns', 'key'], true)],
-            'UserStorageRecord'
+            [indexKey],
+            connection
         );
+        this.indexKey = indexKey;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9617,25 +9823,25 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         return this._watch(ctx, [uid, id], cb);
     }
     async findFromKey(ctx: Context, uid: number, ns: number, key: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'key', uid, ns, key]);
+        return await this._findFromIndex(ctx, this.indexKey.directory, [uid, ns, key]);
     }
     async allFromKeyAfter(ctx: Context, uid: number, ns: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'key', uid, ns], after);
+        return await this._findRangeAllAfter(ctx, this.indexKey.directory, [uid, ns], after);
     }
     async rangeFromKeyAfter(ctx: Context, uid: number, ns: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'key', uid, ns], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexKey.directory, [uid, ns], after, limit, reversed);
     }
     async rangeFromKey(ctx: Context, uid: number, ns: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'key', uid, ns], limit, reversed);
+        return await this._findRange(ctx, this.indexKey.directory, [uid, ns], limit, reversed);
     }
     async rangeFromKeyWithCursor(ctx: Context, uid: number, ns: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'key', uid, ns], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexKey.directory, [uid, ns], limit, after, reversed);
     }
     async allFromKey(ctx: Context, uid: number, ns: number) {
-        return await this._findAll(ctx, ['__indexes', 'key', uid, ns]);
+        return await this._findAll(ctx, this.indexKey.directory, [uid, ns]);
     }
     createKeyStream(uid: number, ns: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userStorageRecord', '__indexes', 'key', uid, ns], limit, after); 
+        return this._createStream(this.indexKey.directory, [uid, ns], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserStorageRecord(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
@@ -9676,6 +9882,8 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -9686,12 +9894,13 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'discoverUserPickedTags'),
+        let indexUser = new FEntityIndex(connection, 'discoverUserPickedTags', 'user', ['uid', 'id'], true, (src) => !src.deleted);
+        super('DiscoverUserPickedTags', 'discoverUserPickedTags', 
             { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'discoverUserPickedTags', 'user', ['uid', 'id'], true, (src) => !src.deleted)],
-            'DiscoverUserPickedTags'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9710,25 +9919,25 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         return this._watch(ctx, [uid, id], cb);
     }
     async findFromUser(ctx: Context, uid: number, id: string) {
-        return await this._findFromIndex(ctx, ['__indexes', 'user', uid, id]);
+        return await this._findFromIndex(ctx, this.indexUser.directory, [uid, id]);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'discoverUserPickedTags', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new DiscoverUserPickedTags(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
@@ -9771,6 +9980,8 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -9780,12 +9991,13 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'debugEvent'),
+        let indexUser = new FEntityIndex(connection, 'debugEvent', 'user', ['uid', 'seq'], false);
+        super('DebugEvent', 'debugEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex(connection, 'debugEvent', 'user', ['uid', 'seq'], false)],
-            'DebugEvent'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9804,25 +10016,25 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         return this._watch(ctx, [uid, seq], cb);
     }
     async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
     }
     async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
     }
     async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
     }
     async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
     }
     createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, ['entity', 'debugEvent', '__indexes', 'user', uid], limit, after); 
+        return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new DebugEvent(ctx, this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
@@ -9868,11 +10080,10 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'debugEventState'),
+        super('DebugEventState', 'debugEventState', 
             { enableVersioning: true, enableTimestamps: true, validator: DebugEventStateFactory.validate, hasLiveStreams: false },
             [],
-            'DebugEventState'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -9935,11 +10146,10 @@ export class NotificationCenterFactory extends FEntityFactory<NotificationCenter
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'notificationCenter'),
+        super('NotificationCenter', 'notificationCenter', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterFactory.validate, hasLiveStreams: false },
             [],
-            'NotificationCenter'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -9995,6 +10205,8 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         ],
     };
 
+    readonly indexUser: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -10003,12 +10215,13 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'userNotificationCenter'),
+        let indexUser = new FEntityIndex(connection, 'userNotificationCenter', 'user', ['uid'], true);
+        super('UserNotificationCenter', 'userNotificationCenter', 
             { enableVersioning: true, enableTimestamps: true, validator: UserNotificationCenterFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'userNotificationCenter', 'user', ['uid'], true)],
-            'UserNotificationCenter'
+            [indexUser],
+            connection
         );
+        this.indexUser = indexUser;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10027,19 +10240,19 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         return this._watch(ctx, [id], cb);
     }
     async findFromUser(ctx: Context, uid: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'user', uid]);
+        return await this._findFromIndex(ctx, this.indexUser.directory, [uid]);
     }
     async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'user'], limit, reversed);
+        return await this._findRange(ctx, this.indexUser.directory, [], limit, reversed);
     }
     async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'user'], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [], limit, after, reversed);
     }
     async allFromUser(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'user']);
+        return await this._findAll(ctx, this.indexUser.directory, []);
     }
     createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userNotificationCenter', '__indexes', 'user'], limit, after); 
+        return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserNotificationCenter(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserNotificationCenter');
@@ -10117,6 +10330,8 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         ],
     };
 
+    readonly indexNotificationCenter: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -10133,12 +10348,13 @@ export class NotificationFactory extends FEntityFactory<Notification> {
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'notification'),
+        let indexNotificationCenter = new FEntityIndex(connection, 'notification', 'notificationCenter', ['ncid', 'id'], false);
+        super('Notification', 'notification', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex(connection, 'notification', 'notificationCenter', ['ncid', 'id'], false)],
-            'Notification'
+            [indexNotificationCenter],
+            connection
         );
+        this.indexNotificationCenter = indexNotificationCenter;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10157,22 +10373,22 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         return this._watch(ctx, [id], cb);
     }
     async allFromNotificationCenterAfter(ctx: Context, ncid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'notificationCenter', ncid], after);
+        return await this._findRangeAllAfter(ctx, this.indexNotificationCenter.directory, [ncid], after);
     }
     async rangeFromNotificationCenterAfter(ctx: Context, ncid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'notificationCenter', ncid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexNotificationCenter.directory, [ncid], after, limit, reversed);
     }
     async rangeFromNotificationCenter(ctx: Context, ncid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'notificationCenter', ncid], limit, reversed);
+        return await this._findRange(ctx, this.indexNotificationCenter.directory, [ncid], limit, reversed);
     }
     async rangeFromNotificationCenterWithCursor(ctx: Context, ncid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'notificationCenter', ncid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexNotificationCenter.directory, [ncid], limit, after, reversed);
     }
     async allFromNotificationCenter(ctx: Context, ncid: number) {
-        return await this._findAll(ctx, ['__indexes', 'notificationCenter', ncid]);
+        return await this._findAll(ctx, this.indexNotificationCenter.directory, [ncid]);
     }
     createNotificationCenterStream(ncid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'notification', '__indexes', 'notificationCenter', ncid], limit, after); 
+        return this._createStream(this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Notification(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Notification');
@@ -10232,11 +10448,10 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'notificationCenterState'),
+        super('NotificationCenterState', 'notificationCenterState', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterStateFactory.validate, hasLiveStreams: false },
             [],
-            'NotificationCenterState'
+            connection
         );
     }
     extractId(rawId: any[]) {
@@ -10307,6 +10522,8 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         ],
     };
 
+    readonly indexNotificationCenter: FEntityIndex;
+
     private static validate(src: any) {
         validators.notNull('ncid', src.ncid);
         validators.isNumber('ncid', src.ncid);
@@ -10318,12 +10535,13 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
     }
 
     constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace(connection, 'entity', 'notificationCenterEvent'),
+        let indexNotificationCenter = new FEntityIndex(connection, 'notificationCenterEvent', 'notificationCenter', ['ncid', 'seq'], false);
+        super('NotificationCenterEvent', 'notificationCenterEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterEventFactory.validate, hasLiveStreams: true },
-            [new FEntityIndex(connection, 'notificationCenterEvent', 'notificationCenter', ['ncid', 'seq'], false)],
-            'NotificationCenterEvent'
+            [indexNotificationCenter],
+            connection
         );
+        this.indexNotificationCenter = indexNotificationCenter;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -10342,25 +10560,25 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return this._watch(ctx, [ncid, seq], cb);
     }
     async allFromNotificationCenterAfter(ctx: Context, ncid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, ['__indexes', 'notificationCenter', ncid], after);
+        return await this._findRangeAllAfter(ctx, this.indexNotificationCenter.directory, [ncid], after);
     }
     async rangeFromNotificationCenterAfter(ctx: Context, ncid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, ['__indexes', 'notificationCenter', ncid], after, limit, reversed);
+        return await this._findRangeAfter(ctx, this.indexNotificationCenter.directory, [ncid], after, limit, reversed);
     }
     async rangeFromNotificationCenter(ctx: Context, ncid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'notificationCenter', ncid], limit, reversed);
+        return await this._findRange(ctx, this.indexNotificationCenter.directory, [ncid], limit, reversed);
     }
     async rangeFromNotificationCenterWithCursor(ctx: Context, ncid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'notificationCenter', ncid], limit, after, reversed);
+        return await this._findRangeWithCursor(ctx, this.indexNotificationCenter.directory, [ncid], limit, after, reversed);
     }
     async allFromNotificationCenter(ctx: Context, ncid: number) {
-        return await this._findAll(ctx, ['__indexes', 'notificationCenter', ncid]);
+        return await this._findAll(ctx, this.indexNotificationCenter.directory, [ncid]);
     }
     createNotificationCenterStream(ncid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'notificationCenterEvent', '__indexes', 'notificationCenter', ncid], limit, after); 
+        return this._createStream(this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     createNotificationCenterLiveStream(ctx: Context, ncid: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, ['entity', 'notificationCenterEvent', '__indexes', 'notificationCenter', ncid], limit, after); 
+        return this._createLiveStream(ctx, this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new NotificationCenterEvent(ctx, this.connection, this.namespace, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');

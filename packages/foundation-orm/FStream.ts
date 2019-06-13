@@ -3,8 +3,7 @@ import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
 import { FSubspace } from './FSubspace';
 import { FTuple } from './encoding/FTuple';
-import { FEncoders } from './encoding/FEncoders';
-import { fixObsoleteCursor } from './utils/fixObsoleteKey';
+// import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { inTx } from './inTx';
 import { Context } from '@openland/context';
 
@@ -12,16 +11,13 @@ export class FStream<T extends FEntity> {
     readonly factory: FEntityFactory<T>;
     private readonly limit: number;
     private readonly builder: (val: any, ctx: Context) => T;
-    private _subspace: FTuple[];
+    // private _subspace: FTuple[];
     private keySpace: FSubspace<FTuple[], any>;
     private _cursor: string;
 
-    constructor(factory: FEntityFactory<T>, subspace: FTuple[], limit: number, builder: (val: any, ctx: Context) => T, after?: string) {
-        this._subspace = subspace;
+    constructor(factory: FEntityFactory<T>, keySpace: FSubspace<FTuple[], any>, subspace: FTuple[], limit: number, builder: (val: any, ctx: Context) => T, after?: string) {
         this._cursor = after || '';
-        this.keySpace = factory.connection.keySpace
-            .withKeyEncoding(FEncoders.tuple)
-            .withValueEncoding(FEncoders.json)
+        this.keySpace = keySpace
             .subspace(subspace);
         this.limit = limit;
         this.factory = factory;
@@ -52,7 +48,7 @@ export class FStream<T extends FEntity> {
     async next(parent: Context): Promise<T[]> {
         if (this._cursor && this._cursor !== '') {
 
-            let fixedCursor = fixObsoleteCursor(FKeyEncoding.decodeFromString(this._cursor), this._subspace, []);
+            let fixedCursor = FKeyEncoding.decodeFromString(this._cursor); // fixObsoleteCursor(FKeyEncoding.decodeFromString(this._cursor), this._subspace, []);
             let res = await inTx(parent, async (ctx) => await this.keySpace.range(ctx, [], { limit: this.limit, after: fixedCursor }));
             let d: T[] = [];
             for (let r of res) {
