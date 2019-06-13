@@ -51,9 +51,11 @@ export const FKeyEncoding = {
     },
     lastKeyInSubspace: (key: (string | boolean | number)[]) => {
         let r = encoders.tuple.pack(key) as Buffer;
+        // Invalid!
         return Buffer.concat([r, byteFF]);
     },
     lastKeyInSubspaceBuf: (key: Buffer) => {
+        // Invalid!
         return Buffer.concat([key, byteFF]);
     },
     firstKeyInSubspace: (key: (string | boolean | number)[]) => {

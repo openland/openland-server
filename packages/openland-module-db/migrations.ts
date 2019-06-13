@@ -923,7 +923,9 @@ migrations.push({
                 batchSize = 1000;
             }
 
+            log.log(ctx, 'Begin entity sync');
             await copyEntity(ctx, log, v.namespace.keySpaceRaw, v.directoryRaw, batchSize);
+            log.log(ctx, 'Sync entity completed');
         }
     }
 });
