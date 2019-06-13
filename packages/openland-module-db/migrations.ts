@@ -923,6 +923,8 @@ migrations.push({
                 batchSize = 1000;
             } else if (v.name === FDB.Task.name) {
                 batchSize = 1000;
+            } else if (v.name === FDB.Message.name) {
+                batchSize = 1000;
             }
 
             log.log(ctx, 'Begin entity sync');
