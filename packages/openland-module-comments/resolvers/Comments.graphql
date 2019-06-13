@@ -1,5 +1,3 @@
-union CommentPeerRoot = GeneralMessage
-
 type CommentsPeer {
     id: ID!
     state: CommentUpdatesState!
@@ -15,6 +13,13 @@ type CommentEntry {
     comment: GeneralMessage!
     parentComment: CommentEntry
     childComments: [CommentEntry!]!
+}
+
+union CommentPeerRoot = CommentPeerRootMessage
+
+type CommentPeerRootMessage {
+    message: GeneralMessage!
+    chat: Room!
 }
 
 enum CommentSubscriptionType {

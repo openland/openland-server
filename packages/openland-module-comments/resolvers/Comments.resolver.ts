@@ -50,11 +50,15 @@ export default {
     CommentPeerRoot: {
         __resolveType(obj: any) {
             if (obj instanceof Message) {
-                return 'GeneralMessage';
+                return 'CommentPeerRootMessage';
             } else {
                 throw new Error('Unknown comments peer root type: ' + obj);
             }
         }
+    },
+    CommentPeerRootMessage: {
+        message: src => src,
+        chat: src => src.cid
     },
     CommentSubscription: {
         type: src => src.kind.toUpperCase()

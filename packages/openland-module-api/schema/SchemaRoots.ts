@@ -273,6 +273,7 @@ export namespace GQLRoots {
     export type CommentUpdatesStateRoot = { state: string };
     export type CommentPeerRootRoot = Message;
     export type CommentSubscriptionRoot = CommentsSubscription;
+    export type CommentPeerRootMessageRoot = Message;
 
     //
     // Discover
