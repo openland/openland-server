@@ -49,7 +49,7 @@ export function createAppleWorker(repo: PushRepository) {
                         not.badge = task.badge;
                     }
                     if (task.payload) {
-                        not.payload = JSON.stringify(task.payload);
+                        not.payload = task.payload;
                     }
                     if (task.expirity) {
                         not.expiry = task.expirity;
