@@ -136,13 +136,18 @@ const saveEvents = async (ctx: Context, events: any[]) => {
 
 export function declareBatchAmplitudeIndexer() {
     updateReader('amplitude-batch-indexer', 7, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
-        await inTx(parent, async (ctx) => {
+        let exportedCount = await inTx(parent, async (ctx) => {
+            let exCount = 0;
             let eventsProd = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === true));
             log.debug(ctx, 'prod events length: ', eventsProd.length);
             if (eventsProd.length > 0) {
                 await saveEvents(ctx, eventsProd);
+                exCount += eventsProd.length;
             }
+            return exCount;
         });
-        await delay(5000);
+        if (exportedCount > 500) {
+            await delay(5000);
+        }
     });
 }
