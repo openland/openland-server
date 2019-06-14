@@ -4,6 +4,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
+import { Notification } from '../../openland-module-db/schema';
 
 export default {
     NotificationCenter: {
@@ -47,6 +48,11 @@ export default {
         },
     },
 
+    NotificationConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor
+    },
+
     Query: {
         myNotificationCenter: withUser(async (ctx, args, uid) => {
             return await Modules.NotificationCenter.notificationCenterForUser(ctx, uid);
@@ -57,10 +63,18 @@ export default {
             if (!args.first || args.first <= 0) {
                 return [];
             }
+            let items: Notification[] = [];
             if (args.before && await FDB.Notification.findById(ctx, beforeId!)) {
-                return await FDB.Notification.rangeFromNotificationCenterAfter(ctx, center.id, beforeId!, args.first!, true);
+                items = await FDB.Notification.rangeFromNotificationCenterAfter(ctx, center.id, beforeId!, args.first!, true);
+            } else {
+                items = await FDB.Notification.rangeFromNotificationCenter(ctx, center.id, args.first, true);
             }
-            return await FDB.Notification.rangeFromNotificationCenter(ctx, center.id, args.first, true);
+            let haveMore = items.length >= args.first && (await FDB.Notification.rangeFromNotificationCenterAfter(ctx, center.id, items[args.first - 1].id, 1, true)).length > 0;
+
+            return {
+                items: items,
+                cursor: haveMore ? IDs.Notification.serialize(items[args.first - 1].id) : undefined
+            };
         }),
     },
     Mutation: {

@@ -17,9 +17,14 @@ type NewCommentNotification {
     comment: CommentEntry!
 }
 
+type NotificationConnection {
+    items: [Notification!]!
+    cursor: String
+}
+
 extend type Query {
     myNotificationCenter: NotificationCenter!
-    myNotifications(first: Int!, before: ID): [Notification!]!
+    myNotifications(first: Int!, before: ID): NotificationConnection!
 }
 
 extend type Mutation {
