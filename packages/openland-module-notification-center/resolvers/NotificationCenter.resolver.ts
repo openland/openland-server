@@ -72,6 +72,10 @@ export default {
             await Modules.NotificationCenter.deleteUserNotification(ctx, IDs.Notification.parse(args.notificationId), uid);
             return true;
         }),
+        notificationCenterMarkSeqRead: withUser(async (ctx, args, uid) => {
+            await Modules.NotificationCenter.markAsSeqRead(ctx, uid, args.toSeq);
+            return true;
+        }),
         debugCreateNotification: withUser(async (ctx, args, uid) => {
             await Modules.NotificationCenter.sendNotification(ctx, IDs.User.parse(args.uid), {text: args.text});
             return true;

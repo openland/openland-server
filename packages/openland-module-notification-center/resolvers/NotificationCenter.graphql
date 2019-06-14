@@ -25,5 +25,6 @@ extend type Query {
 extend type Mutation {
     readNotification(notificationId: ID!): NotificationCenter!
     deleteNotification(notificationId: ID!): Boolean!
+    notificationCenterMarkSeqRead(toSeq: Int!): Boolean!
     debugCreateNotification(uid: ID!, text: String!): Boolean!
 }

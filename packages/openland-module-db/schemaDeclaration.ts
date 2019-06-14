@@ -1200,6 +1200,12 @@ const Schema = declareSchema(() => {
         field('seq', 'number');
         field('readNotificationId', 'number').nullable();
 
+        field('readSeq', 'number').nullable();
+        field('lastEmailNotification', 'number').nullable();
+        field('lastPushNotification', 'number').nullable();
+        field('lastEmailSeq', 'number').nullable();
+        field('lastPushSeq', 'number').nullable();
+
         enableVersioning();
         enableTimestamps();
     });
@@ -1219,6 +1225,8 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    directory('NotificationCenterNeedDeliveryFlag');
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

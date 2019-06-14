@@ -6,6 +6,7 @@ import { Context } from '@openland/context';
 import { inTx } from '../../foundation-orm/inTx';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { NeedDeliveryRepository } from '../repositories/NeedDeliveryRepository';
 
 @injectable()
 export class NotificationCenterMediator {
@@ -13,6 +14,8 @@ export class NotificationCenterMediator {
     private readonly repo!: NotificationCenterRepository;
     @lazyInject('FDB')
     private readonly fdb!: AllEntities;
+    @lazyInject('NeedDeliveryRepository')
+    private readonly needDelivery!: NeedDeliveryRepository;
 
     async sendNotification(parent: Context, uid: number, notificationInput: NotificationInput) {
         return await inTx(parent, async (ctx) => {
@@ -21,7 +24,12 @@ export class NotificationCenterMediator {
             //
             // Create notification
             //
-            return await this.repo.createNotification(ctx, notificationCenter.id, notificationInput);
+            let res = await this.repo.createNotification(ctx, notificationCenter.id, notificationInput);
+
+            // Mark user as needed notification
+            await this.needDelivery.setNeedNotificationDelivery(ctx, uid);
+
+            return res;
         });
     }
 
@@ -56,6 +64,20 @@ export class NotificationCenterMediator {
             }
 
             return this.repo.deleteNotification(ctx, nid);
+        });
+    }
+
+    async markAsSeqRead(parent: Context, uid: number, toSeq: number) {
+        return await inTx(parent, async (ctx) => {
+            let userNotificationCenter = await this.notificationCenterForUser(ctx, uid);
+            return this.repo.markAsSeqRead(ctx, userNotificationCenter.id, toSeq);
+        });
+    }
+
+    async getNotificationStateForUser(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let userNotificationCenter = await this.notificationCenterForUser(ctx, uid);
+            return this.repo.getNotificationState(ctx, userNotificationCenter.id);
         });
     }
 }

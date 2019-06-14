@@ -124,4 +124,5 @@ export async function startAllModules() {
     await container.get(AppsModule).start();
     await container.get(CommentsModule).start();
     await container.get(DiscoverModule).start();
+    await container.get(NotificationCenterModule).start();
 }

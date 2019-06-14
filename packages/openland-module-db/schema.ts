@@ -10397,6 +10397,11 @@ export class NotificationFactory extends FEntityFactory<Notification> {
 export interface NotificationCenterStateShape {
     seq: number;
     readNotificationId?: number| null;
+    readSeq?: number| null;
+    lastEmailNotification?: number| null;
+    lastPushNotification?: number| null;
+    lastEmailSeq?: number| null;
+    lastPushSeq?: number| null;
 }
 
 export class NotificationCenterState extends FEntity {
@@ -10422,6 +10427,61 @@ export class NotificationCenterState extends FEntity {
         this._value.readNotificationId = value;
         this.markDirty();
     }
+    get readSeq(): number | null {
+        let res = this._value.readSeq;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set readSeq(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.readSeq) { return; }
+        this._value.readSeq = value;
+        this.markDirty();
+    }
+    get lastEmailNotification(): number | null {
+        let res = this._value.lastEmailNotification;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set lastEmailNotification(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastEmailNotification) { return; }
+        this._value.lastEmailNotification = value;
+        this.markDirty();
+    }
+    get lastPushNotification(): number | null {
+        let res = this._value.lastPushNotification;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set lastPushNotification(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastPushNotification) { return; }
+        this._value.lastPushNotification = value;
+        this.markDirty();
+    }
+    get lastEmailSeq(): number | null {
+        let res = this._value.lastEmailSeq;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set lastEmailSeq(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastEmailSeq) { return; }
+        this._value.lastEmailSeq = value;
+        this.markDirty();
+    }
+    get lastPushSeq(): number | null {
+        let res = this._value.lastPushSeq;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set lastPushSeq(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastPushSeq) { return; }
+        this._value.lastPushSeq = value;
+        this.markDirty();
+    }
 }
 
 export class NotificationCenterStateFactory extends FEntityFactory<NotificationCenterState> {
@@ -10434,6 +10494,11 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
         fields: [
             { name: 'seq', type: 'number' },
             { name: 'readNotificationId', type: 'number' },
+            { name: 'readSeq', type: 'number' },
+            { name: 'lastEmailNotification', type: 'number' },
+            { name: 'lastPushNotification', type: 'number' },
+            { name: 'lastEmailSeq', type: 'number' },
+            { name: 'lastPushSeq', type: 'number' },
         ],
         indexes: [
         ],
@@ -10445,6 +10510,11 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
         validators.notNull('seq', src.seq);
         validators.isNumber('seq', src.seq);
         validators.isNumber('readNotificationId', src.readNotificationId);
+        validators.isNumber('readSeq', src.readSeq);
+        validators.isNumber('lastEmailNotification', src.lastEmailNotification);
+        validators.isNumber('lastPushNotification', src.lastPushNotification);
+        validators.isNumber('lastEmailSeq', src.lastEmailSeq);
+        validators.isNumber('lastPushSeq', src.lastPushSeq);
     }
 
     constructor(connection: FConnection) {
@@ -10653,6 +10723,7 @@ export interface AllEntities {
     readonly connection: FConnection;
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: FDirectory;
+    readonly NotificationCenterNeedDeliveryFlagDirectory: FDirectory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
@@ -10827,6 +10898,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     ];
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: FDirectory;
+    readonly NotificationCenterNeedDeliveryFlagDirectory: FDirectory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
@@ -11087,6 +11159,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.UserDialogHaveMention = new UserDialogHaveMentionFactory(connection);
         this.NotificationCenterCounter = new NotificationCenterCounterFactory(connection);
         this.NeedNotificationFlagDirectory = connection.directories.getDirectory(['custom', 'needNotificationFlag']);
+        this.NotificationCenterNeedDeliveryFlagDirectory = connection.directories.getDirectory(['custom', 'notificationCenterNeedDeliveryFlag']);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -11359,6 +11432,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get NeedNotificationFlagDirectory(): FDirectory {
         return this.resolver().NeedNotificationFlagDirectory;
+    }
+    get NotificationCenterNeedDeliveryFlagDirectory(): FDirectory {
+        return this.resolver().NotificationCenterNeedDeliveryFlagDirectory;
     }
     get allEntities(): FEntityFactory<FEntity>[] {
         return this.resolver().allEntities;

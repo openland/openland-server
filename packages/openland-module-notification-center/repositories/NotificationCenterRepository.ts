@@ -152,6 +152,18 @@ export class NotificationCenterRepository {
         });
     }
 
+    async markAsSeqRead(parent: Context, ncid: number, toSeq: number) {
+        await inTx(parent, async (ctx) => {
+            let state = await this.getNotificationState(ctx, ncid);
+            if (toSeq > state.seq) {
+                state.readSeq = state.seq;
+            } else {
+                state.readSeq = toSeq;
+            }
+            await state.flush(ctx);
+        });
+    }
+
     private async fetchNotificationId(parent: Context) {
         return fetchNextDBSeq(parent, 'notification-id');
     }
