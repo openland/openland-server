@@ -7,7 +7,7 @@ type NotificationCenter {
 type Notification {
     id: ID!
     text: String
-    content: [NotificationContent]
+    content: [NotificationContent!]!
 }
 
 union NotificationContent = NewCommentNotification

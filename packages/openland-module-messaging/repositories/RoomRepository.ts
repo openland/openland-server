@@ -972,7 +972,7 @@ export class RoomRepository {
             let userAsMember = (await this.entities.RoomParticipant.findById(parent, rid, uid));
             if (
                 (!conv || conv.archived || conv.deleted) ||
-                (userAsMember && (userAsMember.status === 'left' || userAsMember.status === 'kicked' || userAsMember.status === 'joined'))
+                (userAsMember && (userAsMember.status === 'left' || userAsMember.status === 'kicked'))
             ) {
                 continue;
             }

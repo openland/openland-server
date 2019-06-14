@@ -109,9 +109,9 @@ export class UserRepository {
             }
 
             await validate(
-              stringNotEmpty('First name can\'t be empty!'),
-              input.firstName,
-              'input.firstName'
+                stringNotEmpty('First name can\'t be empty!'),
+                input.firstName,
+                'input.firstName'
             );
 
             // Create pfofile
@@ -179,11 +179,8 @@ export class UserRepository {
     }
 
     async waitForNextSettings(ctx: Context, uid: number) {
-        await new Promise<number>((resolver) =>
-          this.entities.UserSettings.watch(ctx, uid, () => {
-              resolver();
-          })
-        );
+        let w = await inTx(ctx, async (ctx2) => this.entities.UserSettings.watch(ctx2, uid));
+        await w.promise;
     }
 
     /*

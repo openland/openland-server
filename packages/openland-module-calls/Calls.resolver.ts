@@ -8,6 +8,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { inTx } from 'foundation-orm/inTx';
 
 export default {
     Conference: {
@@ -237,17 +238,19 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { id: string }, ctx: AppContext) {
+            subscribe: async function (_: any, args: { id: string }, parent: AppContext) {
                 let cid = IDs.Conference.parse(args.id);
                 let ended = false;
                 return {
                     ...(async function* func() {
                         while (!ended) {
-                            let settings = await FDB.ConferenceRoom.findById(ctx, cid);
-                            yield settings;
-                            await new Promise((resolve) => FDB.ConferenceRoom.watch(ctx, cid, () => {
-                                resolve();
-                            }));
+                            let r = await inTx(parent, async (ctx) => {
+                                let settings = await FDB.ConferenceRoom.findById(ctx, cid);
+                                let watch = FDB.ConferenceRoom.watch(ctx, cid);
+                                return { settings, watch };
+                            });
+                            yield r.settings;
+                            await r.watch.promise;
                         }
                     })(),
                     return: async () => {
@@ -270,9 +273,8 @@ export default {
                         while (!ended) {
                             // let settings = await FDB.ConferenceRoom.findById(ctx, cid);
                             yield { id: cid, peerId: pid };
-                            await new Promise((resolve) => FDB.ConferenceRoom.watch(ctx, cid, () => {
-                                resolve();
-                            }));
+                            let w = await inTx(ctx, async (ctx2) => FDB.ConferenceRoom.watch(ctx2, cid));
+                            await w.promise;
                         }
                     })(),
                     return: async () => {

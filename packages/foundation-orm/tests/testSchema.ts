@@ -8,8 +8,6 @@ import { FEntitySchema } from 'foundation-orm/FEntitySchema';
 // @ts-ignore
 import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 // @ts-ignore
-import { FNamespace } from 'foundation-orm/FNamespace';
-// @ts-ignore
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 // @ts-ignore
 import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
@@ -85,11 +83,11 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     async create_UNSAFE(ctx: Context, id: number, shape: SimpleEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SimpleEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
+        return new SimpleEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
     }
 }
 export interface VersionedEntityShape {
@@ -151,11 +149,11 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     async create_UNSAFE(ctx: Context, id: number, shape: VersionedEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new VersionedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
+        return new VersionedEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
     }
 }
 export interface TimestampedEntityShape {
@@ -217,11 +215,11 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
     async create_UNSAFE(ctx: Context, id: number, shape: TimestampedEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new TimestampedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
+        return new TimestampedEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
     }
 }
 export interface IndexedEntityShape {
@@ -314,8 +312,8 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     async create_UNSAFE(ctx: Context, id: number, shape: IndexedEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromDefault(ctx: Context, data1: string, data2: string, id: number) {
         return await this._findFromIndex(ctx, this.indexDefault.directory, [data1, data2, id]);
@@ -342,7 +340,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return this._createLiveStream(ctx, this.indexDefault.directory, [data1, data2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new IndexedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
+        return new IndexedEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
     }
 }
 export interface IndexedRangeEntityShape {
@@ -435,8 +433,8 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     async create_UNSAFE(ctx: Context, id: number, shape: IndexedRangeEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromDefaultAfter(ctx: Context, data1: string, after: string) {
         return await this._findRangeAllAfter(ctx, this.indexDefault.directory, [data1], after);
@@ -460,7 +458,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         return this._createLiveStream(ctx, this.indexDefault.directory, [data1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new IndexedRangeEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
+        return new IndexedRangeEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
     }
 }
 export interface IndexedPartialEntityShape {
@@ -553,8 +551,8 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     async create_UNSAFE(ctx: Context, id: number, shape: IndexedPartialEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async findFromDefault(ctx: Context, data1: string, data2: string, id: number) {
         return await this._findFromIndex(ctx, this.indexDefault.directory, [data1, data2, id]);
@@ -581,7 +579,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return this._createLiveStream(ctx, this.indexDefault.directory, [data1, data2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new IndexedPartialEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
+        return new IndexedPartialEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
     }
 }
 export interface NullableEntityShape {
@@ -644,11 +642,11 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     async create_UNSAFE(ctx: Context, id: number, shape: NullableEntityShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NullableEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
+        return new NullableEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
     }
 }
 export interface RangeTestShape {
@@ -715,8 +713,8 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
     async create_UNSAFE(ctx: Context, id: number, shape: RangeTestShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromDefaultAfter(ctx: Context, key: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexDefault.directory, [key], after);
@@ -740,7 +738,7 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         return this._createLiveStream(ctx, this.indexDefault.directory, [key], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new RangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
+        return new RangeTest(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
     }
 }
 export interface ComplexRangeTestShape {
@@ -837,8 +835,8 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
     async create_UNSAFE(ctx: Context, id: number, shape: ComplexRangeTestShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     async allFromNonUniqueAfter(ctx: Context, subId1: number, after: number) {
         return await this._findRangeAllAfter(ctx, this.indexNonUnique.directory, [subId1], after);
@@ -886,7 +884,7 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         return this._createLiveStream(ctx, this.indexUnique.directory, [subId1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ComplexRangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ComplexRangeTest');
+        return new ComplexRangeTest(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ComplexRangeTest');
     }
 }
 export interface JsonTestShape {
@@ -953,16 +951,16 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
     async create_UNSAFE(ctx: Context, id: number, shape: JsonTestShape) {
         return await this._create_UNSAFE(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, id: number, cb: () => void) {
-        return this._watch(ctx, [id], cb);
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new JsonTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'JsonTest');
+        return new JsonTest(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'JsonTest');
     }
 }
 export class SampleAtomicFactory extends FAtomicIntegerFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'sampleAtomic'));
+        super('sampleAtomic', connection);
     }
     byId(id: string) {
         return this._findById([id]);
@@ -970,7 +968,7 @@ export class SampleAtomicFactory extends FAtomicIntegerFactory {
 }
 export class SampleAtomicBooleanFactory extends FAtomicBooleanFactory {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace(connection, 'atomic', 'sampleAtomicBoolean'));
+        super('sampleAtomicBoolean', connection);
     }
     byId(id: string) {
         return this._findById([id]);

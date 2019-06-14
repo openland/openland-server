@@ -44,6 +44,8 @@ export default {
                 clauses.push({ term: { featured: true } });
             }
 
+            clauses.push({ term: { listed: true } });
+
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
                 type: 'organization',

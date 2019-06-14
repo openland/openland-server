@@ -205,8 +205,8 @@ export function generateEntity(entity: EntityModel): string {
     res += '    async create_UNSAFE(ctx: Context, ' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
     res += '        return await this._create_UNSAFE(ctx, [' + entity.keys.map((v) => v.name).join(', ') + '], { ' + entity.keys.map((v) => v.name).join(', ') + ', ...shape });\n';
     res += '    }\n';
-    res += '    watch(ctx: Context, ' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', cb: () => void) {\n';
-    res += '        return this._watch(ctx, [' + entity.keys.map((v) => v.name).join(', ') + '], cb);\n';
+    res += '    watch(ctx: Context, ' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
+    res += '        return this._watch(ctx, [' + entity.keys.map((v) => v.name).join(', ') + ']);\n';
     res += '    }\n';
 
     for (let i of entity.indexes) {
@@ -252,7 +252,7 @@ export function generateEntity(entity: EntityModel): string {
     }
 
     res += '    protected _createEntity(ctx: Context, value: any, isNew: boolean) {\n';
-    res += '        return new ' + entityClass + '(ctx, this.connection, this.namespace, this.directory, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
+    res += '        return new ' + entityClass + '(ctx, this.connection, this.directory, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
     res += '    }\n';
     res += '}';
 

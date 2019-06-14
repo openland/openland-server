@@ -1,3 +1,4 @@
+import { FWatch } from './FWatch';
 import { FConnection } from './FConnection';
 import { Context } from '@openland/context';
 import { DirectoryAllocator } from './layers/directory/DirectoryAllocator';
@@ -7,21 +8,20 @@ import { FTransformer } from './encoding/FTransformer';
 import { FTransformedSubspace } from './subspace/FTransformedSubspace';
 import { FEncoders } from './encoding/FEncoders';
 import { FSubspaceImpl } from './subspace/FSubspaceImpl';
-import { FTuple } from './encoding/FTuple';
 
 export class FDirectory implements FSubspace {
     readonly connection: FConnection;
-    readonly key: FTuple[];
+    readonly path: string[];
     private readonly allocatorProcess: Promise<void>;
     private keyspace!: FSubspace;
     private allocatedKey!: Buffer;
     private isAllocated = false;
 
-    constructor(connection: FConnection, allocator: DirectoryAllocator, key: FTuple[]) {
+    constructor(connection: FConnection, allocator: DirectoryAllocator, path: string[]) {
         this.connection = connection;
-        this.key = key;
+        this.path = path;
         this.allocatorProcess = (async () => {
-            let v = await allocator.allocateDirectory(key);
+            let v = await allocator.allocateDirectory(path);
             this.allocatedKey = v;
             this.isAllocated = true;
             this.keyspace = connection.keySpace.subspace(v);
@@ -110,5 +110,12 @@ export class FDirectory implements FSubspace {
             throw Error('Directory is not ready');
         }
         return this.keyspace.xor(ctx, key, value);
+    }
+
+    watch(ctx: Context, key: Buffer): FWatch {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.watch(ctx, key);
     }
 }

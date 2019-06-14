@@ -20,7 +20,7 @@ export class FDirectoryLayer {
         return this.allocator.findAllDirectories();
     }
 
-    getDirectory(key: (string | number | boolean)[]) {
+    getDirectory(key: string[]) {
         let k = FKeyEncoding.encodeKeyToString(key);
         if (!this.directories.has(k)) {
             this.directories.set(k, new FDirectory(this.connection, this.allocator, key));
@@ -31,7 +31,7 @@ export class FDirectoryLayer {
     async ready(ctx: Context) {
         log.log(ctx, 'Waiting for allocations');
         for (let v of this.directories.values()) {
-            log.log(ctx, 'Waiting for ' + v.key.join('.'));
+            log.log(ctx, 'Waiting for ' + v.path.join('.'));
             await v.ready();
         }
         log.log(ctx, 'Directory allocation completed');
