@@ -119,7 +119,6 @@ export function startPushNotificationWorker() {
                     if (notification.content) {
                         let commentNotification = notification.content.find(c => c.type === 'new_comment');
                         if (commentNotification) {
-                            title = 'New comment';
                             pushBody += 'New comment';
                             let comment = await FDB.Comment.findById(ctx, commentNotification.commentId);
                             let message = await FDB.Message.findById(ctx, comment!.peerId);
@@ -128,9 +127,9 @@ export function startPushNotificationWorker() {
                             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
 
                             if (chat!.kind === 'private') {
-                                pushBody = `${userName} commented: ${comment!.text}`;
+                                pushBody = `Comment in @${userName}: ${comment!.text}`;
                             } else {
-                                pushBody = `${userName} commented @${chatName}: ${comment!.text}`;
+                                pushBody = `Comment in ${chatName}: ${comment!.text}`;
                             }
                         }
                     }
