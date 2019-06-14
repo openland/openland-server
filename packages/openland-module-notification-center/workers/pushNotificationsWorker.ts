@@ -110,6 +110,7 @@ export function startPushNotificationWorker() {
 
                     hasMessage = true;
 
+                    let title = '';
                     let pushBody = '';
 
                     if (notification.text) {
@@ -118,13 +119,25 @@ export function startPushNotificationWorker() {
                     if (notification.content) {
                         let commentNotification = notification.content.find(c => c.type === 'new_comment');
                         if (commentNotification) {
+                            title = 'New comment';
                             pushBody += 'New comment';
+                            let comment = await FDB.Comment.findById(ctx, commentNotification.commentId);
+                            let message = await FDB.Message.findById(ctx, comment!.peerId);
+                            let chat = await FDB.Conversation.findById(ctx, message!.cid);
+                            let chatName = await Modules.Messaging.room.resolveConversationTitle(ctx, chat!.id, uid);
+                            let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
+
+                            if (chat!.kind === 'private') {
+                                pushBody = `${userName} commented: ${comment!.text}`;
+                            } else {
+                                pushBody = `${userName} commented @${chatName}: ${comment!.text}`;
+                            }
                         }
                     }
 
                     let push = {
                         uid: uid,
-                        title: 'New notification',
+                        title: title,
                         body: pushBody,
                         picture: null,
                         counter: await FDB.UserCounter.byId(uid).get(ctx)!,
