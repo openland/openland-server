@@ -6,6 +6,7 @@ import { NotificationInput } from './repositories/NotificationCenterRepository';
 import { NeedDeliveryRepository } from './repositories/NeedDeliveryRepository';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { startPushNotificationWorker } from './workers/pushNotificationsWorker';
+import { startEmailNotificationWorker } from './workers/emailNotificationsWorker';
 
 @injectable()
 export class NotificationCenterModule {
@@ -17,6 +18,7 @@ export class NotificationCenterModule {
     start = () => {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
+            startEmailNotificationWorker();
         }
     }
 

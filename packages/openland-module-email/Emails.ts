@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { ChannelInvitation, Message, OrganizationInviteLink } from 'openland-module-db/schema';
+import { ChannelInvitation, Comment, Message, OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
@@ -19,6 +19,8 @@ export const TEMPLATE_SIGIN_CODE = '89aa70e4-5ac2-449f-b3ee-35df0df86cbe';
 export const TEMPLATE_ROOM_INVITE = '3650c0cb-af99-403d-ad30-0b68af21f5ef';
 export const TEMPLATE_PRIVATE_ROOM_INVITE = 'e988e7dd-ad37-4adc-9de9-cd55e012720f';
 export const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c213b';
+export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
+export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await FDB.User.findById(ctx, uid);
@@ -384,6 +386,55 @@ export const Emails = {
                 roomName: roomTitle
             }
         });
+    },
+    async sendUnreadComments(ctx: Context, uid: number, comments: Comment[]) {
+        let user = await loadUserState(ctx, uid);
+
+        if (comments.length > 1) {
+
+            let userNames = new Set<string>();
+
+            for (let comment of comments) {
+                let userName = await Modules.Users.getUserFullName(ctx, comment.uid);
+                userNames.add(`<strong>${userName}</strong>`);
+            }
+
+            let userNamesArr = [...userNames];
+
+            let text = 'You have comments from ';
+
+            text += userNamesArr.slice(0, 3).join(', ');
+
+            if (userNamesArr.length > 3) {
+                text += ` and ${userNamesArr.length - 3} more`;
+            }
+
+            text += '.';
+
+            await Modules.Email.enqueueEmail(ctx, {
+                subject: 'You’ve got new messages',
+                templateId: TEMPLATE_UNREAD_COMMENTS,
+                to: user.email,
+                args: {
+                    messageCount: `${comments.length}`,
+                    text,
+                }
+            });
+        } else if (comments.length === 1) {
+            let senderId = comments[0].uid;
+            let userProfile = await Modules.Users.profileById(ctx, senderId);
+
+            await Modules.Email.enqueueEmail(ctx, {
+                subject: 'You’ve got a new message',
+                templateId: TEMPLATE_UNREAD_COMMENT,
+                to: user.email,
+                args: {
+                    firstName: userProfile!.firstName,
+                    lastName: userProfile!.lastName || '',
+                    messageCount: `${comments.length}`,
+                }
+            });
+        }
     },
 };
 
