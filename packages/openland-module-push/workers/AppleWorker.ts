@@ -60,6 +60,9 @@ export function createAppleWorker(repo: PushRepository) {
                     if (task.alert) {
                         not.alert = task.alert;
                     }
+                    if (task.payload && task.payload.conversationId) {
+                        not.threadId = task.payload.conversationId;
+                    }
 
                     try {
                         let res = await (provs.get(team.teamId)!!).send(not, token.token);
