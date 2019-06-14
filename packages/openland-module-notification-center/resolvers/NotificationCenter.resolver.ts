@@ -11,14 +11,14 @@ export default {
         unread: (src, args, ctx) => FDB.NotificationCenterCounter.byId(src.id).get(ctx),
         state: async (src, args, ctx) => {
             let tail = await FDB.NotificationCenterEvent.createNotificationCenterStream(src.id, 1).tail(ctx);
-            return {state: tail};
+            return { state: tail };
         },
     },
 
     Notification: {
         id: src => IDs.Notification.serialize(src.id),
         text: src => src.text,
-        content: src => src.content,
+        content: src => src.content || [],
     },
 
     NotificationContent: {
@@ -73,7 +73,7 @@ export default {
             return true;
         }),
         debugCreateNotification: withUser(async (ctx, args, uid) => {
-            await Modules.NotificationCenter.sendNotification(ctx, IDs.User.parse(args.uid), {text: args.text});
+            await Modules.NotificationCenter.sendNotification(ctx, IDs.User.parse(args.uid), { text: args.text });
             return true;
         }),
     }
