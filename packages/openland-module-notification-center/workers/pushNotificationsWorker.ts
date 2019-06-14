@@ -128,7 +128,7 @@ export function startPushNotificationWorker() {
                         body: pushBody,
                         picture: null,
                         counter: await FDB.UserCounter.byId(uid).get(ctx)!,
-                        conversationId: -1,
+                        conversationId: null,
                         mobile: sendMobile,
                         desktop: sendDesktop,
                         mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,

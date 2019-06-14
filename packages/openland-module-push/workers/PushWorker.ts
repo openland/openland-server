@@ -24,7 +24,7 @@ type Push = {
     body: string;
     picture: string | null;
     counter: number;
-    conversationId: number;
+    conversationId: number | null;
     mobile: boolean;
     desktop: boolean;
     mobileAlert: boolean;
@@ -40,6 +40,7 @@ export function createPushWorker(repo: PushRepository) {
         for (let i = 0; i < 10; i++) {
             queue.addWorker(async (args, parent) => {
                 return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
+                    let conversationId = args.conversationId ? IDs.Conversation.serialize(args.conversationId) : undefined;
                     if (args.desktop) {
                         //
                         // Web Push
@@ -67,8 +68,8 @@ export function createPushWorker(repo: PushRepository) {
                                     body: args.body,
                                 },
                                 payload: {
-                                    ['conversationId']: IDs.Conversation.serialize(args.conversationId),
-                                    ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                    conversationId,
+                                    ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 }
                             });
@@ -90,8 +91,8 @@ export function createPushWorker(repo: PushRepository) {
                                     contentAvailable: true,
                                     badge: unread,
                                     payload: {
-                                        ['conversationId']: IDs.Conversation.serialize(args.conversationId),
-                                        ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString()
+                                        conversationId,
+                                        ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined
                                     }
                                 });
                             } else {
@@ -106,10 +107,10 @@ export function createPushWorker(repo: PushRepository) {
                                         body: mobileBody
                                     },
                                     payload: {
-                                        ['conversationId']: IDs.Conversation.serialize(args.conversationId),
+                                        conversationId,
                                         ['title']: args.title,
                                         ['message']: mobileBody,
-                                        ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                        ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                         ...(args.picture ? { ['picture']: args.picture! } : {}),
                                     }
                                 });
@@ -129,21 +130,21 @@ export function createPushWorker(repo: PushRepository) {
                             await Modules.Push.androidWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: token.id,
-                                collapseKey: IDs.Conversation.serialize(args.conversationId),
+                                collapseKey: conversationId,
                                 notification: {
                                     title: args.title,
                                     body: mobileBody,
                                     sound: args.mobileAlert ? 'default' : 'silence.mp3',
-                                    tag: IDs.Conversation.serialize(args.conversationId)
+                                    tag: conversationId
                                 },
                                 data: {
-                                    ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                     ['title']: args.title,
                                     ['message']: mobileBody,
                                     ['soundName']: args.mobileAlert ? 'default' : 'silence.mp3',
-                                    ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                     // ['color']: '#4747EC',
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
+                                    ...(args.conversationId ? { conversationId } as any : {}),
+                                    ...(args.conversationId ? { ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() } : {})
                                 }
                             });
                         }

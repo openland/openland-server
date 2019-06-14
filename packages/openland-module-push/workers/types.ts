@@ -26,12 +26,12 @@ export type ApplePushTask = {
 export type FirebasePushTask = {
     uid: number;
     tokenId: string;
-    collapseKey: string;
+    collapseKey?: string;
     notification?: {
         title: string;
         body: string;
         sound: string;
-        tag: string;
+        tag?: string;
     }
     data?: { [key: string]: string };
 };
