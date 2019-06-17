@@ -3,6 +3,7 @@ import { staticWorker } from '../../openland-module-workers/staticWorker';
 import { inTx } from '../../foundation-orm/inTx';
 import { Modules } from '../../openland-modules/Modules';
 import { FDB } from '../../openland-module-db/FDB';
+import { fetchMessageFallback } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 const Delays = {
     'none': 10 * 1000,
@@ -127,9 +128,9 @@ export function startPushNotificationWorker() {
                             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
 
                             if (chat!.kind === 'private') {
-                                pushBody = `${userName} commented: ${comment!.text}`;
+                                pushBody = `${userName} commented: ${fetchMessageFallback(comment!)}`;
                             } else {
-                                pushBody = `${userName} commented in @${chatName}: ${comment!.text}`;
+                                pushBody = `${userName} commented in @${chatName}: ${fetchMessageFallback(comment!)}`;
                             }
                         }
                     }

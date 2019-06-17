@@ -239,7 +239,7 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
-async function fetchFallback(message: Message | Comment): Promise<string> {
+export async function fetchMessageFallback(message: Message | Comment): Promise<string> {
     const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
         if (!mime) {
             return Texts.Notifications.DOCUMENT_ATTACH;
@@ -367,7 +367,7 @@ export default {
 
             return null;
         },
-        fallback: src => fetchFallback(src)
+        fallback: src => fetchMessageFallback(src)
     },
     GeneralMessage: {
         //
@@ -564,7 +564,7 @@ export default {
 
             return await Modules.Comments.getMessageCommentsCount(ctx, src.id);
         },
-        fallback: src => fetchFallback(src)
+        fallback: src => fetchMessageFallback(src)
     },
 
     ModernMessageReaction: {
