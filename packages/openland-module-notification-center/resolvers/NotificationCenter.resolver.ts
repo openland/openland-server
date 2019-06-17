@@ -1,5 +1,5 @@
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { withUser } from '../../openland-module-api/Resolvers';
+import { withPermission, withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB } from '../../openland-module-db/FDB';
@@ -90,7 +90,7 @@ export default {
             await Modules.NotificationCenter.markAsSeqRead(ctx, uid, args.toSeq);
             return true;
         }),
-        debugCreateNotification: withUser(async (ctx, args, uid) => {
+        debugCreateNotification: withPermission('super-admin', async (ctx, args) => {
             await Modules.NotificationCenter.sendNotification(ctx, IDs.User.parse(args.uid), { text: args.text });
             return true;
         }),
