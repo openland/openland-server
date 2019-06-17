@@ -755,7 +755,12 @@ export default {
         }),
         lastReadedMessage: withUser(async (ctx, args, uid) => {
             let state = await Modules.Messaging.getUserDialogState(ctx, uid, IDs.Conversation.parse(args.chatId));
-            return state.readMessageId;
+            let msg = state.readMessageId && await FDB.Message.findById(ctx, state.readMessageId);
+            if (!msg) {
+                return null;
+            }
+            await Modules.Messaging.room.checkAccess(ctx, uid, msg.cid);
+            return msg;
         }),
     },
 
