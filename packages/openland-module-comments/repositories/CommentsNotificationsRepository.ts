@@ -65,13 +65,16 @@ export class CommentsNotificationsRepository {
             let subscriptions = await this.entities.CommentsSubscription.allFromPeer(ctx, comment.peerType, comment.peerId);
             for (let subscription of subscriptions) {
                 if (subscription.status !== 'active') {
+                    // ignore inactive subscription
                     continue;
                 }
                 if (comment.uid === subscription.uid) {
+                    // ignore self comment
                     continue;
                 }
                 let settings = await Modules.Users.getUserSettings(ctx, subscription.uid);
                 if (!settings.commentNotifications || settings.commentNotifications === 'none') {
+                    // ignore disabled notifications
                     continue;
                 }
 
