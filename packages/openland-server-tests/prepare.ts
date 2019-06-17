@@ -1,7 +1,7 @@
-import { EntityLayer } from 'foundation-orm/EntityLayer';
 // Register Modules
 require('module-alias/register');
 import '../openland-utils/Shutdown';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { Modules } from 'openland-modules/Modules';
 import { loadAllModules } from 'openland-modules/loadAllModules';
 import faker from 'faker';
