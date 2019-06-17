@@ -49,9 +49,9 @@ interface AmplitudeUserProps {
 
 function toAmplitudeEvent(event: InternalEvent, userProps?: AmplitudeUserProps): AmplitudeEvent {
     // Amplitude doc says: user_id Must have a minimum length of 5 characters.
-    let userId = event.uid ? '00000' + event.uid : 'anon ' + randomKey();
+    let userId = event.uid ? '00000' + event.uid : undefined;
     let deviceId = event.did ? '00000' + event.did : undefined;
-    if (event.did === 'server') {
+    if (event.did === '00000server') {
         deviceId = 'server ' + randomKey();
     }
 
