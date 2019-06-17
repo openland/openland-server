@@ -20,6 +20,8 @@ import { FConnection } from 'foundation-orm/FConnection';
 // @ts-ignore
 import { validators } from 'foundation-orm/utils/validators';
 // @ts-ignore
+import { EntityLayer } from 'foundation-orm/EntityLayer';
+// @ts-ignore
 import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
@@ -63,11 +65,11 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
         validators.isString('comment', src.comment);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('Environment', 'environment', 
             { enableVersioning: false, enableTimestamps: false, validator: EnvironmentFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -87,7 +89,7 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
         return this._watch(ctx, [production]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Environment(ctx, this.connection, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
+        return new Environment(ctx, this.layer, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
     }
 }
 export interface EnvironmentVariableShape {
@@ -129,11 +131,11 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
         validators.isString('value', src.value);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('EnvironmentVariable', 'environmentVariable', 
             { enableVersioning: true, enableTimestamps: true, validator: EnvironmentVariableFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -153,7 +155,7 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
         return this._watch(ctx, [name]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new EnvironmentVariable(ctx, this.connection, this.directory, [value.name], value, this.options, isNew, this.indexes, 'EnvironmentVariable');
+        return new EnvironmentVariable(ctx, this.layer, this.directory, [value.name], value, this.options, isNew, this.indexes, 'EnvironmentVariable');
     }
 }
 export interface OnlineShape {
@@ -223,11 +225,11 @@ export class OnlineFactory extends FEntityFactory<Online> {
         validators.isBoolean('active', src.active);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('Online', 'online', 
             { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -247,7 +249,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Online(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
+        return new Online(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
     }
 }
 export interface PresenceShape {
@@ -336,12 +338,12 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         validators.isBoolean('active', src.active);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'presence', 'user', ['uid', 'lastSeen'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'presence', 'user', ['uid', 'lastSeen'], false);
         super('Presence', 'presence', 
             { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, hasLiveStreams: false },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -380,7 +382,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Presence(ctx, this.connection, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
+        return new Presence(ctx, this.layer, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
     }
 }
 export interface AuthTokenShape {
@@ -467,13 +469,13 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexSalt = new FEntityIndex(connection, 'authToken', 'salt', ['salt'], true);
-        let indexUser = new FEntityIndex(connection, 'authToken', 'user', ['uid', 'uuid'], false, src => src.enabled !== false);
+    constructor(layer: EntityLayer) {
+        let indexSalt = new FEntityIndex(layer, 'authToken', 'salt', ['salt'], true);
+        let indexUser = new FEntityIndex(layer, 'authToken', 'user', ['uid', 'uuid'], false, src => src.enabled !== false);
         super('AuthToken', 'authToken', 
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
             [indexSalt, indexUser],
-            connection
+            layer
         );
         this.indexSalt = indexSalt;
         this.indexUser = indexUser;
@@ -528,7 +530,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AuthToken(ctx, this.connection, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
+        return new AuthToken(ctx, this.layer, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
 }
 export interface ServiceCacheShape {
@@ -578,12 +580,12 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         validators.isString('value', src.value);
     }
 
-    constructor(connection: FConnection) {
-        let indexFromService = new FEntityIndex(connection, 'serviceCache', 'fromService', ['service', 'key'], false);
+    constructor(layer: EntityLayer) {
+        let indexFromService = new FEntityIndex(layer, 'serviceCache', 'fromService', ['service', 'key'], false);
         super('ServiceCache', 'serviceCache', 
             { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, hasLiveStreams: false },
             [indexFromService],
-            connection
+            layer
         );
         this.indexFromService = indexFromService;
     }
@@ -622,7 +624,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         return this._createStream(this.indexFromService.directory, [service], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ServiceCache(ctx, this.connection, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
+        return new ServiceCache(ctx, this.layer, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
     }
 }
 export interface LockShape {
@@ -703,11 +705,11 @@ export class LockFactory extends FEntityFactory<Lock> {
         validators.isNumber('minVersion', src.minVersion);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('Lock', 'lock', 
             { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -727,7 +729,7 @@ export class LockFactory extends FEntityFactory<Lock> {
         return this._watch(ctx, [key]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Lock(ctx, this.connection, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
+        return new Lock(ctx, this.layer, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
     }
 }
 export interface TaskShape {
@@ -875,14 +877,14 @@ export class TaskFactory extends FEntityFactory<Task> {
         validators.isString('taskFailureMessage', src.taskFailureMessage);
     }
 
-    constructor(connection: FConnection) {
-        let indexPending = new FEntityIndex(connection, 'task', 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending');
-        let indexExecuting = new FEntityIndex(connection, 'task', 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
-        let indexFailing = new FEntityIndex(connection, 'task', 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
+    constructor(layer: EntityLayer) {
+        let indexPending = new FEntityIndex(layer, 'task', 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending');
+        let indexExecuting = new FEntityIndex(layer, 'task', 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
+        let indexFailing = new FEntityIndex(layer, 'task', 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
         super('Task', 'task', 
             { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, hasLiveStreams: false },
             [indexPending, indexExecuting, indexFailing],
-            connection
+            layer
         );
         this.indexPending = indexPending;
         this.indexExecuting = indexExecuting;
@@ -947,7 +949,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return this._createStream(this.indexFailing.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Task(ctx, this.connection, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
+        return new Task(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
     }
 }
 export interface PushFirebaseShape {
@@ -1115,13 +1117,13 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'pushFirebase', 'user', ['uid', 'id'], false);
-        let indexToken = new FEntityIndex(connection, 'pushFirebase', 'token', ['token'], true, src => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'pushFirebase', 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(layer, 'pushFirebase', 'token', ['token'], true, src => src.enabled);
         super('PushFirebase', 'pushFirebase', 
             { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate, hasLiveStreams: false },
             [indexUser, indexToken],
-            connection
+            layer
         );
         this.indexUser = indexUser;
         this.indexToken = indexToken;
@@ -1176,7 +1178,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushFirebase(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
+        return new PushFirebase(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
     }
 }
 export interface PushAppleShape {
@@ -1344,13 +1346,13 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'pushApple', 'user', ['uid', 'id'], false);
-        let indexToken = new FEntityIndex(connection, 'pushApple', 'token', ['token'], true, src => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'pushApple', 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(layer, 'pushApple', 'token', ['token'], true, src => src.enabled);
         super('PushApple', 'pushApple', 
             { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate, hasLiveStreams: false },
             [indexUser, indexToken],
-            connection
+            layer
         );
         this.indexUser = indexUser;
         this.indexToken = indexToken;
@@ -1405,7 +1407,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushApple(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
+        return new PushApple(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
     }
 }
 export interface PushWebShape {
@@ -1547,13 +1549,13 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'pushWeb', 'user', ['uid', 'id'], false);
-        let indexEndpoint = new FEntityIndex(connection, 'pushWeb', 'endpoint', ['endpoint'], true, src => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'pushWeb', 'user', ['uid', 'id'], false);
+        let indexEndpoint = new FEntityIndex(layer, 'pushWeb', 'endpoint', ['endpoint'], true, src => src.enabled);
         super('PushWeb', 'pushWeb', 
             { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate, hasLiveStreams: false },
             [indexUser, indexEndpoint],
-            connection
+            layer
         );
         this.indexUser = indexUser;
         this.indexEndpoint = indexEndpoint;
@@ -1608,7 +1610,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return this._createStream(this.indexEndpoint.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushWeb(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
+        return new PushWeb(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
     }
 }
 export interface PushSafariShape {
@@ -1763,13 +1765,13 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'pushSafari', 'user', ['uid', 'id'], false);
-        let indexToken = new FEntityIndex(connection, 'pushSafari', 'token', ['token'], true, src => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'pushSafari', 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(layer, 'pushSafari', 'token', ['token'], true, src => src.enabled);
         super('PushSafari', 'pushSafari', 
             { enableVersioning: true, enableTimestamps: true, validator: PushSafariFactory.validate, hasLiveStreams: false },
             [indexUser, indexToken],
-            connection
+            layer
         );
         this.indexUser = indexUser;
         this.indexToken = indexToken;
@@ -1824,7 +1826,7 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         return this._createStream(this.indexToken.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new PushSafari(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
+        return new PushSafari(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
     }
 }
 export interface UserProfilePrefilShape {
@@ -1895,11 +1897,11 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         validators.isString('picture', src.picture);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserProfilePrefil', 'userProfilePrefil', 
             { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -1919,7 +1921,7 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserProfilePrefil(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
+        return new UserProfilePrefil(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
     }
 }
 export interface UserShape {
@@ -2051,15 +2053,15 @@ export class UserFactory extends FEntityFactory<User> {
         validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
     }
 
-    constructor(connection: FConnection) {
-        let indexAuthId = new FEntityIndex(connection, 'user', 'authId', ['authId'], true, src => src.status !== 'deleted');
-        let indexEmail = new FEntityIndex(connection, 'user', 'email', ['email'], true, src => src.status !== 'deleted');
-        let indexOwner = new FEntityIndex(connection, 'user', 'owner', ['botOwner', 'id'], false, src => src.botOwner);
-        let indexSuperBots = new FEntityIndex(connection, 'user', 'superBots', [], false, src => src.isBot === true && src.isSuperBot);
+    constructor(layer: EntityLayer) {
+        let indexAuthId = new FEntityIndex(layer, 'user', 'authId', ['authId'], true, src => src.status !== 'deleted');
+        let indexEmail = new FEntityIndex(layer, 'user', 'email', ['email'], true, src => src.status !== 'deleted');
+        let indexOwner = new FEntityIndex(layer, 'user', 'owner', ['botOwner', 'id'], false, src => src.botOwner);
+        let indexSuperBots = new FEntityIndex(layer, 'user', 'superBots', [], false, src => src.isBot === true && src.isSuperBot);
         super('User', 'user', 
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
             [indexAuthId, indexEmail, indexOwner, indexSuperBots],
-            connection
+            layer
         );
         this.indexAuthId = indexAuthId;
         this.indexEmail = indexEmail;
@@ -2143,7 +2145,7 @@ export class UserFactory extends FEntityFactory<User> {
         return this._createStream(this.indexSuperBots.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new User(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
+        return new User(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
     }
 }
 export interface UserProfileShape {
@@ -2354,12 +2356,12 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         validators.isString('role', src.role);
     }
 
-    constructor(connection: FConnection) {
-        let indexByUpdatedAt = new FEntityIndex(connection, 'userProfile', 'byUpdatedAt', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexByUpdatedAt = new FEntityIndex(layer, 'userProfile', 'byUpdatedAt', ['updatedAt'], false);
         super('UserProfile', 'userProfile', 
             { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate, hasLiveStreams: false },
             [indexByUpdatedAt],
-            connection
+            layer
         );
         this.indexByUpdatedAt = indexByUpdatedAt;
     }
@@ -2392,7 +2394,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return this._createStream(this.indexByUpdatedAt.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserProfile(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
+        return new UserProfile(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
 export interface UserIndexingQueueShape {
@@ -2424,12 +2426,12 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         validators.isNumber('id', src.id);
     }
 
-    constructor(connection: FConnection) {
-        let indexUpdated = new FEntityIndex(connection, 'userIndexingQueue', 'updated', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexUpdated = new FEntityIndex(layer, 'userIndexingQueue', 'updated', ['updatedAt'], false);
         super('UserIndexingQueue', 'userIndexingQueue', 
             { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, hasLiveStreams: false },
             [indexUpdated],
-            connection
+            layer
         );
         this.indexUpdated = indexUpdated;
     }
@@ -2462,7 +2464,7 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserIndexingQueue(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
+        return new UserIndexingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
     }
 }
 export interface OrganizationShape {
@@ -2560,12 +2562,12 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         validators.isBoolean('private', src.private);
     }
 
-    constructor(connection: FConnection) {
-        let indexCommunity = new FEntityIndex(connection, 'organization', 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated');
+    constructor(layer: EntityLayer) {
+        let indexCommunity = new FEntityIndex(layer, 'organization', 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated');
         super('Organization', 'organization', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false },
             [indexCommunity],
-            connection
+            layer
         );
         this.indexCommunity = indexCommunity;
     }
@@ -2598,7 +2600,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         return this._createStream(this.indexCommunity.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Organization(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
+        return new Organization(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
     }
 }
 export interface OrganizationProfileShape {
@@ -2746,11 +2748,11 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         validators.isNumber('joinedMembersCount', src.joinedMembersCount);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('OrganizationProfile', 'organizationProfile', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationProfileFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -2770,7 +2772,7 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationProfile(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
+        return new OrganizationProfile(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
     }
 }
 export interface OrganizationEditorialShape {
@@ -2825,11 +2827,11 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
         validators.isBoolean('featured', src.featured);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('OrganizationEditorial', 'organizationEditorial', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationEditorialFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -2849,7 +2851,7 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationEditorial(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
+        return new OrganizationEditorial(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
     }
 }
 export interface OrganizationIndexingQueueShape {
@@ -2881,12 +2883,12 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         validators.isNumber('id', src.id);
     }
 
-    constructor(connection: FConnection) {
-        let indexUpdated = new FEntityIndex(connection, 'organizationIndexingQueue', 'updated', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexUpdated = new FEntityIndex(layer, 'organizationIndexingQueue', 'updated', ['updatedAt'], false);
         super('OrganizationIndexingQueue', 'organizationIndexingQueue', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, hasLiveStreams: false },
             [indexUpdated],
-            connection
+            layer
         );
         this.indexUpdated = indexUpdated;
     }
@@ -2919,7 +2921,7 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationIndexingQueue(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
+        return new OrganizationIndexingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
     }
 }
 export interface OrganizationMemberShape {
@@ -2999,14 +3001,14 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         validators.isEnum('status', src.status, ['requested', 'joined', 'left']);
     }
 
-    constructor(connection: FConnection) {
-        let indexIds = new FEntityIndex(connection, 'organizationMember', 'ids', ['oid', 'uid'], true);
-        let indexOrganization = new FEntityIndex(connection, 'organizationMember', 'organization', ['status', 'oid', 'uid'], false);
-        let indexUser = new FEntityIndex(connection, 'organizationMember', 'user', ['status', 'uid', 'oid'], false);
+    constructor(layer: EntityLayer) {
+        let indexIds = new FEntityIndex(layer, 'organizationMember', 'ids', ['oid', 'uid'], true);
+        let indexOrganization = new FEntityIndex(layer, 'organizationMember', 'organization', ['status', 'oid', 'uid'], false);
+        let indexUser = new FEntityIndex(layer, 'organizationMember', 'user', ['status', 'uid', 'oid'], false);
         super('OrganizationMember', 'organizationMember', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
             [indexIds, indexOrganization, indexUser],
-            connection
+            layer
         );
         this.indexIds = indexIds;
         this.indexOrganization = indexOrganization;
@@ -3086,7 +3088,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         return this._createStream(this.indexUser.directory, [status, uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationMember(ctx, this.connection, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
+        return new OrganizationMember(ctx, this.layer, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
     }
 }
 export interface FeatureFlagShape {
@@ -3128,11 +3130,11 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         validators.isString('title', src.title);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('FeatureFlag', 'featureFlag', 
             { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -3152,7 +3154,7 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         return this._watch(ctx, [key]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeatureFlag(ctx, this.connection, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
+        return new FeatureFlag(ctx, this.layer, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
     }
 }
 export interface OrganizationFeaturesShape {
@@ -3223,12 +3225,12 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexOrganization = new FEntityIndex(connection, 'organizationFeatures', 'organization', ['organizationId', 'featureKey'], true);
+    constructor(layer: EntityLayer) {
+        let indexOrganization = new FEntityIndex(layer, 'organizationFeatures', 'organization', ['organizationId', 'featureKey'], true);
         super('OrganizationFeatures', 'organizationFeatures', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate, hasLiveStreams: false },
             [indexOrganization],
-            connection
+            layer
         );
         this.indexOrganization = indexOrganization;
     }
@@ -3270,7 +3272,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         return this._createStream(this.indexOrganization.directory, [organizationId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationFeatures(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
+        return new OrganizationFeatures(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
     }
 }
 export interface ReaderStateShape {
@@ -3326,11 +3328,11 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         validators.isNumber('version', src.version);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('ReaderState', 'readerState', 
             { enableVersioning: true, enableTimestamps: true, validator: ReaderStateFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -3350,7 +3352,7 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ReaderState(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
+        return new ReaderState(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
     }
 }
 export interface SuperAdminShape {
@@ -3405,11 +3407,11 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('SuperAdmin', 'superAdmin', 
             { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -3429,7 +3431,7 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SuperAdmin(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
+        return new SuperAdmin(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
     }
 }
 export interface UserSettingsShape {
@@ -3553,11 +3555,11 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserSettings', 'userSettings', 
             { enableVersioning: true, enableTimestamps: true, validator: UserSettingsFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -3577,7 +3579,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserSettings(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
+        return new UserSettings(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
     }
 }
 export interface ShortnameReservationShape {
@@ -3650,13 +3652,13 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'shortnameReservation', 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled);
-        let indexOrg = new FEntityIndex(connection, 'shortnameReservation', 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'shortnameReservation', 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled);
+        let indexOrg = new FEntityIndex(layer, 'shortnameReservation', 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled);
         super('ShortnameReservation', 'shortnameReservation', 
             { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate, hasLiveStreams: false },
             [indexUser, indexOrg],
-            connection
+            layer
         );
         this.indexUser = indexUser;
         this.indexOrg = indexOrg;
@@ -3708,7 +3710,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return this._createStream(this.indexOrg.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ShortnameReservation(ctx, this.connection, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
+        return new ShortnameReservation(ctx, this.layer, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
     }
 }
 export interface AuthCodeSessionShape {
@@ -3803,11 +3805,11 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('AuthCodeSession', 'authCodeSession', 
             { enableVersioning: true, enableTimestamps: true, validator: AuthCodeSessionFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -3827,7 +3829,7 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AuthCodeSession(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
+        return new AuthCodeSession(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
 export interface ConversationShape {
@@ -3897,11 +3899,11 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         validators.isBoolean('archived', src.archived);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('Conversation', 'conversation', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -3921,7 +3923,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Conversation(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
+        return new Conversation(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
     }
 }
 export interface ConversationPrivateShape {
@@ -3993,12 +3995,12 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         validators.isNumber('pinnedMessage', src.pinnedMessage);
     }
 
-    constructor(connection: FConnection) {
-        let indexUsers = new FEntityIndex(connection, 'conversationPrivate', 'users', ['uid1', 'uid2'], true);
+    constructor(layer: EntityLayer) {
+        let indexUsers = new FEntityIndex(layer, 'conversationPrivate', 'users', ['uid1', 'uid2'], true);
         super('ConversationPrivate', 'conversationPrivate', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationPrivateFactory.validate, hasLiveStreams: false },
             [indexUsers],
-            connection
+            layer
         );
         this.indexUsers = indexUsers;
     }
@@ -4040,7 +4042,7 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         return this._createStream(this.indexUsers.directory, [uid1], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationPrivate(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
+        return new ConversationPrivate(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
     }
 }
 export interface ConversationOrganizationShape {
@@ -4085,12 +4087,12 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         validators.isNumber('oid', src.oid);
     }
 
-    constructor(connection: FConnection) {
-        let indexOrganization = new FEntityIndex(connection, 'conversationOrganization', 'organization', ['oid'], true);
+    constructor(layer: EntityLayer) {
+        let indexOrganization = new FEntityIndex(layer, 'conversationOrganization', 'organization', ['oid'], true);
         super('ConversationOrganization', 'conversationOrganization', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationOrganizationFactory.validate, hasLiveStreams: false },
             [indexOrganization],
-            connection
+            layer
         );
         this.indexOrganization = indexOrganization;
     }
@@ -4126,7 +4128,7 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         return this._createStream(this.indexOrganization.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationOrganization(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
+        return new ConversationOrganization(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
     }
 }
 export interface ConversationRoomShape {
@@ -4243,13 +4245,13 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         validators.isBoolean('isChannel', src.isChannel);
     }
 
-    constructor(connection: FConnection) {
-        let indexOrganization = new FEntityIndex(connection, 'conversationRoom', 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal');
-        let indexOrganizationPublicRooms = new FEntityIndex(connection, 'conversationRoom', 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public');
+    constructor(layer: EntityLayer) {
+        let indexOrganization = new FEntityIndex(layer, 'conversationRoom', 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal');
+        let indexOrganizationPublicRooms = new FEntityIndex(layer, 'conversationRoom', 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public');
         super('ConversationRoom', 'conversationRoom', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false },
             [indexOrganization, indexOrganizationPublicRooms],
-            connection
+            layer
         );
         this.indexOrganization = indexOrganization;
         this.indexOrganizationPublicRooms = indexOrganizationPublicRooms;
@@ -4304,7 +4306,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         return this._createStream(this.indexOrganizationPublicRooms.directory, [oid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationRoom(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
+        return new ConversationRoom(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
     }
 }
 export interface RoomProfileShape {
@@ -4459,12 +4461,12 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         validators.isNumber('activeMembersCount', src.activeMembersCount);
     }
 
-    constructor(connection: FConnection) {
-        let indexUpdated = new FEntityIndex(connection, 'roomProfile', 'updated', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexUpdated = new FEntityIndex(layer, 'roomProfile', 'updated', ['updatedAt'], false);
         super('RoomProfile', 'roomProfile', 
             { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false },
             [indexUpdated],
-            connection
+            layer
         );
         this.indexUpdated = indexUpdated;
     }
@@ -4497,7 +4499,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new RoomProfile(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
+        return new RoomProfile(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
     }
 }
 export interface RoomParticipantShape {
@@ -4576,14 +4578,14 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         validators.isEnum('status', src.status, ['joined', 'requested', 'left', 'kicked']);
     }
 
-    constructor(connection: FConnection) {
-        let indexActive = new FEntityIndex(connection, 'roomParticipant', 'active', ['cid', 'uid'], true, (src) => src.status === 'joined');
-        let indexRequests = new FEntityIndex(connection, 'roomParticipant', 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested');
-        let indexUserActive = new FEntityIndex(connection, 'roomParticipant', 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined');
+    constructor(layer: EntityLayer) {
+        let indexActive = new FEntityIndex(layer, 'roomParticipant', 'active', ['cid', 'uid'], true, (src) => src.status === 'joined');
+        let indexRequests = new FEntityIndex(layer, 'roomParticipant', 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested');
+        let indexUserActive = new FEntityIndex(layer, 'roomParticipant', 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined');
         super('RoomParticipant', 'roomParticipant', 
             { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false },
             [indexActive, indexRequests, indexUserActive],
-            connection
+            layer
         );
         this.indexActive = indexActive;
         this.indexRequests = indexRequests;
@@ -4669,7 +4671,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._createStream(this.indexUserActive.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new RoomParticipant(ctx, this.connection, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
+        return new RoomParticipant(ctx, this.layer, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
     }
 }
 export interface ConversationReceiverShape {
@@ -4718,12 +4720,12 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexConversation = new FEntityIndex(connection, 'conversationReceiver', 'conversation', ['cid', 'uid'], true, (src) => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexConversation = new FEntityIndex(layer, 'conversationReceiver', 'conversation', ['cid', 'uid'], true, (src) => src.enabled);
         super('ConversationReceiver', 'conversationReceiver', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationReceiverFactory.validate, hasLiveStreams: false },
             [indexConversation],
-            connection
+            layer
         );
         this.indexConversation = indexConversation;
     }
@@ -4765,7 +4767,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         return this._createStream(this.indexConversation.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationReceiver(ctx, this.connection, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
+        return new ConversationReceiver(ctx, this.layer, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
     }
 }
 export interface SequenceShape {
@@ -4807,11 +4809,11 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         validators.isNumber('value', src.value);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('Sequence', 'sequence', 
             { enableVersioning: false, enableTimestamps: false, validator: SequenceFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -4831,7 +4833,7 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         return this._watch(ctx, [sequence]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Sequence(ctx, this.connection, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
+        return new Sequence(ctx, this.layer, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
     }
 }
 export interface MessageShape {
@@ -5352,14 +5354,14 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isString('postType', src.postType);
     }
 
-    constructor(connection: FConnection) {
-        let indexChat = new FEntityIndex(connection, 'message', 'chat', ['cid', 'id'], false, (src) => !src.deleted);
-        let indexUpdated = new FEntityIndex(connection, 'message', 'updated', ['updatedAt'], false);
-        let indexRepeat = new FEntityIndex(connection, 'message', 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey);
+    constructor(layer: EntityLayer) {
+        let indexChat = new FEntityIndex(layer, 'message', 'chat', ['cid', 'id'], false, (src) => !src.deleted);
+        let indexUpdated = new FEntityIndex(layer, 'message', 'updated', ['updatedAt'], false);
+        let indexRepeat = new FEntityIndex(layer, 'message', 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey);
         super('Message', 'message', 
             { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
             [indexChat, indexUpdated, indexRepeat],
-            connection
+            layer
         );
         this.indexChat = indexChat;
         this.indexUpdated = indexUpdated;
@@ -5433,7 +5435,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         return this._createStream(this.indexRepeat.directory, [uid, cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Message(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
+        return new Message(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
     }
 }
 export interface CommentShape {
@@ -5768,13 +5770,13 @@ export class CommentFactory extends FEntityFactory<Comment> {
         validators.isBoolean('visible', src.visible);
     }
 
-    constructor(connection: FConnection) {
-        let indexPeer = new FEntityIndex(connection, 'comment', 'peer', ['peerType', 'peerId', 'id'], false);
-        let indexChild = new FEntityIndex(connection, 'comment', 'child', ['parentCommentId', 'id'], false);
+    constructor(layer: EntityLayer) {
+        let indexPeer = new FEntityIndex(layer, 'comment', 'peer', ['peerType', 'peerId', 'id'], false);
+        let indexChild = new FEntityIndex(layer, 'comment', 'child', ['parentCommentId', 'id'], false);
         super('Comment', 'comment', 
             { enableVersioning: true, enableTimestamps: true, validator: CommentFactory.validate, hasLiveStreams: false },
             [indexPeer, indexChild],
-            connection
+            layer
         );
         this.indexPeer = indexPeer;
         this.indexChild = indexChild;
@@ -5832,7 +5834,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
         return this._createStream(this.indexChild.directory, [parentCommentId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Comment(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
+        return new Comment(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
     }
 }
 export interface CommentStateShape {
@@ -5878,11 +5880,11 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
         validators.isNumber('commentsCount', src.commentsCount);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('CommentState', 'commentState', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentStateFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -5902,7 +5904,7 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
         return this._watch(ctx, [peerType, peerId]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentState(ctx, this.connection, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentState');
+        return new CommentState(ctx, this.layer, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentState');
     }
 }
 export interface CommentSeqShape {
@@ -5948,11 +5950,11 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('CommentSeq', 'commentSeq', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentSeqFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -5972,7 +5974,7 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
         return this._watch(ctx, [peerType, peerId]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentSeq(ctx, this.connection, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentSeq');
+        return new CommentSeq(ctx, this.layer, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentSeq');
     }
 }
 export interface CommentEventShape {
@@ -6053,12 +6055,12 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         validators.isEnum('kind', src.kind, ['comment_received', 'comment_updated']);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'commentEvent', 'user', ['peerType', 'peerId', 'seq'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'commentEvent', 'user', ['peerType', 'peerId', 'seq'], false);
         super('CommentEvent', 'commentEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: CommentEventFactory.validate, hasLiveStreams: true },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -6100,7 +6102,7 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         return this._createLiveStream(ctx, this.indexUser.directory, [peerType, peerId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentEvent(ctx, this.connection, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
+        return new CommentEvent(ctx, this.layer, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
     }
 }
 export interface CommentsSubscriptionShape {
@@ -6166,12 +6168,12 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         validators.isEnum('status', src.status, ['active', 'disabled']);
     }
 
-    constructor(connection: FConnection) {
-        let indexPeer = new FEntityIndex(connection, 'commentsSubscription', 'peer', ['peerType', 'peerId', 'uid'], false);
+    constructor(layer: EntityLayer) {
+        let indexPeer = new FEntityIndex(layer, 'commentsSubscription', 'peer', ['peerType', 'peerId', 'uid'], false);
         super('CommentsSubscription', 'commentsSubscription', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentsSubscriptionFactory.validate, hasLiveStreams: false },
             [indexPeer],
-            connection
+            layer
         );
         this.indexPeer = indexPeer;
     }
@@ -6210,7 +6212,7 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         return this._createStream(this.indexPeer.directory, [peerType, peerId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentsSubscription(ctx, this.connection, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
+        return new CommentsSubscription(ctx, this.layer, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
     }
 }
 export interface CommentEventGlobalShape {
@@ -6287,12 +6289,12 @@ export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal
         validators.isEnum('kind', src.kind, ['comments_peer_updated']);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'commentEventGlobal', 'user', ['uid', 'seq'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'commentEventGlobal', 'user', ['uid', 'seq'], false);
         super('CommentEventGlobal', 'commentEventGlobal', 
             { enableVersioning: true, enableTimestamps: true, validator: CommentEventGlobalFactory.validate, hasLiveStreams: true },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -6334,7 +6336,7 @@ export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal
         return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentEventGlobal(ctx, this.connection, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'CommentEventGlobal');
+        return new CommentEventGlobal(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'CommentEventGlobal');
     }
 }
 export interface CommentGlobalEventSeqShape {
@@ -6376,11 +6378,11 @@ export class CommentGlobalEventSeqFactory extends FEntityFactory<CommentGlobalEv
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('CommentGlobalEventSeq', 'commentGlobalEventSeq', 
             { enableVersioning: false, enableTimestamps: false, validator: CommentGlobalEventSeqFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -6400,7 +6402,7 @@ export class CommentGlobalEventSeqFactory extends FEntityFactory<CommentGlobalEv
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentGlobalEventSeq(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'CommentGlobalEventSeq');
+        return new CommentGlobalEventSeq(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'CommentGlobalEventSeq');
     }
 }
 export interface ConversationSeqShape {
@@ -6442,11 +6444,11 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('ConversationSeq', 'conversationSeq', 
             { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -6466,7 +6468,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         return this._watch(ctx, [cid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationSeq(ctx, this.connection, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
+        return new ConversationSeq(ctx, this.layer, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
     }
 }
 export interface ConversationEventShape {
@@ -6543,12 +6545,12 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         validators.isEnum('kind', src.kind, ['chat_updated', 'message_received', 'message_updated', 'message_deleted']);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'conversationEvent', 'user', ['cid', 'seq'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'conversationEvent', 'user', ['cid', 'seq'], false);
         super('ConversationEvent', 'conversationEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, hasLiveStreams: true },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -6590,7 +6592,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         return this._createLiveStream(ctx, this.indexUser.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationEvent(ctx, this.connection, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
+        return new ConversationEvent(ctx, this.layer, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
     }
 }
 export interface UserDialogShape {
@@ -6740,14 +6742,14 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         validators.isBoolean('disableGlobalCounter', src.disableGlobalCounter);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'userDialog', 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden);
-        let indexConversation = new FEntityIndex(connection, 'userDialog', 'conversation', ['cid', 'uid'], true);
-        let indexUpdated = new FEntityIndex(connection, 'userDialog', 'updated', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'userDialog', 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden);
+        let indexConversation = new FEntityIndex(layer, 'userDialog', 'conversation', ['cid', 'uid'], true);
+        let indexUpdated = new FEntityIndex(layer, 'userDialog', 'updated', ['updatedAt'], false);
         super('UserDialog', 'userDialog', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false },
             [indexUser, indexConversation, indexUpdated],
-            connection
+            layer
         );
         this.indexUser = indexUser;
         this.indexConversation = indexConversation;
@@ -6821,7 +6823,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialog(ctx, this.connection, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
+        return new UserDialog(ctx, this.layer, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
     }
 }
 export interface UserDialogHandledMessageShape {
@@ -6858,11 +6860,11 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
         validators.isNumber('mid', src.mid);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserDialogHandledMessage', 'userDialogHandledMessage', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogHandledMessageFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -6882,7 +6884,7 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
         return this._watch(ctx, [uid, cid, mid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialogHandledMessage(ctx, this.connection, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
+        return new UserDialogHandledMessage(ctx, this.layer, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
     }
 }
 export interface UserDialogSettingsShape {
@@ -6928,11 +6930,11 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         validators.isBoolean('mute', src.mute);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserDialogSettings', 'userDialogSettings', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogSettingsFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -6952,7 +6954,7 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         return this._watch(ctx, [uid, cid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialogSettings(ctx, this.connection, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
+        return new UserDialogSettings(ctx, this.layer, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
     }
 }
 export interface UserDialogEventShape {
@@ -7112,12 +7114,12 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'userDialogEvent', 'user', ['uid', 'seq'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'userDialogEvent', 'user', ['uid', 'seq'], false);
         super('UserDialogEvent', 'userDialogEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate, hasLiveStreams: true },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -7159,7 +7161,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserDialogEvent(ctx, this.connection, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
+        return new UserDialogEvent(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
     }
 }
 export interface UserMessagingStateShape {
@@ -7273,12 +7275,12 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         validators.isNumber('directChatsCount', src.directChatsCount);
     }
 
-    constructor(connection: FConnection) {
-        let indexHasUnread = new FEntityIndex(connection, 'userMessagingState', 'hasUnread', [], false, (src) => src.unread && src.unread > 0);
+    constructor(layer: EntityLayer) {
+        let indexHasUnread = new FEntityIndex(layer, 'userMessagingState', 'hasUnread', [], false, (src) => src.unread && src.unread > 0);
         super('UserMessagingState', 'userMessagingState', 
             { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate, hasLiveStreams: false },
             [indexHasUnread],
-            connection
+            layer
         );
         this.indexHasUnread = indexHasUnread;
     }
@@ -7311,7 +7313,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         return this._createStream(this.indexHasUnread.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserMessagingState(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
+        return new UserMessagingState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
     }
 }
 export interface UserNotificationsStateShape {
@@ -7410,11 +7412,11 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         validators.isNumber('lastPushSeq', src.lastPushSeq);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserNotificationsState', 'userNotificationsState', 
             { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -7434,7 +7436,7 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserNotificationsState(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
+        return new UserNotificationsState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
     }
 }
 export interface HyperLogShape {
@@ -7508,14 +7510,14 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         validators.notNull('body', src.body);
     }
 
-    constructor(connection: FConnection) {
-        let indexCreated = new FEntityIndex(connection, 'hyperLog', 'created', ['createdAt'], false);
-        let indexUserEvents = new FEntityIndex(connection, 'hyperLog', 'userEvents', ['createdAt'], false, (src) => src.type === 'track');
-        let indexOnlineChangeEvents = new FEntityIndex(connection, 'hyperLog', 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status');
+    constructor(layer: EntityLayer) {
+        let indexCreated = new FEntityIndex(layer, 'hyperLog', 'created', ['createdAt'], false);
+        let indexUserEvents = new FEntityIndex(layer, 'hyperLog', 'userEvents', ['createdAt'], false, (src) => src.type === 'track');
+        let indexOnlineChangeEvents = new FEntityIndex(layer, 'hyperLog', 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status');
         super('HyperLog', 'hyperLog', 
             { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false },
             [indexCreated, indexUserEvents, indexOnlineChangeEvents],
-            connection
+            layer
         );
         this.indexCreated = indexCreated;
         this.indexUserEvents = indexUserEvents;
@@ -7574,7 +7576,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return this._createStream(this.indexOnlineChangeEvents.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new HyperLog(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
+        return new HyperLog(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
     }
 }
 export interface MessageDraftShape {
@@ -7620,11 +7622,11 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         validators.isString('contents', src.contents);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('MessageDraft', 'messageDraft', 
             { enableVersioning: true, enableTimestamps: true, validator: MessageDraftFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -7644,7 +7646,7 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         return this._watch(ctx, [uid, cid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new MessageDraft(ctx, this.connection, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
+        return new MessageDraft(ctx, this.layer, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
     }
 }
 export interface ChannelInvitationShape {
@@ -7786,13 +7788,13 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexChannel = new FEntityIndex(connection, 'channelInvitation', 'channel', ['createdAt', 'channelId'], false);
-        let indexUpdated = new FEntityIndex(connection, 'channelInvitation', 'updated', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexChannel = new FEntityIndex(layer, 'channelInvitation', 'channel', ['createdAt', 'channelId'], false);
+        let indexUpdated = new FEntityIndex(layer, 'channelInvitation', 'updated', ['updatedAt'], false);
         super('ChannelInvitation', 'channelInvitation', 
             { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, hasLiveStreams: false },
             [indexChannel, indexUpdated],
-            connection
+            layer
         );
         this.indexChannel = indexChannel;
         this.indexUpdated = indexUpdated;
@@ -7844,7 +7846,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChannelInvitation(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
+        return new ChannelInvitation(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
     }
 }
 export interface ChannelLinkShape {
@@ -7915,12 +7917,12 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexChannel = new FEntityIndex(connection, 'channelLink', 'channel', ['channelId', 'createdAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexChannel = new FEntityIndex(layer, 'channelLink', 'channel', ['channelId', 'createdAt'], false);
         super('ChannelLink', 'channelLink', 
             { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, hasLiveStreams: false },
             [indexChannel],
-            connection
+            layer
         );
         this.indexChannel = indexChannel;
     }
@@ -7959,7 +7961,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         return this._createStream(this.indexChannel.directory, [channelId], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChannelLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
+        return new ChannelLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
     }
 }
 export interface AppInviteLinkShape {
@@ -8004,12 +8006,12 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         validators.isNumber('uid', src.uid);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'appInviteLink', 'user', ['uid'], true);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'appInviteLink', 'user', ['uid'], true);
         super('AppInviteLink', 'appInviteLink', 
             { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate, hasLiveStreams: false },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -8045,7 +8047,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AppInviteLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
+        return new AppInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
 export interface SampleEntityShape {
@@ -8087,11 +8089,11 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         validators.isString('data', src.data);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('SampleEntity', 'sampleEntity', 
             { enableVersioning: true, enableTimestamps: true, validator: SampleEntityFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -8111,7 +8113,7 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SampleEntity(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
+        return new SampleEntity(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
     }
 }
 export interface OrganizationPublicInviteLinkShape {
@@ -8182,12 +8184,12 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexUserInOrganization = new FEntityIndex(connection, 'organizationPublicInviteLink', 'userInOrganization', ['uid', 'oid'], true, src => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexUserInOrganization = new FEntityIndex(layer, 'organizationPublicInviteLink', 'userInOrganization', ['uid', 'oid'], true, src => src.enabled);
         super('OrganizationPublicInviteLink', 'organizationPublicInviteLink', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, hasLiveStreams: false },
             [indexUserInOrganization],
-            connection
+            layer
         );
         this.indexUserInOrganization = indexUserInOrganization;
     }
@@ -8229,7 +8231,7 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         return this._createStream(this.indexUserInOrganization.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationPublicInviteLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
+        return new OrganizationPublicInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
     }
 }
 export interface OrganizationInviteLinkShape {
@@ -8397,13 +8399,13 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         validators.isEnum('role', src.role, ['MEMBER', 'OWNER']);
     }
 
-    constructor(connection: FConnection) {
-        let indexOrganization = new FEntityIndex(connection, 'organizationInviteLink', 'organization', ['oid', 'id'], true, src => src.enabled);
-        let indexEmailInOrganization = new FEntityIndex(connection, 'organizationInviteLink', 'emailInOrganization', ['email', 'oid'], true, src => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexOrganization = new FEntityIndex(layer, 'organizationInviteLink', 'organization', ['oid', 'id'], true, src => src.enabled);
+        let indexEmailInOrganization = new FEntityIndex(layer, 'organizationInviteLink', 'emailInOrganization', ['email', 'oid'], true, src => src.enabled);
         super('OrganizationInviteLink', 'organizationInviteLink', 
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
             [indexOrganization, indexEmailInOrganization],
-            connection
+            layer
         );
         this.indexOrganization = indexOrganization;
         this.indexEmailInOrganization = indexEmailInOrganization;
@@ -8467,7 +8469,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         return this._createStream(this.indexEmailInOrganization.directory, [email], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationInviteLink(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
+        return new OrganizationInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
     }
 }
 export interface ConferenceRoomShape {
@@ -8524,11 +8526,11 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
         validators.isEnum('strategy', src.strategy, ['direct', 'bridged']);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('ConferenceRoom', 'conferenceRoom', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -8548,7 +8550,7 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceRoom(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceRoom');
+        return new ConferenceRoom(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceRoom');
     }
 }
 export interface ConferencePeerShape {
@@ -8649,14 +8651,14 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexAuth = new FEntityIndex(connection, 'conferencePeer', 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled);
-        let indexConference = new FEntityIndex(connection, 'conferencePeer', 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled);
-        let indexActive = new FEntityIndex(connection, 'conferencePeer', 'active', ['keepAliveTimeout'], false, (src) => src.enabled);
+    constructor(layer: EntityLayer) {
+        let indexAuth = new FEntityIndex(layer, 'conferencePeer', 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled);
+        let indexConference = new FEntityIndex(layer, 'conferencePeer', 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled);
+        let indexActive = new FEntityIndex(layer, 'conferencePeer', 'active', ['keepAliveTimeout'], false, (src) => src.enabled);
         super('ConferencePeer', 'conferencePeer', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferencePeerFactory.validate, hasLiveStreams: false },
             [indexAuth, indexConference, indexActive],
-            connection
+            layer
         );
         this.indexAuth = indexAuth;
         this.indexConference = indexConference;
@@ -8730,7 +8732,7 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         return this._createStream(this.indexActive.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferencePeer(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
+        return new ConferencePeer(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
     }
 }
 export interface ConferenceMediaStreamShape {
@@ -8880,12 +8882,12 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         validators.notNull('ice2', src.ice2);
     }
 
-    constructor(connection: FConnection) {
-        let indexConference = new FEntityIndex(connection, 'conferenceMediaStream', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
+    constructor(layer: EntityLayer) {
+        let indexConference = new FEntityIndex(layer, 'conferenceMediaStream', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
         super('ConferenceMediaStream', 'conferenceMediaStream', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceMediaStreamFactory.validate, hasLiveStreams: false },
             [indexConference],
-            connection
+            layer
         );
         this.indexConference = indexConference;
     }
@@ -8924,7 +8926,7 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceMediaStream(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
+        return new ConferenceMediaStream(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
     }
 }
 export interface ConferenceConnectionShape {
@@ -9038,12 +9040,12 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         validators.notNull('ice2', src.ice2);
     }
 
-    constructor(connection: FConnection) {
-        let indexConference = new FEntityIndex(connection, 'conferenceConnection', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
+    constructor(layer: EntityLayer) {
+        let indexConference = new FEntityIndex(layer, 'conferenceConnection', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
         super('ConferenceConnection', 'conferenceConnection', 
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false },
             [indexConference],
-            connection
+            layer
         );
         this.indexConference = indexConference;
     }
@@ -9082,7 +9084,7 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         return this._createStream(this.indexConference.directory, [cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceConnection(ctx, this.connection, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
+        return new ConferenceConnection(ctx, this.layer, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
     }
 }
 export interface UserEdgeShape {
@@ -9120,13 +9122,13 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         validators.isNumber('uid2', src.uid2);
     }
 
-    constructor(connection: FConnection) {
-        let indexForward = new FEntityIndex(connection, 'userEdge', 'forward', ['uid1', 'uid2'], false);
-        let indexReverse = new FEntityIndex(connection, 'userEdge', 'reverse', ['uid2', 'uid1'], false);
+    constructor(layer: EntityLayer) {
+        let indexForward = new FEntityIndex(layer, 'userEdge', 'forward', ['uid1', 'uid2'], false);
+        let indexReverse = new FEntityIndex(layer, 'userEdge', 'reverse', ['uid2', 'uid1'], false);
         super('UserEdge', 'userEdge', 
             { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false },
             [indexForward, indexReverse],
-            connection
+            layer
         );
         this.indexForward = indexForward;
         this.indexReverse = indexReverse;
@@ -9184,7 +9186,7 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         return this._createStream(this.indexReverse.directory, [uid2], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserEdge(ctx, this.connection, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
+        return new UserEdge(ctx, this.layer, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
     }
 }
 export interface UserInfluencerUserIndexShape {
@@ -9226,11 +9228,11 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
         validators.isNumber('value', src.value);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserInfluencerUserIndex', 'userInfluencerUserIndex', 
             { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerUserIndexFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -9250,7 +9252,7 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserInfluencerUserIndex(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerUserIndex');
+        return new UserInfluencerUserIndex(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerUserIndex');
     }
 }
 export interface UserInfluencerIndexShape {
@@ -9292,11 +9294,11 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
         validators.isNumber('value', src.value);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('UserInfluencerIndex', 'userInfluencerIndex', 
             { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerIndexFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -9316,7 +9318,7 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserInfluencerIndex(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerIndex');
+        return new UserInfluencerIndex(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerIndex');
     }
 }
 export interface FeedSubscriberShape {
@@ -9361,12 +9363,12 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         validators.isString('key', src.key);
     }
 
-    constructor(connection: FConnection) {
-        let indexKey = new FEntityIndex(connection, 'feedSubscriber', 'key', ['key'], true);
+    constructor(layer: EntityLayer) {
+        let indexKey = new FEntityIndex(layer, 'feedSubscriber', 'key', ['key'], true);
         super('FeedSubscriber', 'feedSubscriber', 
             { enableVersioning: true, enableTimestamps: true, validator: FeedSubscriberFactory.validate, hasLiveStreams: false },
             [indexKey],
-            connection
+            layer
         );
         this.indexKey = indexKey;
     }
@@ -9402,7 +9404,7 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedSubscriber(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
+        return new FeedSubscriber(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
     }
 }
 export interface FeedSubscriptionShape {
@@ -9453,13 +9455,13 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(connection: FConnection) {
-        let indexSubscriber = new FEntityIndex(connection, 'feedSubscription', 'subscriber', ['sid', 'tid'], false, (state) => state.enabled);
-        let indexTopic = new FEntityIndex(connection, 'feedSubscription', 'topic', ['tid', 'sid'], false, (state) => state.enabled);
+    constructor(layer: EntityLayer) {
+        let indexSubscriber = new FEntityIndex(layer, 'feedSubscription', 'subscriber', ['sid', 'tid'], false, (state) => state.enabled);
+        let indexTopic = new FEntityIndex(layer, 'feedSubscription', 'topic', ['tid', 'sid'], false, (state) => state.enabled);
         super('FeedSubscription', 'feedSubscription', 
             { enableVersioning: false, enableTimestamps: false, validator: FeedSubscriptionFactory.validate, hasLiveStreams: false },
             [indexSubscriber, indexTopic],
-            connection
+            layer
         );
         this.indexSubscriber = indexSubscriber;
         this.indexTopic = indexTopic;
@@ -9517,7 +9519,7 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         return this._createStream(this.indexTopic.directory, [tid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedSubscription(ctx, this.connection, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
+        return new FeedSubscription(ctx, this.layer, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
     }
 }
 export interface FeedTopicShape {
@@ -9562,12 +9564,12 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         validators.isString('key', src.key);
     }
 
-    constructor(connection: FConnection) {
-        let indexKey = new FEntityIndex(connection, 'feedTopic', 'key', ['key'], true);
+    constructor(layer: EntityLayer) {
+        let indexKey = new FEntityIndex(layer, 'feedTopic', 'key', ['key'], true);
         super('FeedTopic', 'feedTopic', 
             { enableVersioning: true, enableTimestamps: true, validator: FeedTopicFactory.validate, hasLiveStreams: false },
             [indexKey],
-            connection
+            layer
         );
         this.indexKey = indexKey;
     }
@@ -9603,7 +9605,7 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedTopic(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
+        return new FeedTopic(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
     }
 }
 export interface FeedEventShape {
@@ -9675,13 +9677,13 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         validators.notNull('content', src.content);
     }
 
-    constructor(connection: FConnection) {
-        let indexTopic = new FEntityIndex(connection, 'feedEvent', 'topic', ['tid', 'createdAt'], false);
-        let indexUpdated = new FEntityIndex(connection, 'feedEvent', 'updated', ['updatedAt'], false);
+    constructor(layer: EntityLayer) {
+        let indexTopic = new FEntityIndex(layer, 'feedEvent', 'topic', ['tid', 'createdAt'], false);
+        let indexUpdated = new FEntityIndex(layer, 'feedEvent', 'updated', ['updatedAt'], false);
         super('FeedEvent', 'feedEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: FeedEventFactory.validate, hasLiveStreams: false },
             [indexTopic, indexUpdated],
-            connection
+            layer
         );
         this.indexTopic = indexTopic;
         this.indexUpdated = indexUpdated;
@@ -9733,7 +9735,7 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         return this._createStream(this.indexUpdated.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeedEvent(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
+        return new FeedEvent(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
     }
 }
 export interface AppHookShape {
@@ -9782,12 +9784,12 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         validators.isString('key', src.key);
     }
 
-    constructor(connection: FConnection) {
-        let indexKey = new FEntityIndex(connection, 'appHook', 'key', ['key'], true);
+    constructor(layer: EntityLayer) {
+        let indexKey = new FEntityIndex(layer, 'appHook', 'key', ['key'], true);
         super('AppHook', 'appHook', 
             { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, hasLiveStreams: false },
             [indexKey],
-            connection
+            layer
         );
         this.indexKey = indexKey;
     }
@@ -9823,7 +9825,7 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         return this._createStream(this.indexKey.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AppHook(ctx, this.connection, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
+        return new AppHook(ctx, this.layer, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
     }
 }
 export interface UserStorageNamespaceShape {
@@ -9868,12 +9870,12 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         validators.isString('ns', src.ns);
     }
 
-    constructor(connection: FConnection) {
-        let indexNamespace = new FEntityIndex(connection, 'userStorageNamespace', 'namespace', ['ns'], true);
+    constructor(layer: EntityLayer) {
+        let indexNamespace = new FEntityIndex(layer, 'userStorageNamespace', 'namespace', ['ns'], true);
         super('UserStorageNamespace', 'userStorageNamespace', 
             { enableVersioning: true, enableTimestamps: true, validator: UserStorageNamespaceFactory.validate, hasLiveStreams: false },
             [indexNamespace],
-            connection
+            layer
         );
         this.indexNamespace = indexNamespace;
     }
@@ -9909,7 +9911,7 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         return this._createStream(this.indexNamespace.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserStorageNamespace(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
+        return new UserStorageNamespace(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
     }
 }
 export interface UserStorageRecordShape {
@@ -9985,12 +9987,12 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         validators.isString('value', src.value);
     }
 
-    constructor(connection: FConnection) {
-        let indexKey = new FEntityIndex(connection, 'userStorageRecord', 'key', ['uid', 'ns', 'key'], true);
+    constructor(layer: EntityLayer) {
+        let indexKey = new FEntityIndex(layer, 'userStorageRecord', 'key', ['uid', 'ns', 'key'], true);
         super('UserStorageRecord', 'userStorageRecord', 
             { enableVersioning: true, enableTimestamps: true, validator: UserStorageRecordFactory.validate, hasLiveStreams: false },
             [indexKey],
-            connection
+            layer
         );
         this.indexKey = indexKey;
     }
@@ -10032,7 +10034,7 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         return this._createStream(this.indexKey.directory, [uid, ns], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserStorageRecord(ctx, this.connection, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
+        return new UserStorageRecord(ctx, this.layer, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
     }
 }
 export interface DiscoverUserPickedTagsShape {
@@ -10081,12 +10083,12 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         validators.isBoolean('deleted', src.deleted);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'discoverUserPickedTags', 'user', ['uid', 'id'], true, (src) => !src.deleted);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'discoverUserPickedTags', 'user', ['uid', 'id'], true, (src) => !src.deleted);
         super('DiscoverUserPickedTags', 'discoverUserPickedTags', 
             { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, hasLiveStreams: false },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -10128,7 +10130,7 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DiscoverUserPickedTags(ctx, this.connection, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
+        return new DiscoverUserPickedTags(ctx, this.layer, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
     }
 }
 export interface DebugEventShape {
@@ -10178,12 +10180,12 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         validators.isString('key', src.key);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'debugEvent', 'user', ['uid', 'seq'], false);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'debugEvent', 'user', ['uid', 'seq'], false);
         super('DebugEvent', 'debugEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, hasLiveStreams: true },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -10225,7 +10227,7 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DebugEvent(ctx, this.connection, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
+        return new DebugEvent(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
     }
 }
 export interface DebugEventStateShape {
@@ -10267,11 +10269,11 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('DebugEventState', 'debugEventState', 
             { enableVersioning: true, enableTimestamps: true, validator: DebugEventStateFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -10291,7 +10293,7 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
         return this._watch(ctx, [uid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DebugEventState(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
+        return new DebugEventState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
     }
 }
 export interface NotificationCenterShape {
@@ -10333,11 +10335,11 @@ export class NotificationCenterFactory extends FEntityFactory<NotificationCenter
         validators.isEnum('kind', src.kind, ['user']);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('NotificationCenter', 'notificationCenter', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -10357,7 +10359,7 @@ export class NotificationCenterFactory extends FEntityFactory<NotificationCenter
         return this._watch(ctx, [id]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NotificationCenter(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NotificationCenter');
+        return new NotificationCenter(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NotificationCenter');
     }
 }
 export interface UserNotificationCenterShape {
@@ -10402,12 +10404,12 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         validators.isNumber('uid', src.uid);
     }
 
-    constructor(connection: FConnection) {
-        let indexUser = new FEntityIndex(connection, 'userNotificationCenter', 'user', ['uid'], true);
+    constructor(layer: EntityLayer) {
+        let indexUser = new FEntityIndex(layer, 'userNotificationCenter', 'user', ['uid'], true);
         super('UserNotificationCenter', 'userNotificationCenter', 
             { enableVersioning: true, enableTimestamps: true, validator: UserNotificationCenterFactory.validate, hasLiveStreams: false },
             [indexUser],
-            connection
+            layer
         );
         this.indexUser = indexUser;
     }
@@ -10443,7 +10445,7 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         return this._createStream(this.indexUser.directory, [], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserNotificationCenter(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserNotificationCenter');
+        return new UserNotificationCenter(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserNotificationCenter');
     }
 }
 export interface NotificationShape {
@@ -10535,12 +10537,12 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         )));
     }
 
-    constructor(connection: FConnection) {
-        let indexNotificationCenter = new FEntityIndex(connection, 'notification', 'notificationCenter', ['ncid', 'id'], false, (src) => !src.deleted);
+    constructor(layer: EntityLayer) {
+        let indexNotificationCenter = new FEntityIndex(layer, 'notification', 'notificationCenter', ['ncid', 'id'], false, (src) => !src.deleted);
         super('Notification', 'notification', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false },
             [indexNotificationCenter],
-            connection
+            layer
         );
         this.indexNotificationCenter = indexNotificationCenter;
     }
@@ -10579,7 +10581,7 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         return this._createStream(this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Notification(ctx, this.connection, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Notification');
+        return new Notification(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Notification');
     }
 }
 export interface NotificationCenterStateShape {
@@ -10705,11 +10707,11 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
         validators.isNumber('lastPushSeq', src.lastPushSeq);
     }
 
-    constructor(connection: FConnection) {
+    constructor(layer: EntityLayer) {
         super('NotificationCenterState', 'notificationCenterState', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterStateFactory.validate, hasLiveStreams: false },
             [],
-            connection
+            layer
         );
     }
     extractId(rawId: any[]) {
@@ -10729,7 +10731,7 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
         return this._watch(ctx, [ncid]);
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NotificationCenterState(ctx, this.connection, this.directory, [value.ncid], value, this.options, isNew, this.indexes, 'NotificationCenterState');
+        return new NotificationCenterState(ctx, this.layer, this.directory, [value.ncid], value, this.options, isNew, this.indexes, 'NotificationCenterState');
     }
 }
 export interface NotificationCenterEventShape {
@@ -10792,12 +10794,12 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         validators.isEnum('kind', src.kind, ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated']);
     }
 
-    constructor(connection: FConnection) {
-        let indexNotificationCenter = new FEntityIndex(connection, 'notificationCenterEvent', 'notificationCenter', ['ncid', 'seq'], false);
+    constructor(layer: EntityLayer) {
+        let indexNotificationCenter = new FEntityIndex(layer, 'notificationCenterEvent', 'notificationCenter', ['ncid', 'seq'], false);
         super('NotificationCenterEvent', 'notificationCenterEvent', 
             { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterEventFactory.validate, hasLiveStreams: true },
             [indexNotificationCenter],
-            connection
+            layer
         );
         this.indexNotificationCenter = indexNotificationCenter;
     }
@@ -10839,68 +10841,68 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return this._createLiveStream(ctx, this.indexNotificationCenter.directory, [ncid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new NotificationCenterEvent(ctx, this.connection, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
+        return new NotificationCenterEvent(ctx, this.layer, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
 export class UserCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('userCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('userCounter', layer);
     }
     byId(uid: number) {
         return this._findById([uid]);
     }
 }
 export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('userMessagesSentCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('userMessagesSentCounter', layer);
     }
     byId(uid: number) {
         return this._findById([uid]);
     }
 }
 export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('userMessagesReceivedCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('userMessagesReceivedCounter', layer);
     }
     byId(uid: number) {
         return this._findById([uid]);
     }
 }
 export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('userMessagesChatsCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('userMessagesChatsCounter', layer);
     }
     byId(uid: number) {
         return this._findById([uid]);
     }
 }
 export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('userMessagesDirectChatsCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('userMessagesDirectChatsCounter', layer);
     }
     byId(uid: number) {
         return this._findById([uid]);
     }
 }
 export class UserDialogCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('userDialogCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('userDialogCounter', layer);
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
     }
 }
 export class UserDialogHaveMentionFactory extends FAtomicBooleanFactory {
-    constructor(connection: FConnection) {
-        super('userDialogHaveMention', connection);
+    constructor(layer: EntityLayer) {
+        super('userDialogHaveMention', layer);
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
     }
 }
 export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
-    constructor(connection: FConnection) {
-        super('notificationCenterCounter', connection);
+    constructor(layer: EntityLayer) {
+        super('notificationCenterCounter', layer);
     }
     byId(ncid: number) {
         return this._findById([ncid]);
@@ -10908,7 +10910,7 @@ export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
 }
 
 export interface AllEntities {
-    readonly connection: FConnection;
+    readonly layer: EntityLayer;
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: FDirectory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: FDirectory;
@@ -11182,187 +11184,187 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
     readonly NotificationCenterCounter: NotificationCenterCounterFactory;
 
-    constructor(connection: FConnection) {
-        super(connection);
-        this.Environment = new EnvironmentFactory(connection);
+    constructor(layer: EntityLayer) {
+        super(layer);
+        this.Environment = new EnvironmentFactory(layer);
         this.allEntities.push(this.Environment);
-        this.EnvironmentVariable = new EnvironmentVariableFactory(connection);
+        this.EnvironmentVariable = new EnvironmentVariableFactory(layer);
         this.allEntities.push(this.EnvironmentVariable);
-        this.Online = new OnlineFactory(connection);
+        this.Online = new OnlineFactory(layer);
         this.allEntities.push(this.Online);
-        this.Presence = new PresenceFactory(connection);
+        this.Presence = new PresenceFactory(layer);
         this.allEntities.push(this.Presence);
-        this.AuthToken = new AuthTokenFactory(connection);
+        this.AuthToken = new AuthTokenFactory(layer);
         this.allEntities.push(this.AuthToken);
-        this.ServiceCache = new ServiceCacheFactory(connection);
+        this.ServiceCache = new ServiceCacheFactory(layer);
         this.allEntities.push(this.ServiceCache);
-        this.Lock = new LockFactory(connection);
+        this.Lock = new LockFactory(layer);
         this.allEntities.push(this.Lock);
-        this.Task = new TaskFactory(connection);
+        this.Task = new TaskFactory(layer);
         this.allEntities.push(this.Task);
-        this.PushFirebase = new PushFirebaseFactory(connection);
+        this.PushFirebase = new PushFirebaseFactory(layer);
         this.allEntities.push(this.PushFirebase);
-        this.PushApple = new PushAppleFactory(connection);
+        this.PushApple = new PushAppleFactory(layer);
         this.allEntities.push(this.PushApple);
-        this.PushWeb = new PushWebFactory(connection);
+        this.PushWeb = new PushWebFactory(layer);
         this.allEntities.push(this.PushWeb);
-        this.PushSafari = new PushSafariFactory(connection);
+        this.PushSafari = new PushSafariFactory(layer);
         this.allEntities.push(this.PushSafari);
-        this.UserProfilePrefil = new UserProfilePrefilFactory(connection);
+        this.UserProfilePrefil = new UserProfilePrefilFactory(layer);
         this.allEntities.push(this.UserProfilePrefil);
-        this.User = new UserFactory(connection);
+        this.User = new UserFactory(layer);
         this.allEntities.push(this.User);
-        this.UserProfile = new UserProfileFactory(connection);
+        this.UserProfile = new UserProfileFactory(layer);
         this.allEntities.push(this.UserProfile);
-        this.UserIndexingQueue = new UserIndexingQueueFactory(connection);
+        this.UserIndexingQueue = new UserIndexingQueueFactory(layer);
         this.allEntities.push(this.UserIndexingQueue);
-        this.Organization = new OrganizationFactory(connection);
+        this.Organization = new OrganizationFactory(layer);
         this.allEntities.push(this.Organization);
-        this.OrganizationProfile = new OrganizationProfileFactory(connection);
+        this.OrganizationProfile = new OrganizationProfileFactory(layer);
         this.allEntities.push(this.OrganizationProfile);
-        this.OrganizationEditorial = new OrganizationEditorialFactory(connection);
+        this.OrganizationEditorial = new OrganizationEditorialFactory(layer);
         this.allEntities.push(this.OrganizationEditorial);
-        this.OrganizationIndexingQueue = new OrganizationIndexingQueueFactory(connection);
+        this.OrganizationIndexingQueue = new OrganizationIndexingQueueFactory(layer);
         this.allEntities.push(this.OrganizationIndexingQueue);
-        this.OrganizationMember = new OrganizationMemberFactory(connection);
+        this.OrganizationMember = new OrganizationMemberFactory(layer);
         this.allEntities.push(this.OrganizationMember);
-        this.FeatureFlag = new FeatureFlagFactory(connection);
+        this.FeatureFlag = new FeatureFlagFactory(layer);
         this.allEntities.push(this.FeatureFlag);
-        this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);
+        this.OrganizationFeatures = new OrganizationFeaturesFactory(layer);
         this.allEntities.push(this.OrganizationFeatures);
-        this.ReaderState = new ReaderStateFactory(connection);
+        this.ReaderState = new ReaderStateFactory(layer);
         this.allEntities.push(this.ReaderState);
-        this.SuperAdmin = new SuperAdminFactory(connection);
+        this.SuperAdmin = new SuperAdminFactory(layer);
         this.allEntities.push(this.SuperAdmin);
-        this.UserSettings = new UserSettingsFactory(connection);
+        this.UserSettings = new UserSettingsFactory(layer);
         this.allEntities.push(this.UserSettings);
-        this.ShortnameReservation = new ShortnameReservationFactory(connection);
+        this.ShortnameReservation = new ShortnameReservationFactory(layer);
         this.allEntities.push(this.ShortnameReservation);
-        this.AuthCodeSession = new AuthCodeSessionFactory(connection);
+        this.AuthCodeSession = new AuthCodeSessionFactory(layer);
         this.allEntities.push(this.AuthCodeSession);
-        this.Conversation = new ConversationFactory(connection);
+        this.Conversation = new ConversationFactory(layer);
         this.allEntities.push(this.Conversation);
-        this.ConversationPrivate = new ConversationPrivateFactory(connection);
+        this.ConversationPrivate = new ConversationPrivateFactory(layer);
         this.allEntities.push(this.ConversationPrivate);
-        this.ConversationOrganization = new ConversationOrganizationFactory(connection);
+        this.ConversationOrganization = new ConversationOrganizationFactory(layer);
         this.allEntities.push(this.ConversationOrganization);
-        this.ConversationRoom = new ConversationRoomFactory(connection);
+        this.ConversationRoom = new ConversationRoomFactory(layer);
         this.allEntities.push(this.ConversationRoom);
-        this.RoomProfile = new RoomProfileFactory(connection);
+        this.RoomProfile = new RoomProfileFactory(layer);
         this.allEntities.push(this.RoomProfile);
-        this.RoomParticipant = new RoomParticipantFactory(connection);
+        this.RoomParticipant = new RoomParticipantFactory(layer);
         this.allEntities.push(this.RoomParticipant);
-        this.ConversationReceiver = new ConversationReceiverFactory(connection);
+        this.ConversationReceiver = new ConversationReceiverFactory(layer);
         this.allEntities.push(this.ConversationReceiver);
-        this.Sequence = new SequenceFactory(connection);
+        this.Sequence = new SequenceFactory(layer);
         this.allEntities.push(this.Sequence);
-        this.Message = new MessageFactory(connection);
+        this.Message = new MessageFactory(layer);
         this.allEntities.push(this.Message);
-        this.Comment = new CommentFactory(connection);
+        this.Comment = new CommentFactory(layer);
         this.allEntities.push(this.Comment);
-        this.CommentState = new CommentStateFactory(connection);
+        this.CommentState = new CommentStateFactory(layer);
         this.allEntities.push(this.CommentState);
-        this.CommentSeq = new CommentSeqFactory(connection);
+        this.CommentSeq = new CommentSeqFactory(layer);
         this.allEntities.push(this.CommentSeq);
-        this.CommentEvent = new CommentEventFactory(connection);
+        this.CommentEvent = new CommentEventFactory(layer);
         this.allEntities.push(this.CommentEvent);
-        this.CommentsSubscription = new CommentsSubscriptionFactory(connection);
+        this.CommentsSubscription = new CommentsSubscriptionFactory(layer);
         this.allEntities.push(this.CommentsSubscription);
-        this.CommentEventGlobal = new CommentEventGlobalFactory(connection);
+        this.CommentEventGlobal = new CommentEventGlobalFactory(layer);
         this.allEntities.push(this.CommentEventGlobal);
-        this.CommentGlobalEventSeq = new CommentGlobalEventSeqFactory(connection);
+        this.CommentGlobalEventSeq = new CommentGlobalEventSeqFactory(layer);
         this.allEntities.push(this.CommentGlobalEventSeq);
-        this.ConversationSeq = new ConversationSeqFactory(connection);
+        this.ConversationSeq = new ConversationSeqFactory(layer);
         this.allEntities.push(this.ConversationSeq);
-        this.ConversationEvent = new ConversationEventFactory(connection);
+        this.ConversationEvent = new ConversationEventFactory(layer);
         this.allEntities.push(this.ConversationEvent);
-        this.UserDialog = new UserDialogFactory(connection);
+        this.UserDialog = new UserDialogFactory(layer);
         this.allEntities.push(this.UserDialog);
-        this.UserDialogHandledMessage = new UserDialogHandledMessageFactory(connection);
+        this.UserDialogHandledMessage = new UserDialogHandledMessageFactory(layer);
         this.allEntities.push(this.UserDialogHandledMessage);
-        this.UserDialogSettings = new UserDialogSettingsFactory(connection);
+        this.UserDialogSettings = new UserDialogSettingsFactory(layer);
         this.allEntities.push(this.UserDialogSettings);
-        this.UserDialogEvent = new UserDialogEventFactory(connection);
+        this.UserDialogEvent = new UserDialogEventFactory(layer);
         this.allEntities.push(this.UserDialogEvent);
-        this.UserMessagingState = new UserMessagingStateFactory(connection);
+        this.UserMessagingState = new UserMessagingStateFactory(layer);
         this.allEntities.push(this.UserMessagingState);
-        this.UserNotificationsState = new UserNotificationsStateFactory(connection);
+        this.UserNotificationsState = new UserNotificationsStateFactory(layer);
         this.allEntities.push(this.UserNotificationsState);
-        this.HyperLog = new HyperLogFactory(connection);
+        this.HyperLog = new HyperLogFactory(layer);
         this.allEntities.push(this.HyperLog);
-        this.MessageDraft = new MessageDraftFactory(connection);
+        this.MessageDraft = new MessageDraftFactory(layer);
         this.allEntities.push(this.MessageDraft);
-        this.ChannelInvitation = new ChannelInvitationFactory(connection);
+        this.ChannelInvitation = new ChannelInvitationFactory(layer);
         this.allEntities.push(this.ChannelInvitation);
-        this.ChannelLink = new ChannelLinkFactory(connection);
+        this.ChannelLink = new ChannelLinkFactory(layer);
         this.allEntities.push(this.ChannelLink);
-        this.AppInviteLink = new AppInviteLinkFactory(connection);
+        this.AppInviteLink = new AppInviteLinkFactory(layer);
         this.allEntities.push(this.AppInviteLink);
-        this.SampleEntity = new SampleEntityFactory(connection);
+        this.SampleEntity = new SampleEntityFactory(layer);
         this.allEntities.push(this.SampleEntity);
-        this.OrganizationPublicInviteLink = new OrganizationPublicInviteLinkFactory(connection);
+        this.OrganizationPublicInviteLink = new OrganizationPublicInviteLinkFactory(layer);
         this.allEntities.push(this.OrganizationPublicInviteLink);
-        this.OrganizationInviteLink = new OrganizationInviteLinkFactory(connection);
+        this.OrganizationInviteLink = new OrganizationInviteLinkFactory(layer);
         this.allEntities.push(this.OrganizationInviteLink);
-        this.ConferenceRoom = new ConferenceRoomFactory(connection);
+        this.ConferenceRoom = new ConferenceRoomFactory(layer);
         this.allEntities.push(this.ConferenceRoom);
-        this.ConferencePeer = new ConferencePeerFactory(connection);
+        this.ConferencePeer = new ConferencePeerFactory(layer);
         this.allEntities.push(this.ConferencePeer);
-        this.ConferenceMediaStream = new ConferenceMediaStreamFactory(connection);
+        this.ConferenceMediaStream = new ConferenceMediaStreamFactory(layer);
         this.allEntities.push(this.ConferenceMediaStream);
-        this.ConferenceConnection = new ConferenceConnectionFactory(connection);
+        this.ConferenceConnection = new ConferenceConnectionFactory(layer);
         this.allEntities.push(this.ConferenceConnection);
-        this.UserEdge = new UserEdgeFactory(connection);
+        this.UserEdge = new UserEdgeFactory(layer);
         this.allEntities.push(this.UserEdge);
-        this.UserInfluencerUserIndex = new UserInfluencerUserIndexFactory(connection);
+        this.UserInfluencerUserIndex = new UserInfluencerUserIndexFactory(layer);
         this.allEntities.push(this.UserInfluencerUserIndex);
-        this.UserInfluencerIndex = new UserInfluencerIndexFactory(connection);
+        this.UserInfluencerIndex = new UserInfluencerIndexFactory(layer);
         this.allEntities.push(this.UserInfluencerIndex);
-        this.FeedSubscriber = new FeedSubscriberFactory(connection);
+        this.FeedSubscriber = new FeedSubscriberFactory(layer);
         this.allEntities.push(this.FeedSubscriber);
-        this.FeedSubscription = new FeedSubscriptionFactory(connection);
+        this.FeedSubscription = new FeedSubscriptionFactory(layer);
         this.allEntities.push(this.FeedSubscription);
-        this.FeedTopic = new FeedTopicFactory(connection);
+        this.FeedTopic = new FeedTopicFactory(layer);
         this.allEntities.push(this.FeedTopic);
-        this.FeedEvent = new FeedEventFactory(connection);
+        this.FeedEvent = new FeedEventFactory(layer);
         this.allEntities.push(this.FeedEvent);
-        this.AppHook = new AppHookFactory(connection);
+        this.AppHook = new AppHookFactory(layer);
         this.allEntities.push(this.AppHook);
-        this.UserStorageNamespace = new UserStorageNamespaceFactory(connection);
+        this.UserStorageNamespace = new UserStorageNamespaceFactory(layer);
         this.allEntities.push(this.UserStorageNamespace);
-        this.UserStorageRecord = new UserStorageRecordFactory(connection);
+        this.UserStorageRecord = new UserStorageRecordFactory(layer);
         this.allEntities.push(this.UserStorageRecord);
-        this.DiscoverUserPickedTags = new DiscoverUserPickedTagsFactory(connection);
+        this.DiscoverUserPickedTags = new DiscoverUserPickedTagsFactory(layer);
         this.allEntities.push(this.DiscoverUserPickedTags);
-        this.DebugEvent = new DebugEventFactory(connection);
+        this.DebugEvent = new DebugEventFactory(layer);
         this.allEntities.push(this.DebugEvent);
-        this.DebugEventState = new DebugEventStateFactory(connection);
+        this.DebugEventState = new DebugEventStateFactory(layer);
         this.allEntities.push(this.DebugEventState);
-        this.NotificationCenter = new NotificationCenterFactory(connection);
+        this.NotificationCenter = new NotificationCenterFactory(layer);
         this.allEntities.push(this.NotificationCenter);
-        this.UserNotificationCenter = new UserNotificationCenterFactory(connection);
+        this.UserNotificationCenter = new UserNotificationCenterFactory(layer);
         this.allEntities.push(this.UserNotificationCenter);
-        this.Notification = new NotificationFactory(connection);
+        this.Notification = new NotificationFactory(layer);
         this.allEntities.push(this.Notification);
-        this.NotificationCenterState = new NotificationCenterStateFactory(connection);
+        this.NotificationCenterState = new NotificationCenterStateFactory(layer);
         this.allEntities.push(this.NotificationCenterState);
-        this.NotificationCenterEvent = new NotificationCenterEventFactory(connection);
+        this.NotificationCenterEvent = new NotificationCenterEventFactory(layer);
         this.allEntities.push(this.NotificationCenterEvent);
-        this.UserCounter = new UserCounterFactory(connection);
-        this.UserMessagesSentCounter = new UserMessagesSentCounterFactory(connection);
-        this.UserMessagesReceivedCounter = new UserMessagesReceivedCounterFactory(connection);
-        this.UserMessagesChatsCounter = new UserMessagesChatsCounterFactory(connection);
-        this.UserMessagesDirectChatsCounter = new UserMessagesDirectChatsCounterFactory(connection);
-        this.UserDialogCounter = new UserDialogCounterFactory(connection);
-        this.UserDialogHaveMention = new UserDialogHaveMentionFactory(connection);
-        this.NotificationCenterCounter = new NotificationCenterCounterFactory(connection);
-        this.NeedNotificationFlagDirectory = connection.directories.getDirectory(['custom', 'needNotificationFlag']);
-        this.NotificationCenterNeedDeliveryFlagDirectory = connection.directories.getDirectory(['custom', 'notificationCenterNeedDeliveryFlag']);
+        this.UserCounter = new UserCounterFactory(layer);
+        this.UserMessagesSentCounter = new UserMessagesSentCounterFactory(layer);
+        this.UserMessagesReceivedCounter = new UserMessagesReceivedCounterFactory(layer);
+        this.UserMessagesChatsCounter = new UserMessagesChatsCounterFactory(layer);
+        this.UserMessagesDirectChatsCounter = new UserMessagesDirectChatsCounterFactory(layer);
+        this.UserDialogCounter = new UserDialogCounterFactory(layer);
+        this.UserDialogHaveMention = new UserDialogHaveMentionFactory(layer);
+        this.NotificationCenterCounter = new NotificationCenterCounterFactory(layer);
+        this.NeedNotificationFlagDirectory = layer.directory.getDirectory(['custom', 'needNotificationFlag']);
+        this.NotificationCenterNeedDeliveryFlagDirectory = layer.directory.getDirectory(['custom', 'notificationCenterNeedDeliveryFlag']);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
-    get connection(): FConnection {
-        return this.resolver().connection;
+    get layer(): EntityLayer {
+        return this.resolver().layer;
     }
     get Environment(): EnvironmentFactory {
         return this.resolver().Environment;

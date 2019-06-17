@@ -23,7 +23,7 @@ export class NeedDeliveryRepository {
         this.entities.NotificationCenterNeedDeliveryFlagDirectory
             .withKeyEncoding(FEncoders.tuple)
             .withValueEncoding(FEncoders.boolean)
-            .delete(ctx, [kind, uid]);
+            .clear(ctx, [kind, uid]);
     }
 
     findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push') => {

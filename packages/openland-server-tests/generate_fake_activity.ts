@@ -1,3 +1,4 @@
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 // Register Modules
 
 require('module-alias/register');
@@ -72,18 +73,19 @@ export async function prepare() {
 
         // Init DB
         let connection = new FConnection(FConnection.create(), EventBus);
-        let entities = new AllEntitiesDirect(connection);
+        let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+        let entities = new AllEntitiesDirect(layer);
         await connection.ready(rootCtx);
         container.bind<AllEntities>('FDB')
-          .toDynamicValue(() => entities)
-          .inSingletonScope();
+            .toDynamicValue(() => entities)
+            .inSingletonScope();
         let ctx = rootCtx;
         if (await FDB.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');
         }
 
         // Clear DB
-        await FDB.connection.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
+        await FDB.layer.db.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
         await loadAllModules(rootCtx, false);

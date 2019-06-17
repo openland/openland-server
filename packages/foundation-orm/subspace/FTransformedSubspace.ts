@@ -53,29 +53,21 @@ export class FTransformedSubspace<K, V, SK, SV> implements FSubspace<K, V> {
     set(ctx: Context, key: K, value: V) {
         this.ops.set(ctx, this.keyTf.pack(key), this.valTf.pack(value));
     }
-
-    setWithVerstionstamp(ctx: Context, key: K, value: V) {
-        this.ops.setWithVerstionstamp(ctx, this.keyTf.pack(key), this.valTf.pack(value));
-    }
-
-    setWithVerstionstampUnique(ctx: Context, key: K, value: V) {
-        this.ops.setWithVerstionstampUnique(ctx, this.keyTf.pack(key), this.valTf.pack(value));
-    }
-
+    
     add(ctx: Context, key: K, value: V) {
         this.ops.add(ctx, this.keyTf.pack(key), this.valTf.pack(value));
     }
 
-    xor(ctx: Context, key: K, value: V) {
-        this.ops.xor(ctx, this.keyTf.pack(key), this.valTf.pack(value));
+    bitXor(ctx: Context, key: K, value: V) {
+        this.ops.bitXor(ctx, this.keyTf.pack(key), this.valTf.pack(value));
     }
 
-    or(ctx: Context, key: K, value: V) {
-        this.ops.xor(ctx, this.keyTf.pack(key), this.valTf.pack(value));
+    bitOr(ctx: Context, key: K, value: V) {
+        this.ops.bitOr(ctx, this.keyTf.pack(key), this.valTf.pack(value));
     }
 
-    delete(ctx: Context, key: K) {
-        this.ops.delete(ctx, this.keyTf.pack(key));
+    clear(ctx: Context, key: K) {
+        this.ops.clear(ctx, this.keyTf.pack(key));
     }
 
     watch(ctx: Context, key: K): FWatch {

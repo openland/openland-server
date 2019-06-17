@@ -61,21 +61,7 @@ export class FSubspaceImpl implements FSubspace<Buffer, Buffer> {
         tx.set(Buffer.concat([this.prefix, key]), value);
     }
 
-    setWithVerstionstamp(ctx: Context, key: Buffer, value: Buffer) {
-        let tx = getTransaction(ctx).rawTransaction(this.connection);
-        tx.setVersionstampSuffixedKey(Buffer.concat([this.prefix, key]), value);
-    }
-
-    setWithVerstionstampUnique(ctx: Context, key: Buffer, value: Buffer) {
-        let tn = getTransaction(ctx);
-        let tx = getTransaction(ctx).rawTransaction(this.connection);
-        let counter = tn.nextCounter();
-        const b = Buffer.alloc(2);
-        b.writeInt16BE(counter, 0);
-        tx.setVersionstampSuffixedKey(Buffer.concat([this.prefix, key]), value, b);
-    }
-
-    delete(ctx: Context, key: Buffer) {
+    clear(ctx: Context, key: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.clear(Buffer.concat([this.prefix, key]));
     }
@@ -85,12 +71,12 @@ export class FSubspaceImpl implements FSubspace<Buffer, Buffer> {
         tx.add(Buffer.concat([this.prefix, key]), value);
     }
 
-    or(ctx: Context, key: Buffer, value: Buffer) {
+    bitOr(ctx: Context, key: Buffer, value: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.bitOr(Buffer.concat([this.prefix, key]), value);
     }
 
-    xor(ctx: Context, key: Buffer, value: Buffer) {
+    bitXor(ctx: Context, key: Buffer, value: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.bitXor(Buffer.concat([this.prefix, key]), value);
     }

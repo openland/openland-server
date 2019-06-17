@@ -22,9 +22,12 @@ import { EventBus } from 'openland-module-pubsub/EventBus';
 import { batch } from 'openland-utils/batch';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 let rootCtx = createNamedContext('graphql-admin');
-let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)); // WTF? Why separate connection?
+let connection = new FConnection(FConnection.create(), EventBus);
+let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+let FDB = new AllEntitiesDirect(layer); // WTF? Why separate connection?
 let entitiesMap: any = {};
 let queries: any = {};
 let mutations: any = {};
@@ -275,7 +278,7 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Diagnose'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
-            return await FDB.connection.diagnostics.runEntityDiagnostics((FDB as any)[e.name]);
+            return await FDB.layer.db.diagnostics.runEntityDiagnostics((FDB as any)[e.name]);
         }
     };
 
@@ -340,7 +343,7 @@ mutations.diagnoseAll = {
                 continue;
             }
             log.log(rootCtx, e.name);
-            diag += await FDB.connection.diagnostics.runEntityDiagnostics(e);
+            diag += await FDB.layer.db.diagnostics.runEntityDiagnostics(e);
         }
         return diag;
     }
@@ -355,14 +358,14 @@ queries.metaAllDirectories = {
         }
     })),
     resolve(_: any, a: any) {
-        return FDB.connection.directories.findAllDirectories();
+        return FDB.layer.directory.findAllDirectories();
     }
 };
 
 queries.metaMigrations = {
     type: new GraphQLList(GraphQLString),
     async resolve() {
-        return (await FDB.connection.fdb.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+        return (await FDB.layer.db.fdb.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
     }
 };
 

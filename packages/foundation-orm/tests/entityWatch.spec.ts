@@ -1,3 +1,4 @@
+import { EntityLayer } from './../EntityLayer';
 // tslint:disable:no-floating-promises
 // tslint:disable:no-console
 import * as fdb from 'foundationdb';
@@ -20,7 +21,8 @@ describe('FWatch', () => {
             .at(FKeyEncoding.encodeKey(['_tests_watch']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(connection);
+        let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+        testEntities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
     });
 

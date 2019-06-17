@@ -39,7 +39,7 @@ export async function deleteMissing(parent: Context, from: FSubspace, to: FSubsp
             await Promise.all(r2.map(async (i) => {
                 let ex = await from.get(ctx, i.key);
                 if (!ex) {
-                    to.delete(ctx, i.key);
+                    to.clear(ctx, i.key);
                 }
             }));
             for (let i of r2) {

@@ -57,22 +57,8 @@ export class FGlobalSpace implements FSubspace<Buffer, Buffer> {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.set(key, value);
     }
-
-    setWithVerstionstamp(ctx: Context, key: Buffer, value: Buffer) {
-        let tx = getTransaction(ctx).rawTransaction(this.connection);
-        tx.setVersionstampSuffixedKey(key, value);
-    }
-
-    setWithVerstionstampUnique(ctx: Context, key: Buffer, value: Buffer) {
-        let tn = getTransaction(ctx);
-        let tx = getTransaction(ctx).rawTransaction(this.connection);
-        let counter = tn.nextCounter();
-        const b = Buffer.alloc(2);
-        b.writeInt16BE(counter, 0);
-        tx.setVersionstampSuffixedKey(key, value, b);
-    }
-
-    delete(ctx: Context, key: Buffer) {
+    
+    clear(ctx: Context, key: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.clear(key);
     }
@@ -82,12 +68,12 @@ export class FGlobalSpace implements FSubspace<Buffer, Buffer> {
         tx.add(key, value);
     }
 
-    or(ctx: Context, key: Buffer, value: Buffer) {
+    bitOr(ctx: Context, key: Buffer, value: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.bitOr(key, value);
     }
 
-    xor(ctx: Context, key: Buffer, value: Buffer) {
+    bitXor(ctx: Context, key: Buffer, value: Buffer) {
         let tx = getTransaction(ctx).rawTransaction(this.connection);
         tx.bitXor(key, value);
     }

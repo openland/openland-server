@@ -1,3 +1,4 @@
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
@@ -19,7 +20,8 @@ describe('FEntity', () => {
             .at(FKeyEncoding.encodeKey(['_tests_1']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(connection);
+        let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+        testEntities = new AllEntitiesDirect(layer);
         await connection.ready(rootCtx);
     });
 

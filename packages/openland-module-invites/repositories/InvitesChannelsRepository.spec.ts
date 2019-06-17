@@ -7,6 +7,7 @@ import { NativeValue } from 'foundationdb/dist/lib/native';
 import { InvitesRoomRepository } from './InvitesRoomRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createNamedContext } from '@openland/context';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 describe('ChannelRepository', () => {
     // Database Init
@@ -18,7 +19,8 @@ describe('ChannelRepository', () => {
             .at(FKeyEncoding.encodeKey(['_tests_channel_invites']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        entities = new AllEntitiesDirect(connection);
+        let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+        entities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
     });
 

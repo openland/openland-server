@@ -29,6 +29,6 @@ export class FAtomicBoolean {
         }
     }
     invert = (ctx: Context) => {
-        this.keySpace.xor(ctx, this.key, one);
+        this.keySpace.bitXor(ctx, this.key, one);
     }
 }

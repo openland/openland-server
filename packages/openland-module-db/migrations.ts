@@ -941,7 +941,7 @@ migrations.push({
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
-            await performMigrations(ctx, FDB.connection, migrations);
+            await performMigrations(ctx, FDB.layer.db, migrations);
             return false;
         });
     }

@@ -1,8 +1,8 @@
-import { FConnection } from './FConnection';
+import { EntityLayer } from './EntityLayer';
 
 export class FDBInstance {
-    readonly connection: FConnection;
-    constructor(connection: FConnection) {
-        this.connection = connection;
+    readonly layer: EntityLayer;
+    constructor(layer: EntityLayer) {
+        this.layer = layer;
     }
 }

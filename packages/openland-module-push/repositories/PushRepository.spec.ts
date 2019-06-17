@@ -1,3 +1,4 @@
+import { EntityLayer } from './../../foundation-orm/EntityLayer';
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
@@ -18,7 +19,8 @@ describe('PushRepository', () => {
             .at(FKeyEncoding.encodeKey(['_tests_push']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        entities = new AllEntitiesDirect(connection);
+        let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+        entities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
     });
 

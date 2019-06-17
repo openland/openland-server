@@ -21,12 +21,10 @@ export interface FSubspace<K = Buffer, V = Buffer> {
     //
 
     set(ctx: Context, key: K, value: V): void;
-    setWithVerstionstamp(ctx: Context, key: K, value: V): void;
-    setWithVerstionstampUnique(ctx: Context, key: K, value: V): void;
-    delete(ctx: Context, key: K): void;
+    clear(ctx: Context, key: K): void;
     add(ctx: Context, key: K, value: V): void;
-    or(ctx: Context, key: K, value: V): void;
-    xor(ctx: Context, key: K, value: V): void;
+    bitOr(ctx: Context, key: K, value: V): void;
+    bitXor(ctx: Context, key: K, value: V): void;
 
     //
     // Watch

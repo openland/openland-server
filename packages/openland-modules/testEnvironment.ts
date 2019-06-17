@@ -1,3 +1,4 @@
+import { EntityLayer } from './../foundation-orm/EntityLayer';
 import 'reflect-metadata';
 import { container } from './Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
@@ -26,7 +27,8 @@ export async function testEnvironmentStart(name: string) {
         .at(FKeyEncoding.encodeKey(['_tests_' + name + '_' + randomKey()]));
     await connection.clearRange(FKeyEncoding.encodeKey([]));
     let cnn = new FConnection(connection, EventBus);
-    let entities = new AllEntitiesDirect(cnn);
+    let layer = new EntityLayer(cnn, cnn.directories, cnn.pubsub);
+    let entities = new AllEntitiesDirect(layer);
     await cnn.ready(createNamedContext('text-' + name));
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind<AllEntities>('FDB')

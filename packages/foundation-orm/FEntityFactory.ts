@@ -1,4 +1,4 @@
-import { FConnection } from './FConnection';
+import { EntityLayer } from './EntityLayer';
 import { FEntity, FEntityOptions } from './FEntity';
 import { FEntityIndex } from './FEntityIndex';
 import { FKeyEncoding } from './utils/FKeyEncoding';
@@ -17,21 +17,20 @@ import { createLogger } from '@openland/log';
 const log = createLogger('fdb');
 
 export abstract class FEntityFactory<T extends FEntity> {
-    readonly directoryRaw: FSubspace;
     readonly directory: FSubspace<FTuple[], any>;
-    readonly connection: FConnection;
+    readonly layer: EntityLayer;
     readonly options: FEntityOptions;
     readonly indexes: FEntityIndex[];
     readonly name: string;
     readonly storeKey: string;
 
-    constructor(name: string, storeKey: string, options: FEntityOptions, indexes: FEntityIndex[], connection: FConnection) {
+    constructor(name: string, storeKey: string, options: FEntityOptions, indexes: FEntityIndex[], layer: EntityLayer) {
         this.storeKey = storeKey;
-        this.directoryRaw = connection.directories.getDirectory(['entity', storeKey]);
-        this.directory = this.directoryRaw
+        this.layer = layer;
+        this.directory = layer.directory
+            .getDirectory(['entity', storeKey])
             .withKeyEncoding(FEncoders.tuple)
             .withValueEncoding(FEncoders.json);
-        this.connection = connection;
         this.options = options;
         this.indexes = indexes;
         this.name = name;

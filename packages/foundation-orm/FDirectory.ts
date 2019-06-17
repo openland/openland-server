@@ -70,25 +70,11 @@ export class FDirectory implements FSubspace {
         return this.keyspace.set(ctx, key, value);
     }
 
-    setWithVerstionstamp(ctx: Context, key: Buffer, value: Buffer) {
+    clear(ctx: Context, key: Buffer) {
         if (!this.isAllocated) {
             throw Error('Directory is not ready');
         }
-        return this.keyspace.setWithVerstionstamp(ctx, key, value);
-    }
-
-    setWithVerstionstampUnique(ctx: Context, key: Buffer, value: Buffer) {
-        if (!this.isAllocated) {
-            throw Error('Directory is not ready');
-        }
-        return this.keyspace.setWithVerstionstampUnique(ctx, key, value);
-    }
-
-    delete(ctx: Context, key: Buffer) {
-        if (!this.isAllocated) {
-            throw Error('Directory is not ready');
-        }
-        return this.keyspace.delete(ctx, key);
+        return this.keyspace.clear(ctx, key);
     }
 
     add(ctx: Context, key: Buffer, value: Buffer) {
@@ -98,18 +84,18 @@ export class FDirectory implements FSubspace {
         return this.keyspace.add(ctx, key, value);
     }
 
-    or(ctx: Context, key: Buffer, value: Buffer) {
+    bitOr(ctx: Context, key: Buffer, value: Buffer) {
         if (!this.isAllocated) {
             throw Error('Directory is not ready');
         }
-        return this.keyspace.or(ctx, key, value);
+        return this.keyspace.bitOr(ctx, key, value);
     }
 
-    xor(ctx: Context, key: Buffer, value: Buffer) {
+    bitXor(ctx: Context, key: Buffer, value: Buffer) {
         if (!this.isAllocated) {
             throw Error('Directory is not ready');
         }
-        return this.keyspace.xor(ctx, key, value);
+        return this.keyspace.bitXor(ctx, key, value);
     }
 
     watch(ctx: Context, key: Buffer): FWatch {

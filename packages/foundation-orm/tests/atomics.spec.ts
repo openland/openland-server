@@ -7,6 +7,7 @@ import { NoOpBus } from './NoOpBus';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 describe('atomics', () => {
     let db: fdb.Database<NativeValue, any>;
@@ -16,7 +17,8 @@ describe('atomics', () => {
             .at(FKeyEncoding.encodeKey(['_tests_atomics']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(connection);
+        let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+        testEntities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
     });
 

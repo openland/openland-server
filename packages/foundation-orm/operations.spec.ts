@@ -77,7 +77,7 @@ describe('operations', () => {
         // Deletion
         //
         await inTx(parent, async (ctx) => {
-            from.delete(ctx, FKeyEncoding.encodeKey([0]));
+            from.clear(ctx, FKeyEncoding.encodeKey([0]));
         });
         expect(await isSubspaceEquals(parent, to, from)).toBeFalsy();
         await deleteMissing(parent, from, to);

@@ -27,6 +27,8 @@ export function generate(model: SchemaModel, path: string) {
     res += '// @ts-ignore\n';
     res += 'import { validators } from \'foundation-orm/utils/validators\';\n';
     res += '// @ts-ignore\n';
+    res += 'import { EntityLayer } from \'foundation-orm/EntityLayer\';\n';
+    res += '// @ts-ignore\n';
     res += 'import { Context } from \'@openland/context\';\n';
     res += '// @ts-ignore\n';
     res += 'import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from \'openland-utils/jsonSchema\';\n';

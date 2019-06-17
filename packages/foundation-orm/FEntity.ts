@@ -1,4 +1,3 @@
-import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { Context } from '@openland/context';
 import { FTransactionContext } from './utils/contexts';
@@ -8,6 +7,7 @@ import { getTransaction } from './getTransaction';
 import { FSubspace } from './FSubspace';
 import { FTuple } from './encoding/FTuple';
 import { createLogger } from '@openland/log';
+import { EntityLayer } from './EntityLayer';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -23,7 +23,7 @@ export abstract class FEntity {
     readonly keyspace: FSubspace<FTuple[], any>;
 
     readonly rawId: (string | number)[];
-    readonly connection: FConnection;
+    readonly layer: EntityLayer;
     readonly isReadOnly: boolean;
     readonly ctx: Context;
     readonly transaction: FTransaction;
@@ -36,11 +36,11 @@ export abstract class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(ctx: Context, connection: FConnection, keyspace: FSubspace<FTuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(ctx: Context, layer: EntityLayer, keyspace: FSubspace<FTuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
         this.keyspace = keyspace;
         this.rawId = id;
-        this.connection = connection;
+        this.layer = layer;
         this.transaction = getTransaction(ctx);
         this.isReadOnly = this.transaction.isReadOnly;
         this.options = options;
@@ -161,7 +161,7 @@ export abstract class FEntity {
                     // Notify after successful transaction
                     if (this.options.hasLiveStreams) {
                         this.transaction.afterCommit(() => {
-                            this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
+                            this.layer.eventBus.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
                         });
                     }
 
@@ -222,7 +222,7 @@ export abstract class FEntity {
 
                         if (index.unique) {
                             if (needToDeleteOld) {
-                                index.directory.delete(ctx, oldkey);
+                                index.directory.clear(ctx, oldkey);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
@@ -236,7 +236,7 @@ export abstract class FEntity {
                             }
                         } else {
                             if (needToDeleteOld) {
-                                index.directory.delete(ctx, [...oldkey, ...this.rawId]);
+                                index.directory.clear(ctx, [...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
                                 index.directory.set(ctx, [...key, ...this.rawId], value);

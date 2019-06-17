@@ -55,7 +55,7 @@ export class PushRepository {
                 }
             }
 
-            await this.entites.PushApple.create(ctx, this.entites.connection.nextRandomId(), { uid, tid, token, bundleId, sandbox, enabled: true });
+            await this.entites.PushApple.create(ctx, this.entites.layer.db.nextRandomId(), { uid, tid, token, bundleId, sandbox, enabled: true });
         });
     }
 
@@ -72,7 +72,7 @@ export class PushRepository {
                     await existing.flush(ctx);
                 }
             }
-            await this.entites.PushFirebase.create(ctx, this.entites.connection.nextRandomId(), { uid, tid, token, packageId, sandbox, enabled: true });
+            await this.entites.PushFirebase.create(ctx, this.entites.layer.db.nextRandomId(), { uid, tid, token, packageId, sandbox, enabled: true });
         });
     }
 
@@ -88,7 +88,7 @@ export class PushRepository {
                     await existing.flush(ctx);
                 }
             }
-            await this.entites.PushWeb.create(ctx, this.entites.connection.nextRandomId(), { uid, tid, endpoint, enabled: true });
+            await this.entites.PushWeb.create(ctx, this.entites.layer.db.nextRandomId(), { uid, tid, endpoint, enabled: true });
         });
     }
 
@@ -105,7 +105,7 @@ export class PushRepository {
                     await existing.flush(ctx);
                 }
             }
-            await this.entites.PushSafari.create(ctx, this.entites.connection.nextRandomId(), { uid, tid, token, bundleId, enabled: true });
+            await this.entites.PushSafari.create(ctx, this.entites.layer.db.nextRandomId(), { uid, tid, token, bundleId, enabled: true });
         });
     }
 
