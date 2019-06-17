@@ -6213,6 +6213,196 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         return new CommentsSubscription(ctx, this.connection, this.directory, [value.peerType, value.peerId, value.uid], value, this.options, isNew, this.indexes, 'CommentsSubscription');
     }
 }
+export interface CommentEventGlobalShape {
+    peerType?: string| null;
+    peerId?: number| null;
+    kind: 'comments_peer_updated';
+}
+
+export class CommentEventGlobal extends FEntity {
+    readonly entityName: 'CommentEventGlobal' = 'CommentEventGlobal';
+    get uid(): number { return this._value.uid; }
+    get seq(): number { return this._value.seq; }
+    get peerType(): string | null {
+        let res = this._value.peerType;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set peerType(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.peerType) { return; }
+        this._value.peerType = value;
+        this.markDirty();
+    }
+    get peerId(): number | null {
+        let res = this._value.peerId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set peerId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.peerId) { return; }
+        this._value.peerId = value;
+        this.markDirty();
+    }
+    get kind(): 'comments_peer_updated' {
+        return this._value.kind;
+    }
+    set kind(value: 'comments_peer_updated') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal> {
+    static schema: FEntitySchema = {
+        name: 'CommentEventGlobal',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+            { name: 'seq', type: 'number' },
+        ],
+        fields: [
+            { name: 'peerType', type: 'string' },
+            { name: 'peerId', type: 'number' },
+            { name: 'kind', type: 'enum', enumValues: ['comments_peer_updated'] },
+        ],
+        indexes: [
+            { name: 'user', type: 'range', fields: ['uid', 'seq'] },
+        ],
+    };
+
+    readonly indexUser: FEntityIndex;
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isString('peerType', src.peerType);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['comments_peer_updated']);
+    }
+
+    constructor(connection: FConnection) {
+        let indexUser = new FEntityIndex(connection, 'commentEventGlobal', 'user', ['uid', 'seq'], false);
+        super('CommentEventGlobal', 'commentEventGlobal', 
+            { enableVersioning: true, enableTimestamps: true, validator: CommentEventGlobalFactory.validate, hasLiveStreams: true },
+            [indexUser],
+            connection
+        );
+        this.indexUser = indexUser;
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(ctx: Context, uid: number, seq: number) {
+        return await this._findById(ctx, [uid, seq]);
+    }
+    async create(ctx: Context, uid: number, seq: number, shape: CommentEventGlobalShape) {
+        return await this._create(ctx, [uid, seq], { uid, seq, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, seq: number, shape: CommentEventGlobalShape) {
+        return await this._create_UNSAFE(ctx, [uid, seq], { uid, seq, ...shape });
+    }
+    watch(ctx: Context, uid: number, seq: number) {
+        return this._watch(ctx, [uid, seq]);
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
+    }
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
+    }
+    createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentEventGlobal(ctx, this.connection, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'CommentEventGlobal');
+    }
+}
+export interface CommentGlobalEventSeqShape {
+    seq: number;
+}
+
+export class CommentGlobalEventSeq extends FEntity {
+    readonly entityName: 'CommentGlobalEventSeq' = 'CommentGlobalEventSeq';
+    get uid(): number { return this._value.uid; }
+    get seq(): number {
+        return this._value.seq;
+    }
+    set seq(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.seq) { return; }
+        this._value.seq = value;
+        this.markDirty();
+    }
+}
+
+export class CommentGlobalEventSeqFactory extends FEntityFactory<CommentGlobalEventSeq> {
+    static schema: FEntitySchema = {
+        name: 'CommentGlobalEventSeq',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'seq', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+    }
+
+    constructor(connection: FConnection) {
+        super('CommentGlobalEventSeq', 'commentGlobalEventSeq', 
+            { enableVersioning: false, enableTimestamps: false, validator: CommentGlobalEventSeqFactory.validate, hasLiveStreams: false },
+            [],
+            connection
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0] };
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+    async create(ctx: Context, uid: number, shape: CommentGlobalEventSeqShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, shape: CommentGlobalEventSeqShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentGlobalEventSeq(ctx, this.connection, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'CommentGlobalEventSeq');
+    }
+}
 export interface ConversationSeqShape {
     seq: number;
 }
@@ -10764,6 +10954,8 @@ export interface AllEntities {
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
     readonly CommentsSubscription: CommentsSubscriptionFactory;
+    readonly CommentEventGlobal: CommentEventGlobalFactory;
+    readonly CommentGlobalEventSeq: CommentGlobalEventSeqFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -10855,6 +11047,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         CommentSeqFactory.schema,
         CommentEventFactory.schema,
         CommentsSubscriptionFactory.schema,
+        CommentEventGlobalFactory.schema,
+        CommentGlobalEventSeqFactory.schema,
         ConversationSeqFactory.schema,
         ConversationEventFactory.schema,
         UserDialogFactory.schema,
@@ -10939,6 +11133,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
     readonly CommentsSubscription: CommentsSubscriptionFactory;
+    readonly CommentEventGlobal: CommentEventGlobalFactory;
+    readonly CommentGlobalEventSeq: CommentGlobalEventSeqFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -11072,6 +11268,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.CommentEvent);
         this.CommentsSubscription = new CommentsSubscriptionFactory(connection);
         this.allEntities.push(this.CommentsSubscription);
+        this.CommentEventGlobal = new CommentEventGlobalFactory(connection);
+        this.allEntities.push(this.CommentEventGlobal);
+        this.CommentGlobalEventSeq = new CommentGlobalEventSeqFactory(connection);
+        this.allEntities.push(this.CommentGlobalEventSeq);
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.allEntities.push(this.ConversationSeq);
         this.ConversationEvent = new ConversationEventFactory(connection);
@@ -11289,6 +11489,12 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get CommentsSubscription(): CommentsSubscriptionFactory {
         return this.resolver().CommentsSubscription;
+    }
+    get CommentEventGlobal(): CommentEventGlobalFactory {
+        return this.resolver().CommentEventGlobal;
+    }
+    get CommentGlobalEventSeq(): CommentGlobalEventSeqFactory {
+        return this.resolver().CommentGlobalEventSeq;
     }
     get ConversationSeq(): ConversationSeqFactory {
         return this.resolver().ConversationSeq;

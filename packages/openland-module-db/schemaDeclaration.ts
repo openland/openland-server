@@ -748,6 +748,22 @@ const Schema = declareSchema(() => {
         rangeIndex('peer', ['peerType', 'peerId', 'uid']);
     });
 
+    entity('CommentEventGlobal', () => {
+        primaryKey('uid', 'number');
+        primaryKey('seq', 'number');
+        field('peerType', 'string').nullable();
+        field('peerId', 'number').nullable();
+        enumField('kind', ['comments_peer_updated']);
+        rangeIndex('user', ['uid', 'seq']).withStreaming();
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('CommentGlobalEventSeq', () => {
+        primaryKey('uid', 'number');
+        field('seq', 'number');
+    });
+
     //
     //  Comments end
     //

@@ -14,13 +14,24 @@ export class CommentsNotificationsRepository {
 
     async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
         return await inTx(parent, async (ctx) => {
+            const createEvent = async () => {
+                let sec = await this.fetchNextEventSeq(ctx, uid);
+                await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
+                    kind: 'comments_peer_updated',
+                    peerType,
+                    peerId,
+                });
+            };
+
             let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
             if (existing) {
                 existing.status = 'active';
                 existing.kind = type;
+                await createEvent();
                 return true;
             }
             await this.entities.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: type, status: 'active' });
+            await createEvent();
             return true;
         });
     }
@@ -28,10 +39,16 @@ export class CommentsNotificationsRepository {
     async unsubscribeFromComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
-            if (!existing) {
+            if (!existing || existing.status === 'disabled') {
                 return true;
             }
             existing.status = 'disabled';
+            let sec = await this.fetchNextEventSeq(ctx, uid);
+            await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
+                kind: 'comments_peer_updated',
+                peerType,
+                peerId,
+            });
             return true;
         });
     }
@@ -60,6 +77,20 @@ export class CommentsNotificationsRepository {
                 // send notification here
                 await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
             }
+        });
+    }
+
+    private async fetchNextEventSeq(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await this.entities.CommentGlobalEventSeq.findById(ctx, uid);
+            let seq = 1;
+            if (!existing) {
+                await (await this.entities.CommentGlobalEventSeq.create(ctx, uid, {seq: 1})).flush(ctx);
+            } else {
+                seq = ++existing.seq;
+                await existing.flush(ctx);
+            }
+            return seq;
         });
     }
 }

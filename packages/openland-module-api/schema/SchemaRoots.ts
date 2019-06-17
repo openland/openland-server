@@ -17,7 +17,13 @@ import {
     Comment,
     CommentEvent,
     UserStorageRecord,
-    DebugEvent, Notification, NotificationCenter, UserNotificationCenter, NotificationCenterEvent, CommentsSubscription
+    DebugEvent,
+    Notification,
+    NotificationCenter,
+    UserNotificationCenter,
+    NotificationCenterEvent,
+    CommentsSubscription,
+    CommentEventGlobal
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
@@ -274,6 +280,13 @@ export namespace GQLRoots {
     export type CommentPeerRootRoot = Message;
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
+
+    export type CommentGlobalUpdateContainerRoot = FLiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateSingleRoot = FLiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateBatchRoot = FLiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateRoot = CommentEventGlobal;
+    export type CommentPeerUpdatedRoot = CommentEventGlobal;
+    export type CommentGlobalUpdatesStateRoot = { state: string };
 
     //
     // Discover
