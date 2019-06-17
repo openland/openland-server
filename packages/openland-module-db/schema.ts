@@ -10544,7 +10544,7 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
 }
 export interface NotificationCenterEventShape {
     notificationId?: number| null;
-    kind: 'notification_received' | 'notification_read' | 'notification_deleted';
+    kind: 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated';
 }
 
 export class NotificationCenterEvent extends FEntity {
@@ -10562,10 +10562,10 @@ export class NotificationCenterEvent extends FEntity {
         this._value.notificationId = value;
         this.markDirty();
     }
-    get kind(): 'notification_received' | 'notification_read' | 'notification_deleted' {
+    get kind(): 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated' {
         return this._value.kind;
     }
-    set kind(value: 'notification_received' | 'notification_read' | 'notification_deleted') {
+    set kind(value: 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -10583,7 +10583,7 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         ],
         fields: [
             { name: 'notificationId', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['notification_received', 'notification_read', 'notification_deleted'] },
+            { name: 'kind', type: 'enum', enumValues: ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated'] },
         ],
         indexes: [
             { name: 'notificationCenter', type: 'range', fields: ['ncid', 'seq'] },
@@ -10599,7 +10599,7 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         validators.isNumber('seq', src.seq);
         validators.isNumber('notificationId', src.notificationId);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['notification_received', 'notification_read', 'notification_deleted']);
+        validators.isEnum('kind', src.kind, ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated']);
     }
 
     constructor(connection: FConnection) {

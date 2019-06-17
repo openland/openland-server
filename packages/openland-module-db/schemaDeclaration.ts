@@ -1218,7 +1218,7 @@ const Schema = declareSchema(() => {
         primaryKey('ncid', 'number');
         primaryKey('seq', 'number');
         field('notificationId', 'number').nullable();
-        enumField('kind', ['notification_received', 'notification_read', 'notification_deleted']);
+        enumField('kind', ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated']);
 
         rangeIndex('notificationCenter', ['ncid', 'seq']).withStreaming();
 

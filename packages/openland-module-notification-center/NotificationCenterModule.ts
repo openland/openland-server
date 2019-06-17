@@ -45,4 +45,8 @@ export class NotificationCenterModule {
     async getNotificationStateForUser(ctx: Context, uid: number) {
         return this.mediator.getNotificationStateForUser(ctx, uid);
     }
+
+    async markNotificationAsUpdated(parent: Context, nid: number) {
+        return this.mediator.markNotificationAsUpdated(parent, nid);
+    }
 }

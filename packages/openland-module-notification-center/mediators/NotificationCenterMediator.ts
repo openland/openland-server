@@ -80,4 +80,8 @@ export class NotificationCenterMediator {
             return this.repo.getNotificationState(ctx, userNotificationCenter.id);
         });
     }
+
+    async markNotificationAsUpdated(parent: Context, nid: number) {
+        return await this.repo.markNotificationAsUpdated(parent, nid);
+    }
 }

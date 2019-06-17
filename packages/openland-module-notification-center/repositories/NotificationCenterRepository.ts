@@ -164,6 +164,23 @@ export class NotificationCenterRepository {
         });
     }
 
+    async markNotificationAsUpdated(parent: Context, nid: number) {
+        await inTx(parent, async (ctx) => {
+            let notification = await this.fdb.Notification.findById(ctx, nid);
+            if (!notification) {
+                throw new NotFoundError();
+            }
+            //
+            // Create event
+            //
+            let seq = await this.nextEventSeq(ctx, notification.ncid);
+            await this.fdb.NotificationCenterEvent.create(ctx, notification.ncid, seq, {
+                kind: 'notification_updated',
+                notificationId: notification.id
+            });
+        });
+    }
+
     private async fetchNotificationId(parent: Context) {
         return fetchNextDBSeq(parent, 'notification-id');
     }

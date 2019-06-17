@@ -15,7 +15,7 @@ type NotificationCenterUpdateBatch {
     updates: [NotificationCenterUpdate!]!
 }
 
-union NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted
+union NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted | NotificationUpdated
 
 type NotificationReceived {
     center: NotificationCenter!
@@ -29,6 +29,12 @@ type NotificationRead {
 }
 
 type NotificationDeleted {
+    center: NotificationCenter!
+    notification: Notification!
+    unread: Int!
+}
+
+type NotificationUpdated {
     center: NotificationCenter!
     notification: Notification!
     unread: Int!

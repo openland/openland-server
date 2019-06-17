@@ -36,6 +36,8 @@ export default {
                 return 'NotificationRead';
             } else if (obj.kind === 'notification_deleted') {
                 return 'NotificationDeleted';
+            } else if (obj.kind === 'notification_updated') {
+                return 'NotificationUpdated';
             }
             throw Error('Unknown notification center update type: ' + obj.kind);
         }
@@ -51,6 +53,11 @@ export default {
         unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationDeleted: {
+        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
+        notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
+        unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
+    },
+    NotificationUpdated: {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
         notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
         unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
