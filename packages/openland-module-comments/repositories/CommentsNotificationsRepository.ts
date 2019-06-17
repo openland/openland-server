@@ -74,8 +74,28 @@ export class CommentsNotificationsRepository {
                 if (!settings.commentNotifications || settings.commentNotifications === 'none') {
                     continue;
                 }
-                // send notification here
-                await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
+
+                let sendNotification = false;
+
+                if (settings.commentNotifications === 'all') {
+                    sendNotification = true;
+                } else if (settings.commentNotifications === 'direct') {
+                    if (comment.parentCommentId) {
+                        let parentComment = await this.entities.Comment.findById(ctx, comment.parentCommentId);
+                        if (parentComment && parentComment.uid === subscription.uid) {
+                            sendNotification = true;
+                        }
+                    }
+                    if (comment.peerType === 'message') {
+                        let message = await this.entities.Message.findById(ctx, comment.peerId);
+                        if (message && message.uid === subscription.uid) {
+                            sendNotification = true;
+                        }
+                    }
+                }
+                if (sendNotification) {
+                    await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
+                }
             }
         });
     }
