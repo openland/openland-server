@@ -51,8 +51,8 @@ import { loadNotificationCenterModule } from '../openland-module-notification-ce
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
-        let connection = new FConnection(FConnection.create(), EventBus);
-        let layer = new EntityLayer(connection, connection.pubsub);
+        let connection = new FConnection(FConnection.create());
+        let layer = new EntityLayer(connection, EventBus);
         let entities = new AllEntitiesDirect(layer);
         await connection.ready(ctx);
         await layer.ready(ctx);

@@ -18,8 +18,8 @@ describe('PushRepository', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_push']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        let connection = new FConnection(db, NoOpBus);
-        let layer = new EntityLayer(connection, connection.pubsub);
+        let connection = new FConnection(db);
+        let layer = new EntityLayer(connection, NoOpBus);
         entities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
         await layer.ready(createNamedContext('test'));

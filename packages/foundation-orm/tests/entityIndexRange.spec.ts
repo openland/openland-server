@@ -17,7 +17,7 @@ describe('FEntity with range index', () => {
     beforeAll(async () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_range']));
-        let connection = new FConnection(db, NoOpBus);
+        let connection = new FConnection(db);
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);

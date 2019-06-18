@@ -20,7 +20,7 @@ describe('FWatch', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_watch']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        let connection = new FConnection(db, NoOpBus);
+        let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));

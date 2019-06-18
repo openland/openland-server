@@ -26,8 +26,8 @@ export async function testEnvironmentStart(name: string) {
     let connection = FConnection.create()
         .at(FKeyEncoding.encodeKey(['_tests_' + name + '_' + randomKey()]));
     await connection.clearRange(FKeyEncoding.encodeKey([]));
-    let cnn = new FConnection(connection, EventBus);
-    let layer = new EntityLayer(cnn, cnn.pubsub);
+    let cnn = new FConnection(connection);
+    let layer = new EntityLayer(cnn, EventBus);
     let entities = new AllEntitiesDirect(layer);
     await cnn.ready(createNamedContext('text-' + name));
     await layer.ready(createNamedContext('text-' + name));

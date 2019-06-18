@@ -19,7 +19,7 @@ describe('Random', () => {
     it('should pick node id successfully', async () => {
         let connections: FConnection[] = [];
         for (let i = 0; i < 32; i++) {
-            connections.push(new FConnection(db, NoOpBus));
+            connections.push(new FConnection(db));
         }
         for (let i = 0; i < 32; i++) {
             await connections[i].ready(createNamedContext('test'));

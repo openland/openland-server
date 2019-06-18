@@ -2,7 +2,6 @@ import * as fdb from 'foundationdb';
 import * as fs from 'fs';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 import { NativeValue } from 'foundationdb/dist/lib/native';
-import { FPubsub } from './FPubsub';
 import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
 import { FNodeIDLayer } from './layers/FNodeIDLayer';
@@ -10,7 +9,6 @@ import { Context } from '@openland/context';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
-    readonly pubsub: FPubsub;
     readonly allKeys: FSubspace;
     readonly nodeIdLayer: FNodeIDLayer;
 
@@ -30,9 +28,8 @@ export class FConnection {
         return db as fdb.Database<NativeValue, Buffer>;
     }
 
-    constructor(connection: fdb.Database<NativeValue, Buffer>, pubsub: FPubsub) {
+    constructor(connection: fdb.Database<NativeValue, Buffer>) {
         this.fdb = connection;
-        this.pubsub = pubsub;
         this.allKeys = new FGlobalSpace(this);
         this.nodeIdLayer = new FNodeIDLayer(this);
     }

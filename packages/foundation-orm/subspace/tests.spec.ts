@@ -2,7 +2,6 @@ import * as fdb from 'foundationdb';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
 
@@ -14,7 +13,7 @@ describe('FOperationsGlobal', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_ops']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        connection = new FConnection(db, NoOpBus);
+        connection = new FConnection(db);
         await connection.ready(rootCtx);
     });
 

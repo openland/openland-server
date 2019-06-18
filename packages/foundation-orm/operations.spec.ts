@@ -2,7 +2,6 @@ import { FDirectoryLayer } from './layers/FDirectoryLayer';
 import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { FConnection } from 'foundation-orm/FConnection';
-import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { copySubspace, deleteMissing } from './operations';
 import { createNamedContext } from '@openland/context';
 import { inTx } from './inTx';
@@ -14,7 +13,7 @@ describe('operations', () => {
         let db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_copy']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        connection = new FConnection(db, NoOpBus);
+        connection = new FConnection(db);
     });
 
     it('should copy subspaces', async () => {

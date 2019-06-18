@@ -25,8 +25,8 @@ import { createLogger } from '@openland/log';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 let rootCtx = createNamedContext('graphql-admin');
-let connection = new FConnection(FConnection.create(), EventBus);
-let layer = new EntityLayer(connection, connection.pubsub);
+let connection = new FConnection(FConnection.create());
+let layer = new EntityLayer(connection, EventBus);
 let FDB = new AllEntitiesDirect(layer); // WTF? Why separate connection?
 let entitiesMap: any = {};
 let queries: any = {};
