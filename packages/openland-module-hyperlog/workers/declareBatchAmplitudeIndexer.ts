@@ -10,7 +10,7 @@ import { HyperLog } from '../../openland-module-db/schema';
 
 const log = createLogger('amplitude-batch-indexer');
 
-const API_KEY = 'afbda859ebe1726f971f96a82665399e';
+const API_KEY = '74a224d67ecce6c3f53c3f2b5f162368';
 
 interface InternalEvent {
     id: string;
@@ -135,7 +135,7 @@ const saveEvents = async (ctx: Context, events: any[]) => {
 };
 
 export function declareBatchAmplitudeIndexer() {
-    updateReader('amplitude-batch-indexer', 7, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
+    updateReader('amplitude-batch-indexer', 8, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
         let exportedCount = await inTx(parent, async (ctx) => {
             let exCount = 0;
             let eventsProd = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === true));
