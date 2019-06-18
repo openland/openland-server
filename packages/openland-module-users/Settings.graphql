@@ -18,6 +18,11 @@ enum NotificationComments {
     NONE
 }
 
+enum CommentsNotificationDelivery {
+    ALL
+    NONE
+}
+
 enum NotificationsDelay {
     NONE
     MIN_1
@@ -29,6 +34,7 @@ input UpdateSettingsInput {
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
     commentNotifications: NotificationComments
+    commentNotificationsDelivery: CommentsNotificationDelivery,
     mobileAlert: Boolean
     mobileIncludeText: Boolean
     mute: Boolean
@@ -42,6 +48,7 @@ type Settings {
     desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
     commentNotifications: NotificationComments!
+    commentNotificationsDelivery: CommentsNotificationDelivery!
     mobileAlert: Boolean!
     mobileIncludeText: Boolean!
     mute: Boolean

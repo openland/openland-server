@@ -30,6 +30,10 @@ export default {
         MIN_1: '1min',
         MIN_15: '15min'
     },
+    CommentsNotificationDelivery: {
+        ALL: 'all',
+        NONE: 'none'
+    },
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
         primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await FDB.User.findById(ctx, src.id))!!.email,
@@ -37,6 +41,7 @@ export default {
         desktopNotifications: (src: UserSettings) => src.desktopNotifications as any,
         mobileNotifications: (src: UserSettings) => src.mobileNotifications as any,
         commentNotifications: (src: UserSettings) => src.commentNotifications ? src.commentNotifications : 'none' as any,
+        commentNotificationsDelivery: (src: UserSettings) => src.commentNotificationsDelivery ? src.commentNotificationsDelivery : 'none' as any,
         mobileAlert: (src: UserSettings) => src.mobileAlert !== null && src.mobileAlert !== undefined ? src.mobileAlert : true,
         mobileIncludeText: (src: UserSettings) => src.mobileIncludeText !== null && src.mobileAlert !== undefined ? src.mobileIncludeText : true,
         notificationsDelay: (src: UserSettings) => src.notificationsDelay as any,
@@ -73,6 +78,9 @@ export default {
                 }
                 if (args.settings.commentNotifications !== null) {
                     settings.commentNotifications = args.settings.commentNotifications as any;
+                }
+                if (args.settings.commentNotificationsDelivery !== null) {
+                    settings.commentNotificationsDelivery = args.settings.commentNotificationsDelivery as any;
                 }
                 return settings;
             });

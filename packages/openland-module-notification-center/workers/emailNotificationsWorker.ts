@@ -75,6 +75,13 @@ export function startEmailNotificationWorker() {
                     return;
                 }
 
+                if (settings.commentNotificationsDelivery === 'none') {
+                    state.lastPushSeq = state.seq;
+                    needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                    log.debug(ctx, 'ignore user\'s with disabled notifications');
+                    return;
+                }
+
                 // Read email timeouts
                 let delta = Delays[settings.emailFrequency];
 

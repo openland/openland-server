@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5037e80a6606c27f3bbc4d486697ff30';
+export const GQL_SPEC_VERSION = '23a3795e550bc45aa9f3e6a8164749ad';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -407,12 +407,14 @@ export namespace GQL {
     export type EmailFrequency = 'NEVER' | 'MIN_15' | 'HOUR_1' | 'HOUR_24' | 'WEEK_1';
     export type NotificationMessages = 'ALL' | 'DIRECT' | 'NONE';
     export type NotificationComments = 'ALL' | 'DIRECT' | 'NONE';
+    export type CommentsNotificationDelivery = 'ALL' | 'NONE';
     export type NotificationsDelay = 'NONE' | 'MIN_1' | 'MIN_15';
     export interface UpdateSettingsInput {
         emailFrequency: Nullable<EmailFrequency>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
         commentNotifications: Nullable<NotificationComments>;
+        commentNotificationsDelivery: Nullable<CommentsNotificationDelivery>;
         mobileAlert: Nullable<boolean>;
         mobileIncludeText: Nullable<boolean>;
         mute: Nullable<boolean>;
@@ -425,6 +427,7 @@ export namespace GQL {
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
         commentNotifications: NotificationComments;
+        commentNotificationsDelivery: CommentsNotificationDelivery;
         mobileAlert: boolean;
         mobileIncludeText: boolean;
         mute: Nullable<boolean>;

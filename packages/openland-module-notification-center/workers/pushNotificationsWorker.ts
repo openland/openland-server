@@ -72,6 +72,13 @@ export function startPushNotificationWorker() {
                     return;
                 }
 
+                if (settings.commentNotificationsDelivery === 'none') {
+                    state.lastPushSeq = state.seq;
+                    needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                    log.debug(ctx, 'ignore user\'s with disabled notifications');
+                    return;
+                }
+
                 // Ignore already processed updates
                 if (state.lastPushSeq !== null && state.lastPushSeq >= state.seq) {
                     log.debug(ctx, 'ignore already processed updates');

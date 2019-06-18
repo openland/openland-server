@@ -3437,6 +3437,7 @@ export interface UserSettingsShape {
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
     commentNotifications?: 'all' | 'direct' | 'none'| null;
+    commentNotificationsDelivery?: 'all' | 'none'| null;
     mobileAlert?: boolean| null;
     mobileIncludeText?: boolean| null;
     notificationsDelay?: 'none' | '1min' | '15min'| null;
@@ -3481,6 +3482,17 @@ export class UserSettings extends FEntity {
         this._checkIsWritable();
         if (value === this._value.commentNotifications) { return; }
         this._value.commentNotifications = value;
+        this.markDirty();
+    }
+    get commentNotificationsDelivery(): 'all' | 'none' | null {
+        let res = this._value.commentNotificationsDelivery;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set commentNotificationsDelivery(value: 'all' | 'none' | null) {
+        this._checkIsWritable();
+        if (value === this._value.commentNotificationsDelivery) { return; }
+        this._value.commentNotificationsDelivery = value;
         this.markDirty();
     }
     get mobileAlert(): boolean | null {
@@ -3530,6 +3542,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
             { name: 'desktopNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
             { name: 'mobileNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
             { name: 'commentNotifications', type: 'enum', enumValues: ['all', 'direct', 'none'] },
+            { name: 'commentNotificationsDelivery', type: 'enum', enumValues: ['all', 'none'] },
             { name: 'mobileAlert', type: 'boolean' },
             { name: 'mobileIncludeText', type: 'boolean' },
             { name: 'notificationsDelay', type: 'enum', enumValues: ['none', '1min', '15min'] },
@@ -3548,6 +3561,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.notNull('mobileNotifications', src.mobileNotifications);
         validators.isEnum('mobileNotifications', src.mobileNotifications, ['all', 'direct', 'none']);
         validators.isEnum('commentNotifications', src.commentNotifications, ['all', 'direct', 'none']);
+        validators.isEnum('commentNotificationsDelivery', src.commentNotificationsDelivery, ['all', 'none']);
         validators.isBoolean('mobileAlert', src.mobileAlert);
         validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);

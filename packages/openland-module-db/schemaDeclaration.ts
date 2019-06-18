@@ -371,6 +371,7 @@ const Schema = declareSchema(() => {
         enumField('desktopNotifications', ['all', 'direct', 'none']);
         enumField('mobileNotifications', ['all', 'direct', 'none']);
         enumField('commentNotifications', ['all', 'direct', 'none']).nullable();
+        enumField('commentNotificationsDelivery', ['all', 'none']).nullable();
         field('mobileAlert', 'boolean').nullable();
         field('mobileIncludeText', 'boolean').nullable();
         enumField('notificationsDelay', ['none', '1min', '15min']).nullable();
