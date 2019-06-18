@@ -38,6 +38,7 @@ export class CommentsMediator {
             //  Subscribe to notifications
             //
             await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid, 'all');
+            await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, message.uid, 'all');
 
             //
             // Send notifications
