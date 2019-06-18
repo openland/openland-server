@@ -999,6 +999,14 @@ export default {
 
             return cid;
         }),
+        alphaPinMessage: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            let mid = IDs.ConversationMessage.parse(args.messageId);
+
+            await Modules.Messaging.room.pinMessage(ctx, cid, uid, mid);
+
+            return cid;
+        }),
         betaUnpinMessage: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.chatId);
 
