@@ -16,7 +16,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
-import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
 import { initSafariPush } from '../openland-module-push/safari/handlers';
 import { initAppHandlers } from '../openland-module-apps/Apps.handler';
 import { ApolloServer } from 'apollo-server-express';
@@ -33,6 +32,7 @@ import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { withReadOnlyTransaction } from '@openland/foundationdb';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 

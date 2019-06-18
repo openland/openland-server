@@ -1,21 +1,15 @@
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { AllEntitiesDirect, AllEntities } from './testSchema';
 import { NoOpBus } from './NoOpBus';
-import { NativeValue } from 'foundationdb/dist/lib/native';
 import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 describe('atomics', () => {
-    let db: fdb.Database<NativeValue, any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_atomics']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
+        let db = await FConnection.createTest();
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);

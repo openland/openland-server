@@ -148,11 +148,20 @@
     lodash "^4.17.5"
     protobufjs "^6.8.6"
 
-"@openland/context@^0.4.0":
+"@openland/context@*", "@openland/context@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@openland/context/-/context-0.4.0.tgz#3d12934d9726b5743f9f40521e3d62e81a1f8d0c"
 
-"@openland/log@^1.1.1":
+"@openland/foundationdb@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-1.4.0.tgz#bec0269c8b0e0b519fbcb86fd714e4336ebe3bf0"
+  integrity sha512-QRLYbeoftLNksJJ5LqP0tyMnGOn45fjBAKAaxOGVriSMaq1BAxnJRuCFcnD8Cy/EeuR74duTeaM+JmexMwbbiQ==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/log" "*"
+    foundationdb "0.10.2"
+
+"@openland/log@*", "@openland/log@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@openland/log/-/log-1.1.1.tgz#0fda381e08748f03f9ec4e4316e672f44f40d45d"
   dependencies:

@@ -1,18 +1,14 @@
-import { FNodeIDLayer } from './../layers/FNodeIDLayer';
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
 import { FConnection } from '../FConnection';
-import { NativeValue } from 'foundationdb/dist/lib/native';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { Database } from '@openland/foundationdb';
+import { FNodeIDLayer } from './../layers/FNodeIDLayer';
 
 describe('Random', () => {
 
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
+    let db: Database;
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_random']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
+        db = await Database.openTest();
     });
 
     it('should pick node id successfully', async () => {

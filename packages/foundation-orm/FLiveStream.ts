@@ -4,7 +4,7 @@ import { delayBreakable } from 'openland-utils/timer';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FPubsubSubcription } from './FPubsub';
 import { Context } from '@openland/context';
-import { withoutTransaction } from './withoutTransaction';
+import { withoutTransaction } from '@openland/foundationdb';
 
 export class FLiveStream<T extends FEntity> {
     private readonly baseStream: FStream<T>;

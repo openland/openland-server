@@ -1,18 +1,17 @@
 import { FDirectoryLayer } from './layers/FDirectoryLayer';
-import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { FConnection } from 'foundation-orm/FConnection';
 import { copySubspace, deleteMissing } from './operations';
 import { createNamedContext } from '@openland/context';
 import { inTx } from './inTx';
 import { isSubspaceEquals } from './operations';
+import { encoders } from '@openland/foundationdb';
+
 describe('operations', () => {
 
     let connection: FConnection;
     beforeAll(async () => {
-        let db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_copy']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
+        let db = await FConnection.createTest();
         connection = new FConnection(db);
     });
 
@@ -34,7 +33,7 @@ describe('operations', () => {
         // Prefill
         await inTx(parent, async (ctx) => {
             for (let i = 0; i < 20000; i++) {
-                from.set(ctx, FKeyEncoding.encodeKey([i]), FEncoders.json.pack({ v: i }));
+                from.set(ctx, FKeyEncoding.encodeKey([i]), encoders.json.pack({ v: i }));
             }
         });
         expect(await isSubspaceEquals(parent, to, from)).toBeFalsy();
@@ -46,7 +45,7 @@ describe('operations', () => {
         data = (await to.range(parent, Buffer.of()));
         expect(data.length).toBe(20000);
         for (let i = 0; i < 20000; i++) {
-            expect(Buffer.compare(data[i].value, FEncoders.json.pack({ v: i }))).toBe(0);
+            expect(Buffer.compare(data[i].value, encoders.json.pack({ v: i }))).toBe(0);
             expect(Buffer.compare(data[i].key, FKeyEncoding.encodeKey([i]))).toBe(0);
         }
         expect(await isSubspaceEquals(parent, to, from)).toBeTruthy();
@@ -57,7 +56,7 @@ describe('operations', () => {
 
         await inTx(parent, async (ctx) => {
             for (let i = 20000; i < 40000; i++) {
-                from.set(ctx, FKeyEncoding.encodeKey([i]), FEncoders.json.pack({ v: i }));
+                from.set(ctx, FKeyEncoding.encodeKey([i]), encoders.json.pack({ v: i }));
             }
         });
         expect(await isSubspaceEquals(parent, to, from)).toBeFalsy();
@@ -69,7 +68,7 @@ describe('operations', () => {
         data = (await to.range(parent, Buffer.of()));
         expect(data.length).toBe(40000);
         for (let i = 0; i < 40000; i++) {
-            expect(Buffer.compare(data[i].value, FEncoders.json.pack({ v: i }))).toBe(0);
+            expect(Buffer.compare(data[i].value, encoders.json.pack({ v: i }))).toBe(0);
             expect(Buffer.compare(data[i].key, FKeyEncoding.encodeKey([i]))).toBe(0);
         }
         expect(await isSubspaceEquals(parent, to, from)).toBeTruthy();

@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { AllEntities } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
-import { FEncoders } from 'foundation-orm/encoding/FEncoders';
+import { encoders } from '@openland/foundationdb';
 
 @injectable()
 export class NeedNotificationDeliveryRepository {
@@ -13,8 +13,8 @@ export class NeedNotificationDeliveryRepository {
     setNeedNotificationDelivery = (ctx: Context, uid: number) => {
 
         let directory = this.entities.NeedNotificationFlagDirectory
-            .withKeyEncoding(FEncoders.tuple)
-            .withValueEncoding(FEncoders.boolean);
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean);
 
         directory.set(ctx, ['email', uid], true);
         directory.set(ctx, ['push', uid], true);
@@ -22,15 +22,15 @@ export class NeedNotificationDeliveryRepository {
 
     resetNeedNotificationDelivery = (ctx: Context, kind: 'email' | 'push', uid: number) => {
         this.entities.NeedNotificationFlagDirectory
-            .withKeyEncoding(FEncoders.tuple)
-            .withValueEncoding(FEncoders.boolean)
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean)
             .clear(ctx, [kind, uid]);
     }
 
     findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push') => {
         return (await this.entities.NeedNotificationFlagDirectory
-            .withKeyEncoding(FEncoders.tuple)
-            .withValueEncoding(FEncoders.boolean)
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean)
             .range(ctx, [kind]))
             .map((v) => v.key[1] as number);
     }

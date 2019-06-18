@@ -1,19 +1,18 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { createNamedContext } from '@openland/context';
 import { randomKey } from 'openland-utils/random';
-import { FEncoders } from 'foundation-orm/encoding/FEncoders';
-import { FSubspace } from 'foundation-orm/FSubspace';
-import { FTuple } from 'foundation-orm/encoding/FTuple';
 import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
+import { encoders, Subspace } from '@openland/foundationdb';
+import { Tuple } from '@openland/foundationdb/lib/encoding';
 
 const rootCtx = createNamedContext('fdb-node-id');
 const log = createLogger('node-id-layer');
 
 export class FNodeIDLayer {
     private readonly connection: FConnection;
-    private readonly keyspace: FSubspace<FTuple[], any>;
+    private readonly keyspace: Subspace<Tuple[], any>;
     private seed = randomKey();
     private readyPromise!: Promise<void>;
     private _nodeId = 0;
@@ -23,8 +22,8 @@ export class FNodeIDLayer {
         this.connection = connection;
 
         this.keyspace = this.connection.allKeys
-            .withKeyEncoding(FEncoders.tuple)
-            .withValueEncoding(FEncoders.json)
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
             .subspace(['__system', '__nodeid']);
 
         this.start();

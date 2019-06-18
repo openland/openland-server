@@ -365,7 +365,7 @@ queries.metaAllDirectories = {
 queries.metaMigrations = {
     type: new GraphQLList(GraphQLString),
     async resolve() {
-        return (await FDB.layer.db.fdb.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+        return (await FDB.layer.db.fdb.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
     }
 };
 

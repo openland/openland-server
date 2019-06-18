@@ -1,6 +1,5 @@
-import { FSubspace } from 'foundation-orm/FSubspace';
-import { FTuple } from './encoding/FTuple';
-import { FEncoders } from './encoding/FEncoders';
+import { Tuple } from '@openland/foundationdb/lib/encoding';
+import { Subspace, encoders } from '@openland/foundationdb';
 import { EntityLayer } from './EntityLayer';
 
 export class FEntityIndex {
@@ -8,8 +7,8 @@ export class FEntityIndex {
     readonly fields: string[];
     readonly unique: boolean;
     readonly condition?: (src: any) => boolean;
-    readonly directoryRaw: FSubspace;
-    readonly directory: FSubspace<FTuple[], any>;
+    readonly directoryRaw: Subspace;
+    readonly directory: Subspace<Tuple[], any>;
 
     constructor(layer: EntityLayer, entityName: string, name: string, fields: string[], unique: boolean, condition?: (src: any) => boolean) {
         this.name = name;
@@ -18,7 +17,7 @@ export class FEntityIndex {
         this.condition = condition;
         this.directoryRaw = layer.directory.getDirectory(['entity', entityName, '__indexes', name]);
         this.directory = this.directoryRaw
-            .withKeyEncoding(FEncoders.tuple)
-            .withValueEncoding(FEncoders.json);
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json);
     }
 }

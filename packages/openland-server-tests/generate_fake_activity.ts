@@ -85,7 +85,7 @@ export async function prepare() {
         }
 
         // Clear DB
-        await FDB.layer.db.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
+        await FDB.layer.db.fdb.rawDB.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
         await loadAllModules(rootCtx, false);

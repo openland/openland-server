@@ -1,12 +1,12 @@
+import { Subspace } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { FSubspace } from './FSubspace';
 import { decodeAtomic, encodeAtomic } from './utils/atomicEncode';
 
 export class FAtomicInteger {
     private readonly key: Buffer;
-    private readonly keySpace: FSubspace;
+    private readonly keySpace: Subspace;
 
-    constructor(key: Buffer, keySpace: FSubspace) {
+    constructor(key: Buffer, keySpace: Subspace) {
         this.key = key;
         this.keySpace = keySpace;
     }

@@ -1,15 +1,12 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { DirectoryAllocator } from './DirectoryAllocator';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 
 describe('DirectoryAllocator', () => {
 
     // Database Init
     let connection: FConnection;
     beforeAll(async () => {
-        let db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_allocator']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
+        let db = await FConnection.createTest();
         connection = new FConnection(db);
     });
 

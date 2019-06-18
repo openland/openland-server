@@ -1,28 +1,27 @@
-import * as fdb from 'foundationdb';
 import * as fs from 'fs';
-import { NativeValue } from 'foundationdb/dist/lib/native';
-import { FSubspace } from './FSubspace';
-import { FGlobalSpace } from './subspace/FGlobalSpace';
+import { Database, Subspace } from '@openland/foundationdb';
 
 export class FConnection {
-    readonly fdb: fdb.Database<NativeValue, Buffer>;
-    readonly allKeys: FSubspace;
+    readonly fdb: Database;
+    readonly allKeys: Subspace;
 
     static create() {
-        let db: fdb.Database;
-        fdb.setAPIVersion(510);
-        let dcId = process.env.FOUNDATION_DC_ID ? process.env.FOUNDATION_DC_ID : undefined;
+        let db: Database;
         if (process.env.FOUNDATION_DB) {
             fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
-            db = fdb.openSync('foundation.clusterfile', dcId ? { datacenter_id: dcId } : undefined);
+            db = Database.open('foundation.clusterfile');
         } else {
-            db = fdb.openSync(undefined, dcId ? { datacenter_id: dcId } : undefined);
+            db = Database.open();
         }
-        return db as fdb.Database<NativeValue, Buffer>;
+        return db;
     }
 
-    constructor(connection: fdb.Database<NativeValue, Buffer>) {
-        this.fdb = connection;
-        this.allKeys = new FGlobalSpace(this);
+    static async createTest() {
+        return await Database.openTest();
+    }
+
+    constructor(db: Database) {
+        this.fdb = db;
+        this.allKeys = db.allKeys;
     }
 }

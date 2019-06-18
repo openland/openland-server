@@ -1,8 +1,8 @@
+import { Tuple } from '@openland/foundationdb/lib/encoding';
+import { Subspace } from '@openland/foundationdb';
 import { FEntity } from './FEntity';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
-import { FSubspace } from './FSubspace';
-import { FTuple } from './encoding/FTuple';
 // import { fixObsoleteCursor } from './utils/fixObsoleteKey';
 import { inTx } from './inTx';
 import { Context } from '@openland/context';
@@ -12,10 +12,10 @@ export class FStream<T extends FEntity> {
     private readonly limit: number;
     private readonly builder: (val: any, ctx: Context) => T;
     // private _subspace: FTuple[];
-    private keySpace: FSubspace<FTuple[], any>;
+    private keySpace: Subspace<Tuple[], any>;
     private _cursor: string;
 
-    constructor(factory: FEntityFactory<T>, keySpace: FSubspace<FTuple[], any>, subspace: FTuple[], limit: number, builder: (val: any, ctx: Context) => T, after?: string) {
+    constructor(factory: FEntityFactory<T>, keySpace: Subspace<Tuple[], any>, subspace: Tuple[], limit: number, builder: (val: any, ctx: Context) => T, after?: string) {
         this._cursor = after || '';
         this.keySpace = keySpace
             .subspace(subspace);

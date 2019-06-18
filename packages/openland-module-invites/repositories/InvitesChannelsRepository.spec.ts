@@ -1,9 +1,7 @@
 import 'reflect-metadata';
-import * as fdb from 'foundationdb';
+import { Database } from '@openland/foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { NativeValue } from 'foundationdb/dist/lib/native';
 import { InvitesRoomRepository } from './InvitesRoomRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createNamedContext } from '@openland/context';
@@ -11,13 +9,10 @@ import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 describe('ChannelRepository', () => {
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
     let entities: AllEntities;
 
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_channel_invites']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
+        let db = await Database.openTest();
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         entities = new AllEntitiesDirect(layer);

@@ -9,9 +9,9 @@ import { injectable } from 'inversify';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
-import { getTransaction } from 'foundation-orm/getTransaction';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { getTransaction } from '@openland/foundationdb';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 // const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');

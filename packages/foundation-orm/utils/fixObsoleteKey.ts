@@ -1,6 +1,6 @@
-import { FTuple } from 'foundation-orm/encoding/FTuple';
+import { Tuple } from '@openland/foundationdb/lib/encoding';
 
-function removePrefix(src: FTuple[], prefix: FTuple[]): FTuple[] {
+function removePrefix(src: Tuple[], prefix: Tuple[]): Tuple[] {
     if (prefix.length === 0) {
         return src;
     }
@@ -20,6 +20,6 @@ function removePrefix(src: FTuple[], prefix: FTuple[]): FTuple[] {
     return key;
 }
 
-export function fixObsoleteCursor(src: FTuple[], namespace: FTuple[], subspace: FTuple[]): FTuple[] {
+export function fixObsoleteCursor(src: Tuple[], namespace: Tuple[], subspace: Tuple[]): Tuple[] {
     return removePrefix(removePrefix(src, namespace), subspace);
 }
