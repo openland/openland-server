@@ -84,6 +84,7 @@ extend type Mutation {
     debugFixUserDialogsIndex: Boolean!
     debugCalcRoomsActiveMembers: Boolean!
     debugCalcOrgsActiveMembers: Boolean!
+    debugCreateCommentSubscriptions: Boolean!
 }
 
 extend type Subscription {

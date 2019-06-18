@@ -697,6 +697,29 @@ export default {
             });
             return true;
         }),
+        debugCreateCommentSubscriptions: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugCreateCommentSubscriptions', async (log) => {
+                let allComments = await FDB.Comment.findAll(rootCtx);
+                let i = 0;
+                for (let comment of allComments) {
+                    await inTx(rootCtx, async (ctx) => {
+                        let subscription = await FDB.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, comment.uid);
+                        if (!subscription) {
+                            await FDB.CommentsSubscription.create(ctx, comment.peerType, comment.peerId, comment.uid, {
+                                status: 'active',
+                                kind: 'all'
+                            });
+                        }
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
