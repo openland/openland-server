@@ -3,7 +3,6 @@ import * as fdb from 'foundationdb';
 import { FConnection } from '../FConnection';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 
 describe('Random', () => {
