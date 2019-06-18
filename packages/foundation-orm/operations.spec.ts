@@ -1,22 +1,21 @@
 import { FDirectoryLayer } from './layers/FDirectoryLayer';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { FConnection } from 'foundation-orm/FConnection';
 import { copySubspace, deleteMissing } from './operations';
 import { createNamedContext } from '@openland/context';
 import { isSubspaceEquals } from './operations';
 import { encoders, Database, inTx } from '@openland/foundationdb';
+import { openTestDatabase } from 'openland-server/foundationdb';
 
 describe('operations', () => {
 
-    let connection: FConnection;
+    let db: Database;
     beforeAll(async () => {
-        let db = await Database.openTest();
-        connection = new FConnection(db);
+        db = await openTestDatabase();
     });
 
     it('should copy subspaces', async () => {
         let parent = createNamedContext('copy');
-        let directories = new FDirectoryLayer(connection);
+        let directories = new FDirectoryLayer(db);
         let from = directories.getDirectory(['from']);
         let to = directories.getDirectory(['to']);
         await from.ready();

@@ -3,16 +3,16 @@ import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
 import { ApolloServer } from 'apollo-server-express';
-import { FDBGraphqlSchema } from 'openland-module-db/tools/GraphEndpoint';
 import { Modules } from 'openland-modules/Modules';
 import * as http from 'http';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { createGraphQLAdminSchema } from 'openland-module-db/tools/GraphEndpoint';
 
 const rootCtx = createNamedContext('admin');
 const logger = createLogger('admin');
 
-export function startAdminInterface() {
+export async function startAdminInterface() {
     logger.log(rootCtx, 'Starting Admin Interface...');
 
     const app = express();
@@ -28,7 +28,7 @@ export function startAdminInterface() {
     app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats(rootCtx)));
 
     const Server = new ApolloServer({
-        schema: FDBGraphqlSchema,
+        schema: await createGraphQLAdminSchema(),
         introspection: true,
         playground: {
             endpoint: 'https://db.openland.io/graphql',

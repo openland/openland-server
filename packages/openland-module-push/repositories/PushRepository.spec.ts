@@ -1,20 +1,18 @@
-import { Database } from '@openland/foundationdb';
-import { EntityLayer } from './../../foundation-orm/EntityLayer';
 // tslint:disable:no-floating-promises
-import { FConnection } from 'foundation-orm/FConnection';
+import { EntityLayer } from './../../foundation-orm/EntityLayer';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { PushRepository } from './PushRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createNamedContext } from '@openland/context';
+import { openTestDatabase } from 'openland-server/foundationdb';
 
 describe('PushRepository', () => {
     // Database Init
     let entities: AllEntities;
 
     beforeAll(async () => {
-        let db = await Database.openTest();
-        let connection = new FConnection(db);
-        let layer = new EntityLayer(connection, NoOpBus);
+        let db = await openTestDatabase();
+        let layer = new EntityLayer(db, NoOpBus);
         entities = new AllEntitiesDirect(layer);
         await layer.ready(createNamedContext('test'));
     });

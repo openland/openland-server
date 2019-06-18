@@ -1,21 +1,20 @@
-import { Database, inTx } from '@openland/foundationdb';
-import { EntityLayer } from './../EntityLayer';
 // tslint:disable:no-floating-promises
 // tslint:disable:no-console
+import { inTx } from '@openland/foundationdb';
+import { EntityLayer } from './../EntityLayer';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
-import { FConnection } from '../FConnection';
 import { delay } from '../../openland-utils/timer';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
+import { openTestDatabase } from 'openland-server/foundationdb';
 
 describe('FWatch', () => {
 
     // Database Init
     let testEntities: AllEntities;
     beforeAll(async () => {
-        let db = await Database.openTest();
-        let connection = new FConnection(db);
-        let layer = new EntityLayer(connection, NoOpBus);
+        let db = await openTestDatabase();
+        let layer = new EntityLayer(db, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);
         await layer.ready(createNamedContext('test'));
     });

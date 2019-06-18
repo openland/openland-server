@@ -1,4 +1,4 @@
-import { FConnection } from 'foundation-orm/FConnection';
+import { Database } from '@openland/foundationdb';
 import { backoff } from 'openland-utils/timer';
 import { encoders } from 'foundationdb';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -19,16 +19,16 @@ function buildDataPrefix(counter: number) {
 }
 
 export class DirectoryAllocator {
-    readonly connection: FConnection;
+    readonly connection: Database;
 
-    constructor(connection: FConnection) {
+    constructor(connection: Database) {
         this.connection = connection;
     }
 
     async allocateDirectory(key: (string | number | boolean)[]) {
         let destKey = Buffer.concat([regsPrefix, FKeyEncoding.encodeKey([...key])]);
         try {
-            return await backoff(async () => await this.connection.fdb.rawDB.doTransaction(async (tx) => {
+            return await backoff(async () => await this.connection.rawDB.doTransaction(async (tx) => {
                 let res = await tx.get(destKey);
                 if (res) {
                     return buildDataPrefix(encoders.json.unpack(res).value as number);
@@ -54,7 +54,7 @@ export class DirectoryAllocator {
     }
 
     async findAllDirectories() {
-        let res = await this.connection.fdb.rawDB.getRangeAll(regsPrefix);
+        let res = await this.connection.rawDB.getRangeAll(regsPrefix);
         return res.map((v) => ({
             key: FKeyEncoding.decodeKey(v[0].slice(regsPrefix.length)).join('.'),
             id: buildDataPrefix(encoders.json.unpack(v[1]).value).toString('hex')

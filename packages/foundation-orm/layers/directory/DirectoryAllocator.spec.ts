@@ -1,18 +1,17 @@
-import { FConnection } from 'foundation-orm/FConnection';
 import { DirectoryAllocator } from './DirectoryAllocator';
 import { Database } from '@openland/foundationdb';
+import { openTestDatabase } from 'openland-server/foundationdb';
 
 describe('DirectoryAllocator', () => {
 
     // Database Init
-    let connection: FConnection;
+    let db: Database;
     beforeAll(async () => {
-        let db = await Database.openTest();
-        connection = new FConnection(db);
+        db = await openTestDatabase();
     });
 
     it('should allocate ids correctly', async () => {
-        let allocator = new DirectoryAllocator(connection);
+        let allocator = new DirectoryAllocator(db);
         let allocated = (await allocator.allocateDirectory(['test'])).toString('hex');
         let allocated2 = (await allocator.allocateDirectory(['test2'])).toString('hex');
         let allocated3 = (await allocator.allocateDirectory(['test'])).toString('hex');

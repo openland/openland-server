@@ -9,11 +9,11 @@ import faker from 'faker';
 import { FDB } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
 import { AllEntities, AllEntitiesDirect, Conversation } from 'openland-module-db/schema';
-import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { range } from '../openland-utils/range';
+import { openDatabase } from 'openland-server/foundationdb';
 
 let rootCtx = createNamedContext('prepare');
 faker.seed(123);
@@ -72,8 +72,8 @@ export async function prepare() {
         }
 
         // Init DB
-        let connection = new FConnection(FConnection.create());
-        let layer = new EntityLayer(connection, EventBus);
+        let db = await openDatabase();
+        let layer = new EntityLayer(db, EventBus);
         let entities = new AllEntitiesDirect(layer);
         await layer.ready(rootCtx);
         container.bind<AllEntities>('FDB')
@@ -85,7 +85,7 @@ export async function prepare() {
         }
 
         // Clear DB
-        await FDB.layer.db.fdb.rawDB.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
+        await FDB.layer.db.rawDB.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
         await loadAllModules(rootCtx, false);

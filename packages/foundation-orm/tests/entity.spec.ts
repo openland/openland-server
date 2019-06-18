@@ -1,10 +1,10 @@
 // tslint:disable:no-floating-promises
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
-import { FConnection } from '../FConnection';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
-import { Database, inTx } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
+import { openTestDatabase } from 'openland-server/foundationdb';
 
 describe('FEntity', () => {
 
@@ -12,9 +12,8 @@ describe('FEntity', () => {
     let testEntities: AllEntities;
     let rootCtx = createNamedContext('test');
     beforeAll(async () => {
-        let db = await Database.openTest();
-        let connection = new FConnection(db);
-        let layer = new EntityLayer(connection, NoOpBus);
+        let db = await openTestDatabase();
+        let layer = new EntityLayer(db, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);
         await layer.ready(rootCtx);
     });

@@ -1,4 +1,4 @@
-import { FConnection } from 'foundation-orm/FConnection';
+import { Database } from '@openland/foundationdb';
 import { DirectoryAllocator } from './directory/DirectoryAllocator';
 import { FDirectory } from 'foundation-orm/FDirectory';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -8,10 +8,10 @@ import { createLogger } from '@openland/log';
 const log = createLogger('directory-layer');
 
 export class FDirectoryLayer {
-    private readonly connection: FConnection;
+    private readonly connection: Database;
     private readonly allocator: DirectoryAllocator;
     private readonly directories = new Map<string, FDirectory>();
-    constructor(connection: FConnection) {
+    constructor(connection: Database) {
         this.connection = connection;
         this.allocator = new DirectoryAllocator(this.connection);
     }

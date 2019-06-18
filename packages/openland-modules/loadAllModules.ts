@@ -25,7 +25,6 @@ import { ApiModule } from 'openland-module-api/ApiModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { AuthModule } from 'openland-module-auth/AuthModule';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { loadMessagingModule } from 'openland-module-messaging/Messaging.container';
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
@@ -47,12 +46,13 @@ import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 import { Context } from '@openland/context';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
+import { openDatabase } from 'openland-server/foundationdb';
 
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
-        let connection = new FConnection(FConnection.create());
-        let layer = new EntityLayer(connection, EventBus);
+        let db = await openDatabase();
+        let layer = new EntityLayer(db, EventBus);
         let entities = new AllEntitiesDirect(layer);
         await layer.ready(ctx);
         container.bind<AllEntities>('FDB')
