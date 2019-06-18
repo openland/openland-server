@@ -278,7 +278,7 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Diagnose'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
-            return await FDB.layer.db.diagnostics.runEntityDiagnostics((FDB as any)[e.name]);
+            // return await FDB.layer.db.diagnostics.runEntityDiagnostics((FDB as any)[e.name]);
         }
     };
 
@@ -343,7 +343,7 @@ mutations.diagnoseAll = {
                 continue;
             }
             log.log(rootCtx, e.name);
-            diag += await FDB.layer.db.diagnostics.runEntityDiagnostics(e);
+            // diag += await FDB.layer.db.diagnostics.runEntityDiagnostics(e);
         }
         return diag;
     }

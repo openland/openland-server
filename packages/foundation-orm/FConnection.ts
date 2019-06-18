@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
-import { FDiagnostics } from './FDiagnostics';
 import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
 import { FNodeIDLayer } from './layers/FNodeIDLayer';
@@ -14,12 +13,9 @@ export class FConnection {
     readonly pubsub: FPubsub;
     readonly allKeys: FSubspace;
     readonly nodeIdLayer: FNodeIDLayer;
-    readonly diagnostics: FDiagnostics;
 
     // Obsolete
-    private test?: boolean;
     private randomFactory: RandomIDFactory | null = null;
-    private testNextId = 0;
 
     static create() {
         let db: fdb.Database;
@@ -34,11 +30,9 @@ export class FConnection {
         return db as fdb.Database<NativeValue, Buffer>;
     }
 
-    constructor(connection: fdb.Database<NativeValue, Buffer>, pubsub: FPubsub, test?: boolean) {
+    constructor(connection: fdb.Database<NativeValue, Buffer>, pubsub: FPubsub) {
         this.fdb = connection;
         this.pubsub = pubsub;
-        this.test = test;
-        this.diagnostics = new FDiagnostics(this);
         this.allKeys = new FGlobalSpace(this);
         this.nodeIdLayer = new FNodeIDLayer(this);
     }
@@ -49,9 +43,6 @@ export class FConnection {
 
     // Obsolete
     nextRandomId(): string {
-        if (this.test) {
-            return (++this.testNextId).toString();
-        }
         if (this.randomFactory === null) {
             let nid = this.nodeIdLayer.nodeId;
             this.randomFactory = new RandomIDFactory(nid);
