@@ -10,7 +10,8 @@ import { HyperLog } from '../../openland-module-db/schema';
 
 const log = createLogger('amplitude-batch-indexer');
 
-const API_KEY = '74a224d67ecce6c3f53c3f2b5f162368';
+const API_KEY_PROD = '74a224d67ecce6c3f53c3f2b5f162368';
+const API_KEY_TEST = 'a84549e7390473dbc3abbfe151462f82';
 
 interface InternalEvent {
     id: string;
@@ -111,12 +112,12 @@ async function convertToAmplitudeEvents(ctx: Context, items: HyperLog[]) {
     return events;
 }
 
-const saveEvents = async (ctx: Context, events: any[]) => {
+const saveEvents = async (ctx: Context, events: any[], key: string) => {
     await new Promise((resolve, reject) => {
         request.post({
             url: 'https://api.amplitude.com/batch',
             json: {
-                api_key: API_KEY,
+                api_key: key,
                 events
             },
         }, function (err: any, response: Response, body: any) {
@@ -135,14 +136,21 @@ const saveEvents = async (ctx: Context, events: any[]) => {
 };
 
 export function declareBatchAmplitudeIndexer() {
-    updateReader('amplitude-batch-indexer', 8, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
+    updateReader('amplitude-batch-indexer', 9, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
         let exportedCount = await inTx(parent, async (ctx) => {
             let exCount = 0;
             let eventsProd = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === true));
             log.debug(ctx, 'prod events length: ', eventsProd.length);
             if (eventsProd.length > 0) {
-                await saveEvents(ctx, eventsProd);
+                await saveEvents(ctx, eventsProd, API_KEY_PROD);
                 exCount += eventsProd.length;
+            }
+
+            let eventsTest = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === false));
+            log.debug(ctx, 'test events length: ', eventsTest.length);
+            if (eventsTest.length > 0) {
+                await saveEvents(ctx, eventsTest, API_KEY_TEST);
+                exCount += eventsTest.length;
             }
             return exCount;
         });
