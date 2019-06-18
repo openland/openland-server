@@ -19,9 +19,10 @@ describe('ChannelRepository', () => {
             .at(FKeyEncoding.encodeKey(['_tests_channel_invites']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         let connection = new FConnection(db, NoOpBus);
-        let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+        let layer = new EntityLayer(connection, connection.pubsub);
         entities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
+        await layer.ready(createNamedContext('test'));
     });
 
     it('should create links', async () => {

@@ -26,7 +26,7 @@ import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 let rootCtx = createNamedContext('graphql-admin');
 let connection = new FConnection(FConnection.create(), EventBus);
-let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+let layer = new EntityLayer(connection, connection.pubsub);
 let FDB = new AllEntitiesDirect(layer); // WTF? Why separate connection?
 let entitiesMap: any = {};
 let queries: any = {};

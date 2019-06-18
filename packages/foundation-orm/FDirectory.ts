@@ -24,7 +24,7 @@ export class FDirectory implements FSubspace {
             let v = await allocator.allocateDirectory(path);
             this.allocatedKey = v;
             this.isAllocated = true;
-            this.keyspace = connection.keySpace.subspace(v);
+            this.keyspace = connection.allKeys.subspace(v);
         })();
     }
 

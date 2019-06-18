@@ -1,3 +1,4 @@
+import { FDirectoryLayer } from './layers/FDirectoryLayer';
 import { FEncoders } from 'foundation-orm/encoding/FEncoders';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { FConnection } from 'foundation-orm/FConnection';
@@ -18,8 +19,9 @@ describe('operations', () => {
 
     it('should copy subspaces', async () => {
         let parent = createNamedContext('copy');
-        let from = connection.directories.getDirectory(['from']);
-        let to = connection.directories.getDirectory(['to']);
+        let directories = new FDirectoryLayer(connection);
+        let from = directories.getDirectory(['from']);
+        let to = directories.getDirectory(['to']);
         await from.ready();
         await to.ready();
 

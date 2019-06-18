@@ -52,9 +52,10 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
         let connection = new FConnection(FConnection.create(), EventBus);
-        let layer = new EntityLayer(connection, connection.directories, connection.pubsub);
+        let layer = new EntityLayer(connection, connection.pubsub);
         let entities = new AllEntitiesDirect(layer);
         await connection.ready(ctx);
+        await layer.ready(ctx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();

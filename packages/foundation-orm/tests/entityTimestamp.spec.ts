@@ -19,9 +19,10 @@ describe('FEntity Timestamped', () => {
             .at(FKeyEncoding.encodeKey(['_tests_timestamp']));
         let connection = new FConnection(db, NoOpBus);
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+        let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);
         await connection.ready(createNamedContext('test'));
+        await layer.ready(createNamedContext('test'));
     });
 
     it('should create with correct timestamps', async () => {

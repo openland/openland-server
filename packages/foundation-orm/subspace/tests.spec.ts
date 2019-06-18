@@ -6,7 +6,7 @@ import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
 
-describe('FOperationsGloba', () => {
+describe('FOperationsGlobal', () => {
     let db: fdb.Database<NativeValue, any>;
     let connection: FConnection;
     let rootCtx = createNamedContext('tests');
@@ -19,7 +19,7 @@ describe('FOperationsGloba', () => {
     });
 
     it('should do set and get', async () => {
-        let ops = connection.keySpace;
+        let ops = connection.allKeys;
         await inTx(rootCtx, async (ctx) => {
             ops.set(ctx, Buffer.of(0, 1, 2, 3, 4), Buffer.of(5, 6, 7, 8, 9));
         });
@@ -30,8 +30,8 @@ describe('FOperationsGloba', () => {
     });
 
     it('subspace must work', async () => {
-        let ops = connection.keySpace;
-        let sops = connection.keySpace.subspace(Buffer.of(1));
+        let ops = connection.allKeys;
+        let sops = connection.allKeys.subspace(Buffer.of(1));
         await inTx(rootCtx, async (ctx) => {
             ops.set(ctx, Buffer.of(1, 2, 3, 4), Buffer.of(5, 6, 7, 8));
         });

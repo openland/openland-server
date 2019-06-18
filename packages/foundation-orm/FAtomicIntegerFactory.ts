@@ -13,7 +13,7 @@ export class FAtomicIntegerFactory {
 
     constructor(name: string, layer: EntityLayer) {
         this.layer = layer;
-        this.keySpace = layer.db.keySpace;
+        this.keySpace = layer.db.allKeys;
         this.directory = layer.directory.getDirectory(['atomic', name]);
     }
 

@@ -27,9 +27,10 @@ export async function testEnvironmentStart(name: string) {
         .at(FKeyEncoding.encodeKey(['_tests_' + name + '_' + randomKey()]));
     await connection.clearRange(FKeyEncoding.encodeKey([]));
     let cnn = new FConnection(connection, EventBus);
-    let layer = new EntityLayer(cnn, cnn.directories, cnn.pubsub);
+    let layer = new EntityLayer(cnn, cnn.pubsub);
     let entities = new AllEntitiesDirect(layer);
     await cnn.ready(createNamedContext('text-' + name));
+    await layer.ready(createNamedContext('text-' + name));
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind<AllEntities>('FDB')
         .toConstantValue(entities);

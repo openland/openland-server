@@ -22,7 +22,7 @@ export class FNodeIDLayer {
     constructor(connection: FConnection) {
         this.connection = connection;
 
-        this.keyspace = this.connection.keySpace
+        this.keyspace = this.connection.allKeys
             .withKeyEncoding(FEncoders.tuple)
             .withValueEncoding(FEncoders.json)
             .subspace(['__system', '__nodeid']);

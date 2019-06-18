@@ -133,7 +133,7 @@ addAsync('tx-tuple-10000', async () => {
 
 addAsync('orm-1000', async () => {
     let connection = new FConnection(db1 as any, NoOpBus, false);
-    let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+    let layer = new EntityLayer(connection, NoOpBus);
     let entities = new AllEntitiesDirect(layer);
     let p: any[] = [];
     for (let i = 0; i < 1000; i++) {
@@ -147,7 +147,7 @@ addAsync('orm-1000', async () => {
 
 addAsync('orm-10000', async function orm10000() {
     let connection = new FConnection(db1 as any, NoOpBus, false);
-    let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+    let layer = new EntityLayer(connection, NoOpBus);
     let entities = new AllEntitiesDirect(layer);
     let p: any[] = [];
     for (let i = 0; i < 10000; i++) {
@@ -161,7 +161,7 @@ addAsync('orm-10000', async function orm10000() {
 
 addAsync('orm-10000-empty', async function orm10000Empty() {
     let connection = new FConnection(db1 as any, NoOpBus, false);
-    let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+    let layer = new EntityLayer(connection, NoOpBus);
     let entities = new AllEntitiesDirect(layer);
     let p: any[] = [];
     for (let i = 0; i < 10000; i++) {
@@ -180,7 +180,7 @@ suite.on('cycle', function (event: any) {
 (async () => {
     await db1.clearRange(fdb.encoders.tuple.pack([]));
     let connection = new FConnection(db1 as any, NoOpBus, false);
-    let layer = new EntityLayer(connection, connection.directories, NoOpBus);
+    let layer = new EntityLayer(connection, NoOpBus);
     let entities = new AllEntitiesDirect(layer);
     // let keySize = 4096;
     let p: any[] = [];

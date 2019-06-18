@@ -6,15 +6,13 @@ import { FPubsub } from './FPubsub';
 import { FDiagnostics } from './FDiagnostics';
 import { FSubspace } from './FSubspace';
 import { FGlobalSpace } from './subspace/FGlobalSpace';
-import { FDirectoryLayer } from './layers/FDirectoryLayer';
 import { FNodeIDLayer } from './layers/FNodeIDLayer';
 import { Context } from '@openland/context';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, Buffer>;
     readonly pubsub: FPubsub;
-    readonly keySpace: FSubspace;
-    readonly directories: FDirectoryLayer;
+    readonly allKeys: FSubspace;
     readonly nodeIdLayer: FNodeIDLayer;
     readonly diagnostics: FDiagnostics;
 
@@ -41,13 +39,11 @@ export class FConnection {
         this.pubsub = pubsub;
         this.test = test;
         this.diagnostics = new FDiagnostics(this);
-        this.keySpace = new FGlobalSpace(this);
-        this.directories = new FDirectoryLayer(this);
+        this.allKeys = new FGlobalSpace(this);
         this.nodeIdLayer = new FNodeIDLayer(this);
     }
 
     async ready(ctx: Context) {
-        await this.directories.ready(ctx);
         await this.nodeIdLayer.ready();
     }
 
