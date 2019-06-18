@@ -135,9 +135,9 @@ export function startPushNotificationWorker() {
                             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
 
                             if (chat!.kind === 'private') {
-                                pushBody = `${userName} commented: ${fetchMessageFallback(comment!)}`;
+                                pushBody = `${userName} commented: ${await fetchMessageFallback(comment!)}`;
                             } else {
-                                pushBody = `${userName} commented in @${chatName}: ${fetchMessageFallback(comment!)}`;
+                                pushBody = `${userName} commented in @${chatName}: ${await fetchMessageFallback(comment!)}`;
                             }
                         }
                     }
