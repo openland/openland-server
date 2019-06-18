@@ -28,15 +28,6 @@ export const FKeyEncoding = {
     encodeKeyToString: (key: (string | boolean | number)[]) => {
         return (encoders.tuple.pack(key) as Buffer).toString('hex');
     },
-    encodeKeyForCli: (key: (string | boolean | number)[]) => {
-        let bytes = encoders.tuple.pack(key) as Buffer;
-        let converted = bytes.toString('hex');
-        let res = '';
-        for (let i = 0; i < bytes.length; i++) {
-            res += '\\x' + converted[i * 2] + converted[i * 2 + 1];
-        }
-        return res;
-    },
     decodeKey: (key: Buffer) => {
         let res = encoders.tuple.unpack(key);
         // try {
@@ -49,20 +40,10 @@ export const FKeyEncoding = {
     decodeFromString: (key: string) => {
         return encoders.tuple.unpack(Buffer.from(key, 'hex')) as FTuple[];
     },
-    lastKeyInSubspace: (key: (string | boolean | number)[]) => {
-        let r = encoders.tuple.pack(key) as Buffer;
-        // Invalid!
-        return Buffer.concat([r, byteFF]);
-    },
     lastKeyInSubspaceBuf: (key: Buffer) => {
         // Invalid!
         return Buffer.concat([key, byteFF]);
     },
-    firstKeyInSubspace: (key: (string | boolean | number)[]) => {
-        let r = encoders.tuple.pack(key) as Buffer;
-        return Buffer.concat([r, byteZero]);
-    },
-
     firstKeyInSubspaceBuf: (key: Buffer) => {
         return Buffer.concat([key, byteZero]);
     },

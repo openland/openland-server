@@ -22,7 +22,6 @@ describe('FEntity', () => {
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);
-        await connection.ready(rootCtx);
         await layer.ready(rootCtx);
     });
 

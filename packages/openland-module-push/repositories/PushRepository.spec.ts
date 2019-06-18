@@ -21,7 +21,6 @@ describe('PushRepository', () => {
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         entities = new AllEntitiesDirect(layer);
-        await connection.ready(createNamedContext('test'));
         await layer.ready(createNamedContext('test'));
     });
 

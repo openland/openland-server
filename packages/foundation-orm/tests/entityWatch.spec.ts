@@ -23,7 +23,6 @@ describe('FWatch', () => {
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);
-        await connection.ready(createNamedContext('test'));
         await layer.ready(createNamedContext('test'));
     });
 

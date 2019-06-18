@@ -1,7 +1,6 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { DirectoryAllocator } from './DirectoryAllocator';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { createNamedContext } from '@openland/context';
 
 describe('DirectoryAllocator', () => {
 
@@ -12,7 +11,6 @@ describe('DirectoryAllocator', () => {
             .at(FKeyEncoding.encodeKey(['_tests_allocator']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         connection = new FConnection(db);
-        await connection.ready(createNamedContext('test'));
     });
 
     it('should allocate ids correctly', async () => {

@@ -367,7 +367,7 @@ export class CommentsRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: this.entities.layer.db.nextRandomId()
+                    id: this.entities.layer.nextRandomId()
                 });
             }
 

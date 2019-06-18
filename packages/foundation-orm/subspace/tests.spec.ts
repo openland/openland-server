@@ -14,7 +14,6 @@ describe('FOperationsGlobal', () => {
             .at(FKeyEncoding.encodeKey(['_tests_ops']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         connection = new FConnection(db);
-        await connection.ready(rootCtx);
     });
 
     it('should do set and get', async () => {

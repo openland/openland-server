@@ -19,7 +19,7 @@ export class FeatureRepository {
             if (ex) {
                 ex.enabled = true;
             } else {
-                await this.entities.OrganizationFeatures.create(ctx, this.entities.layer.db.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
+                await this.entities.OrganizationFeatures.create(ctx, this.entities.layer.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
             }
         });
     }

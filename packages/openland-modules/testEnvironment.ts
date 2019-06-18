@@ -29,7 +29,6 @@ export async function testEnvironmentStart(name: string) {
     let cnn = new FConnection(connection);
     let layer = new EntityLayer(cnn, EventBus);
     let entities = new AllEntitiesDirect(layer);
-    await cnn.ready(createNamedContext('text-' + name));
     await layer.ready(createNamedContext('text-' + name));
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind<AllEntities>('FDB')

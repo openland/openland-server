@@ -1,9 +1,9 @@
+import { FNodeIDLayer } from './../layers/FNodeIDLayer';
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 import { FConnection } from '../FConnection';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { createNamedContext } from '@openland/context';
 
 describe('Random', () => {
 
@@ -16,16 +16,16 @@ describe('Random', () => {
     });
 
     it('should pick node id successfully', async () => {
-        let connections: FConnection[] = [];
+        let connections: FNodeIDLayer[] = [];
         for (let i = 0; i < 32; i++) {
-            connections.push(new FConnection(db));
+            connections.push(new FNodeIDLayer(new FConnection(db)));
         }
         for (let i = 0; i < 32; i++) {
-            await connections[i].ready(createNamedContext('test'));
+            await connections[i].ready();
         }
         let idsv: number[] = [];
         for (let i = 0; i < connections.length; i++) {
-            idsv.push(connections[i].nodeIdLayer.nodeId);
+            idsv.push(connections[i].nodeId);
         }
         for (let i = 0; i < connections.length; i++) {
             for (let j = 0; j < connections.length; j++) {

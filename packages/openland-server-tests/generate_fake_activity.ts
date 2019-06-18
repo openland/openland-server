@@ -75,7 +75,6 @@ export async function prepare() {
         let connection = new FConnection(FConnection.create());
         let layer = new EntityLayer(connection, EventBus);
         let entities = new AllEntitiesDirect(layer);
-        await connection.ready(rootCtx);
         await layer.ready(rootCtx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
