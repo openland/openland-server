@@ -10,7 +10,7 @@ import { container } from 'openland-modules/Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 
 let rootCtx = createNamedContext('prepare');

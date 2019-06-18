@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';

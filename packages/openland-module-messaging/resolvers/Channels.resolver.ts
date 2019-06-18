@@ -1,10 +1,10 @@
+import { inTx } from '@openland/foundationdb';
 import { withPermission, withAny, withAccount, withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { QueryParser } from '../../openland-utils/QueryParser';
 import { defined, emailValidator, stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
-import { inTx } from 'foundation-orm/inTx';
 import {
     ChannelInvitation,
     ChannelLink,

@@ -1,9 +1,8 @@
-import { Database } from '@openland/foundationdb';
+import { Database, inTx } from '@openland/foundationdb';
 import { EntityLayer } from './../EntityLayer';
 // tslint:disable:no-floating-promises
 import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
-import { inTx } from '../inTx';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 

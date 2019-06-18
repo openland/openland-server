@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities, OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';

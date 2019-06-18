@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 
 const log = createLogger('influencer');

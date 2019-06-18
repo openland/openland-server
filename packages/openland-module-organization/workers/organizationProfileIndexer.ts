@@ -1,7 +1,7 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from '../../openland-modules/Modules';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 
 export function organizationProfileIndexer() {
     declareSearchIndexer('organization-profile-index', 8, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(50))

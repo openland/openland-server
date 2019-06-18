@@ -5,7 +5,7 @@ import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
 import { injectable, inject } from 'inversify';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from '@openland/context';

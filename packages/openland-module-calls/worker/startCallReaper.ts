@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 
 export function startCallReaper() {

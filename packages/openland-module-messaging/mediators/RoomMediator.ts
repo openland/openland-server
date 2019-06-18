@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomRepository, WelcomeMessageT } from 'openland-module-messaging/repositories/RoomRepository';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
-import { inTx } from 'foundation-orm/inTx';
 import { MessagingMediator } from './MessagingMediator';
 import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';

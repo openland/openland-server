@@ -1,8 +1,8 @@
-import { EntityLayer } from './../EntityLayer';
 // tslint:disable:no-floating-promises
+import { Database, inTx } from '@openland/foundationdb';
+import { EntityLayer } from './../EntityLayer';
 import { FConnection } from 'foundation-orm/FConnection';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
-import { inTx } from 'foundation-orm/inTx';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 
@@ -11,7 +11,7 @@ describe('Partial Index', () => {
     // Database Init
     let testEntities: AllEntities;
     beforeAll(async () => {
-        let db = await FConnection.createTest();
+        let db = await Database.openTest();
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);

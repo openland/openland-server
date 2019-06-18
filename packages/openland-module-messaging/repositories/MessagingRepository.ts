@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities, ConversationEvent, Message } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import {
     MessageAttachment,
     MessageAttachmentInput,

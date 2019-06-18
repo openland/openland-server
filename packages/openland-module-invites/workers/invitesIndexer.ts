@@ -1,6 +1,6 @@
+import { inTx } from '@openland/foundationdb';
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { inTx } from 'foundation-orm/inTx';
 
 export function invitesIndexer() {
     declareSearchIndexer('invites-room-index', 3, 'invites-room', FDB.ChannelInvitation.createUpdatedStream(50))

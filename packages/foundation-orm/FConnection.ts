@@ -16,10 +16,6 @@ export class FConnection {
         return db;
     }
 
-    static async createTest() {
-        return await Database.openTest();
-    }
-
     constructor(db: Database) {
         this.fdb = db;
         this.allKeys = db.allKeys;

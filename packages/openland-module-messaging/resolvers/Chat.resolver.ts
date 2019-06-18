@@ -1,3 +1,4 @@
+import { inTx } from '@openland/foundationdb';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import { withUser, resolveUser, withAccount } from '../../openland-module-api/Resolvers';
 import {
@@ -15,7 +16,6 @@ import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';

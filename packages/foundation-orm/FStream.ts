@@ -1,10 +1,9 @@
 import { Tuple } from '@openland/foundationdb/lib/encoding';
-import { Subspace } from '@openland/foundationdb';
+import { Subspace, inTx } from '@openland/foundationdb';
 import { FEntity } from './FEntity';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
 // import { fixObsoleteCursor } from './utils/fixObsoleteKey';
-import { inTx } from './inTx';
 import { Context } from '@openland/context';
 
 export class FStream<T extends FEntity> {

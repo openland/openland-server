@@ -1,4 +1,4 @@
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { FDB } from 'openland-module-db/FDB';
 import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-utils/asyncIterator';

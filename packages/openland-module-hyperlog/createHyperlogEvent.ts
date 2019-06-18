@@ -1,5 +1,5 @@
+import { inTxLeaky } from '@openland/foundationdb';
 import { FDB } from 'openland-module-db/FDB';
-import { inTxLeaky } from 'foundation-orm/inTx';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 

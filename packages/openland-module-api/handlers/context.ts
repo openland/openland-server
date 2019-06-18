@@ -6,10 +6,9 @@ import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
-import { inTx } from 'foundation-orm/inTx';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { createLogger, withLogMeta } from '@openland/log';
-import { withReadOnlyTransaction } from '@openland/foundationdb';
+import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');

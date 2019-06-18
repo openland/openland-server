@@ -1,7 +1,7 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersRepository } from 'openland-module-messaging/repositories/CountersRepository';
-import { inTx } from 'foundation-orm/inTx';
 import { Message } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 import { createTracer } from 'openland-log/createTracer';

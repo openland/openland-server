@@ -1,5 +1,5 @@
 import { AllEntities, ShortnameReservation } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';

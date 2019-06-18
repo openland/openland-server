@@ -1,3 +1,4 @@
+import { inTx } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
@@ -8,7 +9,6 @@ import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
-import { inTx } from 'foundation-orm/inTx';
 
 export default {
     Conference: {

@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 

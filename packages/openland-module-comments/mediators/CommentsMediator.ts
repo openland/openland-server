@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { CommentInput, CommentsRepository } from '../repositories/CommentsRepository';
 import { Context } from '@openland/context';
-import { inTx } from '../../foundation-orm/inTx';
 import { AllEntities } from '../../openland-module-db/schema';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';

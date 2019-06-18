@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { inTx } from 'foundation-orm/inTx';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';

@@ -1,10 +1,9 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { createNamedContext } from '@openland/context';
 import { randomKey } from 'openland-utils/random';
-import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
-import { encoders, Subspace } from '@openland/foundationdb';
+import { encoders, Subspace, inTx } from '@openland/foundationdb';
 import { Tuple } from '@openland/foundationdb/lib/encoding';
 
 const rootCtx = createNamedContext('fdb-node-id');

@@ -1,9 +1,9 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { NotificationCenterRepository, NotificationInput } from '../repositories/NotificationCenterRepository';
 import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
-import { inTx } from '../../foundation-orm/inTx';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NeedDeliveryRepository } from '../repositories/NeedDeliveryRepository';

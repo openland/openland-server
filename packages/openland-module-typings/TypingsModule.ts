@@ -5,7 +5,7 @@ import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
 import { Context, createNamedContext } from '@openland/context';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 
 @injectable()
 export class TypingsModule {

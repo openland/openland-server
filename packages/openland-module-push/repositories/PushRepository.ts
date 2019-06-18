@@ -1,5 +1,5 @@
 import { AllEntities } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 export class PushRepository {

@@ -1,6 +1,6 @@
 import { JsonMap } from 'openland-utils/json';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx, inTxLeaky } from 'foundation-orm/inTx';
+import { inTx, inTxLeaky } from '@openland/foundationdb';
 import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';

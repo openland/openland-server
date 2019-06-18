@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
-import { inTx } from '../../foundation-orm/inTx';
 import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
 

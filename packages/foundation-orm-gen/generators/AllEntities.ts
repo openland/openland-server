@@ -16,7 +16,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
         res += '    readonly ' + a.name + ': ' + a.name + 'Factory;\n';
     }
     res += '}\n';
-    res += 'export class AllEntitiesDirect extends FDBInstance implements AllEntities {\n';
+    res += 'export class AllEntitiesDirect extends EntitiesBase implements AllEntities {\n';
     res += '    static readonly schema: FEntitySchema[] = [\n';
     for (let e of entity) {
         res += '        ' + e.name + 'Factory.schema,\n';

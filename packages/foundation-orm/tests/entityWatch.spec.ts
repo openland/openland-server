@@ -1,10 +1,9 @@
-import { Database } from '@openland/foundationdb';
+import { Database, inTx } from '@openland/foundationdb';
 import { EntityLayer } from './../EntityLayer';
 // tslint:disable:no-floating-promises
 // tslint:disable:no-console
 import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
-import { inTx } from '../inTx';
 import { delay } from '../../openland-utils/timer';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';

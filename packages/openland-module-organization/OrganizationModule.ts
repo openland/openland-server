@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { OrganizationRepository } from './repositories/OrganizationRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
-import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';

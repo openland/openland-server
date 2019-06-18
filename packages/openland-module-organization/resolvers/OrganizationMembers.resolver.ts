@@ -1,5 +1,5 @@
 import { withAccount } from 'openland-module-api/Resolvers';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { IDs } from 'openland-module-api/IDs';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';

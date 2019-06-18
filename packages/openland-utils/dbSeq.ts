@@ -1,5 +1,5 @@
 import { Context } from '@openland/context';
-import { inTx } from '../foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { FDB } from '../openland-module-db/FDB';
 
 export async function fetchNextDBSeq(parent: Context, sequenceName: string) {

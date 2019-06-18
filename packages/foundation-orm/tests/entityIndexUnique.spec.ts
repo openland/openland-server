@@ -1,7 +1,7 @@
 // tslint:disable:no-floating-promises
+import { Database, inTx } from '@openland/foundationdb';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
-import { inTx } from '../inTx';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 import { EntityLayer } from './../EntityLayer';
@@ -11,7 +11,7 @@ describe('FEntity with unique index', () => {
     // Database Init
     let testEntities: AllEntities;
     beforeAll(async () => {
-        let db = await FConnection.createTest();
+        let db = await Database.openTest();
         let connection = new FConnection(db);
         let layer = new EntityLayer(connection, NoOpBus);
         testEntities = new AllEntitiesDirect(layer);

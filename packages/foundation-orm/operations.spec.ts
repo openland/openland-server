@@ -3,15 +3,14 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { FConnection } from 'foundation-orm/FConnection';
 import { copySubspace, deleteMissing } from './operations';
 import { createNamedContext } from '@openland/context';
-import { inTx } from './inTx';
 import { isSubspaceEquals } from './operations';
-import { encoders } from '@openland/foundationdb';
+import { encoders, Database, inTx } from '@openland/foundationdb';
 
 describe('operations', () => {
 
     let connection: FConnection;
     beforeAll(async () => {
-        let db = await FConnection.createTest();
+        let db = await Database.openTest();
         connection = new FConnection(db);
     });
 

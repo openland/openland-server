@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { DiscoverData } from './DiscoverData';
 import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { inTx } from 'foundation-orm/inTx';
 
 @injectable()
 export class DiscoverModule {

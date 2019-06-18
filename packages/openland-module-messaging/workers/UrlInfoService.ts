@@ -1,3 +1,4 @@
+import { inTx } from '@openland/foundationdb';
 import { IDs } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
@@ -8,7 +9,6 @@ import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { UserProfile } from 'openland-module-db/schema';
 import { MessageKeyboard } from '../MessageInput';
-import { inTx } from '../../foundation-orm/inTx';
 import { Context, createNamedContext } from '@openland/context';
 
 const rootCtx = createNamedContext('url-info');

@@ -12,7 +12,7 @@ import { AllEntities, AllEntitiesDirect, Conversation } from 'openland-module-db
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { Context, createNamedContext } from '@openland/context';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { range } from '../openland-utils/range';
 
 let rootCtx = createNamedContext('prepare');

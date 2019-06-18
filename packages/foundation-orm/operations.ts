@@ -1,7 +1,6 @@
-import { inTx } from './inTx';
 import { Context } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
-import { Subspace } from '@openland/foundationdb';
+import { Subspace, inTx } from '@openland/foundationdb';
 
 const logger = createLogger('operations');
 

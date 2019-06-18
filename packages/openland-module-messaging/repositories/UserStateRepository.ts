@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';

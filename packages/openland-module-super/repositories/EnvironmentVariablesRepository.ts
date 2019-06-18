@@ -1,6 +1,6 @@
 import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
-import { inTx } from '../../foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 
 export type EnvVarValueType = number | string | boolean;
 

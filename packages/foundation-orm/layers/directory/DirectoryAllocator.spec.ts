@@ -1,12 +1,13 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { DirectoryAllocator } from './DirectoryAllocator';
+import { Database } from '@openland/foundationdb';
 
 describe('DirectoryAllocator', () => {
 
     // Database Init
     let connection: FConnection;
     beforeAll(async () => {
-        let db = await FConnection.createTest();
+        let db = await Database.openTest();
         connection = new FConnection(db);
     });
 

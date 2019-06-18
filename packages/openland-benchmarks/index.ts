@@ -3,6 +3,7 @@ require('module-alias/register');
 
 // tslint:disable:no-floating-promises
 import Benchmark from 'benchmark';
+import { inTx } from '@openland/foundationdb';
 // @ts-ignore
 import * as fdb from 'foundationdb';
 // @ts-ignore
@@ -12,7 +13,6 @@ import { delay } from '../openland-utils/timer';
 import { AllEntitiesDirect } from 'foundation-orm/tests/testSchema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
-import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { EntityLayer } from 'foundation-orm/EntityLayer';

@@ -1,3 +1,4 @@
+import { inTx } from '@openland/foundationdb';
 // import { Context } from '@openland/context';
 // import { FSubspace } from 'foundation-orm/FSubspace';
 // import { FEncoders } from 'foundation-orm/encoding/FEncoders';
@@ -7,7 +8,6 @@ import { FDB } from './FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Modules } from 'openland-modules/Modules';
 import { batch } from 'openland-utils/batch';
-import { inTx } from 'foundation-orm/inTx';
 // import { syncSubspaces } from 'foundation-orm/operations';
 // import { withLogPath, Logger } from '@openland/log';
 

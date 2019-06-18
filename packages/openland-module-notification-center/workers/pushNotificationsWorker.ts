@@ -1,6 +1,6 @@
+import { inTx } from '@openland/foundationdb';
 import { createLogger, withLogPath } from '@openland/log';
 import { staticWorker } from '../../openland-module-workers/staticWorker';
-import { inTx } from '../../foundation-orm/inTx';
 import { Modules } from '../../openland-modules/Modules';
 import { FDB } from '../../openland-module-db/FDB';
 import { fetchMessageFallback } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
