@@ -1,7 +1,7 @@
+import { inTx } from '@openland/foundationdb';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
-import { inTx } from 'foundation-orm/inTx';
 
 export function roomsSearchIndexer() {
     declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(50))

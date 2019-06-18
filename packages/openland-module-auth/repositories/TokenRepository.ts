@@ -1,9 +1,9 @@
+import { inTx } from '@openland/foundationdb';
 import DataLoader from 'dataloader';
 import { AllEntities, AuthToken } from 'openland-module-db/schema';
 import { uuid } from 'openland-utils/uuid';
 import { randomBytes } from 'crypto';
 import * as base64 from 'openland-utils/base64';
-import { inTx } from 'foundation-orm/inTx';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context, createNamedContext } from '@openland/context';

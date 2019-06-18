@@ -1,3 +1,4 @@
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 import 'reflect-metadata';
 import { container } from './Modules.container';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
@@ -50,9 +51,10 @@ import { loadNotificationCenterModule } from '../openland-module-notification-ce
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
-        let connection = new FConnection(FConnection.create(), EventBus);
-        let entities = new AllEntitiesDirect(connection);
-        await connection.ready(ctx);
+        let connection = new FConnection(FConnection.create());
+        let layer = new EntityLayer(connection, EventBus);
+        let entities = new AllEntitiesDirect(layer);
+        await layer.ready(ctx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();

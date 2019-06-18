@@ -1,10 +1,10 @@
+import { inTx } from '@openland/foundationdb';
 import express from 'express';
 import { randomNumbersString } from '../../openland-utils/random';
 import { Emails } from '../../openland-module-email/Emails';
 import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
-import { inTx } from 'foundation-orm/inTx';
 import { AuthCodeSession } from 'openland-module-db/schema';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { FDB } from 'openland-module-db/FDB';

@@ -1,3 +1,4 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -6,7 +7,6 @@ import { DeliveryRepository } from 'openland-module-messaging/repositories/Deliv
 import { Message, AllEntities } from 'openland-module-db/schema';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
-import { inTx } from 'foundation-orm/inTx';
 import { RoomMediator } from './RoomMediator';
 import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';

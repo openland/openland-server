@@ -1,5 +1,5 @@
 import * as Crypto from 'crypto';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 

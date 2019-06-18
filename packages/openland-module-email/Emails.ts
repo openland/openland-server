@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 import { ChannelInvitation, Comment, Message, OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx } from 'foundation-orm/inTx';
 import { Context } from '@openland/context';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';

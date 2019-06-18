@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { UserError } from 'openland-errors/UserError';
 import { randomInviteKey } from 'openland-utils/random';

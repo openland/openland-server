@@ -1,7 +1,7 @@
+import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { staticWorker } from '../../openland-module-workers/staticWorker';
 import { Modules } from '../../openland-modules/Modules';
-import { inTx } from '../../foundation-orm/inTx';
 import { FDB } from '../../openland-module-db/FDB';
 import { Comment } from '../../openland-module-db/schema';
 import { Emails } from '../../openland-module-email/Emails';

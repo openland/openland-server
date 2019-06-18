@@ -1,8 +1,8 @@
+import { inTx } from '@openland/foundationdb';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { container } from 'openland-modules/Modules.container';
 import { NeedNotificationDeliveryRepository } from './NeedNotificationDeliveryRepository';
-import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
 
 describe('NeedNotificationDeliveryRepository', () => {

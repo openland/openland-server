@@ -9,8 +9,8 @@ export function generateAtomic(atomic: AtomicModel): string {
 
     if (atomic.kind === 'int') {
         res += 'export class ' + entityClass + 'Factory extends FAtomicIntegerFactory {\n';
-        res += '    constructor(connection: FConnection) {\n';
-        res += '        super(\'' + entityKey + '\', connection);\n';
+        res += '    constructor(layer: EntityLayer) {\n';
+        res += '        super(\'' + entityKey + '\', layer);\n';
         res += '    }\n';
 
         res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
@@ -20,8 +20,8 @@ export function generateAtomic(atomic: AtomicModel): string {
         res += '}';
     } else {
         res += 'export class ' + entityClass + 'Factory extends FAtomicBooleanFactory {\n';
-        res += '    constructor(connection: FConnection) {\n';
-        res += '        super(\'' + entityKey + '\', connection);\n';
+        res += '    constructor(layer: EntityLayer) {\n';
+        res += '        super(\'' + entityKey + '\', layer);\n';
         res += '    }\n';
 
         res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';

@@ -1,3 +1,4 @@
+import { inTx } from '@openland/foundationdb';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from '../openland-modules/Modules';
 import { withAccount, withPermission } from '../openland-module-api/Resolvers';
@@ -5,7 +6,6 @@ import { IDs } from '../openland-module-api/IDs';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { Sanitizer } from '../openland-utils/Sanitizer';
-import { inTx } from '../foundation-orm/inTx';
 import { withProfile } from '../openland-module-users/User.resolver';
 
 export default {

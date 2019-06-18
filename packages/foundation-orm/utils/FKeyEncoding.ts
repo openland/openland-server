@@ -1,5 +1,5 @@
+import { Tuple } from '@openland/foundationdb/lib/encoding';
 import { encoders } from 'foundationdb';
-import { FTuple } from 'foundation-orm/encoding/FTuple';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 // import { pack } from './TupleEncoder';
@@ -12,7 +12,7 @@ const log = createLogger('fdb');
 const unknownContext = createNamedContext('unknown');
 
 export const FKeyEncoding = {
-    encodeKey: (key: (string | boolean | number)[]) => {
+    encodeKey: (key: Tuple[]) => {
         // try {
         //     pack(key);
         // } catch (e) {
@@ -25,17 +25,8 @@ export const FKeyEncoding = {
             throw e;
         }
     },
-    encodeKeyToString: (key: (string | boolean | number)[]) => {
+    encodeKeyToString: (key: Tuple[]) => {
         return (encoders.tuple.pack(key) as Buffer).toString('hex');
-    },
-    encodeKeyForCli: (key: (string | boolean | number)[]) => {
-        let bytes = encoders.tuple.pack(key) as Buffer;
-        let converted = bytes.toString('hex');
-        let res = '';
-        for (let i = 0; i < bytes.length; i++) {
-            res += '\\x' + converted[i * 2] + converted[i * 2 + 1];
-        }
-        return res;
     },
     decodeKey: (key: Buffer) => {
         let res = encoders.tuple.unpack(key);
@@ -44,25 +35,15 @@ export const FKeyEncoding = {
         // } catch (e) {
         //     log.warn('Unable to encode key with new encoder!!', key, e);
         // }
-        return res as FTuple[];
+        return res as Tuple[];
     },
     decodeFromString: (key: string) => {
-        return encoders.tuple.unpack(Buffer.from(key, 'hex')) as FTuple[];
-    },
-    lastKeyInSubspace: (key: (string | boolean | number)[]) => {
-        let r = encoders.tuple.pack(key) as Buffer;
-        // Invalid!
-        return Buffer.concat([r, byteFF]);
+        return encoders.tuple.unpack(Buffer.from(key, 'hex')) as Tuple[];
     },
     lastKeyInSubspaceBuf: (key: Buffer) => {
         // Invalid!
         return Buffer.concat([key, byteFF]);
     },
-    firstKeyInSubspace: (key: (string | boolean | number)[]) => {
-        let r = encoders.tuple.pack(key) as Buffer;
-        return Buffer.concat([r, byteZero]);
-    },
-
     firstKeyInSubspaceBuf: (key: Buffer) => {
         return Buffer.concat([key, byteZero]);
     },

@@ -6,7 +6,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
 import { FDB } from 'openland-module-db/FDB';
-import { withReadOnlyTransaction } from 'foundation-orm/withReadOnlyTransaction';
+import { withReadOnlyTransaction } from '@openland/foundationdb';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;

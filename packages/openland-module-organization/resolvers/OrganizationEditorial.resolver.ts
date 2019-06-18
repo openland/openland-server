@@ -1,5 +1,5 @@
 import { withPermission } from 'openland-module-api/Resolvers';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { FDB } from 'openland-module-db/FDB';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';

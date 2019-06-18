@@ -1,23 +1,20 @@
-import { FConnection } from './FConnection';
 import { FDirectory } from './FDirectory';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FAtomicInteger } from './FAtomicInteger';
-import { FSubspace } from './FSubspace';
-import { FTuple } from './encoding/FTuple';
+import { EntityLayer } from './EntityLayer';
+import { Tuple } from '@openland/foundationdb/lib/encoding';
 
 export class FAtomicIntegerFactory {
 
-    readonly connection: FConnection;
+    readonly layer: EntityLayer;
     readonly directory: FDirectory;
-    readonly keySpace: FSubspace;
 
-    constructor(name: string, connection: FConnection) {
-        this.connection = connection;
-        this.keySpace = connection.keySpace;
-        this.directory = connection.directories.getDirectory(['atomic', name]);
+    constructor(name: string, layer: EntityLayer) {
+        this.layer = layer;
+        this.directory = layer.directory.getDirectory(['atomic', name]);
     }
 
-    protected _findById(key: FTuple[]) {
+    protected _findById(key: Tuple[]) {
         return new FAtomicInteger(FKeyEncoding.encodeKey(key), this.directory);
     }
 }

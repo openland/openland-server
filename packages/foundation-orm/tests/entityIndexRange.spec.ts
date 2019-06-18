@@ -1,25 +1,22 @@
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
+import { Database, inTx } from '@openland/foundationdb';
+import { EntityLayer } from './../EntityLayer';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
-import { inTx } from '../inTx';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
+import { delay } from 'openland-utils/timer';
 
 describe('FEntity with range index', () => {
 
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_range']));
-        let connection = new FConnection(db, NoOpBus);
-        await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(createNamedContext('test'));
+        let db = await Database.openTest();
+        let connection = new FConnection(db);
+        let layer = new EntityLayer(connection, NoOpBus);
+        testEntities = new AllEntitiesDirect(layer);
+        await layer.ready(createNamedContext('test'));
     });
 
     it('should create indexes', async () => {
@@ -328,6 +325,8 @@ describe('FEntity with range index', () => {
 
             range = (await testEntities.ComplexRangeTest.rangeFromUniqueAfter(ctx, 1, 7, 1, true)).map(e => e.subId2);
             expect(range[0]).toBe(6);
+
+            await delay(100);
         });
     });
 });

@@ -1,4 +1,4 @@
-import { FSubspace } from './FSubspace';
+import { Subspace } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 const zero = Buffer.of();
@@ -6,9 +6,9 @@ const one = Buffer.from('ff', 'hex');
 
 export class FAtomicBoolean {
     private readonly key: Buffer;
-    private readonly keySpace: FSubspace;
+    private readonly keySpace: Subspace;
 
-    constructor(key: Buffer, keySpace: FSubspace) {
+    constructor(key: Buffer, keySpace: Subspace) {
         this.key = key;
         this.keySpace = keySpace;
     }
@@ -29,6 +29,6 @@ export class FAtomicBoolean {
         }
     }
     invert = (ctx: Context) => {
-        this.keySpace.xor(ctx, this.key, one);
+        this.keySpace.bitXor(ctx, this.key, one);
     }
 }

@@ -1,7 +1,7 @@
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { InvitesRoomRepository } from '../repositories/InvitesRoomRepository';
-import { inTx } from 'foundation-orm/inTx';
 // import { ChannelInviteEmails } from 'openland-module-messaging/emails/ChannelInviteEmails';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { NotFoundError } from 'openland-errors/NotFoundError';

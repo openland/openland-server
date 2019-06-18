@@ -17,7 +17,7 @@ export async function performMigrations(parent: Context, connection: FConnection
         if (migrations.length === 0) {
             return;
         }
-        let appliedTransactions = (await connection.fdb.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => encoders.json.unpack(v[1]));
+        let appliedTransactions = (await connection.fdb.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => encoders.json.unpack(v[1]));
         let remaining = migrations.filter((v) => !appliedTransactions.find((m) => m.key === v.key));
         if (remaining.length > 0) {
             log.log(parent, 'Remaining migrations: ' + remaining.length);
@@ -25,7 +25,7 @@ export async function performMigrations(parent: Context, connection: FConnection
                 log.log(parent, 'Starting migration: ' + m.key);
                 let ctx = withLogPath(parent, m.key);
                 await m.migration(ctx, log);
-                await connection.fdb.set(FKeyEncoding.encodeKey(['__meta', 'migrations', m.key]), encoders.json.pack({ key: m.key }) as Buffer);
+                await connection.fdb.rawDB.set(FKeyEncoding.encodeKey(['__meta', 'migrations', m.key]), encoders.json.pack({ key: m.key }) as Buffer);
                 log.log(parent, 'Completed migration: ' + m.key);
             }
             log.log(parent, 'All migrations are completed');

@@ -1,6 +1,6 @@
+import { inTx } from '@openland/foundationdb';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx } from 'foundation-orm/inTx';
 
 export function messagesIndexer() {
     declareSearchIndexer('message-index', 4, 'mesage', FDB.Message.createUpdatedStream(50))

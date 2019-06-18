@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { inTx } from 'foundation-orm/inTx';
 import { AllEntities } from './schema';
 
 export async function resolveSequenceNumber(parent: Context, entities: AllEntities, key: string) {

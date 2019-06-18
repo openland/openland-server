@@ -4,7 +4,7 @@ import { delayBreakable } from 'openland-utils/timer';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FPubsubSubcription } from './FPubsub';
 import { Context } from '@openland/context';
-import { withoutTransaction } from './withoutTransaction';
+import { withoutTransaction } from '@openland/foundationdb';
 
 export class FLiveStream<T extends FEntity> {
     private readonly baseStream: FStream<T>;
@@ -15,7 +15,7 @@ export class FLiveStream<T extends FEntity> {
     constructor(stream: FStream<T>) {
         this.baseStream = stream;
 
-        this.subscription = stream.factory.connection.pubsub.subscribe('fdb-entity-created-' + this.baseStream.factory.name, (data: any) => {
+        this.subscription = stream.factory.layer.eventBus.subscribe('fdb-entity-created-' + this.baseStream.factory.name, (data: any) => {
             if (data.entity === stream.factory.name) {
                 if (this.awaiter) {
                     this.awaiter();

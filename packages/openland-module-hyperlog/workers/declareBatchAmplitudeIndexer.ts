@@ -1,7 +1,7 @@
+import { inTx } from '@openland/foundationdb';
 import { updateReader } from '../../openland-module-workers/updateReader';
 import { FDB } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { inTx } from '../../foundation-orm/inTx';
 import { createLogger } from '@openland/log';
 import request, { Response } from 'request';
 import { randomKey } from '../../openland-utils/random';

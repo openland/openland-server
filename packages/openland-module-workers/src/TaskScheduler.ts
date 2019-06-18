@@ -1,7 +1,7 @@
 import { forever, delay } from 'openland-utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createNamedContext } from '@openland/context';

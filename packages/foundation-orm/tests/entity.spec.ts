@@ -1,26 +1,22 @@
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
-import { inTx } from '../inTx';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
+import { Database, inTx } from '@openland/foundationdb';
 
 describe('FEntity', () => {
 
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
     let testEntities: AllEntities;
     let rootCtx = createNamedContext('test');
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_1']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
-        let connection = new FConnection(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(rootCtx);
+        let db = await Database.openTest();
+        let connection = new FConnection(db);
+        let layer = new EntityLayer(connection, NoOpBus);
+        testEntities = new AllEntitiesDirect(layer);
+        await layer.ready(rootCtx);
     });
 
     it('should be able to create items', async () => {

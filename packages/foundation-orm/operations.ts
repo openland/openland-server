@@ -1,11 +1,10 @@
-import { inTx } from './inTx';
-import { FSubspace } from './FSubspace';
 import { Context } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
+import { Subspace, inTx } from '@openland/foundationdb';
 
 const logger = createLogger('operations');
 
-export async function copySubspace(parent: Context, from: FSubspace, to: FSubspace, batchSize: number = 10000) {
+export async function copySubspace(parent: Context, from: Subspace, to: Subspace, batchSize: number = 10000) {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
@@ -26,7 +25,7 @@ export async function copySubspace(parent: Context, from: FSubspace, to: FSubspa
     }
 }
 
-export async function deleteMissing(parent: Context, from: FSubspace, to: FSubspace, batchSize: number = 10000) {
+export async function deleteMissing(parent: Context, from: Subspace, to: Subspace, batchSize: number = 10000) {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;
@@ -39,7 +38,7 @@ export async function deleteMissing(parent: Context, from: FSubspace, to: FSubsp
             await Promise.all(r2.map(async (i) => {
                 let ex = await from.get(ctx, i.key);
                 if (!ex) {
-                    to.delete(ctx, i.key);
+                    to.clear(ctx, i.key);
                 }
             }));
             for (let i of r2) {
@@ -53,7 +52,7 @@ export async function deleteMissing(parent: Context, from: FSubspace, to: FSubsp
     }
 }
 
-export async function syncSubspaces(parent: Context, from: FSubspace, to: FSubspace, batchSize: number = 10000) {
+export async function syncSubspaces(parent: Context, from: Subspace, to: Subspace, batchSize: number = 10000) {
     let iteration = 0;
     while (!await isSubspaceEquals(parent, from, to, batchSize)) {
         let ctx = withLogPath(parent, 'sync');
@@ -65,7 +64,7 @@ export async function syncSubspaces(parent: Context, from: FSubspace, to: FSubsp
     logger.log(parent, 'Subspace sync completed');
 }
 
-export async function isSubspaceEquals(parent: Context, a: FSubspace, b: FSubspace, batchSize: number = 10000): Promise<boolean> {
+export async function isSubspaceEquals(parent: Context, a: Subspace, b: Subspace, batchSize: number = 10000): Promise<boolean> {
     let cursor: Buffer | undefined;
     let emptyBuffer = Buffer.of();
     let completed = false;

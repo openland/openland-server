@@ -1,7 +1,7 @@
 import { FEntity } from '../FEntity';
 import { FEntityFactory } from '../FEntityFactory';
-import { inTx } from '../inTx';
 import { Context } from '@openland/context';
+import { inTx } from '@openland/foundationdb';
 
 export async function checkIndexConsistency<T extends FEntity>(parent: Context, entity: FEntityFactory<T>, indexKey: (string | number)[], extractRawId: (value: any) => (string | number)[]) {
     // Find index inconsistency

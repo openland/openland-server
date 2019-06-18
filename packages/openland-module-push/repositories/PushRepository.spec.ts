@@ -1,25 +1,22 @@
+import { Database } from '@openland/foundationdb';
+import { EntityLayer } from './../../foundation-orm/EntityLayer';
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { PushRepository } from './PushRepository';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createNamedContext } from '@openland/context';
 
 describe('PushRepository', () => {
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
     let entities: AllEntities;
 
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_push']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
-        let connection = new FConnection(db, NoOpBus);
-        entities = new AllEntitiesDirect(connection);
-        await connection.ready(createNamedContext('test'));
+        let db = await Database.openTest();
+        let connection = new FConnection(db);
+        let layer = new EntityLayer(connection, NoOpBus);
+        entities = new AllEntitiesDirect(layer);
+        await layer.ready(createNamedContext('test'));
     });
 
     it('should register web push', async () => {

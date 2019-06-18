@@ -1,5 +1,5 @@
 import { AllEntities } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { ProfileInput } from 'openland-module-users/ProfileInput';

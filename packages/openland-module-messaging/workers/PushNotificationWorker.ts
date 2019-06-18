@@ -1,6 +1,6 @@
+import { inTx } from '@openland/foundationdb';
 import { staticWorker } from 'openland-module-workers/staticWorker';
 import { Modules } from 'openland-modules/Modules';
-import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';

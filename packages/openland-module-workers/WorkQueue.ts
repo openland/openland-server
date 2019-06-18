@@ -1,15 +1,15 @@
 import { JsonMap } from 'openland-utils/json';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx, inTxLeaky } from 'foundation-orm/inTx';
+import { inTx, inTxLeaky } from '@openland/foundationdb';
 import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { getTransaction } from 'foundation-orm/getTransaction';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { getTransaction } from '@openland/foundationdb';
 
 const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');

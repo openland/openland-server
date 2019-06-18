@@ -1,25 +1,21 @@
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
+import { Database, inTx } from '@openland/foundationdb';
+import { EntityLayer } from './../EntityLayer';
 import { FConnection } from 'foundation-orm/FConnection';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
-import { inTx } from 'foundation-orm/inTx';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 
 describe('Partial Index', () => {
 
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_partial']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
-        let connection = new FConnection(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(connection);
-        await connection.ready(createNamedContext('test'));
+        let db = await Database.openTest();
+        let connection = new FConnection(db);
+        let layer = new EntityLayer(connection, NoOpBus);
+        testEntities = new AllEntitiesDirect(layer);
+        await layer.ready(createNamedContext('test'));
     });
 
     it('should create indexes if condition true', async () => {

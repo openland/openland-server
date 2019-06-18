@@ -1,32 +1,27 @@
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
 import { FConnection } from '../FConnection';
-import { NativeValue } from 'foundationdb/dist/lib/native';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NoOpBus } from './NoOpBus';
-import { createNamedContext } from '@openland/context';
+import { Database } from '@openland/foundationdb';
+import { FNodeIDLayer } from './../layers/FNodeIDLayer';
 
 describe('Random', () => {
 
     // Database Init
-    let db: fdb.Database<NativeValue, any>;
+    let db: Database;
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_random']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
+        db = await Database.openTest();
     });
 
     it('should pick node id successfully', async () => {
-        let connections: FConnection[] = [];
+        let connections: FNodeIDLayer[] = [];
         for (let i = 0; i < 32; i++) {
-            connections.push(new FConnection(db, NoOpBus));
+            connections.push(new FNodeIDLayer(new FConnection(db)));
         }
         for (let i = 0; i < 32; i++) {
-            await connections[i].ready(createNamedContext('test'));
+            await connections[i].ready();
         }
         let idsv: number[] = [];
         for (let i = 0; i < connections.length; i++) {
-            idsv.push(connections[i].nodeIdLayer.nodeId);
+            idsv.push(connections[i].nodeId);
         }
         for (let i = 0; i < connections.length; i++) {
             for (let j = 0; j < connections.length; j++) {

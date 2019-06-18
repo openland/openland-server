@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities, ConversationEvent, Message } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import {
     MessageAttachment,
     MessageAttachmentInput,
@@ -253,7 +253,7 @@ export class MessagingRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: this.entities.connection.nextRandomId()
+                    id: this.entities.layer.nextRandomId()
                 });
             }
 

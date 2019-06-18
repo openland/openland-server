@@ -1,6 +1,7 @@
 // Register Modules
 require('module-alias/register');
 import '../openland-utils/Shutdown';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { Modules } from 'openland-modules/Modules';
 import { loadAllModules } from 'openland-modules/loadAllModules';
 import faker from 'faker';
@@ -9,7 +10,7 @@ import { container } from 'openland-modules/Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 
 let rootCtx = createNamedContext('prepare');
@@ -39,9 +40,10 @@ export async function prepare() {
         }
 
         // Init DB
-        let connection = new FConnection(FConnection.create(), EventBus);
-        let entities = new AllEntitiesDirect(connection);
-        await connection.ready(rootCtx);
+        let connection = new FConnection(FConnection.create());
+        let layer = new EntityLayer(connection, EventBus);
+        let entities = new AllEntitiesDirect(layer);
+        await layer.ready(rootCtx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();
@@ -51,7 +53,7 @@ export async function prepare() {
         }
 
         // Clear DB
-        await FDB.connection.fdb.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
+        await FDB.layer.db.fdb.rawDB.clearRange(Buffer.from([0x00]), Buffer.from([0xff]));
 
         // Load other modules
         await loadAllModules(rootCtx, false);

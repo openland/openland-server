@@ -1,13 +1,11 @@
-import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { Context } from '@openland/context';
-import { FTransactionContext } from './utils/contexts';
 import { tracer } from './utils/tracer';
-import { FTransaction } from './FTransaction';
-import { getTransaction } from './getTransaction';
-import { FSubspace } from './FSubspace';
-import { FTuple } from './encoding/FTuple';
 import { createLogger } from '@openland/log';
+import { EntityLayer } from './EntityLayer';
+import { Subspace, getTransaction, Transaction } from '@openland/foundationdb';
+import { Tuple } from '@openland/foundationdb/lib/encoding';
+import { getLock } from './FEntityFactory';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -20,13 +18,13 @@ const log = createLogger('fdb');
 
 export abstract class FEntity {
     abstract readonly entityName: string;
-    readonly keyspace: FSubspace<FTuple[], any>;
+    readonly keyspace: Subspace<Tuple[], any>;
 
     readonly rawId: (string | number)[];
-    readonly connection: FConnection;
+    readonly layer: EntityLayer;
     readonly isReadOnly: boolean;
     readonly ctx: Context;
-    readonly transaction: FTransaction;
+    readonly transaction: Transaction;
 
     protected _valueInitial: any;
     protected _value: any;
@@ -36,11 +34,11 @@ export abstract class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(ctx: Context, connection: FConnection, keyspace: FSubspace<FTuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(ctx: Context, layer: EntityLayer, keyspace: Subspace<Tuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
         this.keyspace = keyspace;
         this.rawId = id;
-        this.connection = connection;
+        this.layer = layer;
         this.transaction = getTransaction(ctx);
         this.isReadOnly = this.transaction.isReadOnly;
         this.options = options;
@@ -117,8 +115,8 @@ export abstract class FEntity {
     }
 
     private async _doFlush(parent: Context, unsafe: boolean, lock: boolean) {
-        let cache = FTransactionContext.get(parent);
-        if (!cache) {
+        let cache = getTransaction(parent);
+        if (cache.isEphemeral || cache.isReadOnly) {
             throw Error('Tried to flush object outside of transaction');
         }
         if (cache.isCompleted) {
@@ -161,7 +159,7 @@ export abstract class FEntity {
                     // Notify after successful transaction
                     if (this.options.hasLiveStreams) {
                         this.transaction.afterCommit(() => {
-                            this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
+                            this.layer.eventBus.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
                         });
                     }
 
@@ -222,7 +220,7 @@ export abstract class FEntity {
 
                         if (index.unique) {
                             if (needToDeleteOld) {
-                                index.directory.delete(ctx, oldkey);
+                                index.directory.clear(ctx, oldkey);
                             }
                             if (needToCreateNew) {
                                 if (!unsafe) {
@@ -236,7 +234,7 @@ export abstract class FEntity {
                             }
                         } else {
                             if (needToDeleteOld) {
-                                index.directory.delete(ctx, [...oldkey, ...this.rawId]);
+                                index.directory.clear(ctx, [...oldkey, ...this.rawId]);
                             }
                             if (needToCreateNew) {
                                 index.directory.set(ctx, [...key, ...this.rawId], value);
@@ -260,7 +258,7 @@ export abstract class FEntity {
 
         if (lock) {
             await tracer.trace(parent, 'Flush:' + this.entityName, async (ctx) => {
-                await cache!.readWriteLock(this.entityName)
+                await getLock(ctx, this.entityName)!
                     .runWriteOperation(ctx, async () => {
                         await op(ctx);
                     });

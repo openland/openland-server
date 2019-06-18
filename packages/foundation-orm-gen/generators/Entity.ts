@@ -96,7 +96,7 @@ export function generateEntity(entity: EntityModel): string {
             let body = index.condition.toString();
             condition = ', ' + body;
         }
-        return 'new FEntityIndex(connection, \'' + entityKey + '\', \'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
+        return 'new FEntityIndex(layer, \'' + entityKey + '\', \'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
     }
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
 
@@ -174,14 +174,14 @@ export function generateEntity(entity: EntityModel): string {
     }
     res += '    }\n\n';
 
-    res += '    constructor(connection: FConnection) {\n';
+    res += '    constructor(layer: EntityLayer) {\n';
     for (let index of entity.indexes) {
         res += '        let index' + Case.pascalCase(index.name) + ' = ' + buildIndex(index) + ';\n';
     }
     res += '        super(\'' + entity.name + '\', \'' + entityKey + '\', \n';
     res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' },\n';
     res += '            [' + entity.indexes.map((v) => 'index' + Case.pascalCase(v.name)).join(', ') + '],\n';
-    res += '            connection\n';
+    res += '            layer\n';
     res += '        );\n';
     for (let index of entity.indexes) {
         res += '        this.index' + Case.pascalCase(index.name) + ' = index' + Case.pascalCase(index.name) + ';\n';
@@ -252,7 +252,7 @@ export function generateEntity(entity: EntityModel): string {
     }
 
     res += '    protected _createEntity(ctx: Context, value: any, isNew: boolean) {\n';
-    res += '        return new ' + entityClass + '(ctx, this.connection, this.directory, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
+    res += '        return new ' + entityClass + '(ctx, this.layer, this.directory, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
     res += '    }\n';
     res += '}';
 

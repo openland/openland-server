@@ -2,7 +2,7 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { FStream } from 'foundation-orm/FStream';
 import { staticWorker } from './staticWorker';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {

@@ -1,6 +1,6 @@
 import { updateReader } from 'openland-module-workers/updateReader';
 import { FDB } from 'openland-module-db/FDB';
-import { inTx } from 'foundation-orm/inTx';
+import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 
 export function startConnectionsIndexer() {

@@ -1,5 +1,5 @@
+import { inTx } from '@openland/foundationdb';
 import { AllEntities } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 
@@ -19,7 +19,7 @@ export class FeatureRepository {
             if (ex) {
                 ex.enabled = true;
             } else {
-                await this.entities.OrganizationFeatures.create(ctx, this.entities.connection.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
+                await this.entities.OrganizationFeatures.create(ctx, this.entities.layer.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
             }
         });
     }

@@ -3,6 +3,7 @@ require('module-alias/register');
 
 // tslint:disable:no-floating-promises
 import Benchmark from 'benchmark';
+import { inTx } from '@openland/foundationdb';
 // @ts-ignore
 import * as fdb from 'foundationdb';
 // @ts-ignore
@@ -12,9 +13,9 @@ import { delay } from '../openland-utils/timer';
 import { AllEntitiesDirect } from 'foundation-orm/tests/testSchema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
-import { inTx } from 'foundation-orm/inTx';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { EntityLayer } from 'foundation-orm/EntityLayer';
 
 let rootCtx = createNamedContext('benchmark');
 let logger = createLogger('benchmark');
@@ -131,7 +132,9 @@ addAsync('tx-tuple-10000', async () => {
 });
 
 addAsync('orm-1000', async () => {
-    let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
+    let connection = new FConnection(db1 as any);
+    let layer = new EntityLayer(connection, NoOpBus);
+    let entities = new AllEntitiesDirect(layer);
     let p: any[] = [];
     for (let i = 0; i < 1000; i++) {
         let p2 = inTx(rootCtx, async (ctx) => {
@@ -143,7 +146,9 @@ addAsync('orm-1000', async () => {
 });
 
 addAsync('orm-10000', async function orm10000() {
-    let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
+    let connection = new FConnection(db1 as any);
+    let layer = new EntityLayer(connection, NoOpBus);
+    let entities = new AllEntitiesDirect(layer);
     let p: any[] = [];
     for (let i = 0; i < 10000; i++) {
         let p2 = inTx(rootCtx, async (ctx) => {
@@ -155,7 +160,9 @@ addAsync('orm-10000', async function orm10000() {
 });
 
 addAsync('orm-10000-empty', async function orm10000Empty() {
-    let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
+    let connection = new FConnection(db1 as any);
+    let layer = new EntityLayer(connection, NoOpBus);
+    let entities = new AllEntitiesDirect(layer);
     let p: any[] = [];
     for (let i = 0; i < 10000; i++) {
         let p2 = inTx(rootCtx, async (ctx) => {
@@ -172,7 +179,9 @@ suite.on('cycle', function (event: any) {
 
 (async () => {
     await db1.clearRange(fdb.encoders.tuple.pack([]));
-    let entities = new AllEntitiesDirect(new FConnection(db1 as any, NoOpBus, false));
+    let connection = new FConnection(db1 as any);
+    let layer = new EntityLayer(connection, NoOpBus);
+    let entities = new AllEntitiesDirect(layer);
     // let keySize = 4096;
     let p: any[] = [];
     logger.log(rootCtx, 'Prepare');
