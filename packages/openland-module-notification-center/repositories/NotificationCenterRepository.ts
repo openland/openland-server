@@ -5,6 +5,7 @@ import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
+import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
 
 export type NotificationContent = NewCommentNotification;
 
@@ -177,6 +178,24 @@ export class NotificationCenterRepository {
             await this.fdb.NotificationCenterEvent.create(ctx, notification.ncid, seq, {
                 kind: 'notification_updated',
                 notificationId: notification.id
+            });
+        });
+    }
+
+    async onCommentPeerUpdated(parent: Context, ncid: number, peerType: CommentPeerType, peerId: number, commentId: number | null) {
+        await inTx(parent, async (ctx) => {
+            //
+            // Create event
+            //
+            let seq = await this.nextEventSeq(ctx, ncid);
+            await this.fdb.NotificationCenterEvent.create(ctx, ncid, seq, {
+                kind: 'notification_content_updated',
+                updatedContent: {
+                    type: 'comment',
+                    peerId,
+                    peerType,
+                    commentId
+                }
             });
         });
     }

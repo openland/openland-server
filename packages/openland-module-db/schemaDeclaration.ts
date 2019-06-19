@@ -1235,7 +1235,15 @@ const Schema = declareSchema(() => {
         primaryKey('ncid', 'number');
         primaryKey('seq', 'number');
         field('notificationId', 'number').nullable();
-        enumField('kind', ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated']);
+        jsonField('updatedContent', jEnum(
+            json(() => {
+                jField('type', jString('comment'));
+                jField('peerId', jNumber());
+                jField('peerType', jString());
+                jField('commentId', jNumber()).nullable();
+            }),
+        )).nullable();
+        enumField('kind', ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated', 'notification_content_updated']);
 
         rangeIndex('notificationCenter', ['ncid', 'seq']).withStreaming();
 

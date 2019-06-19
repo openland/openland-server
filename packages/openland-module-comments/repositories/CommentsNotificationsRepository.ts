@@ -15,12 +15,13 @@ export class CommentsNotificationsRepository {
     async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
         return await inTx(parent, async (ctx) => {
             const createEvent = async () => {
-                let sec = await this.fetchNextEventSeq(ctx, uid);
-                await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
-                    kind: 'comments_peer_updated',
-                    peerType,
-                    peerId,
-                });
+                // let sec = await this.fetchNextEventSeq(ctx, uid);
+                // await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
+                //     kind: 'comments_peer_updated',
+                //     peerType,
+                //     peerId,
+                // });
+                await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
             };
 
             let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
@@ -43,12 +44,13 @@ export class CommentsNotificationsRepository {
                 return true;
             }
             existing.status = 'disabled';
-            let sec = await this.fetchNextEventSeq(ctx, uid);
-            await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
-                kind: 'comments_peer_updated',
-                peerType,
-                peerId,
-            });
+            await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
+            // let sec = await this.fetchNextEventSeq(ctx, uid);
+            // await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
+            //     kind: 'comments_peer_updated',
+            //     peerType,
+            //     peerId,
+            // });
             return true;
         });
     }
@@ -103,17 +105,17 @@ export class CommentsNotificationsRepository {
         });
     }
 
-    private async fetchNextEventSeq(parent: Context, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentGlobalEventSeq.findById(ctx, uid);
-            let seq = 1;
-            if (!existing) {
-                await (await this.entities.CommentGlobalEventSeq.create(ctx, uid, {seq: 1})).flush(ctx);
-            } else {
-                seq = ++existing.seq;
-                await existing.flush(ctx);
-            }
-            return seq;
-        });
-    }
+    // private async fetchNextEventSeq(parent: Context, uid: number) {
+    //     return await inTx(parent, async (ctx) => {
+    //         let existing = await this.entities.CommentGlobalEventSeq.findById(ctx, uid);
+    //         let seq = 1;
+    //         if (!existing) {
+    //             await (await this.entities.CommentGlobalEventSeq.create(ctx, uid, {seq: 1})).flush(ctx);
+    //         } else {
+    //             seq = ++existing.seq;
+    //             await existing.flush(ctx);
+    //         }
+    //         return seq;
+    //     });
+    // }
 }

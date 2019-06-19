@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '547a47a8b555c906397dbc1c12b3a621';
+export const GQL_SPEC_VERSION = 'd703eeba13663854402ec3f3f622af0c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2002,7 +2002,7 @@ export namespace GQL {
         fromSeq: number;
         updates: NotificationCenterUpdate[];
     }
-    export type NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted | NotificationUpdated;
+    export type NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted | NotificationUpdated | NotificationContentUpdated;
     export interface NotificationReceived {
         center: NotificationCenter;
         notification: Notification;
@@ -2021,6 +2021,15 @@ export namespace GQL {
         center: NotificationCenter;
         notification: Notification;
         unread: number;
+    }
+    export type UpdatedNotificationContent = UpdatedNotificationContentComment;
+    export interface UpdatedNotificationContentComment {
+        peer: CommentsPeer;
+        comment: Nullable<CommentEntry>;
+    }
+    export interface NotificationContentUpdated {
+        center: NotificationCenter;
+        content: UpdatedNotificationContent;
     }
     export type NotificationCenterUpdateContainer = NotificationCenterUpdateSingle | NotificationCenterUpdateBatch;
     export interface OrganizationContact {
@@ -2944,11 +2953,14 @@ export interface GQLResolver {
     NotificationCenterUpdatesState?: ComplexTypedResolver<GQL.NotificationCenterUpdatesState, GQLRoots.NotificationCenterUpdatesStateRoot, {}, {}>;
     NotificationCenterUpdateSingle?: ComplexTypedResolver<GQL.NotificationCenterUpdateSingle, GQLRoots.NotificationCenterUpdateSingleRoot, {update: GQLRoots.NotificationCenterUpdateRoot}, {}>;
     NotificationCenterUpdateBatch?: ComplexTypedResolver<GQL.NotificationCenterUpdateBatch, GQLRoots.NotificationCenterUpdateBatchRoot, {updates: GQLRoots.NotificationCenterUpdateRoot[]}, {}>;
-    NotificationCenterUpdate?: UnionTypeResolver<GQLRoots.NotificationCenterUpdateRoot, 'NotificationReceived' | 'NotificationRead' | 'NotificationDeleted' | 'NotificationUpdated'>;
+    NotificationCenterUpdate?: UnionTypeResolver<GQLRoots.NotificationCenterUpdateRoot, 'NotificationReceived' | 'NotificationRead' | 'NotificationDeleted' | 'NotificationUpdated' | 'NotificationContentUpdated'>;
     NotificationReceived?: ComplexTypedResolver<GQL.NotificationReceived, GQLRoots.NotificationReceivedRoot, {center: GQLRoots.NotificationCenterRoot, notification: GQLRoots.NotificationRoot}, {}>;
     NotificationRead?: ComplexTypedResolver<GQL.NotificationRead, GQLRoots.NotificationReadRoot, {center: GQLRoots.NotificationCenterRoot}, {}>;
     NotificationDeleted?: ComplexTypedResolver<GQL.NotificationDeleted, GQLRoots.NotificationDeletedRoot, {center: GQLRoots.NotificationCenterRoot, notification: GQLRoots.NotificationRoot}, {}>;
     NotificationUpdated?: ComplexTypedResolver<GQL.NotificationUpdated, GQLRoots.NotificationUpdatedRoot, {center: GQLRoots.NotificationCenterRoot, notification: GQLRoots.NotificationRoot}, {}>;
+    UpdatedNotificationContent?: UnionTypeResolver<GQLRoots.UpdatedNotificationContentRoot, 'UpdatedNotificationContentComment'>;
+    UpdatedNotificationContentComment?: ComplexTypedResolver<GQL.UpdatedNotificationContentComment, GQLRoots.UpdatedNotificationContentCommentRoot, {peer: GQLRoots.CommentsPeerRoot, comment: Nullable<GQLRoots.CommentEntryRoot>}, {}>;
+    NotificationContentUpdated?: ComplexTypedResolver<GQL.NotificationContentUpdated, GQLRoots.NotificationContentUpdatedRoot, {center: GQLRoots.NotificationCenterRoot, content: GQLRoots.UpdatedNotificationContentRoot}, {}>;
     NotificationCenterUpdateContainer?: UnionTypeResolver<GQLRoots.NotificationCenterUpdateContainerRoot, 'NotificationCenterUpdateSingle' | 'NotificationCenterUpdateBatch'>;
     OrganizationContact?: ComplexTypedResolver<GQL.OrganizationContact, GQLRoots.OrganizationContactRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, {}>;
     Organization?: ComplexTypedResolver<GQL.Organization, GQLRoots.OrganizationRoot, {alphaOrganizationMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationAdminMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationMemberRequests: GQLRoots.OrganizationRequestedMemberRoot[], betaPublicRooms: GQLRoots.SharedRoomRoot[]}, {alphaOrganizationMembers: GQL.OrganizationAlphaOrganizationMembersArgs, alphaOrganizationAdminMembers: GQL.OrganizationAlphaOrganizationAdminMembersArgs}>;

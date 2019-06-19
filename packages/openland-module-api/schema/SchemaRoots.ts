@@ -321,6 +321,9 @@ export namespace GQLRoots {
     export type NotificationDeletedRoot = NotificationCenterEvent;
     export type NotificationReadRoot = NotificationCenterEvent;
     export type NotificationUpdatedRoot = NotificationCenterEvent;
+    export type NotificationContentUpdatedRoot = NotificationCenterEvent;
+    export type UpdatedNotificationContentRoot = { type: 'comment', peerId: number, peerType: string, commentId: number | null, };
+    export type UpdatedNotificationContentCommentRoot = { type: 'comment', peerId: number, peerType: string, commentId: number | null, };
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };

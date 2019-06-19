@@ -6,6 +6,7 @@ import { FDB } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
+import UpdatedNotificationContentRoot = GQLRoots.UpdatedNotificationContentRoot;
 
 export default {
     NotificationCenterUpdateContainer: {
@@ -38,8 +39,18 @@ export default {
                 return 'NotificationDeleted';
             } else if (obj.kind === 'notification_updated') {
                 return 'NotificationUpdated';
+            }  else if (obj.kind === 'notification_content_updated') {
+                return 'NotificationContentUpdated';
             }
             throw Error('Unknown notification center update type: ' + obj.kind);
+        }
+    },
+    UpdatedNotificationContent: {
+        __resolveType(obj: UpdatedNotificationContentRoot) {
+            if (obj.type === 'comment') {
+                return 'UpdatedNotificationContentComment';
+            }
+            throw Error('Unknown UpdatedNotificationContent type: ' + obj.type);
         }
     },
 
@@ -61,6 +72,14 @@ export default {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
         notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
         unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
+    },
+    NotificationContentUpdated: {
+        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
+        content: async (src, args, ctx) => src.updatedContent
+    },
+    UpdatedNotificationContentComment: {
+        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await FDB.Comment.allFromPeer(ctx, src.peerType! as any, src.peerId!) }),
+        comment: async (src, args, ctx) => src.commentId && await FDB.Comment.findById(ctx, src.commentId)
     },
 
     Subscription: {

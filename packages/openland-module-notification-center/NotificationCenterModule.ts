@@ -7,6 +7,7 @@ import { NeedDeliveryRepository } from './repositories/NeedDeliveryRepository';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { startPushNotificationWorker } from './workers/pushNotificationsWorker';
 import { startEmailNotificationWorker } from './workers/emailNotificationsWorker';
+import { CommentPeerType } from '../openland-module-comments/repositories/CommentsRepository';
 
 @injectable()
 export class NotificationCenterModule {
@@ -46,7 +47,11 @@ export class NotificationCenterModule {
         return this.mediator.getNotificationStateForUser(ctx, uid);
     }
 
-    async markNotificationAsUpdated(parent: Context, nid: number) {
-        return this.mediator.markNotificationAsUpdated(parent, nid);
+    async markNotificationAsUpdated(ctx: Context, nid: number) {
+        return this.mediator.markNotificationAsUpdated(ctx, nid);
+    }
+
+    async onCommentPeerUpdatedForUser(ctx: Context, uid: number, peerType: CommentPeerType, peerId: number, commentId: number | null) {
+        return this.mediator.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, commentId);
     }
 }

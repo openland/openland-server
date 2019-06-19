@@ -15,7 +15,7 @@ type NotificationCenterUpdateBatch {
     updates: [NotificationCenterUpdate!]!
 }
 
-union NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted | NotificationUpdated
+union NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted | NotificationUpdated | NotificationContentUpdated
 
 type NotificationReceived {
     center: NotificationCenter!
@@ -38,6 +38,18 @@ type NotificationUpdated {
     center: NotificationCenter!
     notification: Notification!
     unread: Int!
+}
+
+union UpdatedNotificationContent = UpdatedNotificationContentComment
+
+type UpdatedNotificationContentComment {
+    peer: CommentsPeer!
+    comment: CommentEntry
+}
+
+type NotificationContentUpdated {
+    center: NotificationCenter!
+    content: UpdatedNotificationContent!
 }
 
 union NotificationCenterUpdateContainer = NotificationCenterUpdateSingle | NotificationCenterUpdateBatch

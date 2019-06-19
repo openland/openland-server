@@ -7,6 +7,7 @@ import { Context } from '@openland/context';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NeedDeliveryRepository } from '../repositories/NeedDeliveryRepository';
+import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
 
 @injectable()
 export class NotificationCenterMediator {
@@ -83,5 +84,12 @@ export class NotificationCenterMediator {
 
     async markNotificationAsUpdated(parent: Context, nid: number) {
         return await this.repo.markNotificationAsUpdated(parent, nid);
+    }
+
+    async onCommentPeerUpdatedForUser(parent: Context, uid: number, peerType: CommentPeerType, peerId: number, commentId: number | null) {
+        return await inTx(parent, async (ctx) => {
+            let userNotificationCenter = await this.notificationCenterForUser(ctx, uid);
+            return this.repo.onCommentPeerUpdated(ctx, userNotificationCenter.id, peerType, peerId, commentId);
+        });
     }
 }

@@ -8,7 +8,7 @@ export type FieldResolverWithRoot<T, R> = (root: R, ...args: any[]) => MaybeProm
 export type Resolver<Root, Args, Context, ReturnType> = (root: Root, args: Args, context: Context) => MaybePromise<ReturnType>;
 export type SubscriptionResolver<Root, Args, Context, ReturnType> = {
     resolve: (...args: any[]) => MaybePromise<ReturnType>,
-    subscribe: (root: Root, args: Args, context: Context) => MaybePromise<AsyncIterable<any>|AsyncIterator<any>>
+    subscribe: Resolver<Root, Args, Context, AsyncIterable<any>|AsyncIterator<any>>
 };
 
 export type Nullable<T> = null | T;
