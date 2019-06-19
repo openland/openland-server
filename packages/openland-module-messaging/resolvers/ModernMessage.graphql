@@ -70,8 +70,8 @@ extend type Mutation {
     betaPinMessage(chatId: ID!, messageId: ID!): SharedRoom!
     betaUnpinMessage(chatId: ID!): SharedRoom!
 
-    alphaPinMessage(chatId: ID!, messageId: ID!): Room!
-    alphaUnpinMessage(chatId: ID!): Room!
+    gammaPinMessage(chatId: ID!, messageId: ID!): Room!
+    gammaUnpinMessage(chatId: ID!): Room!
 
     messageReactionAdd(messageId: ID!, reaction: MessageReactionType!): Boolean!
     messageReactionRemove(messageId: ID!, reaction: MessageReactionType!): Boolean!
