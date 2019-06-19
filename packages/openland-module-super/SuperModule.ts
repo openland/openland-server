@@ -51,9 +51,9 @@ export class SuperModule {
         return this.envVarsRepo.set<T>(ctx, name, value, rawValue);
     }
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('admin')) {
-            startAdminInterface();
+            await startAdminInterface();
         }
     }
 }

@@ -2,14 +2,13 @@ import 'reflect-metadata';
 import { EntityLayer } from './../foundation-orm/EntityLayer';
 import { container } from './Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { DBModule } from 'openland-module-db/DBModule';
 import { EmailModuleMock } from 'openland-module-email/EmailModule.mock';
 import { HooksModuleMock } from 'openland-module-hooks/HooksModule.mock';
 import { Context, createNamedContext } from '@openland/context';
 import { UsersModule } from '../openland-module-users/UsersModule';
-import { Database } from '@openland/foundationdb';
+import { openTestDatabase } from 'openland-server/foundationdb';
 
 export async function testEnvironmentStart(name: string) {
 
@@ -22,9 +21,8 @@ export async function testEnvironmentStart(name: string) {
     container.bind('HooksModule').toConstantValue(new HooksModuleMock());
 
     // Prepare test DB connection
-    let connection = await Database.openTest();
-    let cnn = new FConnection(connection);
-    let layer = new EntityLayer(cnn, EventBus);
+    let db = await openTestDatabase();
+    let layer = new EntityLayer(db, EventBus);
     let entities = new AllEntitiesDirect(layer);
     await layer.ready(createNamedContext('text-' + name));
     container.bind(DBModule).toSelf().inSingletonScope();

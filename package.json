@@ -8,7 +8,7 @@
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",
     "@openland/context": "^0.4.0",
-    "@openland/foundationdb": "^1.4.0",
+    "@openland/foundationdb": "^2.1.0",
     "@openland/log": "^1.1.1",
     "@openland/secure-id": "^0.1.0",
     "@sendgrid/mail": "^6.3.1",

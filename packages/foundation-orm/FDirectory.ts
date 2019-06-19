@@ -1,19 +1,18 @@
-import { FConnection } from './FConnection';
 import { Context } from '@openland/context';
 import { DirectoryAllocator } from './layers/directory/DirectoryAllocator';
-import { Subspace, Transformer, encoders, RangeOptions } from '@openland/foundationdb';
+import { Subspace, Transformer, encoders, RangeOptions, Database } from '@openland/foundationdb';
 import { TransformedSubspace } from '@openland/foundationdb/lib/impl/TransformedSubspace';
 import { Watch } from '@openland/foundationdb/lib/Watch';
 
 export class FDirectory implements Subspace {
-    readonly connection: FConnection;
+    readonly connection: Database;
     readonly path: string[];
     private readonly allocatorProcess: Promise<void>;
     private keyspace!: Subspace;
     private allocatedKey!: Buffer;
     private isAllocated = false;
 
-    constructor(connection: FConnection, allocator: DirectoryAllocator, path: string[]) {
+    constructor(connection: Database, allocator: DirectoryAllocator, path: string[]) {
         this.connection = connection;
         this.path = path;
         this.allocatorProcess = (async () => {
