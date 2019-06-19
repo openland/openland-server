@@ -77,7 +77,7 @@ export function startEmailNotificationWorker() {
 
                 if (settings.commentNotificationsDelivery === 'none') {
                     state.lastPushSeq = state.seq;
-                    needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                    needDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
                     log.debug(ctx, 'ignore user\'s with disabled notifications');
                     return;
                 }
