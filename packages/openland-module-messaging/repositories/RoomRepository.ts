@@ -312,7 +312,7 @@ export class RoomRepository {
                 } else if (msg.attachmentsModern) {
                     let file = msg.attachmentsModern.find(a => a.type === 'file_attachment') as MessageAttachmentFile;
                     if (file && file.fileMetadata && file.fileMetadata.isImage) {
-                        messageContent = 'Image';
+                        messageContent = 'Photo';
                     } else if (file && file.fileMetadata) {
                         messageContent = 'Document';
                     }
