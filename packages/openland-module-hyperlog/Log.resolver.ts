@@ -12,7 +12,9 @@ export interface InternalTrackEvent {
     uid?: number;
     tid?: string;
     did: string;
-    platform: 'Android' | 'iOS' | 'WEB';
+    platform: 'Android' | 'iOS' | 'WEB' | 'MobileWeb';
+    deviceModel?: string;
+    os?: string;
     isProd: boolean;
     time: number;
 }
@@ -44,7 +46,9 @@ export default {
                         args: i.params ? JSON.parse(i.params) : undefined,
                         uid: ctx.auth && ctx.auth.uid,
                         tid: ctx.auth && ctx.auth.tid,
-                        platform: args.platform || 'WEB',
+                        deviceModel: i.deviceModel || undefined,
+                        os: i.os || undefined,
+                        platform: i.platform ? i.platform : (args.platform || 'WEB'),
                         isProd: (args.isProd === undefined || args.isProd === null) ? true : args.isProd,
                         time: i.time ? i.time.getTime() : Date.now()
                     });

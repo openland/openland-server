@@ -3,12 +3,16 @@ input Event {
     event: String!
     params: String
     time: Date
+    os: String
+    deviceModel: String
+    platform: EventPlatform
 }
 
 enum EventPlatform {
     Android,
     iOS,
-    WEB
+    WEB,
+    MobileWeb
 }
 
 extend type Mutation {

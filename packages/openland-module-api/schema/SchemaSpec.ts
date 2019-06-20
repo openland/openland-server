@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4bfeb7c2f2d8fc43ce90b4a6affcc00c';
+export const GQL_SPEC_VERSION = '5ed1c124c3056fb952c916981461f431';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -522,8 +522,11 @@ export namespace GQL {
         event: string;
         params: Nullable<string>;
         time: Nullable<Date>;
+        os: Nullable<string>;
+        deviceModel: Nullable<string>;
+        platform: Nullable<EventPlatform>;
     }
-    export type EventPlatform = 'Android' | 'iOS' | 'WEB';
+    export type EventPlatform = 'Android' | 'iOS' | 'WEB' | 'MobileWeb';
     export interface ModernMessage {
         id: string;
         date: Date;

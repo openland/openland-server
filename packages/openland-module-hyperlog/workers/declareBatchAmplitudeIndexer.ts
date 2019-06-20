@@ -22,6 +22,7 @@ export interface AmplitudeEvent {
     insert_id: string;
     platform: string;
     os_name: string;
+    device_model: string;
     time: number;
     user_properties?: AmplitudeUserProps;
 }
@@ -53,7 +54,8 @@ function toAmplitudeEvent(event: InternalTrackEvent, userProps?: AmplitudeUserPr
         event_properties: event.args,
         insert_id: event.id,
         platform: event.platform,
-        os_name: event.platform,
+        os_name: event.os || 'unknown',
+        device_model: event.deviceModel || 'unknown',
         time: event.time,
         user_properties: userProps
     };
