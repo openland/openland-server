@@ -14,25 +14,17 @@ export class CommentsNotificationsRepository {
 
     async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
         return await inTx(parent, async (ctx) => {
-            const createEvent = async () => {
-                // let sec = await this.fetchNextEventSeq(ctx, uid);
-                // await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
-                //     kind: 'comments_peer_updated',
-                //     peerType,
-                //     peerId,
-                // });
-                await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
-            };
-
             let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
             if (existing) {
-                existing.status = 'active';
-                existing.kind = type;
-                await createEvent();
+                if (existing.status !== 'active' || existing.kind !== type) {
+                    existing.status = 'active';
+                    existing.kind = type;
+                    await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
+                }
                 return true;
             }
             await this.entities.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: type, status: 'active' });
-            await createEvent();
+            await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
             return true;
         });
     }
@@ -45,12 +37,6 @@ export class CommentsNotificationsRepository {
             }
             existing.status = 'disabled';
             await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
-            // let sec = await this.fetchNextEventSeq(ctx, uid);
-            // await this.entities.CommentEventGlobal.create(ctx, uid, sec, {
-            //     kind: 'comments_peer_updated',
-            //     peerType,
-            //     peerId,
-            // });
             return true;
         });
     }

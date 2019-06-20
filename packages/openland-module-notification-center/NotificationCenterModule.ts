@@ -54,4 +54,8 @@ export class NotificationCenterModule {
     async onCommentPeerUpdatedForUser(ctx: Context, uid: number, peerType: CommentPeerType, peerId: number, commentId: number | null) {
         return this.mediator.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, commentId);
     }
+
+    async onCommentPeerUpdated(ctx: Context, peerType: CommentPeerType, peerId: number, commentId: number | null) {
+        return this.mediator.onCommentPeerUpdated(ctx, peerType, peerId, commentId);
+    }
 }

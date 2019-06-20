@@ -73,6 +73,9 @@ export class CommentsMediator {
                 await this.augmentation.onCommentUpdated(ctx, comment);
             }
 
+            // Send notification center updates
+            await Modules.NotificationCenter.onCommentPeerUpdated(ctx, comment.peerType, comment.peerId, comment.id);
+
             return res;
         });
     }

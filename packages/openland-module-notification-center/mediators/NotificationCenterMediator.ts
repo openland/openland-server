@@ -92,4 +92,17 @@ export class NotificationCenterMediator {
             return this.repo.onCommentPeerUpdated(ctx, userNotificationCenter.id, peerType, peerId, commentId);
         });
     }
+
+    async onCommentPeerUpdated(parent: Context, peerType: CommentPeerType, peerId: number, commentId: number | null) {
+        return await inTx(parent, async (ctx) => {
+            //
+            // Send notification center events for all subscribed users
+            //
+            let subscriptions = await this.fdb.CommentsSubscription.allFromPeer(ctx, peerType, peerId);
+            for (let subscription of subscriptions) {
+                let userNotificationCenter = await this.notificationCenterForUser(ctx, subscription.uid);
+                return this.repo.onCommentPeerUpdated(ctx, userNotificationCenter.id, peerType, peerId, commentId);
+            }
+        });
+    }
 }
