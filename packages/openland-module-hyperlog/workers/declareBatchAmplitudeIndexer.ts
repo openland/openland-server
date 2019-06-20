@@ -13,10 +13,10 @@ const log = createLogger('amplitude-batch-indexer');
 const API_KEY_PROD = '74a224d67ecce6c3f53c3f2b5f162368';
 const API_KEY_TEST = 'a84549e7390473dbc3abbfe151462f82';
 
-interface InternalEvent {
+export interface InternalTrackEvent {
     id: string;
     name: string;
-    args: any;
+    args?: any;
     uid?: number;
     tid?: string;
     did: string;
@@ -24,6 +24,7 @@ interface InternalEvent {
     isProd: boolean;
     time: number;
 }
+
 export interface AmplitudeEvent {
     user_id?: string;
     device_id?: string;
@@ -48,7 +49,7 @@ interface AmplitudeUserProps {
     direct_chats_count: number;
 }
 
-function toAmplitudeEvent(event: InternalEvent, userProps?: AmplitudeUserProps): AmplitudeEvent {
+function toAmplitudeEvent(event: InternalTrackEvent, userProps?: AmplitudeUserProps): AmplitudeEvent {
     // Amplitude doc says: user_id Must have a minimum length of 5 characters.
     let userId = event.uid ? '00000' + event.uid : undefined;
     let deviceId = event.did ? '00000' + event.did : undefined;

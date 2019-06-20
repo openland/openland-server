@@ -2,8 +2,24 @@ import { inTx } from '@openland/foundationdb';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withAny } from 'openland-module-api/Resolvers';
 import { createHyperlogger } from './createHyperlogEvent';
+import { Context } from '@openland/context';
+import { uuid } from '../openland-utils/uuid';
+import { InternalTrackEvent } from './workers/declareBatchAmplitudeIndexer';
 
-export const trackEvent = createHyperlogger<{ id: string, name: string, args: any, uid?: number, tid?: string, did: string, platform: 'Android'|'iOS'|'WEB', isProd: boolean, time: number }>('track');
+export const trackEvent = createHyperlogger<InternalTrackEvent>('track');
+
+const isProd = process.env.APP_ENVIRONMENT === 'production';
+
+export async function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
+    await trackEvent.event(ctx, {
+        id: uuid(),
+        platform: 'WEB',
+        did: 'server',
+        time: Date.now(),
+        isProd,
+        ...event
+    });
+}
 
 export default {
     Mutation: {

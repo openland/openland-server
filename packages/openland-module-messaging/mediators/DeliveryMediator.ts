@@ -10,7 +10,7 @@ import { CountersMediator } from './CountersMediator';
 import { RoomMediator } from './RoomMediator';
 import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { trackEvent } from '../../openland-module-hyperlog/Log.resolver';
+import { trackEvent, trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { uuid } from '../../openland-utils/uuid';
 import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
@@ -192,7 +192,7 @@ export class DeliveryMediator {
 
                 // Track message received
                 if (message.uid !== uid) {
-                    await trackEvent.event(ctx, { id: uuid(), platform: 'WEB', uid, name: 'message_received', did: 'server', args: undefined, isProd, time: Date.now() });
+                    await trackServerEvent(ctx, { name: 'message_received', uid });
                 }
             });
         });
