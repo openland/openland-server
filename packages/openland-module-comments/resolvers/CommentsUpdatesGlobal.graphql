@@ -1,3 +1,4 @@
+# DEPRECATED START
 type CommentGlobalUpdatesState {
     state: String
 }
@@ -31,3 +32,4 @@ extend type Query {
 extend type Subscription {
     commentUpdatesGlobal(fromState: String): CommentGlobalUpdateContainer
 }
+# DEPRECATED END
