@@ -146,6 +146,9 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
 
+            // Send notification center updates
+            await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);
+
             if (!newMessage.ignoreAugmentation) {
                 // Augment
                 await this.augmentation.onMessageUpdated(ctx, message);
