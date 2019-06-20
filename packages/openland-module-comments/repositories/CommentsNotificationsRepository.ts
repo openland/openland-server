@@ -90,18 +90,4 @@ export class CommentsNotificationsRepository {
             }
         });
     }
-
-    // private async fetchNextEventSeq(parent: Context, uid: number) {
-    //     return await inTx(parent, async (ctx) => {
-    //         let existing = await this.entities.CommentGlobalEventSeq.findById(ctx, uid);
-    //         let seq = 1;
-    //         if (!existing) {
-    //             await (await this.entities.CommentGlobalEventSeq.create(ctx, uid, {seq: 1})).flush(ctx);
-    //         } else {
-    //             seq = ++existing.seq;
-    //             await existing.flush(ctx);
-    //         }
-    //         return seq;
-    //     });
-    // }
 }
