@@ -4,8 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
-import { MessageAttachmentFile } from '../MessageInput';
-import { hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
+import { fetchMessageFallback, hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 import { createLogger, withLogPath } from '@openland/log';
 
 const Delays = {
@@ -188,33 +187,7 @@ export function startPushNotificationWorker() {
                         pushTitle = chatTitle;
                     }
 
-                    let pushBody = '';
-
-                    if (message.text) {
-                        pushBody += message.text;
-                    }
-                    if (message.attachmentsModern) {
-                        let fileAttachment = message.attachmentsModern.find(a => a.type === 'file_attachment');
-
-                        if (fileAttachment) {
-                            let attach = fileAttachment as MessageAttachmentFile;
-                            let mime = attach.fileMetadata && attach.fileMetadata.mimeType;
-
-                            if (!mime) {
-                                pushBody += Texts.Notifications.DOCUMENT_ATTACH;
-                            } else if (mime === 'image/gif') {
-                                pushBody += Texts.Notifications.GIF_ATTACH;
-                            } else if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                                pushBody += Texts.Notifications.IMAGE_ATTACH;
-                            } else if (mime.startsWith('video/')) {
-                                pushBody += Texts.Notifications.VIDEO_ATTACH;
-                            }
-                        }
-                    }
-
-                    if (pushBody.length === 0 && message.replyMessages) {
-                        pushBody += Texts.Notifications.REPLY_ATTACH;
-                    }
+                    let pushBody = await fetchMessageFallback(message);
 
                     if (unreadCounter === undefined) {
                         unreadCounter = await FDB.UserCounter.byId(uid).get(ctx);

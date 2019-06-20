@@ -73,6 +73,6 @@ export class MetricsModule {
     }
 
     async onReactionAdded(ctx: Context, message: Message, reaction: string) {
-        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type: reaction } });
+        await trackServerEvent(ctx, { name: 'A', uid: message.uid, args: { reaction_type: reaction } });
     }
 }
