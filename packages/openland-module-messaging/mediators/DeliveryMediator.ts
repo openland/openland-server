@@ -10,13 +10,11 @@ import { CountersMediator } from './CountersMediator';
 import { RoomMediator } from './RoomMediator';
 import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { trackEvent, trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
-import { uuid } from '../../openland-utils/uuid';
+import { trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 
 const tracer = createTracer('message-delivery');
-const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 @injectable()
 export class DeliveryMediator {
