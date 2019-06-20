@@ -1,5 +1,6 @@
 import * as fs from 'fs';
-import { Database, Layer, RandomLayer } from '@openland/foundationdb';
+import { Database, Layer } from '@openland/foundationdb';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 function createLayers() {
     let layers: Layer[] = [

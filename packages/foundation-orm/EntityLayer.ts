@@ -1,7 +1,8 @@
 import { Context } from '@openland/context';
 import { FPubsub } from 'foundation-orm/FPubsub';
 import { FDirectoryLayer } from './layers/FDirectoryLayer';
-import { Database, RandomLayer } from '@openland/foundationdb';
+import { Database } from '@openland/foundationdb';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 export class EntityLayer {
     readonly directory: FDirectoryLayer;

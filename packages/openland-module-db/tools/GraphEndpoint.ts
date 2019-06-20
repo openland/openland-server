@@ -366,7 +366,8 @@ export async function createGraphQLAdminSchema() {
     queries.metaMigrations = {
         type: new GraphQLList(GraphQLString),
         async resolve() {
-            return (await FDB.layer.db.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+            // return (await FDB.layer.db.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+            return null;
         }
     };
     

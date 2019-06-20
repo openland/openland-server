@@ -152,15 +152,46 @@
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@openland/context/-/context-0.4.0.tgz#3d12934d9726b5743f9f40521e3d62e81a1f8d0c"
 
-"@openland/foundationdb@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-2.1.0.tgz#901a126a846de2fb21a3a678d03f38369907b758"
-  integrity sha512-WSgdrhHd7iopKdiU4xJUQzfMhw1rnHqe08jzWvtCldBNfBcZEo43sWF+lZp7XDvjHHBJVOeSQWNTcAP25/dybg==
+"@openland/foundationdb-core@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-core/-/foundationdb-core-3.0.2.tgz#7cc3c9dd98038ab75cb2a64e967f598979e56602"
+  integrity sha512-rikB+Wjg0yVlVt1lEKbMMzw0DzmmzBjw8QXdzo1SAQ3JISULqi3g4MFt4hMyZNWLKnXbYsuMTiDoT9n6NRF6fQ==
+  dependencies:
+    nan "^2.13.2"
+    node-gyp-build "^4.1.0"
+
+"@openland/foundationdb-random@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-random/-/foundationdb-random-3.0.2.tgz#c9de0a351f245d53c7198cdc29adfcf33b2aab42"
+  integrity sha512-7ZJ4+IY0BYulOTdz0+j4EmXCza+SNYaIyu8Dt29Qqlkjn/rFCdgp7x9Ert9PhhzztaylyQ/lODamcqpAys9qqA==
   dependencies:
     "@openland/context" "*"
+    "@openland/foundationdb" "^3.0.2"
+    "@openland/foundationdb-utils" "^3.0.2"
     "@openland/log" "*"
     "@types/uuid" "^3.4.3"
-    foundationdb "0.10.2"
+    uuid "^3.2.1"
+
+"@openland/foundationdb-utils@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-utils/-/foundationdb-utils-3.0.2.tgz#9a3e8b4c705b53fd6457a8a4ca35ef3b777ec32b"
+  integrity sha512-gIqRRke8/alX7wn0kJs1wiQ5xfJptRXx/yVV9wJGxS5kiNppFMxzpNIcl5YkyWMVvcaU5AkfQjGghUE0H/kF3A==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/foundationdb" "^3.0.2"
+    "@openland/log" "*"
+    "@types/uuid" "^3.4.3"
+    uuid "^3.2.1"
+
+"@openland/foundationdb@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-3.0.2.tgz#9492a3b3947982ae284119a4af0e489abcd5c5d2"
+  integrity sha512-UZB/p2lp1zum9EXwl6Jr9mLJRM9YO6Q96HyB8V9mDuG0PJQTaU0p2rzTfSY3vO7d73e889NBcQAF4c8SECSeVA==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/foundationdb-core" "^3.0.2"
+    "@openland/log" "*"
+    "@types/uuid" "^3.4.3"
     uuid "^3.2.1"
 
 "@openland/log@*", "@openland/log@^1.1.1":

@@ -1,4 +1,4 @@
-import { Database } from '@openland/foundationdb';
+import { Database, inTx } from '@openland/foundationdb';
 import { backoff } from 'openland-utils/timer';
 import { encoders } from 'foundationdb';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -28,25 +28,27 @@ export class DirectoryAllocator {
     async allocateDirectory(key: (string | number | boolean)[]) {
         let destKey = Buffer.concat([regsPrefix, FKeyEncoding.encodeKey([...key])]);
         try {
-            return await backoff(async () => await this.connection.rawDB.doTransaction(async (tx) => {
-                let res = await tx.get(destKey);
-                if (res) {
-                    return buildDataPrefix(encoders.json.unpack(res).value as number);
-                }
-                let nextPrefix = await tx.get(counterKey);
-                let nextCounter = 1;
-                if (!nextPrefix) {
-                    tx.set(counterKey, encoders.json.pack({ value: 1 }) as Buffer);
-                } else {
-                    nextCounter = (encoders.json.unpack(nextPrefix).value as number) + 1;
-                    tx.set(counterKey, encoders.json.pack({ value: nextCounter }) as Buffer);
-                }
-                if (nextCounter > 6536) {
-                    throw Error('Key space overflowed');
-                }
-                tx.set(destKey, encoders.json.pack({ value: nextCounter }) as Buffer);
-                return buildDataPrefix(nextCounter);
-            }));
+            return await backoff(async () => {
+                return await inTx(createNamedContext('unknown'), async (ctx) => {
+                    let res = await this.connection.allKeys.get(ctx, destKey);
+                    if (res) {
+                        return buildDataPrefix(encoders.json.unpack(res).value as number);
+                    }
+                    let nextPrefix = await this.connection.allKeys.get(ctx, counterKey);
+                    let nextCounter = 1;
+                    if (!nextPrefix) {
+                        this.connection.allKeys.set(ctx, counterKey, encoders.json.pack({ value: 1 }) as Buffer);
+                    } else {
+                        nextCounter = (encoders.json.unpack(nextPrefix).value as number) + 1;
+                        this.connection.allKeys.set(ctx, counterKey, encoders.json.pack({ value: nextCounter }) as Buffer);
+                    }
+                    if (nextCounter > 6536) {
+                        throw Error('Key space overflowed');
+                    }
+                    this.connection.allKeys.set(ctx, destKey, encoders.json.pack({ value: nextCounter }) as Buffer);
+                    return buildDataPrefix(nextCounter);
+                });
+            });
         } catch (e) {
             logger.warn(createNamedContext('unknown'), e);
             throw Error('Unable to allocate key!');
@@ -54,10 +56,10 @@ export class DirectoryAllocator {
     }
 
     async findAllDirectories() {
-        let res = await this.connection.rawDB.getRangeAll(regsPrefix);
+        let res = await this.connection.allKeys.range(createNamedContext('unknown'), regsPrefix);
         return res.map((v) => ({
-            key: FKeyEncoding.decodeKey(v[0].slice(regsPrefix.length)).join('.'),
-            id: buildDataPrefix(encoders.json.unpack(v[1]).value).toString('hex')
+            key: FKeyEncoding.decodeKey(v.key.slice(regsPrefix.length)).join('.'),
+            id: buildDataPrefix(encoders.json.unpack(v.value).value).toString('hex')
         }));
     }
 }
