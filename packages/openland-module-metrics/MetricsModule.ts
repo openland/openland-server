@@ -71,4 +71,8 @@ export class MetricsModule {
     async onUserActivated(ctx: Context, uid: number) {
         await trackServerEvent(ctx, { name: 'account_activated', uid });
     }
+
+    async onReactionAdded(ctx: Context, message: Message, reaction: string) {
+        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type: reaction } });
+    }
 }
