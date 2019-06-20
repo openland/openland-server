@@ -9,6 +9,7 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
+import { trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
 
 @injectable()
 export class CommentsMediator {
@@ -49,6 +50,11 @@ export class CommentsMediator {
             // Send message updated event
             //
             await Modules.Messaging.markMessageUpdated(ctx, message.id);
+
+            //
+            //  Track event
+            //
+            await trackServerEvent(ctx, {name: 'comment_to_message_received', uid: message.uid});
 
             if (!commentInput.ignoreAugmentation) {
                 await this.augmentation.onNewComment(ctx, res);
