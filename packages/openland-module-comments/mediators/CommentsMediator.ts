@@ -55,6 +55,12 @@ export class CommentsMediator {
             //  Track event
             //
             await trackServerEvent(ctx, {name: 'comment_to_message_received', uid: message.uid});
+            if (commentInput.replyToComment) {
+                let parentComment = await this.entities.Comment.findById(ctx, commentInput.replyToComment);
+                if (parentComment) {
+                    await trackServerEvent(ctx, {name: 'reply_to_comment_received', uid: parentComment.uid});
+                }
+            }
 
             if (!commentInput.ignoreAugmentation) {
                 await this.augmentation.onNewComment(ctx, res);
