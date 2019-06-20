@@ -76,10 +76,10 @@ export default {
                 if (args.settings.notificationsDelay !== null) {
                     settings.notificationsDelay = args.settings.notificationsDelay as any;
                 }
-                if (args.settings.commentNotifications !== null) {
+                if (args.settings.commentNotifications && args.settings.commentNotifications !== null) {
                     settings.commentNotifications = args.settings.commentNotifications as any;
                 }
-                if (args.settings.commentNotificationsDelivery !== null) {
+                if (args.settings.commentNotificationsDelivery && args.settings.commentNotificationsDelivery !== null) {
                     settings.commentNotificationsDelivery = args.settings.commentNotificationsDelivery as any;
                 }
                 return settings;
