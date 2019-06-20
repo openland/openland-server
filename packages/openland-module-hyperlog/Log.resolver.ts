@@ -4,7 +4,6 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { createHyperlogger } from './createHyperlogEvent';
 import { Context } from '@openland/context';
 import { uuid } from '../openland-utils/uuid';
-import { InternalTrackEvent } from './workers/declareBatchAmplitudeIndexer';
 
 export interface InternalTrackEvent {
     id: string;

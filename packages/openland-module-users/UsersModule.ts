@@ -36,6 +36,7 @@ export class UsersModule {
             if (await this.repo.activateUser(ctx, uid)) {
                 if (sendEmail) {
                     await Emails.sendWelcomeEmail(ctx, uid);
+                    await Modules.Hooks.onUserActivated(ctx, uid);
                 }
             }
         });

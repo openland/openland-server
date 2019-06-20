@@ -6,6 +6,7 @@ import { IDs } from '../openland-module-api/IDs';
 import { FDB } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/schema';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -153,6 +154,10 @@ export class HooksModule {
         let message = `${conv.title}\nopenland.com/mail/${IDs.Conversation.serialize(hook.chatId)}\nHook created 👉 https://api.openland.com/apps/chat-hook/${hook.key}`;
         let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, hook.appId, uid);
         await Modules.Messaging.sendMessage(ctx, privateChat.id, hook.appId, { message, ignoreAugmentation: true });
+    }
+
+    onUserActivated = async (ctx: Context, uid: number) => {
+        await trackServerEvent(ctx, { name: 'account_activated', uid });
     }
 
     private async getSuperNotificationsBotId(ctx: Context) {
