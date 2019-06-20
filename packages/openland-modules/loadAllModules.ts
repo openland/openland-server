@@ -47,6 +47,7 @@ import { Context } from '@openland/context';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 import { openDatabase } from 'openland-server/foundationdb';
+import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
@@ -87,6 +88,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(TypingsModule).toSelf().inSingletonScope();
     container.bind(AppsModule).toSelf().inSingletonScope();
+    container.bind(MetricsModule).toSelf().inSingletonScope();
 
     container.bind(OrganizationModule).toSelf().inSingletonScope();
     container.bind(OrganizationRepository).toSelf();
@@ -126,4 +128,5 @@ export async function startAllModules() {
     await container.get(CommentsModule).start();
     await container.get(DiscoverModule).start();
     await container.get(NotificationCenterModule).start();
+    await container.get(MetricsModule).start();
 }

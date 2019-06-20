@@ -13,7 +13,6 @@ import { Context } from '@openland/context';
 import { Emails } from '../../openland-module-email/Emails';
 import { UserError } from '../../openland-errors/UserError';
 import { FDB } from '../../openland-module-db/FDB';
-import { trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
 
 @injectable()
 export class InvitesMediator {
@@ -46,7 +45,7 @@ export class InvitesMediator {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
             let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
-            await trackServerEvent(ctx, { name: 'invited_contact_joined', uid: invite.creatorId, args: { invite_type: chat!.isChannel ? 'channel' : 'group' } });
+            await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
             return invite.channelId;
         });
     }
@@ -76,7 +75,7 @@ export class InvitesMediator {
                 { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
                 true
             );
-            await trackServerEvent(ctx, { name: 'invited_contact_joined', uid: inviteData.uid, args: { invite_type: 'Openland' } });
+            await Modules.Metrics.onOpenlandInviteJoin(ctx, uid, inviteData.uid);
             return 'ok';
         });
     }
@@ -146,8 +145,7 @@ export class InvitesMediator {
                 );
             }
             // await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
-
-            await trackServerEvent(ctx, { name: 'invited_contact_joined', uid: invite.uid, args: { invite_type: org.kind } });
+            await Modules.Metrics.onOrganizationInviteJoin(ctx, uid, invite.oid, org);
             return IDs.Organization.serialize(invite.oid);
         });
     }

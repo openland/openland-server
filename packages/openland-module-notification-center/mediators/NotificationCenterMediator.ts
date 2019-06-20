@@ -8,6 +8,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NeedDeliveryRepository } from '../repositories/NeedDeliveryRepository';
 import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class NotificationCenterMediator {
@@ -29,6 +30,9 @@ export class NotificationCenterMediator {
 
             // Mark user as needed notification
             await this.needDelivery.setNeedNotificationDelivery(ctx, uid);
+
+            // Save metrics
+            await Modules.Metrics.onInternalNotificationReceived(ctx, res, uid);
 
             return res;
         });

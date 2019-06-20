@@ -10,9 +10,9 @@ import { CountersMediator } from './CountersMediator';
 import { RoomMediator } from './RoomMediator';
 import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
 import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
+import { Modules } from '../../openland-modules/Modules';
 
 const tracer = createTracer('message-delivery');
 
@@ -189,9 +189,7 @@ export class DeliveryMediator {
                 this.needNotification.setNeedNotificationDelivery(ctx, uid);
 
                 // Track message received
-                if (message.uid !== uid) {
-                    await trackServerEvent(ctx, { name: 'message_received', uid });
-                }
+                await Modules.Metrics.onMessageReceived(ctx, message, uid);
             });
         });
     }

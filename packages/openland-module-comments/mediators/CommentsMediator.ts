@@ -9,7 +9,6 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
-import { trackServerEvent } from '../../openland-module-hyperlog/Log.resolver';
 
 @injectable()
 export class CommentsMediator {
@@ -54,13 +53,7 @@ export class CommentsMediator {
             //
             //  Track event
             //
-            await trackServerEvent(ctx, {name: 'comment_to_message_received', uid: message.uid});
-            if (commentInput.replyToComment) {
-                let parentComment = await this.entities.Comment.findById(ctx, commentInput.replyToComment);
-                if (parentComment) {
-                    await trackServerEvent(ctx, {name: 'reply_to_comment_received', uid: parentComment.uid});
-                }
-            }
+            await Modules.Metrics.onCommentCreated(ctx, message, res);
 
             if (!commentInput.ignoreAugmentation) {
                 await this.augmentation.onNewComment(ctx, res);
