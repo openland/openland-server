@@ -6,6 +6,18 @@ import { Context } from '@openland/context';
 import { uuid } from '../openland-utils/uuid';
 import { InternalTrackEvent } from './workers/declareBatchAmplitudeIndexer';
 
+export interface InternalTrackEvent {
+    id: string;
+    name: string;
+    args?: any;
+    uid?: number;
+    tid?: string;
+    did: string;
+    platform: 'Android' | 'iOS' | 'WEB';
+    isProd: boolean;
+    time: number;
+}
+
 export const trackEvent = createHyperlogger<InternalTrackEvent>('track');
 
 const isProd = process.env.APP_ENVIRONMENT === 'production';

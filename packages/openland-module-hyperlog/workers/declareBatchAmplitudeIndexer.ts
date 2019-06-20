@@ -7,23 +7,12 @@ import request, { Response } from 'request';
 import { randomKey } from '../../openland-utils/random';
 import { delay } from '../../openland-utils/timer';
 import { HyperLog } from '../../openland-module-db/schema';
+import { InternalTrackEvent } from '../Log.resolver';
 
 const log = createLogger('amplitude-batch-indexer');
 
 const API_KEY_PROD = '74a224d67ecce6c3f53c3f2b5f162368';
 const API_KEY_TEST = 'a84549e7390473dbc3abbfe151462f82';
-
-export interface InternalTrackEvent {
-    id: string;
-    name: string;
-    args?: any;
-    uid?: number;
-    tid?: string;
-    did: string;
-    platform: 'Android' | 'iOS' | 'WEB';
-    isProd: boolean;
-    time: number;
-}
 
 export interface AmplitudeEvent {
     user_id?: string;
