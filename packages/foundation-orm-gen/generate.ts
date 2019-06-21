@@ -9,7 +9,9 @@ export function generate(model: SchemaModel, path: string) {
     res += '// @ts-ignore\n';
     res += 'import { EntitiesBase } from \'foundation-orm/EntitiesBase\';\n';
     res += '// @ts-ignore\n';
-    res += 'import { FEntity } from \'foundation-orm/FEntity\';\n';
+    res += 'import { Subspace } from \'@openland/foundationdb\';\n';
+    res += '// @ts-ignore\n';
+    res += 'import { FEntity, FEntityOptions } from \'foundation-orm/FEntity\';\n';
     res += '// @ts-ignore\n';
     res += 'import { FEntitySchema } from \'foundation-orm/FEntitySchema\';\n';
     res += '// @ts-ignore\n';

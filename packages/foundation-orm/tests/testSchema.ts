@@ -2,7 +2,9 @@
 // @ts-ignore
 import { EntitiesBase } from 'foundation-orm/EntitiesBase';
 // @ts-ignore
-import { FEntity } from 'foundation-orm/FEntity';
+import { Subspace } from '@openland/foundationdb';
+// @ts-ignore
+import { FEntity, FEntityOptions } from 'foundation-orm/FEntity';
 // @ts-ignore
 import { FEntitySchema } from 'foundation-orm/FEntitySchema';
 // @ts-ignore
@@ -58,6 +60,12 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('simpleEntity');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false };
+        return new SimpleEntityFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -65,12 +73,8 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         validators.isString('data', src.data);
     }
 
-    constructor(layer: EntityLayer) {
-        super('SimpleEntity', 'simpleEntity', 
-            { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('SimpleEntity', 'simpleEntity', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -124,6 +128,12 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('versionedEntity');
+        let config = { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false };
+        return new VersionedEntityFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -131,12 +141,8 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         validators.isString('data', src.data);
     }
 
-    constructor(layer: EntityLayer) {
-        super('VersionedEntity', 'versionedEntity', 
-            { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('VersionedEntity', 'versionedEntity', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -190,6 +196,12 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('timestampedEntity');
+        let config = { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false };
+        return new TimestampedEntityFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -197,12 +209,8 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         validators.isString('data', src.data);
     }
 
-    constructor(layer: EntityLayer) {
-        super('TimestampedEntity', 'timestampedEntity', 
-            { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('TimestampedEntity', 'timestampedEntity', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -279,6 +287,16 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('indexedEntity');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: true };
+        let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('indexedEntity', 'default'), 'default', ['data1', 'data2', 'id'], true);
+        let indexes = {
+            default: indexDefault,
+        };
+        return new IndexedEntityFactory(layer, directory, config, indexes);
+    }
+
     readonly indexDefault: FEntityIndex;
 
     private static validate(src: any) {
@@ -292,14 +310,9 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         validators.isString('data3', src.data3);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexDefault = new FEntityIndex(layer, 'indexedEntity', 'default', ['data1', 'data2', 'id'], true);
-        super('IndexedEntity', 'indexedEntity', 
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: true },
-            [indexDefault],
-            layer
-        );
-        this.indexDefault = indexDefault;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
+        super('IndexedEntity', 'indexedEntity', config, [indexes.default], layer, directory);
+        this.indexDefault = indexes.default;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -400,6 +413,16 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('indexedRangeEntity');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: true };
+        let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('indexedRangeEntity', 'default'), 'default', ['data1', 'data2'], false);
+        let indexes = {
+            default: indexDefault,
+        };
+        return new IndexedRangeEntityFactory(layer, directory, config, indexes);
+    }
+
     readonly indexDefault: FEntityIndex;
 
     private static validate(src: any) {
@@ -413,14 +436,9 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         validators.isString('data3', src.data3);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexDefault = new FEntityIndex(layer, 'indexedRangeEntity', 'default', ['data1', 'data2'], false);
-        super('IndexedRangeEntity', 'indexedRangeEntity', 
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: true },
-            [indexDefault],
-            layer
-        );
-        this.indexDefault = indexDefault;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
+        super('IndexedRangeEntity', 'indexedRangeEntity', config, [indexes.default], layer, directory);
+        this.indexDefault = indexes.default;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -518,6 +536,16 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('indexedPartialEntity');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: true };
+        let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('indexedPartialEntity', 'default'), 'default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello');
+        let indexes = {
+            default: indexDefault,
+        };
+        return new IndexedPartialEntityFactory(layer, directory, config, indexes);
+    }
+
     readonly indexDefault: FEntityIndex;
 
     private static validate(src: any) {
@@ -531,14 +559,9 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         validators.isString('data3', src.data3);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexDefault = new FEntityIndex(layer, 'indexedPartialEntity', 'default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello');
-        super('IndexedPartialEntity', 'indexedPartialEntity', 
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: true },
-            [indexDefault],
-            layer
-        );
-        this.indexDefault = indexDefault;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
+        super('IndexedPartialEntity', 'indexedPartialEntity', config, [indexes.default], layer, directory);
+        this.indexDefault = indexes.default;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -618,18 +641,20 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('nullableEntity');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, hasLiveStreams: false };
+        return new NullableEntityFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
         validators.isBoolean('flag', src.flag);
     }
 
-    constructor(layer: EntityLayer) {
-        super('NullableEntity', 'nullableEntity', 
-            { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('NullableEntity', 'nullableEntity', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -684,6 +709,16 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('rangeTest');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: true };
+        let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('rangeTest', 'default'), 'default', ['key', 'id'], false);
+        let indexes = {
+            default: indexDefault,
+        };
+        return new RangeTestFactory(layer, directory, config, indexes);
+    }
+
     readonly indexDefault: FEntityIndex;
 
     private static validate(src: any) {
@@ -693,14 +728,9 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         validators.isNumber('key', src.key);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexDefault = new FEntityIndex(layer, 'rangeTest', 'default', ['key', 'id'], false);
-        super('RangeTest', 'rangeTest', 
-            { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: true },
-            [indexDefault],
-            layer
-        );
-        this.indexDefault = indexDefault;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
+        super('RangeTest', 'rangeTest', config, [indexes.default], layer, directory);
+        this.indexDefault = indexes.default;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -799,6 +829,18 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('complexRangeTest');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: true };
+        let indexNonUnique = new FEntityIndex(await layer.resolveEntityIndexDirectory('complexRangeTest', 'nonUnique'), 'nonUnique', ['subId1', 'subId2'], false);
+        let indexUnique = new FEntityIndex(await layer.resolveEntityIndexDirectory('complexRangeTest', 'unique'), 'unique', ['subId1', 'subId2'], true);
+        let indexes = {
+            nonUnique: indexNonUnique,
+            unique: indexUnique,
+        };
+        return new ComplexRangeTestFactory(layer, directory, config, indexes);
+    }
+
     readonly indexNonUnique: FEntityIndex;
     readonly indexUnique: FEntityIndex;
 
@@ -813,16 +855,10 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         validators.isNumber('subId2', src.subId2);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexNonUnique = new FEntityIndex(layer, 'complexRangeTest', 'nonUnique', ['subId1', 'subId2'], false);
-        let indexUnique = new FEntityIndex(layer, 'complexRangeTest', 'unique', ['subId1', 'subId2'], true);
-        super('ComplexRangeTest', 'complexRangeTest', 
-            { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: true },
-            [indexNonUnique, indexUnique],
-            layer
-        );
-        this.indexNonUnique = indexNonUnique;
-        this.indexUnique = indexUnique;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { nonUnique: FEntityIndex, unique: FEntityIndex }) {
+        super('ComplexRangeTest', 'complexRangeTest', config, [indexes.nonUnique, indexes.unique], layer, directory);
+        this.indexNonUnique = indexes.nonUnique;
+        this.indexUnique = indexes.unique;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -921,6 +957,12 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('jsonTest');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, hasLiveStreams: false };
+        return new JsonTestFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -933,12 +975,8 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
         }));
     }
 
-    constructor(layer: EntityLayer) {
-        super('JsonTest', 'jsonTest', 
-            { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('JsonTest', 'jsonTest', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -961,19 +999,27 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
     }
 }
 export class SampleAtomicFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('sampleAtomic', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('sampleAtomic');
+        return new SampleAtomicFactory(layer, directory);
     }
     byId(id: string) {
         return this._findById([id]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 export class SampleAtomicBooleanFactory extends FAtomicBooleanFactory {
-    constructor(layer: EntityLayer) {
-        super('sampleAtomicBoolean', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('sampleAtomicBoolean');
+        return new SampleAtomicBooleanFactory(layer, directory);
     }
     byId(id: string) {
         return this._findById([id]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 
@@ -1006,6 +1052,49 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         ComplexRangeTestFactory.schema,
         JsonTestFactory.schema,
     ];
+
+    static async create(layer: EntityLayer) {
+        let allEntities: FEntityFactory<FEntity>[] = [];
+        let SimpleEntityPromise = SimpleEntityFactory.create(layer);
+        let VersionedEntityPromise = VersionedEntityFactory.create(layer);
+        let TimestampedEntityPromise = TimestampedEntityFactory.create(layer);
+        let IndexedEntityPromise = IndexedEntityFactory.create(layer);
+        let IndexedRangeEntityPromise = IndexedRangeEntityFactory.create(layer);
+        let IndexedPartialEntityPromise = IndexedPartialEntityFactory.create(layer);
+        let NullableEntityPromise = NullableEntityFactory.create(layer);
+        let RangeTestPromise = RangeTestFactory.create(layer);
+        let ComplexRangeTestPromise = ComplexRangeTestFactory.create(layer);
+        let JsonTestPromise = JsonTestFactory.create(layer);
+        let SampleAtomicPromise = SampleAtomicFactory.create(layer);
+        let SampleAtomicBooleanPromise = SampleAtomicBooleanFactory.create(layer);
+        allEntities.push(await SimpleEntityPromise);
+        allEntities.push(await VersionedEntityPromise);
+        allEntities.push(await TimestampedEntityPromise);
+        allEntities.push(await IndexedEntityPromise);
+        allEntities.push(await IndexedRangeEntityPromise);
+        allEntities.push(await IndexedPartialEntityPromise);
+        allEntities.push(await NullableEntityPromise);
+        allEntities.push(await RangeTestPromise);
+        allEntities.push(await ComplexRangeTestPromise);
+        allEntities.push(await JsonTestPromise);
+        let entities = {
+            layer, allEntities,
+            SimpleEntity: await SimpleEntityPromise,
+            VersionedEntity: await VersionedEntityPromise,
+            TimestampedEntity: await TimestampedEntityPromise,
+            IndexedEntity: await IndexedEntityPromise,
+            IndexedRangeEntity: await IndexedRangeEntityPromise,
+            IndexedPartialEntity: await IndexedPartialEntityPromise,
+            NullableEntity: await NullableEntityPromise,
+            RangeTest: await RangeTestPromise,
+            ComplexRangeTest: await ComplexRangeTestPromise,
+            JsonTest: await JsonTestPromise,
+            SampleAtomic: await SampleAtomicPromise,
+            SampleAtomicBoolean: await SampleAtomicBooleanPromise,
+        };
+        return new AllEntitiesDirect(entities);
+    }
+
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly SimpleEntity: SimpleEntityFactory;
     readonly VersionedEntity: VersionedEntityFactory;
@@ -1020,30 +1109,30 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly SampleAtomic: SampleAtomicFactory;
     readonly SampleAtomicBoolean: SampleAtomicBooleanFactory;
 
-    constructor(layer: EntityLayer) {
-        super(layer);
-        this.SimpleEntity = new SimpleEntityFactory(layer);
+    private constructor(entities: AllEntities) {
+        super(entities.layer);
+        this.SimpleEntity = entities.SimpleEntity;
         this.allEntities.push(this.SimpleEntity);
-        this.VersionedEntity = new VersionedEntityFactory(layer);
+        this.VersionedEntity = entities.VersionedEntity;
         this.allEntities.push(this.VersionedEntity);
-        this.TimestampedEntity = new TimestampedEntityFactory(layer);
+        this.TimestampedEntity = entities.TimestampedEntity;
         this.allEntities.push(this.TimestampedEntity);
-        this.IndexedEntity = new IndexedEntityFactory(layer);
+        this.IndexedEntity = entities.IndexedEntity;
         this.allEntities.push(this.IndexedEntity);
-        this.IndexedRangeEntity = new IndexedRangeEntityFactory(layer);
+        this.IndexedRangeEntity = entities.IndexedRangeEntity;
         this.allEntities.push(this.IndexedRangeEntity);
-        this.IndexedPartialEntity = new IndexedPartialEntityFactory(layer);
+        this.IndexedPartialEntity = entities.IndexedPartialEntity;
         this.allEntities.push(this.IndexedPartialEntity);
-        this.NullableEntity = new NullableEntityFactory(layer);
+        this.NullableEntity = entities.NullableEntity;
         this.allEntities.push(this.NullableEntity);
-        this.RangeTest = new RangeTestFactory(layer);
+        this.RangeTest = entities.RangeTest;
         this.allEntities.push(this.RangeTest);
-        this.ComplexRangeTest = new ComplexRangeTestFactory(layer);
+        this.ComplexRangeTest = entities.ComplexRangeTest;
         this.allEntities.push(this.ComplexRangeTest);
-        this.JsonTest = new JsonTestFactory(layer);
+        this.JsonTest = entities.JsonTest;
         this.allEntities.push(this.JsonTest);
-        this.SampleAtomic = new SampleAtomicFactory(layer);
-        this.SampleAtomicBoolean = new SampleAtomicBooleanFactory(layer);
+        this.SampleAtomic = entities.SampleAtomic;
+        this.SampleAtomicBoolean = entities.SampleAtomicBoolean;
     }
 }
 export class AllEntitiesProxy implements AllEntities {

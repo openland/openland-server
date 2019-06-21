@@ -2,7 +2,9 @@
 // @ts-ignore
 import { EntitiesBase } from 'foundation-orm/EntitiesBase';
 // @ts-ignore
-import { FEntity } from 'foundation-orm/FEntity';
+import { Subspace } from '@openland/foundationdb';
+// @ts-ignore
+import { FEntity, FEntityOptions } from 'foundation-orm/FEntity';
 // @ts-ignore
 import { FEntitySchema } from 'foundation-orm/FEntitySchema';
 // @ts-ignore
@@ -58,6 +60,12 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('environment');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: EnvironmentFactory.validate, hasLiveStreams: false };
+        return new EnvironmentFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('production', src.production);
         validators.isNumber('production', src.production);
@@ -65,12 +73,8 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
         validators.isString('comment', src.comment);
     }
 
-    constructor(layer: EntityLayer) {
-        super('Environment', 'environment', 
-            { enableVersioning: false, enableTimestamps: false, validator: EnvironmentFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('Environment', 'environment', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -124,6 +128,12 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('environmentVariable');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: EnvironmentVariableFactory.validate, hasLiveStreams: false };
+        return new EnvironmentVariableFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('name', src.name);
         validators.isString('name', src.name);
@@ -131,12 +141,8 @@ export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariab
         validators.isString('value', src.value);
     }
 
-    constructor(layer: EntityLayer) {
-        super('EnvironmentVariable', 'environmentVariable', 
-            { enableVersioning: true, enableTimestamps: true, validator: EnvironmentVariableFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('EnvironmentVariable', 'environmentVariable', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -216,6 +222,12 @@ export class OnlineFactory extends FEntityFactory<Online> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('online');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate, hasLiveStreams: false };
+        return new OnlineFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -225,12 +237,8 @@ export class OnlineFactory extends FEntityFactory<Online> {
         validators.isBoolean('active', src.active);
     }
 
-    constructor(layer: EntityLayer) {
-        super('Online', 'online', 
-            { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('Online', 'online', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -322,6 +330,16 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('presence');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('presence', 'user'), 'user', ['uid', 'lastSeen'], false);
+        let indexes = {
+            user: indexUser,
+        };
+        return new PresenceFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -338,14 +356,9 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         validators.isBoolean('active', src.active);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'presence', 'user', ['uid', 'lastSeen'], false);
-        super('Presence', 'presence', 
-            { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, hasLiveStreams: false },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('Presence', 'presence', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -454,6 +467,18 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('authToken');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false };
+        let indexSalt = new FEntityIndex(await layer.resolveEntityIndexDirectory('authToken', 'salt'), 'salt', ['salt'], true);
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('authToken', 'user'), 'user', ['uid', 'uuid'], false, src => src.enabled !== false);
+        let indexes = {
+            salt: indexSalt,
+            user: indexUser,
+        };
+        return new AuthTokenFactory(layer, directory, config, indexes);
+    }
+
     readonly indexSalt: FEntityIndex;
     readonly indexUser: FEntityIndex;
 
@@ -469,16 +494,10 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexSalt = new FEntityIndex(layer, 'authToken', 'salt', ['salt'], true);
-        let indexUser = new FEntityIndex(layer, 'authToken', 'user', ['uid', 'uuid'], false, src => src.enabled !== false);
-        super('AuthToken', 'authToken', 
-            { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
-            [indexSalt, indexUser],
-            layer
-        );
-        this.indexSalt = indexSalt;
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { salt: FEntityIndex, user: FEntityIndex }) {
+        super('AuthToken', 'authToken', config, [indexes.salt, indexes.user], layer, directory);
+        this.indexSalt = indexes.salt;
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -570,6 +589,16 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('serviceCache');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, hasLiveStreams: false };
+        let indexFromService = new FEntityIndex(await layer.resolveEntityIndexDirectory('serviceCache', 'fromService'), 'fromService', ['service', 'key'], false);
+        let indexes = {
+            fromService: indexFromService,
+        };
+        return new ServiceCacheFactory(layer, directory, config, indexes);
+    }
+
     readonly indexFromService: FEntityIndex;
 
     private static validate(src: any) {
@@ -580,14 +609,9 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         validators.isString('value', src.value);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexFromService = new FEntityIndex(layer, 'serviceCache', 'fromService', ['service', 'key'], false);
-        super('ServiceCache', 'serviceCache', 
-            { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, hasLiveStreams: false },
-            [indexFromService],
-            layer
-        );
-        this.indexFromService = indexFromService;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { fromService: FEntityIndex }) {
+        super('ServiceCache', 'serviceCache', config, [indexes.fromService], layer, directory);
+        this.indexFromService = indexes.fromService;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -692,6 +716,12 @@ export class LockFactory extends FEntityFactory<Lock> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('lock');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate, hasLiveStreams: false };
+        return new LockFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('key', src.key);
         validators.isString('key', src.key);
@@ -705,12 +735,8 @@ export class LockFactory extends FEntityFactory<Lock> {
         validators.isNumber('minVersion', src.minVersion);
     }
 
-    constructor(layer: EntityLayer) {
-        super('Lock', 'lock', 
-            { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('Lock', 'lock', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -858,6 +884,20 @@ export class TaskFactory extends FEntityFactory<Task> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('task');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, hasLiveStreams: false };
+        let indexPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'pending'), 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending');
+        let indexExecuting = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'executing'), 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
+        let indexFailing = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'failing'), 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
+        let indexes = {
+            pending: indexPending,
+            executing: indexExecuting,
+            failing: indexFailing,
+        };
+        return new TaskFactory(layer, directory, config, indexes);
+    }
+
     readonly indexPending: FEntityIndex;
     readonly indexExecuting: FEntityIndex;
     readonly indexFailing: FEntityIndex;
@@ -877,18 +917,11 @@ export class TaskFactory extends FEntityFactory<Task> {
         validators.isString('taskFailureMessage', src.taskFailureMessage);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexPending = new FEntityIndex(layer, 'task', 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending');
-        let indexExecuting = new FEntityIndex(layer, 'task', 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
-        let indexFailing = new FEntityIndex(layer, 'task', 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
-        super('Task', 'task', 
-            { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, hasLiveStreams: false },
-            [indexPending, indexExecuting, indexFailing],
-            layer
-        );
-        this.indexPending = indexPending;
-        this.indexExecuting = indexExecuting;
-        this.indexFailing = indexFailing;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { pending: FEntityIndex, executing: FEntityIndex, failing: FEntityIndex }) {
+        super('Task', 'task', config, [indexes.pending, indexes.executing, indexes.failing], layer, directory);
+        this.indexPending = indexes.pending;
+        this.indexExecuting = indexes.executing;
+        this.indexFailing = indexes.failing;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -1093,6 +1126,18 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('pushFirebase');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushFirebase', 'user'), 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushFirebase', 'token'), 'token', ['token'], true, src => src.enabled);
+        let indexes = {
+            user: indexUser,
+            token: indexToken,
+        };
+        return new PushFirebaseFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
     readonly indexToken: FEntityIndex;
 
@@ -1117,16 +1162,10 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'pushFirebase', 'user', ['uid', 'id'], false);
-        let indexToken = new FEntityIndex(layer, 'pushFirebase', 'token', ['token'], true, src => src.enabled);
-        super('PushFirebase', 'pushFirebase', 
-            { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate, hasLiveStreams: false },
-            [indexUser, indexToken],
-            layer
-        );
-        this.indexUser = indexUser;
-        this.indexToken = indexToken;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, token: FEntityIndex }) {
+        super('PushFirebase', 'pushFirebase', config, [indexes.user, indexes.token], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexToken = indexes.token;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1322,6 +1361,18 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('pushApple');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushApple', 'user'), 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushApple', 'token'), 'token', ['token'], true, src => src.enabled);
+        let indexes = {
+            user: indexUser,
+            token: indexToken,
+        };
+        return new PushAppleFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
     readonly indexToken: FEntityIndex;
 
@@ -1346,16 +1397,10 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'pushApple', 'user', ['uid', 'id'], false);
-        let indexToken = new FEntityIndex(layer, 'pushApple', 'token', ['token'], true, src => src.enabled);
-        super('PushApple', 'pushApple', 
-            { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate, hasLiveStreams: false },
-            [indexUser, indexToken],
-            layer
-        );
-        this.indexUser = indexUser;
-        this.indexToken = indexToken;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, token: FEntityIndex }) {
+        super('PushApple', 'pushApple', config, [indexes.user, indexes.token], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexToken = indexes.token;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1529,6 +1574,18 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('pushWeb');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushWeb', 'user'), 'user', ['uid', 'id'], false);
+        let indexEndpoint = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushWeb', 'endpoint'), 'endpoint', ['endpoint'], true, src => src.enabled);
+        let indexes = {
+            user: indexUser,
+            endpoint: indexEndpoint,
+        };
+        return new PushWebFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
     readonly indexEndpoint: FEntityIndex;
 
@@ -1549,16 +1606,10 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'pushWeb', 'user', ['uid', 'id'], false);
-        let indexEndpoint = new FEntityIndex(layer, 'pushWeb', 'endpoint', ['endpoint'], true, src => src.enabled);
-        super('PushWeb', 'pushWeb', 
-            { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate, hasLiveStreams: false },
-            [indexUser, indexEndpoint],
-            layer
-        );
-        this.indexUser = indexUser;
-        this.indexEndpoint = indexEndpoint;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, endpoint: FEntityIndex }) {
+        super('PushWeb', 'pushWeb', config, [indexes.user, indexes.endpoint], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexEndpoint = indexes.endpoint;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1743,6 +1794,18 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('pushSafari');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: PushSafariFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushSafari', 'user'), 'user', ['uid', 'id'], false);
+        let indexToken = new FEntityIndex(await layer.resolveEntityIndexDirectory('pushSafari', 'token'), 'token', ['token'], true, src => src.enabled);
+        let indexes = {
+            user: indexUser,
+            token: indexToken,
+        };
+        return new PushSafariFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
     readonly indexToken: FEntityIndex;
 
@@ -1765,16 +1828,10 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         validators.isNumber('disabledAt', src.disabledAt);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'pushSafari', 'user', ['uid', 'id'], false);
-        let indexToken = new FEntityIndex(layer, 'pushSafari', 'token', ['token'], true, src => src.enabled);
-        super('PushSafari', 'pushSafari', 
-            { enableVersioning: true, enableTimestamps: true, validator: PushSafariFactory.validate, hasLiveStreams: false },
-            [indexUser, indexToken],
-            layer
-        );
-        this.indexUser = indexUser;
-        this.indexToken = indexToken;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, token: FEntityIndex }) {
+        super('PushSafari', 'pushSafari', config, [indexes.user, indexes.token], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexToken = indexes.token;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -1889,6 +1946,12 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userProfilePrefil');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate, hasLiveStreams: false };
+        return new UserProfilePrefilFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -1897,12 +1960,8 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         validators.isString('picture', src.picture);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserProfilePrefil', 'userProfilePrefil', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserProfilePrefil', 'userProfilePrefil', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2032,6 +2091,22 @@ export class UserFactory extends FEntityFactory<User> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('user');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false };
+        let indexAuthId = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'authId'), 'authId', ['authId'], true, src => src.status !== 'deleted');
+        let indexEmail = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'email'), 'email', ['email'], true, src => src.status !== 'deleted');
+        let indexOwner = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'owner'), 'owner', ['botOwner', 'id'], false, src => src.botOwner);
+        let indexSuperBots = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'superBots'), 'superBots', [], false, src => src.isBot === true && src.isSuperBot);
+        let indexes = {
+            authId: indexAuthId,
+            email: indexEmail,
+            owner: indexOwner,
+            superBots: indexSuperBots,
+        };
+        return new UserFactory(layer, directory, config, indexes);
+    }
+
     readonly indexAuthId: FEntityIndex;
     readonly indexEmail: FEntityIndex;
     readonly indexOwner: FEntityIndex;
@@ -2053,20 +2128,12 @@ export class UserFactory extends FEntityFactory<User> {
         validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexAuthId = new FEntityIndex(layer, 'user', 'authId', ['authId'], true, src => src.status !== 'deleted');
-        let indexEmail = new FEntityIndex(layer, 'user', 'email', ['email'], true, src => src.status !== 'deleted');
-        let indexOwner = new FEntityIndex(layer, 'user', 'owner', ['botOwner', 'id'], false, src => src.botOwner);
-        let indexSuperBots = new FEntityIndex(layer, 'user', 'superBots', [], false, src => src.isBot === true && src.isSuperBot);
-        super('User', 'user', 
-            { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [indexAuthId, indexEmail, indexOwner, indexSuperBots],
-            layer
-        );
-        this.indexAuthId = indexAuthId;
-        this.indexEmail = indexEmail;
-        this.indexOwner = indexOwner;
-        this.indexSuperBots = indexSuperBots;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { authId: FEntityIndex, email: FEntityIndex, owner: FEntityIndex, superBots: FEntityIndex }) {
+        super('User', 'user', config, [indexes.authId, indexes.email, indexes.owner, indexes.superBots], layer, directory);
+        this.indexAuthId = indexes.authId;
+        this.indexEmail = indexes.email;
+        this.indexOwner = indexes.owner;
+        this.indexSuperBots = indexes.superBots;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2337,6 +2404,16 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userProfile');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate, hasLiveStreams: false };
+        let indexByUpdatedAt = new FEntityIndex(await layer.resolveEntityIndexDirectory('userProfile', 'byUpdatedAt'), 'byUpdatedAt', ['updatedAt'], false);
+        let indexes = {
+            byUpdatedAt: indexByUpdatedAt,
+        };
+        return new UserProfileFactory(layer, directory, config, indexes);
+    }
+
     readonly indexByUpdatedAt: FEntityIndex;
 
     private static validate(src: any) {
@@ -2356,14 +2433,9 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         validators.isString('role', src.role);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexByUpdatedAt = new FEntityIndex(layer, 'userProfile', 'byUpdatedAt', ['updatedAt'], false);
-        super('UserProfile', 'userProfile', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate, hasLiveStreams: false },
-            [indexByUpdatedAt],
-            layer
-        );
-        this.indexByUpdatedAt = indexByUpdatedAt;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { byUpdatedAt: FEntityIndex }) {
+        super('UserProfile', 'userProfile', config, [indexes.byUpdatedAt], layer, directory);
+        this.indexByUpdatedAt = indexes.byUpdatedAt;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2419,6 +2491,16 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userIndexingQueue');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, hasLiveStreams: false };
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('userIndexingQueue', 'updated'), 'updated', ['updatedAt'], false);
+        let indexes = {
+            updated: indexUpdated,
+        };
+        return new UserIndexingQueueFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUpdated: FEntityIndex;
 
     private static validate(src: any) {
@@ -2426,14 +2508,9 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         validators.isNumber('id', src.id);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUpdated = new FEntityIndex(layer, 'userIndexingQueue', 'updated', ['updatedAt'], false);
-        super('UserIndexingQueue', 'userIndexingQueue', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, hasLiveStreams: false },
-            [indexUpdated],
-            layer
-        );
-        this.indexUpdated = indexUpdated;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { updated: FEntityIndex }) {
+        super('UserIndexingQueue', 'userIndexingQueue', config, [indexes.updated], layer, directory);
+        this.indexUpdated = indexes.updated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2546,6 +2623,16 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organization');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false };
+        let indexCommunity = new FEntityIndex(await layer.resolveEntityIndexDirectory('organization', 'community'), 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated');
+        let indexes = {
+            community: indexCommunity,
+        };
+        return new OrganizationFactory(layer, directory, config, indexes);
+    }
+
     readonly indexCommunity: FEntityIndex;
 
     private static validate(src: any) {
@@ -2562,14 +2649,9 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         validators.isBoolean('private', src.private);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexCommunity = new FEntityIndex(layer, 'organization', 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated');
-        super('Organization', 'organization', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false },
-            [indexCommunity],
-            layer
-        );
-        this.indexCommunity = indexCommunity;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { community: FEntityIndex }) {
+        super('Organization', 'organization', config, [indexes.community], layer, directory);
+        this.indexCommunity = indexes.community;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2726,6 +2808,12 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationProfile');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationProfileFactory.validate, hasLiveStreams: false };
+        return new OrganizationProfileFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -2748,12 +2836,8 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         validators.isNumber('joinedMembersCount', src.joinedMembersCount);
     }
 
-    constructor(layer: EntityLayer) {
-        super('OrganizationProfile', 'organizationProfile', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationProfileFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('OrganizationProfile', 'organizationProfile', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2818,6 +2902,12 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationEditorial');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationEditorialFactory.validate, hasLiveStreams: false };
+        return new OrganizationEditorialFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -2827,12 +2917,8 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
         validators.isBoolean('featured', src.featured);
     }
 
-    constructor(layer: EntityLayer) {
-        super('OrganizationEditorial', 'organizationEditorial', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationEditorialFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('OrganizationEditorial', 'organizationEditorial', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2876,6 +2962,16 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationIndexingQueue');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, hasLiveStreams: false };
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationIndexingQueue', 'updated'), 'updated', ['updatedAt'], false);
+        let indexes = {
+            updated: indexUpdated,
+        };
+        return new OrganizationIndexingQueueFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUpdated: FEntityIndex;
 
     private static validate(src: any) {
@@ -2883,14 +2979,9 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         validators.isNumber('id', src.id);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUpdated = new FEntityIndex(layer, 'organizationIndexingQueue', 'updated', ['updatedAt'], false);
-        super('OrganizationIndexingQueue', 'organizationIndexingQueue', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, hasLiveStreams: false },
-            [indexUpdated],
-            layer
-        );
-        this.indexUpdated = indexUpdated;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { updated: FEntityIndex }) {
+        super('OrganizationIndexingQueue', 'organizationIndexingQueue', config, [indexes.updated], layer, directory);
+        this.indexUpdated = indexes.updated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -2985,6 +3076,20 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationMember');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false };
+        let indexIds = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationMember', 'ids'), 'ids', ['oid', 'uid'], true);
+        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationMember', 'organization'), 'organization', ['status', 'oid', 'uid'], false);
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationMember', 'user'), 'user', ['status', 'uid', 'oid'], false);
+        let indexes = {
+            ids: indexIds,
+            organization: indexOrganization,
+            user: indexUser,
+        };
+        return new OrganizationMemberFactory(layer, directory, config, indexes);
+    }
+
     readonly indexIds: FEntityIndex;
     readonly indexOrganization: FEntityIndex;
     readonly indexUser: FEntityIndex;
@@ -3001,18 +3106,11 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         validators.isEnum('status', src.status, ['requested', 'joined', 'left']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexIds = new FEntityIndex(layer, 'organizationMember', 'ids', ['oid', 'uid'], true);
-        let indexOrganization = new FEntityIndex(layer, 'organizationMember', 'organization', ['status', 'oid', 'uid'], false);
-        let indexUser = new FEntityIndex(layer, 'organizationMember', 'user', ['status', 'uid', 'oid'], false);
-        super('OrganizationMember', 'organizationMember', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
-            [indexIds, indexOrganization, indexUser],
-            layer
-        );
-        this.indexIds = indexIds;
-        this.indexOrganization = indexOrganization;
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { ids: FEntityIndex, organization: FEntityIndex, user: FEntityIndex }) {
+        super('OrganizationMember', 'organizationMember', config, [indexes.ids, indexes.organization, indexes.user], layer, directory);
+        this.indexIds = indexes.ids;
+        this.indexOrganization = indexes.organization;
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -3123,6 +3221,12 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('featureFlag');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate, hasLiveStreams: false };
+        return new FeatureFlagFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('key', src.key);
         validators.isString('key', src.key);
@@ -3130,12 +3234,8 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         validators.isString('title', src.title);
     }
 
-    constructor(layer: EntityLayer) {
-        super('FeatureFlag', 'featureFlag', 
-            { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('FeatureFlag', 'featureFlag', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3212,6 +3312,16 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationFeatures');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate, hasLiveStreams: false };
+        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationFeatures', 'organization'), 'organization', ['organizationId', 'featureKey'], true);
+        let indexes = {
+            organization: indexOrganization,
+        };
+        return new OrganizationFeaturesFactory(layer, directory, config, indexes);
+    }
+
     readonly indexOrganization: FEntityIndex;
 
     private static validate(src: any) {
@@ -3225,14 +3335,9 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexOrganization = new FEntityIndex(layer, 'organizationFeatures', 'organization', ['organizationId', 'featureKey'], true);
-        super('OrganizationFeatures', 'organizationFeatures', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate, hasLiveStreams: false },
-            [indexOrganization],
-            layer
-        );
-        this.indexOrganization = indexOrganization;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { organization: FEntityIndex }) {
+        super('OrganizationFeatures', 'organizationFeatures', config, [indexes.organization], layer, directory);
+        this.indexOrganization = indexes.organization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3320,6 +3425,12 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('readerState');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ReaderStateFactory.validate, hasLiveStreams: false };
+        return new ReaderStateFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -3328,12 +3439,8 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         validators.isNumber('version', src.version);
     }
 
-    constructor(layer: EntityLayer) {
-        super('ReaderState', 'readerState', 
-            { enableVersioning: true, enableTimestamps: true, validator: ReaderStateFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('ReaderState', 'readerState', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3398,6 +3505,12 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('superAdmin');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate, hasLiveStreams: false };
+        return new SuperAdminFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -3407,12 +3520,8 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        super('SuperAdmin', 'superAdmin', 
-            { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('SuperAdmin', 'superAdmin', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3553,6 +3662,12 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userSettings');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserSettingsFactory.validate, hasLiveStreams: false };
+        return new UserSettingsFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -3569,12 +3684,8 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserSettings', 'userSettings', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserSettingsFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserSettings', 'userSettings', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3652,6 +3763,18 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('shortnameReservation');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('shortnameReservation', 'user'), 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled);
+        let indexOrg = new FEntityIndex(await layer.resolveEntityIndexDirectory('shortnameReservation', 'org'), 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled);
+        let indexes = {
+            user: indexUser,
+            org: indexOrg,
+        };
+        return new ShortnameReservationFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
     readonly indexOrg: FEntityIndex;
 
@@ -3666,16 +3789,10 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'shortnameReservation', 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled);
-        let indexOrg = new FEntityIndex(layer, 'shortnameReservation', 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled);
-        super('ShortnameReservation', 'shortnameReservation', 
-            { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate, hasLiveStreams: false },
-            [indexUser, indexOrg],
-            layer
-        );
-        this.indexUser = indexUser;
-        this.indexOrg = indexOrg;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, org: FEntityIndex }) {
+        super('ShortnameReservation', 'shortnameReservation', config, [indexes.user, indexes.org], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexOrg = indexes.org;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3805,6 +3922,12 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('authCodeSession');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: AuthCodeSessionFactory.validate, hasLiveStreams: false };
+        return new AuthCodeSessionFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isString('uid', src.uid);
@@ -3819,12 +3942,8 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        super('AuthCodeSession', 'authCodeSession', 
-            { enableVersioning: true, enableTimestamps: true, validator: AuthCodeSessionFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('AuthCodeSession', 'authCodeSession', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3904,6 +4023,12 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversation');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationFactory.validate, hasLiveStreams: false };
+        return new ConversationFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -3913,12 +4038,8 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         validators.isBoolean('archived', src.archived);
     }
 
-    constructor(layer: EntityLayer) {
-        super('Conversation', 'conversation', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('Conversation', 'conversation', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -3997,6 +4118,16 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversationPrivate');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationPrivateFactory.validate, hasLiveStreams: false };
+        let indexUsers = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationPrivate', 'users'), 'users', ['uid1', 'uid2'], true);
+        let indexes = {
+            users: indexUsers,
+        };
+        return new ConversationPrivateFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUsers: FEntityIndex;
 
     private static validate(src: any) {
@@ -4009,14 +4140,9 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         validators.isNumber('pinnedMessage', src.pinnedMessage);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUsers = new FEntityIndex(layer, 'conversationPrivate', 'users', ['uid1', 'uid2'], true);
-        super('ConversationPrivate', 'conversationPrivate', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationPrivateFactory.validate, hasLiveStreams: false },
-            [indexUsers],
-            layer
-        );
-        this.indexUsers = indexUsers;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { users: FEntityIndex }) {
+        super('ConversationPrivate', 'conversationPrivate', config, [indexes.users], layer, directory);
+        this.indexUsers = indexes.users;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4092,6 +4218,16 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversationOrganization');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationOrganizationFactory.validate, hasLiveStreams: false };
+        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationOrganization', 'organization'), 'organization', ['oid'], true);
+        let indexes = {
+            organization: indexOrganization,
+        };
+        return new ConversationOrganizationFactory(layer, directory, config, indexes);
+    }
+
     readonly indexOrganization: FEntityIndex;
 
     private static validate(src: any) {
@@ -4101,14 +4237,9 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         validators.isNumber('oid', src.oid);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexOrganization = new FEntityIndex(layer, 'conversationOrganization', 'organization', ['oid'], true);
-        super('ConversationOrganization', 'conversationOrganization', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationOrganizationFactory.validate, hasLiveStreams: false },
-            [indexOrganization],
-            layer
-        );
-        this.indexOrganization = indexOrganization;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { organization: FEntityIndex }) {
+        super('ConversationOrganization', 'conversationOrganization', config, [indexes.organization], layer, directory);
+        this.indexOrganization = indexes.organization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4244,6 +4375,18 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversationRoom');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false };
+        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationRoom', 'organization'), 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal');
+        let indexOrganizationPublicRooms = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationRoom', 'organizationPublicRooms'), 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public');
+        let indexes = {
+            organization: indexOrganization,
+            organizationPublicRooms: indexOrganizationPublicRooms,
+        };
+        return new ConversationRoomFactory(layer, directory, config, indexes);
+    }
+
     readonly indexOrganization: FEntityIndex;
     readonly indexOrganizationPublicRooms: FEntityIndex;
 
@@ -4259,16 +4402,10 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         validators.isBoolean('isChannel', src.isChannel);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexOrganization = new FEntityIndex(layer, 'conversationRoom', 'organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal');
-        let indexOrganizationPublicRooms = new FEntityIndex(layer, 'conversationRoom', 'organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public');
-        super('ConversationRoom', 'conversationRoom', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false },
-            [indexOrganization, indexOrganizationPublicRooms],
-            layer
-        );
-        this.indexOrganization = indexOrganization;
-        this.indexOrganizationPublicRooms = indexOrganizationPublicRooms;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { organization: FEntityIndex, organizationPublicRooms: FEntityIndex }) {
+        super('ConversationRoom', 'conversationRoom', config, [indexes.organization, indexes.organizationPublicRooms], layer, directory);
+        this.indexOrganization = indexes.organization;
+        this.indexOrganizationPublicRooms = indexes.organizationPublicRooms;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4460,6 +4597,16 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('roomProfile');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false };
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('roomProfile', 'updated'), 'updated', ['updatedAt'], false);
+        let indexes = {
+            updated: indexUpdated,
+        };
+        return new RoomProfileFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUpdated: FEntityIndex;
 
     private static validate(src: any) {
@@ -4475,14 +4622,9 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         validators.isNumber('activeMembersCount', src.activeMembersCount);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUpdated = new FEntityIndex(layer, 'roomProfile', 'updated', ['updatedAt'], false);
-        super('RoomProfile', 'roomProfile', 
-            { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false },
-            [indexUpdated],
-            layer
-        );
-        this.indexUpdated = indexUpdated;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { updated: FEntityIndex }) {
+        super('RoomProfile', 'roomProfile', config, [indexes.updated], layer, directory);
+        this.indexUpdated = indexes.updated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -4575,6 +4717,20 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('roomParticipant');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false };
+        let indexActive = new FEntityIndex(await layer.resolveEntityIndexDirectory('roomParticipant', 'active'), 'active', ['cid', 'uid'], true, (src) => src.status === 'joined');
+        let indexRequests = new FEntityIndex(await layer.resolveEntityIndexDirectory('roomParticipant', 'requests'), 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested');
+        let indexUserActive = new FEntityIndex(await layer.resolveEntityIndexDirectory('roomParticipant', 'userActive'), 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined');
+        let indexes = {
+            active: indexActive,
+            requests: indexRequests,
+            userActive: indexUserActive,
+        };
+        return new RoomParticipantFactory(layer, directory, config, indexes);
+    }
+
     readonly indexActive: FEntityIndex;
     readonly indexRequests: FEntityIndex;
     readonly indexUserActive: FEntityIndex;
@@ -4592,18 +4748,11 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         validators.isEnum('status', src.status, ['joined', 'requested', 'left', 'kicked']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexActive = new FEntityIndex(layer, 'roomParticipant', 'active', ['cid', 'uid'], true, (src) => src.status === 'joined');
-        let indexRequests = new FEntityIndex(layer, 'roomParticipant', 'requests', ['cid', 'uid'], true, (src) => src.status === 'requested');
-        let indexUserActive = new FEntityIndex(layer, 'roomParticipant', 'userActive', ['uid', 'cid'], true, (src) => src.status === 'joined');
-        super('RoomParticipant', 'roomParticipant', 
-            { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false },
-            [indexActive, indexRequests, indexUserActive],
-            layer
-        );
-        this.indexActive = indexActive;
-        this.indexRequests = indexRequests;
-        this.indexUserActive = indexUserActive;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { active: FEntityIndex, requests: FEntityIndex, userActive: FEntityIndex }) {
+        super('RoomParticipant', 'roomParticipant', config, [indexes.active, indexes.requests, indexes.userActive], layer, directory);
+        this.indexActive = indexes.active;
+        this.indexRequests = indexes.requests;
+        this.indexUserActive = indexes.userActive;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -4723,6 +4872,16 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversationReceiver');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationReceiverFactory.validate, hasLiveStreams: false };
+        let indexConversation = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationReceiver', 'conversation'), 'conversation', ['cid', 'uid'], true, (src) => src.enabled);
+        let indexes = {
+            conversation: indexConversation,
+        };
+        return new ConversationReceiverFactory(layer, directory, config, indexes);
+    }
+
     readonly indexConversation: FEntityIndex;
 
     private static validate(src: any) {
@@ -4734,14 +4893,9 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexConversation = new FEntityIndex(layer, 'conversationReceiver', 'conversation', ['cid', 'uid'], true, (src) => src.enabled);
-        super('ConversationReceiver', 'conversationReceiver', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationReceiverFactory.validate, hasLiveStreams: false },
-            [indexConversation],
-            layer
-        );
-        this.indexConversation = indexConversation;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { conversation: FEntityIndex }) {
+        super('ConversationReceiver', 'conversationReceiver', config, [indexes.conversation], layer, directory);
+        this.indexConversation = indexes.conversation;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -4816,6 +4970,12 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('sequence');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: SequenceFactory.validate, hasLiveStreams: false };
+        return new SequenceFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('sequence', src.sequence);
         validators.isString('sequence', src.sequence);
@@ -4823,12 +4983,8 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         validators.isNumber('value', src.value);
     }
 
-    constructor(layer: EntityLayer) {
-        super('Sequence', 'sequence', 
-            { enableVersioning: false, enableTimestamps: false, validator: SequenceFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('Sequence', 'sequence', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -5178,6 +5334,20 @@ export class MessageFactory extends FEntityFactory<Message> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('message');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false };
+        let indexChat = new FEntityIndex(await layer.resolveEntityIndexDirectory('message', 'chat'), 'chat', ['cid', 'id'], false, (src) => !src.deleted);
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('message', 'updated'), 'updated', ['updatedAt'], false);
+        let indexRepeat = new FEntityIndex(await layer.resolveEntityIndexDirectory('message', 'repeat'), 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey);
+        let indexes = {
+            chat: indexChat,
+            updated: indexUpdated,
+            repeat: indexRepeat,
+        };
+        return new MessageFactory(layer, directory, config, indexes);
+    }
+
     readonly indexChat: FEntityIndex;
     readonly indexUpdated: FEntityIndex;
     readonly indexRepeat: FEntityIndex;
@@ -5368,18 +5538,11 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isString('postType', src.postType);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexChat = new FEntityIndex(layer, 'message', 'chat', ['cid', 'id'], false, (src) => !src.deleted);
-        let indexUpdated = new FEntityIndex(layer, 'message', 'updated', ['updatedAt'], false);
-        let indexRepeat = new FEntityIndex(layer, 'message', 'repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey);
-        super('Message', 'message', 
-            { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
-            [indexChat, indexUpdated, indexRepeat],
-            layer
-        );
-        this.indexChat = indexChat;
-        this.indexUpdated = indexUpdated;
-        this.indexRepeat = indexRepeat;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { chat: FEntityIndex, updated: FEntityIndex, repeat: FEntityIndex }) {
+        super('Message', 'message', config, [indexes.chat, indexes.updated, indexes.repeat], layer, directory);
+        this.indexChat = indexes.chat;
+        this.indexUpdated = indexes.updated;
+        this.indexRepeat = indexes.repeat;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -5612,6 +5775,18 @@ export class CommentFactory extends FEntityFactory<Comment> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('comment');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: CommentFactory.validate, hasLiveStreams: false };
+        let indexPeer = new FEntityIndex(await layer.resolveEntityIndexDirectory('comment', 'peer'), 'peer', ['peerType', 'peerId', 'id'], false);
+        let indexChild = new FEntityIndex(await layer.resolveEntityIndexDirectory('comment', 'child'), 'child', ['parentCommentId', 'id'], false);
+        let indexes = {
+            peer: indexPeer,
+            child: indexChild,
+        };
+        return new CommentFactory(layer, directory, config, indexes);
+    }
+
     readonly indexPeer: FEntityIndex;
     readonly indexChild: FEntityIndex;
 
@@ -5784,16 +5959,10 @@ export class CommentFactory extends FEntityFactory<Comment> {
         validators.isBoolean('visible', src.visible);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexPeer = new FEntityIndex(layer, 'comment', 'peer', ['peerType', 'peerId', 'id'], false);
-        let indexChild = new FEntityIndex(layer, 'comment', 'child', ['parentCommentId', 'id'], false);
-        super('Comment', 'comment', 
-            { enableVersioning: true, enableTimestamps: true, validator: CommentFactory.validate, hasLiveStreams: false },
-            [indexPeer, indexChild],
-            layer
-        );
-        this.indexPeer = indexPeer;
-        this.indexChild = indexChild;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { peer: FEntityIndex, child: FEntityIndex }) {
+        super('Comment', 'comment', config, [indexes.peer, indexes.child], layer, directory);
+        this.indexPeer = indexes.peer;
+        this.indexChild = indexes.child;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -5885,6 +6054,12 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('commentState');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: CommentStateFactory.validate, hasLiveStreams: false };
+        return new CommentStateFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('peerType', src.peerType);
         validators.isString('peerType', src.peerType);
@@ -5894,12 +6069,8 @@ export class CommentStateFactory extends FEntityFactory<CommentState> {
         validators.isNumber('commentsCount', src.commentsCount);
     }
 
-    constructor(layer: EntityLayer) {
-        super('CommentState', 'commentState', 
-            { enableVersioning: false, enableTimestamps: false, validator: CommentStateFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('CommentState', 'commentState', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -5955,6 +6126,12 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('commentSeq');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: CommentSeqFactory.validate, hasLiveStreams: false };
+        return new CommentSeqFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('peerType', src.peerType);
         validators.isString('peerType', src.peerType);
@@ -5964,12 +6141,8 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(layer: EntityLayer) {
-        super('CommentSeq', 'commentSeq', 
-            { enableVersioning: false, enableTimestamps: false, validator: CommentSeqFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('CommentSeq', 'commentSeq', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6054,6 +6227,16 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('commentEvent');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: CommentEventFactory.validate, hasLiveStreams: true };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('commentEvent', 'user'), 'user', ['peerType', 'peerId', 'seq'], false);
+        let indexes = {
+            user: indexUser,
+        };
+        return new CommentEventFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -6069,14 +6252,9 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         validators.isEnum('kind', src.kind, ['comment_received', 'comment_updated']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'commentEvent', 'user', ['peerType', 'peerId', 'seq'], false);
-        super('CommentEvent', 'commentEvent', 
-            { enableVersioning: true, enableTimestamps: true, validator: CommentEventFactory.validate, hasLiveStreams: true },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('CommentEvent', 'commentEvent', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 3) { throw Error('Invalid key length!'); }
@@ -6167,6 +6345,16 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('commentsSubscription');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: CommentsSubscriptionFactory.validate, hasLiveStreams: false };
+        let indexPeer = new FEntityIndex(await layer.resolveEntityIndexDirectory('commentsSubscription', 'peer'), 'peer', ['peerType', 'peerId', 'uid'], false);
+        let indexes = {
+            peer: indexPeer,
+        };
+        return new CommentsSubscriptionFactory(layer, directory, config, indexes);
+    }
+
     readonly indexPeer: FEntityIndex;
 
     private static validate(src: any) {
@@ -6182,14 +6370,9 @@ export class CommentsSubscriptionFactory extends FEntityFactory<CommentsSubscrip
         validators.isEnum('status', src.status, ['active', 'disabled']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexPeer = new FEntityIndex(layer, 'commentsSubscription', 'peer', ['peerType', 'peerId', 'uid'], false);
-        super('CommentsSubscription', 'commentsSubscription', 
-            { enableVersioning: false, enableTimestamps: false, validator: CommentsSubscriptionFactory.validate, hasLiveStreams: false },
-            [indexPeer],
-            layer
-        );
-        this.indexPeer = indexPeer;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { peer: FEntityIndex }) {
+        super('CommentsSubscription', 'commentsSubscription', config, [indexes.peer], layer, directory);
+        this.indexPeer = indexes.peer;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 3) { throw Error('Invalid key length!'); }
@@ -6290,6 +6473,16 @@ export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('commentEventGlobal');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: CommentEventGlobalFactory.validate, hasLiveStreams: true };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('commentEventGlobal', 'user'), 'user', ['uid', 'seq'], false);
+        let indexes = {
+            user: indexUser,
+        };
+        return new CommentEventGlobalFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -6303,14 +6496,9 @@ export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal
         validators.isEnum('kind', src.kind, ['comments_peer_updated']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'commentEventGlobal', 'user', ['uid', 'seq'], false);
-        super('CommentEventGlobal', 'commentEventGlobal', 
-            { enableVersioning: true, enableTimestamps: true, validator: CommentEventGlobalFactory.validate, hasLiveStreams: true },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('CommentEventGlobal', 'commentEventGlobal', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6385,6 +6573,12 @@ export class CommentGlobalEventSeqFactory extends FEntityFactory<CommentGlobalEv
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('commentGlobalEventSeq');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: CommentGlobalEventSeqFactory.validate, hasLiveStreams: false };
+        return new CommentGlobalEventSeqFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -6392,12 +6586,8 @@ export class CommentGlobalEventSeqFactory extends FEntityFactory<CommentGlobalEv
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(layer: EntityLayer) {
-        super('CommentGlobalEventSeq', 'commentGlobalEventSeq', 
-            { enableVersioning: false, enableTimestamps: false, validator: CommentGlobalEventSeqFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('CommentGlobalEventSeq', 'commentGlobalEventSeq', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -6451,6 +6641,12 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversationSeq');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate, hasLiveStreams: false };
+        return new ConversationSeqFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('cid', src.cid);
         validators.isNumber('cid', src.cid);
@@ -6458,12 +6654,8 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(layer: EntityLayer) {
-        super('ConversationSeq', 'conversationSeq', 
-            { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('ConversationSeq', 'conversationSeq', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -6546,6 +6738,16 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conversationEvent');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, hasLiveStreams: true };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationEvent', 'user'), 'user', ['cid', 'seq'], false);
+        let indexes = {
+            user: indexUser,
+        };
+        return new ConversationEventFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -6559,14 +6761,9 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         validators.isEnum('kind', src.kind, ['chat_updated', 'message_received', 'message_updated', 'message_deleted']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'conversationEvent', 'user', ['cid', 'seq'], false);
-        super('ConversationEvent', 'conversationEvent', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, hasLiveStreams: true },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('ConversationEvent', 'conversationEvent', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6737,6 +6934,20 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userDialog');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userDialog', 'user'), 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden);
+        let indexConversation = new FEntityIndex(await layer.resolveEntityIndexDirectory('userDialog', 'conversation'), 'conversation', ['cid', 'uid'], true);
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('userDialog', 'updated'), 'updated', ['updatedAt'], false);
+        let indexes = {
+            user: indexUser,
+            conversation: indexConversation,
+            updated: indexUpdated,
+        };
+        return new UserDialogFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
     readonly indexConversation: FEntityIndex;
     readonly indexUpdated: FEntityIndex;
@@ -6756,18 +6967,11 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         validators.isBoolean('disableGlobalCounter', src.disableGlobalCounter);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'userDialog', 'user', ['uid', 'date'], false, (src) => !!src.date && !src.hidden);
-        let indexConversation = new FEntityIndex(layer, 'userDialog', 'conversation', ['cid', 'uid'], true);
-        let indexUpdated = new FEntityIndex(layer, 'userDialog', 'updated', ['updatedAt'], false);
-        super('UserDialog', 'userDialog', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false },
-            [indexUser, indexConversation, indexUpdated],
-            layer
-        );
-        this.indexUser = indexUser;
-        this.indexConversation = indexConversation;
-        this.indexUpdated = indexUpdated;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, conversation: FEntityIndex, updated: FEntityIndex }) {
+        super('UserDialog', 'userDialog', config, [indexes.user, indexes.conversation, indexes.updated], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexConversation = indexes.conversation;
+        this.indexUpdated = indexes.updated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -6865,6 +7069,12 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userDialogHandledMessage');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserDialogHandledMessageFactory.validate, hasLiveStreams: false };
+        return new UserDialogHandledMessageFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -6874,12 +7084,8 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
         validators.isNumber('mid', src.mid);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserDialogHandledMessage', 'userDialogHandledMessage', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserDialogHandledMessageFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserDialogHandledMessage', 'userDialogHandledMessage', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 3) { throw Error('Invalid key length!'); }
@@ -6935,6 +7141,12 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userDialogSettings');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserDialogSettingsFactory.validate, hasLiveStreams: false };
+        return new UserDialogSettingsFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -6944,12 +7156,8 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         validators.isBoolean('mute', src.mute);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserDialogSettings', 'userDialogSettings', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserDialogSettingsFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserDialogSettings', 'userDialogSettings', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -7110,6 +7318,16 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userDialogEvent');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate, hasLiveStreams: true };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userDialogEvent', 'user'), 'user', ['uid', 'seq'], false);
+        let indexes = {
+            user: indexUser,
+        };
+        return new UserDialogEventFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -7128,14 +7346,9 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'userDialogEvent', 'user', ['uid', 'seq'], false);
-        super('UserDialogEvent', 'userDialogEvent', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate, hasLiveStreams: true },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('UserDialogEvent', 'userDialogEvent', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -7274,6 +7487,16 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userMessagingState');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate, hasLiveStreams: false };
+        let indexHasUnread = new FEntityIndex(await layer.resolveEntityIndexDirectory('userMessagingState', 'hasUnread'), 'hasUnread', [], false, (src) => src.unread && src.unread > 0);
+        let indexes = {
+            hasUnread: indexHasUnread,
+        };
+        return new UserMessagingStateFactory(layer, directory, config, indexes);
+    }
+
     readonly indexHasUnread: FEntityIndex;
 
     private static validate(src: any) {
@@ -7289,14 +7512,9 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         validators.isNumber('directChatsCount', src.directChatsCount);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexHasUnread = new FEntityIndex(layer, 'userMessagingState', 'hasUnread', [], false, (src) => src.unread && src.unread > 0);
-        super('UserMessagingState', 'userMessagingState', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate, hasLiveStreams: false },
-            [indexHasUnread],
-            layer
-        );
-        this.indexHasUnread = indexHasUnread;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { hasUnread: FEntityIndex }) {
+        super('UserMessagingState', 'userMessagingState', config, [indexes.hasUnread], layer, directory);
+        this.indexHasUnread = indexes.hasUnread;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7416,6 +7634,12 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userNotificationsState');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate, hasLiveStreams: false };
+        return new UserNotificationsStateFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -7426,12 +7650,8 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         validators.isNumber('lastPushSeq', src.lastPushSeq);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserNotificationsState', 'userNotificationsState', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserNotificationsState', 'userNotificationsState', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7510,6 +7730,20 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('hyperLog');
+        let config = { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false };
+        let indexCreated = new FEntityIndex(await layer.resolveEntityIndexDirectory('hyperLog', 'created'), 'created', ['createdAt'], false);
+        let indexUserEvents = new FEntityIndex(await layer.resolveEntityIndexDirectory('hyperLog', 'userEvents'), 'userEvents', ['createdAt'], false, (src) => src.type === 'track');
+        let indexOnlineChangeEvents = new FEntityIndex(await layer.resolveEntityIndexDirectory('hyperLog', 'onlineChangeEvents'), 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status');
+        let indexes = {
+            created: indexCreated,
+            userEvents: indexUserEvents,
+            onlineChangeEvents: indexOnlineChangeEvents,
+        };
+        return new HyperLogFactory(layer, directory, config, indexes);
+    }
+
     readonly indexCreated: FEntityIndex;
     readonly indexUserEvents: FEntityIndex;
     readonly indexOnlineChangeEvents: FEntityIndex;
@@ -7524,18 +7758,11 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         validators.notNull('body', src.body);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexCreated = new FEntityIndex(layer, 'hyperLog', 'created', ['createdAt'], false);
-        let indexUserEvents = new FEntityIndex(layer, 'hyperLog', 'userEvents', ['createdAt'], false, (src) => src.type === 'track');
-        let indexOnlineChangeEvents = new FEntityIndex(layer, 'hyperLog', 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status');
-        super('HyperLog', 'hyperLog', 
-            { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false },
-            [indexCreated, indexUserEvents, indexOnlineChangeEvents],
-            layer
-        );
-        this.indexCreated = indexCreated;
-        this.indexUserEvents = indexUserEvents;
-        this.indexOnlineChangeEvents = indexOnlineChangeEvents;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { created: FEntityIndex, userEvents: FEntityIndex, onlineChangeEvents: FEntityIndex }) {
+        super('HyperLog', 'hyperLog', config, [indexes.created, indexes.userEvents, indexes.onlineChangeEvents], layer, directory);
+        this.indexCreated = indexes.created;
+        this.indexUserEvents = indexes.userEvents;
+        this.indexOnlineChangeEvents = indexes.onlineChangeEvents;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7627,6 +7854,12 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('messageDraft');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: MessageDraftFactory.validate, hasLiveStreams: false };
+        return new MessageDraftFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -7636,12 +7869,8 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         validators.isString('contents', src.contents);
     }
 
-    constructor(layer: EntityLayer) {
-        super('MessageDraft', 'messageDraft', 
-            { enableVersioning: true, enableTimestamps: true, validator: MessageDraftFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('MessageDraft', 'messageDraft', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -7782,6 +8011,18 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('channelInvitation');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, hasLiveStreams: false };
+        let indexChannel = new FEntityIndex(await layer.resolveEntityIndexDirectory('channelInvitation', 'channel'), 'channel', ['createdAt', 'channelId'], false);
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('channelInvitation', 'updated'), 'updated', ['updatedAt'], false);
+        let indexes = {
+            channel: indexChannel,
+            updated: indexUpdated,
+        };
+        return new ChannelInvitationFactory(layer, directory, config, indexes);
+    }
+
     readonly indexChannel: FEntityIndex;
     readonly indexUpdated: FEntityIndex;
 
@@ -7802,16 +8043,10 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexChannel = new FEntityIndex(layer, 'channelInvitation', 'channel', ['createdAt', 'channelId'], false);
-        let indexUpdated = new FEntityIndex(layer, 'channelInvitation', 'updated', ['updatedAt'], false);
-        super('ChannelInvitation', 'channelInvitation', 
-            { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, hasLiveStreams: false },
-            [indexChannel, indexUpdated],
-            layer
-        );
-        this.indexChannel = indexChannel;
-        this.indexUpdated = indexUpdated;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { channel: FEntityIndex, updated: FEntityIndex }) {
+        super('ChannelInvitation', 'channelInvitation', config, [indexes.channel, indexes.updated], layer, directory);
+        this.indexChannel = indexes.channel;
+        this.indexUpdated = indexes.updated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -7918,6 +8153,16 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('channelLink');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, hasLiveStreams: false };
+        let indexChannel = new FEntityIndex(await layer.resolveEntityIndexDirectory('channelLink', 'channel'), 'channel', ['channelId', 'createdAt'], false);
+        let indexes = {
+            channel: indexChannel,
+        };
+        return new ChannelLinkFactory(layer, directory, config, indexes);
+    }
+
     readonly indexChannel: FEntityIndex;
 
     private static validate(src: any) {
@@ -7931,14 +8176,9 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexChannel = new FEntityIndex(layer, 'channelLink', 'channel', ['channelId', 'createdAt'], false);
-        super('ChannelLink', 'channelLink', 
-            { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, hasLiveStreams: false },
-            [indexChannel],
-            layer
-        );
-        this.indexChannel = indexChannel;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { channel: FEntityIndex }) {
+        super('ChannelLink', 'channelLink', config, [indexes.channel], layer, directory);
+        this.indexChannel = indexes.channel;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8011,6 +8251,16 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('appInviteLink');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('appInviteLink', 'user'), 'user', ['uid'], true);
+        let indexes = {
+            user: indexUser,
+        };
+        return new AppInviteLinkFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -8020,14 +8270,9 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         validators.isNumber('uid', src.uid);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'appInviteLink', 'user', ['uid'], true);
-        super('AppInviteLink', 'appInviteLink', 
-            { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate, hasLiveStreams: false },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('AppInviteLink', 'appInviteLink', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8096,6 +8341,12 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('sampleEntity');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: SampleEntityFactory.validate, hasLiveStreams: false };
+        return new SampleEntityFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isString('id', src.id);
@@ -8103,12 +8354,8 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         validators.isString('data', src.data);
     }
 
-    constructor(layer: EntityLayer) {
-        super('SampleEntity', 'sampleEntity', 
-            { enableVersioning: true, enableTimestamps: true, validator: SampleEntityFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('SampleEntity', 'sampleEntity', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8185,6 +8432,16 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationPublicInviteLink');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, hasLiveStreams: false };
+        let indexUserInOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationPublicInviteLink', 'userInOrganization'), 'userInOrganization', ['uid', 'oid'], true, src => src.enabled);
+        let indexes = {
+            userInOrganization: indexUserInOrganization,
+        };
+        return new OrganizationPublicInviteLinkFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUserInOrganization: FEntityIndex;
 
     private static validate(src: any) {
@@ -8198,14 +8455,9 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUserInOrganization = new FEntityIndex(layer, 'organizationPublicInviteLink', 'userInOrganization', ['uid', 'oid'], true, src => src.enabled);
-        super('OrganizationPublicInviteLink', 'organizationPublicInviteLink', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, hasLiveStreams: false },
-            [indexUserInOrganization],
-            layer
-        );
-        this.indexUserInOrganization = indexUserInOrganization;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { userInOrganization: FEntityIndex }) {
+        super('OrganizationPublicInviteLink', 'organizationPublicInviteLink', config, [indexes.userInOrganization], layer, directory);
+        this.indexUserInOrganization = indexes.userInOrganization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8389,6 +8641,18 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('organizationInviteLink');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false };
+        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationInviteLink', 'organization'), 'organization', ['oid', 'id'], true, src => src.enabled);
+        let indexEmailInOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationInviteLink', 'emailInOrganization'), 'emailInOrganization', ['email', 'oid'], true, src => src.enabled);
+        let indexes = {
+            organization: indexOrganization,
+            emailInOrganization: indexEmailInOrganization,
+        };
+        return new OrganizationInviteLinkFactory(layer, directory, config, indexes);
+    }
+
     readonly indexOrganization: FEntityIndex;
     readonly indexEmailInOrganization: FEntityIndex;
 
@@ -8413,16 +8677,10 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         validators.isEnum('role', src.role, ['MEMBER', 'OWNER']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexOrganization = new FEntityIndex(layer, 'organizationInviteLink', 'organization', ['oid', 'id'], true, src => src.enabled);
-        let indexEmailInOrganization = new FEntityIndex(layer, 'organizationInviteLink', 'emailInOrganization', ['email', 'oid'], true, src => src.enabled);
-        super('OrganizationInviteLink', 'organizationInviteLink', 
-            { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
-            [indexOrganization, indexEmailInOrganization],
-            layer
-        );
-        this.indexOrganization = indexOrganization;
-        this.indexEmailInOrganization = indexEmailInOrganization;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { organization: FEntityIndex, emailInOrganization: FEntityIndex }) {
+        super('OrganizationInviteLink', 'organizationInviteLink', config, [indexes.organization, indexes.emailInOrganization], layer, directory);
+        this.indexOrganization = indexes.organization;
+        this.indexEmailInOrganization = indexes.emailInOrganization;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8533,6 +8791,12 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conferenceRoom');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomFactory.validate, hasLiveStreams: false };
+        return new ConferenceRoomFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -8540,12 +8804,8 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
         validators.isEnum('strategy', src.strategy, ['direct', 'bridged']);
     }
 
-    constructor(layer: EntityLayer) {
-        super('ConferenceRoom', 'conferenceRoom', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('ConferenceRoom', 'conferenceRoom', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8646,6 +8906,20 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conferencePeer');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConferencePeerFactory.validate, hasLiveStreams: false };
+        let indexAuth = new FEntityIndex(await layer.resolveEntityIndexDirectory('conferencePeer', 'auth'), 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled);
+        let indexConference = new FEntityIndex(await layer.resolveEntityIndexDirectory('conferencePeer', 'conference'), 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled);
+        let indexActive = new FEntityIndex(await layer.resolveEntityIndexDirectory('conferencePeer', 'active'), 'active', ['keepAliveTimeout'], false, (src) => src.enabled);
+        let indexes = {
+            auth: indexAuth,
+            conference: indexConference,
+            active: indexActive,
+        };
+        return new ConferencePeerFactory(layer, directory, config, indexes);
+    }
+
     readonly indexAuth: FEntityIndex;
     readonly indexConference: FEntityIndex;
     readonly indexActive: FEntityIndex;
@@ -8665,18 +8939,11 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexAuth = new FEntityIndex(layer, 'conferencePeer', 'auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled);
-        let indexConference = new FEntityIndex(layer, 'conferencePeer', 'conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled);
-        let indexActive = new FEntityIndex(layer, 'conferencePeer', 'active', ['keepAliveTimeout'], false, (src) => src.enabled);
-        super('ConferencePeer', 'conferencePeer', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConferencePeerFactory.validate, hasLiveStreams: false },
-            [indexAuth, indexConference, indexActive],
-            layer
-        );
-        this.indexAuth = indexAuth;
-        this.indexConference = indexConference;
-        this.indexActive = indexActive;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { auth: FEntityIndex, conference: FEntityIndex, active: FEntityIndex }) {
+        super('ConferencePeer', 'conferencePeer', config, [indexes.auth, indexes.conference, indexes.active], layer, directory);
+        this.indexAuth = indexes.auth;
+        this.indexConference = indexes.conference;
+        this.indexActive = indexes.active;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -8876,6 +9143,16 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conferenceMediaStream');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConferenceMediaStreamFactory.validate, hasLiveStreams: false };
+        let indexConference = new FEntityIndex(await layer.resolveEntityIndexDirectory('conferenceMediaStream', 'conference'), 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
+        let indexes = {
+            conference: indexConference,
+        };
+        return new ConferenceMediaStreamFactory(layer, directory, config, indexes);
+    }
+
     readonly indexConference: FEntityIndex;
 
     private static validate(src: any) {
@@ -8896,14 +9173,9 @@ export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMedia
         validators.notNull('ice2', src.ice2);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexConference = new FEntityIndex(layer, 'conferenceMediaStream', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
-        super('ConferenceMediaStream', 'conferenceMediaStream', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConferenceMediaStreamFactory.validate, hasLiveStreams: false },
-            [indexConference],
-            layer
-        );
-        this.indexConference = indexConference;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { conference: FEntityIndex }) {
+        super('ConferenceMediaStream', 'conferenceMediaStream', config, [indexes.conference], layer, directory);
+        this.indexConference = indexes.conference;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9037,6 +9309,16 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('conferenceConnection');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false };
+        let indexConference = new FEntityIndex(await layer.resolveEntityIndexDirectory('conferenceConnection', 'conference'), 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
+        let indexes = {
+            conference: indexConference,
+        };
+        return new ConferenceConnectionFactory(layer, directory, config, indexes);
+    }
+
     readonly indexConference: FEntityIndex;
 
     private static validate(src: any) {
@@ -9054,14 +9336,9 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         validators.notNull('ice2', src.ice2);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexConference = new FEntityIndex(layer, 'conferenceConnection', 'conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed');
-        super('ConferenceConnection', 'conferenceConnection', 
-            { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false },
-            [indexConference],
-            layer
-        );
-        this.indexConference = indexConference;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { conference: FEntityIndex }) {
+        super('ConferenceConnection', 'conferenceConnection', config, [indexes.conference], layer, directory);
+        this.indexConference = indexes.conference;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9126,6 +9403,18 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userEdge');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false };
+        let indexForward = new FEntityIndex(await layer.resolveEntityIndexDirectory('userEdge', 'forward'), 'forward', ['uid1', 'uid2'], false);
+        let indexReverse = new FEntityIndex(await layer.resolveEntityIndexDirectory('userEdge', 'reverse'), 'reverse', ['uid2', 'uid1'], false);
+        let indexes = {
+            forward: indexForward,
+            reverse: indexReverse,
+        };
+        return new UserEdgeFactory(layer, directory, config, indexes);
+    }
+
     readonly indexForward: FEntityIndex;
     readonly indexReverse: FEntityIndex;
 
@@ -9136,16 +9425,10 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         validators.isNumber('uid2', src.uid2);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexForward = new FEntityIndex(layer, 'userEdge', 'forward', ['uid1', 'uid2'], false);
-        let indexReverse = new FEntityIndex(layer, 'userEdge', 'reverse', ['uid2', 'uid1'], false);
-        super('UserEdge', 'userEdge', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false },
-            [indexForward, indexReverse],
-            layer
-        );
-        this.indexForward = indexForward;
-        this.indexReverse = indexReverse;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { forward: FEntityIndex, reverse: FEntityIndex }) {
+        super('UserEdge', 'userEdge', config, [indexes.forward, indexes.reverse], layer, directory);
+        this.indexForward = indexes.forward;
+        this.indexReverse = indexes.reverse;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9235,6 +9518,12 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userInfluencerUserIndex');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerUserIndexFactory.validate, hasLiveStreams: false };
+        return new UserInfluencerUserIndexFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -9242,12 +9531,8 @@ export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluence
         validators.isNumber('value', src.value);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserInfluencerUserIndex', 'userInfluencerUserIndex', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerUserIndexFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserInfluencerUserIndex', 'userInfluencerUserIndex', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9301,6 +9586,12 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userInfluencerIndex');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerIndexFactory.validate, hasLiveStreams: false };
+        return new UserInfluencerIndexFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -9308,12 +9599,8 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
         validators.isNumber('value', src.value);
     }
 
-    constructor(layer: EntityLayer) {
-        super('UserInfluencerIndex', 'userInfluencerIndex', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerIndexFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserInfluencerIndex', 'userInfluencerIndex', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9368,6 +9655,16 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('feedSubscriber');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: FeedSubscriberFactory.validate, hasLiveStreams: false };
+        let indexKey = new FEntityIndex(await layer.resolveEntityIndexDirectory('feedSubscriber', 'key'), 'key', ['key'], true);
+        let indexes = {
+            key: indexKey,
+        };
+        return new FeedSubscriberFactory(layer, directory, config, indexes);
+    }
+
     readonly indexKey: FEntityIndex;
 
     private static validate(src: any) {
@@ -9377,14 +9674,9 @@ export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
         validators.isString('key', src.key);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexKey = new FEntityIndex(layer, 'feedSubscriber', 'key', ['key'], true);
-        super('FeedSubscriber', 'feedSubscriber', 
-            { enableVersioning: true, enableTimestamps: true, validator: FeedSubscriberFactory.validate, hasLiveStreams: false },
-            [indexKey],
-            layer
-        );
-        this.indexKey = indexKey;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { key: FEntityIndex }) {
+        super('FeedSubscriber', 'feedSubscriber', config, [indexes.key], layer, directory);
+        this.indexKey = indexes.key;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9457,6 +9749,18 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('feedSubscription');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: FeedSubscriptionFactory.validate, hasLiveStreams: false };
+        let indexSubscriber = new FEntityIndex(await layer.resolveEntityIndexDirectory('feedSubscription', 'subscriber'), 'subscriber', ['sid', 'tid'], false, (state) => state.enabled);
+        let indexTopic = new FEntityIndex(await layer.resolveEntityIndexDirectory('feedSubscription', 'topic'), 'topic', ['tid', 'sid'], false, (state) => state.enabled);
+        let indexes = {
+            subscriber: indexSubscriber,
+            topic: indexTopic,
+        };
+        return new FeedSubscriptionFactory(layer, directory, config, indexes);
+    }
+
     readonly indexSubscriber: FEntityIndex;
     readonly indexTopic: FEntityIndex;
 
@@ -9469,16 +9773,10 @@ export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
         validators.isBoolean('enabled', src.enabled);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexSubscriber = new FEntityIndex(layer, 'feedSubscription', 'subscriber', ['sid', 'tid'], false, (state) => state.enabled);
-        let indexTopic = new FEntityIndex(layer, 'feedSubscription', 'topic', ['tid', 'sid'], false, (state) => state.enabled);
-        super('FeedSubscription', 'feedSubscription', 
-            { enableVersioning: false, enableTimestamps: false, validator: FeedSubscriptionFactory.validate, hasLiveStreams: false },
-            [indexSubscriber, indexTopic],
-            layer
-        );
-        this.indexSubscriber = indexSubscriber;
-        this.indexTopic = indexTopic;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { subscriber: FEntityIndex, topic: FEntityIndex }) {
+        super('FeedSubscription', 'feedSubscription', config, [indexes.subscriber, indexes.topic], layer, directory);
+        this.indexSubscriber = indexes.subscriber;
+        this.indexTopic = indexes.topic;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9569,6 +9867,16 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('feedTopic');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: FeedTopicFactory.validate, hasLiveStreams: false };
+        let indexKey = new FEntityIndex(await layer.resolveEntityIndexDirectory('feedTopic', 'key'), 'key', ['key'], true);
+        let indexes = {
+            key: indexKey,
+        };
+        return new FeedTopicFactory(layer, directory, config, indexes);
+    }
+
     readonly indexKey: FEntityIndex;
 
     private static validate(src: any) {
@@ -9578,14 +9886,9 @@ export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
         validators.isString('key', src.key);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexKey = new FEntityIndex(layer, 'feedTopic', 'key', ['key'], true);
-        super('FeedTopic', 'feedTopic', 
-            { enableVersioning: true, enableTimestamps: true, validator: FeedTopicFactory.validate, hasLiveStreams: false },
-            [indexKey],
-            layer
-        );
-        this.indexKey = indexKey;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { key: FEntityIndex }) {
+        super('FeedTopic', 'feedTopic', config, [indexes.key], layer, directory);
+        this.indexKey = indexes.key;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9678,6 +9981,18 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('feedEvent');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: FeedEventFactory.validate, hasLiveStreams: false };
+        let indexTopic = new FEntityIndex(await layer.resolveEntityIndexDirectory('feedEvent', 'topic'), 'topic', ['tid', 'createdAt'], false);
+        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('feedEvent', 'updated'), 'updated', ['updatedAt'], false);
+        let indexes = {
+            topic: indexTopic,
+            updated: indexUpdated,
+        };
+        return new FeedEventFactory(layer, directory, config, indexes);
+    }
+
     readonly indexTopic: FEntityIndex;
     readonly indexUpdated: FEntityIndex;
 
@@ -9691,16 +10006,10 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         validators.notNull('content', src.content);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexTopic = new FEntityIndex(layer, 'feedEvent', 'topic', ['tid', 'createdAt'], false);
-        let indexUpdated = new FEntityIndex(layer, 'feedEvent', 'updated', ['updatedAt'], false);
-        super('FeedEvent', 'feedEvent', 
-            { enableVersioning: true, enableTimestamps: true, validator: FeedEventFactory.validate, hasLiveStreams: false },
-            [indexTopic, indexUpdated],
-            layer
-        );
-        this.indexTopic = indexTopic;
-        this.indexUpdated = indexUpdated;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { topic: FEntityIndex, updated: FEntityIndex }) {
+        super('FeedEvent', 'feedEvent', config, [indexes.topic, indexes.updated], layer, directory);
+        this.indexTopic = indexes.topic;
+        this.indexUpdated = indexes.updated;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9787,6 +10096,16 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('appHook');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, hasLiveStreams: false };
+        let indexKey = new FEntityIndex(await layer.resolveEntityIndexDirectory('appHook', 'key'), 'key', ['key'], true);
+        let indexes = {
+            key: indexKey,
+        };
+        return new AppHookFactory(layer, directory, config, indexes);
+    }
+
     readonly indexKey: FEntityIndex;
 
     private static validate(src: any) {
@@ -9798,14 +10117,9 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         validators.isString('key', src.key);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexKey = new FEntityIndex(layer, 'appHook', 'key', ['key'], true);
-        super('AppHook', 'appHook', 
-            { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, hasLiveStreams: false },
-            [indexKey],
-            layer
-        );
-        this.indexKey = indexKey;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { key: FEntityIndex }) {
+        super('AppHook', 'appHook', config, [indexes.key], layer, directory);
+        this.indexKey = indexes.key;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -9875,6 +10189,16 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userStorageNamespace');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserStorageNamespaceFactory.validate, hasLiveStreams: false };
+        let indexNamespace = new FEntityIndex(await layer.resolveEntityIndexDirectory('userStorageNamespace', 'namespace'), 'namespace', ['ns'], true);
+        let indexes = {
+            namespace: indexNamespace,
+        };
+        return new UserStorageNamespaceFactory(layer, directory, config, indexes);
+    }
+
     readonly indexNamespace: FEntityIndex;
 
     private static validate(src: any) {
@@ -9884,14 +10208,9 @@ export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNames
         validators.isString('ns', src.ns);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexNamespace = new FEntityIndex(layer, 'userStorageNamespace', 'namespace', ['ns'], true);
-        super('UserStorageNamespace', 'userStorageNamespace', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserStorageNamespaceFactory.validate, hasLiveStreams: false },
-            [indexNamespace],
-            layer
-        );
-        this.indexNamespace = indexNamespace;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { namespace: FEntityIndex }) {
+        super('UserStorageNamespace', 'userStorageNamespace', config, [indexes.namespace], layer, directory);
+        this.indexNamespace = indexes.namespace;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -9987,6 +10306,16 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userStorageRecord');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserStorageRecordFactory.validate, hasLiveStreams: false };
+        let indexKey = new FEntityIndex(await layer.resolveEntityIndexDirectory('userStorageRecord', 'key'), 'key', ['uid', 'ns', 'key'], true);
+        let indexes = {
+            key: indexKey,
+        };
+        return new UserStorageRecordFactory(layer, directory, config, indexes);
+    }
+
     readonly indexKey: FEntityIndex;
 
     private static validate(src: any) {
@@ -10001,14 +10330,9 @@ export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> 
         validators.isString('value', src.value);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexKey = new FEntityIndex(layer, 'userStorageRecord', 'key', ['uid', 'ns', 'key'], true);
-        super('UserStorageRecord', 'userStorageRecord', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserStorageRecordFactory.validate, hasLiveStreams: false },
-            [indexKey],
-            layer
-        );
-        this.indexKey = indexKey;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { key: FEntityIndex }) {
+        super('UserStorageRecord', 'userStorageRecord', config, [indexes.key], layer, directory);
+        this.indexKey = indexes.key;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -10086,6 +10410,16 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('discoverUserPickedTags');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('discoverUserPickedTags', 'user'), 'user', ['uid', 'id'], true, (src) => !src.deleted);
+        let indexes = {
+            user: indexUser,
+        };
+        return new DiscoverUserPickedTagsFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -10097,14 +10431,9 @@ export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPi
         validators.isBoolean('deleted', src.deleted);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'discoverUserPickedTags', 'user', ['uid', 'id'], true, (src) => !src.deleted);
-        super('DiscoverUserPickedTags', 'discoverUserPickedTags', 
-            { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, hasLiveStreams: false },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('DiscoverUserPickedTags', 'discoverUserPickedTags', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -10184,6 +10513,16 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('debugEvent');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, hasLiveStreams: true };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('debugEvent', 'user'), 'user', ['uid', 'seq'], false);
+        let indexes = {
+            user: indexUser,
+        };
+        return new DebugEventFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -10194,14 +10533,9 @@ export class DebugEventFactory extends FEntityFactory<DebugEvent> {
         validators.isString('key', src.key);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'debugEvent', 'user', ['uid', 'seq'], false);
-        super('DebugEvent', 'debugEvent', 
-            { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, hasLiveStreams: true },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('DebugEvent', 'debugEvent', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -10276,6 +10610,12 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('debugEventState');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: DebugEventStateFactory.validate, hasLiveStreams: false };
+        return new DebugEventStateFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
@@ -10283,12 +10623,8 @@ export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
         validators.isNumber('seq', src.seq);
     }
 
-    constructor(layer: EntityLayer) {
-        super('DebugEventState', 'debugEventState', 
-            { enableVersioning: true, enableTimestamps: true, validator: DebugEventStateFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('DebugEventState', 'debugEventState', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10342,6 +10678,12 @@ export class NotificationCenterFactory extends FEntityFactory<NotificationCenter
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('notificationCenter');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterFactory.validate, hasLiveStreams: false };
+        return new NotificationCenterFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
@@ -10349,12 +10691,8 @@ export class NotificationCenterFactory extends FEntityFactory<NotificationCenter
         validators.isEnum('kind', src.kind, ['user']);
     }
 
-    constructor(layer: EntityLayer) {
-        super('NotificationCenter', 'notificationCenter', 
-            { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('NotificationCenter', 'notificationCenter', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10409,6 +10747,16 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userNotificationCenter');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserNotificationCenterFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userNotificationCenter', 'user'), 'user', ['uid'], true);
+        let indexes = {
+            user: indexUser,
+        };
+        return new UserNotificationCenterFactory(layer, directory, config, indexes);
+    }
+
     readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
@@ -10418,14 +10766,9 @@ export class UserNotificationCenterFactory extends FEntityFactory<UserNotificati
         validators.isNumber('uid', src.uid);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexUser = new FEntityIndex(layer, 'userNotificationCenter', 'user', ['uid'], true);
-        super('UserNotificationCenter', 'userNotificationCenter', 
-            { enableVersioning: true, enableTimestamps: true, validator: UserNotificationCenterFactory.validate, hasLiveStreams: false },
-            [indexUser],
-            layer
-        );
-        this.indexUser = indexUser;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
+        super('UserNotificationCenter', 'userNotificationCenter', config, [indexes.user], layer, directory);
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10534,6 +10877,16 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('notification');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false };
+        let indexNotificationCenter = new FEntityIndex(await layer.resolveEntityIndexDirectory('notification', 'notificationCenter'), 'notificationCenter', ['ncid', 'id'], false, (src) => !src.deleted);
+        let indexes = {
+            notificationCenter: indexNotificationCenter,
+        };
+        return new NotificationFactory(layer, directory, config, indexes);
+    }
+
     readonly indexNotificationCenter: FEntityIndex;
 
     private static validate(src: any) {
@@ -10551,14 +10904,9 @@ export class NotificationFactory extends FEntityFactory<Notification> {
         )));
     }
 
-    constructor(layer: EntityLayer) {
-        let indexNotificationCenter = new FEntityIndex(layer, 'notification', 'notificationCenter', ['ncid', 'id'], false, (src) => !src.deleted);
-        super('Notification', 'notification', 
-            { enableVersioning: true, enableTimestamps: true, validator: NotificationFactory.validate, hasLiveStreams: false },
-            [indexNotificationCenter],
-            layer
-        );
-        this.indexNotificationCenter = indexNotificationCenter;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { notificationCenter: FEntityIndex }) {
+        super('Notification', 'notification', config, [indexes.notificationCenter], layer, directory);
+        this.indexNotificationCenter = indexes.notificationCenter;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10708,6 +11056,12 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('notificationCenterState');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterStateFactory.validate, hasLiveStreams: false };
+        return new NotificationCenterStateFactory(layer, directory, config);
+    }
+
     private static validate(src: any) {
         validators.notNull('ncid', src.ncid);
         validators.isNumber('ncid', src.ncid);
@@ -10721,12 +11075,8 @@ export class NotificationCenterStateFactory extends FEntityFactory<NotificationC
         validators.isNumber('lastPushSeq', src.lastPushSeq);
     }
 
-    constructor(layer: EntityLayer) {
-        super('NotificationCenterState', 'notificationCenterState', 
-            { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterStateFactory.validate, hasLiveStreams: false },
-            [],
-            layer
-        );
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('NotificationCenterState', 'notificationCenterState', config, [], layer, directory);
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
@@ -10809,6 +11159,16 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         ],
     };
 
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('notificationCenterEvent');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterEventFactory.validate, hasLiveStreams: true };
+        let indexNotificationCenter = new FEntityIndex(await layer.resolveEntityIndexDirectory('notificationCenterEvent', 'notificationCenter'), 'notificationCenter', ['ncid', 'seq'], false);
+        let indexes = {
+            notificationCenter: indexNotificationCenter,
+        };
+        return new NotificationCenterEventFactory(layer, directory, config, indexes);
+    }
+
     readonly indexNotificationCenter: FEntityIndex;
 
     private static validate(src: any) {
@@ -10829,14 +11189,9 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         validators.isEnum('kind', src.kind, ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated', 'notification_content_updated']);
     }
 
-    constructor(layer: EntityLayer) {
-        let indexNotificationCenter = new FEntityIndex(layer, 'notificationCenterEvent', 'notificationCenter', ['ncid', 'seq'], false);
-        super('NotificationCenterEvent', 'notificationCenterEvent', 
-            { enableVersioning: true, enableTimestamps: true, validator: NotificationCenterEventFactory.validate, hasLiveStreams: true },
-            [indexNotificationCenter],
-            layer
-        );
-        this.indexNotificationCenter = indexNotificationCenter;
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { notificationCenter: FEntityIndex }) {
+        super('NotificationCenterEvent', 'notificationCenterEvent', config, [indexes.notificationCenter], layer, directory);
+        this.indexNotificationCenter = indexes.notificationCenter;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -10880,67 +11235,99 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
     }
 }
 export class UserCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('userCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userCounter');
+        return new UserCounterFactory(layer, directory);
     }
     byId(uid: number) {
         return this._findById([uid]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('userMessagesSentCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userMessagesSentCounter');
+        return new UserMessagesSentCounterFactory(layer, directory);
     }
     byId(uid: number) {
         return this._findById([uid]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('userMessagesReceivedCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userMessagesReceivedCounter');
+        return new UserMessagesReceivedCounterFactory(layer, directory);
     }
     byId(uid: number) {
         return this._findById([uid]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('userMessagesChatsCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userMessagesChatsCounter');
+        return new UserMessagesChatsCounterFactory(layer, directory);
     }
     byId(uid: number) {
         return this._findById([uid]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('userMessagesDirectChatsCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userMessagesDirectChatsCounter');
+        return new UserMessagesDirectChatsCounterFactory(layer, directory);
     }
     byId(uid: number) {
         return this._findById([uid]);
     }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
+    }
 }
 export class UserDialogCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('userDialogCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userDialogCounter');
+        return new UserDialogCounterFactory(layer, directory);
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 export class UserDialogHaveMentionFactory extends FAtomicBooleanFactory {
-    constructor(layer: EntityLayer) {
-        super('userDialogHaveMention', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('userDialogHaveMention');
+        return new UserDialogHaveMentionFactory(layer, directory);
     }
     byId(uid: number, cid: number) {
         return this._findById([uid, cid]);
     }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
+    }
 }
 export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
-    constructor(layer: EntityLayer) {
-        super('notificationCenterCounter', layer);
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveAtomicDirectory('notificationCenterCounter');
+        return new NotificationCenterCounterFactory(layer, directory);
     }
     byId(ncid: number) {
         return this._findById([ncid]);
+    }
+    private constructor(layer: EntityLayer, subspace: Subspace) {
+        super(layer, subspace);
     }
 }
 
@@ -11125,6 +11512,281 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         NotificationCenterStateFactory.schema,
         NotificationCenterEventFactory.schema,
     ];
+
+    static async create(layer: EntityLayer) {
+        let allEntities: FEntityFactory<FEntity>[] = [];
+        let EnvironmentPromise = EnvironmentFactory.create(layer);
+        let EnvironmentVariablePromise = EnvironmentVariableFactory.create(layer);
+        let OnlinePromise = OnlineFactory.create(layer);
+        let PresencePromise = PresenceFactory.create(layer);
+        let AuthTokenPromise = AuthTokenFactory.create(layer);
+        let ServiceCachePromise = ServiceCacheFactory.create(layer);
+        let LockPromise = LockFactory.create(layer);
+        let TaskPromise = TaskFactory.create(layer);
+        let PushFirebasePromise = PushFirebaseFactory.create(layer);
+        let PushApplePromise = PushAppleFactory.create(layer);
+        let PushWebPromise = PushWebFactory.create(layer);
+        let PushSafariPromise = PushSafariFactory.create(layer);
+        let UserProfilePrefilPromise = UserProfilePrefilFactory.create(layer);
+        let UserPromise = UserFactory.create(layer);
+        let UserProfilePromise = UserProfileFactory.create(layer);
+        let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
+        let OrganizationPromise = OrganizationFactory.create(layer);
+        let OrganizationProfilePromise = OrganizationProfileFactory.create(layer);
+        let OrganizationEditorialPromise = OrganizationEditorialFactory.create(layer);
+        let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.create(layer);
+        let OrganizationMemberPromise = OrganizationMemberFactory.create(layer);
+        let FeatureFlagPromise = FeatureFlagFactory.create(layer);
+        let OrganizationFeaturesPromise = OrganizationFeaturesFactory.create(layer);
+        let ReaderStatePromise = ReaderStateFactory.create(layer);
+        let SuperAdminPromise = SuperAdminFactory.create(layer);
+        let UserSettingsPromise = UserSettingsFactory.create(layer);
+        let ShortnameReservationPromise = ShortnameReservationFactory.create(layer);
+        let AuthCodeSessionPromise = AuthCodeSessionFactory.create(layer);
+        let ConversationPromise = ConversationFactory.create(layer);
+        let ConversationPrivatePromise = ConversationPrivateFactory.create(layer);
+        let ConversationOrganizationPromise = ConversationOrganizationFactory.create(layer);
+        let ConversationRoomPromise = ConversationRoomFactory.create(layer);
+        let RoomProfilePromise = RoomProfileFactory.create(layer);
+        let RoomParticipantPromise = RoomParticipantFactory.create(layer);
+        let ConversationReceiverPromise = ConversationReceiverFactory.create(layer);
+        let SequencePromise = SequenceFactory.create(layer);
+        let MessagePromise = MessageFactory.create(layer);
+        let CommentPromise = CommentFactory.create(layer);
+        let CommentStatePromise = CommentStateFactory.create(layer);
+        let CommentSeqPromise = CommentSeqFactory.create(layer);
+        let CommentEventPromise = CommentEventFactory.create(layer);
+        let CommentsSubscriptionPromise = CommentsSubscriptionFactory.create(layer);
+        let CommentEventGlobalPromise = CommentEventGlobalFactory.create(layer);
+        let CommentGlobalEventSeqPromise = CommentGlobalEventSeqFactory.create(layer);
+        let ConversationSeqPromise = ConversationSeqFactory.create(layer);
+        let ConversationEventPromise = ConversationEventFactory.create(layer);
+        let UserDialogPromise = UserDialogFactory.create(layer);
+        let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.create(layer);
+        let UserDialogSettingsPromise = UserDialogSettingsFactory.create(layer);
+        let UserDialogEventPromise = UserDialogEventFactory.create(layer);
+        let UserMessagingStatePromise = UserMessagingStateFactory.create(layer);
+        let UserNotificationsStatePromise = UserNotificationsStateFactory.create(layer);
+        let HyperLogPromise = HyperLogFactory.create(layer);
+        let MessageDraftPromise = MessageDraftFactory.create(layer);
+        let ChannelInvitationPromise = ChannelInvitationFactory.create(layer);
+        let ChannelLinkPromise = ChannelLinkFactory.create(layer);
+        let AppInviteLinkPromise = AppInviteLinkFactory.create(layer);
+        let SampleEntityPromise = SampleEntityFactory.create(layer);
+        let OrganizationPublicInviteLinkPromise = OrganizationPublicInviteLinkFactory.create(layer);
+        let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.create(layer);
+        let ConferenceRoomPromise = ConferenceRoomFactory.create(layer);
+        let ConferencePeerPromise = ConferencePeerFactory.create(layer);
+        let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.create(layer);
+        let ConferenceConnectionPromise = ConferenceConnectionFactory.create(layer);
+        let UserEdgePromise = UserEdgeFactory.create(layer);
+        let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.create(layer);
+        let UserInfluencerIndexPromise = UserInfluencerIndexFactory.create(layer);
+        let FeedSubscriberPromise = FeedSubscriberFactory.create(layer);
+        let FeedSubscriptionPromise = FeedSubscriptionFactory.create(layer);
+        let FeedTopicPromise = FeedTopicFactory.create(layer);
+        let FeedEventPromise = FeedEventFactory.create(layer);
+        let AppHookPromise = AppHookFactory.create(layer);
+        let UserStorageNamespacePromise = UserStorageNamespaceFactory.create(layer);
+        let UserStorageRecordPromise = UserStorageRecordFactory.create(layer);
+        let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.create(layer);
+        let DebugEventPromise = DebugEventFactory.create(layer);
+        let DebugEventStatePromise = DebugEventStateFactory.create(layer);
+        let NotificationCenterPromise = NotificationCenterFactory.create(layer);
+        let UserNotificationCenterPromise = UserNotificationCenterFactory.create(layer);
+        let NotificationPromise = NotificationFactory.create(layer);
+        let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
+        let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
+        let UserCounterPromise = UserCounterFactory.create(layer);
+        let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.create(layer);
+        let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.create(layer);
+        let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.create(layer);
+        let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.create(layer);
+        let UserDialogCounterPromise = UserDialogCounterFactory.create(layer);
+        let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.create(layer);
+        let NotificationCenterCounterPromise = NotificationCenterCounterFactory.create(layer);
+        let NeedNotificationFlagDirectoryPromise = layer.directory.getDirectory(['custom', 'needNotificationFlag']);
+        let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.directory.getDirectory(['custom', 'notificationCenterNeedDeliveryFlag']);
+        allEntities.push(await EnvironmentPromise);
+        allEntities.push(await EnvironmentVariablePromise);
+        allEntities.push(await OnlinePromise);
+        allEntities.push(await PresencePromise);
+        allEntities.push(await AuthTokenPromise);
+        allEntities.push(await ServiceCachePromise);
+        allEntities.push(await LockPromise);
+        allEntities.push(await TaskPromise);
+        allEntities.push(await PushFirebasePromise);
+        allEntities.push(await PushApplePromise);
+        allEntities.push(await PushWebPromise);
+        allEntities.push(await PushSafariPromise);
+        allEntities.push(await UserProfilePrefilPromise);
+        allEntities.push(await UserPromise);
+        allEntities.push(await UserProfilePromise);
+        allEntities.push(await UserIndexingQueuePromise);
+        allEntities.push(await OrganizationPromise);
+        allEntities.push(await OrganizationProfilePromise);
+        allEntities.push(await OrganizationEditorialPromise);
+        allEntities.push(await OrganizationIndexingQueuePromise);
+        allEntities.push(await OrganizationMemberPromise);
+        allEntities.push(await FeatureFlagPromise);
+        allEntities.push(await OrganizationFeaturesPromise);
+        allEntities.push(await ReaderStatePromise);
+        allEntities.push(await SuperAdminPromise);
+        allEntities.push(await UserSettingsPromise);
+        allEntities.push(await ShortnameReservationPromise);
+        allEntities.push(await AuthCodeSessionPromise);
+        allEntities.push(await ConversationPromise);
+        allEntities.push(await ConversationPrivatePromise);
+        allEntities.push(await ConversationOrganizationPromise);
+        allEntities.push(await ConversationRoomPromise);
+        allEntities.push(await RoomProfilePromise);
+        allEntities.push(await RoomParticipantPromise);
+        allEntities.push(await ConversationReceiverPromise);
+        allEntities.push(await SequencePromise);
+        allEntities.push(await MessagePromise);
+        allEntities.push(await CommentPromise);
+        allEntities.push(await CommentStatePromise);
+        allEntities.push(await CommentSeqPromise);
+        allEntities.push(await CommentEventPromise);
+        allEntities.push(await CommentsSubscriptionPromise);
+        allEntities.push(await CommentEventGlobalPromise);
+        allEntities.push(await CommentGlobalEventSeqPromise);
+        allEntities.push(await ConversationSeqPromise);
+        allEntities.push(await ConversationEventPromise);
+        allEntities.push(await UserDialogPromise);
+        allEntities.push(await UserDialogHandledMessagePromise);
+        allEntities.push(await UserDialogSettingsPromise);
+        allEntities.push(await UserDialogEventPromise);
+        allEntities.push(await UserMessagingStatePromise);
+        allEntities.push(await UserNotificationsStatePromise);
+        allEntities.push(await HyperLogPromise);
+        allEntities.push(await MessageDraftPromise);
+        allEntities.push(await ChannelInvitationPromise);
+        allEntities.push(await ChannelLinkPromise);
+        allEntities.push(await AppInviteLinkPromise);
+        allEntities.push(await SampleEntityPromise);
+        allEntities.push(await OrganizationPublicInviteLinkPromise);
+        allEntities.push(await OrganizationInviteLinkPromise);
+        allEntities.push(await ConferenceRoomPromise);
+        allEntities.push(await ConferencePeerPromise);
+        allEntities.push(await ConferenceMediaStreamPromise);
+        allEntities.push(await ConferenceConnectionPromise);
+        allEntities.push(await UserEdgePromise);
+        allEntities.push(await UserInfluencerUserIndexPromise);
+        allEntities.push(await UserInfluencerIndexPromise);
+        allEntities.push(await FeedSubscriberPromise);
+        allEntities.push(await FeedSubscriptionPromise);
+        allEntities.push(await FeedTopicPromise);
+        allEntities.push(await FeedEventPromise);
+        allEntities.push(await AppHookPromise);
+        allEntities.push(await UserStorageNamespacePromise);
+        allEntities.push(await UserStorageRecordPromise);
+        allEntities.push(await DiscoverUserPickedTagsPromise);
+        allEntities.push(await DebugEventPromise);
+        allEntities.push(await DebugEventStatePromise);
+        allEntities.push(await NotificationCenterPromise);
+        allEntities.push(await UserNotificationCenterPromise);
+        allEntities.push(await NotificationPromise);
+        allEntities.push(await NotificationCenterStatePromise);
+        allEntities.push(await NotificationCenterEventPromise);
+        let entities = {
+            layer, allEntities,
+            Environment: await EnvironmentPromise,
+            EnvironmentVariable: await EnvironmentVariablePromise,
+            Online: await OnlinePromise,
+            Presence: await PresencePromise,
+            AuthToken: await AuthTokenPromise,
+            ServiceCache: await ServiceCachePromise,
+            Lock: await LockPromise,
+            Task: await TaskPromise,
+            PushFirebase: await PushFirebasePromise,
+            PushApple: await PushApplePromise,
+            PushWeb: await PushWebPromise,
+            PushSafari: await PushSafariPromise,
+            UserProfilePrefil: await UserProfilePrefilPromise,
+            User: await UserPromise,
+            UserProfile: await UserProfilePromise,
+            UserIndexingQueue: await UserIndexingQueuePromise,
+            Organization: await OrganizationPromise,
+            OrganizationProfile: await OrganizationProfilePromise,
+            OrganizationEditorial: await OrganizationEditorialPromise,
+            OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
+            OrganizationMember: await OrganizationMemberPromise,
+            FeatureFlag: await FeatureFlagPromise,
+            OrganizationFeatures: await OrganizationFeaturesPromise,
+            ReaderState: await ReaderStatePromise,
+            SuperAdmin: await SuperAdminPromise,
+            UserSettings: await UserSettingsPromise,
+            ShortnameReservation: await ShortnameReservationPromise,
+            AuthCodeSession: await AuthCodeSessionPromise,
+            Conversation: await ConversationPromise,
+            ConversationPrivate: await ConversationPrivatePromise,
+            ConversationOrganization: await ConversationOrganizationPromise,
+            ConversationRoom: await ConversationRoomPromise,
+            RoomProfile: await RoomProfilePromise,
+            RoomParticipant: await RoomParticipantPromise,
+            ConversationReceiver: await ConversationReceiverPromise,
+            Sequence: await SequencePromise,
+            Message: await MessagePromise,
+            Comment: await CommentPromise,
+            CommentState: await CommentStatePromise,
+            CommentSeq: await CommentSeqPromise,
+            CommentEvent: await CommentEventPromise,
+            CommentsSubscription: await CommentsSubscriptionPromise,
+            CommentEventGlobal: await CommentEventGlobalPromise,
+            CommentGlobalEventSeq: await CommentGlobalEventSeqPromise,
+            ConversationSeq: await ConversationSeqPromise,
+            ConversationEvent: await ConversationEventPromise,
+            UserDialog: await UserDialogPromise,
+            UserDialogHandledMessage: await UserDialogHandledMessagePromise,
+            UserDialogSettings: await UserDialogSettingsPromise,
+            UserDialogEvent: await UserDialogEventPromise,
+            UserMessagingState: await UserMessagingStatePromise,
+            UserNotificationsState: await UserNotificationsStatePromise,
+            HyperLog: await HyperLogPromise,
+            MessageDraft: await MessageDraftPromise,
+            ChannelInvitation: await ChannelInvitationPromise,
+            ChannelLink: await ChannelLinkPromise,
+            AppInviteLink: await AppInviteLinkPromise,
+            SampleEntity: await SampleEntityPromise,
+            OrganizationPublicInviteLink: await OrganizationPublicInviteLinkPromise,
+            OrganizationInviteLink: await OrganizationInviteLinkPromise,
+            ConferenceRoom: await ConferenceRoomPromise,
+            ConferencePeer: await ConferencePeerPromise,
+            ConferenceMediaStream: await ConferenceMediaStreamPromise,
+            ConferenceConnection: await ConferenceConnectionPromise,
+            UserEdge: await UserEdgePromise,
+            UserInfluencerUserIndex: await UserInfluencerUserIndexPromise,
+            UserInfluencerIndex: await UserInfluencerIndexPromise,
+            FeedSubscriber: await FeedSubscriberPromise,
+            FeedSubscription: await FeedSubscriptionPromise,
+            FeedTopic: await FeedTopicPromise,
+            FeedEvent: await FeedEventPromise,
+            AppHook: await AppHookPromise,
+            UserStorageNamespace: await UserStorageNamespacePromise,
+            UserStorageRecord: await UserStorageRecordPromise,
+            DiscoverUserPickedTags: await DiscoverUserPickedTagsPromise,
+            DebugEvent: await DebugEventPromise,
+            DebugEventState: await DebugEventStatePromise,
+            NotificationCenter: await NotificationCenterPromise,
+            UserNotificationCenter: await UserNotificationCenterPromise,
+            Notification: await NotificationPromise,
+            NotificationCenterState: await NotificationCenterStatePromise,
+            NotificationCenterEvent: await NotificationCenterEventPromise,
+            UserCounter: await UserCounterPromise,
+            UserMessagesSentCounter: await UserMessagesSentCounterPromise,
+            UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
+            UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
+            UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
+            UserDialogCounter: await UserDialogCounterPromise,
+            UserDialogHaveMention: await UserDialogHaveMentionPromise,
+            NotificationCenterCounter: await NotificationCenterCounterPromise,
+            NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
+            NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
+        };
+        return new AllEntitiesDirect(entities);
+    }
+
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: FDirectory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: FDirectory;
@@ -11219,182 +11881,182 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
     readonly NotificationCenterCounter: NotificationCenterCounterFactory;
 
-    constructor(layer: EntityLayer) {
-        super(layer);
-        this.Environment = new EnvironmentFactory(layer);
+    private constructor(entities: AllEntities) {
+        super(entities.layer);
+        this.Environment = entities.Environment;
         this.allEntities.push(this.Environment);
-        this.EnvironmentVariable = new EnvironmentVariableFactory(layer);
+        this.EnvironmentVariable = entities.EnvironmentVariable;
         this.allEntities.push(this.EnvironmentVariable);
-        this.Online = new OnlineFactory(layer);
+        this.Online = entities.Online;
         this.allEntities.push(this.Online);
-        this.Presence = new PresenceFactory(layer);
+        this.Presence = entities.Presence;
         this.allEntities.push(this.Presence);
-        this.AuthToken = new AuthTokenFactory(layer);
+        this.AuthToken = entities.AuthToken;
         this.allEntities.push(this.AuthToken);
-        this.ServiceCache = new ServiceCacheFactory(layer);
+        this.ServiceCache = entities.ServiceCache;
         this.allEntities.push(this.ServiceCache);
-        this.Lock = new LockFactory(layer);
+        this.Lock = entities.Lock;
         this.allEntities.push(this.Lock);
-        this.Task = new TaskFactory(layer);
+        this.Task = entities.Task;
         this.allEntities.push(this.Task);
-        this.PushFirebase = new PushFirebaseFactory(layer);
+        this.PushFirebase = entities.PushFirebase;
         this.allEntities.push(this.PushFirebase);
-        this.PushApple = new PushAppleFactory(layer);
+        this.PushApple = entities.PushApple;
         this.allEntities.push(this.PushApple);
-        this.PushWeb = new PushWebFactory(layer);
+        this.PushWeb = entities.PushWeb;
         this.allEntities.push(this.PushWeb);
-        this.PushSafari = new PushSafariFactory(layer);
+        this.PushSafari = entities.PushSafari;
         this.allEntities.push(this.PushSafari);
-        this.UserProfilePrefil = new UserProfilePrefilFactory(layer);
+        this.UserProfilePrefil = entities.UserProfilePrefil;
         this.allEntities.push(this.UserProfilePrefil);
-        this.User = new UserFactory(layer);
+        this.User = entities.User;
         this.allEntities.push(this.User);
-        this.UserProfile = new UserProfileFactory(layer);
+        this.UserProfile = entities.UserProfile;
         this.allEntities.push(this.UserProfile);
-        this.UserIndexingQueue = new UserIndexingQueueFactory(layer);
+        this.UserIndexingQueue = entities.UserIndexingQueue;
         this.allEntities.push(this.UserIndexingQueue);
-        this.Organization = new OrganizationFactory(layer);
+        this.Organization = entities.Organization;
         this.allEntities.push(this.Organization);
-        this.OrganizationProfile = new OrganizationProfileFactory(layer);
+        this.OrganizationProfile = entities.OrganizationProfile;
         this.allEntities.push(this.OrganizationProfile);
-        this.OrganizationEditorial = new OrganizationEditorialFactory(layer);
+        this.OrganizationEditorial = entities.OrganizationEditorial;
         this.allEntities.push(this.OrganizationEditorial);
-        this.OrganizationIndexingQueue = new OrganizationIndexingQueueFactory(layer);
+        this.OrganizationIndexingQueue = entities.OrganizationIndexingQueue;
         this.allEntities.push(this.OrganizationIndexingQueue);
-        this.OrganizationMember = new OrganizationMemberFactory(layer);
+        this.OrganizationMember = entities.OrganizationMember;
         this.allEntities.push(this.OrganizationMember);
-        this.FeatureFlag = new FeatureFlagFactory(layer);
+        this.FeatureFlag = entities.FeatureFlag;
         this.allEntities.push(this.FeatureFlag);
-        this.OrganizationFeatures = new OrganizationFeaturesFactory(layer);
+        this.OrganizationFeatures = entities.OrganizationFeatures;
         this.allEntities.push(this.OrganizationFeatures);
-        this.ReaderState = new ReaderStateFactory(layer);
+        this.ReaderState = entities.ReaderState;
         this.allEntities.push(this.ReaderState);
-        this.SuperAdmin = new SuperAdminFactory(layer);
+        this.SuperAdmin = entities.SuperAdmin;
         this.allEntities.push(this.SuperAdmin);
-        this.UserSettings = new UserSettingsFactory(layer);
+        this.UserSettings = entities.UserSettings;
         this.allEntities.push(this.UserSettings);
-        this.ShortnameReservation = new ShortnameReservationFactory(layer);
+        this.ShortnameReservation = entities.ShortnameReservation;
         this.allEntities.push(this.ShortnameReservation);
-        this.AuthCodeSession = new AuthCodeSessionFactory(layer);
+        this.AuthCodeSession = entities.AuthCodeSession;
         this.allEntities.push(this.AuthCodeSession);
-        this.Conversation = new ConversationFactory(layer);
+        this.Conversation = entities.Conversation;
         this.allEntities.push(this.Conversation);
-        this.ConversationPrivate = new ConversationPrivateFactory(layer);
+        this.ConversationPrivate = entities.ConversationPrivate;
         this.allEntities.push(this.ConversationPrivate);
-        this.ConversationOrganization = new ConversationOrganizationFactory(layer);
+        this.ConversationOrganization = entities.ConversationOrganization;
         this.allEntities.push(this.ConversationOrganization);
-        this.ConversationRoom = new ConversationRoomFactory(layer);
+        this.ConversationRoom = entities.ConversationRoom;
         this.allEntities.push(this.ConversationRoom);
-        this.RoomProfile = new RoomProfileFactory(layer);
+        this.RoomProfile = entities.RoomProfile;
         this.allEntities.push(this.RoomProfile);
-        this.RoomParticipant = new RoomParticipantFactory(layer);
+        this.RoomParticipant = entities.RoomParticipant;
         this.allEntities.push(this.RoomParticipant);
-        this.ConversationReceiver = new ConversationReceiverFactory(layer);
+        this.ConversationReceiver = entities.ConversationReceiver;
         this.allEntities.push(this.ConversationReceiver);
-        this.Sequence = new SequenceFactory(layer);
+        this.Sequence = entities.Sequence;
         this.allEntities.push(this.Sequence);
-        this.Message = new MessageFactory(layer);
+        this.Message = entities.Message;
         this.allEntities.push(this.Message);
-        this.Comment = new CommentFactory(layer);
+        this.Comment = entities.Comment;
         this.allEntities.push(this.Comment);
-        this.CommentState = new CommentStateFactory(layer);
+        this.CommentState = entities.CommentState;
         this.allEntities.push(this.CommentState);
-        this.CommentSeq = new CommentSeqFactory(layer);
+        this.CommentSeq = entities.CommentSeq;
         this.allEntities.push(this.CommentSeq);
-        this.CommentEvent = new CommentEventFactory(layer);
+        this.CommentEvent = entities.CommentEvent;
         this.allEntities.push(this.CommentEvent);
-        this.CommentsSubscription = new CommentsSubscriptionFactory(layer);
+        this.CommentsSubscription = entities.CommentsSubscription;
         this.allEntities.push(this.CommentsSubscription);
-        this.CommentEventGlobal = new CommentEventGlobalFactory(layer);
+        this.CommentEventGlobal = entities.CommentEventGlobal;
         this.allEntities.push(this.CommentEventGlobal);
-        this.CommentGlobalEventSeq = new CommentGlobalEventSeqFactory(layer);
+        this.CommentGlobalEventSeq = entities.CommentGlobalEventSeq;
         this.allEntities.push(this.CommentGlobalEventSeq);
-        this.ConversationSeq = new ConversationSeqFactory(layer);
+        this.ConversationSeq = entities.ConversationSeq;
         this.allEntities.push(this.ConversationSeq);
-        this.ConversationEvent = new ConversationEventFactory(layer);
+        this.ConversationEvent = entities.ConversationEvent;
         this.allEntities.push(this.ConversationEvent);
-        this.UserDialog = new UserDialogFactory(layer);
+        this.UserDialog = entities.UserDialog;
         this.allEntities.push(this.UserDialog);
-        this.UserDialogHandledMessage = new UserDialogHandledMessageFactory(layer);
+        this.UserDialogHandledMessage = entities.UserDialogHandledMessage;
         this.allEntities.push(this.UserDialogHandledMessage);
-        this.UserDialogSettings = new UserDialogSettingsFactory(layer);
+        this.UserDialogSettings = entities.UserDialogSettings;
         this.allEntities.push(this.UserDialogSettings);
-        this.UserDialogEvent = new UserDialogEventFactory(layer);
+        this.UserDialogEvent = entities.UserDialogEvent;
         this.allEntities.push(this.UserDialogEvent);
-        this.UserMessagingState = new UserMessagingStateFactory(layer);
+        this.UserMessagingState = entities.UserMessagingState;
         this.allEntities.push(this.UserMessagingState);
-        this.UserNotificationsState = new UserNotificationsStateFactory(layer);
+        this.UserNotificationsState = entities.UserNotificationsState;
         this.allEntities.push(this.UserNotificationsState);
-        this.HyperLog = new HyperLogFactory(layer);
+        this.HyperLog = entities.HyperLog;
         this.allEntities.push(this.HyperLog);
-        this.MessageDraft = new MessageDraftFactory(layer);
+        this.MessageDraft = entities.MessageDraft;
         this.allEntities.push(this.MessageDraft);
-        this.ChannelInvitation = new ChannelInvitationFactory(layer);
+        this.ChannelInvitation = entities.ChannelInvitation;
         this.allEntities.push(this.ChannelInvitation);
-        this.ChannelLink = new ChannelLinkFactory(layer);
+        this.ChannelLink = entities.ChannelLink;
         this.allEntities.push(this.ChannelLink);
-        this.AppInviteLink = new AppInviteLinkFactory(layer);
+        this.AppInviteLink = entities.AppInviteLink;
         this.allEntities.push(this.AppInviteLink);
-        this.SampleEntity = new SampleEntityFactory(layer);
+        this.SampleEntity = entities.SampleEntity;
         this.allEntities.push(this.SampleEntity);
-        this.OrganizationPublicInviteLink = new OrganizationPublicInviteLinkFactory(layer);
+        this.OrganizationPublicInviteLink = entities.OrganizationPublicInviteLink;
         this.allEntities.push(this.OrganizationPublicInviteLink);
-        this.OrganizationInviteLink = new OrganizationInviteLinkFactory(layer);
+        this.OrganizationInviteLink = entities.OrganizationInviteLink;
         this.allEntities.push(this.OrganizationInviteLink);
-        this.ConferenceRoom = new ConferenceRoomFactory(layer);
+        this.ConferenceRoom = entities.ConferenceRoom;
         this.allEntities.push(this.ConferenceRoom);
-        this.ConferencePeer = new ConferencePeerFactory(layer);
+        this.ConferencePeer = entities.ConferencePeer;
         this.allEntities.push(this.ConferencePeer);
-        this.ConferenceMediaStream = new ConferenceMediaStreamFactory(layer);
+        this.ConferenceMediaStream = entities.ConferenceMediaStream;
         this.allEntities.push(this.ConferenceMediaStream);
-        this.ConferenceConnection = new ConferenceConnectionFactory(layer);
+        this.ConferenceConnection = entities.ConferenceConnection;
         this.allEntities.push(this.ConferenceConnection);
-        this.UserEdge = new UserEdgeFactory(layer);
+        this.UserEdge = entities.UserEdge;
         this.allEntities.push(this.UserEdge);
-        this.UserInfluencerUserIndex = new UserInfluencerUserIndexFactory(layer);
+        this.UserInfluencerUserIndex = entities.UserInfluencerUserIndex;
         this.allEntities.push(this.UserInfluencerUserIndex);
-        this.UserInfluencerIndex = new UserInfluencerIndexFactory(layer);
+        this.UserInfluencerIndex = entities.UserInfluencerIndex;
         this.allEntities.push(this.UserInfluencerIndex);
-        this.FeedSubscriber = new FeedSubscriberFactory(layer);
+        this.FeedSubscriber = entities.FeedSubscriber;
         this.allEntities.push(this.FeedSubscriber);
-        this.FeedSubscription = new FeedSubscriptionFactory(layer);
+        this.FeedSubscription = entities.FeedSubscription;
         this.allEntities.push(this.FeedSubscription);
-        this.FeedTopic = new FeedTopicFactory(layer);
+        this.FeedTopic = entities.FeedTopic;
         this.allEntities.push(this.FeedTopic);
-        this.FeedEvent = new FeedEventFactory(layer);
+        this.FeedEvent = entities.FeedEvent;
         this.allEntities.push(this.FeedEvent);
-        this.AppHook = new AppHookFactory(layer);
+        this.AppHook = entities.AppHook;
         this.allEntities.push(this.AppHook);
-        this.UserStorageNamespace = new UserStorageNamespaceFactory(layer);
+        this.UserStorageNamespace = entities.UserStorageNamespace;
         this.allEntities.push(this.UserStorageNamespace);
-        this.UserStorageRecord = new UserStorageRecordFactory(layer);
+        this.UserStorageRecord = entities.UserStorageRecord;
         this.allEntities.push(this.UserStorageRecord);
-        this.DiscoverUserPickedTags = new DiscoverUserPickedTagsFactory(layer);
+        this.DiscoverUserPickedTags = entities.DiscoverUserPickedTags;
         this.allEntities.push(this.DiscoverUserPickedTags);
-        this.DebugEvent = new DebugEventFactory(layer);
+        this.DebugEvent = entities.DebugEvent;
         this.allEntities.push(this.DebugEvent);
-        this.DebugEventState = new DebugEventStateFactory(layer);
+        this.DebugEventState = entities.DebugEventState;
         this.allEntities.push(this.DebugEventState);
-        this.NotificationCenter = new NotificationCenterFactory(layer);
+        this.NotificationCenter = entities.NotificationCenter;
         this.allEntities.push(this.NotificationCenter);
-        this.UserNotificationCenter = new UserNotificationCenterFactory(layer);
+        this.UserNotificationCenter = entities.UserNotificationCenter;
         this.allEntities.push(this.UserNotificationCenter);
-        this.Notification = new NotificationFactory(layer);
+        this.Notification = entities.Notification;
         this.allEntities.push(this.Notification);
-        this.NotificationCenterState = new NotificationCenterStateFactory(layer);
+        this.NotificationCenterState = entities.NotificationCenterState;
         this.allEntities.push(this.NotificationCenterState);
-        this.NotificationCenterEvent = new NotificationCenterEventFactory(layer);
+        this.NotificationCenterEvent = entities.NotificationCenterEvent;
         this.allEntities.push(this.NotificationCenterEvent);
-        this.UserCounter = new UserCounterFactory(layer);
-        this.UserMessagesSentCounter = new UserMessagesSentCounterFactory(layer);
-        this.UserMessagesReceivedCounter = new UserMessagesReceivedCounterFactory(layer);
-        this.UserMessagesChatsCounter = new UserMessagesChatsCounterFactory(layer);
-        this.UserMessagesDirectChatsCounter = new UserMessagesDirectChatsCounterFactory(layer);
-        this.UserDialogCounter = new UserDialogCounterFactory(layer);
-        this.UserDialogHaveMention = new UserDialogHaveMentionFactory(layer);
-        this.NotificationCenterCounter = new NotificationCenterCounterFactory(layer);
-        this.NeedNotificationFlagDirectory = layer.directory.getDirectory(['custom', 'needNotificationFlag']);
-        this.NotificationCenterNeedDeliveryFlagDirectory = layer.directory.getDirectory(['custom', 'notificationCenterNeedDeliveryFlag']);
+        this.UserCounter = entities.UserCounter;
+        this.UserMessagesSentCounter = entities.UserMessagesSentCounter;
+        this.UserMessagesReceivedCounter = entities.UserMessagesReceivedCounter;
+        this.UserMessagesChatsCounter = entities.UserMessagesChatsCounter;
+        this.UserMessagesDirectChatsCounter = entities.UserMessagesDirectChatsCounter;
+        this.UserDialogCounter = entities.UserDialogCounter;
+        this.UserDialogHaveMention = entities.UserDialogHaveMention;
+        this.NotificationCenterCounter = entities.NotificationCenterCounter;
+        this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
+        this.NotificationCenterNeedDeliveryFlagDirectory = entities.NotificationCenterNeedDeliveryFlagDirectory;
     }
 }
 export class AllEntitiesProxy implements AllEntities {

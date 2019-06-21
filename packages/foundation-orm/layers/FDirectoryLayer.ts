@@ -21,12 +21,14 @@ export class FDirectoryLayer {
         return this.allocator.findAllDirectories();
     }
 
-    getDirectory(key: string[]) {
+    async getDirectory(key: string[]) {
         let k = FKeyEncoding.encodeKeyToString(key);
         if (!this.directories.has(k)) {
             this.directories.set(k, new FDirectory(this.connection, this.allocator, key));
         }
-        return this.directories.get(k)!;
+        let res = this.directories.get(k)!;
+        await res.ready();
+        return res;
     }
 
     async ready(ctx: Context) {

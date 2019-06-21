@@ -28,7 +28,7 @@ export async function createGraphQLAdminSchema() {
     let rootCtx = createNamedContext('graphql-admin');
     let db = await openDatabase();
     let layer = new EntityLayer(db, EventBus);
-    let FDB = new AllEntitiesDirect(layer); // WTF? Why separate connection?
+    let FDB = await AllEntitiesDirect.create(layer); // WTF? Why separate connection?
     let entitiesMap: any = {};
     let queries: any = {};
     let mutations: any = {};

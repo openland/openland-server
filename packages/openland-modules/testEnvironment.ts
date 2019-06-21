@@ -33,7 +33,7 @@ export async function testEnvironmentStart(name: string) {
     logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
     start = currentTime();
     let layer = new EntityLayer(db, EventBus);
-    let entities = new AllEntitiesDirect(layer);
+    let entities = await AllEntitiesDirect.create(layer);
     await layer.ready(ctx);
     logger.log(ctx, 'Layer loaded in ' + (currentTime() - start) + ' ms');
     container.bind(DBModule).toSelf().inSingletonScope();

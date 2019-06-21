@@ -19,6 +19,22 @@ export class EntityLayer {
         return this.db.get(RandomLayer).nextRandomId();
     }
 
+    async resolveAtomicDirectory(name: string) {
+        return await this.directory.getDirectory(['atomic', name]);
+    }
+
+    async resolveCustomDirectory(name: string) {
+        return await this.directory.getDirectory(['custom', name]);
+    }
+
+    async resolveEntityDirectory(name: string) {
+        return await this.directory.getDirectory(['entity', name]);
+    }
+
+    async resolveEntityIndexDirectory(entityName: string, indexName: string) {
+        return await this.directory.getDirectory(['entity', entityName, '__indexes', indexName]);
+    }
+
     async ready(ctx: Context) {
         await this.directory.ready(ctx);
     }

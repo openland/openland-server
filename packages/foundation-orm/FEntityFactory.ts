@@ -42,11 +42,10 @@ export abstract class FEntityFactory<T extends FEntity> {
     readonly name: string;
     readonly storeKey: string;
 
-    constructor(name: string, storeKey: string, options: FEntityOptions, indexes: FEntityIndex[], layer: EntityLayer) {
+    constructor(name: string, storeKey: string, options: FEntityOptions, indexes: FEntityIndex[], layer: EntityLayer, directory: Subspace) {
         this.storeKey = storeKey;
         this.layer = layer;
-        this.directory = layer.directory
-            .getDirectory(['entity', storeKey])
+        this.directory = directory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json);
         this.options = options;

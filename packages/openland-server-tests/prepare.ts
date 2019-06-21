@@ -42,7 +42,7 @@ export async function prepare() {
         // Init DB
         let db = await openDatabase();
         let layer = new EntityLayer(db, EventBus);
-        let entities = new AllEntitiesDirect(layer);
+        let entities = await AllEntitiesDirect.create(layer);
         await layer.ready(rootCtx);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
