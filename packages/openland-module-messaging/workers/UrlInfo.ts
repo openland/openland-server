@@ -88,7 +88,7 @@ function createURLInfoFetcher() {
             }
             return null;
         })
-        .specialUrl((url, hostname) => hostname.endsWith('youtube.com') && url.includes('watch?v='), async (url) => {
+        .specialUrl((url, hostname) => (hostname.endsWith('youtube.com') && url.includes('watch?v=')) || hostname.endsWith('youtu.be') , async (url) => {
             let res = await fetch(encodeURI(url), FetchParams);
 
             if (res.status !== 200) {
