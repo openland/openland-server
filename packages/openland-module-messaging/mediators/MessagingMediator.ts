@@ -203,6 +203,9 @@ export class MessagingMediator {
                 await this.room.unpinMessage(ctx, message.cid, uid);
             }
 
+            // Send notification center updates
+            await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);
+
             return res;
         });
     }

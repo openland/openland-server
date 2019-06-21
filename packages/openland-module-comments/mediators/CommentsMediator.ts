@@ -117,6 +117,9 @@ export class CommentsMediator {
                 }
             }
 
+            // Send notification center updates
+            await Modules.NotificationCenter.onCommentPeerUpdated(ctx, comment.peerType, comment.peerId, comment.id);
+
             return res;
         });
     }
