@@ -14,7 +14,7 @@ describe('FWatch', () => {
     let testEntities: AllEntities;
     beforeAll(async () => {
         let db = await openTestDatabase();
-        let layer = new EntityLayer(db, NoOpBus);
+        let layer = new EntityLayer(db, NoOpBus, 'app');
         testEntities = await AllEntitiesDirect.create(layer);
         await layer.ready(createNamedContext('test'));
     });

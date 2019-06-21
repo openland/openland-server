@@ -9,8 +9,11 @@ export class EntityLayer {
     readonly db: Database;
     readonly eventBus: FPubsub;
 
-    constructor(db: Database, eventBus: FPubsub) {
-        this.directory = new FDirectoryLayer(db);
+    constructor(db: Database, eventBus: FPubsub, root: string) {
+        if (root.length === 0) {
+            throw Error('');
+        }
+        this.directory = new FDirectoryLayer(db, ['com.openland.layers', 'layers', ...root]);
         this.db = db;
         this.eventBus = eventBus;
     }

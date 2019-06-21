@@ -12,9 +12,10 @@ export class FDirectoryLayer {
     private readonly connection: Database;
     private readonly allocator: DirectoryAllocator;
     private readonly directories = new Map<string, FDirectory>();
-    constructor(connection: Database) {
+
+    constructor(connection: Database, root: string[]) {
         this.connection = connection;
-        this.allocator = new DirectoryAllocator(this.connection);
+        this.allocator = new DirectoryAllocator(this.connection, root);
     }
 
     async findAllDirectories() {

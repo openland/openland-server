@@ -32,7 +32,7 @@ export async function testEnvironmentStart(name: string) {
     let db = await openTestDatabase();
     logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
     start = currentTime();
-    let layer = new EntityLayer(db, EventBus);
+    let layer = new EntityLayer(db, EventBus, 'app');
     let entities = await AllEntitiesDirect.create(layer);
     await layer.ready(ctx);
     logger.log(ctx, 'Layer loaded in ' + (currentTime() - start) + ' ms');

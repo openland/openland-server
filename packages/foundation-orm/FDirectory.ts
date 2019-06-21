@@ -17,9 +17,9 @@ export class FDirectory implements Subspace {
         this.path = path;
         this.allocatorProcess = (async () => {
             let v = await allocator.allocateDirectory(path);
-            this.allocatedKey = v;
+            this.allocatedKey = v.prefix;
             this.isAllocated = true;
-            this.keyspace = db.allKeys.subspace(v);
+            this.keyspace = v;
         })();
     }
 

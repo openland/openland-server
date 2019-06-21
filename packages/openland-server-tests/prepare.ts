@@ -41,7 +41,7 @@ export async function prepare() {
 
         // Init DB
         let db = await openDatabase();
-        let layer = new EntityLayer(db, EventBus);
+        let layer = new EntityLayer(db, EventBus, 'app');
         let entities = await AllEntitiesDirect.create(layer);
         await layer.ready(rootCtx);
         container.bind<AllEntities>('FDB')

@@ -27,7 +27,7 @@ import { openDatabase } from 'openland-server/foundationdb';
 export async function createGraphQLAdminSchema() {
     let rootCtx = createNamedContext('graphql-admin');
     let db = await openDatabase();
-    let layer = new EntityLayer(db, EventBus);
+    let layer = new EntityLayer(db, EventBus, 'app');
     let FDB = await AllEntitiesDirect.create(layer); // WTF? Why separate connection?
     let entitiesMap: any = {};
     let queries: any = {};

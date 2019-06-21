@@ -8,7 +8,7 @@ const rootPrefix = Buffer.from('f0', 'hex');
 const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);
 const metaPrefix = Buffer.concat([rootPrefix, Buffer.from('fd', 'hex')]);
 const regsPrefix = Buffer.concat([metaPrefix, Buffer.from('01', 'hex')]);
-const counterKey = Buffer.concat([metaPrefix, Buffer.from('02', 'hex')]);
+// const counterKey = Buffer.concat([metaPrefix, Buffer.from('02', 'hex')]);
 const logger = createLogger('directory-allocator');
 
 function buildDataPrefix(counter: number) {
@@ -19,33 +19,33 @@ function buildDataPrefix(counter: number) {
 
 export class DirectoryAllocator {
     readonly connection: Database;
+    readonly root: string[];
 
-    constructor(connection: Database) {
+    constructor(connection: Database, root: string[]) {
         this.connection = connection;
+        this.root = root;
     }
 
-    async allocateDirectory(key: (string | number | boolean)[]) {
+    async allocateDirectory(key: (string)[]) {
         let destKey = Buffer.concat([regsPrefix, FKeyEncoding.encodeKey([...key])]);
         try {
             return await backoff(async () => {
                 return await inTx(createNamedContext('unknown'), async (ctx) => {
+
+                    // Check New Directory
+                    if (await this.connection.directories.exists(ctx, [...this.root, ...key])) {
+                        return (await this.connection.directories.open(ctx, [...this.root, ...key]));
+                    }
+
+                    // Check old directory
                     let res = await this.connection.allKeys.get(ctx, destKey);
                     if (res) {
-                        return buildDataPrefix(encoders.json.unpack(res).value as number);
+                        let p = buildDataPrefix(encoders.json.unpack(res).value as number);
+                        return await this.connection.directories.createPrefix(ctx, [...this.root, ...key], p);
                     }
-                    let nextPrefix = await this.connection.allKeys.get(ctx, counterKey);
-                    let nextCounter = 1;
-                    if (!nextPrefix) {
-                        this.connection.allKeys.set(ctx, counterKey, encoders.json.pack({ value: 1 }) as Buffer);
-                    } else {
-                        nextCounter = (encoders.json.unpack(nextPrefix).value as number) + 1;
-                        this.connection.allKeys.set(ctx, counterKey, encoders.json.pack({ value: nextCounter }) as Buffer);
-                    }
-                    if (nextCounter > 6536) {
-                        throw Error('Key space overflowed');
-                    }
-                    this.connection.allKeys.set(ctx, destKey, encoders.json.pack({ value: nextCounter }) as Buffer);
-                    return buildDataPrefix(nextCounter);
+
+                    // Create new
+                    return (await this.connection.directories.create(ctx, [...this.root, ...key]));
                 });
             });
         } catch (e) {
