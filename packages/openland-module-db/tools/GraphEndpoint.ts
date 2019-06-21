@@ -359,7 +359,8 @@ export async function createGraphQLAdminSchema() {
             }
         })),
         resolve(_: any, a: any) {
-            return FDB.layer.directory.findAllDirectories();
+            // return FDB.layer.directory.findAllDirectories();
+            return null;
         }
     };
     

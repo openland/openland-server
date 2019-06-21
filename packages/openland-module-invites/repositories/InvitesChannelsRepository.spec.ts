@@ -14,7 +14,6 @@ describe('ChannelRepository', () => {
         let db = await openTestDatabase();
         let layer = new EntityLayer(db, NoOpBus, 'app');
         entities = await AllEntitiesDirect.create(layer);
-        await layer.ready(createNamedContext('test'));
     });
 
     it('should create links', async () => {

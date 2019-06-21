@@ -34,7 +34,6 @@ export async function testEnvironmentStart(name: string) {
     start = currentTime();
     let layer = new EntityLayer(db, EventBus, 'app');
     let entities = await AllEntitiesDirect.create(layer);
-    await layer.ready(ctx);
     logger.log(ctx, 'Layer loaded in ' + (currentTime() - start) + ' ms');
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind<AllEntities>('FDB')

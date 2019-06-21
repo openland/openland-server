@@ -2,7 +2,7 @@
 // @ts-ignore
 import { EntitiesBase } from 'foundation-orm/EntitiesBase';
 // @ts-ignore
-import { Subspace } from '@openland/foundationdb';
+import { Subspace, Directory } from '@openland/foundationdb';
 // @ts-ignore
 import { FEntity, FEntityOptions } from 'foundation-orm/FEntity';
 // @ts-ignore
@@ -15,8 +15,6 @@ import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
 // @ts-ignore
 import { FAtomicBooleanFactory } from 'foundation-orm/FAtomicBooleanFactory';
-// @ts-ignore
-import { FDirectory } from 'foundation-orm/FDirectory';
 // @ts-ignore
 import { FConnection } from 'foundation-orm/FConnection';
 // @ts-ignore

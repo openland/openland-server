@@ -1,4 +1,3 @@
-import { FDirectoryLayer } from './layers/FDirectoryLayer';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { copySubspace, deleteMissing } from './operations';
 import { createNamedContext } from '@openland/context';
@@ -15,9 +14,9 @@ describe('operations', () => {
 
     it('should copy subspaces', async () => {
         let parent = createNamedContext('copy');
-        let directories = new FDirectoryLayer(db, ['root']);
-        let from = await directories.getDirectory(['from']);
-        let to = await directories.getDirectory(['to']);
+        
+        let from = await db.directories.createOrOpen(parent, ['from']);
+        let to = await db.directories.createOrOpen(parent, ['to']);
 
         // Preconditions
         let data = (await to.range(parent, Buffer.of()));

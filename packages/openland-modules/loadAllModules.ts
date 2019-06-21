@@ -62,7 +62,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         start = currentTime();
         let layer = new EntityLayer(db, EventBus, 'app');
         let entities = await AllEntitiesDirect.create(layer);
-        await layer.ready(ctx);
         logger.log(ctx, 'Layer started in ' + (currentTime() - start) + ' ms');
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)

@@ -14,7 +14,6 @@ describe('FEntity Versioned', () => {
         let db = await openTestDatabase();
         let layer = new EntityLayer(db, NoOpBus, 'app');
         testEntities = await AllEntitiesDirect.create(layer);
-        await layer.ready(createNamedContext('test'));
     });
 
     it('should create with version number eq to one', async () => {

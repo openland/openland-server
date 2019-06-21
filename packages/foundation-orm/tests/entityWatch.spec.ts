@@ -16,7 +16,6 @@ describe('FWatch', () => {
         let db = await openTestDatabase();
         let layer = new EntityLayer(db, NoOpBus, 'app');
         testEntities = await AllEntitiesDirect.create(layer);
-        await layer.ready(createNamedContext('test'));
     });
 
     it('should call callback on entity change', async () => {

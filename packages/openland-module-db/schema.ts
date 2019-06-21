@@ -2,7 +2,7 @@
 // @ts-ignore
 import { EntitiesBase } from 'foundation-orm/EntitiesBase';
 // @ts-ignore
-import { Subspace } from '@openland/foundationdb';
+import { Subspace, Directory } from '@openland/foundationdb';
 // @ts-ignore
 import { FEntity, FEntityOptions } from 'foundation-orm/FEntity';
 // @ts-ignore
@@ -15,8 +15,6 @@ import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
 // @ts-ignore
 import { FAtomicBooleanFactory } from 'foundation-orm/FAtomicBooleanFactory';
-// @ts-ignore
-import { FDirectory } from 'foundation-orm/FDirectory';
 // @ts-ignore
 import { FConnection } from 'foundation-orm/FConnection';
 // @ts-ignore
@@ -11334,8 +11332,8 @@ export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
 export interface AllEntities {
     readonly layer: EntityLayer;
     readonly allEntities: FEntityFactory<FEntity>[];
-    readonly NeedNotificationFlagDirectory: FDirectory;
-    readonly NotificationCenterNeedDeliveryFlagDirectory: FDirectory;
+    readonly NeedNotificationFlagDirectory: Directory;
+    readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
@@ -11605,8 +11603,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserDialogCounterPromise = UserDialogCounterFactory.create(layer);
         let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.create(layer);
         let NotificationCenterCounterPromise = NotificationCenterCounterFactory.create(layer);
-        let NeedNotificationFlagDirectoryPromise = layer.directory.getDirectory(['custom', 'needNotificationFlag']);
-        let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.directory.getDirectory(['custom', 'notificationCenterNeedDeliveryFlag']);
+        let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
+        let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await EnvironmentPromise);
         allEntities.push(await EnvironmentVariablePromise);
         allEntities.push(await OnlinePromise);
@@ -11788,8 +11786,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     }
 
     readonly allEntities: FEntityFactory<FEntity>[] = [];
-    readonly NeedNotificationFlagDirectory: FDirectory;
-    readonly NotificationCenterNeedDeliveryFlagDirectory: FDirectory;
+    readonly NeedNotificationFlagDirectory: Directory;
+    readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
@@ -12333,10 +12331,10 @@ export class AllEntitiesProxy implements AllEntities {
     get NotificationCenterCounter(): NotificationCenterCounterFactory {
         return this.resolver().NotificationCenterCounter;
     }
-    get NeedNotificationFlagDirectory(): FDirectory {
+    get NeedNotificationFlagDirectory(): Directory {
         return this.resolver().NeedNotificationFlagDirectory;
     }
-    get NotificationCenterNeedDeliveryFlagDirectory(): FDirectory {
+    get NotificationCenterNeedDeliveryFlagDirectory(): Directory {
         return this.resolver().NotificationCenterNeedDeliveryFlagDirectory;
     }
     get allEntities(): FEntityFactory<FEntity>[] {

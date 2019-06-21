@@ -9,7 +9,7 @@ export function generate(model: SchemaModel, path: string) {
     res += '// @ts-ignore\n';
     res += 'import { EntitiesBase } from \'foundation-orm/EntitiesBase\';\n';
     res += '// @ts-ignore\n';
-    res += 'import { Subspace } from \'@openland/foundationdb\';\n';
+    res += 'import { Subspace, Directory } from \'@openland/foundationdb\';\n';
     res += '// @ts-ignore\n';
     res += 'import { FEntity, FEntityOptions } from \'foundation-orm/FEntity\';\n';
     res += '// @ts-ignore\n';
@@ -22,8 +22,6 @@ export function generate(model: SchemaModel, path: string) {
     res += 'import { FAtomicIntegerFactory } from \'foundation-orm/FAtomicIntegerFactory\';\n';
     res += '// @ts-ignore\n';
     res += 'import { FAtomicBooleanFactory } from \'foundation-orm/FAtomicBooleanFactory\';\n';
-    res += '// @ts-ignore\n';
-    res += 'import { FDirectory } from \'foundation-orm/FDirectory\';\n';
     res += '// @ts-ignore\n';
     res += 'import { FConnection } from \'foundation-orm/FConnection\';\n';
     res += '// @ts-ignore\n';

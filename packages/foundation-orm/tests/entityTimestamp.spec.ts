@@ -14,7 +14,6 @@ describe('FEntity Timestamped', () => {
         let db = await openTestDatabase();
         let layer = new EntityLayer(db, NoOpBus, 'app');
         testEntities = await AllEntitiesDirect.create(layer);
-        await layer.ready(createNamedContext('test'));
     });
 
     it('should create with correct timestamps', async () => {
