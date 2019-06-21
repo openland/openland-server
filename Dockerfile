@@ -15,10 +15,8 @@ ADD yarn.lock /app/
 RUN yarn install
 
 ADD tsconfig.json /app/
-ADD tslint.json /app/
 COPY packages/ /app/packages/
 RUN yarn build 
-RUN yarn lint
 
 EXPOSE 9000
 WORKDIR /app/build
