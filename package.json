@@ -160,7 +160,7 @@
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",
     "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
     "test:watch": ". ./scripts/set_testing_config.sh && node ./node_modules/jest/bin/jest.js --watch --verbose",
-    "test": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --",
+    "test": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --runInBand --",
     "test:fdb": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit packages/foundation-orm --",
     "test:coverage": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --coverage",
     "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\"",
