@@ -10,6 +10,7 @@
     "@openland/context": "^0.4.0",
     "@openland/foundationdb": "^3.0.2",
     "@openland/foundationdb-random": "^3.0.2",
+    "@openland/foundationdb-locks": "^3.0.2",
     "@openland/log": "^1.1.1",
     "@openland/secure-id": "^0.1.0",
     "@sendgrid/mail": "^6.3.1",

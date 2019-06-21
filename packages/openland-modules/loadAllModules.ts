@@ -48,14 +48,22 @@ import { NotificationCenterModule } from '../openland-module-notification-center
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 import { openDatabase } from 'openland-server/foundationdb';
 import { MetricsModule } from '../openland-module-metrics/MetricsModule';
+import { currentTime } from 'openland-utils/timer';
+import { createLogger } from '@openland/log';
+
+const logger = createLogger('starting');
 
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
+        let start = currentTime();
         let db = await openDatabase();
+        logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
+        start = currentTime();
         let layer = new EntityLayer(db, EventBus);
         let entities = new AllEntitiesDirect(layer);
         await layer.ready(ctx);
+        logger.log(ctx, 'Layer started in ' + (currentTime() - start) + ' ms');
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();

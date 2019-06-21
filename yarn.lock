@@ -160,6 +160,18 @@
     nan "^2.13.2"
     node-gyp-build "^4.1.0"
 
+"@openland/foundationdb-locks@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-locks/-/foundationdb-locks-3.0.2.tgz#1a376e7b527e222928f08f9d7b03d875a0efb997"
+  integrity sha512-2z2haR9aWfYrzBli7x4+jsBtm5i6r9Z8ygk08yzCyac3W9XiCd9aIuEfBNaJXWCjfOglxq22X/LkduffE1h2Yw==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/foundationdb" "^3.0.2"
+    "@openland/foundationdb-utils" "^3.0.2"
+    "@openland/log" "*"
+    "@types/uuid" "^3.4.3"
+    uuid "^3.2.1"
+
 "@openland/foundationdb-random@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@openland/foundationdb-random/-/foundationdb-random-3.0.2.tgz#c9de0a351f245d53c7198cdc29adfcf33b2aab42"
