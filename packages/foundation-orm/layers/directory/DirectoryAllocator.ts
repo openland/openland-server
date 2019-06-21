@@ -32,6 +32,11 @@ export class DirectoryAllocator {
             return await backoff(async () => {
                 return await inTx(createNamedContext('unknown'), async (ctx) => {
 
+                    // Migration
+                    if (await this.connection.directories.exists(ctx, ['com.openland.layers', 'layers', ...'app'])) {
+                        await this.connection.directories.move(ctx, ['com.openland.layers', 'layers', ...'app'], ['com.openland.layers', 'layers', 'app']);
+                    }
+
                     // Check New Directory
                     if (await this.connection.directories.exists(ctx, [...this.root, ...key])) {
                         return (await this.connection.directories.open(ctx, [...this.root, ...key]));

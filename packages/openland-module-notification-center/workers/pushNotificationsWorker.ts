@@ -4,6 +4,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { FDB } from '../../openland-module-db/FDB';
 import { fetchMessageFallback } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import { singletonWorker } from '@openland/foundationdb-singleton';
+import { delay } from '@openland/foundationdb/lib/utils';
 
 const Delays = {
     'none': 10 * 1000,
@@ -17,7 +18,12 @@ export function startPushNotificationWorker() {
     singletonWorker({ db: FDB.layer.db, name: 'notification_center_push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'push'));
-        log.debug(parent, 'unread users: ' + unreadUsers.length);
+        if (unreadUsers.length > 0) {
+            log.debug(parent, 'unread users: ' + unreadUsers.length);
+        } else {
+            await delay(5000);
+            return;
+        }
         for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
                 ctx = withLogPath(ctx, 'user ' + uid);

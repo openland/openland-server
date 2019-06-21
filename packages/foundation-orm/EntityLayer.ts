@@ -13,7 +13,7 @@ export class EntityLayer {
         if (root.length === 0) {
             throw Error('');
         }
-        this.directory = new FDirectoryLayer(db, ['com.openland.layers', 'layers', ...root]);
+        this.directory = new FDirectoryLayer(db, ['com.openland.layers', 'layers', root]);
         this.db = db;
         this.eventBus = eventBus;
     }

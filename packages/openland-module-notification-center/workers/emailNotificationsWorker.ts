@@ -5,6 +5,7 @@ import { FDB } from '../../openland-module-db/FDB';
 import { Comment } from '../../openland-module-db/schema';
 import { Emails } from '../../openland-module-email/Emails';
 import { singletonWorker } from '@openland/foundationdb-singleton';
+import { delay } from '@openland/foundationdb/lib/utils';
 
 const Delays = {
     '15min': 15 * 60 * 1000,
@@ -19,7 +20,12 @@ export function startEmailNotificationWorker() {
     singletonWorker({ name: 'notification_center_email_notifications', db: FDB.layer.db, delay: 15000, startDelay: 3000 }, async (parent) => {
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'email'));
-        log.debug(parent, 'unread users: ' + unreadUsers.length);
+        if (unreadUsers.length > 0) {
+            log.debug(parent, 'unread users: ' + unreadUsers.length);
+        } else {
+            await delay(5000);
+            return;
+        }
         let now = Date.now();
         for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
