@@ -1,10 +1,10 @@
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
-import { staticWorker } from '../../openland-module-workers/staticWorker';
 import { Modules } from '../../openland-modules/Modules';
 import { FDB } from '../../openland-module-db/FDB';
 import { Comment } from '../../openland-module-db/schema';
 import { Emails } from '../../openland-module-email/Emails';
+import { singletonWorker } from '@openland/foundationdb-singleton';
 
 const Delays = {
     '15min': 15 * 60 * 1000,
@@ -16,7 +16,7 @@ const Delays = {
 const log = createLogger('notification_center_email');
 
 export function startEmailNotificationWorker() {
-    staticWorker({ name: 'notification_center_email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
+    singletonWorker({ name: 'notification_center_email_notifications', db: FDB.layer.db, delay: 15000, startDelay: 3000 }, async (parent) => {
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'email'));
         log.debug(parent, 'unread users: ' + unreadUsers.length);
@@ -122,6 +122,5 @@ export function startEmailNotificationWorker() {
                 needDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
             });
         }
-        return false;
     });
 }

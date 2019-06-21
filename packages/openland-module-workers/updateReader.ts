@@ -1,12 +1,12 @@
 import { FEntity } from 'foundation-orm/FEntity';
 import { FStream } from 'foundation-orm/FStream';
-import { staticWorker } from './staticWorker';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { singletonWorker } from '@openland/foundationdb-singleton';
 
 export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
-    staticWorker({ name: 'update_reader_' + name, version, delay: args && args.delay }, async (root) => {
+    singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: FDB.layer.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await FDB.ReaderState.findById(ctx, name));
         let first = false;
         if (existing) {
@@ -40,9 +40,6 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
                     await FDB.ReaderState.create(ctx, name, { cursor: stream.cursor, version: version });
                 }
             });
-            return true;
-        } else {
-            return false;
         }
     });
 } 

@@ -3,13 +3,13 @@ import { inTx } from '@openland/foundationdb';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createNamedContext } from '@openland/context';
-import { staticWorker } from 'openland-module-workers/staticWorker';
+import { singletonWorker } from '@openland/foundationdb-singleton';
 
 export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
             let root = createNamedContext('task-scheduler');
-            staticWorker({ name: 'modern_work_scheduler' }, async () => {
+            singletonWorker({ db: FDB.layer.db, name: 'modern_work_scheduler', delay: 1000 }, async () => {
 
                 //
                 // Timeout tasks in executing state
@@ -49,8 +49,6 @@ export class ModernScheduller {
                         }
                     }
                 });
-
-                return false;
             });
         }
     }
