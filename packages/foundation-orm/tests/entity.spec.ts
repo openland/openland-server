@@ -14,7 +14,7 @@ describe('FEntity', () => {
     beforeAll(async () => {
         let db = await openTestDatabase();
         let layer = new EntityLayer(db, NoOpBus);
-        testEntities = new AllEntitiesDirect(layer);
+        testEntities = await AllEntitiesDirect.create(layer);
         await layer.ready(rootCtx);
     });
 
@@ -145,9 +145,9 @@ describe('FEntity', () => {
         await inTx(rootctx, async (ctx) => {
             let ex = testEntities.SimpleEntity.create(ctx, 140, { data: 'hello world1' });
             let ex2 = testEntities.SimpleEntity.create(ctx, 140, { data: 'hello world2' });
-            expect(ex).resolves.not.toBeUndefined();
-            expect(ex).resolves.not.toBeNull();
-            expect(ex2).rejects.toThrowError();
+            await expect(ex).resolves.not.toBeUndefined();
+            await expect(ex).resolves.not.toBeNull();
+            await expect(ex2).rejects.toThrowError();
         });
     });
 

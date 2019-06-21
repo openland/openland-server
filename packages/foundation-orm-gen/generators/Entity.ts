@@ -96,7 +96,7 @@ export function generateEntity(entity: EntityModel): string {
             let body = index.condition.toString();
             condition = ', ' + body;
         }
-        return 'new FEntityIndex(layer, \'' + entityKey + '\', \'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
+        return 'new FEntityIndex(await layer.resolveEntityIndexDirectory(\'' + entityKey + '\', \'' + index.name + '\'), \'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
     }
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
 
@@ -135,6 +135,26 @@ export function generateEntity(entity: EntityModel): string {
     res += '        ],\n';
     // res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, secure: ${v.isSecure}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] } `).join(', ') + ']\n';
     res += '    };\n\n';
+
+    res += '    static async create(layer: EntityLayer) {\n';
+    res += '        let directory = await layer.resolveEntityDirectory(\'' + entityKey + '\');\n';
+    res += '        let config = { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' };\n';
+    if (entity.indexes.length > 0) {
+        for (let index of entity.indexes) {
+            res += '        let index' + Case.pascalCase(index.name) + ' = ' + buildIndex(index) + ';\n';
+        }
+        res += '        let indexes = {\n';
+        for (let index of entity.indexes) {
+            res += '            ' + Case.camelCase(index.name) + ': index' + Case.pascalCase(index.name) + ',\n';
+        }
+        res += '        };\n';
+        res += '        return new ' + entityClass + 'Factory(layer, directory, config, indexes);\n';
+    } else {
+        res += '        return new ' + entityClass + 'Factory(layer, directory, config);\n';
+    }
+    res += '    }\n';
+    res += '\n';
+
     for (let index of entity.indexes) {
         res += '    readonly index' + Case.pascalCase(index.name) + ': FEntityIndex;\n';
     }
@@ -174,17 +194,16 @@ export function generateEntity(entity: EntityModel): string {
     }
     res += '    }\n\n';
 
-    res += '    constructor(layer: EntityLayer) {\n';
+    res += '    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions'
+        + (entity.indexes.length > 0 ? ', indexes: { ' + entity.indexes.map((v) => Case.camelCase(v.name) + ': FEntityIndex').join(', ') + ' }' : '') + ') {\n';
+    // for (let index of entity.indexes) {
+    //     res += '        let index' + Case.pascalCase(index.name) + ' = ' + buildIndex(index) + ';\n';
+    // }
+    res += '        super(\'' + entity.name + '\', \'' + entityKey + '\', config, ';
+    res += '[' + entity.indexes.map((v) => 'indexes.' + Case.camelCase(v.name)).join(', ') + '], ';
+    res += 'layer, directory);\n';
     for (let index of entity.indexes) {
-        res += '        let index' + Case.pascalCase(index.name) + ' = ' + buildIndex(index) + ';\n';
-    }
-    res += '        super(\'' + entity.name + '\', \'' + entityKey + '\', \n';
-    res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' },\n';
-    res += '            [' + entity.indexes.map((v) => 'index' + Case.pascalCase(v.name)).join(', ') + '],\n';
-    res += '            layer\n';
-    res += '        );\n';
-    for (let index of entity.indexes) {
-        res += '        this.index' + Case.pascalCase(index.name) + ' = index' + Case.pascalCase(index.name) + ';\n';
+        res += '        this.index' + Case.pascalCase(index.name) + ' = indexes.' + Case.camelCase(index.name) + ';\n';
     }
     res += '    }\n';
 

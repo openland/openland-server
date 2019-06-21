@@ -21,8 +21,7 @@ const logger = createLogger('api-module');
 
 @injectable()
 export class ApiModule {
-    private schema = Schema(process.env.TESTING === 'true');
-
+    
     start = async () => {
         logger.log(defaultCtx, 'Start API Module');
         if (serverRoleEnabled('api')) {
@@ -54,7 +53,7 @@ export class ApiModule {
         ctx = CacheContext.set(ctx, new Map());
         return new ApolloClient({
             cache: new InMemoryCache(),
-            link: new SchemaLink({ schema: this.schema, context: new AppContext(ctx) })
+            link: new SchemaLink({ schema: Schema(process.env.TESTING === 'true'), context: new AppContext(ctx) })
         });
     }
 }

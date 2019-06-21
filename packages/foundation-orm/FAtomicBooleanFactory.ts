@@ -1,17 +1,16 @@
-import { FDirectory } from './FDirectory';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FAtomicBoolean } from './FAtomicBoolean';
 import { EntityLayer } from './EntityLayer';
-import { Tuple } from '@openland/foundationdb/lib/encoding';
+import { Tuple, Subspace } from '@openland/foundationdb';
 
 export class FAtomicBooleanFactory {
 
     readonly layer: EntityLayer;
-    readonly directory: FDirectory;
+    readonly directory: Subspace;
 
-    constructor(name: string, layer: EntityLayer) {
+    protected constructor(layer: EntityLayer, subspace: Subspace) {
         this.layer = layer;
-        this.directory = layer.directory.getDirectory(['atomic', name]);
+        this.directory = subspace;
     }
 
     protected _findById(key: Tuple[]) {

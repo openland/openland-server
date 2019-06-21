@@ -152,10 +152,45 @@
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@openland/context/-/context-0.4.0.tgz#3d12934d9726b5743f9f40521e3d62e81a1f8d0c"
 
-"@openland/foundationdb@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-2.1.0.tgz#901a126a846de2fb21a3a678d03f38369907b758"
-  integrity sha512-WSgdrhHd7iopKdiU4xJUQzfMhw1rnHqe08jzWvtCldBNfBcZEo43sWF+lZp7XDvjHHBJVOeSQWNTcAP25/dybg==
+"@openland/foundationdb-locks@^3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-locks/-/foundationdb-locks-3.0.6.tgz#36895b4d31737a1a35fc5b9f328c2d07355e4404"
+  integrity sha512-N0DBK1Jtub2aaLEPDlkT21YfNxDCkGl1knPywBiDBIbtjcyApMNmpwhFBILGTjvXBwqThWGdoTcgRaIL7pWrKQ==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/foundationdb" "^3.0.6"
+    "@openland/foundationdb-utils" "^3.0.6"
+    "@openland/log" "*"
+    "@types/uuid" "^3.4.3"
+    uuid "^3.2.1"
+
+"@openland/foundationdb-random@^3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-random/-/foundationdb-random-3.0.6.tgz#1b4d0e83c8bbeb00582674d82c0f457eb258b242"
+  integrity sha512-VO3aXOsjHp6thu1+JAHuKAZbiJQ8Z0d8USYv7/QvEUU5jtlYeqb/cqm9uMBMnwmfNrx5KOU8/nw4tdX5Hwl8Rg==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/foundationdb" "^3.0.6"
+    "@openland/foundationdb-utils" "^3.0.6"
+    "@openland/log" "*"
+    "@types/uuid" "^3.4.3"
+    uuid "^3.2.1"
+
+"@openland/foundationdb-utils@^3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-utils/-/foundationdb-utils-3.0.6.tgz#031919d5d18659db729030bd64db00d9b0b47f80"
+  integrity sha512-2PxfWONNwH2FAddjOJCWUSlV8j787cJd1pqpGoY2cLO7vKFa3lNqbEnN9fx0TOGVRfltj2o32DreEHOe4KTYbg==
+  dependencies:
+    "@openland/context" "*"
+    "@openland/foundationdb" "^3.0.6"
+    "@openland/log" "*"
+    "@types/uuid" "^3.4.3"
+    uuid "^3.2.1"
+
+"@openland/foundationdb@^3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-3.0.6.tgz#4e0085afa9cee07846e72d7e059f705707a89f87"
+  integrity sha512-rcoCnw4cXecdXgfVSeAi6tCPPNdjZBIpSIn1vxLS93SeQ2grCrmvj3w0AdLy79W3MKGCtYSRpXI80maBrwA/UQ==
   dependencies:
     "@openland/context" "*"
     "@openland/log" "*"
@@ -3742,6 +3777,7 @@ forwarded@~0.1.2:
 foundationdb@0.10.2:
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/foundationdb/-/foundationdb-0.10.2.tgz#cdce283f02b2d91fb50de10a44614b1243c28344"
+  integrity sha512-4VUjUmjD2fEhGTBNhREriTtTbkBMx1Q8lyQb7aPoHlTn6tgp1U7lI93hVqjyOa7tQ00WjVbDN83RYRFEaa5OgA==
   dependencies:
     nan "^2.13.2"
     node-gyp-build "^4.1.0"

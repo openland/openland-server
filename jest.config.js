@@ -20,7 +20,6 @@ module.exports = {
     testRegex: '.*\\.spec\\.(ts)x?$',
     testPathIgnorePatterns: ['/node_modules/'],
     coverageDirectory: 'coverage',
-    mapCoverage: true,
     collectCoverageFrom: [
         'packages/**/*.{ts,tsx,js,jsx}',
         '!packages/**/*.d.ts',

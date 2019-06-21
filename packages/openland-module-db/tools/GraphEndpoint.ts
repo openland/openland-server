@@ -28,7 +28,7 @@ export async function createGraphQLAdminSchema() {
     let rootCtx = createNamedContext('graphql-admin');
     let db = await openDatabase();
     let layer = new EntityLayer(db, EventBus);
-    let FDB = new AllEntitiesDirect(layer); // WTF? Why separate connection?
+    let FDB = await AllEntitiesDirect.create(layer); // WTF? Why separate connection?
     let entitiesMap: any = {};
     let queries: any = {};
     let mutations: any = {};
@@ -366,7 +366,8 @@ export async function createGraphQLAdminSchema() {
     queries.metaMigrations = {
         type: new GraphQLList(GraphQLString),
         async resolve() {
-            return (await FDB.layer.db.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+            // return (await FDB.layer.db.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+            return null;
         }
     };
     

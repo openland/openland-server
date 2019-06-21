@@ -16,10 +16,8 @@ describe('operations', () => {
     it('should copy subspaces', async () => {
         let parent = createNamedContext('copy');
         let directories = new FDirectoryLayer(db);
-        let from = directories.getDirectory(['from']);
-        let to = directories.getDirectory(['to']);
-        await from.ready();
-        await to.ready();
+        let from = await directories.getDirectory(['from']);
+        let to = await directories.getDirectory(['to']);
 
         // Preconditions
         let data = (await to.range(parent, Buffer.of()));

@@ -1,9 +1,8 @@
 import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { Context } from '@openland/context';
-import { encoders } from 'foundationdb';
 import { createLogger, Logger, withLogPath } from '@openland/log';
-import { Database } from '@openland/foundationdb';
+import { Database, inTx, encoders } from '@openland/foundationdb';
 
 export interface FMigration {
     key: string;
@@ -17,7 +16,9 @@ export async function performMigrations(parent: Context, connection: Database, m
         if (migrations.length === 0) {
             return;
         }
-        let appliedTransactions = (await connection.rawDB.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => encoders.json.unpack(v[1]));
+        let appliedTransactions = (await connection.allKeys.subspace(FKeyEncoding.encodeKey(['__meta', 'migrations']))
+            .range(parent, Buffer.of()))
+            .map((v) => encoders.json.unpack(v.value));
         let remaining = migrations.filter((v) => !appliedTransactions.find((m) => m.key === v.key));
         if (remaining.length > 0) {
             log.log(parent, 'Remaining migrations: ' + remaining.length);
@@ -25,7 +26,9 @@ export async function performMigrations(parent: Context, connection: Database, m
                 log.log(parent, 'Starting migration: ' + m.key);
                 let ctx = withLogPath(parent, m.key);
                 await m.migration(ctx, log);
-                await connection.rawDB.set(FKeyEncoding.encodeKey(['__meta', 'migrations', m.key]), encoders.json.pack({ key: m.key }) as Buffer);
+                await inTx(ctx, async (ctx2) => {
+                    connection.allKeys.subspace(FKeyEncoding.encodeKey(['__meta', 'migrations'])).set(ctx2, FKeyEncoding.encodeKey([m.key]), encoders.json.pack({ key: m.key }) as Buffer);
+                });
                 log.log(parent, 'Completed migration: ' + m.key);
             }
             log.log(parent, 'All migrations are completed');

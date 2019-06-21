@@ -5,21 +5,21 @@ import { TransformedSubspace } from '@openland/foundationdb/lib/impl/Transformed
 import { Watch } from '@openland/foundationdb/lib/Watch';
 
 export class FDirectory implements Subspace {
-    readonly connection: Database;
+    readonly db: Database;
     readonly path: string[];
     private readonly allocatorProcess: Promise<void>;
     private keyspace!: Subspace;
     private allocatedKey!: Buffer;
     private isAllocated = false;
 
-    constructor(connection: Database, allocator: DirectoryAllocator, path: string[]) {
-        this.connection = connection;
+    constructor(db: Database, allocator: DirectoryAllocator, path: string[]) {
+        this.db = db;
         this.path = path;
         this.allocatorProcess = (async () => {
             let v = await allocator.allocateDirectory(path);
             this.allocatedKey = v;
             this.isAllocated = true;
-            this.keyspace = connection.allKeys.subspace(v);
+            this.keyspace = db.allKeys.subspace(v);
         })();
     }
 
@@ -58,11 +58,25 @@ export class FDirectory implements Subspace {
         return this.keyspace.get(ctx, key);
     }
 
+    snapshotGet(ctx: Context, key: Buffer): Promise<Buffer | null> {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.snapshotGet(ctx, key);
+    }
+
     range(ctx: Context, key: Buffer, opts?: RangeOptions<Buffer>): Promise<{ key: Buffer, value: Buffer }[]> {
         if (!this.isAllocated) {
             throw Error('Directory is not ready');
         }
         return this.keyspace.range(ctx, key, opts);
+    }
+
+    snapshotRange(ctx: Context, key: Buffer, opts?: RangeOptions<Buffer>): Promise<{ key: Buffer, value: Buffer }[]> {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.snapshotRange(ctx, key, opts);
     }
 
     set(ctx: Context, key: Buffer, value: Buffer) {
@@ -77,6 +91,19 @@ export class FDirectory implements Subspace {
             throw Error('Directory is not ready');
         }
         return this.keyspace.clear(ctx, key);
+    }
+
+    clearPrefixed(ctx: Context, key: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.clearPrefixed(ctx, key);
+    }
+    clearRange(ctx: Context, start: Buffer, end: Buffer) {
+        if (!this.isAllocated) {
+            throw Error('Directory is not ready');
+        }
+        return this.keyspace.clearRange(ctx, start, end);
     }
 
     add(ctx: Context, key: Buffer, value: Buffer) {

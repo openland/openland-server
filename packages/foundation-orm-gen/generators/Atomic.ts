@@ -9,25 +9,29 @@ export function generateAtomic(atomic: AtomicModel): string {
 
     if (atomic.kind === 'int') {
         res += 'export class ' + entityClass + 'Factory extends FAtomicIntegerFactory {\n';
-        res += '    constructor(layer: EntityLayer) {\n';
-        res += '        super(\'' + entityKey + '\', layer);\n';
+        res += '    static async create(layer: EntityLayer) {\n';
+        res += '        let directory = await layer.resolveAtomicDirectory(\'' + entityKey + '\');\n';
+        res += '        return new ' + entityClass + 'Factory(layer, directory);\n';
         res += '    }\n';
-
         res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
         res += '        return this._findById([' + atomic.keys.map((v) => v.name).join(', ') + ']);\n';
         res += '    }\n';
-
+        res += '    private constructor(layer: EntityLayer, subspace: Subspace) {\n';
+        res += '        super(layer, subspace);\n';
+        res += '    }\n';
         res += '}';
     } else {
         res += 'export class ' + entityClass + 'Factory extends FAtomicBooleanFactory {\n';
-        res += '    constructor(layer: EntityLayer) {\n';
-        res += '        super(\'' + entityKey + '\', layer);\n';
+        res += '    static async create(layer: EntityLayer) {\n';
+        res += '        let directory = await layer.resolveAtomicDirectory(\'' + entityKey + '\');\n';
+        res += '        return new ' + entityClass + 'Factory(layer, directory);\n';
         res += '    }\n';
-
         res += '    byId(' + atomic.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
         res += '        return this._findById([' + atomic.keys.map((v) => v.name).join(', ') + ']);\n';
         res += '    }\n';
-
+        res += '    private constructor(layer: EntityLayer, subspace: Subspace) {\n';
+        res += '        super(layer, subspace);\n';
+        res += '    }\n';
         res += '}';
     }
 

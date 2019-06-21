@@ -1,22 +1,15 @@
-import { forever, delay } from 'openland-utils/timer';
-import { LockRepository } from 'openland-module-sync/LockRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createNamedContext } from '@openland/context';
+import { staticWorker } from 'openland-module-workers/staticWorker';
 
 export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
             let root = createNamedContext('task-scheduler');
-            forever(async () => {
-
-                // Prerequisites
-                if (!(await LockRepository.tryLock(root, 'modern_work_scheduler', 1))) {
-                    await delay(15000);
-                    return;
-                }
+            staticWorker({ name: 'modern_work_scheduler' }, async () => {
 
                 //
                 // Timeout tasks in executing state
@@ -57,8 +50,7 @@ export class ModernScheduller {
                     }
                 });
 
-                // Delay
-                await delay(10000);
+                return false;
             });
         }
     }
