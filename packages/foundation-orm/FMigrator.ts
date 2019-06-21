@@ -1,9 +1,8 @@
 import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { Context } from '@openland/context';
-import { encoders } from 'foundationdb';
 import { createLogger, Logger, withLogPath } from '@openland/log';
-import { Database, inTx } from '@openland/foundationdb';
+import { Database, inTx, encoders } from '@openland/foundationdb';
 
 export interface FMigration {
     key: string;
