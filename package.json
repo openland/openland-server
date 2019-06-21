@@ -11,6 +11,8 @@
     "@openland/foundationdb": "^3.0.6",
     "@openland/foundationdb-random": "^3.0.6",
     "@openland/foundationdb-locks": "^3.0.6",
+    "@openland/foundationdb-migrations": "^3.0.6",
+    "@openland/foundationdb-singleton": "^3.0.6",
     "@openland/log": "^1.1.1",
     "@openland/secure-id": "^0.1.0",
     "@sendgrid/mail": "^6.3.1",

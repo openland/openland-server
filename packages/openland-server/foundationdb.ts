@@ -1,11 +1,18 @@
 import { Shutdown } from './../openland-utils/Shutdown';
 import * as fs from 'fs';
 import { Database, Layer } from '@openland/foundationdb';
+import migrations from './migrations';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { MigrationsLayer } from '@openland/foundationdb-migrations';
+import { LockLayer } from '@openland/foundationdb-locks';
+import { SingletonWorkerLayer } from '@openland/foundationdb-singleton';
 
 function createLayers() {
     let layers: Layer[] = [
-        new RandomLayer()
+        new RandomLayer(),
+        new MigrationsLayer(migrations),
+        new LockLayer(),
+        new SingletonWorkerLayer()
     ];
     return layers;
 }
