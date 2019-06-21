@@ -13,10 +13,10 @@ require('module-alias/register');
 import './logs';
 
 // Register crash reporting
-import Raven from 'raven';
-if (process.env.NODE_ENV !== 'development') {
-    Raven.config('https://8fd3799350f74171b901606ddda8d91d@sentry.io/1236375').install();
-}
+// import Raven from 'raven';
+// if (process.env.NODE_ENV !== 'development') {
+//     Raven.config('https://8fd3799350f74171b901606ddda8d91d@sentry.io/1236375').install();
+// }
 
 // Register graceful shutdown
 import '../openland-utils/Shutdown';
