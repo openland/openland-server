@@ -1,3 +1,4 @@
+import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -9,7 +10,6 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
-import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';

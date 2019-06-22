@@ -16,6 +16,7 @@ import {
 } from '../../openland-module-messaging/MessageInput';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -367,7 +368,7 @@ export class CommentsRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: this.entities.layer.nextRandomId()
+                    id: this.entities.layer.db.get(RandomLayer).nextRandomId()
                 });
             }
 

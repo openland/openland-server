@@ -2,7 +2,6 @@
 import { EntityLayer } from './../../foundation-orm/EntityLayer';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { PushRepository } from './PushRepository';
-import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createNamedContext } from '@openland/context';
 import { openTestDatabase } from 'openland-server/foundationdb';
 
@@ -12,7 +11,7 @@ describe('PushRepository', () => {
 
     beforeAll(async () => {
         let db = await openTestDatabase();
-        let layer = new EntityLayer(db, NoOpBus, 'app');
+        let layer = new EntityLayer(db, 'app');
         entities = await AllEntitiesDirect.create(layer);
     });
 

@@ -17,7 +17,6 @@ import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema'
 import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { IdsFactory } from 'openland-module-api/IDs';
-import { EventBus } from 'openland-module-pubsub/EventBus';
 import { batch } from 'openland-utils/batch';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -27,7 +26,7 @@ import { openDatabase } from 'openland-server/foundationdb';
 export async function createGraphQLAdminSchema() {
     let rootCtx = createNamedContext('graphql-admin');
     let db = await openDatabase();
-    let layer = new EntityLayer(db, EventBus, 'app');
+    let layer = new EntityLayer(db, 'app');
     let FDB = await AllEntitiesDirect.create(layer); // WTF? Why separate connection?
     let entitiesMap: any = {};
     let queries: any = {};

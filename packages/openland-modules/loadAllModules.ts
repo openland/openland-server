@@ -25,7 +25,6 @@ import { ApiModule } from 'openland-module-api/ApiModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { AuthModule } from 'openland-module-auth/AuthModule';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { EventBus } from 'openland-module-pubsub/EventBus';
 import { loadMessagingModule } from 'openland-module-messaging/Messaging.container';
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
@@ -60,7 +59,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let db = await openDatabase();
         logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
         start = currentTime();
-        let layer = new EntityLayer(db, EventBus, 'app');
+        let layer = new EntityLayer(db, 'app');
         let entities = await AllEntitiesDirect.create(layer);
         logger.log(ctx, 'Layer started in ' + (currentTime() - start) + ' ms');
         container.bind<AllEntities>('FDB')

@@ -1,21 +1,16 @@
 import { createNamedContext } from '@openland/context';
-import { FPubsub } from 'foundation-orm/FPubsub';
 import { Database, inTx } from '@openland/foundationdb';
-import { RandomLayer } from '@openland/foundationdb-random';
+import { EventBus } from '@openland/foundationdb-bus';
 
 export class EntityLayer {
     readonly root: string;
     readonly db: Database;
-    readonly eventBus: FPubsub;
+    readonly eventBus: EventBus<any>;
 
-    constructor(db: Database, eventBus: FPubsub, root: string) {
+    constructor(db: Database, root: string) {
         this.root = root;
         this.db = db;
-        this.eventBus = eventBus;
-    }
-
-    nextRandomId(): string {
-        return this.db.get(RandomLayer).nextRandomId();
+        this.eventBus = new EventBus<any>(db);
     }
 
     async resolveAtomicDirectory(name: string) {

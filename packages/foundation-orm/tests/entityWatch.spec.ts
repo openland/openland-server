@@ -4,7 +4,6 @@ import { inTx } from '@openland/foundationdb';
 import { EntityLayer } from './../EntityLayer';
 import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { delay } from '../../openland-utils/timer';
-import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 import { openTestDatabase } from 'openland-server/foundationdb';
 
@@ -14,7 +13,7 @@ describe('FWatch', () => {
     let testEntities: AllEntities;
     beforeAll(async () => {
         let db = await openTestDatabase();
-        let layer = new EntityLayer(db, NoOpBus, 'app');
+        let layer = new EntityLayer(db, 'app');
         testEntities = await AllEntitiesDirect.create(layer);
     });
 

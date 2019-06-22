@@ -8,7 +8,6 @@ import faker from 'faker';
 import { FDB } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { EventBus } from 'openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { openDatabase } from 'openland-server/foundationdb';
@@ -41,7 +40,7 @@ export async function prepare() {
 
         // Init DB
         let db = await openDatabase();
-        let layer = new EntityLayer(db, EventBus, 'app');
+        let layer = new EntityLayer(db, 'app');
         let entities = await AllEntitiesDirect.create(layer);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
