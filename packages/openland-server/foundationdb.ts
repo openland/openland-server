@@ -16,7 +16,7 @@ function createLayers(test: boolean) {
         new LockLayer(),
         new SingletonWorkerLayer(),
         new BusLayer(
-            test
+            !process.env.REDIS_HOST
                 ? new NoOpBus()
                 : new RedisBusProvider(
                     process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string, 10) : 6379,
