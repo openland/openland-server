@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, encoders } from '@openland/foundationdb';
 import {
     GraphQLSchema,
     GraphQLObjectType,
@@ -15,7 +15,6 @@ import * as Case from 'change-case';
 import { AllEntitiesDirect } from '../schema';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
 import { delay } from 'openland-utils/timer';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { IdsFactory } from 'openland-module-api/IDs';
 import { batch } from 'openland-utils/batch';
 import { createNamedContext } from '@openland/context';
@@ -258,7 +257,7 @@ export async function createGraphQLAdminSchema() {
                         log.debug(lctx, 'batch ' + count + '/' + batches.length + '...');
                         await inTx(lctx, async (ctx) => {
                             for (let a of b) {
-                                let k = FKeyEncoding.decodeKey(a);
+                                let k = encoders.tuple.unpack(a);
                                 k.splice(0, 2);
                                 let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
                                 itm.markDirty();
