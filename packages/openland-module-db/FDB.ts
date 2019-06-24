@@ -1,4 +1,8 @@
-import { AllEntities, AllEntitiesProxy } from './schema';
+import { AllEntities } from './schema';
 import { container } from 'openland-modules/Modules.container';
 
-export const FDB = new AllEntitiesProxy(() => container.get('FDB')) as AllEntities;
+export const FDB = new Proxy({}, {
+    get: function (obj: {}, prop: string | number | symbol) {
+        return (container.get('FDB') as any)[prop];
+    }
+}) as AllEntities;
