@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities, Message } from 'openland-module-db/schema';
 import { injectable } from 'inversify';
@@ -24,6 +25,9 @@ export class CountersRepository {
 
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
+    @lazyInject('Store')
+    private readonly store!: Store;
+
     @lazyInject('UserStateRepository')
     private readonly userState!: UserStateRepository;
 
@@ -43,7 +47,7 @@ export class CountersRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let localHasMention = this.entities.UserDialogHaveMention.byId(uid, message.cid);
             let localCounter = this.entities.UserDialogCounter.byId(uid, message.cid);
-            let globalCounter = this.entities.UserCounter.byId(uid);
+            let globalCounter = this.store.UserCounter.byId(uid);
 
             if (!local.readMessageId || message.id > local.readMessageId) {
 
@@ -68,7 +72,7 @@ export class CountersRepository {
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let localCounter = this.entities.UserDialogCounter.byId(uid, message.cid);
-            let globalCounter = this.entities.UserCounter.byId(uid);
+            let globalCounter = this.store.UserCounter.byId(uid);
 
             if (message.uid !== uid && (!local.readMessageId || message.id > local.readMessageId)) {
                 localCounter.decrement(ctx);
@@ -102,7 +106,7 @@ export class CountersRepository {
             let localCounter = this.entities.UserDialogCounter.byId(uid, message.cid);
             let haveMention = this.entities.UserDialogHaveMention.byId(uid, message.cid);
             let prevReadMessageId = local.readMessageId;
-            let globalCounter = this.entities.UserCounter.byId(uid);
+            let globalCounter = this.store.UserCounter.byId(uid);
             if (!local.readMessageId || local.readMessageId < message.id) {
                 local.readMessageId = message.id;
 
@@ -153,7 +157,7 @@ export class CountersRepository {
         return await inTx(parent, async (ctx) => {
             let haveMention = this.entities.UserDialogHaveMention.byId(uid, cid);
             let localCounter = this.entities.UserDialogCounter.byId(uid, cid);
-            let globalCounter = this.entities.UserCounter.byId(uid);
+            let globalCounter = this.store.UserCounter.byId(uid);
             let localUnread = (await localCounter.get(ctx) || 0);
             if (localUnread > 0) {
                 globalCounter.add(ctx, -localUnread);

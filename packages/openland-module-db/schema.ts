@@ -11232,18 +11232,6 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return new NotificationCenterEvent(ctx, this.layer, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
-export class UserCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userCounter');
-        return new UserCounterFactory(layer, directory);
-    }
-    byId(uid: number) {
-        return this._findById([uid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
 export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveAtomicDirectory('userMessagesSentCounter');
@@ -11416,7 +11404,6 @@ export interface AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
-    readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
@@ -11595,7 +11582,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationPromise = NotificationFactory.create(layer);
         let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
         let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
-        let UserCounterPromise = UserCounterFactory.create(layer);
         let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.create(layer);
         let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.create(layer);
         let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.create(layer);
@@ -11771,7 +11757,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             Notification: await NotificationPromise,
             NotificationCenterState: await NotificationCenterStatePromise,
             NotificationCenterEvent: await NotificationCenterEventPromise,
-            UserCounter: await UserCounterPromise,
             UserMessagesSentCounter: await UserMessagesSentCounterPromise,
             UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
             UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
@@ -11870,7 +11855,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
-    readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
@@ -12045,7 +12029,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.NotificationCenterState);
         this.NotificationCenterEvent = entities.NotificationCenterEvent;
         this.allEntities.push(this.NotificationCenterEvent);
-        this.UserCounter = entities.UserCounter;
         this.UserMessagesSentCounter = entities.UserMessagesSentCounter;
         this.UserMessagesReceivedCounter = entities.UserMessagesReceivedCounter;
         this.UserMessagesChatsCounter = entities.UserMessagesChatsCounter;
@@ -12306,9 +12289,6 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get NotificationCenterEvent(): NotificationCenterEventFactory {
         return this.resolver().NotificationCenterEvent;
-    }
-    get UserCounter(): UserCounterFactory {
-        return this.resolver().UserCounter;
     }
     get UserMessagesSentCounter(): UserMessagesSentCounterFactory {
         return this.resolver().UserMessagesSentCounter;

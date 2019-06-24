@@ -1,3 +1,5 @@
+import { Store } from './../../openland-module-db/store';
+import { lazyInject } from 'openland-modules/Modules.container';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
@@ -11,6 +13,8 @@ const logger = createLogger('fixer');
 export class FixerRepository {
     private readonly entities: AllEntities;
     private readonly userState: UserStateRepository;
+    @lazyInject('Store')
+    private readonly store!: Store;
 
     constructor(
         @inject('FDB') entities: AllEntities,
@@ -53,7 +57,7 @@ export class FixerRepository {
                         counter.set(ctx, total);
                     }
                 }
-                let globalCounter = this.entities.UserCounter.byId(uid);
+                let globalCounter = this.store.UserCounter.byId(uid);
                 logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + (await globalCounter.get(ctx) || 0) + ', updated: ' + totalUnread);
                 globalCounter.set(ctx, totalUnread);
 

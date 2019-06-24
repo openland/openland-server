@@ -1,3 +1,5 @@
+import { Store } from './../../openland-module-db/store';
+import { lazyInject } from 'openland-modules/Modules.container';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
 import { injectable, inject } from 'inversify';
@@ -8,6 +10,8 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 export class UserStateRepository {
     private readonly entities: AllEntities;
     private readonly metrics: ChatMetricsRepository;
+    @lazyInject('Store')
+    private readonly store!: Store;
 
     constructor(@inject('FDB') entities: AllEntities, @inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
         this.entities = entities;
@@ -52,7 +56,7 @@ export class UserStateRepository {
 
     async getUserMessagingUnread(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.entities.UserCounter.byId(uid).get(ctx);
+            return await this.store.UserCounter.byId(uid).get(ctx);
         });
     }
 

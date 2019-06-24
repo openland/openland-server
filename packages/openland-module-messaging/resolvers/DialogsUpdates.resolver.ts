@@ -1,5 +1,5 @@
 import { IDs } from 'openland-module-api/IDs';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
@@ -67,7 +67,7 @@ export default {
         betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         alphaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx),
-        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx),
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => Store.UserCounter.byId(ctx.auth.uid!).get(ctx),
         haveMention: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx)
     },
     DialogMessageUpdated: {
@@ -89,13 +89,13 @@ export default {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
         },
         unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx),
-        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx),
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => Store.UserCounter.byId(ctx.auth.uid!).get(ctx),
         haveMention: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx)
     },
     DialogMessageRead: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx),
-        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx),
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => Store.UserCounter.byId(ctx.auth.uid!).get(ctx),
         haveMention: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx)
     },
     DialogTitleUpdated: {
@@ -108,11 +108,11 @@ export default {
     },
     DialogDeleted: {
         cid: src => IDs.Conversation.serialize(src.cid!),
-        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx)
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => Store.UserCounter.byId(ctx.auth.uid!).get(ctx)
     },
     DialogBump: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx),
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => Store.UserCounter.byId(ctx.auth.uid!).get(ctx),
         unread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         topMessage: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
@@ -122,7 +122,7 @@ export default {
     DialogMuteChanged: {
         cid: src => IDs.Conversation.serialize(src.cid!),
         mute: src => src.mute,
-        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.UserCounter.byId(ctx.auth.uid!).get(ctx)
+        globalUnread: async (src: UserDialogEvent, args: {}, ctx: AppContext) => Store.UserCounter.byId(ctx.auth.uid!).get(ctx)
     },
     // depricated
     DialogMentionedChanged: {

@@ -16,7 +16,7 @@ import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
@@ -396,7 +396,7 @@ export default {
         },
         unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: AppContext) => {
             if (typeof src === 'number') {
-                return FDB.UserCounter.byId(src).get(ctx);
+                return Store.UserCounter.byId(src).get(ctx);
             } else {
                 return src.counter;
             }

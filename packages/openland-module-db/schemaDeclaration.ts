@@ -1144,9 +1144,6 @@ const Schema = declareSchema(() => {
     // Counters
     //
 
-    atomic('UserCounter', () => {
-        primaryKey('uid', 'number');
-    });
     atomic('UserMessagesSentCounter', () => {
         primaryKey('uid', 'number');
     });

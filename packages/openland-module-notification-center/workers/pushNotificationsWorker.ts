@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { createLogger, withLogPath } from '@openland/log';
 import { Modules } from '../../openland-modules/Modules';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { fetchMessageFallback } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
@@ -153,7 +153,7 @@ export function startPushNotificationWorker() {
                         title: title,
                         body: pushBody,
                         picture: null,
-                        counter: await FDB.UserCounter.byId(uid).get(ctx)!,
+                        counter: await Store.UserCounter.byId(uid).get(ctx)!,
                         conversationId: null,
                         mobile: sendMobile,
                         desktop: sendDesktop,

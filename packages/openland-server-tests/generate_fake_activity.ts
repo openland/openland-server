@@ -1,3 +1,5 @@
+import { Store } from './../openland-module-db/store';
+import { EntityStorage } from '@openland/foundationdb-entity';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 // Register Modules
 
@@ -13,6 +15,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { range } from '../openland-utils/range';
 import { openDatabase } from 'openland-server/foundationdb';
+import { openStore } from 'openland-module-db/store';
 
 let rootCtx = createNamedContext('prepare');
 faker.seed(123);
@@ -72,11 +75,21 @@ export async function prepare() {
 
         // Init DB
         let db = await openDatabase();
+
+        // Old Entity
         let layer = new EntityLayer(db, 'app');
         let entities = await AllEntitiesDirect.create(layer);
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
             .inSingletonScope();
+
+        // New Entity
+        let storage = new EntityStorage(db);
+        let store = await openStore(storage);
+        container.bind<Store>('Store')
+            .toDynamicValue(() => store)
+            .inSingletonScope();
+
         let ctx = rootCtx;
         if (await FDB.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');

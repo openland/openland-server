@@ -4,19 +4,19 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { Subspace } from '@openland/foundationdb';
 // @ts-ignore
-import { EntityStore } from '@openland/foundationdb-entity';
+import { EntityStorage, BaseStore } from '@openland/foundationdb-entity';
 // @ts-ignore
 import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundationdb-entity';
 
 export class UserCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userCounter');
-        return new UserCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userCounter');
+        return new UserCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number) {
@@ -46,13 +46,13 @@ export class UserCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userMessagesSentCounter');
-        return new UserMessagesSentCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesSentCounter');
+        return new UserMessagesSentCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number) {
@@ -82,13 +82,13 @@ export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesReceivedCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userMessagesReceivedCounter');
-        return new UserMessagesReceivedCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesReceivedCounter');
+        return new UserMessagesReceivedCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number) {
@@ -118,13 +118,13 @@ export class UserMessagesReceivedCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesChatsCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userMessagesChatsCounter');
-        return new UserMessagesChatsCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesChatsCounter');
+        return new UserMessagesChatsCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number) {
@@ -154,13 +154,13 @@ export class UserMessagesChatsCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesDirectChatsCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userMessagesDirectChatsCounter');
-        return new UserMessagesDirectChatsCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesDirectChatsCounter');
+        return new UserMessagesDirectChatsCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number) {
@@ -190,13 +190,13 @@ export class UserMessagesDirectChatsCounterFactory extends AtomicIntegerFactory 
 
 export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userDialogCounter');
-        return new UserDialogCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userDialogCounter');
+        return new UserDialogCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number, cid: number) {
@@ -226,13 +226,13 @@ export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
 export class UserDialogHaveMentionFactory extends AtomicBooleanFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('userDialogHaveMention');
-        return new UserDialogHaveMentionFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userDialogHaveMention');
+        return new UserDialogHaveMentionFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(uid: number, cid: number) {
@@ -254,13 +254,13 @@ export class UserDialogHaveMentionFactory extends AtomicBooleanFactory {
 
 export class NotificationCenterCounterFactory extends AtomicIntegerFactory {
 
-    static async create(store: EntityStore) {
-        let directory = await store.resolveAtomicDirectory('notificationCenterCounter');
-        return new NotificationCenterCounterFactory(store, directory);
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('notificationCenterCounter');
+        return new NotificationCenterCounterFactory(storage, directory);
     }
 
-    private constructor(store: EntityStore, subspace: Subspace) {
-        super(store, subspace);
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
     }
 
     byId(ncid: number) {
@@ -286,4 +286,45 @@ export class NotificationCenterCounterFactory extends AtomicIntegerFactory {
     decrement(ctx: Context, ncid: number) {
         return this._decrement(ctx, [ncid]);
     }
+}
+
+export interface Store extends BaseStore {
+    readonly UserCounter: UserCounterFactory;
+    readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
+    readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
+    readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
+    readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
+    readonly UserDialogCounter: UserDialogCounterFactory;
+    readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
+    readonly NotificationCenterCounter: NotificationCenterCounterFactory;
+}
+
+export async function openStore(storage: EntityStorage): Promise<Store> {
+    let UserCounterPromise = UserCounterFactory.open(storage);
+    let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
+    let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.open(storage);
+    let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
+    let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
+    let UserDialogCounterPromise = UserDialogCounterFactory.open(storage);
+    let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.open(storage);
+    let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(storage);
+    let UserCounter = await UserCounterPromise;
+    let UserMessagesSentCounter = await UserMessagesSentCounterPromise;
+    let UserMessagesReceivedCounter = await UserMessagesReceivedCounterPromise;
+    let UserMessagesChatsCounter = await UserMessagesChatsCounterPromise;
+    let UserMessagesDirectChatsCounter = await UserMessagesDirectChatsCounterPromise;
+    let UserDialogCounter = await UserDialogCounterPromise;
+    let UserDialogHaveMention = await UserDialogHaveMentionPromise;
+    let NotificationCenterCounter = await NotificationCenterCounterPromise;
+    return {
+        storage,
+        UserCounter,
+        UserMessagesSentCounter,
+        UserMessagesReceivedCounter,
+        UserMessagesChatsCounter,
+        UserMessagesDirectChatsCounter,
+        UserDialogCounter,
+        UserDialogHaveMention,
+        NotificationCenterCounter,
+    };
 }

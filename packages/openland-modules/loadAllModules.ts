@@ -1,3 +1,4 @@
+import { Store } from './../openland-module-db/store';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 import 'reflect-metadata';
 import { container } from './Modules.container';
@@ -49,6 +50,8 @@ import { openDatabase } from 'openland-server/foundationdb';
 import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 import { currentTime } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
+import { EntityStorage } from '@openland/foundationdb-entity';
+import { openStore } from 'openland-module-db/store';
 
 const logger = createLogger('starting');
 
@@ -58,12 +61,21 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let start = currentTime();
         let db = await openDatabase();
         logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
+
+        // Old Entity
         start = currentTime();
         let layer = new EntityLayer(db, 'app');
         let entities = await AllEntitiesDirect.create(layer);
         logger.log(ctx, 'Layer started in ' + (currentTime() - start) + ' ms');
         container.bind<AllEntities>('FDB')
             .toDynamicValue(() => entities)
+            .inSingletonScope();
+
+        // New entity
+        let storage = new EntityStorage(db);
+        let store = await openStore(storage);
+        container.bind<Store>('Store')
+            .toDynamicValue(() => store)
             .inSingletonScope();
     }
 

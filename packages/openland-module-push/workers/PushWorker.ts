@@ -5,7 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { withReadOnlyTransaction } from '@openland/foundationdb';
 
 export function doSimpleHash(key: string): number {
@@ -82,7 +82,7 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
-                            let unread = await FDB.UserCounter.byId(args.uid).get(ctx);
+                            let unread = await Store.UserCounter.byId(args.uid).get(ctx);
 
                             if (args.silent) {
                                 await Modules.Push.appleWorker.pushWork(ctx, {
