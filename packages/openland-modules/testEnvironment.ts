@@ -3,7 +3,6 @@ import 'reflect-metadata';
 import { EntityLayer } from './../foundation-orm/EntityLayer';
 import { container } from './Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { EventBus } from 'openland-module-pubsub/EventBus';
 import { DBModule } from 'openland-module-db/DBModule';
 import { EmailModuleMock } from 'openland-module-email/EmailModule.mock';
 import { HooksModuleMock } from 'openland-module-hooks/HooksModule.mock';
@@ -32,9 +31,8 @@ export async function testEnvironmentStart(name: string) {
     let db = await openTestDatabase();
     logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
     start = currentTime();
-    let layer = new EntityLayer(db, EventBus);
+    let layer = new EntityLayer(db, 'app');
     let entities = await AllEntitiesDirect.create(layer);
-    await layer.ready(ctx);
     logger.log(ctx, 'Layer loaded in ' + (currentTime() - start) + ' ms');
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind<AllEntities>('FDB')

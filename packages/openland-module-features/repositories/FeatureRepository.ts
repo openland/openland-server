@@ -2,6 +2,7 @@ import { inTx } from '@openland/foundationdb';
 import { AllEntities } from 'openland-module-db/schema';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 export class FeatureRepository {
     private entities: AllEntities;
@@ -19,7 +20,7 @@ export class FeatureRepository {
             if (ex) {
                 ex.enabled = true;
             } else {
-                await this.entities.OrganizationFeatures.create(ctx, this.entities.layer.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
+                await this.entities.OrganizationFeatures.create(ctx, this.entities.layer.db.get(RandomLayer).nextRandomId(), { organizationId: oid, featureKey, enabled: true });
             }
         });
     }

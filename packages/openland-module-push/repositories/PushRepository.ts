@@ -1,12 +1,15 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 export class PushRepository {
     private readonly entites: AllEntities;
+    private readonly random: RandomLayer;
 
     constructor(entites: AllEntities) {
         this.entites = entites;
+        this.random = entites.layer.db.get(RandomLayer);
     }
 
     async getAndroidToken(ctx: Context, id: string) {
@@ -55,7 +58,7 @@ export class PushRepository {
                 }
             }
 
-            await this.entites.PushApple.create(ctx, this.entites.layer.nextRandomId(), { uid, tid, token, bundleId, sandbox, enabled: true });
+            await this.entites.PushApple.create(ctx, this.random.nextRandomId(), { uid, tid, token, bundleId, sandbox, enabled: true });
         });
     }
 
@@ -72,7 +75,7 @@ export class PushRepository {
                     await existing.flush(ctx);
                 }
             }
-            await this.entites.PushFirebase.create(ctx, this.entites.layer.nextRandomId(), { uid, tid, token, packageId, sandbox, enabled: true });
+            await this.entites.PushFirebase.create(ctx, this.random.nextRandomId(), { uid, tid, token, packageId, sandbox, enabled: true });
         });
     }
 
@@ -88,7 +91,7 @@ export class PushRepository {
                     await existing.flush(ctx);
                 }
             }
-            await this.entites.PushWeb.create(ctx, this.entites.layer.nextRandomId(), { uid, tid, endpoint, enabled: true });
+            await this.entites.PushWeb.create(ctx, this.random.nextRandomId(), { uid, tid, endpoint, enabled: true });
         });
     }
 
@@ -105,7 +108,7 @@ export class PushRepository {
                     await existing.flush(ctx);
                 }
             }
-            await this.entites.PushSafari.create(ctx, this.entites.layer.nextRandomId(), { uid, tid, token, bundleId, enabled: true });
+            await this.entites.PushSafari.create(ctx, this.random.nextRandomId(), { uid, tid, token, bundleId, enabled: true });
         });
     }
 

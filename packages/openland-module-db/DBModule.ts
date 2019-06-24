@@ -1,4 +1,3 @@
-import { startMigrationsWorker } from './migrations';
 import { AllEntities } from './schema';
 import { FDB } from './FDB';
 import { injectable } from 'inversify';
@@ -14,6 +13,5 @@ export class DBModule {
 
     start = () => {
         require('./FDB');
-        startMigrationsWorker();
     }
 }

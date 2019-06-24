@@ -158,9 +158,7 @@ export abstract class FEntity {
                 if (this.isNew) {
                     // Notify after successful transaction
                     if (this.options.hasLiveStreams) {
-                        this.transaction.afterCommit(() => {
-                            this.layer.eventBus.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
-                        });
+                        this.layer.eventBus.publish(ctx, 'fdb-entity-created-' + this._entityName, { entity: this._entityName });
                     }
 
                     // log.debug(ctx, 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));

@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { InvitesRoomRepository } from './InvitesRoomRepository';
-import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createNamedContext } from '@openland/context';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { openTestDatabase } from 'openland-server/foundationdb';
@@ -12,9 +11,8 @@ describe('ChannelRepository', () => {
 
     beforeAll(async () => {
         let db = await openTestDatabase();
-        let layer = new EntityLayer(db, NoOpBus);
+        let layer = new EntityLayer(db, 'app');
         entities = await AllEntitiesDirect.create(layer);
-        await layer.ready(createNamedContext('test'));
     });
 
     it('should create links', async () => {

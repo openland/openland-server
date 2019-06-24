@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, encoders } from '@openland/foundationdb';
 import {
     GraphQLSchema,
     GraphQLObjectType,
@@ -15,9 +15,7 @@ import * as Case from 'change-case';
 import { AllEntitiesDirect } from '../schema';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
 import { delay } from 'openland-utils/timer';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { IdsFactory } from 'openland-module-api/IDs';
-import { EventBus } from 'openland-module-pubsub/EventBus';
 import { batch } from 'openland-utils/batch';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -27,7 +25,7 @@ import { openDatabase } from 'openland-server/foundationdb';
 export async function createGraphQLAdminSchema() {
     let rootCtx = createNamedContext('graphql-admin');
     let db = await openDatabase();
-    let layer = new EntityLayer(db, EventBus);
+    let layer = new EntityLayer(db, 'app');
     let FDB = await AllEntitiesDirect.create(layer); // WTF? Why separate connection?
     let entitiesMap: any = {};
     let queries: any = {};
@@ -259,7 +257,7 @@ export async function createGraphQLAdminSchema() {
                         log.debug(lctx, 'batch ' + count + '/' + batches.length + '...');
                         await inTx(lctx, async (ctx) => {
                             for (let a of b) {
-                                let k = FKeyEncoding.decodeKey(a);
+                                let k = encoders.tuple.unpack(a);
                                 k.splice(0, 2);
                                 let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
                                 itm.markDirty();
@@ -359,7 +357,8 @@ export async function createGraphQLAdminSchema() {
             }
         })),
         resolve(_: any, a: any) {
-            return FDB.layer.directory.findAllDirectories();
+            // return FDB.layer.directory.findAllDirectories();
+            return null;
         }
     };
     

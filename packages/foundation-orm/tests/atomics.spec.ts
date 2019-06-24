@@ -2,7 +2,6 @@
 import { openTestDatabase } from 'openland-server/foundationdb';
 import { inTx } from '@openland/foundationdb';
 import { AllEntitiesDirect, AllEntities } from './testSchema';
-import { NoOpBus } from './NoOpBus';
 import { createNamedContext } from '@openland/context';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 
@@ -10,9 +9,8 @@ describe('atomics', () => {
     let testEntities: AllEntities;
     beforeAll(async () => {
         let db = await openTestDatabase();
-        let layer = new EntityLayer(db, NoOpBus);
+        let layer = new EntityLayer(db, 'app');
         testEntities = await AllEntitiesDirect.create(layer);
-        await layer.ready(createNamedContext('test'));
     });
 
     it('should set and get', async () => {

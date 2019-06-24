@@ -2,20 +2,20 @@ import { FStream } from './FStream';
 import { FEntity } from './FEntity';
 import { delayBreakable } from 'openland-utils/timer';
 import { FLiveStreamItem } from './FLiveStreamItem';
-import { FPubsubSubcription } from './FPubsub';
 import { Context } from '@openland/context';
 import { withoutTransaction } from '@openland/foundationdb';
+import { BusSubcription } from '@openland/foundationdb-bus';
 
 export class FLiveStream<T extends FEntity> {
     private readonly baseStream: FStream<T>;
     private ended = false;
     private awaiter?: () => void;
-    private subscription?: FPubsubSubcription;
+    private subscription?: BusSubcription;
 
     constructor(stream: FStream<T>) {
         this.baseStream = stream;
 
-        this.subscription = stream.factory.layer.eventBus.subscribe('fdb-entity-created-' + this.baseStream.factory.name, (data: any) => {
+        this.subscription = stream.factory.layer.eventBus.subscibe('fdb-entity-created-' + this.baseStream.factory.name, (data: any) => {
             if (data.entity === stream.factory.name) {
                 if (this.awaiter) {
                     this.awaiter();

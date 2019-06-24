@@ -10,6 +10,7 @@ import { Context } from '@openland/context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 @injectable()
 export class MessagingRepository {
@@ -253,7 +254,7 @@ export class MessagingRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: this.entities.layer.nextRandomId()
+                    id: this.entities.layer.db.get(RandomLayer).nextRandomId()
                 });
             }
 

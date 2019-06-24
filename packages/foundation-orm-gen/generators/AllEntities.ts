@@ -12,7 +12,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
     res += '    readonly layer: EntityLayer;\n';
     res += '    readonly allEntities: FEntityFactory<FEntity>[];\n';
     for (let d of directories) {
-        res += '    readonly ' + d.name + 'Directory: FDirectory;\n';
+        res += '    readonly ' + d.name + 'Directory: Directory;\n';
     }
     for (let e of entity) {
         res += '    readonly ' + e.name + ': ' + e.name + 'Factory;\n';
@@ -42,7 +42,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
         res += '        let ' + a.name + 'Promise = ' + a.name + 'Factory.create(layer);\n';
     }
     for (let e of directories) {
-        res += '        let ' + e.name + 'DirectoryPromise = layer.directory.getDirectory([\'custom\', \'' + Case.camelCase(e.name) + '\']);\n';
+        res += '        let ' + e.name + 'DirectoryPromise = layer.resolveCustomDirectory(\'' + Case.camelCase(e.name) + '\');\n';
     }
     for (let e of entity) {
         res += '        allEntities.push(await ' + e.name + 'Promise);\n';
@@ -64,7 +64,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
     res += '\n';
     res += '    readonly allEntities: FEntityFactory<FEntity>[] = [];\n';
     for (let d of directories) {
-        res += '    readonly ' + d.name + 'Directory: FDirectory;\n';
+        res += '    readonly ' + d.name + 'Directory: Directory;\n';
     }
     for (let a of entity) {
         res += '    readonly ' + a.name + ': ' + a.name + 'Factory;\n';
@@ -107,7 +107,7 @@ export function generateAllEntities(entity: EntityModel[], atomics: AtomicModel[
         res += '    }\n';
     }
     for (let e of directories) {
-        res += '    get ' + e.name + 'Directory(): FDirectory {\n';
+        res += '    get ' + e.name + 'Directory(): Directory {\n';
         res += '        return this.resolver().' + e.name + 'Directory;\n';
         res += '    }\n';
     }

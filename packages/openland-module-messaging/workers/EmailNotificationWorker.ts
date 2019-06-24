@@ -1,11 +1,12 @@
 import { inTx } from '@openland/foundationdb';
-import { staticWorker } from 'openland-module-workers/staticWorker';
 import { Emails } from '../../openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { Message } from '../../openland-module-db/schema';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
 import { createLogger } from '@openland/log';
+import { singletonWorker } from '@openland/foundationdb-singleton';
+import { delay } from '@openland/foundationdb/lib/utils';
 
 const Delays = {
     '15min': 15 * 60 * 1000,
@@ -17,10 +18,15 @@ const Delays = {
 const log = createLogger('email');
 
 export function startEmailNotificationWorker() {
-    staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
+    singletonWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000, db: FDB.layer.db }, async (parent) => {
         let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email'));
-        log.debug(parent, 'unread users: ' + unreadUsers.length);
+        if (unreadUsers.length > 0) {
+            log.debug(parent, 'unread users: ' + unreadUsers.length);
+        } else {
+            await delay(5000);
+            return;
+        }
         let now = Date.now();
         for (let uid of unreadUsers) {
             await inTx(parent, async (ctx) => {
@@ -135,6 +141,5 @@ export function startEmailNotificationWorker() {
                 needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
             });
         }
-        return false;
     });
 }

@@ -1,41 +1,31 @@
-import { Context } from '@openland/context';
-import { FPubsub } from 'foundation-orm/FPubsub';
-import { FDirectoryLayer } from './layers/FDirectoryLayer';
-import { Database } from '@openland/foundationdb';
-import { RandomLayer } from '@openland/foundationdb-random';
+import { createNamedContext } from '@openland/context';
+import { Database, inTx } from '@openland/foundationdb';
+import { EventBus } from '@openland/foundationdb-bus';
 
 export class EntityLayer {
-    readonly directory: FDirectoryLayer;
+    readonly root: string;
     readonly db: Database;
-    readonly eventBus: FPubsub;
+    readonly eventBus: EventBus<any>;
 
-    constructor(db: Database, eventBus: FPubsub) {
-        this.directory = new FDirectoryLayer(db);
+    constructor(db: Database, root: string) {
+        this.root = root;
         this.db = db;
-        this.eventBus = eventBus;
-    }
-
-    nextRandomId(): string {
-        return this.db.get(RandomLayer).nextRandomId();
+        this.eventBus = new EventBus<any>(db);
     }
 
     async resolveAtomicDirectory(name: string) {
-        return await this.directory.getDirectory(['atomic', name]);
+        return await inTx(createNamedContext('entity'), async (ctx) => await this.db.directories.createOrOpen(ctx, ['com.openland.layers', 'layers', this.root, 'atomic', name]));
     }
 
     async resolveCustomDirectory(name: string) {
-        return await this.directory.getDirectory(['custom', name]);
+        return await inTx(createNamedContext('entity'), async (ctx) => await this.db.directories.createOrOpen(ctx, ['com.openland.layers', 'layers', this.root, 'custom', name]));
     }
 
     async resolveEntityDirectory(name: string) {
-        return await this.directory.getDirectory(['entity', name]);
+        return await inTx(createNamedContext('entity'), async (ctx) => await this.db.directories.createOrOpen(ctx, ['com.openland.layers', 'layers', this.root, 'entity', name]));
     }
 
     async resolveEntityIndexDirectory(entityName: string, indexName: string) {
-        return await this.directory.getDirectory(['entity', entityName, '__indexes', indexName]);
-    }
-
-    async ready(ctx: Context) {
-        await this.directory.ready(ctx);
+        return await inTx(createNamedContext('entity'), async (ctx) => await this.db.directories.createOrOpen(ctx, ['com.openland.layers', 'layers', this.root, 'entity', entityName, '__indexes', indexName]));
     }
 }

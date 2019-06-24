@@ -1,7 +1,6 @@
-import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FAtomicInteger } from './FAtomicInteger';
 import { EntityLayer } from './EntityLayer';
-import { Tuple, Subspace } from '@openland/foundationdb';
+import { Tuple, Subspace, encoders } from '@openland/foundationdb';
 
 export class FAtomicIntegerFactory {
 
@@ -14,6 +13,6 @@ export class FAtomicIntegerFactory {
     }
 
     protected _findById(key: Tuple[]) {
-        return new FAtomicInteger(FKeyEncoding.encodeKey(key), this.directory);
+        return new FAtomicInteger(encoders.tuple.pack(key), this.directory);
     }
 }
