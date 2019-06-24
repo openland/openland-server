@@ -166,4 +166,16 @@ export class HooksModule {
     private async getSuperNotificationsChatId(ctx: Context) {
         return Modules.Super.getEnvVar<number>(ctx, 'super-notifications-chat-id');
     }
+
+    onDialogsLoad = (uid: number) => {
+        Modules.UserOnboarding.onDialogsLoad(uid);
+    }
+
+    onDiscoverCompleted = (uid: number) => {
+        Modules.UserOnboarding.onDiscoverCompleted(uid);
+    }
+
+    onMessageSent = (uid: number) => {
+        Modules.UserOnboarding.onMessageSent(uid);
+    }
 }
