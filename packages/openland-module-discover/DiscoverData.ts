@@ -189,7 +189,10 @@ export class DiscoverData {
         let res: number[] = [];
         for (let c of suggested) {
             try {
-                res.push(IDs.Conversation.parse(c.id));
+                let cid = IDs.Conversation.parse(c.id);
+                if (!res.find(r => r === cid)) {
+                    res.push();
+                }
             } catch {
                 // ignore bad links
             }
