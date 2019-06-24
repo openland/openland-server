@@ -65,7 +65,7 @@ export default {
             }
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
+            return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
         topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
         organization: async (src: Conversation, _: any, ctx: AppContext) => {
@@ -121,7 +121,7 @@ export default {
             }
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
+            return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
         topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
         user: async (src: Conversation, _: any, ctx: AppContext) => {
@@ -186,7 +186,7 @@ export default {
             return Promise.all(res.map((v) => FDB.User.findById(ctx, v.uid)));
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            return FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
+            return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
         topMessage: async (src: Conversation, _: any, ctx: AppContext) => {
             if (!await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.id)) {

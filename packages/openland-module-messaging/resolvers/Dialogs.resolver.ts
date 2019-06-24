@@ -1,5 +1,5 @@
 import { withUser } from 'openland-module-api/Resolvers';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { UserDialog } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
@@ -69,7 +69,7 @@ export default {
         },
 
         unreadCount: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            return FDB.UserDialogCounter.byId(src.uid, src.cid).get(ctx);
+            return Store.UserDialogCounter.byId(src.uid, src.cid).get(ctx);
         },
 
         topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
@@ -80,7 +80,7 @@ export default {
             return settings.mute;
         },
         haveMention: async (src: UserDialog, _, ctx) => {
-            return await FDB.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
+            return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
     },
     Query: {

@@ -12,10 +12,6 @@ import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 // @ts-ignore
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 // @ts-ignore
-import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
-// @ts-ignore
-import { FAtomicBooleanFactory } from 'foundation-orm/FAtomicBooleanFactory';
-// @ts-ignore
 import { FConnection } from 'foundation-orm/FConnection';
 // @ts-ignore
 import { validators } from 'foundation-orm/utils/validators';
@@ -11232,90 +11228,6 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return new NotificationCenterEvent(ctx, this.layer, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
-export class UserMessagesSentCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userMessagesSentCounter');
-        return new UserMessagesSentCounterFactory(layer, directory);
-    }
-    byId(uid: number) {
-        return this._findById([uid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class UserMessagesReceivedCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userMessagesReceivedCounter');
-        return new UserMessagesReceivedCounterFactory(layer, directory);
-    }
-    byId(uid: number) {
-        return this._findById([uid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class UserMessagesChatsCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userMessagesChatsCounter');
-        return new UserMessagesChatsCounterFactory(layer, directory);
-    }
-    byId(uid: number) {
-        return this._findById([uid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class UserMessagesDirectChatsCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userMessagesDirectChatsCounter');
-        return new UserMessagesDirectChatsCounterFactory(layer, directory);
-    }
-    byId(uid: number) {
-        return this._findById([uid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class UserDialogCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userDialogCounter');
-        return new UserDialogCounterFactory(layer, directory);
-    }
-    byId(uid: number, cid: number) {
-        return this._findById([uid, cid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class UserDialogHaveMentionFactory extends FAtomicBooleanFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('userDialogHaveMention');
-        return new UserDialogHaveMentionFactory(layer, directory);
-    }
-    byId(uid: number, cid: number) {
-        return this._findById([uid, cid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class NotificationCenterCounterFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('notificationCenterCounter');
-        return new NotificationCenterCounterFactory(layer, directory);
-    }
-    byId(ncid: number) {
-        return this._findById([ncid]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
@@ -11404,13 +11316,6 @@ export interface AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
-    readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
-    readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
-    readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
-    readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
-    readonly UserDialogCounter: UserDialogCounterFactory;
-    readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
-    readonly NotificationCenterCounter: NotificationCenterCounterFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -11582,13 +11487,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationPromise = NotificationFactory.create(layer);
         let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
         let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
-        let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.create(layer);
-        let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.create(layer);
-        let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.create(layer);
-        let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.create(layer);
-        let UserDialogCounterPromise = UserDialogCounterFactory.create(layer);
-        let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.create(layer);
-        let NotificationCenterCounterPromise = NotificationCenterCounterFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await EnvironmentPromise);
@@ -11757,13 +11655,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             Notification: await NotificationPromise,
             NotificationCenterState: await NotificationCenterStatePromise,
             NotificationCenterEvent: await NotificationCenterEventPromise,
-            UserMessagesSentCounter: await UserMessagesSentCounterPromise,
-            UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
-            UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
-            UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
-            UserDialogCounter: await UserDialogCounterPromise,
-            UserDialogHaveMention: await UserDialogHaveMentionPromise,
-            NotificationCenterCounter: await NotificationCenterCounterPromise,
             NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
             NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         };
@@ -11855,13 +11746,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
-    readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
-    readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
-    readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
-    readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
-    readonly UserDialogCounter: UserDialogCounterFactory;
-    readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
-    readonly NotificationCenterCounter: NotificationCenterCounterFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -12029,299 +11913,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.NotificationCenterState);
         this.NotificationCenterEvent = entities.NotificationCenterEvent;
         this.allEntities.push(this.NotificationCenterEvent);
-        this.UserMessagesSentCounter = entities.UserMessagesSentCounter;
-        this.UserMessagesReceivedCounter = entities.UserMessagesReceivedCounter;
-        this.UserMessagesChatsCounter = entities.UserMessagesChatsCounter;
-        this.UserMessagesDirectChatsCounter = entities.UserMessagesDirectChatsCounter;
-        this.UserDialogCounter = entities.UserDialogCounter;
-        this.UserDialogHaveMention = entities.UserDialogHaveMention;
-        this.NotificationCenterCounter = entities.NotificationCenterCounter;
         this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
         this.NotificationCenterNeedDeliveryFlagDirectory = entities.NotificationCenterNeedDeliveryFlagDirectory;
-    }
-}
-export class AllEntitiesProxy implements AllEntities {
-    get layer(): EntityLayer {
-        return this.resolver().layer;
-    }
-    get Environment(): EnvironmentFactory {
-        return this.resolver().Environment;
-    }
-    get EnvironmentVariable(): EnvironmentVariableFactory {
-        return this.resolver().EnvironmentVariable;
-    }
-    get Online(): OnlineFactory {
-        return this.resolver().Online;
-    }
-    get Presence(): PresenceFactory {
-        return this.resolver().Presence;
-    }
-    get AuthToken(): AuthTokenFactory {
-        return this.resolver().AuthToken;
-    }
-    get ServiceCache(): ServiceCacheFactory {
-        return this.resolver().ServiceCache;
-    }
-    get Lock(): LockFactory {
-        return this.resolver().Lock;
-    }
-    get Task(): TaskFactory {
-        return this.resolver().Task;
-    }
-    get PushFirebase(): PushFirebaseFactory {
-        return this.resolver().PushFirebase;
-    }
-    get PushApple(): PushAppleFactory {
-        return this.resolver().PushApple;
-    }
-    get PushWeb(): PushWebFactory {
-        return this.resolver().PushWeb;
-    }
-    get PushSafari(): PushSafariFactory {
-        return this.resolver().PushSafari;
-    }
-    get UserProfilePrefil(): UserProfilePrefilFactory {
-        return this.resolver().UserProfilePrefil;
-    }
-    get User(): UserFactory {
-        return this.resolver().User;
-    }
-    get UserProfile(): UserProfileFactory {
-        return this.resolver().UserProfile;
-    }
-    get UserIndexingQueue(): UserIndexingQueueFactory {
-        return this.resolver().UserIndexingQueue;
-    }
-    get Organization(): OrganizationFactory {
-        return this.resolver().Organization;
-    }
-    get OrganizationProfile(): OrganizationProfileFactory {
-        return this.resolver().OrganizationProfile;
-    }
-    get OrganizationEditorial(): OrganizationEditorialFactory {
-        return this.resolver().OrganizationEditorial;
-    }
-    get OrganizationIndexingQueue(): OrganizationIndexingQueueFactory {
-        return this.resolver().OrganizationIndexingQueue;
-    }
-    get OrganizationMember(): OrganizationMemberFactory {
-        return this.resolver().OrganizationMember;
-    }
-    get FeatureFlag(): FeatureFlagFactory {
-        return this.resolver().FeatureFlag;
-    }
-    get OrganizationFeatures(): OrganizationFeaturesFactory {
-        return this.resolver().OrganizationFeatures;
-    }
-    get ReaderState(): ReaderStateFactory {
-        return this.resolver().ReaderState;
-    }
-    get SuperAdmin(): SuperAdminFactory {
-        return this.resolver().SuperAdmin;
-    }
-    get UserSettings(): UserSettingsFactory {
-        return this.resolver().UserSettings;
-    }
-    get ShortnameReservation(): ShortnameReservationFactory {
-        return this.resolver().ShortnameReservation;
-    }
-    get AuthCodeSession(): AuthCodeSessionFactory {
-        return this.resolver().AuthCodeSession;
-    }
-    get Conversation(): ConversationFactory {
-        return this.resolver().Conversation;
-    }
-    get ConversationPrivate(): ConversationPrivateFactory {
-        return this.resolver().ConversationPrivate;
-    }
-    get ConversationOrganization(): ConversationOrganizationFactory {
-        return this.resolver().ConversationOrganization;
-    }
-    get ConversationRoom(): ConversationRoomFactory {
-        return this.resolver().ConversationRoom;
-    }
-    get RoomProfile(): RoomProfileFactory {
-        return this.resolver().RoomProfile;
-    }
-    get RoomParticipant(): RoomParticipantFactory {
-        return this.resolver().RoomParticipant;
-    }
-    get ConversationReceiver(): ConversationReceiverFactory {
-        return this.resolver().ConversationReceiver;
-    }
-    get Sequence(): SequenceFactory {
-        return this.resolver().Sequence;
-    }
-    get Message(): MessageFactory {
-        return this.resolver().Message;
-    }
-    get Comment(): CommentFactory {
-        return this.resolver().Comment;
-    }
-    get CommentState(): CommentStateFactory {
-        return this.resolver().CommentState;
-    }
-    get CommentSeq(): CommentSeqFactory {
-        return this.resolver().CommentSeq;
-    }
-    get CommentEvent(): CommentEventFactory {
-        return this.resolver().CommentEvent;
-    }
-    get CommentsSubscription(): CommentsSubscriptionFactory {
-        return this.resolver().CommentsSubscription;
-    }
-    get CommentEventGlobal(): CommentEventGlobalFactory {
-        return this.resolver().CommentEventGlobal;
-    }
-    get CommentGlobalEventSeq(): CommentGlobalEventSeqFactory {
-        return this.resolver().CommentGlobalEventSeq;
-    }
-    get ConversationSeq(): ConversationSeqFactory {
-        return this.resolver().ConversationSeq;
-    }
-    get ConversationEvent(): ConversationEventFactory {
-        return this.resolver().ConversationEvent;
-    }
-    get UserDialog(): UserDialogFactory {
-        return this.resolver().UserDialog;
-    }
-    get UserDialogHandledMessage(): UserDialogHandledMessageFactory {
-        return this.resolver().UserDialogHandledMessage;
-    }
-    get UserDialogSettings(): UserDialogSettingsFactory {
-        return this.resolver().UserDialogSettings;
-    }
-    get UserDialogEvent(): UserDialogEventFactory {
-        return this.resolver().UserDialogEvent;
-    }
-    get UserMessagingState(): UserMessagingStateFactory {
-        return this.resolver().UserMessagingState;
-    }
-    get UserNotificationsState(): UserNotificationsStateFactory {
-        return this.resolver().UserNotificationsState;
-    }
-    get HyperLog(): HyperLogFactory {
-        return this.resolver().HyperLog;
-    }
-    get MessageDraft(): MessageDraftFactory {
-        return this.resolver().MessageDraft;
-    }
-    get ChannelInvitation(): ChannelInvitationFactory {
-        return this.resolver().ChannelInvitation;
-    }
-    get ChannelLink(): ChannelLinkFactory {
-        return this.resolver().ChannelLink;
-    }
-    get AppInviteLink(): AppInviteLinkFactory {
-        return this.resolver().AppInviteLink;
-    }
-    get SampleEntity(): SampleEntityFactory {
-        return this.resolver().SampleEntity;
-    }
-    get OrganizationPublicInviteLink(): OrganizationPublicInviteLinkFactory {
-        return this.resolver().OrganizationPublicInviteLink;
-    }
-    get OrganizationInviteLink(): OrganizationInviteLinkFactory {
-        return this.resolver().OrganizationInviteLink;
-    }
-    get ConferenceRoom(): ConferenceRoomFactory {
-        return this.resolver().ConferenceRoom;
-    }
-    get ConferencePeer(): ConferencePeerFactory {
-        return this.resolver().ConferencePeer;
-    }
-    get ConferenceMediaStream(): ConferenceMediaStreamFactory {
-        return this.resolver().ConferenceMediaStream;
-    }
-    get ConferenceConnection(): ConferenceConnectionFactory {
-        return this.resolver().ConferenceConnection;
-    }
-    get UserEdge(): UserEdgeFactory {
-        return this.resolver().UserEdge;
-    }
-    get UserInfluencerUserIndex(): UserInfluencerUserIndexFactory {
-        return this.resolver().UserInfluencerUserIndex;
-    }
-    get UserInfluencerIndex(): UserInfluencerIndexFactory {
-        return this.resolver().UserInfluencerIndex;
-    }
-    get FeedSubscriber(): FeedSubscriberFactory {
-        return this.resolver().FeedSubscriber;
-    }
-    get FeedSubscription(): FeedSubscriptionFactory {
-        return this.resolver().FeedSubscription;
-    }
-    get FeedTopic(): FeedTopicFactory {
-        return this.resolver().FeedTopic;
-    }
-    get FeedEvent(): FeedEventFactory {
-        return this.resolver().FeedEvent;
-    }
-    get AppHook(): AppHookFactory {
-        return this.resolver().AppHook;
-    }
-    get UserStorageNamespace(): UserStorageNamespaceFactory {
-        return this.resolver().UserStorageNamespace;
-    }
-    get UserStorageRecord(): UserStorageRecordFactory {
-        return this.resolver().UserStorageRecord;
-    }
-    get DiscoverUserPickedTags(): DiscoverUserPickedTagsFactory {
-        return this.resolver().DiscoverUserPickedTags;
-    }
-    get DebugEvent(): DebugEventFactory {
-        return this.resolver().DebugEvent;
-    }
-    get DebugEventState(): DebugEventStateFactory {
-        return this.resolver().DebugEventState;
-    }
-    get NotificationCenter(): NotificationCenterFactory {
-        return this.resolver().NotificationCenter;
-    }
-    get UserNotificationCenter(): UserNotificationCenterFactory {
-        return this.resolver().UserNotificationCenter;
-    }
-    get Notification(): NotificationFactory {
-        return this.resolver().Notification;
-    }
-    get NotificationCenterState(): NotificationCenterStateFactory {
-        return this.resolver().NotificationCenterState;
-    }
-    get NotificationCenterEvent(): NotificationCenterEventFactory {
-        return this.resolver().NotificationCenterEvent;
-    }
-    get UserMessagesSentCounter(): UserMessagesSentCounterFactory {
-        return this.resolver().UserMessagesSentCounter;
-    }
-    get UserMessagesReceivedCounter(): UserMessagesReceivedCounterFactory {
-        return this.resolver().UserMessagesReceivedCounter;
-    }
-    get UserMessagesChatsCounter(): UserMessagesChatsCounterFactory {
-        return this.resolver().UserMessagesChatsCounter;
-    }
-    get UserMessagesDirectChatsCounter(): UserMessagesDirectChatsCounterFactory {
-        return this.resolver().UserMessagesDirectChatsCounter;
-    }
-    get UserDialogCounter(): UserDialogCounterFactory {
-        return this.resolver().UserDialogCounter;
-    }
-    get UserDialogHaveMention(): UserDialogHaveMentionFactory {
-        return this.resolver().UserDialogHaveMention;
-    }
-    get NotificationCenterCounter(): NotificationCenterCounterFactory {
-        return this.resolver().NotificationCenterCounter;
-    }
-    get NeedNotificationFlagDirectory(): Directory {
-        return this.resolver().NeedNotificationFlagDirectory;
-    }
-    get NotificationCenterNeedDeliveryFlagDirectory(): Directory {
-        return this.resolver().NotificationCenterNeedDeliveryFlagDirectory;
-    }
-    get allEntities(): FEntityFactory<FEntity>[] {
-        return this.resolver().allEntities;
-    }
-    private resolver: () => AllEntities;
-    constructor(resolver: () => AllEntities) {
-        this.resolver = resolver;
     }
 }

@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { updateReader } from '../../openland-module-workers/updateReader';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import request, { Response } from 'request';
@@ -84,10 +84,10 @@ async function fetchUserProps(ctx: Context, uid: number): Promise<AmplitudeUserP
             cohort_month: month,
             cohort_year: year,
 
-            messages_sent: (await FDB.UserMessagesSentCounter.byId(profile.id).get(ctx)),
-            messages_received: (await FDB.UserMessagesReceivedCounter.byId(profile.id).get(ctx)),
-            chats_count: (await FDB.UserMessagesChatsCounter.byId(profile.id).get(ctx)),
-            direct_chats_count: (await FDB.UserMessagesDirectChatsCounter.byId(profile.id).get(ctx)),
+            messages_sent: (await Store.UserMessagesSentCounter.byId(profile.id).get(ctx)),
+            messages_received: (await Store.UserMessagesReceivedCounter.byId(profile.id).get(ctx)),
+            chats_count: (await Store.UserMessagesChatsCounter.byId(profile.id).get(ctx)),
+            direct_chats_count: (await Store.UserMessagesDirectChatsCounter.byId(profile.id).get(ctx)),
         };
     }
 

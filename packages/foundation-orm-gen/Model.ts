@@ -106,23 +106,6 @@ export class EntityModel {
     }
 }
 
-export class AtomicModel {
-    readonly name: string;
-    readonly kind: 'int' | 'boolean';
-    keys: EntityField[] = [];
-
-    constructor(name: string, kind: 'int' | 'boolean') {
-        this.name = name;
-        this.kind = kind;
-    }
-
-    addKey(name: string, type: 'string' | 'number' | 'boolean') {
-        let res = new EntityField(name, type, [], null);
-        this.keys.push(res);
-        return res;
-    }
-}
-
 export class DirectoryModel {
     readonly name: string;
 
@@ -133,7 +116,6 @@ export class DirectoryModel {
 
 export class SchemaModel {
     entities: EntityModel[] = [];
-    atomics: AtomicModel[] = [];
     directories: DirectoryModel[] = [];
 
     addDirectory(name: string) {
@@ -142,9 +124,5 @@ export class SchemaModel {
 
     addEntity(entity: EntityModel) {
         this.entities.push(entity);
-    }
-
-    addAtomic(entity: AtomicModel) {
-        this.atomics.push(entity);
     }
 }

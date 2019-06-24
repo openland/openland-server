@@ -1,9 +1,8 @@
-import { SchemaModel, EntityModel, AtomicModel } from './Model';
+import { SchemaModel, EntityModel } from './Model';
 import { json, JsonSchema } from '../openland-utils/jsonSchema';
 
 let currentSchema: SchemaModel | null = null;
 let currentEntity: EntityModel | null = null;
-let currentAtomic: AtomicModel | null = null;
 
 export function declareSchema(schema: () => void) {
     currentSchema = new SchemaModel();
@@ -18,38 +17,9 @@ export function entity(name: string, schema: () => void) {
     if (currentSchema!.entities.find((v) => v.name === name)) {
         throw Error('Duplicate entity with name ' + name);
     }
-    if (currentSchema!.atomics.find((v) => v.name === name)) {
-        throw Error('Duplicate entity with name ' + name);
-    }
     currentSchema!.addEntity(currentEntity!!);
     schema();
     currentEntity = null;
-}
-
-export function atomic(name: string, schema: () => void) {
-    currentAtomic = new AtomicModel(name, 'int');
-    if (currentSchema!.entities.find((v) => v.name === name)) {
-        throw Error('Duplicate atomic with name ' + name);
-    }
-    if (currentSchema!.atomics.find((v) => v.name === name)) {
-        throw Error('Duplicate atomic with name ' + name);
-    }
-    currentSchema!.addAtomic(currentAtomic!!);
-    schema();
-    currentAtomic = null;
-}
-
-export function atomicBoolean(name: string, schema: () => void) {
-    currentAtomic = new AtomicModel(name, 'boolean');
-    if (currentSchema!.entities.find((v) => v.name === name)) {
-        throw Error('Duplicate atomic with name ' + name);
-    }
-    if (currentSchema!.atomics.find((v) => v.name === name)) {
-        throw Error('Duplicate atomic with name ' + name);
-    }
-    currentSchema!.addAtomic(currentAtomic!!);
-    schema();
-    currentAtomic = null;
 }
 
 export function directory(name: string) {
@@ -79,8 +49,6 @@ export function enumField(name: string, values: string[]) {
 export function primaryKey(name: string, type: 'number' | 'string') {
     if (currentEntity) {
         currentEntity!!.addKey(name, type);
-    } else {
-        currentAtomic!!.addKey(name, type);
     }
 }
 

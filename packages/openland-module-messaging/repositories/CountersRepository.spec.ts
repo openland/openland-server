@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';
@@ -5,7 +6,6 @@ import { CountersRepository } from './CountersRepository';
 import { MessagingRepository } from './MessagingRepository';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { loadMessagingTestModule } from '../Messaging.container.test';
-import { FDB } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 
 describe('CountersRepository', () => {
@@ -152,7 +152,7 @@ describe('CountersRepository', () => {
         expect(await repo.onMessageDeleted(ctx, 3, mid2)).toBe(-1);
         expect((await repo.onMessageReceived(ctx, 3, mid3)).delta).toBe(1);
 
-        let receiverHaveMention = await FDB.UserDialogHaveMention.byId(3, 4).get(ctx);
+        let receiverHaveMention = await Store.UserDialogHaveMention.byId(3, 4).get(ctx);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 3, 4);
         expect(receiverLocalCounter).toBe(1);
         expect(receiverHaveMention).toBe(false);
@@ -171,21 +171,21 @@ describe('CountersRepository', () => {
         // After fisrt mention
         expect((await repo.onMessageReceived(ctx, 6, mid1)).delta).toBe(1);
         // let receiverState = await urepo.getUserDialogState(ctx, 6, 5);
-        let receiverHaveMention = await FDB.UserDialogHaveMention.byId(6, 5).get(ctx);
+        let receiverHaveMention = await Store.UserDialogHaveMention.byId(6, 5).get(ctx);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(1);
         expect(receiverHaveMention).toBe(true);
 
         // Second message without mention
         expect((await repo.onMessageReceived(ctx, 6, mid2)).delta).toBe(1);
-        receiverHaveMention = await FDB.UserDialogHaveMention.byId(6, 5).get(ctx);
+        receiverHaveMention = await Store.UserDialogHaveMention.byId(6, 5).get(ctx);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(2);
         expect(receiverHaveMention).toBe(true);
 
         // Third message with mention again
         expect((await repo.onMessageReceived(ctx, 6, mid3)).delta).toBe(1);
-        receiverHaveMention = await FDB.UserDialogHaveMention.byId(6, 5).get(ctx);
+        receiverHaveMention = await Store.UserDialogHaveMention.byId(6, 5).get(ctx);
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(3);
         expect(receiverHaveMention).toBe(true);
@@ -220,7 +220,7 @@ describe('CountersRepository', () => {
         expect(r.mentionReset).toBe(true);
 
         // Result state
-        let receiverHaveMention = await FDB.UserDialogHaveMention.byId(R_UID, CID).get(ctx);
+        let receiverHaveMention = await Store.UserDialogHaveMention.byId(R_UID, CID).get(ctx);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, R_UID, CID);
         expect(receiverLocalCounter).toBe(0);
         expect(receiverHaveMention).toBe(false);

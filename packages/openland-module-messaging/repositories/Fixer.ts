@@ -32,7 +32,7 @@ export class FixerRepository {
                 let totalUnread = 0;
                 for (let a of all) {
                     let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
-                    let counter = this.entities.UserDialogCounter.byId(uid, a.cid);
+                    let counter = this.store.UserDialogCounter.byId(uid, a.cid);
                     if (!conv) {
                         counter.set(ctx, 0);
                         continue;

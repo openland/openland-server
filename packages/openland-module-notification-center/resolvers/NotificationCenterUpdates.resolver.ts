@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/FDB';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import NotificationCenterUpdateContainerRoot = GQLRoots.NotificationCenterUpdateContainerRoot;
@@ -57,21 +58,21 @@ export default {
     NotificationReceived: {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
         notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
-        unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationRead: {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
-        unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationDeleted: {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
         notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
-        unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationUpdated: {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
         notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
-        unread:  async (src, args, ctx) => await FDB.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationContentUpdated: {
         center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),

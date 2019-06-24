@@ -11,9 +11,7 @@ import {
     uniqueIndex,
     allowAdminEdit,
     jsonField,
-    atomic,
-    directory,
-    atomicBoolean
+    directory
 } from '../foundation-orm-gen';
 import {
     jBool,
@@ -1144,28 +1142,6 @@ const Schema = declareSchema(() => {
     // Counters
     //
 
-    atomic('UserMessagesSentCounter', () => {
-        primaryKey('uid', 'number');
-    });
-    atomic('UserMessagesReceivedCounter', () => {
-        primaryKey('uid', 'number');
-    });
-    atomic('UserMessagesChatsCounter', () => {
-        primaryKey('uid', 'number');
-    });
-    atomic('UserMessagesDirectChatsCounter', () => {
-        primaryKey('uid', 'number');
-    });
-
-    atomic('UserDialogCounter', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-    });
-    atomicBoolean('UserDialogHaveMention', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-    });
-
     directory('NeedNotificationFlag');
 
     //
@@ -1223,10 +1199,6 @@ const Schema = declareSchema(() => {
 
         enableVersioning();
         enableTimestamps();
-    });
-
-    atomic('NotificationCenterCounter', () => {
-        primaryKey('ncid', 'number');
     });
 
     entity('NotificationCenterEvent', () => {

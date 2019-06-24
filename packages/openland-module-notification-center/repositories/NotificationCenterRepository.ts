@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -24,6 +25,9 @@ export class NotificationCenterRepository {
     @lazyInject('FDB')
     private readonly fdb!: AllEntities;
 
+    @lazyInject('Store')
+    private readonly store!: Store;
+
     async createNotification(parent: Context, ncid: number, notificationInput: NotificationInput) {
         return await inTx(parent, async (ctx) => {
             //
@@ -39,7 +43,7 @@ export class NotificationCenterRepository {
             //
             // Update counter
             //
-            let counter = await this.fdb.NotificationCenterCounter.byId(ncid);
+            let counter = await this.store.NotificationCenterCounter.byId(ncid);
             await counter.increment(ctx);
 
             //
@@ -67,11 +71,11 @@ export class NotificationCenterRepository {
             if (!state.readNotificationId || state.readNotificationId < notification.id) {
                 state.readNotificationId = notification.id;
 
-                let counter = await this.fdb.NotificationCenterCounter.byId(notification.ncid);
+                let counter = await this.store.NotificationCenterCounter.byId(notification.ncid);
                 let remaining = (await this.fdb.Notification.allFromNotificationCenterAfter(ctx, notification.ncid, notification.id));
                 let remainingCount = remaining.length;
                 let delta: number;
-                let localUnread = await this.fdb.NotificationCenterCounter.byId(notification.ncid).get(ctx);
+                let localUnread = await this.store.NotificationCenterCounter.byId(notification.ncid).get(ctx);
                 if (remainingCount === 0) { // Just additional case for self-healing of a broken counters
                     delta = -localUnread;
                 } else {
@@ -125,7 +129,7 @@ export class NotificationCenterRepository {
             let state = await this.getNotificationState(ctx, notification.ncid);
 
             if (!state.readNotificationId || notification.id > state.readNotificationId) {
-                let counter = await this.fdb.NotificationCenterCounter.byId(notification.ncid);
+                let counter = await this.store.NotificationCenterCounter.byId(notification.ncid);
                 counter.decrement(ctx);
             }
         });

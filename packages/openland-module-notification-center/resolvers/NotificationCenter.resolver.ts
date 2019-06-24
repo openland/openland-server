@@ -2,14 +2,14 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import { Notification } from '../../openland-module-db/schema';
 
 export default {
     NotificationCenter: {
         id: src => IDs.NotificationCenter.serialize(src.id),
-        unread: (src, args, ctx) => FDB.NotificationCenterCounter.byId(src.id).get(ctx),
+        unread: (src, args, ctx) => Store.NotificationCenterCounter.byId(src.id).get(ctx),
         state: async (src, args, ctx) => {
             let tail = await FDB.NotificationCenterEvent.createNotificationCenterStream(src.id, 1).tail(ctx);
             return { state: tail };

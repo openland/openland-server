@@ -10,7 +10,7 @@ import {
     ChannelLink,
     Conversation,
 } from 'openland-module-db/schema';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
@@ -34,7 +34,7 @@ export default {
         photos: () => [],
         members: () => [],
         unreadCount: async (src, args, ctx) => {
-            return (FDB.UserDialogCounter.byId(ctx.auth.uid!, src.id)).get(ctx);
+            return (Store.UserDialogCounter.byId(ctx.auth.uid!, src.id)).get(ctx);
         },
         topMessage: async (src: Conversation, _: any, ctx: AppContext) => {
             if (!await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.id!)) {

@@ -1,7 +1,7 @@
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
-import { FDB } from '../openland-module-db/FDB';
+import { FDB, Store } from '../openland-module-db/FDB';
 import { Comment, Message, Organization } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
@@ -343,10 +343,10 @@ export default {
                     try {
                         let {totalSent, totalReceived} = await calculateForUser(ctx, user.id);
 
-                        let messagesSent = FDB.UserMessagesSentCounter.byId(user.id);
+                        let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
                         messagesSent.set(ctx, totalSent);
 
-                        let messagesReceived = FDB.UserMessagesReceivedCounter.byId(user.id);
+                        let messagesReceived = Store.UserMessagesReceivedCounter.byId(user.id);
                         messagesReceived.set(ctx, totalReceived);
                     } catch (e) {
                         logger.log(rootCtx, e, 'debugCalcUsersMessagingStatsError');

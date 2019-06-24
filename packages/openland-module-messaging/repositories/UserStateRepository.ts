@@ -62,7 +62,7 @@ export class UserStateRepository {
 
     async getUserMessagingDialogUnread(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.entities.UserDialogCounter.byId(uid, cid).get(ctx);
+            return await this.store.UserDialogCounter.byId(uid, cid).get(ctx);
         });
     }
 

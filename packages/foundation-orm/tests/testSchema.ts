@@ -12,10 +12,6 @@ import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 // @ts-ignore
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 // @ts-ignore
-import { FAtomicIntegerFactory } from 'foundation-orm/FAtomicIntegerFactory';
-// @ts-ignore
-import { FAtomicBooleanFactory } from 'foundation-orm/FAtomicBooleanFactory';
-// @ts-ignore
 import { FConnection } from 'foundation-orm/FConnection';
 // @ts-ignore
 import { validators } from 'foundation-orm/utils/validators';
@@ -996,30 +992,6 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
         return new JsonTest(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'JsonTest');
     }
 }
-export class SampleAtomicFactory extends FAtomicIntegerFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('sampleAtomic');
-        return new SampleAtomicFactory(layer, directory);
-    }
-    byId(id: string) {
-        return this._findById([id]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
-export class SampleAtomicBooleanFactory extends FAtomicBooleanFactory {
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveAtomicDirectory('sampleAtomicBoolean');
-        return new SampleAtomicBooleanFactory(layer, directory);
-    }
-    byId(id: string) {
-        return this._findById([id]);
-    }
-    private constructor(layer: EntityLayer, subspace: Subspace) {
-        super(layer, subspace);
-    }
-}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
@@ -1034,8 +1006,6 @@ export interface AllEntities {
     readonly RangeTest: RangeTestFactory;
     readonly ComplexRangeTest: ComplexRangeTestFactory;
     readonly JsonTest: JsonTestFactory;
-    readonly SampleAtomic: SampleAtomicFactory;
-    readonly SampleAtomicBoolean: SampleAtomicBooleanFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -1063,8 +1033,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let RangeTestPromise = RangeTestFactory.create(layer);
         let ComplexRangeTestPromise = ComplexRangeTestFactory.create(layer);
         let JsonTestPromise = JsonTestFactory.create(layer);
-        let SampleAtomicPromise = SampleAtomicFactory.create(layer);
-        let SampleAtomicBooleanPromise = SampleAtomicBooleanFactory.create(layer);
         allEntities.push(await SimpleEntityPromise);
         allEntities.push(await VersionedEntityPromise);
         allEntities.push(await TimestampedEntityPromise);
@@ -1087,8 +1055,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             RangeTest: await RangeTestPromise,
             ComplexRangeTest: await ComplexRangeTestPromise,
             JsonTest: await JsonTestPromise,
-            SampleAtomic: await SampleAtomicPromise,
-            SampleAtomicBoolean: await SampleAtomicBooleanPromise,
         };
         return new AllEntitiesDirect(entities);
     }
@@ -1104,8 +1070,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly RangeTest: RangeTestFactory;
     readonly ComplexRangeTest: ComplexRangeTestFactory;
     readonly JsonTest: JsonTestFactory;
-    readonly SampleAtomic: SampleAtomicFactory;
-    readonly SampleAtomicBoolean: SampleAtomicBooleanFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -1129,55 +1093,5 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.ComplexRangeTest);
         this.JsonTest = entities.JsonTest;
         this.allEntities.push(this.JsonTest);
-        this.SampleAtomic = entities.SampleAtomic;
-        this.SampleAtomicBoolean = entities.SampleAtomicBoolean;
-    }
-}
-export class AllEntitiesProxy implements AllEntities {
-    get layer(): EntityLayer {
-        return this.resolver().layer;
-    }
-    get SimpleEntity(): SimpleEntityFactory {
-        return this.resolver().SimpleEntity;
-    }
-    get VersionedEntity(): VersionedEntityFactory {
-        return this.resolver().VersionedEntity;
-    }
-    get TimestampedEntity(): TimestampedEntityFactory {
-        return this.resolver().TimestampedEntity;
-    }
-    get IndexedEntity(): IndexedEntityFactory {
-        return this.resolver().IndexedEntity;
-    }
-    get IndexedRangeEntity(): IndexedRangeEntityFactory {
-        return this.resolver().IndexedRangeEntity;
-    }
-    get IndexedPartialEntity(): IndexedPartialEntityFactory {
-        return this.resolver().IndexedPartialEntity;
-    }
-    get NullableEntity(): NullableEntityFactory {
-        return this.resolver().NullableEntity;
-    }
-    get RangeTest(): RangeTestFactory {
-        return this.resolver().RangeTest;
-    }
-    get ComplexRangeTest(): ComplexRangeTestFactory {
-        return this.resolver().ComplexRangeTest;
-    }
-    get JsonTest(): JsonTestFactory {
-        return this.resolver().JsonTest;
-    }
-    get SampleAtomic(): SampleAtomicFactory {
-        return this.resolver().SampleAtomic;
-    }
-    get SampleAtomicBoolean(): SampleAtomicBooleanFactory {
-        return this.resolver().SampleAtomicBoolean;
-    }
-    get allEntities(): FEntityFactory<FEntity>[] {
-        return this.resolver().allEntities;
-    }
-    private resolver: () => AllEntities;
-    constructor(resolver: () => AllEntities) {
-        this.resolver = resolver;
     }
 }
