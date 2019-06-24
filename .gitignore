@@ -11,3 +11,4 @@ coverage
 server/.gradle
 server/out
 workspace.xml
+.idea/
