@@ -85,6 +85,7 @@ extend type Mutation {
     debugCalcRoomsActiveMembers: Boolean!
     debugCalcOrgsActiveMembers: Boolean!
     debugCreateCommentSubscriptions: Boolean!
+    debugDeveloperInit: Boolean!
 }
 
 extend type Subscription {

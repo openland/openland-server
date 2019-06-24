@@ -1,5 +1,5 @@
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { withPermission } from '../openland-module-api/Resolvers';
+import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { FDB } from '../openland-module-db/FDB';
 import { Comment, Message, Organization } from '../openland-module-db/schema';
@@ -27,7 +27,7 @@ const logger = createLogger('debug');
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await FDB.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await FDB.DebugEventState.create(ctx, uid!, { seq: 1 });
+        await FDB.DebugEventState.create(ctx, uid!, {seq: 1});
         return 1;
     } else {
         state.seq++;
@@ -39,7 +39,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await FDB.DebugEvent.create(ctx, uid!, seq, { key });
+        await FDB.DebugEvent.create(ctx, uid!, seq, {key});
     });
 };
 
@@ -158,7 +158,7 @@ export default {
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
             let tail = await FDB.DebugEvent.createUserStream(ctx.auth.uid!, 1).tail(ctx);
-            return { state: tail };
+            return {state: tail};
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -252,11 +252,11 @@ export default {
             } else if (type === 'PUBLIC_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'PRIVATE_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'ROOM_INVITE_ACCEPTED') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
@@ -292,7 +292,7 @@ export default {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
                 await Modules.Hooks.onOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
@@ -300,7 +300,7 @@ export default {
                     inviteOwner: uid
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             }
             return true;
         }),
@@ -333,7 +333,7 @@ export default {
                     }
                 }
 
-                return { totalSent, totalReceived };
+                return {totalSent, totalReceived};
             };
 
             let users = await FDB.User.findAll(parent);
@@ -341,7 +341,7 @@ export default {
             for (let user of users) {
                 await inTx(rootCtx, async (ctx) => {
                     try {
-                        let { totalSent, totalReceived } = await calculateForUser(ctx, user.id);
+                        let {totalSent, totalReceived} = await calculateForUser(ctx, user.id);
 
                         let messagesSent = FDB.UserMessagesSentCounter.byId(user.id);
                         messagesSent.set(ctx, totalSent);
@@ -374,7 +374,7 @@ export default {
                     }
                 }
 
-                return { chatsCount, directChatsCount };
+                return {chatsCount, directChatsCount};
             };
 
             let users = await FDB.User.findAll(parent);
@@ -382,7 +382,7 @@ export default {
             for (let user of users) {
                 await inTx(rootCtx, async (ctx) => {
                     try {
-                        let { chatsCount, directChatsCount } = await calculateForUser(ctx, user.id);
+                        let {chatsCount, directChatsCount} = await calculateForUser(ctx, user.id);
 
                         let existing = await FDB.UserMessagingState.findById(ctx, user.id);
                         if (!existing) {
@@ -720,6 +720,17 @@ export default {
             });
             return true;
         }),
+        debugDeveloperInit: withUser(async (root, args, uid) => {
+            if (process.env.NODE_ENV === 'production') {
+                return false;
+            }
+            await inTx(root, async ctx => {
+                await Modules.Orgs.createOrganization(ctx, uid, {name: 'Openland'});
+                await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
+                await Modules.Users.activateUser(ctx, uid, false);
+            });
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {
