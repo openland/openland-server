@@ -82,6 +82,8 @@ export default {
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
+        badges: withUser((ctx, src) => FDB.UserBadge.allFromUser(ctx, ctx.auth.uid!)),
+        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? FDB.UserBadge.findById(ctx, profile.primaryBadge, profile.id) : null),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),

@@ -112,6 +112,7 @@ type RoomMessage {
 type RoomMember {
     user: User!
     role: RoomMemberRole!
+    badge: UserBadge
     membership: SharedRoomMembershipStatus!
     invitedBy: User!
     canKick: Boolean!

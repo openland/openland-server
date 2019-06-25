@@ -2222,6 +2222,7 @@ export interface UserProfileShape {
     twitter?: string| null;
     locations?: any| null;
     primaryOrganization?: number| null;
+    primaryBadge?: number| null;
     role?: string| null;
 }
 
@@ -2358,6 +2359,17 @@ export class UserProfile extends FEntity {
         this._value.primaryOrganization = value;
         this.markDirty();
     }
+    get primaryBadge(): number | null {
+        let res = this._value.primaryBadge;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set primaryBadge(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.primaryBadge) { return; }
+        this._value.primaryBadge = value;
+        this.markDirty();
+    }
     get role(): string | null {
         let res = this._value.role;
         if (res !== null && res !== undefined) { return res; }
@@ -2391,6 +2403,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
             { name: 'twitter', type: 'string' },
             { name: 'locations', type: 'json' },
             { name: 'primaryOrganization', type: 'number' },
+            { name: 'primaryBadge', type: 'number' },
             { name: 'role', type: 'string' },
         ],
         indexes: [
@@ -2424,6 +2437,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         validators.isString('linkedin', src.linkedin);
         validators.isString('twitter', src.twitter);
         validators.isNumber('primaryOrganization', src.primaryOrganization);
+        validators.isNumber('primaryBadge', src.primaryBadge);
         validators.isString('role', src.role);
     }
 
@@ -4656,6 +4670,7 @@ export interface RoomParticipantShape {
     invitedBy: number;
     role: 'member' | 'admin' | 'owner';
     status: 'joined' | 'requested' | 'left' | 'kicked';
+    badge?: number| null;
 }
 
 export class RoomParticipant extends FEntity {
@@ -4689,6 +4704,17 @@ export class RoomParticipant extends FEntity {
         this._value.status = value;
         this.markDirty();
     }
+    get badge(): number | null {
+        let res = this._value.badge;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set badge(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.badge) { return; }
+        this._value.badge = value;
+        this.markDirty();
+    }
 }
 
 export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
@@ -4703,6 +4729,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
             { name: 'invitedBy', type: 'number' },
             { name: 'role', type: 'enum', enumValues: ['member', 'admin', 'owner'] },
             { name: 'status', type: 'enum', enumValues: ['joined', 'requested', 'left', 'kicked'] },
+            { name: 'badge', type: 'number' },
         ],
         indexes: [
             { name: 'active', type: 'unique', fields: ['cid', 'uid'] },
@@ -4740,6 +4767,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         validators.isEnum('role', src.role, ['member', 'admin', 'owner']);
         validators.notNull('status', src.status);
         validators.isEnum('status', src.status, ['joined', 'requested', 'left', 'kicked']);
+        validators.isNumber('badge', src.badge);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { active: FEntityIndex, requests: FEntityIndex, userActive: FEntityIndex }) {
@@ -11228,6 +11256,236 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return new NotificationCenterEvent(ctx, this.layer, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
+export interface BadgeShape {
+    name: string;
+}
+
+export class Badge extends FEntity {
+    readonly entityName: 'Badge' = 'Badge';
+    get id(): number { return this._value.id; }
+    get name(): string {
+        return this._value.name;
+    }
+    set name(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.name) { return; }
+        this._value.name = value;
+        this.markDirty();
+    }
+}
+
+export class BadgeFactory extends FEntityFactory<Badge> {
+    static schema: FEntitySchema = {
+        name: 'Badge',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'name', type: 'string' },
+        ],
+        indexes: [
+            { name: 'name', type: 'unique', fields: ['name'] },
+        ],
+    };
+
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('badge');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: BadgeFactory.validate, hasLiveStreams: false };
+        let indexName = new FEntityIndex(await layer.resolveEntityIndexDirectory('badge', 'name'), 'name', ['name'], true);
+        let indexes = {
+            name: indexName,
+        };
+        return new BadgeFactory(layer, directory, config, indexes);
+    }
+
+    readonly indexName: FEntityIndex;
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('name', src.name);
+        validators.isString('name', src.name);
+    }
+
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { name: FEntityIndex }) {
+        super('Badge', 'badge', config, [indexes.name], layer, directory);
+        this.indexName = indexes.name;
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: BadgeShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: BadgeShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
+    }
+    async findFromName(ctx: Context, name: string) {
+        return await this._findFromIndex(ctx, this.indexName.directory, [name]);
+    }
+    async rangeFromName(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexName.directory, [], limit, reversed);
+    }
+    async rangeFromNameWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexName.directory, [], limit, after, reversed);
+    }
+    async allFromName(ctx: Context, ) {
+        return await this._findAll(ctx, this.indexName.directory, []);
+    }
+    createNameStream(limit: number, after?: string) {
+        return this._createStream(this.indexName.directory, [], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Badge(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Badge');
+    }
+}
+export interface UserBadgeShape {
+    verifiedBy?: number| null;
+    deleted?: boolean| null;
+}
+
+export class UserBadge extends FEntity {
+    readonly entityName: 'UserBadge' = 'UserBadge';
+    get bid(): number { return this._value.bid; }
+    get uid(): number { return this._value.uid; }
+    get verifiedBy(): number | null {
+        let res = this._value.verifiedBy;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set verifiedBy(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.verifiedBy) { return; }
+        this._value.verifiedBy = value;
+        this.markDirty();
+    }
+    get deleted(): boolean | null {
+        let res = this._value.deleted;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set deleted(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
+}
+
+export class UserBadgeFactory extends FEntityFactory<UserBadge> {
+    static schema: FEntitySchema = {
+        name: 'UserBadge',
+        editable: false,
+        primaryKeys: [
+            { name: 'bid', type: 'number' },
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'verifiedBy', type: 'number' },
+            { name: 'deleted', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'user', type: 'range', fields: ['uid', 'bid'] },
+            { name: 'userBadge', type: 'unique', fields: ['uid', 'bid'] },
+        ],
+    };
+
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userBadge');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: UserBadgeFactory.validate, hasLiveStreams: false };
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userBadge', 'user'), 'user', ['uid', 'bid'], false, (src) => !src.deleted);
+        let indexUserBadge = new FEntityIndex(await layer.resolveEntityIndexDirectory('userBadge', 'userBadge'), 'userBadge', ['uid', 'bid'], true, (src) => !src.deleted);
+        let indexes = {
+            user: indexUser,
+            userBadge: indexUserBadge,
+        };
+        return new UserBadgeFactory(layer, directory, config, indexes);
+    }
+
+    readonly indexUser: FEntityIndex;
+    readonly indexUserBadge: FEntityIndex;
+
+    private static validate(src: any) {
+        validators.notNull('bid', src.bid);
+        validators.isNumber('bid', src.bid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.isNumber('verifiedBy', src.verifiedBy);
+        validators.isBoolean('deleted', src.deleted);
+    }
+
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, userBadge: FEntityIndex }) {
+        super('UserBadge', 'userBadge', config, [indexes.user, indexes.userBadge], layer, directory);
+        this.indexUser = indexes.user;
+        this.indexUserBadge = indexes.userBadge;
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'bid': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(ctx: Context, bid: number, uid: number) {
+        return await this._findById(ctx, [bid, uid]);
+    }
+    async create(ctx: Context, bid: number, uid: number, shape: UserBadgeShape) {
+        return await this._create(ctx, [bid, uid], { bid, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, bid: number, uid: number, shape: UserBadgeShape) {
+        return await this._create_UNSAFE(ctx, [bid, uid], { bid, uid, ...shape });
+    }
+    watch(ctx: Context, bid: number, uid: number) {
+        return this._watch(ctx, [bid, uid]);
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
+    }
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
+    }
+    async findFromUserBadge(ctx: Context, uid: number, bid: number) {
+        return await this._findFromIndex(ctx, this.indexUserBadge.directory, [uid, bid]);
+    }
+    async allFromUserBadgeAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexUserBadge.directory, [uid], after);
+    }
+    async rangeFromUserBadgeAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexUserBadge.directory, [uid], after, limit, reversed);
+    }
+    async rangeFromUserBadge(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexUserBadge.directory, [uid], limit, reversed);
+    }
+    async rangeFromUserBadgeWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexUserBadge.directory, [uid], limit, after, reversed);
+    }
+    async allFromUserBadge(ctx: Context, uid: number) {
+        return await this._findAll(ctx, this.indexUserBadge.directory, [uid]);
+    }
+    createUserBadgeStream(uid: number, limit: number, after?: string) {
+        return this._createStream(this.indexUserBadge.directory, [uid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserBadge(ctx, this.layer, this.directory, [value.bid, value.uid], value, this.options, isNew, this.indexes, 'UserBadge');
+    }
+}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
@@ -11316,6 +11574,8 @@ export interface AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
+    readonly Badge: BadgeFactory;
+    readonly UserBadge: UserBadgeFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -11401,6 +11661,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         NotificationFactory.schema,
         NotificationCenterStateFactory.schema,
         NotificationCenterEventFactory.schema,
+        BadgeFactory.schema,
+        UserBadgeFactory.schema,
     ];
 
     static async create(layer: EntityLayer) {
@@ -11487,6 +11749,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationPromise = NotificationFactory.create(layer);
         let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
         let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
+        let BadgePromise = BadgeFactory.create(layer);
+        let UserBadgePromise = UserBadgeFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await EnvironmentPromise);
@@ -11571,6 +11835,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await NotificationPromise);
         allEntities.push(await NotificationCenterStatePromise);
         allEntities.push(await NotificationCenterEventPromise);
+        allEntities.push(await BadgePromise);
+        allEntities.push(await UserBadgePromise);
         let entities = {
             layer, allEntities,
             Environment: await EnvironmentPromise,
@@ -11655,6 +11921,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             Notification: await NotificationPromise,
             NotificationCenterState: await NotificationCenterStatePromise,
             NotificationCenterEvent: await NotificationCenterEventPromise,
+            Badge: await BadgePromise,
+            UserBadge: await UserBadgePromise,
             NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
             NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         };
@@ -11746,6 +12014,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
+    readonly Badge: BadgeFactory;
+    readonly UserBadge: UserBadgeFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -11913,6 +12183,10 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.NotificationCenterState);
         this.NotificationCenterEvent = entities.NotificationCenterEvent;
         this.allEntities.push(this.NotificationCenterEvent);
+        this.Badge = entities.Badge;
+        this.allEntities.push(this.Badge);
+        this.UserBadge = entities.UserBadge;
+        this.allEntities.push(this.UserBadge);
         this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
         this.NotificationCenterNeedDeliveryFlagDirectory = entities.NotificationCenterNeedDeliveryFlagDirectory;
     }

@@ -88,6 +88,40 @@ export class UsersModule {
         return await this.search.searchForUsers(ctx, query, options);
     }
 
+    // Badges
+
+    async createBadge(ctx: Context, uid: number, name: string, isSuper: boolean, cid?: number) {
+        return this.repo.createBadge(ctx, uid, name, isSuper, cid);
+    }
+
+    async deleteBadge(ctx: Context, uid: number, bid: number) {
+        return this.repo.deleteBadge(ctx, uid, bid);
+    }
+
+    async setPrimaryBadge(ctx: Context, uid: number, bid: number) {
+        return this.repo.setPrimaryBadge(ctx, uid, bid, true);
+    }
+
+    async unsetPrimaryBadge(ctx: Context, uid: number, bid: number) {
+        return this.repo.setPrimaryBadge(ctx, uid, bid, false);
+    }
+
+    async verifyBadge(ctx: Context, suid: number, uid: number, bid: number) {
+        return this.repo.verifyBadge(ctx, suid, uid, bid);
+    }
+
+    async unverifyBadge(ctx: Context, uid: number, bid: number) {
+        return this.repo.verifyBadge(ctx, null, uid, bid);
+    }
+
+    async setRoomBage(ctx: Context, uid: number, cid: number, bid: number) {
+        return this.repo.setRoomBadge(ctx, uid, cid, bid);
+    }
+
+    async unsetRoomBage(ctx: Context, uid: number, cid: number) {
+        return this.repo.unsetRoomBadge(ctx, uid, cid);
+    }
+
     async getUserFullName(ctx: Context, uid: number) {
         let profile = await this.profileById(ctx, uid);
 

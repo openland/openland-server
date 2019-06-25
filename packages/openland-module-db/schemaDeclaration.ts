@@ -254,6 +254,7 @@ const Schema = declareSchema(() => {
         field('twitter', 'string').nullable();
         field('locations', 'json').nullable();
         field('primaryOrganization', 'number').nullable();
+        field('primaryBadge', 'number').nullable();
         field('role', 'string').nullable();
         rangeIndex('byUpdatedAt', ['updatedAt']);
         enableTimestamps();
@@ -473,6 +474,7 @@ const Schema = declareSchema(() => {
         field('invitedBy', 'number');
         enumField('role', ['member', 'admin', 'owner']);
         enumField('status', ['joined', 'requested', 'left', 'kicked']);
+        field('badge', 'number').nullable();
         uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined').withRange();
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested').withRange();
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined').withRange();
@@ -1222,6 +1224,28 @@ const Schema = declareSchema(() => {
     });
 
     directory('NotificationCenterNeedDeliveryFlag');
+
+    entity('Badge', () => {
+        primaryKey('id', 'number');
+        field('name', 'string');
+
+        uniqueIndex('name', ['name']);
+    });
+
+    entity('UserBadge', () => {
+        primaryKey('bid', 'number');
+        primaryKey('uid', 'number');
+        field('verifiedBy', 'number').nullable();
+        field('deleted', 'boolean').nullable();
+
+        rangeIndex('user', ['uid', 'bid']).withCondition((src) => !src.deleted);
+
+        uniqueIndex('userBadge', ['uid', 'bid']).withCondition((src) => !src.deleted);
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

@@ -23,6 +23,7 @@ export default {
         location: (src: UserProfile) => src.location,
         linkedin: (src: UserProfile) => src.linkedin,
         twitter: (src: UserProfile) => src.twitter,
+        primaryBadge: (src: UserProfile, args: {}, ctx: AppContext) => src.primaryBadge ? FDB.UserBadge.findById(ctx, src.primaryBadge, src.id) : null,
 
         alphaRole: (src: UserProfile) => src.role,
         alphaLocations: (src: UserProfile) => src.locations,

@@ -55,4 +55,5 @@ export const IDs = {
     UserStorageRecord: IdsFactory.createId('UserStorageRecord'),
     NotificationCenter: IdsFactory.createId('NotificationCenter'),
     Notification: IdsFactory.createId('Notification'),
+    UserBadge: IdsFactory.createStringId('UserBadge'),
 };

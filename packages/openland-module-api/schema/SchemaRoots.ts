@@ -178,6 +178,7 @@ export namespace GQLRoots {
     export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
     export type ShortNameDestinationRoot = any;
+    export type UserBadgeRoot = any;
 
     export type RoomMemberRoot = any;
     export type RoomMessageRoot = any;
