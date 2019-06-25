@@ -191,7 +191,7 @@ export class DiscoverData {
             try {
                 let cid = IDs.Conversation.parse(c.id);
                 if (!res.find(r => r === cid)) {
-                    res.push();
+                    res.push(IDs.Conversation.parse(c.id));
                 }
             } catch {
                 // ignore bad links
