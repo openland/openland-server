@@ -16,6 +16,7 @@ export default {
     },
 
     Query: {
+        // depricated
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
             return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
@@ -28,6 +29,9 @@ export default {
     },
 
     Mutation: {
+        betaNextDiscoverPageOrChats: withUser((ctx, args, uid) => {
+            return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
+        }),
         betaNextDiscoverReset: withUser((ctx, args, uid) => {
             return Modules.Discover.reset(ctx, uid);
         })
