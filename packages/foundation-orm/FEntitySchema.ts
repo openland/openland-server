@@ -10,18 +10,12 @@ export interface FEntitySchemaIndex {
     fields: string[];
 }
 
-export interface FEntitySchemaReference {
-    type: string;
-    name: string;
-}
-
 export interface FEntitySchemaField {
     name: string;
     type: 'string' | 'number' | 'json' | 'boolean' | 'enum';
     nullable?: boolean;
     enumValues?: string[];
     secure?: boolean;
-    reference?: FEntitySchemaReference;
 }
 
 export interface FEntitySchema {

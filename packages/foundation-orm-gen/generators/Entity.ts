@@ -117,9 +117,6 @@ export function generateEntity(entity: EntityModel): string {
         if (f.isSecure) {
             res += ', secure: true';
         }
-        if (f.reference) {
-            res += ', reference: { name: \'' + f.reference.name + '\', type: \'' + f.reference.type + '\' }';
-        }
         res += ' },\n';
     }
     res += '        ],\n';

@@ -1,4 +1,3 @@
-import { FEntitySchemaReference } from 'foundation-orm/FEntitySchema';
 import { JsonSchema } from '../openland-utils/jsonSchema';
 
 export class EntityField {
@@ -8,24 +7,12 @@ export class EntityField {
     readonly jsonSchema: JsonSchema | null;
     isNullable: boolean = false;
     isSecure: boolean = false;
-    dispName?: string;
-    reference?: FEntitySchemaReference;
 
     constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema | null) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
         this.jsonSchema = jsonSchema;
-    }
-
-    withReference(name: string, type: string) {
-        this.reference = { name, type };
-        return this;
-    }
-
-    displayName(name: string) {
-        this.dispName = name;
-        return this;
     }
 
     secure() {
