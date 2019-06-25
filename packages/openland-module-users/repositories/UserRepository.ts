@@ -240,12 +240,12 @@ export class UserRepository {
             let badge = await this.entities.Badge.findFromName(ctx, name);
             let bid: number;
 
-            if (!badge) {
+            if (badge) {
+                bid = badge.id;
+            } else {
                 bid = await this.fetchUserBadgeId(ctx);
 
                 await this.entities.Badge.create(ctx, bid, { name });
-            } else {
-                bid = badge.id;
             }
 
             let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
@@ -260,23 +260,23 @@ export class UserRepository {
                 userBadge = await this.entities.UserBadge.create(ctx, bid, uid, {});
             }
 
-            if (!!cid) {
+            if (cid) {
                 let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
 
                 if (participant) {
                     participant.badge = bid;
                 }
-            }
-
-            if (!cid && !isSuper) {
-                // set primary if needed
-                let userBadges = await this.entities.UserBadge.rangeFromUser(ctx, uid, 2);
-
-                if (userBadges.length === 1) {
-                    let profile = await this.entities.UserProfile.findById(ctx, uid);
+            } else {
+                if (!isSuper) {
+                    // set primary if needed
+                    let userBadges = await this.entities.UserBadge.rangeFromUser(ctx, uid, 2);
     
-                    if (profile && !profile.primaryBadge) {
-                        profile.primaryBadge = bid;
+                    if (userBadges.length === 1) {
+                        let profile = await this.entities.UserProfile.findById(ctx, uid);
+        
+                        if (profile && !profile.primaryBadge) {
+                            profile.primaryBadge = bid;
+                        }
                     }
                 }
             }
