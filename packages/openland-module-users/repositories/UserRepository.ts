@@ -259,7 +259,7 @@ export class UserRepository {
             }
 
             if (!cid && !isSuper) {
-                // Set primary if needed
+                // set primary if needed
                 let userBadges = await this.entities.UserBadge.rangeFromUser(ctx, uid, 2);
 
                 if (userBadges.length === 1) {
@@ -278,12 +278,18 @@ export class UserRepository {
     async deleteBadge(parent: Context, uid: number, bid: number) {
         return await inTx(parent, async (ctx) => {
             let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
+            let profile = await this.entities.UserProfile.findById(ctx, uid);
 
-            if (!userBadge) {
+            if (!userBadge || !profile) {
                 throw new NotFoundError();
             }
 
             userBadge.deleted = true;
+
+            // unset primary if needed
+            if (profile.primaryBadge === bid) {
+                profile.primaryBadge = null;
+            }
 
             return true;
         });
