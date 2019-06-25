@@ -1261,7 +1261,6 @@ const Schema = declareSchema(() => {
         field('deleted', 'boolean').nullable();
 
         rangeIndex('user', ['uid', 'bid']).withCondition((src) => !src.deleted);
-
         uniqueIndex('userBadge', ['uid', 'bid']).withCondition((src) => !src.deleted);
 
         enableVersioning();

@@ -248,7 +248,17 @@ export class UserRepository {
                 bid = badge.id;
             }
 
-            let userBadge = await this.entities.UserBadge.create(ctx, bid, uid, {});
+            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
+
+            if (userBadge) {
+                if (userBadge.deleted) {
+                    userBadge.deleted = false;
+                } else {
+                    throw new Error('Badge already exists');
+                }
+            } else {
+                userBadge = await this.entities.UserBadge.create(ctx, bid, uid, {});
+            }
 
             if (!!cid) {
                 let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
@@ -290,6 +300,8 @@ export class UserRepository {
             if (profile.primaryBadge === bid) {
                 profile.primaryBadge = null;
             }
+
+            // TODO: remove badge from all chats, where it is used
 
             return true;
         });
