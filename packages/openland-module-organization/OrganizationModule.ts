@@ -130,7 +130,7 @@ export class OrganizationModule {
                 let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
                 if (org.status === 'activated') {
                     // Activate user if organization is in activated state
-                    await Modules.Users.activateUser(ctx, uid, isNewUser);
+                    await Modules.Users.activateUser(ctx, uid, isNewUser, by);
 
                     // Find and activate organizations created by user if have one
                     let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Modules.DB.entities.Organization.findById(ctx, orgId)));

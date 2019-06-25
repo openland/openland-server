@@ -31,13 +31,13 @@ export class UsersModule {
         return this.repo.createUser(ctx, authId, email);
     }
 
-    async activateUser(parent: Context, uid: number, sendEmail: boolean) {
+    async activateUser(parent: Context, uid: number, sendEmail: boolean, invitedBy: number | null = null) {
         await inTx(parent, async (ctx) => {
-            if (await this.repo.activateUser(ctx, uid)) {
+            if (await this.repo.activateUser(ctx, uid, invitedBy)) {
                 if (sendEmail) {
                     await Emails.sendWelcomeEmail(ctx, uid);
-                    await Modules.Hooks.onUserActivated(ctx, uid);
                 }
+                await Modules.Hooks.onUserActivated(ctx, uid);
             }
         });
     }
