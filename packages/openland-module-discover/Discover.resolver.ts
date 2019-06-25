@@ -25,5 +25,11 @@ export default {
         betaIsDiscoverDone: withUser((ctx, args, uid) => {
             return Modules.Discover.isDiscoverDone(ctx, uid);
         })
+    },
+
+    Mutation: {
+        betaNextDiscoverReset: withUser((ctx, args, uid) => {
+            return Modules.Discover.reset(ctx, uid);
+        })
     }
 } as GQLResolver;

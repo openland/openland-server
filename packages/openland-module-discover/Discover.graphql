@@ -20,3 +20,7 @@ extend type Query {
     betaSuggestedRooms: [Room!]!
     betaIsDiscoverDone: Boolean!
 }
+
+extend type Mutation {
+    betaNextDiscoverReset: Boolean!
+}
