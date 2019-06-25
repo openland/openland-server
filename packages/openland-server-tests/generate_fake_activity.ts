@@ -1,9 +1,9 @@
+// Register Modules
+require('module-alias/register');
+
 import { Store } from './../openland-module-db/store';
 import { EntityStorage } from '@openland/foundationdb-entity';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
-// Register Modules
-
-require('module-alias/register');
 import '../openland-utils/Shutdown';
 import { Modules } from 'openland-modules/Modules';
 import { loadAllModules } from 'openland-modules/loadAllModules';

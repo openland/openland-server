@@ -329,6 +329,7 @@ export class OrganizationRepository {
            } else {
                profile.joinedMembersCount++;
            }
+            await this.markForUndexing(ctx, oid);
         });
     }
 
@@ -342,6 +343,7 @@ export class OrganizationRepository {
             if (profile.joinedMembersCount) {
                 profile.joinedMembersCount--;
             }
+            await this.markForUndexing(ctx, oid);
         });
     }
 }

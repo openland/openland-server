@@ -686,6 +686,7 @@ export default {
 
                         if (_org) {
                             _org.joinedMembersCount = activeMembers.length;
+                            await Modules.Orgs.markForUndexing(ctx, _org.id);
                         }
                         if ((i % 100) === 0) {
                             await log('done: ' + i);
