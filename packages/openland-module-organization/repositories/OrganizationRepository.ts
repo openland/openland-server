@@ -329,7 +329,7 @@ export class OrganizationRepository {
            } else {
                profile.joinedMembersCount++;
            }
-            await Modules.Orgs.markForUndexing(ctx, oid);
+            await this.markForUndexing(ctx, oid);
         });
     }
 
@@ -343,7 +343,7 @@ export class OrganizationRepository {
             if (profile.joinedMembersCount) {
                 profile.joinedMembersCount--;
             }
-            await Modules.Orgs.markForUndexing(ctx, oid);
+            await this.markForUndexing(ctx, oid);
         });
     }
 }
