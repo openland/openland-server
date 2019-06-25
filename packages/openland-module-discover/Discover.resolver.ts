@@ -16,6 +16,7 @@ export default {
     },
 
     Query: {
+        // depricated
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
             return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
@@ -24,6 +25,15 @@ export default {
         }),
         betaIsDiscoverDone: withUser((ctx, args, uid) => {
             return Modules.Discover.isDiscoverDone(ctx, uid);
+        })
+    },
+
+    Mutation: {
+        betaNextDiscoverPageOrChats: withUser((ctx, args, uid) => {
+            return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
+        }),
+        betaNextDiscoverReset: withUser((ctx, args, uid) => {
+            return Modules.Discover.reset(ctx, uid);
         })
     }
 } as GQLResolver;

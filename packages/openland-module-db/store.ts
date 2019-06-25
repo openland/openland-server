@@ -80,6 +80,42 @@ export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserMessagesSentInDirectChatCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesSentInDirectChatCounter');
+        return new UserMessagesSentInDirectChatCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserMessagesReceivedCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -291,6 +327,7 @@ export class NotificationCenterCounterFactory extends AtomicIntegerFactory {
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
+    readonly UserMessagesSentInDirectChatCounter: UserMessagesSentInDirectChatCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
@@ -302,6 +339,7 @@ export interface Store extends BaseStore {
 export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
+    let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.open(storage);
     let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
     let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
@@ -310,6 +348,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(storage);
     let UserCounter = await UserCounterPromise;
     let UserMessagesSentCounter = await UserMessagesSentCounterPromise;
+    let UserMessagesSentInDirectChatCounter = await UserMessagesSentInDirectChatCounterPromise;
     let UserMessagesReceivedCounter = await UserMessagesReceivedCounterPromise;
     let UserMessagesChatsCounter = await UserMessagesChatsCounterPromise;
     let UserMessagesDirectChatsCounter = await UserMessagesDirectChatsCounterPromise;
@@ -320,6 +359,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         UserCounter,
         UserMessagesSentCounter,
+        UserMessagesSentInDirectChatCounter,
         UserMessagesReceivedCounter,
         UserMessagesChatsCounter,
         UserMessagesDirectChatsCounter,

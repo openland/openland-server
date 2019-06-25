@@ -142,8 +142,8 @@ export class NotificationCenterRepository {
                 return existing;
             }
             let ncid = await this.fetchNotificationCenterId(ctx);
-            await this.fdb.NotificationCenter.create(ctx, ncid, {kind: 'user'});
-            return await this.fdb.UserNotificationCenter.create(ctx, ncid, {uid});
+            await this.fdb.NotificationCenter.create(ctx, ncid, { kind: 'user' });
+            return await this.fdb.UserNotificationCenter.create(ctx, ncid, { uid });
         });
     }
 
@@ -153,7 +153,7 @@ export class NotificationCenterRepository {
             if (existing) {
                 return existing;
             }
-            return await this.fdb.NotificationCenterState.create(ctx, ncid, {seq: 1});
+            return await this.fdb.NotificationCenterState.create(ctx, ncid, { seq: 1 });
         });
     }
 

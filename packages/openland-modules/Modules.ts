@@ -28,6 +28,7 @@ import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 import { MetricsModule } from '../openland-module-metrics/MetricsModule';
+import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 
 class ModulesImpl {
 
@@ -117,6 +118,9 @@ class ModulesImpl {
     }
     get Metrics() {
         return container.get(MetricsModule);
+    }
+    get UserOnboarding() {
+        return container.get(UserOnboardingModule);
     }
 }
 

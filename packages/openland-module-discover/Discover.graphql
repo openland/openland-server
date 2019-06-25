@@ -16,7 +16,13 @@ type DiscoverPage {
 }
 
 extend type Query {
+    # depricated
     betaNextDiscoverPage(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
     betaSuggestedRooms: [Room!]!
     betaIsDiscoverDone: Boolean!
+}
+
+extend type Mutation {
+    betaNextDiscoverReset: Boolean!
+    betaNextDiscoverPageOrChats(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
 }

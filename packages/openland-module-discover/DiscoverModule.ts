@@ -47,6 +47,15 @@ export class DiscoverModule {
         });
 
     }
+    reset = async (parent: Context, uid: number) => {
+        return inTx(parent, async (ctx) => {
+            let oldTags = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            for (let old of oldTags) {
+                old.deleted = true;
+            }
+            return true;
+        });
+    }
     start = () => {
         // Nothing to do
     }
