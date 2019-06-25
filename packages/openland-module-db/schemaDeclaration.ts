@@ -142,6 +142,32 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('DelayedTask', () => {
+        primaryKey('taskType', 'string');
+        primaryKey('uid', 'string');
+
+        field('delay', 'number');
+        field('arguments', 'json');
+        field('result', 'json').nullable();
+        enumField('taskStatus', ['pending', 'executing', 'failing', 'failed', 'completed']);
+
+        field('taskFailureTime', 'number').nullable();
+        field('taskFailureMessage', 'string').nullable();
+
+        rangeIndex('pending', ['taskType', 'delay'])
+            .withCondition((src) => src.taskStatus === 'pending')
+            .withDisplayName('tasksPending');
+        rangeIndex('executing', ['taskLockTimeout'])
+            .withCondition((src) => src.taskStatus === 'executing')
+            .withDisplayName('tasksExecuting');
+        rangeIndex('failing', ['taskFailureTime'])
+            .withCondition((src) => src.taskStatus === 'failing')
+            .withDisplayName('tasksFailing');
+
+        enableTimestamps();
+        enableVersioning();
+    });
+
     //
     //  Pushes
     //

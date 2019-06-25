@@ -979,6 +979,204 @@ export class TaskFactory extends FEntityFactory<Task> {
         return new Task(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
     }
 }
+export interface DelayedTaskShape {
+    delay: number;
+    arguments: any;
+    result?: any| null;
+    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+    taskFailureTime?: number| null;
+    taskFailureMessage?: string| null;
+}
+
+export class DelayedTask extends FEntity {
+    readonly entityName: 'DelayedTask' = 'DelayedTask';
+    get taskType(): string { return this._value.taskType; }
+    get uid(): string { return this._value.uid; }
+    get delay(): number {
+        return this._value.delay;
+    }
+    set delay(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.delay) { return; }
+        this._value.delay = value;
+        this.markDirty();
+    }
+    get arguments(): any {
+        return this._value.arguments;
+    }
+    set arguments(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.arguments) { return; }
+        this._value.arguments = value;
+        this.markDirty();
+    }
+    get result(): any | null {
+        let res = this._value.result;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set result(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.result) { return; }
+        this._value.result = value;
+        this.markDirty();
+    }
+    get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
+        return this._value.taskStatus;
+    }
+    set taskStatus(value: 'pending' | 'executing' | 'failing' | 'failed' | 'completed') {
+        this._checkIsWritable();
+        if (value === this._value.taskStatus) { return; }
+        this._value.taskStatus = value;
+        this.markDirty();
+    }
+    get taskFailureTime(): number | null {
+        let res = this._value.taskFailureTime;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set taskFailureTime(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskFailureTime) { return; }
+        this._value.taskFailureTime = value;
+        this.markDirty();
+    }
+    get taskFailureMessage(): string | null {
+        let res = this._value.taskFailureMessage;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set taskFailureMessage(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskFailureMessage) { return; }
+        this._value.taskFailureMessage = value;
+        this.markDirty();
+    }
+}
+
+export class DelayedTaskFactory extends FEntityFactory<DelayedTask> {
+    static schema: FEntitySchema = {
+        name: 'DelayedTask',
+        editable: false,
+        primaryKeys: [
+            { name: 'taskType', type: 'string' },
+            { name: 'uid', type: 'string' },
+        ],
+        fields: [
+            { name: 'delay', type: 'number' },
+            { name: 'arguments', type: 'json' },
+            { name: 'result', type: 'json' },
+            { name: 'taskStatus', type: 'enum', enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] },
+            { name: 'taskFailureTime', type: 'number' },
+            { name: 'taskFailureMessage', type: 'string' },
+        ],
+        indexes: [
+            { name: 'pending', type: 'range', fields: ['taskType', 'delay'], displayName: 'tasksPending' },
+            { name: 'executing', type: 'range', fields: ['taskLockTimeout'], displayName: 'tasksExecuting' },
+            { name: 'failing', type: 'range', fields: ['taskFailureTime'], displayName: 'tasksFailing' },
+        ],
+    };
+
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('delayedTask');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: DelayedTaskFactory.validate, hasLiveStreams: false };
+        let indexPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('delayedTask', 'pending'), 'pending', ['taskType', 'delay'], false, (src) => src.taskStatus === 'pending');
+        let indexExecuting = new FEntityIndex(await layer.resolveEntityIndexDirectory('delayedTask', 'executing'), 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
+        let indexFailing = new FEntityIndex(await layer.resolveEntityIndexDirectory('delayedTask', 'failing'), 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
+        let indexes = {
+            pending: indexPending,
+            executing: indexExecuting,
+            failing: indexFailing,
+        };
+        return new DelayedTaskFactory(layer, directory, config, indexes);
+    }
+
+    readonly indexPending: FEntityIndex;
+    readonly indexExecuting: FEntityIndex;
+    readonly indexFailing: FEntityIndex;
+
+    private static validate(src: any) {
+        validators.notNull('taskType', src.taskType);
+        validators.isString('taskType', src.taskType);
+        validators.notNull('uid', src.uid);
+        validators.isString('uid', src.uid);
+        validators.notNull('delay', src.delay);
+        validators.isNumber('delay', src.delay);
+        validators.notNull('arguments', src.arguments);
+        validators.notNull('taskStatus', src.taskStatus);
+        validators.isEnum('taskStatus', src.taskStatus, ['pending', 'executing', 'failing', 'failed', 'completed']);
+        validators.isNumber('taskFailureTime', src.taskFailureTime);
+        validators.isString('taskFailureMessage', src.taskFailureMessage);
+    }
+
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { pending: FEntityIndex, executing: FEntityIndex, failing: FEntityIndex }) {
+        super('DelayedTask', 'delayedTask', config, [indexes.pending, indexes.executing, indexes.failing], layer, directory);
+        this.indexPending = indexes.pending;
+        this.indexExecuting = indexes.executing;
+        this.indexFailing = indexes.failing;
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'taskType': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(ctx: Context, taskType: string, uid: string) {
+        return await this._findById(ctx, [taskType, uid]);
+    }
+    async create(ctx: Context, taskType: string, uid: string, shape: DelayedTaskShape) {
+        return await this._create(ctx, [taskType, uid], { taskType, uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, taskType: string, uid: string, shape: DelayedTaskShape) {
+        return await this._create_UNSAFE(ctx, [taskType, uid], { taskType, uid, ...shape });
+    }
+    watch(ctx: Context, taskType: string, uid: string) {
+        return this._watch(ctx, [taskType, uid]);
+    }
+    async allFromPendingAfter(ctx: Context, taskType: string, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexPending.directory, [taskType], after);
+    }
+    async rangeFromPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexPending.directory, [taskType], after, limit, reversed);
+    }
+    async rangeFromPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexPending.directory, [taskType], limit, reversed);
+    }
+    async rangeFromPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexPending.directory, [taskType], limit, after, reversed);
+    }
+    async allFromPending(ctx: Context, taskType: string) {
+        return await this._findAll(ctx, this.indexPending.directory, [taskType]);
+    }
+    createPendingStream(taskType: string, limit: number, after?: string) {
+        return this._createStream(this.indexPending.directory, [taskType], limit, after); 
+    }
+    async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexExecuting.directory, [], limit, reversed);
+    }
+    async rangeFromExecutingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexExecuting.directory, [], limit, after, reversed);
+    }
+    async allFromExecuting(ctx: Context, ) {
+        return await this._findAll(ctx, this.indexExecuting.directory, []);
+    }
+    createExecutingStream(limit: number, after?: string) {
+        return this._createStream(this.indexExecuting.directory, [], limit, after); 
+    }
+    async rangeFromFailing(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexFailing.directory, [], limit, reversed);
+    }
+    async rangeFromFailingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexFailing.directory, [], limit, after, reversed);
+    }
+    async allFromFailing(ctx: Context, ) {
+        return await this._findAll(ctx, this.indexFailing.directory, []);
+    }
+    createFailingStream(limit: number, after?: string) {
+        return this._createStream(this.indexFailing.directory, [], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new DelayedTask(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'DelayedTask');
+    }
+}
 export interface PushFirebaseShape {
     uid: number;
     tid: string;
@@ -11242,6 +11440,7 @@ export interface AllEntities {
     readonly ServiceCache: ServiceCacheFactory;
     readonly Lock: LockFactory;
     readonly Task: TaskFactory;
+    readonly DelayedTask: DelayedTaskFactory;
     readonly PushFirebase: PushFirebaseFactory;
     readonly PushApple: PushAppleFactory;
     readonly PushWeb: PushWebFactory;
@@ -11327,6 +11526,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         ServiceCacheFactory.schema,
         LockFactory.schema,
         TaskFactory.schema,
+        DelayedTaskFactory.schema,
         PushFirebaseFactory.schema,
         PushAppleFactory.schema,
         PushWebFactory.schema,
@@ -11413,6 +11613,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let ServiceCachePromise = ServiceCacheFactory.create(layer);
         let LockPromise = LockFactory.create(layer);
         let TaskPromise = TaskFactory.create(layer);
+        let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let PushFirebasePromise = PushFirebaseFactory.create(layer);
         let PushApplePromise = PushAppleFactory.create(layer);
         let PushWebPromise = PushWebFactory.create(layer);
@@ -11497,6 +11698,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await ServiceCachePromise);
         allEntities.push(await LockPromise);
         allEntities.push(await TaskPromise);
+        allEntities.push(await DelayedTaskPromise);
         allEntities.push(await PushFirebasePromise);
         allEntities.push(await PushApplePromise);
         allEntities.push(await PushWebPromise);
@@ -11581,6 +11783,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             ServiceCache: await ServiceCachePromise,
             Lock: await LockPromise,
             Task: await TaskPromise,
+            DelayedTask: await DelayedTaskPromise,
             PushFirebase: await PushFirebasePromise,
             PushApple: await PushApplePromise,
             PushWeb: await PushWebPromise,
@@ -11672,6 +11875,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly ServiceCache: ServiceCacheFactory;
     readonly Lock: LockFactory;
     readonly Task: TaskFactory;
+    readonly DelayedTask: DelayedTaskFactory;
     readonly PushFirebase: PushFirebaseFactory;
     readonly PushApple: PushAppleFactory;
     readonly PushWeb: PushWebFactory;
@@ -11765,6 +11969,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.Lock);
         this.Task = entities.Task;
         this.allEntities.push(this.Task);
+        this.DelayedTask = entities.DelayedTask;
+        this.allEntities.push(this.DelayedTask);
         this.PushFirebase = entities.PushFirebase;
         this.allEntities.push(this.PushFirebase);
         this.PushApple = entities.PushApple;
