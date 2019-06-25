@@ -23,11 +23,6 @@ export default {
             }
         },
         verified: (src: UserBadge) => !!src.verifiedBy,
-        isPrimary: async (src: UserBadge, args: {}, ctx: AppContext) => {
-            let profile = await FDB.UserProfile.findById(ctx, src.uid);
-
-            return profile && profile.primaryBadge === src.bid ? true : false;
-        },
     },
     Mutation: {
         badgeCreate: withUser(async (ctx, args, uid) => {

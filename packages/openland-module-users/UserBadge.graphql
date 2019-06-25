@@ -2,7 +2,6 @@ type UserBadge {
     id: ID!
     name: String!
     verified: Boolean!
-    isPrimary: Boolean!
 }
 
 extend type User {
