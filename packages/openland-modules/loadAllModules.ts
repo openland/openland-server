@@ -52,7 +52,7 @@ import { currentTime } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { EntityStorage } from '@openland/foundationdb-entity';
 import { openStore } from 'openland-module-db/store';
-import { UserOnboardingModule } from 'openland-module-user-onboarding/UserOnboardingModule';
+import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 
 const logger = createLogger('starting');
 

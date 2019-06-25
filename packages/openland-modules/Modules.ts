@@ -28,7 +28,7 @@ import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 import { MetricsModule } from '../openland-module-metrics/MetricsModule';
-import { UserOnboardingModule } from 'openland-module-user-onboarding/UserOnboardingModule';
+import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 
 class ModulesImpl {
 

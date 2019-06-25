@@ -5,7 +5,7 @@ import { Store } from 'openland-module-db/store';
 
 @injectable()
 export class ChatMetricsRepository {
-    
+
     @lazyInject('Store')
     private readonly store!: Store;
 
@@ -15,6 +15,10 @@ export class ChatMetricsRepository {
 
     onMessageReceived = (ctx: Context, uid: number) => {
         this.store.UserMessagesReceivedCounter.byId(uid).increment(ctx);
+    }
+
+    onMessageSentDirect = (ctx: Context, uid: number) => {
+        this.store.UserMessagesSentCounter.byId(uid).increment(ctx);
     }
 
     onChatCreated = (ctx: Context, uid: number) => {
@@ -28,7 +32,7 @@ export class ChatMetricsRepository {
     onDirectChatCreated = (ctx: Context, uid: number) => {
         this.store.UserMessagesDirectChatsCounter.byId(uid).increment(ctx);
     }
-    
+
     onDirectChatDeleted = (ctx: Context, uid: number) => {
         this.store.UserMessagesDirectChatsCounter.byId(uid).decrement(ctx);
     }

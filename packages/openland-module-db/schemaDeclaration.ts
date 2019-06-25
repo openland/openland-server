@@ -1164,10 +1164,6 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    //
-    // Counters
-    //
-
     directory('NeedNotificationFlag');
 
     //
