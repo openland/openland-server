@@ -29,7 +29,6 @@ export class HooksModule {
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
         await profileUpdated.event(ctx, { uid });
         await Modules.Messaging.onUserProfileUpdated(ctx, uid);
-        await this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + 1000); // 2 days
     }
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
