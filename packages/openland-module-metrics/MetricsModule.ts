@@ -3,6 +3,7 @@ import { Context } from '@openland/context';
 import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
 import { Comment, ConversationRoom, Message, Notification, Organization } from '../openland-module-db/schema';
 import { FDB } from '../openland-module-db/FDB';
+import { REACTIONS_LEGACY } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 @injectable()
 export class MetricsModule {
@@ -73,6 +74,6 @@ export class MetricsModule {
     }
 
     async onReactionAdded(ctx: Context, message: Message, reaction: string) {
-        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type: reaction } });
+        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type:  REACTIONS_LEGACY.get(reaction) || reaction } });
     }
 }

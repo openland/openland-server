@@ -29,7 +29,7 @@ export function hasMention(message: Message, uid: number) {
     return false;
 }
 
-const REACTIONS_LEGACY = new Map([
+export const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
     ['👍', 'THUMB_UP'],
     ['😂', 'JOY'],
@@ -574,7 +574,7 @@ export default {
                 return REACTIONS_LEGACY.get(src.reaction);
             }
 
-            return 'LIKE';
+            return src.reaction;
         }
     },
 
