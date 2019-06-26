@@ -48,7 +48,7 @@ export function createFirstWeekReportWorker() {
                 }
                 report.push('\n');
 
-                const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx);
+                const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
                 report.push(`👨‍👦‍👦 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} joined\n`);
 
                 const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
