@@ -3,6 +3,7 @@ import { Context } from '@openland/context';
 import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
 import { Comment, ConversationRoom, Message, Notification, Organization } from '../openland-module-db/schema';
 import { FDB } from '../openland-module-db/FDB';
+import { REACTIONS_LEGACY } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 @injectable()
 export class MetricsModule {
@@ -18,9 +19,13 @@ export class MetricsModule {
             let mentions = (message.spans || []).filter(span => span.type === 'user_mention' || span.type === 'multi_user_mention' || span.type === 'all_mention');
             for (let mention of mentions) {
                 if (mention.type === 'user_mention') {
-                    await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    if (mention.user === uid) {
+                        await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    }
                 } else if (mention.type === 'multi_user_mention') {
-                    await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    if (mention.users.indexOf(uid) > -1) {
+                        await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    }
                 } else if (mention.type === 'all_mention') {
                     await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'all_mention' } });
                 }
@@ -73,6 +78,6 @@ export class MetricsModule {
     }
 
     async onReactionAdded(ctx: Context, message: Message, reaction: string) {
-        await trackServerEvent(ctx, { name: 'A', uid: message.uid, args: { reaction_type: reaction } });
+        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type:  REACTIONS_LEGACY.get(reaction) || reaction } });
     }
 }

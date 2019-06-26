@@ -11,6 +11,7 @@ import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class MessagingRepository {
@@ -71,8 +72,12 @@ export class MessagingRepository {
             let conv = (await this.entities.Conversation.findById(ctx, cid));
             let direct = conv && conv.kind === 'private';
             if (direct) {
-                this.chatMetrics.onMessageSentDirect(ctx, uid);
+                await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
             }
+            //
+            // Notify hooks
+            //
+            await Modules.Hooks.onMessageSent(ctx, uid);
 
             return {
                 event: res,

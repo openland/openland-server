@@ -3,7 +3,7 @@ import { Context } from '@openland/context';
 
 @injectable()
 export class HooksModuleMock {
-    
+
     start = () => {
         // Nothing to do
     }
@@ -51,4 +51,17 @@ export class HooksModuleMock {
     onChatMembersCountChange = async (ctx: Context, cid: number, delta: number) => {
         // Nothing to do
     }
+
+    onDialogsLoad = async (ctx: Context, uid: number) => {
+        // Nothing to do
+    }
+
+    onDiscoverCompleted = async (ctx: Context, uid: number) => {
+        // Nothing to do
+    }
+
+    onMessageSent = async (ctx: Context, uid: number) => {
+        // Nothing to do
+    }
+
 }
