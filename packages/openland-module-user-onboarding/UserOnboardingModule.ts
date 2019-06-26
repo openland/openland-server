@@ -165,8 +165,11 @@ export class UserOnboardingModule {
         let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
         await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
 
-        // let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
-        // await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, buildMessage(...messageParts));
+        if (user.email && user.email.includes('+test@maildu.de')) {
+            let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
+            await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, buildMessage(...messageParts));
+        }
+
     }
 
     private isDiscoverCompletedWithJoin = async (ctx: Context, uid: number) => {
