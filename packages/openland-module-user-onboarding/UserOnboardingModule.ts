@@ -3,7 +3,6 @@ import { FDB, Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
-import { IDs } from 'openland-module-api/IDs';
 import { UserProfile } from 'openland-module-db/schema';
 import { DelayedQueue } from 'openland-module-workers/DelayedQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
