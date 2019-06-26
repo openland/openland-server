@@ -3,6 +3,7 @@ import { injectable } from 'inversify';
 import { DiscoverData } from './DiscoverData';
 import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
+import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class DiscoverModule {
@@ -27,6 +28,7 @@ export class DiscoverModule {
                         await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
                     }
                 }
+                await Modules.Hooks.onDiscoverCompleted(ctx, uid);
             }
             return page;
         });

@@ -11527,6 +11527,131 @@ export class ChatAudienceCalculatingQueueFactory extends FEntityFactory<ChatAudi
         return new ChatAudienceCalculatingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChatAudienceCalculatingQueue');
     }
 }
+export interface UserOnboardingStateShape {
+    wellcomeSent?: boolean| null;
+    askCompleteDeiscoverSent?: boolean| null;
+    askInviteSent?: boolean| null;
+    askInstallAppsSent?: boolean| null;
+    askSendFirstMessageSent?: boolean| null;
+}
+
+export class UserOnboardingState extends FEntity {
+    readonly entityName: 'UserOnboardingState' = 'UserOnboardingState';
+    get uid(): number { return this._value.uid; }
+    get wellcomeSent(): boolean | null {
+        let res = this._value.wellcomeSent;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set wellcomeSent(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.wellcomeSent) { return; }
+        this._value.wellcomeSent = value;
+        this.markDirty();
+    }
+    get askCompleteDeiscoverSent(): boolean | null {
+        let res = this._value.askCompleteDeiscoverSent;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set askCompleteDeiscoverSent(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.askCompleteDeiscoverSent) { return; }
+        this._value.askCompleteDeiscoverSent = value;
+        this.markDirty();
+    }
+    get askInviteSent(): boolean | null {
+        let res = this._value.askInviteSent;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set askInviteSent(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.askInviteSent) { return; }
+        this._value.askInviteSent = value;
+        this.markDirty();
+    }
+    get askInstallAppsSent(): boolean | null {
+        let res = this._value.askInstallAppsSent;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set askInstallAppsSent(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.askInstallAppsSent) { return; }
+        this._value.askInstallAppsSent = value;
+        this.markDirty();
+    }
+    get askSendFirstMessageSent(): boolean | null {
+        let res = this._value.askSendFirstMessageSent;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set askSendFirstMessageSent(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.askSendFirstMessageSent) { return; }
+        this._value.askSendFirstMessageSent = value;
+        this.markDirty();
+    }
+}
+
+export class UserOnboardingStateFactory extends FEntityFactory<UserOnboardingState> {
+    static schema: FEntitySchema = {
+        name: 'UserOnboardingState',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'wellcomeSent', type: 'boolean' },
+            { name: 'askCompleteDeiscoverSent', type: 'boolean' },
+            { name: 'askInviteSent', type: 'boolean' },
+            { name: 'askInstallAppsSent', type: 'boolean' },
+            { name: 'askSendFirstMessageSent', type: 'boolean' },
+        ],
+        indexes: [
+        ],
+    };
+
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('userOnboardingState');
+        let config = { enableVersioning: false, enableTimestamps: false, validator: UserOnboardingStateFactory.validate, hasLiveStreams: false };
+        return new UserOnboardingStateFactory(layer, directory, config);
+    }
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.isBoolean('wellcomeSent', src.wellcomeSent);
+        validators.isBoolean('askCompleteDeiscoverSent', src.askCompleteDeiscoverSent);
+        validators.isBoolean('askInviteSent', src.askInviteSent);
+        validators.isBoolean('askInstallAppsSent', src.askInstallAppsSent);
+        validators.isBoolean('askSendFirstMessageSent', src.askSendFirstMessageSent);
+    }
+
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
+        super('UserOnboardingState', 'userOnboardingState', config, [], layer, directory);
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0] };
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+    async create(ctx: Context, uid: number, shape: UserOnboardingStateShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, uid: number, shape: UserOnboardingStateShape) {
+        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
+    }
+    watch(ctx: Context, uid: number) {
+        return this._watch(ctx, [uid]);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserOnboardingState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserOnboardingState');
+    }
+}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
@@ -11617,6 +11742,7 @@ export interface AllEntities {
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
+    readonly UserOnboardingState: UserOnboardingStateFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -11704,6 +11830,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         NotificationCenterStateFactory.schema,
         NotificationCenterEventFactory.schema,
         ChatAudienceCalculatingQueueFactory.schema,
+        UserOnboardingStateFactory.schema,
     ];
 
     static async create(layer: EntityLayer) {
@@ -11792,6 +11919,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
         let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
         let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
+        let UserOnboardingStatePromise = UserOnboardingStateFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await EnvironmentPromise);
@@ -11878,6 +12006,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await NotificationCenterStatePromise);
         allEntities.push(await NotificationCenterEventPromise);
         allEntities.push(await ChatAudienceCalculatingQueuePromise);
+        allEntities.push(await UserOnboardingStatePromise);
         let entities = {
             layer, allEntities,
             Environment: await EnvironmentPromise,
@@ -11964,6 +12093,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             NotificationCenterState: await NotificationCenterStatePromise,
             NotificationCenterEvent: await NotificationCenterEventPromise,
             ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
+            UserOnboardingState: await UserOnboardingStatePromise,
             NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
             NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         };
@@ -12057,6 +12187,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
+    readonly UserOnboardingState: UserOnboardingStateFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -12228,6 +12359,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.NotificationCenterEvent);
         this.ChatAudienceCalculatingQueue = entities.ChatAudienceCalculatingQueue;
         this.allEntities.push(this.ChatAudienceCalculatingQueue);
+        this.UserOnboardingState = entities.UserOnboardingState;
+        this.allEntities.push(this.UserOnboardingState);
         this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
         this.NotificationCenterNeedDeliveryFlagDirectory = entities.NotificationCenterNeedDeliveryFlagDirectory;
     }

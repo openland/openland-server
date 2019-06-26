@@ -1253,6 +1253,15 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    entity('UserOnboardingState', () => {
+        primaryKey('uid', 'number');
+        field('wellcomeSent', 'boolean').nullable();
+        field('askCompleteDeiscoverSent', 'boolean').nullable();
+        field('askInviteSent', 'boolean').nullable();
+        field('askInstallAppsSent', 'boolean').nullable();
+        field('askSendFirstMessageSent', 'boolean').nullable();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

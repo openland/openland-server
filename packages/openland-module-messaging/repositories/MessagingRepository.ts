@@ -11,6 +11,7 @@ import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class MessagingRepository {
@@ -73,6 +74,10 @@ export class MessagingRepository {
             if (direct) {
                 this.chatMetrics.onMessageSentDirect(ctx, uid);
             }
+            //
+            // Notify hooks
+            //
+            await Modules.Hooks.onMessageSent(ctx, uid);
 
             return {
                 event: res,
