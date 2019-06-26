@@ -14,8 +14,8 @@ import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { InvitesOrganizationRepository } from 'openland-module-invites/repositories/InvitesOrganizationRepository';
 import { Modules } from 'openland-modules/Modules';
-import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 
 describe('InvitesMediator', () => {
 
@@ -31,7 +31,7 @@ describe('InvitesMediator', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
 
         entities = container.get<AllEntities>('FDB');
         users = container.get<UsersModule>(UsersModule);

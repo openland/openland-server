@@ -8,8 +8,8 @@ import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { FDB } from 'openland-module-db/FDB';
-import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { Context, createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../openland-module-users/UsersModule.container';
 // console.log('imported in ' + (Date.now() - start) + ' ms');
 
 describe('OrganizationModule', () => {
@@ -19,7 +19,7 @@ describe('OrganizationModule', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(HooksModule).toSelf().inSingletonScope();
         // console.log('loaded in ' + (Date.now() - start) + ' ms');

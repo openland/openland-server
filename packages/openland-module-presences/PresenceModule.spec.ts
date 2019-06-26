@@ -6,16 +6,16 @@ import { FDB } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
 import { PresenceModule } from './PresenceModule';
 import { UsersModule } from '../openland-module-users/UsersModule';
-import { UserRepository } from '../openland-module-users/repositories/UserRepository';
 import { SuperModule } from '../openland-module-super/SuperModule';
 import { createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../openland-module-users/UsersModule.container';
 
 describe('PresenceModule', () => {
     beforeAll(async () => {
         await testEnvironmentStart('presence');
         container.bind(PresenceModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
     });
     afterAll(() => {
