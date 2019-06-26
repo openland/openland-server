@@ -86,7 +86,7 @@ export class UserOnboardingModule {
 
     // Discover
     private sendToDiscoverIfNeeded = async (ctx: Context, uid: number) => {
-        if (!this.isDiscoverCompletedWithJoin(ctx, uid)) {
+        if (!await this.isDiscoverCompletedWithJoin(ctx, uid)) {
             let state = await this.getOnboardingState(ctx, uid);
             if (!state.askCompleteDeiscoverSent) {
                 await this.sendMessage(ctx, uid, templates.gotoDiscover);
@@ -97,7 +97,7 @@ export class UserOnboardingModule {
 
     // First message
     private askSendFirstMessageOnFirstLoad = async (ctx: Context, uid: number) => {
-        if (this.isDiscoverCompletedWithJoin(ctx, uid)) {
+        if (await this.isDiscoverCompletedWithJoin(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
         }
     }
@@ -108,7 +108,7 @@ export class UserOnboardingModule {
     }
 
     private askSendFirstMessageAfterShortDelay = async (ctx: Context, uid: number) => {
-        if (!this.isDiscoverCompletedWithJoin(ctx, uid) && !this.userDidSendMessageToGroups(ctx, uid) && this.userIsMemberOfAtLesatOneGroup(ctx, uid)) {
+        if (!await this.isDiscoverCompletedWithJoin(ctx, uid) && !await this.userDidSendMessageToGroups(ctx, uid) && await this.userIsMemberOfAtLesatOneGroup(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
         }
     }
