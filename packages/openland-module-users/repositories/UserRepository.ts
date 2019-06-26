@@ -254,6 +254,8 @@ export class UserRepository {
             if (userBadge) {
                 if (userBadge.deleted) {
                     userBadge.deleted = false;
+
+                    await userBadge.flush(ctx);
                 } else {
                     if (!cid) {
                         throw new Error('Badge already exists');
@@ -275,6 +277,8 @@ export class UserRepository {
         
                         if (profile && !profile.primaryBadge) {
                             profile.primaryBadge = bid;
+
+                            await profile.flush(ctx);
                         }
                     }
                 }
@@ -295,9 +299,13 @@ export class UserRepository {
 
             userBadge.deleted = true;
 
+            await userBadge.flush(ctx);
+
             // unset primary if needed
             if (profile.primaryBadge === bid) {
                 profile.primaryBadge = null;
+
+                await profile.flush(ctx);
             }
 
             return uid;
@@ -316,6 +324,8 @@ export class UserRepository {
 
             profile.primaryBadge = bid;
 
+            await profile.flush(ctx);
+
             return uid;
         });
     }
@@ -329,6 +339,8 @@ export class UserRepository {
             }
 
             profile.primaryBadge = null;
+
+            await profile.flush(ctx);
 
             return uid;
         });
@@ -347,6 +359,8 @@ export class UserRepository {
             }
 
             userBadge.verifiedBy = suid;
+
+            await userBadge.flush(ctx);
 
             return uid;
         });
