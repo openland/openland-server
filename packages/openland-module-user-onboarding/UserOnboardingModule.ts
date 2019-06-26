@@ -40,13 +40,13 @@ export class UserOnboardingModule {
 
     onDialogsLoad = async (ctx: Context, uid: number) => {
         // first time load
-        if (!(await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq) {
-            await this.sendWellcome(ctx, uid);
-            await this.sendToDiscoverIfNeeded(ctx, uid);
-            await this.askSendFirstMessageOnFirstLoad(ctx, uid);
-            await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad30m' }, Date.now() + 1000 * 60 * 30);
-            await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad20h' }, Date.now() + 1000 * 60 * 60 * 20);
-        }
+        // if (!(await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq) {
+        //     await this.sendWellcome(ctx, uid);
+        //     await this.sendToDiscoverIfNeeded(ctx, uid);
+        //     await this.askSendFirstMessageOnFirstLoad(ctx, uid);
+        //     await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad30m' }, Date.now() + 1000 * 60 * 30);
+        //     await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad20h' }, Date.now() + 1000 * 60 * 60 * 20);
+        // }
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
