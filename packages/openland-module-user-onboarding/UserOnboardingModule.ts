@@ -40,8 +40,7 @@ export class UserOnboardingModule {
 
     onDialogsLoad = async (ctx: Context, uid: number) => {
         // first time load
-        let seq = (await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq;
-        if (seq === 0) {
+        if (!(await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq) {
             await this.sendWellcome(ctx, uid);
             await this.sendToDiscoverIfNeeded(ctx, uid);
             await this.askSendFirstMessageOnFirstLoad(ctx, uid);
