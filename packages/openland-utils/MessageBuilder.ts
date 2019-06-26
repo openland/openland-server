@@ -1,6 +1,6 @@
 import { MessageInput, MessageSpan, MessageAttachmentInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
 
-type MessagePart = string | { type: 'bold_text', text: string } | { type: 'user_mention', text: string, uid: number } | { type: 'users_mention', text: string, uids: number[] } | ({ type: 'rich_attach', attach: Partial<MessageRichAttachmentInput> });
+export type MessagePart = string | { type: 'bold_text', text: string } | { type: 'user_mention', text: string, uid: number } | { type: 'users_mention', text: string, uids: number[] } | ({ type: 'rich_attach', attach: Partial<MessageRichAttachmentInput> });
 
 export const boldString = (str: string) => ({ type: 'bold_text', text: str }) as MessagePart;
 export const userMention = (str: string, uid: number) => ({ type: 'user_mention', text: str, uid }) as MessagePart;
