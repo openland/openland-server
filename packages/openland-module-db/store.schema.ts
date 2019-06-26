@@ -7,7 +7,7 @@ export default declareSchema(() => {
     atomicInt('UserMessagesSentCounter', () => {
         primaryKey('uid', 'number');
     });
-    atomicInt('UserMessagesSentInDirectChatCounter', () => {
+    atomicInt('UserMessagesSentInDirectChatTotalCounter', () => {
         primaryKey('uid', 'number');
     });
     atomicInt('UserMessagesReceivedCounter', () => {
@@ -37,6 +37,15 @@ export default declareSchema(() => {
     });
 
     atomicInt('UserAudienceCounter', () => {
+        primaryKey('uid', 'number');
+    });
+
+    atomicInt('UserMessagesSentInDirectChatCounter', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+    });
+
+    atomicInt('User2WayDirectChatsCounter', () => {
         primaryKey('uid', 'number');
     });
 });

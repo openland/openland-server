@@ -54,7 +54,7 @@ export function createFirstWeekReportWorker() {
                 const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
                 report.push(`🤗 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}\n`);
 
-                const directMessages = await Store.UserMessagesSentInDirectChatCounter.byId(uid).get(ctx);
+                const directMessages = await Store.UserMessagesSentInDirectChatTotalCounter.byId(uid).get(ctx);
                 const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
                 const groupMessages = allMessages - directMessages;
                 report.push(`✉️ ${directMessages} direct ${plural(directMessages, ['message', 'messages'])} sent\n`);

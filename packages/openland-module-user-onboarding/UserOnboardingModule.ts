@@ -3,7 +3,6 @@ import { FDB, Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
-import { IDs } from 'openland-module-api/IDs';
 import { UserProfile } from 'openland-module-db/schema';
 import { DelayedQueue } from 'openland-module-workers/DelayedQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -177,7 +176,7 @@ export class UserOnboardingModule {
     }
 
     private userDidSendMessageToGroups = async (ctx: Context, uid: number) => {
-        return !!(await Store.UserMessagesSentCounter.byId(uid).get(ctx) - await Store.UserMessagesSentInDirectChatCounter.byId(uid).get(ctx));
+        return !!(await Store.UserMessagesSentCounter.byId(uid).get(ctx) - await Store.UserMessagesSentInDirectChatTotalCounter.byId(uid).get(ctx));
     }
 
     private userIsMemberOfAtLesatOneGroup = async (ctx: Context, uid: number) => {

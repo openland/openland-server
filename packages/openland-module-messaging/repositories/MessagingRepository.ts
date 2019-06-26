@@ -72,7 +72,7 @@ export class MessagingRepository {
             let conv = (await this.entities.Conversation.findById(ctx, cid));
             let direct = conv && conv.kind === 'private';
             if (direct) {
-                this.chatMetrics.onMessageSentDirect(ctx, uid);
+                await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
             }
             //
             // Notify hooks

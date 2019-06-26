@@ -188,6 +188,9 @@ export default {
                 return 'done';
             });
             return 'ok';
+        }),
+        debug2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
+            return await Store.User2WayDirectChatsCounter.get(parent, parent.auth.uid!);
         })
     },
     Mutation: {
@@ -350,7 +353,7 @@ export default {
                         let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
                         messagesSent.set(ctx, totalSent);
 
-                        let messagesSentDirect = Store.UserMessagesSentInDirectChatCounter.byId(user.id);
+                        let messagesSentDirect = Store.UserMessagesSentInDirectChatTotalCounter.byId(user.id);
                         messagesSentDirect.set(ctx, totalSentDirect);
 
                         let messagesReceived = Store.UserMessagesReceivedCounter.byId(user.id);
@@ -771,6 +774,55 @@ export default {
                         audience += members.length;
                     }
                     await Store.UserAudienceCounter.set(ctx, uid, audience);
+                };
+
+                for (let user of allUsers) {
+                    await inTx(rootCtx, async (ctx) => {
+                        await calculateForUser(ctx, user.id);
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
+        debugCalcUsers2WayDirectChatsCounter: withUser(async (parent, args, _uid) => {
+            debugTask(parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (log) => {
+                let allUsers = await FDB.User.findAll(rootCtx);
+                let i = 0;
+
+                const calculateForUser = async (ctx: Context, uid: number) => {
+                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+
+                    for (let a of all) {
+                        let chat = await FDB.Conversation.findById(ctx, a.cid);
+                        if (!chat || chat.kind !== 'private') {
+                            continue;
+                        }
+                        let messages = await FDB.Message.allFromChat(ctx, a.cid);
+
+                        let hasSentMessage = false;
+                        let hasReceivedMessage = false;
+
+                        for (let msg of messages) {
+                            if (hasReceivedMessage && hasSentMessage) {
+                                break;
+                            }
+                            if (msg.uid === uid) {
+                                hasSentMessage = true;
+                            } else {
+                                hasReceivedMessage = true;
+                            }
+                        }
+
+                        if (hasReceivedMessage && hasSentMessage) {
+                            await Store.User2WayDirectChatsCounter.increment(ctx, uid);
+                        }
+                        await Store.UserMessagesSentInDirectChatCounter.set(ctx, uid, a.cid, messages.filter(m => m.uid === uid).length);
+                    }
                 };
 
                 for (let user of allUsers) {

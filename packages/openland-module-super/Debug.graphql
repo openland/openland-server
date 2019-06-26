@@ -57,6 +57,7 @@ extend type Query {
     debugEventsState: DebugEventsState!
 
     debugCheckTasksIndex: String!
+    debug2WayDirectChatsCounter: Int!
 }
 
 enum SuperNotificationType {
@@ -88,6 +89,7 @@ extend type Mutation {
     debugDeveloperInit: Boolean!
     debugResetAudienceCounter(uid: ID): Boolean!
     debugCalcUsersAudienceCounter: Boolean!
+    debugCalcUsers2WayDirectChatsCounter: Boolean!
 }
 
 extend type Subscription {
