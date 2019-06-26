@@ -175,7 +175,7 @@ export class HooksModule {
     }
 
     onDialogsLoad = async (ctx: Context, uid: number) => {
-        await Modules.UserOnboarding.onDialogsLoad(ctx, uid);
+        // await Modules.UserOnboarding.onDialogsLoad(ctx, uid);
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
