@@ -1,9 +1,9 @@
-type Tag{
+type Tag {
     id: String!
     title: String!
 }
 
-type TagGroup{
+type TagGroup {
     id: String!
     title: String
     subtitle: String
@@ -16,7 +16,7 @@ type DiscoverPage {
 }
 
 extend type Query {
-    # depricated
+    # deprecated
     betaNextDiscoverPage(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
     betaSuggestedRooms: [Room!]!
     betaIsDiscoverDone: Boolean!
