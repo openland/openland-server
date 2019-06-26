@@ -240,7 +240,17 @@ export default {
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid),
-        badge: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.badge ? await FDB.UserBadge.findById(ctx, src.badge, src.uid) : null,
+        badge: async (src: RoomParticipant, args: {}, ctx: AppContext) => {
+            let userRoomBadge = await FDB.UserRoomBadge.findById(ctx, src.uid, src.cid);
+
+            if (!userRoomBadge || !userRoomBadge.bid) {
+                return null;
+            }
+
+            let userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);
+
+            return (userBadge && !userBadge.deleted) ? userBadge : null;
+        },
     },
 
     RoomInvite: {

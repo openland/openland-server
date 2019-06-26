@@ -500,7 +500,6 @@ const Schema = declareSchema(() => {
         field('invitedBy', 'number');
         enumField('role', ['member', 'admin', 'owner']);
         enumField('status', ['joined', 'requested', 'left', 'kicked']);
-        field('badge', 'number').nullable();
         uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined').withRange();
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested').withRange();
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined').withRange();
@@ -1262,6 +1261,17 @@ const Schema = declareSchema(() => {
 
         rangeIndex('user', ['uid', 'bid']).withCondition((src) => !src.deleted);
         uniqueIndex('userBadge', ['uid', 'bid']).withCondition((src) => !src.deleted);
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('UserRoomBadge', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+        field('bid', 'number').nullable();
+
+        uniqueIndex('user', ['uid', 'cid']).withCondition((src) => !src.deleted);
 
         enableVersioning();
         enableTimestamps();

@@ -1,4 +1,4 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, UserRoomBadge } from 'openland-module-db/schema';
 import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -254,18 +254,16 @@ export class UserRepository {
                 if (userBadge.deleted) {
                     userBadge.deleted = false;
                 } else {
-                    throw new Error('Badge already exists');
+                    if (!cid) {
+                        throw new Error('Badge already exists');
+                    }
                 }
             } else {
                 userBadge = await this.entities.UserBadge.create(ctx, bid, uid, {});
             }
 
             if (cid) {
-                let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
-
-                if (participant) {
-                    participant.badge = bid;
-                }
+                await this.setRoomBadge(ctx, uid, cid, bid);
             } else {
                 if (!isSuper) {
                     // set primary if needed
@@ -301,8 +299,6 @@ export class UserRepository {
                 profile.primaryBadge = null;
             }
 
-            // TODO: remove badge from all chats, where it is used
-
             return true;
         });
     }
@@ -337,13 +333,15 @@ export class UserRepository {
 
     async setRoomBadge(parent: Context, uid: number, cid: number, bid: number) {
         return await inTx(parent, async (ctx) => {
-            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
 
-            if (!participant) {
-                throw new NotFoundError();
+            if (roomBadge) {
+                roomBadge.bid = bid;
+            } else {
+                await this.entities.UserRoomBadge.create(ctx, uid, cid, {
+                    bid: bid
+                });
             }
-
-            participant.badge = bid;
 
             return await this.entities.UserBadge.findById(ctx, bid, uid);
         });
@@ -351,13 +349,13 @@ export class UserRepository {
 
     async unsetRoomBadge(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
 
-            if (!participant) {
+            if (!roomBadge) {
                 throw new NotFoundError();
             }
 
-            participant.badge = null;
+            roomBadge.bid = null;
 
             return true;
         });
