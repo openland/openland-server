@@ -19,9 +19,13 @@ export class MetricsModule {
             let mentions = (message.spans || []).filter(span => span.type === 'user_mention' || span.type === 'multi_user_mention' || span.type === 'all_mention');
             for (let mention of mentions) {
                 if (mention.type === 'user_mention') {
-                    await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    if (mention.user === uid) {
+                        await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    }
                 } else if (mention.type === 'multi_user_mention') {
-                    await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    if (mention.users.indexOf(uid) > -1) {
+                        await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'full_name' } });
+                    }
                 } else if (mention.type === 'all_mention') {
                     await trackServerEvent(ctx, { name: 'mention_received', uid, args: { mention_type: 'all_mention' } });
                 }
