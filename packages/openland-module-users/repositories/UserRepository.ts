@@ -280,7 +280,7 @@ export class UserRepository {
                 }
             }
 
-            return userBadge;
+            return uid;
         });
     }
 
@@ -300,7 +300,7 @@ export class UserRepository {
                 profile.primaryBadge = null;
             }
 
-            return true;
+            return uid;
         });
     }
 
@@ -314,7 +314,7 @@ export class UserRepository {
 
             profile.primaryBadge = needPrimary ? bid : null;
 
-            return await this.entities.UserBadge.findById(ctx, bid, uid);
+            return uid;
         });
     }
 
@@ -328,7 +328,7 @@ export class UserRepository {
 
             userBadge.verifiedBy = suid;
 
-            return userBadge;
+            return uid;
         });
     }
 

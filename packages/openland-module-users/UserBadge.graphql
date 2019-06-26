@@ -14,20 +14,20 @@ extend type Profile {
 }
 
 extend type Mutation {
-    badgeCreate(name: String!): UserBadge!
+    badgeCreate(name: String!): User!
     badgeCreateToRoom(roomId: ID!, name: String!): UserBadge!
     badgeSetToRoom(roomId: ID!, badgeId: ID!): UserBadge!
-    badgeUnsetToRoom(roomId: ID!): UserBadge!
-    badgeDelete(badgeId: ID!): Boolean!
-    badgeSetPrimary(badgeId: ID!): UserBadge!
-    badgeUnsetPrimary(badgeId: ID!): UserBadge!
+    badgeUnsetToRoom(roomId: ID!): Boolean!
+    badgeDelete(badgeId: ID!): User!
+    badgeSetPrimary(badgeId: ID!): User!
+    badgeUnsetPrimary(badgeId: ID!): User!
 
     # super-admin methods
-    superBadgeCreate(userId: ID!, name: String!): UserBadge!
+    superBadgeCreate(userId: ID!, name: String!): User!
     superBadgeCreateToRoom(roomId: ID!, userId: ID!, name: String!): UserBadge!
     superBadgeSetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): UserBadge!
     superBadgeUnsetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): Boolean!
-    superBadgeDelete(badgeId: ID!, userId: ID!): Boolean!
-    superBadgeVerify(badgeId: ID!, userId: ID!): UserBadge!
-    superBadgeUnverify(badgeId: ID!, userId: ID!): UserBadge!
+    superBadgeDelete(badgeId: ID!, userId: ID!): User!
+    superBadgeVerify(badgeId: ID!, userId: ID!): User!
+    superBadgeUnverify(badgeId: ID!, userId: ID!): User!
 }
