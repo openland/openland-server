@@ -1271,7 +1271,7 @@ const Schema = declareSchema(() => {
         primaryKey('cid', 'number');
         field('bid', 'number').nullable();
 
-        uniqueIndex('user', ['uid', 'cid']).withCondition((src) => !src.deleted);
+        uniqueIndex('user', ['uid', 'cid']);
 
         enableVersioning();
         enableTimestamps();

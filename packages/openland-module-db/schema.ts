@@ -11710,7 +11710,7 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('userRoomBadge');
         let config = { enableVersioning: true, enableTimestamps: true, validator: UserRoomBadgeFactory.validate, hasLiveStreams: false };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'user'), 'user', ['uid', 'cid'], true, (src) => !src.deleted);
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'user'), 'user', ['uid', 'cid'], true);
         let indexes = {
             user: indexUser,
         };
