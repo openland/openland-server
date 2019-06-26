@@ -18,7 +18,7 @@ export class ChatMetricsRepository {
     }
 
     onMessageSentDirect = (ctx: Context, uid: number) => {
-        this.store.UserMessagesSentCounter.byId(uid).increment(ctx);
+        this.store.UserMessagesSentInDirectChatCounter.byId(uid).increment(ctx);
     }
 
     onChatCreated = (ctx: Context, uid: number) => {
