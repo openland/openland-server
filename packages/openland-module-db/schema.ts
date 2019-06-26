@@ -11426,6 +11426,107 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return new NotificationCenterEvent(ctx, this.layer, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
+export interface ChatAudienceCalculatingQueueShape {
+    active: boolean;
+    delta: number;
+}
+
+export class ChatAudienceCalculatingQueue extends FEntity {
+    readonly entityName: 'ChatAudienceCalculatingQueue' = 'ChatAudienceCalculatingQueue';
+    get id(): number { return this._value.id; }
+    get active(): boolean {
+        return this._value.active;
+    }
+    set active(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.active) { return; }
+        this._value.active = value;
+        this.markDirty();
+    }
+    get delta(): number {
+        return this._value.delta;
+    }
+    set delta(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.delta) { return; }
+        this._value.delta = value;
+        this.markDirty();
+    }
+}
+
+export class ChatAudienceCalculatingQueueFactory extends FEntityFactory<ChatAudienceCalculatingQueue> {
+    static schema: FEntitySchema = {
+        name: 'ChatAudienceCalculatingQueue',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'active', type: 'boolean' },
+            { name: 'delta', type: 'number' },
+        ],
+        indexes: [
+            { name: 'active', type: 'range', fields: ['createdAt'] },
+        ],
+    };
+
+    static async create(layer: EntityLayer) {
+        let directory = await layer.resolveEntityDirectory('chatAudienceCalculatingQueue');
+        let config = { enableVersioning: true, enableTimestamps: true, validator: ChatAudienceCalculatingQueueFactory.validate, hasLiveStreams: false };
+        let indexActive = new FEntityIndex(await layer.resolveEntityIndexDirectory('chatAudienceCalculatingQueue', 'active'), 'active', ['createdAt'], false, (src) => !!src.active);
+        let indexes = {
+            active: indexActive,
+        };
+        return new ChatAudienceCalculatingQueueFactory(layer, directory, config, indexes);
+    }
+
+    readonly indexActive: FEntityIndex;
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('active', src.active);
+        validators.isBoolean('active', src.active);
+        validators.notNull('delta', src.delta);
+        validators.isNumber('delta', src.delta);
+    }
+
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { active: FEntityIndex }) {
+        super('ChatAudienceCalculatingQueue', 'chatAudienceCalculatingQueue', config, [indexes.active], layer, directory);
+        this.indexActive = indexes.active;
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: ChatAudienceCalculatingQueueShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    async create_UNSAFE(ctx: Context, id: number, shape: ChatAudienceCalculatingQueueShape) {
+        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number) {
+        return this._watch(ctx, [id]);
+    }
+    async rangeFromActive(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexActive.directory, [], limit, reversed);
+    }
+    async rangeFromActiveWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexActive.directory, [], limit, after, reversed);
+    }
+    async allFromActive(ctx: Context, ) {
+        return await this._findAll(ctx, this.indexActive.directory, []);
+    }
+    createActiveStream(limit: number, after?: string) {
+        return this._createStream(this.indexActive.directory, [], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ChatAudienceCalculatingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChatAudienceCalculatingQueue');
+    }
+}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
@@ -11515,6 +11616,7 @@ export interface AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
+    readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -11601,6 +11703,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         NotificationFactory.schema,
         NotificationCenterStateFactory.schema,
         NotificationCenterEventFactory.schema,
+        ChatAudienceCalculatingQueueFactory.schema,
     ];
 
     static async create(layer: EntityLayer) {
@@ -11688,6 +11791,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationPromise = NotificationFactory.create(layer);
         let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
         let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
+        let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await EnvironmentPromise);
@@ -11773,6 +11877,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await NotificationPromise);
         allEntities.push(await NotificationCenterStatePromise);
         allEntities.push(await NotificationCenterEventPromise);
+        allEntities.push(await ChatAudienceCalculatingQueuePromise);
         let entities = {
             layer, allEntities,
             Environment: await EnvironmentPromise,
@@ -11858,6 +11963,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             Notification: await NotificationPromise,
             NotificationCenterState: await NotificationCenterStatePromise,
             NotificationCenterEvent: await NotificationCenterEventPromise,
+            ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
             NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
             NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         };
@@ -11950,6 +12056,7 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
+    readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -12119,6 +12226,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.NotificationCenterState);
         this.NotificationCenterEvent = entities.NotificationCenterEvent;
         this.allEntities.push(this.NotificationCenterEvent);
+        this.ChatAudienceCalculatingQueue = entities.ChatAudienceCalculatingQueue;
+        this.allEntities.push(this.ChatAudienceCalculatingQueue);
         this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
         this.NotificationCenterNeedDeliveryFlagDirectory = entities.NotificationCenterNeedDeliveryFlagDirectory;
     }

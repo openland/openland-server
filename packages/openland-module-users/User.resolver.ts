@@ -1,7 +1,7 @@
 import { User, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { withAny } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
@@ -82,6 +82,7 @@ export default {
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
+        audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id)),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),

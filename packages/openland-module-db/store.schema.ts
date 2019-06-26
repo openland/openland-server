@@ -35,4 +35,8 @@ export default declareSchema(() => {
     atomicInt('NotificationCenterCounter', () => {
         primaryKey('ncid', 'number');
     });
+
+    atomicInt('UserAudienceCounter', () => {
+        primaryKey('uid', 'number');
+    });
 });

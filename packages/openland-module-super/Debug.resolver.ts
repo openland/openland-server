@@ -738,7 +738,54 @@ export default {
                 await Modules.Users.activateUser(ctx, uid, false);
             });
             return true;
-        })
+        }),
+        debugResetAudienceCounter: withUser(async (root, args, uid) => {
+            await inTx(root, async ctx => {
+                await Store.UserAudienceCounter.set(ctx, (args.uid ? IDs.User.parse(args.uid) : uid), 0);
+            });
+            return true;
+        }),
+        debugCalcUsersAudienceCounter: withUser(async (parent, args, _uid) => {
+            debugTask(parent.auth.uid!, 'debugCalcUsersAudienceCounter', async (log) => {
+                let allUsers = await FDB.User.findAll(rootCtx);
+                let i = 0;
+
+                const calculateForUser = async (ctx: Context, uid: number) => {
+                    let audience = 0;
+                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+
+                    for (let a of all) {
+                        let chat = await FDB.Conversation.findById(ctx, a.cid);
+                        if (!chat || chat.kind !== 'room') {
+                            continue;
+                        }
+                        let room = (await FDB.ConversationRoom.findById(ctx, a.cid))!;
+                        if (room.kind !== 'public' || !room.oid) {
+                            continue;
+                        }
+                        let org = await FDB.Organization.findById(ctx, room.oid);
+                        if (!org || org.kind !== 'community') {
+                            continue;
+                        }
+                        let members = await FDB.RoomParticipant.allFromActive(ctx, chat.id);
+                        audience += members.length;
+                    }
+                    await Store.UserAudienceCounter.set(ctx, uid, audience);
+                };
+
+                for (let user of allUsers) {
+                    await inTx(rootCtx, async (ctx) => {
+                        await calculateForUser(ctx, user.id);
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

@@ -47,4 +47,8 @@ export class HooksModuleMock {
     onUserActivated = async (ctx: Context, uid: number) => {
         // Nothing to do
     }
+
+    onChatMembersCountChange = async (ctx: Context, cid: number, delta: number) => {
+        // Nothing to do
+    }
 }

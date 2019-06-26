@@ -11,19 +11,27 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from '@openland/context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Modules } from '../openland-modules/Modules';
+import { AudienceCounterRepository } from './repositories/AudienceCounterRepository';
+import { declareUserAudienceCalculator } from './workers/userAudienceCalculator';
 
 @injectable()
 export class UsersModule {
     private readonly repo: UserRepository;
+    private readonly audienceCounterRepo: AudienceCounterRepository;
     private readonly search = new UserSearch();
 
-    constructor(@inject('UserRepository') userRepo: UserRepository) {
+    constructor(
+        @inject('UserRepository') userRepo: UserRepository,
+        @inject('AudienceCounterRepository') audienceCounterRepo: AudienceCounterRepository
+    ) {
         this.repo = userRepo;
+        this.audienceCounterRepo = audienceCounterRepo;
     }
 
     start = () => {
         if (serverRoleEnabled('workers')) {
             userProfileIndexer();
+            declareUserAudienceCalculator();
         }
     }
 
@@ -112,5 +120,9 @@ export class UsersModule {
 
     async getDeletedUserId(ctx: Context) {
         return await Modules.Super.getEnvVar<number>(ctx, 'deleted-user-id');
+    }
+
+    async onChatMembersCountChange(ctx: Context, cid: number, delta: number) {
+        return await this.audienceCounterRepo.addToCalculatingQueue(ctx, cid, delta);
     }
 }

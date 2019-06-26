@@ -100,7 +100,6 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 }
             });
         })();
-
     } else if (session.state === 'CONNECTED' || session.state === 'WAITING_CONNECT') {
         await Promise.resolve(session.waitAuth);
 

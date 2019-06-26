@@ -1093,6 +1093,7 @@ export class RoomRepository {
             } else {
                 roomProfile.activeMembersCount++;
             }
+            await Modules.Hooks.onChatMembersCountChange(ctx, cid, 1);
         });
     }
 
@@ -1106,6 +1107,7 @@ export class RoomRepository {
             if (roomProfile.activeMembersCount) {
                 roomProfile.activeMembersCount--;
             }
+            await Modules.Hooks.onChatMembersCountChange(ctx, cid, -1);
         });
     }
 
