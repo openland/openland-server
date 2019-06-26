@@ -3,9 +3,11 @@ import { injectable } from 'inversify';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
-import { FDB } from '../openland-module-db/FDB';
+import { FDB, Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/schema';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { createFirstWeekReportWorker } from './workers/FirstWeekReportWorker';
+import { createSilentUserReportWorker } from './workers/SilentUserReportWorker';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -13,9 +15,11 @@ const organizationCreated = createHyperlogger<{ oid: number, uid: number }>('org
 
 @injectable()
 export class HooksModule {
+    private readonly firstWeekReportQueue = createFirstWeekReportWorker();
+    private readonly silentUserReportQueue = createSilentUserReportWorker();
 
     start = () => {
-        // Nothing to do
+        // no op
     }
 
     /*
@@ -157,6 +161,14 @@ export class HooksModule {
 
     onUserActivated = async (ctx: Context, uid: number) => {
         await Modules.Metrics.onUserActivated(ctx, uid);
+
+        const user = await FDB.User.findById(ctx, uid);
+        if (user!.invitedBy) {
+            await Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
+        }
+
+        await this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
+        await this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 2); // 2 days
     }
 
     private async getSuperNotificationsBotId(ctx: Context) {

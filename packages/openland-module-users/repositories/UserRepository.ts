@@ -49,7 +49,7 @@ export class UserRepository {
         });
     }
 
-    async activateUser(parent: Context, uid: number) {
+    async activateUser(parent: Context, uid: number, invitedBy: number | null = null) {
         return await inTx(parent, async (ctx) => {
             let user = (await this.entities.User.findById(ctx, uid))!;
             if (!user) {
@@ -57,6 +57,7 @@ export class UserRepository {
             }
             if (user.status !== 'activated') {
                 user.status = 'activated';
+                user.invitedBy = invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
                 await userActivated.event(ctx, { uid });

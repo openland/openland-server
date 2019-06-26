@@ -15,3 +15,5 @@ export function tab(n: number, str: string, skipFirstLine: boolean = false) {
     }
     return out.join('\n');
 }
+
+export const plural = (n: number, forms: string[]) => n === 1 ? forms[0] : forms[1];
