@@ -63,6 +63,16 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
+    async findByRawId_UNSAFE(ctx: Context, key: (string | number)[]) {
+        return this.readOp(ctx, async () => {
+            let res = await this.directory.get(ctx, key);
+            if (res) {
+                return this.doCreateEntity(ctx, res, false, true);
+            }
+            return null;
+        });
+    }
+
     async findAll(ctx: Context) {
         return this.readOp(ctx, async () => (await this.directory.range(ctx, [])).map((v) => this.doCreateEntity(ctx, v.value, false)));
     }
@@ -212,9 +222,11 @@ export abstract class FEntityFactory<T extends FEntity> {
         return this.directory.watch(ctx, key);
     }
 
-    private doCreateEntity(ctx: Context, value: any, isNew: boolean): T {
+    private doCreateEntity(ctx: Context, value: any, isNew: boolean, unsafe: boolean = false): T {
         try {
-            this.options.validator(value);
+            if (!unsafe) {
+                this.options.validator(value);
+            }
             let res = this._createEntity(ctx, value, isNew);
 
             let cacheKey = FKeyEncoding.encodeKeyToString([this.name, ...res.rawId]);

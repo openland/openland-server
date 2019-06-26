@@ -90,6 +90,7 @@ extend type Mutation {
     debugResetAudienceCounter(uid: ID): Boolean!
     debugCalcUsersAudienceCounter: Boolean!
     debugCalcUsers2WayDirectChatsCounter: Boolean!
+    debugFixMessage(id: Int!): Boolean!
 }
 
 extend type Subscription {
