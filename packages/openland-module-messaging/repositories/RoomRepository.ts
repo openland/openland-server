@@ -894,7 +894,7 @@ export class RoomRepository {
         }
     }
 
-    async userWasKickedOrLeavedRoom(ctx: Context, uid: number, cid: number) {
+    async userWasKickedFromRoom(ctx: Context, uid: number, cid: number): Promise<boolean> {
         let conv = await this.entities.Conversation.findById(ctx, cid);
         if (!conv || (conv.kind !== 'room' && conv.kind !== 'organization')) {
             return false;
@@ -912,7 +912,7 @@ export class RoomRepository {
         } else if (conv.kind === 'room') {
             let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
 
-            if (member && (member.status === 'left' || member.status === 'kicked')) {
+            if (member && member.status === 'kicked') {
                 return true;
             } else {
                 return false;

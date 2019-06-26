@@ -16,7 +16,7 @@ export default {
     },
 
     Query: {
-        // depricated
+        // deprecated
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
             return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
