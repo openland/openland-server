@@ -342,6 +342,10 @@ export class UserRepository {
                 throw new NotFoundError();
             }
 
+            if (!!userBadge.verifiedBy) {
+                throw new Error('Badge already verified');
+            }
+
             userBadge.verifiedBy = suid;
 
             return uid;
