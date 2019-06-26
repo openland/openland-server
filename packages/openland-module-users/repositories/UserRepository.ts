@@ -1,4 +1,4 @@
-import { AllEntities, UserRoomBadge } from 'openland-module-db/schema';
+import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
