@@ -39,13 +39,13 @@ export class InvitesMediator {
                 throw new NotFoundError('Invite not found');
             }
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
+            let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
+            await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
             await Modules.Users.activateUser(ctx, uid, isNewUser, invite.creatorId);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
             if (invite.entityName === 'ChannelInvitation') {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
-            let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
-            await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
             return invite.channelId;
         });
     }
@@ -56,6 +56,7 @@ export class InvitesMediator {
             if (!inviteData) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
+            await Modules.Metrics.onOpenlandInviteJoin(ctx, uid, inviteData.uid);
             await Modules.Users.activateUser(ctx, uid, isNewUser, inviteData.uid);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
             let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
@@ -75,7 +76,6 @@ export class InvitesMediator {
                 { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
                 true
             );
-            await Modules.Metrics.onOpenlandInviteJoin(ctx, uid, inviteData.uid);
             return 'ok';
         });
     }
@@ -121,6 +121,7 @@ export class InvitesMediator {
             if (ex && ex.status === 'left') {
                 throw new UserError(`Unfortunately, you cannot join ${profile.name}. One of ${org.kind === 'organization' ? 'organization' : 'community'} admins kicked you from ${profile.name}, and now you can only join it if a member adds you.`, 'CANT_JOIN_ORG');
             }
+            await Modules.Metrics.onOrganizationInviteJoin(ctx, uid, invite.oid, org);
 
             await Modules.Orgs.addUserToOrganization(ctx, uid, invite.oid, invite.uid, false, isNewUser);
 
@@ -145,7 +146,6 @@ export class InvitesMediator {
                 );
             }
             // await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
-            await Modules.Metrics.onOrganizationInviteJoin(ctx, uid, invite.oid, org);
             return IDs.Organization.serialize(invite.oid);
         });
     }
