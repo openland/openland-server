@@ -57,8 +57,8 @@ export function createFirstWeekReportWorker() {
                 const directMessages = await Store.UserMessagesSentInDirectChatCounter.byId(uid).get(ctx);
                 const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
                 const groupMessages = allMessages - directMessages;
-                report.push(`😎 ${directMessages} direct ${plural(directMessages, ['message', 'messages'])} sent\n`);
-                report.push(`😵 ${groupMessages} group ${plural(groupMessages, ['message', 'messages'])} sent`);
+                report.push(`✉️ ${directMessages} direct ${plural(directMessages, ['message', 'messages'])} sent\n`);
+                report.push(`✉️ ${groupMessages} group ${plural(groupMessages, ['message', 'messages'])} sent`);
 
                 await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                     ...buildMessage(...report),

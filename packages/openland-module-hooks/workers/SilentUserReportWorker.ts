@@ -43,6 +43,14 @@ export function createSilentUserReportWorker() {
                 }
                 report.push('\n');
 
+                const isDiscoverDone = await Modules.Discover.isDiscoverDone(ctx, uid);
+                if (isDiscoverDone) {
+                    report.push('🕵 Chat navigator complete');
+                } else {
+                    report.push('🕵 ‍Chat navigator not complete');
+                }
+                report.push('\n');
+
                 const onlines = await FDB.Presence.allFromUser(ctx, uid);
                 const mobileOnline = onlines
                     .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
@@ -50,14 +58,6 @@ export function createSilentUserReportWorker() {
                     report.push('📱 Mobile app used');
                 } else {
                     report.push('📱 Mobile app not used');
-                }
-                report.push('\n');
-
-                const isDiscoverDone = await Modules.Discover.isDiscoverDone(ctx, uid);
-                if (isDiscoverDone) {
-                    report.push('🕵 Chat discover is done');
-                } else {
-                    report.push('🕵 ‍Chat discover is not done');
                 }
                 report.push('\n');
 
