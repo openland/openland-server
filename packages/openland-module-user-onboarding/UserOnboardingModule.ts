@@ -145,7 +145,12 @@ export class UserOnboardingModule {
     }
 
     sendMessage = async (ctx: Context, uid: number, template: Template) => {
-        let billyId = IDs.User.parse('D4xmkrmL51sdX6gwPo9Xc3X5Wy');
+        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        let reportChatId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-report-cid');
+        if (billyId === null || reportChatId === null) {
+            return;
+        }
+
         let user = await FDB.UserProfile.findById(ctx, uid);
         if (!user) {
             return;
@@ -153,7 +158,6 @@ export class UserOnboardingModule {
         let t = template(user);
 
         // report to super admin chat
-        let reportChatId = IDs.Conversation.parse('4dmAE76O54FqenqDMb55ubYlvZ');
         await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(`${user.email} [${t.type}]\n`, t.message, { type: 'rich_attach', attach: { keyboard: t.keyboard } }));
 
         // let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
