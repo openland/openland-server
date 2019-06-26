@@ -37,6 +37,7 @@ interface AmplitudeUserProps {
     messages_received: number;
     chats_count: number;
     direct_chats_count: number;
+    direct_2way_chats_count: number;
 }
 
 function toAmplitudeEvent(event: InternalTrackEvent, userProps?: AmplitudeUserProps): AmplitudeEvent {
@@ -88,6 +89,7 @@ async function fetchUserProps(ctx: Context, uid: number): Promise<AmplitudeUserP
             messages_received: (await Store.UserMessagesReceivedCounter.byId(profile.id).get(ctx)),
             chats_count: (await Store.UserMessagesChatsCounter.byId(profile.id).get(ctx)),
             direct_chats_count: (await Store.UserMessagesDirectChatsCounter.byId(profile.id).get(ctx)),
+            direct_2way_chats_count: (await Store.User2WayDirectChatsCounter.byId(profile.id).get(ctx)),
         };
     }
 
