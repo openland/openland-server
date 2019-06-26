@@ -107,11 +107,11 @@ export class UsersModule {
     }
 
     async setPrimaryBadge(ctx: Context, uid: number, bid: number) {
-        return this.repo.setPrimaryBadge(ctx, uid, bid, true);
+        return this.repo.setPrimaryBadge(ctx, uid, bid);
     }
 
-    async unsetPrimaryBadge(ctx: Context, uid: number, bid: number) {
-        return this.repo.setPrimaryBadge(ctx, uid, bid, false);
+    async unsetPrimaryBadge(ctx: Context, uid: number) {
+        return this.repo.unsetPrimaryBadge(ctx, uid);
     }
 
     async verifyBadge(ctx: Context, suid: number, uid: number, bid: number) {

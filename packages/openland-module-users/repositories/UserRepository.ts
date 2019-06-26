@@ -304,7 +304,23 @@ export class UserRepository {
         });
     }
 
-    async setPrimaryBadge(parent: Context, uid: number, bid: number, needPrimary: boolean) {
+    async setPrimaryBadge(parent: Context, uid: number, bid: number) {
+        return await inTx(parent, async (ctx) => {
+            let profile = await this.entities.UserProfile.findById(ctx, uid);
+            let badge = await this.entities.Badge.findById(ctx, bid);
+            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
+            
+            if (!profile || !badge || !userBadge) {
+                throw new NotFoundError();
+            }
+
+            profile.primaryBadge = bid;
+
+            return uid;
+        });
+    }
+
+    async unsetPrimaryBadge(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let profile = await this.entities.UserProfile.findById(ctx, uid);
             
@@ -312,7 +328,7 @@ export class UserRepository {
                 throw new NotFoundError();
             }
 
-            profile.primaryBadge = needPrimary ? bid : null;
+            profile.primaryBadge = null;
 
             return uid;
         });
@@ -334,6 +350,13 @@ export class UserRepository {
 
     async setRoomBadge(parent: Context, uid: number, cid: number, bid: number) {
         return await inTx(parent, async (ctx) => {
+            let badge = await this.entities.Badge.findById(ctx, bid);
+            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
+            
+            if (!badge || !userBadge) {
+                throw new NotFoundError();
+            }
+
             let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
 
             if (roomBadge) {

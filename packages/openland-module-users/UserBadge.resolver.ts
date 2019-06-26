@@ -55,9 +55,7 @@ export default {
             return await Modules.Users.setPrimaryBadge(ctx, uid, bid);
         }),
         badgeUnsetPrimary: withUser(async (ctx, args, uid) => {
-            let bid = parseBadgeId(args.badgeId);
-
-            return await Modules.Users.unsetPrimaryBadge(ctx, uid, bid);
+            return await Modules.Users.unsetPrimaryBadge(ctx, uid);
         }),
 
         // super-admin methods

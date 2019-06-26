@@ -20,7 +20,7 @@ extend type Mutation {
     badgeUnsetToRoom(roomId: ID!): Boolean!
     badgeDelete(badgeId: ID!): User!
     badgeSetPrimary(badgeId: ID!): User!
-    badgeUnsetPrimary(badgeId: ID!): User!
+    badgeUnsetPrimary: User!
 
     # super-admin methods
     superBadgeCreate(userId: ID!, name: String!): User!
