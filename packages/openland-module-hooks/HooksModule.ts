@@ -170,8 +170,8 @@ export class HooksModule {
             await Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
         }
 
-        await this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 20 /* * 60 * 24 * 7 */); // 7 days
-        await this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 10 /* * 60 * 24 * 2 */); // 2 days
+        await this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
+        await this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 2); // 2 days
     }
 
     onDialogsLoad = async (ctx: Context, uid: number) => {
