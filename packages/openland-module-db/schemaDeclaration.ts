@@ -1277,6 +1277,14 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    entity('ChatAudienceCalculatingQueue', () => {
+        primaryKey('id', 'number');
+        field('active', 'boolean');
+        field('delta', 'number');
+        rangeIndex('active', ['createdAt']).withCondition((src) => !!src.active);
+        enableVersioning();
+        enableTimestamps();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

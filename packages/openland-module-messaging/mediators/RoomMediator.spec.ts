@@ -5,19 +5,19 @@ import { FDB } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from '../../openland-module-super/SuperModule';
-import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { OrganizationRepository } from '../../openland-module-organization/repositories/OrganizationRepository';
 import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
 import { Modules } from '../../openland-modules/Modules';
 import { HooksModule } from '../../openland-module-hooks/HooksModule';
 import { Context, createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
         await testEnvironmentStart('room-mediator');
         loadMessagingTestModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(HooksModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();

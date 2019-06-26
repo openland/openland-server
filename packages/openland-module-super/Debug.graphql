@@ -86,6 +86,8 @@ extend type Mutation {
     debugCalcOrgsActiveMembers: Boolean!
     debugCreateCommentSubscriptions: Boolean!
     debugDeveloperInit: Boolean!
+    debugResetAudienceCounter(uid: ID): Boolean!
+    debugCalcUsersAudienceCounter: Boolean!
 }
 
 extend type Subscription {

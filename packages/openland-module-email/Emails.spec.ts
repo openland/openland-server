@@ -17,7 +17,6 @@ import {
 } from './Emails';
 import { container } from '../openland-modules/Modules.container';
 import { UsersModule } from '../openland-module-users/UsersModule';
-import { UserRepository } from '../openland-module-users/repositories/UserRepository';
 import { Modules } from '../openland-modules/Modules';
 import { EmailTask } from './EmailTask';
 import { loadMessagingTestModule } from '../openland-module-messaging/Messaging.container.test';
@@ -28,6 +27,7 @@ import { OrganizationModule } from '../openland-module-organization/Organization
 import { SuperModule } from '../openland-module-super/SuperModule';
 import { loadInvitesModule } from '../openland-module-invites/Invites.container';
 import { Context, createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../openland-module-users/UsersModule.container';
 
 // Welcome and Organization activated email delivery rules:
 //
@@ -47,7 +47,7 @@ describe('Emails', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
         loadInvitesModule();
     });

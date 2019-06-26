@@ -3,10 +3,10 @@ import { container } from 'openland-modules/Modules.container';
 import { ShortnameRepository } from './ShortnameRepository';
 import { SuperModule } from '../../openland-module-super/SuperModule';
 import { UsersModule } from '../../openland-module-users/UsersModule';
-import { UserRepository } from '../../openland-module-users/repositories/UserRepository';
 import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from '../../openland-module-organization/repositories/OrganizationRepository';
 import { createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 
 describe('ShortnameRepository', () => {
     beforeAll(async () => {
@@ -14,7 +14,7 @@ describe('ShortnameRepository', () => {
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind('ShortnameRepository').to(ShortnameRepository).inSingletonScope();
     });

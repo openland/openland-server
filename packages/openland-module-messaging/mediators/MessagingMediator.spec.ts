@@ -8,7 +8,6 @@ import { MessagingMediator } from './MessagingMediator';
 import *  as ChatResolver from '../resolvers/Chat.resolver';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
-import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { MessageAttachmentInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createUrlInfoService } from '../workers/UrlInfoService';
@@ -16,13 +15,14 @@ import { Modules } from '../../openland-modules/Modules';
 import { MediaModule } from '../../openland-module-media/MediaModule';
 import { IDs } from '../../openland-module-api/IDs';
 import { createNamedContext } from '@openland/context';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
         await testEnvironmentStart('messaging-mediator');
         loadMessagingTestModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        loadUsersModule();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(MediaModule).toSelf().inSingletonScope();

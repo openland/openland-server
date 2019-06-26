@@ -13,6 +13,9 @@ const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
 const organizationCreated = createHyperlogger<{ oid: number, uid: number }>('organization-created');
 
+const getSuperNotificationsBotId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
+const getSuperNotificationsChatId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-chat-id');
+
 @injectable()
 export class HooksModule {
     private readonly firstWeekReportQueue = createFirstWeekReportWorker();
@@ -62,8 +65,8 @@ export class HooksModule {
      * Orgs
      */
     onOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', inviteType: 'APP' | 'ROOM', inviteOwner: number } | { type: 'OWNER_ADDED_TO_ORG', owner: number, otherOid: number }) => {
-        let botId = await this.getSuperNotificationsBotId(ctx);
-        let chatId = await this.getSuperNotificationsChatId(ctx);
+        let botId = await getSuperNotificationsBotId(ctx);
+        let chatId = await getSuperNotificationsChatId(ctx);
 
         if (!botId || !chatId) {
             return;
@@ -90,8 +93,8 @@ export class HooksModule {
     }
 
     onOrganizationSuspended = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number }) => {
-        let botId = await this.getSuperNotificationsBotId(ctx);
-        let chatId = await this.getSuperNotificationsChatId(ctx);
+        let botId = await getSuperNotificationsBotId(ctx);
+        let chatId = await getSuperNotificationsChatId(ctx);
 
         if (!botId || !chatId) {
             return;
@@ -107,8 +110,8 @@ export class HooksModule {
     }
 
     onSignUp = async (ctx: Context, uid: number) => {
-        let botId = await this.getSuperNotificationsBotId(ctx);
-        let chatId = await this.getSuperNotificationsChatId(ctx);
+        let botId = await getSuperNotificationsBotId(ctx);
+        let chatId = await getSuperNotificationsChatId(ctx);
 
         if (!botId || !chatId) {
             return;
@@ -124,8 +127,8 @@ export class HooksModule {
     }
 
     onUserProfileCreated = async (ctx: Context, uid: number) => {
-        let botId = await this.getSuperNotificationsBotId(ctx);
-        let chatId = await this.getSuperNotificationsChatId(ctx);
+        let botId = await getSuperNotificationsBotId(ctx);
+        let chatId = await getSuperNotificationsChatId(ctx);
 
         if (!botId || !chatId) {
             return;
@@ -171,14 +174,6 @@ export class HooksModule {
         await this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 2); // 2 days
     }
 
-    private async getSuperNotificationsBotId(ctx: Context) {
-        return Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
-    }
-
-    private async getSuperNotificationsChatId(ctx: Context) {
-        return Modules.Super.getEnvVar<number>(ctx, 'super-notifications-chat-id');
-    }
-
     onDialogsLoad = async (ctx: Context, uid: number) => {
         await Modules.UserOnboarding.onDialogsLoad(ctx, uid);
     }
@@ -189,5 +184,9 @@ export class HooksModule {
 
     onMessageSent = async (ctx: Context, uid: number) => {
         await Modules.UserOnboarding.onMessageSent(ctx, uid);
+    }
+
+    onChatMembersCountChange = async (ctx: Context, cid: number, delta: number) => {
+        await Modules.Users.onChatMembersCountChange(ctx, cid, delta);
     }
 }
