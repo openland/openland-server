@@ -141,7 +141,7 @@ const Validators = {
         }
     },
     isNumber: (field: string, value: any) => {
-        if (value === undefined || value === null || typeof value !== 'number') {
+        if (value === undefined || value === null || typeof value !== 'number' || Number.isNaN(value)) {
             throw new Error(`Field ${field} must be number, got: ${value}`);
         }
     },
