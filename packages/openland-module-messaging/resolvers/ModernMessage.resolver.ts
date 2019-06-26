@@ -296,13 +296,19 @@ export async function fetchMessageFallback(message: Message | Comment): Promise<
 }
 
 async function getUserRoomBadge(ctx: AppContext, src: Message | Comment): Promise<UserBadge | null> {
+    let userBadge: UserBadge | null = null;
+
     if (src instanceof Message) {
         let userRoomBadge = await FDB.UserRoomBadge.findById(ctx, src.uid, src.cid);
 
         if (userRoomBadge && userRoomBadge.bid) {
-            let userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);
+            userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);
+        } else {
+            let profile = await FDB.UserProfile.findById(ctx, src.uid);
 
-            return (userBadge && !userBadge.deleted) ? userBadge : null;
+            if (profile && profile.primaryBadge) {
+                userBadge = await FDB.UserBadge.findById(ctx, profile.primaryBadge, src.uid);
+            }
         }
     }
     if (src instanceof Comment && src.peerType === 'message') {
@@ -312,14 +318,18 @@ async function getUserRoomBadge(ctx: AppContext, src: Message | Comment): Promis
             let userRoomBadge = await FDB.UserRoomBadge.findById(ctx, src.uid, message.cid);
 
             if (userRoomBadge && userRoomBadge.bid) {
-                let userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);
+                userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);       
+            } else {
+                let profile = await FDB.UserProfile.findById(ctx, src.uid);
     
-                return (userBadge && !userBadge.deleted) ? userBadge : null;
+                if (profile && profile.primaryBadge) {
+                    userBadge = await FDB.UserBadge.findById(ctx, profile.primaryBadge, src.uid);
+                }
             }
         }
     }
 
-    return null;
+    return (userBadge && !userBadge.deleted) ? userBadge : null;
 }
 
 export default {
