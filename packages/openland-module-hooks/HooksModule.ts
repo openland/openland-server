@@ -172,10 +172,7 @@ export class HooksModule {
 
         await this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
         await this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 2); // 2 days
-    }
-
-    onDialogsLoad = async (ctx: Context, uid: number) => {
-        await Modules.UserOnboarding.onDialogsLoad(ctx, uid);
+        await Modules.UserOnboarding.onUserActivated(ctx, uid);
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {

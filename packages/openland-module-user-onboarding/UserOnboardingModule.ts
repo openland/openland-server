@@ -9,7 +9,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
 
-type DelayedEvents = 'firstDialogsLoad20h' | 'firstDialogsLoad30m';
+type DelayedEvents = 'activated20h' | 'activated30m';
 type Template = (user: UserProfile) => { type: string, message: string, keyboard?: MessageKeyboard };
 const templates: { [templateName: string]: (user: UserProfile) => { message: string, keyboard?: MessageKeyboard, type: string } } = {
     wellcome: (user: UserProfile) => ({ type: 'wellcome', message: `Wellcome ${user.firstName}!` }),
@@ -38,17 +38,12 @@ export class UserOnboardingModule {
     // Triggers
     //
 
-    onDialogsLoad = async (parent: Context, uid: number) => {
-        // first time load
-        await inTx(parent, async (ctx) => {
-            if (!(await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq) {
-                await this.sendWellcome(ctx, uid);
-                await this.sendToDiscoverIfNeeded(ctx, uid);
-                await this.askSendFirstMessageOnFirstLoad(ctx, uid);
-                await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad30m' }, Date.now() + 1000 * 60 * 30);
-                await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad20h' }, Date.now() + 1000 * 60 * 60 * 20);
-            }
-        });
+    onUserActivated = async (ctx: Context, uid: number) => {
+        await this.sendWellcome(ctx, uid);
+        await this.sendToDiscoverIfNeeded(ctx, uid);
+        await this.askSendFirstMessageAfterActivated(ctx, uid);
+        await this.delayedWorker.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
+        await this.delayedWorker.pushWork(ctx, { uid, type: 'activated20h' }, Date.now() + 1000 * 60 * 60 * 20);
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
@@ -56,9 +51,9 @@ export class UserOnboardingModule {
     }
 
     onTimeoutFired = async (ctx: Context, type: DelayedEvents, uid: number) => {
-        if (type === 'firstDialogsLoad20h') {
+        if (type === 'activated20h') {
             await this.askInstallApps(ctx, uid);
-        } else if (type === 'firstDialogsLoad30m') {
+        } else if (type === 'activated30m') {
             await this.askSendFirstMessageAfterShortDelay(ctx, uid);
         }
     }
@@ -98,7 +93,7 @@ export class UserOnboardingModule {
     }
 
     // First message
-    private askSendFirstMessageOnFirstLoad = async (ctx: Context, uid: number) => {
+    private askSendFirstMessageAfterActivated = async (ctx: Context, uid: number) => {
         if (await this.isDiscoverCompletedWithJoin(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
         }

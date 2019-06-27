@@ -89,8 +89,6 @@ export default {
                 return [];
             }
 
-            await Modules.Hooks.onDialogsLoad(ctx, uid);
-
             let allDialogs = [...(await FDB.UserDialog.allFromUser(ctx, uid))];
             allDialogs = allDialogs.filter((a) => !!a.date);
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
