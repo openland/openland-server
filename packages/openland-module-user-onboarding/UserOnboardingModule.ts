@@ -13,10 +13,10 @@ type DelayedEvents = 'activated20h' | 'activated30m';
 type Template = (user: UserProfile) => { type: string, message: string, keyboard?: MessageKeyboard };
 const templates: { [templateName: string]: (user: UserProfile) => { message: string, keyboard?: MessageKeyboard, type: string } } = {
     wellcome: (user: UserProfile) => ({ type: 'wellcome', message: `Wellcome ${user.firstName}!` }),
-    gotoDiscover: (user: UserProfile) => ({ type: 'gotoDiscover', message: `${user.firstName}, time to complete discover`, keyboard: { buttons: [[{ title: 'Discover', url: '/discover', style: 'DEFAULT' }]] } }),
-    sendFirstMessage: (user: UserProfile) => ({ type: 'sendFirstMessage', message: `${user.firstName} what R U waiting for?`, keyboard: { buttons: [[{ title: 'Send Your first message!', url: '/sendFirstMessage', style: 'DEFAULT' }]] } }),
-    invite: (user: UserProfile) => ({ type: 'invite', message: `${user.firstName} invite freiends!`, keyboard: { buttons: [[{ title: 'Get invite link', url: '/invite', style: 'DEFAULT' }]] } }),
-    installApps: (user: UserProfile) => ({ type: 'installApps', message: `${user.firstName} we have cool apps`, keyboard: { buttons: [[{ title: 'Get apps', url: '/apps', style: 'DEFAULT' }]] } }),
+    gotoDiscover: (user: UserProfile) => ({ type: 'gotoDiscover', message: `${user.firstName}, time to complete discover`, keyboard: { buttons: [[{ title: 'Discover', url: '/onboarding_discover', style: 'DEFAULT' }]] } }),
+    sendFirstMessage: (user: UserProfile) => ({ type: 'sendFirstMessage', message: `${user.firstName} what R U waiting for?`, keyboard: { buttons: [[{ title: 'Send Your first message!', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] } }),
+    invite: (user: UserProfile) => ({ type: 'invite', message: `${user.firstName} invite freiends!`, keyboard: { buttons: [[{ title: 'Get invite link', url: '/onboarding_invite', style: 'DEFAULT' }]] } }),
+    installApps: (user: UserProfile) => ({ type: 'installApps', message: `${user.firstName} we have cool apps`, keyboard: { buttons: [[{ title: 'Get apps', url: '/onboarding_apps', style: 'DEFAULT' }]] } }),
 };
 
 @injectable()
@@ -135,7 +135,7 @@ export class UserOnboardingModule {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askSendFirstMessageSent) {
             await this.sendMessage(ctx, uid, templates.sendFirstMessage);
-            state.askInstallAppsSent = true;
+            state.askSendFirstMessageSent = true;
         }
     }
 
