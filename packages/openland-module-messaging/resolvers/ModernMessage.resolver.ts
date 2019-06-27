@@ -38,6 +38,8 @@ export const REACTIONS_LEGACY = new Map([
     ['🤬', 'ANGRY'],
 ]);
 
+const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
+
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
 
 export async function prepareLegacyMentionsInput(ctx: Context, messageText: string, mentions: number[]): Promise<MessageSpan[]> {
@@ -570,11 +572,15 @@ export default {
     ModernMessageReaction: {
         user: src => src.userId,
         reaction: src => {
+            // modern
+            if (REACTIONS.indexOf(src.reaction) > -1) {
+                return src.reaction;
+            }
+            // old
             if (REACTIONS_LEGACY.has(src.reaction)) {
                 return REACTIONS_LEGACY.get(src.reaction);
             }
-
-            return src.reaction;
+            return 'LIKE';
         }
     },
 
