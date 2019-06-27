@@ -65,7 +65,7 @@ export default {
     },
     DebugEvent: {
         seq: src => src.seq,
-        key: src => src.key
+        key: src => src.key,
     },
     Query: {
         lifecheck: () => `i'm ok`,
@@ -74,7 +74,7 @@ export default {
             return {
                 numberID: typeof id.id === 'number' && id.id,
                 stringID: typeof id.id === 'string' && id.id,
-                type: id.type.typeName
+                type: id.type.typeName,
             };
         }),
         debugCrashQuery: () => {
@@ -150,7 +150,7 @@ export default {
                     org: (await FDB.Organization.findById(ctx, chat.oid))!,
                     chat: chat.id,
                     messagesCount: messages.length,
-                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].createdAt).toString() : ''
+                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].createdAt).toString() : '',
                 });
             }
 
@@ -171,7 +171,7 @@ export default {
                     'conversation_message_push_delivery',
                     'comment_augmentation_task',
                     'conversation_message_delivery',
-                    'conversation_message_task'
+                    'conversation_message_task',
                 ];
 
                 for (let worker of workers) {
@@ -226,7 +226,7 @@ export default {
                     ttl: -1,
                     enabled: true,
                     joined: false,
-                    role: 'MEMBER'
+                    role: 'MEMBER',
                 };
 
                 await Emails.sendInviteEmail(ctx, oid, invite as any);
@@ -265,7 +265,7 @@ export default {
 
                 let invite = {
                     creatorId: uid,
-                    channelId: cid
+                    channelId: cid,
                 };
 
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite as any);
@@ -300,7 +300,7 @@ export default {
                 await Modules.Hooks.onOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
                     inviteType: 'APP',
-                    inviteOwner: uid
+                    inviteOwner: uid,
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
                 await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
@@ -308,113 +308,115 @@ export default {
             return true;
         }),
         debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
-            const calculateForUser = async (ctx: Context, uid: number) => {
-                let all = await FDB.UserDialog.allFromUser(ctx, uid);
-                let totalSent = 0;
-                let totalSentDirect = 0;
-                let totalReceived = 0;
+            debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
+                const calculateForUser = async (ctx: Context, uid: number) => {
+                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                    let totalSent = 0;
+                    let totalSentDirect = 0;
+                    let totalReceived = 0;
 
-                for (let a of all) {
-                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
-                    if (!conv) {
-                        continue;
-                    }
-
-                    if (conv.kind === 'room') {
-                        let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
-                        if (!pat || pat.status !== 'joined') {
-                            // a.unread = 0;
+                    for (let a of all) {
+                        let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                        if (!conv) {
                             continue;
                         }
-                    }
-                    let messages = await FDB.Message.allFromChat(ctx, a.cid);
-                    for (let message of messages) {
-                        if (message.uid === uid) {
-                            totalSent++;
-                            if (conv.kind === 'private') {
-                                totalSentDirect++;
+
+                        if (conv.kind === 'room') {
+                            let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
+                            if (!pat || pat.status !== 'joined') {
+                                // a.unread = 0;
+                                continue;
                             }
-                        } else {
-                            totalReceived++;
+                        }
+                        let messages = await FDB.Message.allFromChat(ctx, a.cid);
+                        for (let message of messages) {
+                            if (message.uid === uid) {
+                                totalSent++;
+                                if (conv.kind === 'private') {
+                                    totalSentDirect++;
+                                }
+                            } else {
+                                totalReceived++;
+                            }
                         }
                     }
-                }
 
-                return { totalSent, totalReceived, totalSentDirect };
-            };
+                    return { totalSent, totalReceived, totalSentDirect };
+                };
 
-            let users = await FDB.User.findAll(parent);
+                let users = await FDB.User.findAll(parent);
 
-            for (let user of users) {
-                await inTx(rootCtx, async (ctx) => {
-                    try {
-                        let { totalSent, totalReceived, totalSentDirect } = await calculateForUser(ctx, user.id);
-
-                        let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
-                        messagesSent.set(ctx, totalSent);
-
-                        let messagesSentDirect = Store.UserMessagesSentInDirectChatTotalCounter.byId(user.id);
-                        messagesSentDirect.set(ctx, totalSentDirect);
-
-                        let messagesReceived = Store.UserMessagesReceivedCounter.byId(user.id);
-                        messagesReceived.set(ctx, totalReceived);
-                    } catch (e) {
-                        logger.log(rootCtx, e, 'debugCalcUsersMessagingStatsError');
+                let i = 0;
+                for (let user of users) {
+                    i++;
+                    if (i % 100 === 0) {
+                        await log('processed ' + i + ' users');
                     }
-                });
-            }
+                    await inTx(rootCtx, async (ctx) => {
+                        try {
+                            let { totalSent, totalReceived, totalSentDirect } = await calculateForUser(ctx, user.id);
+
+                            let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
+                            messagesSent.set(ctx, totalSent);
+
+                            let messagesSentDirect = Store.UserMessagesSentInDirectChatTotalCounter.byId(user.id);
+                            messagesSentDirect.set(ctx, totalSentDirect);
+
+                            let messagesReceived = Store.UserMessagesReceivedCounter.byId(user.id);
+                            messagesReceived.set(ctx, totalReceived);
+                        } catch (e) {
+                            logger.log(rootCtx, e, 'debugCalcUsersMessagingStatsError');
+                        }
+                    });
+                }
+                return 'done';
+            });
 
             return true;
         }),
         debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
-            const calculateForUser = async (ctx: Context, uid: number) => {
-                let all = await FDB.UserDialog.allFromUser(ctx, uid);
-                let chatsCount = 0;
-                let directChatsCount = 0;
+            debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
+                const calculateForUser = async (ctx: Context, uid: number) => {
+                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                    let chatsCount = 0;
+                    let directChatsCount = 0;
 
-                for (let a of all) {
-                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
-                    if (!conv) {
-                        continue;
-                    }
-
-                    chatsCount++;
-                    if (conv.kind === 'private') {
-                        directChatsCount++;
-                    }
-                }
-
-                return { chatsCount, directChatsCount };
-            };
-
-            let users = await FDB.User.findAll(parent);
-
-            for (let user of users) {
-                await inTx(rootCtx, async (ctx) => {
-                    try {
-                        let { chatsCount, directChatsCount } = await calculateForUser(ctx, user.id);
-
-                        let existing = await FDB.UserMessagingState.findById(ctx, user.id);
-                        if (!existing) {
-                            let created = await FDB.UserMessagingState.create(ctx, user.id, {
-                                seq: 0,
-                                unread: 0,
-                                messagesReceived: 0,
-                                messagesSent: 0,
-                                chatsCount,
-                                directChatsCount
-                            });
-                            await created.flush(ctx);
-                        } else {
-                            existing.chatsCount = chatsCount;
-                            existing.directChatsCount = directChatsCount;
-                            await existing.flush(ctx);
+                    for (let a of all) {
+                        let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                        if (!conv) {
+                            continue;
                         }
-                    } catch (e) {
-                        logger.log(rootCtx, e, 'debugCalcUsersChatsStats');
+
+                        chatsCount++;
+                        if (conv.kind === 'private') {
+                            directChatsCount++;
+                        }
                     }
-                });
-            }
+
+                    return { chatsCount, directChatsCount };
+                };
+
+                let users = await FDB.User.findAll(parent);
+
+                let i = 0;
+                for (let user of users) {
+                    i++;
+                    if (i % 100 === 0) {
+                        await log('calculated ' + i + ' users');
+                    }
+                    await inTx(rootCtx, async (ctx) => {
+                        try {
+                            let { chatsCount, directChatsCount } = await calculateForUser(ctx, user.id);
+
+                            await Store.UserMessagesChatsCounter.byId(user.id).set(ctx, chatsCount);
+                            await Store.UserMessagesDirectChatsCounter.byId(user.id).set(ctx, directChatsCount);
+                        } catch (e) {
+                            logger.log(rootCtx, e, 'debugCalcUsersChatsStats');
+                        }
+                    });
+                }
+                return 'done';
+            });
 
             return true;
         }),
@@ -470,7 +472,7 @@ export default {
                     await FDB.RoomParticipant.create(ctx, chat.id, member.uid, {
                         role: member.uid === org.ownerId ? 'owner' : 'member',
                         invitedBy: org.ownerId,
-                        status: 'joined'
+                        status: 'joined',
                     });
                 }
 
@@ -651,7 +653,7 @@ export default {
                             FDB.UserDialog,
                             ['__indexes', 'user', uid],
                             value => [value.uid, value.cid],
-                            _ctx => FDB.UserDialog.allFromUser(_ctx, uid)
+                            _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
                         );
                         if (duplicatesCount > 0) {
                             await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
@@ -718,7 +720,7 @@ export default {
                         if (!subscription) {
                             await FDB.CommentsSubscription.create(ctx, comment.peerType, comment.peerId, comment.uid, {
                                 status: 'active',
-                                kind: 'all'
+                                kind: 'all',
                             });
                         }
                         if ((i % 100) === 0) {
@@ -886,7 +888,7 @@ export default {
                         yield item;
                     }
                 }
-            }
+            },
         },
         lifecheck: {
             resolve: async msg => {
@@ -904,7 +906,7 @@ export default {
                     await delay(1000);
                     i++;
                 }
-            }
+            },
         },
         debugReaderState: {
             resolve: async msg => {
@@ -920,7 +922,7 @@ export default {
                     yield JSON.stringify(FKeyEncoding.decodeFromString(state!.cursor));
                     await delay(1000);
                 }
-            }
+            },
         },
-    }
+    },
 } as GQLResolver;
