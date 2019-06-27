@@ -278,6 +278,7 @@ export class UserRepository {
             }
 
             userBadge.deleted = true;
+            userBadge.verifiedBy = null;
 
             await userBadge.flush(ctx);
 
