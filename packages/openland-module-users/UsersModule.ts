@@ -136,7 +136,6 @@ export class UsersModule {
         }
     }
 
-
     async markForUndexing(ctx: Context, uid: number) {
         return this.repo.markForUndexing(ctx, uid);
     }
