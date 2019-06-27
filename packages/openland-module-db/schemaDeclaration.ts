@@ -1246,21 +1246,15 @@ const Schema = declareSchema(() => {
 
     directory('NotificationCenterNeedDeliveryFlag');
 
-    entity('Badge', () => {
-        primaryKey('id', 'number');
-        field('name', 'string');
-
-        uniqueIndex('name', ['name']);
-    });
-
     entity('UserBadge', () => {
-        primaryKey('bid', 'number');
-        primaryKey('uid', 'number');
+        primaryKey('id', 'number');
+        field('uid', 'number');
+        field('name', 'string');
         field('verifiedBy', 'number').nullable();
         field('deleted', 'boolean').nullable();
 
-        rangeIndex('user', ['uid', 'bid']).withCondition((src) => !src.deleted);
-        uniqueIndex('userBadge', ['uid', 'bid']).withCondition((src) => !src.deleted);
+        rangeIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('name', ['name', 'createdAt']);
 
         enableVersioning();
         enableTimestamps();
@@ -1270,8 +1264,6 @@ const Schema = declareSchema(() => {
         primaryKey('uid', 'number');
         primaryKey('cid', 'number');
         field('bid', 'number').nullable();
-
-        uniqueIndex('user', ['uid', 'cid']);
 
         enableVersioning();
         enableTimestamps();

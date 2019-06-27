@@ -1,4 +1,4 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, UserBadge } from 'openland-module-db/schema';
 import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -10,6 +10,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { fetchNextDBSeq } from 'openland-utils/dbSeq';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
 const userActivated = createHyperlogger<{ uid: number }>('user_activated');
@@ -238,63 +239,42 @@ export class UserRepository {
                 throw new Error('Name can\'t be empty');
             }
 
-            let badge = await this.entities.Badge.findFromName(ctx, name);
-            let bid: number;
-
-            if (badge) {
-                bid = badge.id;
-            } else {
-                bid = await this.fetchUserBadgeId(ctx);
-
-                await this.entities.Badge.create(ctx, bid, { name });
-            }
-
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
-
-            if (userBadge) {
-                if (userBadge.deleted) {
-                    userBadge.deleted = false;
-
-                    await userBadge.flush(ctx);
-                } else {
-                    if (!cid) {
-                        throw new Error('Badge already exists');
-                    }
-                }
-            } else {
-                userBadge = await this.entities.UserBadge.create(ctx, bid, uid, {});
-            }
+            let userBadge = await this.entities.UserBadge.create(ctx, await fetchNextDBSeq(parent, 'badge-id'), { uid, name: badgeName });
+            await userBadge.flush(ctx);
 
             if (cid) {
-                await this.setRoomBadge(ctx, uid, cid, bid);
+                await this.updateRoomBadge(ctx, uid, cid, userBadge.id);
             } else {
                 if (!isSuper) {
                     // set primary if needed
                     let userBadges = await this.entities.UserBadge.rangeFromUser(ctx, uid, 2);
-    
+
                     if (userBadges.length === 1) {
                         let profile = await this.entities.UserProfile.findById(ctx, uid);
-        
+
                         if (profile && !profile.primaryBadge) {
-                            profile.primaryBadge = bid;
+                            profile.primaryBadge = userBadge.id;
 
                             await profile.flush(ctx);
                         }
                     }
                 }
             }
-
-            return uid;
+            return userBadge;
         });
     }
 
     async deleteBadge(parent: Context, uid: number, bid: number) {
         return await inTx(parent, async (ctx) => {
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
+            let userBadge = await this.entities.UserBadge.findById(ctx, bid);
             let profile = await this.entities.UserProfile.findById(ctx, uid);
 
             if (!userBadge || !profile) {
                 throw new NotFoundError();
+            }
+
+            if (userBadge.uid !== uid) {
+                throw new AccessDeniedError();
             }
 
             userBadge.deleted = true;
@@ -312,69 +292,54 @@ export class UserRepository {
         });
     }
 
-    async setPrimaryBadge(parent: Context, uid: number, bid: number) {
+    async updatePrimaryBadge(parent: Context, uid: number, bid: number | null) {
         return await inTx(parent, async (ctx) => {
             let profile = await this.entities.UserProfile.findById(ctx, uid);
-            let badge = await this.entities.Badge.findById(ctx, bid);
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
-            
-            if (!profile || !badge || !userBadge) {
-                throw new NotFoundError();
-            }
 
-            profile.primaryBadge = bid;
-
-            await profile.flush(ctx);
-
-            return uid;
-        });
-    }
-
-    async unsetPrimaryBadge(parent: Context, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let profile = await this.entities.UserProfile.findById(ctx, uid);
-            
             if (!profile) {
                 throw new NotFoundError();
             }
 
-            profile.primaryBadge = null;
+            if (bid === null) {
+                profile.primaryBadge = null;
+                await profile.flush(ctx);
+                return uid;
+            }
 
-            await profile.flush(ctx);
-
-            return uid;
-        });
-    }
-
-    async verifyBadge(parent: Context, suid: number | null, uid: number, bid: number) {
-        return await inTx(parent, async (ctx) => {
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
+            let userBadge = await this.entities.UserBadge.findById(ctx, bid);
 
             if (!userBadge) {
                 throw new NotFoundError();
             }
 
-            if (!!userBadge.verifiedBy) {
-                throw new Error('Badge already verified');
+            if (userBadge.uid !== uid) {
+                throw new AccessDeniedError();
             }
 
-            userBadge.verifiedBy = suid;
-
-            await userBadge.flush(ctx);
+            profile.primaryBadge = bid;
+            await profile.flush(ctx);
 
             return uid;
         });
     }
 
-    async setRoomBadge(parent: Context, uid: number, cid: number, bid: number) {
+    async verifyBadge(parent: Context, bid: number, by: number | null) {
         return await inTx(parent, async (ctx) => {
-            let badge = await this.entities.Badge.findById(ctx, bid);
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid, uid);
-            
-            if (!badge || !userBadge) {
+            let userBadge = await this.entities.UserBadge.findById(ctx, bid);
+
+            if (!userBadge) {
                 throw new NotFoundError();
             }
 
+            userBadge.verifiedBy = by;
+            await userBadge.flush(ctx);
+
+            return userBadge.uid;
+        });
+    }
+
+    async updateRoomBadge(parent: Context, uid: number, cid: number, bid: number | null) {
+        return await inTx(parent, async (ctx) => {
             let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
 
             if (roomBadge) {
@@ -384,23 +349,30 @@ export class UserRepository {
                     bid: bid
                 });
             }
-
-            return await this.entities.UserBadge.findById(ctx, bid, uid);
+            return bid ? await this.entities.UserBadge.findById(ctx, bid) : null;
         });
     }
 
-    async unsetRoomBadge(parent: Context, uid: number, cid: number) {
-        return await inTx(parent, async (ctx) => {
-            let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+    async getUserBadge(ctx: Context, uid: number, cid?: number) {
+        const getPrimaryBadge = async () => {
+            let profile = await this.entities.UserProfile.findById(ctx, uid);
 
-            if (!roomBadge) {
-                throw new NotFoundError();
+            if (profile && profile.primaryBadge) {
+                return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
             }
+            return null;
+        };
+        const fetchBadge = (badge: UserBadge | null) => (badge && !badge.deleted) ? badge : null;
 
-            roomBadge.bid = null;
-
-            return true;
-        });
+        if (!cid) {
+            return fetchBadge(await getPrimaryBadge());
+        }
+        let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+        if (userRoomBadge && userRoomBadge.bid) {
+            return fetchBadge(await this.entities.UserBadge.findById(ctx, userRoomBadge.bid));
+        } else {
+            return fetchBadge(await getPrimaryBadge());
+        }
     }
 
     //
@@ -415,9 +387,5 @@ export class UserRepository {
                 await this.entities.UserIndexingQueue.create(ctx, uid, {});
             }
         });
-    }
-
-    private async fetchUserBadgeId(parent: Context) {
-        return fetchNextDBSeq(parent, 'badge-id');
     }
 }

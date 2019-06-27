@@ -295,41 +295,17 @@ export async function fetchMessageFallback(message: Message | Comment): Promise<
     return fallback.join('\n');
 }
 
-async function getUserRoomBadge(ctx: AppContext, src: Message | Comment): Promise<UserBadge | null> {
-    let userBadge: UserBadge | null = null;
+async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): Promise<UserBadge | null> {
+    let cid: number | undefined = undefined;
 
     if (src instanceof Message) {
-        let userRoomBadge = await FDB.UserRoomBadge.findById(ctx, src.uid, src.cid);
-
-        if (userRoomBadge && userRoomBadge.bid) {
-            userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);
-        } else {
-            let profile = await FDB.UserProfile.findById(ctx, src.uid);
-
-            if (profile && profile.primaryBadge) {
-                userBadge = await FDB.UserBadge.findById(ctx, profile.primaryBadge, src.uid);
-            }
-        }
-    }
-    if (src instanceof Comment && src.peerType === 'message') {
+        cid = src.cid;
+    } else if (src instanceof Comment && src.peerType === 'message') {
         let message = await FDB.Message.findById(ctx, src.peerId);
-
-        if (message) {
-            let userRoomBadge = await FDB.UserRoomBadge.findById(ctx, src.uid, message.cid);
-
-            if (userRoomBadge && userRoomBadge.bid) {
-                userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);       
-            } else {
-                let profile = await FDB.UserProfile.findById(ctx, src.uid);
-    
-                if (profile && profile.primaryBadge) {
-                    userBadge = await FDB.UserBadge.findById(ctx, profile.primaryBadge, src.uid);
-                }
-            }
-        }
+        cid = message!.cid;
     }
 
-    return (userBadge && !userBadge.deleted) ? userBadge : null;
+    return await Modules.Users.getUserBadge(ctx, src.uid, cid);
 }
 
 export default {
@@ -351,7 +327,7 @@ export default {
         id: src => IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: src => src.uid,
-        senderBadge: (src, args, ctx) => getUserRoomBadge(ctx, src),
+        senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
         isMentioned: (src, args, ctx) => {
             if (src instanceof Message) {
                 return hasMention(src, ctx.auth.uid!);
@@ -415,7 +391,7 @@ export default {
         id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: async (src, args, ctx) => src.deleted ? await Modules.Users.getDeletedUserId(ctx) : src.uid,
-        senderBadge: (src, args, ctx) => src.deleted ? null : getUserRoomBadge(ctx, src),
+        senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
         isMentioned: async (src, args, ctx) => {

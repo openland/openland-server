@@ -7,12 +7,13 @@ import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { MaybePromise } from './schema/SchemaUtils';
 import { CacheContext } from './CacheContext';
 import { createNamedContext } from '@openland/context';
+import { inTx } from '@openland/foundationdb';
 
 async function fetchPermissions(ctx: AppContext) {
     if (ctx.cache.has('permissions')) {
         return (await ctx.cache.get('permissions')) as Set<string>;
     }
-    let res = Modules.Super.resolvePermissions(ctx, { uid: ctx.auth.uid, oid: ctx.auth.oid });
+    let res = await inTx(ctx, (ctx2) => Modules.Super.resolvePermissions(ctx2, { uid: ctx.auth.uid, oid: ctx.auth.oid }));
     ctx.cache.set('permissions', res);
     return await res;
 }

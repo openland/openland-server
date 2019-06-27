@@ -12,7 +12,6 @@ import {
     ChannelInvitation,
     ChannelLink,
     UserDialogSettings,
-    UserBadge,
 } from '../../openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
@@ -241,22 +240,7 @@ export default {
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid),
-        badge: async (src: RoomParticipant, args: {}, ctx: AppContext) => {
-            let userRoomBadge = await FDB.UserRoomBadge.findById(ctx, src.uid, src.cid);
-            let userBadge: UserBadge | null = null;
-
-            if (userRoomBadge && userRoomBadge.bid) {
-                userBadge = await FDB.UserBadge.findById(ctx, userRoomBadge.bid, src.uid);
-            } else {
-                let profile = await FDB.UserProfile.findById(ctx, src.uid);
-    
-                if (profile && profile.primaryBadge) {
-                    userBadge = await FDB.UserBadge.findById(ctx, profile.primaryBadge, src.uid);
-                }
-            }
-
-            return (userBadge && !userBadge.deleted) ? userBadge : null;
-        },
+        badge: (src: RoomParticipant, args: {}, ctx: AppContext) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
     },
 
     RoomInvite: {

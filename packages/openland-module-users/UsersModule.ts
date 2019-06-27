@@ -99,35 +99,27 @@ export class UsersModule {
     // Badges
 
     async createBadge(ctx: Context, uid: number, name: string, isSuper: boolean, cid?: number) {
-        return this.repo.createBadge(ctx, uid, name, isSuper, cid);
+        return await this.repo.createBadge(ctx, uid, name, isSuper, cid);
     }
 
     async deleteBadge(ctx: Context, uid: number, bid: number) {
-        return this.repo.deleteBadge(ctx, uid, bid);
+        return await this.repo.deleteBadge(ctx, uid, bid);
     }
 
-    async setPrimaryBadge(ctx: Context, uid: number, bid: number) {
-        return this.repo.setPrimaryBadge(ctx, uid, bid);
+    async updatePrimaryBadge(ctx: Context, uid: number, bid: number | null) {
+        return await this.repo.updatePrimaryBadge(ctx, uid, bid);
     }
 
-    async unsetPrimaryBadge(ctx: Context, uid: number) {
-        return this.repo.unsetPrimaryBadge(ctx, uid);
+    async verifyBadge(ctx: Context, bid: number, by: number | null) {
+        return await this.repo.verifyBadge(ctx, bid, by);
     }
 
-    async verifyBadge(ctx: Context, suid: number, uid: number, bid: number) {
-        return this.repo.verifyBadge(ctx, suid, uid, bid);
+    async updateRoomBage(ctx: Context, uid: number, cid: number, bid: number | null) {
+        return await this.repo.updateRoomBadge(ctx, uid, cid, bid);
     }
 
-    async unverifyBadge(ctx: Context, uid: number, bid: number) {
-        return this.repo.verifyBadge(ctx, null, uid, bid);
-    }
-
-    async setRoomBage(ctx: Context, uid: number, cid: number, bid: number) {
-        return this.repo.setRoomBadge(ctx, uid, cid, bid);
-    }
-
-    async unsetRoomBage(ctx: Context, uid: number, cid: number) {
-        return this.repo.unsetRoomBadge(ctx, uid, cid);
+    async getUserBadge(ctx: Context, uid: number, cid?: number) {
+        return await this.repo.getUserBadge(ctx, uid, cid);
     }
 
     async getUserFullName(ctx: Context, uid: number) {
@@ -143,6 +135,7 @@ export class UsersModule {
             return profile.firstName;
         }
     }
+
 
     async markForUndexing(ctx: Context, uid: number) {
         return this.repo.markForUndexing(ctx, uid);
