@@ -236,7 +236,11 @@ export class UserRepository {
             let badgeName = name.trim();
 
             if (badgeName.length <= 0) {
-                throw new Error('Name can\'t be empty');
+                throw new Error('Badge can\'t be empty');
+            }
+
+            if (badgeName.length > 40) {
+                throw new Error('Max length for badge: 40');
             }
 
             let userBadge = await this.entities.UserBadge.create(ctx, await fetchNextDBSeq(parent, 'badge-id'), { uid, name: badgeName });
