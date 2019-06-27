@@ -38,7 +38,11 @@ export class CommentsMediator {
             //  Subscribe to notifications
             //
             await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid, 'all');
-            await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, message.uid, 'all');
+            // for old comments
+            let sub = await this.entities.CommentsSubscription.findById(ctx, 'message', messageId, message.uid);
+            if (!sub) {
+                await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, message.uid, 'all');
+            }
 
             //
             // Send notifications

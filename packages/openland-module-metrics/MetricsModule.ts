@@ -78,6 +78,6 @@ export class MetricsModule {
     }
 
     async onReactionAdded(ctx: Context, message: Message, reaction: string) {
-        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type:  REACTIONS_LEGACY.get(reaction) || reaction } });
+        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type:  REACTIONS_LEGACY.has(reaction) ? REACTIONS_LEGACY.get(reaction)!.toLowerCase() : reaction } });
     }
 }

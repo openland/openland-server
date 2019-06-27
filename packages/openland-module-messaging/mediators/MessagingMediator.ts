@@ -175,7 +175,9 @@ export class MessagingMediator {
             // Delivery
             let message = (await this.entities.Message.findById(ctx, res!.mid!))!;
             await this.delivery.onUpdateMessage(ctx, message);
-            await Modules.Metrics.onReactionAdded(ctx, message, reaction);
+            if (!reset) {
+                await Modules.Metrics.onReactionAdded(ctx, message, reaction);
+            }
 
             return res;
         });

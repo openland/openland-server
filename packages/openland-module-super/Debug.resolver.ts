@@ -191,7 +191,7 @@ export default {
         }),
         debug2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
             return await Store.User2WayDirectChatsCounter.get(parent, parent.auth.uid!);
-        })
+        }),
     },
     Mutation: {
         lifecheck: () => `i'm still ok`,
@@ -836,6 +836,21 @@ export default {
                 }
                 return 'done, total: ' + i;
             });
+            return true;
+        }),
+        debugFixMessage: withPermission('super-admin', async (parent, args) => {
+            let mid = args.id;
+            await inTx(parent, async ctx => {
+                let message = await FDB.Message.findByRawId_UNSAFE(ctx, [mid]);
+                if (!message) {
+                    return;
+                }
+                if (message.spans) {
+                    message.spans = [...(message.spans.filter((s: any) => s.type !== 'date_text'))];
+                }
+                await message.flush(ctx);
+            });
+
             return true;
         }),
     },

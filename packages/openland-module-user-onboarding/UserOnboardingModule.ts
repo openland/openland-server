@@ -7,7 +7,7 @@ import { UserProfile } from 'openland-module-db/schema';
 import { DelayedQueue } from 'openland-module-workers/DelayedQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from '@openland/foundationdb';
-import { buildMessage } from 'openland-utils/MessageBuilder';
+import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
 
 type DelayedEvents = 'firstDialogsLoad20h' | 'firstDialogsLoad30m';
 type Template = (user: UserProfile) => { type: string, message: string, keyboard?: MessageKeyboard };
@@ -38,15 +38,17 @@ export class UserOnboardingModule {
     // Triggers
     //
 
-    onDialogsLoad = async (ctx: Context, uid: number) => {
+    onDialogsLoad = async (parent: Context, uid: number) => {
         // first time load
-        if (!(await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq) {
-            await this.sendWellcome(ctx, uid);
-            await this.sendToDiscoverIfNeeded(ctx, uid);
-            await this.askSendFirstMessageOnFirstLoad(ctx, uid);
-            await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad30m' }, Date.now() + 1000 * 60 * 30);
-            await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad20h' }, Date.now() + 1000 * 60 * 60 * 20);
-        }
+        await inTx(parent, async (ctx) => {
+            if (!(await Modules.Messaging.getUserNotificationState(ctx, uid)).readSeq) {
+                await this.sendWellcome(ctx, uid);
+                await this.sendToDiscoverIfNeeded(ctx, uid);
+                await this.askSendFirstMessageOnFirstLoad(ctx, uid);
+                await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad30m' }, Date.now() + 1000 * 60 * 30);
+                await this.delayedWorker.pushWork(ctx, { uid, type: 'firstDialogsLoad20h' }, Date.now() + 1000 * 60 * 60 * 20);
+            }
+        });
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
@@ -86,7 +88,7 @@ export class UserOnboardingModule {
 
     // Discover
     private sendToDiscoverIfNeeded = async (ctx: Context, uid: number) => {
-        if (!this.isDiscoverCompletedWithJoin(ctx, uid)) {
+        if (!await this.isDiscoverCompletedWithJoin(ctx, uid)) {
             let state = await this.getOnboardingState(ctx, uid);
             if (!state.askCompleteDeiscoverSent) {
                 await this.sendMessage(ctx, uid, templates.gotoDiscover);
@@ -97,7 +99,7 @@ export class UserOnboardingModule {
 
     // First message
     private askSendFirstMessageOnFirstLoad = async (ctx: Context, uid: number) => {
-        if (this.isDiscoverCompletedWithJoin(ctx, uid)) {
+        if (await this.isDiscoverCompletedWithJoin(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
         }
     }
@@ -108,7 +110,7 @@ export class UserOnboardingModule {
     }
 
     private askSendFirstMessageAfterShortDelay = async (ctx: Context, uid: number) => {
-        if (!this.isDiscoverCompletedWithJoin(ctx, uid) && !this.userDidSendMessageToGroups(ctx, uid) && this.userIsMemberOfAtLesatOneGroup(ctx, uid)) {
+        if (!await this.isDiscoverCompletedWithJoin(ctx, uid) && !await this.userDidSendMessageToGroups(ctx, uid) && await this.userIsMemberOfAtLesatOneGroup(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
         }
     }
@@ -155,11 +157,19 @@ export class UserOnboardingModule {
         }
         let t = template(user);
 
+        let messageParts: MessagePart[] = [t.message];
+        if (t.keyboard) {
+            messageParts.push({ type: 'rich_attach', attach: { keyboard: t.keyboard } });
+        }
         // report to super admin chat
-        await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(`${user.email} [${t.type}]\n`, t.message, { type: 'rich_attach', attach: { keyboard: t.keyboard } }));
+        let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
+        await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
 
-        // let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
-        // await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, buildMessage(t.message, { type: 'rich_attach', attach: { keyboard: t.keyboard } }));
+        if (user.email && user.email.includes('+test@maildu.de')) {
+            let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
+            await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, buildMessage(...messageParts));
+        }
+
     }
 
     private isDiscoverCompletedWithJoin = async (ctx: Context, uid: number) => {

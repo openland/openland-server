@@ -1,6 +1,6 @@
 import { MessageInput, MessageSpan, MessageAttachmentInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
 
-type MessagePart = string
+export type MessagePart = string
     | { type: 'bold_text', text: string }
     | { type: 'user_mention', text: string, uid: number }
     | { type: 'users_mention', text: string, uids: number[] }
