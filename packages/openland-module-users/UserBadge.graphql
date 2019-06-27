@@ -1,0 +1,33 @@
+type UserBadge {
+    id: ID!
+    name: String!
+    verified: Boolean!
+}
+
+extend type User {
+    badges: [UserBadge!]!
+    primaryBadge: UserBadge
+}
+
+extend type Profile {
+    primaryBadge: UserBadge
+}
+
+extend type Mutation {
+    badgeCreate(name: String!): User!
+    badgeCreateToRoom(roomId: ID!, name: String!): UserBadge!
+    badgeSetToRoom(roomId: ID!, badgeId: ID!): UserBadge!
+    badgeUnsetToRoom(roomId: ID!): Boolean!
+    badgeDelete(badgeId: ID!): User!
+    badgeSetPrimary(badgeId: ID!): User!
+    badgeUnsetPrimary: User!
+
+    # super-admin methods
+    superBadgeCreate(userId: ID!, name: String!): User!
+    superBadgeCreateToRoom(roomId: ID!, userId: ID!, name: String!): UserBadge!
+    superBadgeSetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): UserBadge!
+    superBadgeUnsetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): Boolean!
+    superBadgeDelete(badgeId: ID!, userId: ID!): User!
+    superBadgeVerify(badgeId: ID!, userId: ID!): User!
+    superBadgeUnverify(badgeId: ID!, userId: ID!): User!
+}

@@ -280,6 +280,7 @@ const Schema = declareSchema(() => {
         field('twitter', 'string').nullable();
         field('locations', 'json').nullable();
         field('primaryOrganization', 'number').nullable();
+        field('primaryBadge', 'number').nullable();
         field('role', 'string').nullable();
         rangeIndex('byUpdatedAt', ['updatedAt']);
         enableTimestamps();
@@ -1244,6 +1245,29 @@ const Schema = declareSchema(() => {
     });
 
     directory('NotificationCenterNeedDeliveryFlag');
+
+    entity('UserBadge', () => {
+        primaryKey('id', 'number');
+        field('uid', 'number');
+        field('name', 'string');
+        field('verifiedBy', 'number').nullable();
+        field('deleted', 'boolean').nullable();
+
+        rangeIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('name', ['name', 'createdAt']);
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('UserRoomBadge', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+        field('bid', 'number').nullable();
+
+        enableVersioning();
+        enableTimestamps();
+    });
 
     entity('ChatAudienceCalculatingQueue', () => {
         primaryKey('id', 'number');

@@ -5,6 +5,7 @@ interface ModernMessage {
     id: ID!
     date: Date!
     sender: User!
+    senderBadge: UserBadge
 
     #
     #   Content
@@ -21,6 +22,7 @@ type ServiceMessage implements ModernMessage  {
     id: ID!
     date: Date!
     sender: User!
+    senderBadge: UserBadge
     isMentioned: Boolean!
 
     #
@@ -39,6 +41,7 @@ type GeneralMessage implements ModernMessage {
     id: ID!
     date: Date!
     sender: User!
+    senderBadge: UserBadge
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
     isMentioned: Boolean!

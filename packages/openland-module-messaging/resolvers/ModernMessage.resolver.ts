@@ -2,7 +2,7 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
-import { Comment, Message } from '../../openland-module-db/schema';
+import { Comment, Message, UserBadge } from '../../openland-module-db/schema';
 import { FDB } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
@@ -15,6 +15,7 @@ import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService
 import { Texts } from '../texts';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { MessageMention } from '../MessageInput';
+import { AppContext } from 'openland-modules/AppContext';
 
 export function hasMention(message: Message, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -296,6 +297,19 @@ export async function fetchMessageFallback(message: Message | Comment): Promise<
     return fallback.join('\n');
 }
 
+async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): Promise<UserBadge | null> {
+    let cid: number | undefined = undefined;
+
+    if (src instanceof Message) {
+        cid = src.cid;
+    } else if (src instanceof Comment && src.peerType === 'message') {
+        let message = await FDB.Message.findById(ctx, src.peerId);
+        cid = message!.cid;
+    }
+
+    return await Modules.Users.getUserBadge(ctx, src.uid, cid);
+}
+
 export default {
     ModernMessage: {
         __resolveType(src: Message | Comment) {
@@ -315,6 +329,7 @@ export default {
         id: src => IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: src => src.uid,
+        senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
         isMentioned: (src, args, ctx) => {
             if (src instanceof Message) {
                 return hasMention(src, ctx.auth.uid!);
@@ -378,6 +393,7 @@ export default {
         id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: async (src, args, ctx) => src.deleted ? await Modules.Users.getDeletedUserId(ctx) : src.uid,
+        senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
         isMentioned: async (src, args, ctx) => {

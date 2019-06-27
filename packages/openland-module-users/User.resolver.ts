@@ -82,6 +82,8 @@ export default {
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
+        badges: withUser((ctx, src) => FDB.UserBadge.allFromUser(ctx, src.id)),
+        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? FDB.UserBadge.findById(ctx, profile.primaryBadge) : null),
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id)),
 
         // Deprecated
@@ -106,11 +108,11 @@ export default {
         },
         user: withAny(async (ctx, args) => {
             let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
-            let user: User|null;
+            let user: User | null;
 
             if (shortname && shortname.enabled && shortname.ownerType === 'user') {
                 user = await FDB.User.findById(ctx, shortname.ownerId);
-            }  else {
+            } else {
                 user = await FDB.User.findById(ctx, IDs.User.parse(args.id));
             }
             if (user && user.status === 'deleted') {

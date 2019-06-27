@@ -96,6 +96,32 @@ export class UsersModule {
         return await this.search.searchForUsers(ctx, query, options);
     }
 
+    // Badges
+
+    async createBadge(ctx: Context, uid: number, name: string, isSuper: boolean, cid?: number) {
+        return await this.repo.createBadge(ctx, uid, name, isSuper, cid);
+    }
+
+    async deleteBadge(ctx: Context, uid: number, bid: number) {
+        return await this.repo.deleteBadge(ctx, uid, bid);
+    }
+
+    async updatePrimaryBadge(ctx: Context, uid: number, bid: number | null) {
+        return await this.repo.updatePrimaryBadge(ctx, uid, bid);
+    }
+
+    async verifyBadge(ctx: Context, bid: number, by: number | null) {
+        return await this.repo.verifyBadge(ctx, bid, by);
+    }
+
+    async updateRoomBage(ctx: Context, uid: number, cid: number, bid: number | null) {
+        return await this.repo.updateRoomBadge(ctx, uid, cid, bid);
+    }
+
+    async getUserBadge(ctx: Context, uid: number, cid?: number) {
+        return await this.repo.getUserBadge(ctx, uid, cid);
+    }
+
     async getUserFullName(ctx: Context, uid: number) {
         let profile = await this.profileById(ctx, uid);
 
@@ -109,6 +135,7 @@ export class UsersModule {
             return profile.firstName;
         }
     }
+
 
     async markForUndexing(ctx: Context, uid: number) {
         return this.repo.markForUndexing(ctx, uid);

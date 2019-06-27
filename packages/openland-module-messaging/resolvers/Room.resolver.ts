@@ -239,7 +239,8 @@ export default {
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
-        canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid)
+        canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid),
+        badge: (src: RoomParticipant, args: {}, ctx: AppContext) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
     },
 
     RoomInvite: {
