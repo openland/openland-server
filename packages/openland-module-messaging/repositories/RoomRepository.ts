@@ -13,6 +13,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
+import { ChatMetricsRepository } from './ChatMetricsRepository';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -35,6 +36,7 @@ export type WelcomeMessageT = {
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
+    @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
@@ -1133,6 +1135,7 @@ export class RoomRepository {
                 //
                 //  Join community if not already
                 //
+                this.metrics.onChatCreated(ctx, uid);
                 if (org.kind === 'community') {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }

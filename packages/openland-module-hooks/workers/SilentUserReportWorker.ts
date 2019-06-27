@@ -1,7 +1,7 @@
 import { DelayedQueue } from '../../openland-module-workers/DelayedQueue';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from '../../openland-modules/Modules';
-import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
+import { buildMessage, heading, userMention } from '../../openland-utils/MessageBuilder';
 import { FDB, Store } from '../../openland-module-db/FDB';
 import { plural } from '../../openland-utils/string';
 import { Context } from '@openland/context';
@@ -33,31 +33,36 @@ export function createSilentUserReportWorker() {
                 }
 
                 const profile = await Modules.Users.profileById(ctx, uid);
-                let report = [
-                    boldString('Silent user report'), '\n',
-                    userMention(profile!.firstName + ' ' + profile!.lastName, uid)
-                ];
+                let orgName = '';
                 if (profile!.primaryOrganization) {
                     const organization = await FDB.OrganizationProfile.findById(ctx, profile!.primaryOrganization);
-                    report.push(` @ ${(organization!).name}`);
+                    orgName = ` @ ${(organization!).name}`;
                 }
-                report.push('\n');
 
-                const isDiscoverDone = await Modules.Discover.isDiscoverDone(ctx, uid);
-                if (isDiscoverDone) {
-                    report.push('🕵 Chat navigator complete');
-                } else {
-                    report.push('🕵 ‍Chat navigator not complete');
-                }
-                report.push('\n');
+                let report = [
+                    heading(
+                        'Silent user report ',
+                        userMention(profile!.firstName + ' ' + profile!.lastName, uid),
+                        orgName
+                    ),
+                    '\n',
+                ];
 
                 const onlines = await FDB.Presence.allFromUser(ctx, uid);
                 const mobileOnline = onlines
                     .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
                 if (mobileOnline) {
-                    report.push('📱 Mobile app used');
+                    report.push('📱 Mobile app is used');
                 } else {
-                    report.push('📱 Mobile app not used');
+                    report.push('🚫 Mobile app is not used');
+                }
+                report.push('\n');
+
+                const isDiscoverDone = await Modules.Discover.isDiscoverDone(ctx, uid);
+                if (isDiscoverDone) {
+                    report.push('🕵 "Chats for you" is completed');
+                } else {
+                    report.push('🕵 "Chats for you" is not completed');
                 }
                 report.push('\n');
 

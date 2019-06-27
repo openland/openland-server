@@ -92,7 +92,6 @@ export class UserStateRepository {
             if (!existing) {
 
                 // Update chats counters
-                this.metrics.onChatCreated(ctx, uid);
                 let chat = await this.entities.Conversation.findById(ctx, cid);
                 if (chat && chat.kind === 'private') {
                     this.metrics.onDirectChatCreated(ctx, uid);

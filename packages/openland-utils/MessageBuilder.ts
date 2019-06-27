@@ -1,8 +1,14 @@
 import { MessageInput, MessageSpan, MessageAttachmentInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
 
-type MessagePart = string | { type: 'bold_text', text: string } | { type: 'user_mention', text: string, uid: number } | { type: 'users_mention', text: string, uids: number[] } | ({ type: 'rich_attach', attach: Partial<MessageRichAttachmentInput> });
+type MessagePart = string
+    | { type: 'bold_text', text: string }
+    | { type: 'user_mention', text: string, uid: number }
+    | { type: 'users_mention', text: string, uids: number[] }
+    | ({ type: 'rich_attach', attach: Partial<MessageRichAttachmentInput> })
+    | ({ type: 'loud_text', parts: MessagePart[] });
 
 export const boldString = (str: string) => ({ type: 'bold_text', text: str }) as MessagePart;
+export const heading = (...parts: MessagePart[]) => ({ type: 'loud_text', parts: parts }) as MessagePart;
 export const userMention = (str: string, uid: number) => ({ type: 'user_mention', text: str, uid }) as MessagePart;
 export const usersMention = (str: string, uids: number[]) => ({ type: 'users_mention', text: str, uids }) as MessagePart;
 
@@ -18,6 +24,11 @@ export function buildMessage(...parts: MessagePart[]): MessageInput {
         } else if (part.type === 'bold_text') {
             spans.push({ type: 'bold_text', offset, length: part.text.length });
             text += part.text;
+        } else if (part.type === 'loud_text') {
+            const compositeHeader = buildMessage(...part.parts);
+            spans.push(...compositeHeader.spans!);
+            text += compositeHeader.message!;
+            spans.push({ type: 'loud_text', length: compositeHeader.message!.length, offset });
         } else if (part.type === 'user_mention') {
             spans.push({ type: 'user_mention', offset, length: part.text.length, user: part.uid });
             text += part.text;

@@ -68,7 +68,9 @@ export class MessagingRepository {
             //
             // Update user counter
             //
-            this.chatMetrics.onMessageSent(ctx, uid);
+            if (!message.isService) {
+                this.chatMetrics.onMessageSent(ctx, uid);
+            }
             let conv = (await this.entities.Conversation.findById(ctx, cid));
             let direct = conv && conv.kind === 'private';
             if (direct) {
