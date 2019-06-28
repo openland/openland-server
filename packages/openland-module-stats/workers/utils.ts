@@ -17,4 +17,4 @@ export const getGlobalStatisticsForReport = (prefix?: string) => {
         mobileUsers: Store.GlobalStatisticsCounters.byId(namePrefix + 'mobile-users'),
         successfulInvites: Store.GlobalStatisticsCounters.byId(namePrefix + 'successful-invites')
     };
-}
+};

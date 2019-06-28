@@ -20,7 +20,7 @@ type Config =
     | { interval: 'every-hour', time: { minutes: number } };
 
 const rootCtx = createNamedContext('kek');
-export const timedWorker = async <Res extends JsonMap>(type: string, conf: Config, handler: (ctx: Context) => Promise<Res>) => {
+export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, handler: (ctx: Context) => Promise<Res>) => {
     const taskType = 'timed_' + type;
     const queue = new DelayedQueue<{}, Res>(taskType);
 
@@ -64,16 +64,19 @@ export const timedWorker = async <Res extends JsonMap>(type: string, conf: Confi
 
     const pushNext = (ctx: Context) => queue.pushWork(ctx, {}, getNext());
 
-    await inTx(rootCtx, async (ctx) => {
-        let pending = await FDB.DelayedTask.allFromPending(ctx, taskType);
-        if (pending.length === 0) {
-            await pushNext(ctx);
-        }
-    });
+    // tslint:disable-next-line:no-floating-promises
+    (async () => {
+        await inTx(rootCtx, async (ctx) => {
+            let pending = await FDB.DelayedTask.allFromPending(ctx, taskType);
+            if (pending.length === 0) {
+                await pushNext(ctx);
+            }
+        });
 
-    queue.start(async (_, ctx) => {
-        let res = await handler(ctx);
-        await pushNext(ctx);
-        return res;
-    });
+        queue.start(async (_, ctx) => {
+            let res = await handler(ctx);
+            await pushNext(ctx);
+            return res;
+        });
+    })();
 };

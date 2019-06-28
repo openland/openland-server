@@ -11,7 +11,7 @@ export function createDailyReportWorker() {
     if (serverRoleEnabled('workers')) {
         timedWorker('daily-summary', {
             interval: 'every-day',
-            time: { hours: 14, minutes: 0 },
+            time: { hours: 12, minutes: 0 },
         }, async (ctx) => {
             const chatId = await getGrowthReportsChatId(ctx);
             const botId = await getSuperNotificationsBotId(ctx);
