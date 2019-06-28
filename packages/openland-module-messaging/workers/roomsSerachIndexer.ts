@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(50))
+    declareSearchIndexer('room-index', 9, 'room', FDB.RoomProfile.createUpdatedStream(50))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -27,6 +27,12 @@ export function roomsSearchIndexer() {
             membersCount: {
                 type: 'integer'
             },
+            oid: {
+                type: 'integer'
+            },
+            orgKind: {
+                type: 'text'
+            }
         })
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
@@ -51,7 +57,9 @@ export function roomsSearchIndexer() {
                         updatedAt: item.updatedAt,
                         featured: room.featured === true,
                         listed: isListed,
-                        membersCount: membersCount
+                        membersCount: membersCount,
+                        oid: org.id,
+                        orgKind: org.kind
                     }
                 };
             });

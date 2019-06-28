@@ -21,13 +21,10 @@ export default {
             }
 
             throw new Error('Unknown search entry' + obj);
-        }
-    },
-    MessageWithChat: {
-        message: src => src.message,
-        chat: src => src.chat
-    },
-    Query: {
+        },
+    }, MessageWithChat: {
+        message: src => src.message, chat: src => src.chat,
+    }, Query: {
         alphaGlobalSearch: withAccount(async (ctx, args, uid, oid) => {
             let query = args.query.trim();
 
@@ -36,64 +33,84 @@ export default {
             //
             let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
             let orgsHitsPromise = Modules.Search.elastic.client.search({
-                index: 'organization',
-                type: 'organization',
-                size: 10,
-                body: {
+                index: 'organization', type: 'organization', size: 10, body: {
                     query: {
                         function_score: {
-                            query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
+                            query: { bool: { must: [{ match_phrase_prefix: { name: query } }] } },
                             functions: userOrgs.map(_oid => ({
-                                filter: {match: {_id: _oid}},
-                                weight: 2
+                                filter: { match: { _id: _oid } }, weight: 2,
                             })),
-                            boost_mode: 'multiply'
-                        }
-                    }
-                }
+                            boost_mode: 'multiply',
+                        },
+                    },
+                },
             });
 
             //
             // Users
             //
-            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: true, limit: 10, uid});
+            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, { byName: true, limit: 10, uid });
 
             //
             // User dialog rooms
             //
 
             let localRoomsHitsPromise = Modules.Search.elastic.client.search({
-                index: 'dialog',
-                type: 'dialog',
-                size: 10,
-                body: {
+                index: 'dialog', type: 'dialog', size: 10, body: {
                     query: {
                         bool: {
-                            must: [
-                                {match_phrase_prefix: {title: query}},
-                                {term: {uid: uid}},
-                                {term: {visible: true}}
-                            ]
-                        }
-                    }
-                }
+                            must: [{ match_phrase_prefix: { title: query } }, { term: { uid: uid } }, { term: { visible: true } }],
+                        },
+                    },
+                },
             });
 
             //
             // Global rooms
             //
             let globalRoomHitsPromise = Modules.Search.elastic.client.search({
-                index: 'room',
-                type: 'room',
-                size: 10,
-                body: {
-                    query: {bool: {must: [{match_phrase_prefix: {title: args.query}}, {term: {listed: true}}]}}
-                }
+                index: 'room', type: 'room', size: 10, body: {
+                    query: { bool: { must: [{ match_phrase_prefix: { title: args.query } }, { term: { listed: true } }] } },
+                },
             });
 
-            let [usersHits, localRoomsHits, globalRoomHits, orgsHits] = await Promise.all([usersHitsPromise, localRoomsHitsPromise, globalRoomHitsPromise, orgsHitsPromise]);
+            //
+            // Organization rooms
+            //
+            let organizations = await FDB.OrganizationMember.allFromUser(ctx, 'joined', uid);
+            let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
+            let orgRoomHitsPromise = Modules.Search.elastic.client.search({
+                index: 'room', type: 'room', size: 10, body: {
+                    query: {
+                        bool: {
+                            must: [
+                                { match_phrase_prefix: { title: args.query } }, { term: { orgKind: 'organization' } },
+                                {
+                                    bool: {
+                                        should: orgChatFilters
+                                    }
+                                }
+                            ],
+                        },
+                    },
+                },
+            });
 
-            let allHits = [...usersHits.hits.hits.hits, ...localRoomsHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
+            let [
+                usersHits,
+                localRoomsHits,
+                globalRoomHits,
+                orgRoomHits,
+                orgsHits
+            ] = await Promise.all([
+                usersHitsPromise,
+                localRoomsHitsPromise,
+                globalRoomHitsPromise,
+                orgRoomHitsPromise,
+                orgsHitsPromise
+            ]);
+
+            let allHits = [...usersHits.hits.hits.hits, ...localRoomsHits.hits.hits, ...globalRoomHits.hits.hits, ...orgRoomHits.hits.hits, ...orgsHits.hits.hits];
 
             let rooms = new Set<number>();
             let users = new Set<number>();
@@ -156,22 +173,18 @@ export default {
             });
 
             return data;
-        }),
-        featuredGroups: withAccount(async (ctx, args, uid, oid) => {
+        }), featuredGroups: withAccount(async (ctx, args, uid, oid) => {
             let globalRoomHits = await Modules.Search.elastic.client.search({
-                index: 'room',
-                type: 'room',
-                body: {
-                    query: {bool: {must: [{term: {featured: true}}]}}
-                }
+                index: 'room', type: 'room', body: {
+                    query: { bool: { must: [{ term: { featured: true } }] } },
+                },
             });
             return globalRoomHits.hits.hits.map(hit => parseInt(hit._id, 10));
-        }),
-        featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
+        }), featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
                 type: 'organization',
-                body: {query: {bool: {must: [{term: {kind: 'community'}}, {term: {featured: true}}]}}}
+                body: { query: { bool: { must: [{ term: { kind: 'community' } }, { term: { featured: true } }] } } },
             });
             let oids = hits.hits.hits.map(hit => parseInt(hit._id, 10));
             let orgs = oids.map(o => FDB.Organization.findById(ctx, o)!);
@@ -200,8 +213,8 @@ export default {
 
             clauses.push({
                 bool: {
-                    should: userDialogs.map(d => ({ match: { cid: d.cid }}))
-                }
+                    should: userDialogs.map(d => ({ match: { cid: d.cid } })),
+                },
             });
 
             let hits = await Modules.Search.elastic.client.search({
@@ -210,12 +223,11 @@ export default {
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: sort || [{createdAt: 'desc'}],
-                    query: {bool: {must: clauses}}
-                }
+                    sort: sort || [{ createdAt: 'desc' }], query: { bool: { must: clauses } },
+                },
             });
 
-            let messages: (Message|null)[] = await Promise.all(hits.hits.hits.map((v) => FDB.Message.findById(ctx, parseInt(v._id, 10))));
+            let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => FDB.Message.findById(ctx, parseInt(v._id, 10))));
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);
@@ -226,22 +238,19 @@ export default {
                 edges: messages.filter(m => !!m).map((p, i) => {
                     return {
                         node: {
-                            message: p,
-                            chat: p!.cid
-                        },
-                        cursor: (i + 1 + offset).toString()
+                            message: p, chat: p!.cid,
+                        }, cursor: (i + 1 + offset).toString(),
                     };
-                }),
-                pageInfo: {
+                }), pageInfo: {
                     hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
                     hasPreviousPage: false,
 
                     itemsCount: total,
                     pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
                     currentPage: Math.floor(offset / args.first) + 1,
-                    openEnded: true
+                    openEnded: true,
                 },
             };
         }),
-    }
+    },
 } as GQLResolver;
