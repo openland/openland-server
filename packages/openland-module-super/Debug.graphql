@@ -71,7 +71,6 @@ extend type Query {
     debug2WayDirectChatsCounter: Int!
 
     debugUserMetrics(id: ID!): DebugUserMetrics!
-    debugMessagesSearch(uid: ID!, query: String!, sort: String, first: Int!, after: String): MessageConnection!
 }
 
 enum SuperNotificationType {

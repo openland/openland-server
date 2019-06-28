@@ -217,11 +217,7 @@ export default {
                     sort = parser.parseSort(args.sort);
                 }
 
-                clauses.push({
-                    bool: {
-                        should: userDialogs.map(d => ({ match: { cid: d.cid } })),
-                    },
-                });
+                clauses.push({ terms: { cid: userDialogs.map(d => d.cid) }});
 
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'message',
