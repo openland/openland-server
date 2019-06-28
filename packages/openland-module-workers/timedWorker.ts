@@ -53,7 +53,7 @@ export const timedWorker = async <Res extends JsonMap>(type: string, conf: Confi
             if (isNotToday(conf.time.hours, conf.time.minutes)) {
                 nextDate += 1000 * 60 * 60 * 24;
             }
-            return new Date(nextDate).setHours(conf.time.hours, conf.time.minutes, o);
+            return new Date(nextDate).setHours(conf.time.hours, conf.time.minutes, 0);
         } else {
             if (minuteNow > conf.time.minutes) {
                 nextDate += 1000 * 60 * 60;
