@@ -29,7 +29,7 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
         const weekDay = now.getDay();
         const minuteNow = now.getMinutes();
         const hourNow = now.getHours();
-        const isNotToday = (hours: number, minutes: number) => hourNow > hours || (hourNow === hours && minuteNow > minutes);
+        const isNotToday = (hours: number, minutes: number) => hourNow > hours || (hourNow === hours && minuteNow >= minutes);
 
         let nextDate = Date.now();
         if (conf.interval === 'every-week') {
@@ -55,7 +55,7 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
             }
             return new Date(nextDate).setHours(conf.time.hours, conf.time.minutes, 0);
         } else {
-            if (minuteNow > conf.time.minutes) {
+            if (minuteNow >= conf.time.minutes) {
                 nextDate += 1000 * 60 * 60;
             }
             return new Date(nextDate).setMinutes(conf.time.minutes, 0);
