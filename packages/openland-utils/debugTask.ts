@@ -1,9 +1,11 @@
 import { Modules } from '../openland-modules/Modules';
 import { Context, createNamedContext } from '@openland/context';
-import { FDB } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
+import { createLogger } from '@openland/log';
+import { FEntityFactory } from '../foundation-orm/FEntityFactory';
 
 const rootCtx = createNamedContext('debug-task');
+const logger = createLogger('debug-task');
 
 export function debugTask(uid: number, name: string, handler: (log: (str: string) => Promise<void>) => Promise<string>) {
     // tslint:disable-next-line:no-floating-promises
@@ -18,20 +20,24 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
                 await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId, { message: `Task #${key}: ${str}` }, true);
             }
         };
-        await sendLog(`Task #${key} ${name} started`);
-        let res = await handler(sendLog);
-        await sendLog(`Task #${key} ${name} ended with response: ${res}`);
+        await sendLog(`started`);
+        try {
+            let res = await handler(sendLog);
+            await sendLog(`ended with response: ${res}`);
+        } catch (e) {
+            logger.error(rootCtx, name, e);
+        }
     })();
 }
 
-export function debugTaskForAllUsers(uid: number, name: string, handler: (ctx: Context, uid: number, log: (str: string) => Promise<void>) => Promise<void>) {
+export function debugTaskForAll(entity: FEntityFactory<any>, uid: number, name: string, handler: (ctx: Context, uid: number, log: (str: string) => Promise<void>) => Promise<void>) {
     debugTask(uid, name, async (log) => {
-        let allUsers = await FDB.User.findAll(rootCtx);
+        let allRecords = await entity.findAll(rootCtx);
         let i = 0;
 
-        for (let user of allUsers) {
+        for (let record of allRecords) {
             await inTx(rootCtx, async (ctx) => {
-                await handler(ctx, user.id, log);
+                await handler(ctx, record.id, log);
                 if ((i % 100) === 0) {
                     await log('done: ' + i);
                 }
