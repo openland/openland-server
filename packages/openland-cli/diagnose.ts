@@ -23,6 +23,7 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
     log.log(rootCtx, 'Start');
     let invalid = 0;
     let offset = 0;
+    let total = 0;
     while (true) {
         let ex = await entity.directory.range(rootCtx, [], { limit: 1000, after });
         if (ex.length === 0) {
@@ -33,13 +34,15 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
                 entity.options.keyValidator(k.key);
             } catch (e) {
                 log.warn(rootCtx, 'Found invalid primary key');
+                log.warn(rootCtx, k.key);
                 invalid++;
             }
         }
         after = ex[ex.length - 1].key;
         offset++;
+        total += ex.length;
         if (offset % 10 === 0) {
-            log.log(rootCtx, 'Processed ' + offset + ' items');
+            log.log(rootCtx, 'Processed ' + total + ' items');
         }
     }
     log.log(rootCtx, 'End: ' + invalid);
@@ -57,10 +60,11 @@ export async function calculateCount(entity: FEntityFactory<FEntity>) {
         if (ex.length === 0) {
             break;
         }
-        count += ex.length;
+        after = ex[ex.length - 1].key;
         offset++;
+        count += ex.length;
         if (offset % 10 === 0) {
-            log.log(rootCtx, 'Processed ' + offset + ' items');
+            log.log(rootCtx, 'Processed ' + count + ' items');
         }
     }
     log.log(rootCtx, 'Total: ' + count);
