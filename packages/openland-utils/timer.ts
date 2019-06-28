@@ -1,6 +1,7 @@
 import { exponentialBackoffDelay } from './exponentialBackoffDelay';
 import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
+
 // import { createLogger } from 'openland-log/createLogger';
 
 export function delayBreakable(ms: number) {
@@ -15,11 +16,13 @@ export function delayBreakable(ms: number) {
         promiseResolver = resolve;
         setTimeout(resolve, ms);
     });
-    return { promise, resolver };
+    return {promise, resolver};
 }
 
 export async function delay(ms: number) {
-    return new Promise(resolve => { setTimeout(resolve, ms); });
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
 }
 
 export function debouncer(ms: number) {
@@ -168,3 +171,11 @@ export class AsyncLock {
         }
     }
 }
+
+export const ddMMYYYYFormat = (date: Date) =>
+    ('00' + date.getDate()).slice(-2) + '/' +
+    ('00' + (date.getMonth() + 1)).slice(-2) + '/' +
+    date.getFullYear() + ' ' +
+    ('00' + date.getHours()).slice(-2) + ':' +
+    ('00' + date.getMinutes()).slice(-2) + ':' +
+    ('00' + date.getSeconds()).slice(-2);

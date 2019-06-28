@@ -10,7 +10,7 @@ import { jBool, jField, jNumber, json, jString, validateJson } from '../openland
 import { inTx } from '@openland/foundationdb';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
-import { delay } from '../openland-utils/timer';
+import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
@@ -889,13 +889,21 @@ export default {
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: AppContext) {
                 let state = await FDB.ReaderState.findById(ctx, args.reader);
+                let prev = '';
                 if (!state) {
                     throw new NotFoundError();
                 }
+                let key = FKeyEncoding.decodeFromString(state!.cursor);
+                let isDateBased = key.length === 2 && (typeof key[0] === 'number' && key[0] > 1183028484169);
+
                 while (true) {
                     state = await inTx(rootCtx, async ctx2 => await FDB.ReaderState.findById(ctx2, args.reader));
                     let data = FKeyEncoding.decodeFromString(state!.cursor);
-                    yield JSON.stringify(data) + '    ' + ((typeof data[0] === 'number' && data[0] > 1183028484169) ? new Date(data[0] as number) : '');
+                    let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as number))}, id: ${data[1]}` : JSON.stringify(data);
+                    if (str !== prev) {
+                        yield str;
+                        prev = str;
+                    }
                     await delay(1000);
                 }
             },
