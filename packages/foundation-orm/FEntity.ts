@@ -4,7 +4,7 @@ import { tracer } from './utils/tracer';
 import { createLogger } from '@openland/log';
 import { EntityLayer } from './EntityLayer';
 import { Subspace, getTransaction, Transaction } from '@openland/foundationdb';
-import { Tuple } from '@openland/foundationdb/lib/encoding';
+import { Tuple } from '@openland/foundationdb';
 import { getLock } from './FEntityFactory';
 
 export interface FEntityOptions {
@@ -12,6 +12,7 @@ export interface FEntityOptions {
     enableTimestamps: boolean;
     hasLiveStreams: boolean;
     validator: (value: any) => void;
+    keyValidator: (key: Tuple[]) => void;
 }
 
 const log = createLogger('fdb');

@@ -4,10 +4,10 @@
 require('module-alias/register');
 import { openDatabase } from './utils/openDatabase';
 import yargs from 'yargs';
-import { diagnose } from 'openland-module-db/tools/Diagnostics';
+import { diagnose, calculateCount } from 'openland-cli/diagnose';
 
 yargs
-    .command('list', 'List available entities', (y) => y.positional('name', { describe: 'Name of the entity' }), async () => {
+    .command('list', 'List available entities', {}, async () => {
         let res = await openDatabase();
         for (let ent of res.allEntities) {
             console.log(ent.name);
@@ -23,6 +23,17 @@ yargs
             throw Error('unable to find entity');
         }
         diagnose(entity);
+    })
+    .command('count [name]', 'Count records', (y) => y.positional('name', { describe: 'Name of the entity', type: 'string' }), async (args) => {
+        if (!args.name) {
+            throw Error('Please, provide entity');
+        }
+        let res = await openDatabase();
+        let entity = res.allEntities.find((v) => v.name === args.name);
+        if (!entity) {
+            throw Error('unable to find entity');
+        }
+        calculateCount(entity);
     })
     .demandCommand()
     .help()

@@ -8,7 +8,7 @@ export function generate(model: SchemaModel, path: string) {
     res += '// @ts-ignore\n';
     res += 'import { EntitiesBase } from \'foundation-orm/EntitiesBase\';\n';
     res += '// @ts-ignore\n';
-    res += 'import { Subspace, Directory } from \'@openland/foundationdb\';\n';
+    res += 'import { Subspace, Directory, Tuple } from \'@openland/foundationdb\';\n';
     res += '// @ts-ignore\n';
     res += 'import { FEntity, FEntityOptions } from \'foundation-orm/FEntity\';\n';
     res += '// @ts-ignore\n';

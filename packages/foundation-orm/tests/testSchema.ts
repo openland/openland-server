@@ -2,7 +2,7 @@
 // @ts-ignore
 import { EntitiesBase } from 'foundation-orm/EntitiesBase';
 // @ts-ignore
-import { Subspace, Directory } from '@openland/foundationdb';
+import { Subspace, Directory, Tuple } from '@openland/foundationdb';
 // @ts-ignore
 import { FEntity, FEntityOptions } from 'foundation-orm/FEntity';
 // @ts-ignore
@@ -56,7 +56,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('simpleEntity');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, keyValidator: SimpleEntityFactory.validateKey, hasLiveStreams: false };
         return new SimpleEntityFactory(layer, directory, config);
     }
 
@@ -65,6 +65,10 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         validators.isNumber('id', src.id);
         validators.notNull('data', src.data);
         validators.isString('data', src.data);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
@@ -124,7 +128,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('versionedEntity');
-        let config = { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false };
+        let config = { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, keyValidator: VersionedEntityFactory.validateKey, hasLiveStreams: false };
         return new VersionedEntityFactory(layer, directory, config);
     }
 
@@ -133,6 +137,10 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         validators.isNumber('id', src.id);
         validators.notNull('data', src.data);
         validators.isString('data', src.data);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
@@ -192,7 +200,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('timestampedEntity');
-        let config = { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false };
+        let config = { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, keyValidator: TimestampedEntityFactory.validateKey, hasLiveStreams: false };
         return new TimestampedEntityFactory(layer, directory, config);
     }
 
@@ -201,6 +209,10 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         validators.isNumber('id', src.id);
         validators.notNull('data', src.data);
         validators.isString('data', src.data);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
@@ -283,7 +295,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('indexedEntity');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: true };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, keyValidator: IndexedEntityFactory.validateKey, hasLiveStreams: true };
         let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('indexedEntity', 'default'), 'default', ['data1', 'data2', 'id'], true);
         let indexes = {
             default: indexDefault,
@@ -302,6 +314,10 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         validators.isString('data2', src.data2);
         validators.notNull('data3', src.data3);
         validators.isString('data3', src.data3);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
@@ -409,7 +425,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('indexedRangeEntity');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: true };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, keyValidator: IndexedRangeEntityFactory.validateKey, hasLiveStreams: true };
         let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('indexedRangeEntity', 'default'), 'default', ['data1', 'data2'], false);
         let indexes = {
             default: indexDefault,
@@ -428,6 +444,10 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         validators.isString('data2', src.data2);
         validators.notNull('data3', src.data3);
         validators.isString('data3', src.data3);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
@@ -532,7 +552,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('indexedPartialEntity');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: true };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, keyValidator: IndexedPartialEntityFactory.validateKey, hasLiveStreams: true };
         let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('indexedPartialEntity', 'default'), 'default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello');
         let indexes = {
             default: indexDefault,
@@ -551,6 +571,10 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         validators.isString('data2', src.data2);
         validators.notNull('data3', src.data3);
         validators.isString('data3', src.data3);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
@@ -637,7 +661,7 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('nullableEntity');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, hasLiveStreams: false };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, keyValidator: NullableEntityFactory.validateKey, hasLiveStreams: false };
         return new NullableEntityFactory(layer, directory, config);
     }
 
@@ -645,6 +669,10 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
         validators.isBoolean('flag', src.flag);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
@@ -705,7 +733,7 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('rangeTest');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: true };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, keyValidator: RangeTestFactory.validateKey, hasLiveStreams: true };
         let indexDefault = new FEntityIndex(await layer.resolveEntityIndexDirectory('rangeTest', 'default'), 'default', ['key', 'id'], false);
         let indexes = {
             default: indexDefault,
@@ -720,6 +748,10 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         validators.isNumber('id', src.id);
         validators.notNull('key', src.key);
         validators.isNumber('key', src.key);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { default: FEntityIndex }) {
@@ -825,7 +857,7 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('complexRangeTest');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, hasLiveStreams: true };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: ComplexRangeTestFactory.validate, keyValidator: ComplexRangeTestFactory.validateKey, hasLiveStreams: true };
         let indexNonUnique = new FEntityIndex(await layer.resolveEntityIndexDirectory('complexRangeTest', 'nonUnique'), 'nonUnique', ['subId1', 'subId2'], false);
         let indexUnique = new FEntityIndex(await layer.resolveEntityIndexDirectory('complexRangeTest', 'unique'), 'unique', ['subId1', 'subId2'], true);
         let indexes = {
@@ -847,6 +879,10 @@ export class ComplexRangeTestFactory extends FEntityFactory<ComplexRangeTest> {
         validators.isNumber('subId1', src.subId1);
         validators.notNull('subId2', src.subId2);
         validators.isNumber('subId2', src.subId2);
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { nonUnique: FEntityIndex, unique: FEntityIndex }) {
@@ -953,7 +989,7 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('jsonTest');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, hasLiveStreams: false };
+        let config = { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, keyValidator: JsonTestFactory.validateKey, hasLiveStreams: false };
         return new JsonTestFactory(layer, directory, config);
     }
 
@@ -967,6 +1003,10 @@ export class JsonTestFactory extends FEntityFactory<JsonTest> {
             jField('length', jNumber());
             jField('url', jString());
         }));
+    }
+
+    private static validateKey(key: Tuple[]) {
+        validators.isNumber('0', key[0]);
     }
 
     constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {

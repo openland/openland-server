@@ -135,7 +135,7 @@ export function generateEntity(entity: EntityModel): string {
 
     res += '    static async create(layer: EntityLayer) {\n';
     res += '        let directory = await layer.resolveEntityDirectory(\'' + entityKey + '\');\n';
-    res += '        let config = { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' };\n';
+    res += '        let config = { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, keyValidator: ' + entityClass + 'Factory.validateKey, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' };\n';
     if (entity.indexes.length > 0) {
         for (let index of entity.indexes) {
             res += '        let index' + Case.pascalCase(index.name) + ' = ' + buildIndex(index) + ';\n';
@@ -188,6 +188,21 @@ export function generateEntity(entity: EntityModel): string {
         } else if (k.type === 'enum') {
             res += '        validators.isEnum(\'' + k.name + '\', src.' + k.name + ', [' + k.enumValues.map((v) => `'${v}'`).join(', ') + ']);\n';
         }
+    }
+    res += '    }\n\n';
+
+    res += '    private static validateKey(key: Tuple[]) {\n';
+    let i2 = 0;
+    for (let k of entity.keys) {
+        if (k.type === 'string') {
+            res += '        validators.notNull(\'' + i2 + '\', key[' + i2 + ']);\n';
+            res += '        validators.isString(\'' + i2 + '\', key[' + i2 + ']);\n';
+        } else if (k.type === 'number') {
+            res += '        validators.isNumber(\'' + i2 + '\', key[' + i2 + ']);\n';
+        } else {
+            throw Error('Unsupported key type');
+        }
+        i2++;
     }
     res += '    }\n\n';
 
