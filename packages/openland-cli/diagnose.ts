@@ -1,3 +1,4 @@
+import { AllEntities } from './../openland-module-db/schema';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FEntity } from 'foundation-orm/FEntity';
 import { createNamedContext } from '@openland/context';
@@ -89,4 +90,56 @@ export async function calculateCount(entity: FEntityFactory<FEntity>) {
         }
     }
     log.log(rootCtx, 'Total: ' + count);
+}
+
+async function isValid(entity: FEntityFactory<FEntity>) {
+    let rootCtx = withLogPath(createNamedContext('diagnose'), entity.name);
+    let log = createLogger('diagnostics');
+    let after: any = undefined;
+    log.log(rootCtx, 'Start');
+    let offset = 0;
+    let total = 0;
+    while (true) {
+        let ex = await entity.directory.range(rootCtx, [], { limit: 1000, after });
+        if (ex.length === 0) {
+            break;
+        }
+        for (let k of ex) {
+            try {
+                entity.options.keyValidator(k.key);
+            } catch (e) {
+                log.warn(rootCtx, 'Found invalid primary key');
+                log.warn(rootCtx, k.key);
+                return false;
+            }
+
+            try {
+                entity.options.validator(k.value);
+            } catch (e) {
+                log.warn(rootCtx, 'Found invalid value');
+                log.warn(rootCtx, k.value);
+                log.warn(rootCtx, k.key);
+                return false;
+            }
+        }
+        after = ex[ex.length - 1].key;
+        offset++;
+        total += ex.length;
+        if (offset % 10 === 0) {
+            log.log(rootCtx, 'Processed ' + total + ' items');
+        }
+    }
+    return true;
+}
+
+export async function diagAll(diags: AllEntities) {
+    let rootCtx = createNamedContext('diagnose');
+    let log = createLogger('diagnostics');
+    let invalid = new Set<string>();
+    for (let entity of diags.allEntities) {
+        if (!await isValid(entity)) {
+            invalid.add(entity.name);
+        }
+    }
+    log.log(rootCtx, 'Invalid entities: ' + Array.from(invalid));
 }

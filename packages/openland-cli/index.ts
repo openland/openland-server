@@ -4,7 +4,7 @@
 require('module-alias/register');
 import { openDatabase } from './utils/openDatabase';
 import yargs from 'yargs';
-import { diagnose, calculateCount, removeOldIndexes } from 'openland-cli/diagnose';
+import { diagnose, calculateCount, removeOldIndexes, diagAll } from 'openland-cli/diagnose';
 
 yargs
     .command('list', 'List available entities', {}, async () => {
@@ -12,6 +12,10 @@ yargs
         for (let ent of res.allEntities) {
             console.log(ent.name);
         }
+    })
+    .command('diag-all', 'Diagnostics of all entities', {}, async () => {
+        let res = await openDatabase();
+        await diagAll(res);
     })
     .command('diag [name]', 'Run diagnostics for entity', (y) => y.positional('name', { describe: 'Name of the entity', type: 'string' }), async (args) => {
         if (!args.name) {
