@@ -31,14 +31,26 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
         if (ex.length === 0) {
             break;
         }
-        for (let k of ex) {
+        outer: for (let k of ex) {
             try {
                 entity.options.keyValidator(k.key);
             } catch (e) {
                 log.warn(rootCtx, 'Found invalid primary key');
                 log.warn(rootCtx, k.key);
+                log.warn(rootCtx, e);
                 invalid++;
                 continue;
+            }
+
+            for (let k2 of k.key) {
+                if (typeof k2 === 'number') {
+                    if (!isOkInteger(k2)) {
+                        log.warn(rootCtx, 'Found invalid integer key');
+                        log.warn(rootCtx, k.key);
+                        invalid++;
+                        continue outer;
+                    }
+                }
             }
 
             try {
@@ -47,6 +59,7 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
                 log.warn(rootCtx, 'Found invalid value');
                 log.warn(rootCtx, k.value);
                 log.warn(rootCtx, k.key);
+                log.warn(rootCtx, e);
                 invalid++;
             }
         }
@@ -58,6 +71,71 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
         }
     }
     log.log(rootCtx, 'Results: ' + invalid + ' invalid of ' + total);
+}
+
+export async function deleteInvalid(entity: FEntityFactory<FEntity>) {
+    let rootCtx = withLogPath(createNamedContext('diagnose'), entity.name);
+    let log = createLogger('diagnostics');
+    let after: any = undefined;
+    log.log(rootCtx, 'Start');
+    let invalid = 0;
+    let offset = 0;
+    let total = 0;
+    let invalidKeys: any[] = [];
+    while (true) {
+        let ex = await entity.directory.range(rootCtx, [], { limit: 1000, after });
+        if (ex.length === 0) {
+            break;
+        }
+        outer: for (let k of ex) {
+            try {
+                entity.options.keyValidator(k.key);
+            } catch (e) {
+                log.warn(rootCtx, 'Found invalid primary key');
+                log.warn(rootCtx, k.key);
+                log.warn(rootCtx, e);
+                invalid++;
+                invalidKeys.push(k.key);
+                continue;
+            }
+
+            for (let k2 of k.key) {
+                if (typeof k2 === 'number') {
+                    if (!isOkInteger(k2)) {
+                        log.warn(rootCtx, 'Found invalid integer key');
+                        log.warn(rootCtx, k.key);
+                        invalid++;
+                        invalidKeys.push(k.key);
+                        continue outer;
+                    }
+                }
+            }
+
+            try {
+                entity.options.validator(k.value);
+            } catch (e) {
+                log.warn(rootCtx, 'Found invalid value');
+                log.warn(rootCtx, k.value);
+                log.warn(rootCtx, k.key);
+                log.warn(rootCtx, e);
+                invalidKeys.push(k.key);
+                invalid++;
+            }
+        }
+        after = ex[ex.length - 1].key;
+        offset++;
+        total += ex.length;
+        if (offset % 10 === 0) {
+            log.log(rootCtx, 'Processed ' + total + ' items');
+        }
+    }
+    log.log(rootCtx, 'Deleting: ' + invalid + ' invalid of ' + total);
+    await inTx(rootCtx, async (ctx) => {
+        for (let k of invalidKeys) {
+            entity.directory.clear(ctx, k);
+        }
+    });
+    log.log(rootCtx, 'Completed: ' + invalid + ' invalid of ' + total);
 }
 
 export async function removeOldIndexes(entity: FEntityFactory<FEntity>) {
@@ -148,12 +226,6 @@ export async function diagAll(diags: AllEntities) {
     let log = createLogger('diagnostics');
     let invalid = new Set<string>();
     for (let entity of diags.allEntities) {
-        if (entity.name === 'Task') {
-            continue;
-        }
-        if (entity.name === 'HyperLog') {
-            continue;
-        }
         if (!await isValid(entity)) {
             invalid.add(entity.name);
         }
