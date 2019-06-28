@@ -14,18 +14,7 @@ export type SubscriptionResolver<Root, Args, Context, ReturnType> = {
 export type Nullable<T> = null | T;
 export type OptionalNullable<T> = undefined | null | T;
 export type TypedResolver<T> = { [P in keyof T]: FieldResolver<T[P]> };
-export type SoftlyTypedResolver<T> = { [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolver<any> : FieldResolver<T[P]>) };
 export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : T[K] }[keyof T];
-
-export type TypeName<T> =
-    T extends string ? 'string' :
-    T extends number ? 'number' :
-    T extends boolean ? 'boolean' :
-    T extends undefined ? 'undefined' :
-    T extends Function ? 'function' :
-    'object';
-
-export type SameType<A, B> = TypeName<A> extends TypeName<B> ? (A extends B ? true : false) : false;
 
 export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
     [P in keyof T]?: (T[P] extends Nullable<object | object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> : Resolver<Root, ArgTypesMap[P], AppContext, T[P]>)
@@ -38,7 +27,3 @@ export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any
 export type UnionTypeResolver<Root, ReturnType> = {
     __resolveType: (obj: Root, ctx: AppContext) => MaybePromise<ReturnType>
 };
-
-type PropertyNames<T> = { [K in keyof T]: K }[keyof T];
-type CommonProperty<T, U> = Extract<PropertyNames<T>, PropertyNames<U>>;
-export type LogicalAnd<T, U> = { [P in CommonProperty<T, U>]: T[P]|U[P]  };
