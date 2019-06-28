@@ -2,8 +2,10 @@ import { Modules } from '../openland-modules/Modules';
 import { Context, createNamedContext } from '@openland/context';
 import { FDB } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
+import { createLogger } from '@openland/log';
 
 const rootCtx = createNamedContext('debug-task');
+const logger = createLogger('debug-task');
 
 export function debugTask(uid: number, name: string, handler: (log: (str: string) => Promise<void>) => Promise<string>) {
     // tslint:disable-next-line:no-floating-promises
@@ -19,8 +21,12 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
             }
         };
         await sendLog(`started`);
-        let res = await handler(sendLog);
-        await sendLog(`ended with response: ${res}`);
+        try {
+            let res = await handler(sendLog);
+            await sendLog(`ended with response: ${res}`);
+        } catch (e) {
+            logger.error(rootCtx, name, e);
+        }
     })();
 }
 

@@ -387,51 +387,6 @@ export default {
 
             return true;
         }),
-        debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
-            debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
-                const calculateForUser = async (ctx: Context, uid: number) => {
-                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
-                    let chatsCount = 0;
-                    let directChatsCount = 0;
-
-                    for (let a of all) {
-                        let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
-                        if (!conv) {
-                            continue;
-                        }
-
-                        chatsCount++;
-                        if (conv.kind === 'private') {
-                            directChatsCount++;
-                        }
-                    }
-
-                    return { chatsCount, directChatsCount };
-                };
-
-                let users = await FDB.User.findAll(parent);
-
-                let i = 0;
-                for (let user of users) {
-                    i++;
-                    if (i % 100 === 0) {
-                        await log('calculated ' + i + ' users');
-                    }
-                    await inTx(rootCtx, async (ctx) => {
-                        try {
-                            let { chatsCount, directChatsCount } = await calculateForUser(ctx, user.id);
-
-                            await Store.UserMessagesChatsCounter.byId(user.id).set(ctx, chatsCount);
-                            await Store.UserMessagesDirectChatsCounter.byId(user.id).set(ctx, directChatsCount);
-                        } catch (e) {
-                            logger.log(rootCtx, e, 'debugCalcUsersChatsStats');
-                        }
-                    });
-                }
-                return 'done';
-            });
-            return true;
-        }),
         debugConvertOrgChatToNormal: withPermission('super-admin', async (parent, args) => {
             return inTx(parent, async ctx => {
                 let orgId = IDs.Organization.parse(args.orgId);
@@ -806,13 +761,9 @@ export default {
         debugCalcUsers2WayDirectChatsCounter: withUser(async (parent, args, _uid) => {
             debugTaskForAllUsers(parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
                 let all = await FDB.UserDialog.allFromUser(ctx, uid);
-                let processedChats = new Set<number>();
+                let direct2wayChatsCount = 0;
 
                 for (let dialog of all) {
-                    if (processedChats.has(dialog.cid)) {
-                        await log(`duplicate dialog, uid: ${uid}, cid: ${dialog.cid}`);
-                        continue;
-                    }
                     let chat = await FDB.Conversation.findById(ctx, dialog.cid);
                     if (!chat || chat.kind !== 'private') {
                         continue;
@@ -833,12 +784,34 @@ export default {
                     }
 
                     if (receivedCount && receivedCount) {
-                        await Store.User2WayDirectChatsCounter.increment(ctx, uid);
+                        direct2wayChatsCount++;
                     }
                     await Store.UserMessagesSentInDirectChatCounter.set(ctx, uid, dialog.cid, sentCount);
-
-                    processedChats.add(dialog.cid);
                 }
+                await Store.User2WayDirectChatsCounter.set(ctx, uid, direct2wayChatsCount);
+            });
+            return true;
+        }),
+        debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAllUsers(parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
+                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let chatsCount = 0;
+                let directChatsCount = 0;
+
+                for (let a of all) {
+                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                    if (!conv) {
+                        continue;
+                    }
+
+                    chatsCount++;
+                    if (conv.kind === 'private') {
+                        directChatsCount++;
+                    }
+                }
+
+                await Store.UserMessagesChatsCounter.byId(uid).set(ctx, chatsCount);
+                await Store.UserMessagesDirectChatsCounter.byId(uid).set(ctx, directChatsCount);
             });
             return true;
         }),
