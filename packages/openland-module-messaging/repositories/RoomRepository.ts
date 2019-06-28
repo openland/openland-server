@@ -547,6 +547,8 @@ export class RoomRepository {
                 let id = await this.fetchNextConversationId(ctx);
                 await (await this.entities.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
                 conv = await this.entities.ConversationPrivate.create(ctx, id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
+                this.metrics.onChatCreated(ctx, uid1);
+                this.metrics.onChatCreated(ctx, uid2);
                 await conv.flush(ctx);
             }
             return (await this.entities.Conversation.findById(ctx, conv.id))!;

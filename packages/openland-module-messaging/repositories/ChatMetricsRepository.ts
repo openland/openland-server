@@ -31,8 +31,8 @@ export class ChatMetricsRepository {
         let uid2 = chat.uid1 === uid ? chat.uid2 : chat.uid1;
         let u2Sent = await this.store.UserMessagesSentInDirectChatCounter.byId(uid2, cid).get(ctx);
         if (senderSent === 1 && u2Sent >= 1) {
-            await this.store.User2WayDirectChatsCounter.increment(ctx, chat.uid1);
-            await this.store.User2WayDirectChatsCounter.increment(ctx, chat.uid2);
+            this.store.User2WayDirectChatsCounter.increment(ctx, chat.uid1);
+            this.store.User2WayDirectChatsCounter.increment(ctx, chat.uid2);
         }
     }
 
