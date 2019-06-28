@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1aa68f3a42dd781b2e99da2346a02ff7';
+export const GQL_SPEC_VERSION = '6e1a77cf90261f4d614b4292faa12644';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2334,6 +2334,7 @@ export namespace GQL {
         betaIsDiscoverDone: boolean;
         me: Nullable<User>;
         user: User;
+        mySuccessfulInvitesCount: number;
         userSearch: UserConnection;
         userSearchForChat: ChatUserConnection;
         alphaProfiles: UserConnection;

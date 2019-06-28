@@ -3,7 +3,7 @@ import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
-import { withAny } from 'openland-module-api/Resolvers';
+import { withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -120,5 +120,8 @@ export default {
             }
             return user;
         }),
+        mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
+            return Store.UserSuccessfulInvitesCounter.get(ctx, uid);
+        })
     }
 } as GQLResolver;
