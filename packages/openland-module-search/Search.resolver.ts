@@ -6,6 +6,9 @@ import { Conversation, Message, Organization, User } from '../openland-module-db
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
+
+const log = createLogger('search-resolver');
 
 export default {
     GlobalSearchEntry: {
@@ -194,65 +197,81 @@ export default {
         }),
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
-            let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await FDB.UserDialog.allFromUser(ctx2, uid));
+            try {
+                let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await FDB.UserDialog.allFromUser(ctx2, uid));
 
-            let clauses: any[] = [];
-            let sort: any[] | undefined = undefined;
+                let clauses: any[] = [];
+                let sort: any[] | undefined = undefined;
 
-            let parser = new QueryParser();
-            parser.registerText('text', 'text');
-            parser.registerBoolean('isService', 'isService');
-            parser.registerText('createdAt', 'createdAt');
-            parser.registerText('updatedAt', 'updatedAt');
+                let parser = new QueryParser();
+                parser.registerText('text', 'text');
+                parser.registerBoolean('isService', 'isService');
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
 
-            let parsed = parser.parseQuery(args.query);
-            let elasticQuery = buildElasticQuery(parsed);
-            clauses.push(elasticQuery);
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
 
-            if (args.sort) {
-                sort = parser.parseSort(args.sort);
+                if (args.sort) {
+                    sort = parser.parseSort(args.sort);
+                }
+
+                clauses.push({
+                    bool: {
+                        should: userDialogs.map(d => ({ match: { cid: d.cid } })),
+                    },
+                });
+
+                let hits = await Modules.Search.elastic.client.search({
+                    index: 'message',
+                    type: 'message',
+                    size: args.first,
+                    from: args.after ? parseInt(args.after, 10) : 0,
+                    body: {
+                        sort: sort || [{ createdAt: 'desc' }], query: { bool: { must: clauses } },
+                    },
+                });
+
+                let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => FDB.Message.findById(ctx, parseInt(v._id, 10))));
+                let offset = 0;
+                if (args.after) {
+                    offset = parseInt(args.after, 10);
+                }
+                let total = hits.hits.total;
+
+                return {
+                    edges: messages.filter(m => !!m).map((p, i) => {
+                        return {
+                            node: {
+                                message: p, chat: p!.cid,
+                            }, cursor: (i + 1 + offset).toString(),
+                        };
+                    }), pageInfo: {
+                        hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                        hasPreviousPage: false,
+
+                        itemsCount: total,
+                        pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                        currentPage: Math.floor(offset / args.first) + 1,
+                        openEnded: true,
+                    },
+                };
+            } catch (e) {
+                log.error(ctx, e);
+                return {
+                    edges: [],
+                    pageInfo: {
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+
+                        itemsCount: 0,
+                        pagesCount: 0,
+                        currentPage: 0,
+                        openEnded: true,
+                    },
+                };
             }
-
-            clauses.push({
-                bool: {
-                    should: userDialogs.map(d => ({ match: { cid: d.cid } })),
-                },
-            });
-
-            let hits = await Modules.Search.elastic.client.search({
-                index: 'message',
-                type: 'message',
-                size: args.first,
-                from: args.after ? parseInt(args.after, 10) : 0,
-                body: {
-                    sort: sort || [{ createdAt: 'desc' }], query: { bool: { must: clauses } },
-                },
-            });
-
-            let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => FDB.Message.findById(ctx, parseInt(v._id, 10))));
-            let offset = 0;
-            if (args.after) {
-                offset = parseInt(args.after, 10);
-            }
-            let total = hits.hits.total;
-
-            return {
-                edges: messages.filter(m => !!m).map((p, i) => {
-                    return {
-                        node: {
-                            message: p, chat: p!.cid,
-                        }, cursor: (i + 1 + offset).toString(),
-                    };
-                }), pageInfo: {
-                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
-                    hasPreviousPage: false,
-
-                    itemsCount: total,
-                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
-                    currentPage: Math.floor(offset / args.first) + 1,
-                    openEnded: true,
-                },
-            };
         }),
     },
 } as GQLResolver;
