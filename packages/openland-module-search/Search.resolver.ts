@@ -4,6 +4,8 @@ import { Modules } from '../openland-modules/Modules';
 import { FDB } from '../openland-module-db/FDB';
 import { Conversation, Message, Organization, User } from '../openland-module-db/schema';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
+import { inTx } from '@openland/foundationdb';
+import { createNamedContext } from '@openland/context';
 
 export default {
     GlobalSearchEntry: {
@@ -192,6 +194,8 @@ export default {
         }),
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
+            let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await FDB.UserDialog.allFromUser(ctx2, uid));
+
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;
 
@@ -208,8 +212,6 @@ export default {
             if (args.sort) {
                 sort = parser.parseSort(args.sort);
             }
-
-            let userDialogs = await FDB.UserDialog.allFromUser(ctx, uid);
 
             clauses.push({
                 bool: {
