@@ -893,8 +893,9 @@ export default {
                     throw new NotFoundError();
                 }
                 while (true) {
-                    state = await FDB.ReaderState.findById(ctx, args.reader);
-                    yield JSON.stringify(FKeyEncoding.decodeFromString(state!.cursor));
+                    state = await inTx(rootCtx, async ctx2 => await FDB.ReaderState.findById(ctx2, args.reader));
+                    let data = FKeyEncoding.decodeFromString(state!.cursor);
+                    yield JSON.stringify(data) + '    ' + ((typeof data[0] === 'number' && data[0] > 1183028484169) ? new Date(data[0] as number) : '');
                     await delay(1000);
                 }
             },
