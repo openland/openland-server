@@ -12,7 +12,7 @@ import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
-import { debugTask, debugTaskForAllUsers } from '../openland-utils/debugTask';
+import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { UserError } from '../openland-errors/UserError';
 import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
@@ -759,7 +759,7 @@ export default {
             return true;
         }),
         debugCalcUsers2WayDirectChatsCounter: withUser(async (parent, args, _uid) => {
-            debugTaskForAllUsers(parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
+            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
                 let all = await FDB.UserDialog.allFromUser(ctx, uid);
                 let direct2wayChatsCount = 0;
 
@@ -793,7 +793,7 @@ export default {
             return true;
         }),
         debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
-            debugTaskForAllUsers(parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
+            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
                 let all = await FDB.UserDialog.allFromUser(ctx, uid);
                 let chatsCount = 0;
                 let directChatsCount = 0;
