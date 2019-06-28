@@ -5,18 +5,18 @@ import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 
-// function isOkInteger(src: number) {
-//     if (!Number.isFinite(src)) {
-//         return false;
-//     }
-//     if (!Number.isInteger(src)) {
-//         return false;
-//     }
-//     if (!Number.isSafeInteger(src)) {
-//         return false;
-//     }
-//     return true;
-// }
+function isOkInteger(src: number) {
+    if (!Number.isFinite(src)) {
+        return false;
+    }
+    if (!Number.isInteger(src)) {
+        return false;
+    }
+    if (!Number.isSafeInteger(src)) {
+        return false;
+    }
+    return true;
+}
 
 export async function diagnose(entity: FEntityFactory<FEntity>) {
     let rootCtx = withLogPath(createNamedContext('diagnose'), entity.name);
@@ -113,6 +113,16 @@ async function isValid(entity: FEntityFactory<FEntity>) {
                 return false;
             }
 
+            for (let k2 of k.key) {
+                if (typeof k2 === 'number') {
+                    if (!isOkInteger(k2)) {
+                        log.warn(rootCtx, 'Found invalid integer key');
+                        log.warn(rootCtx, k.key);
+                        return false;
+                    }
+                }
+            }
+
             try {
                 entity.options.validator(k.value);
             } catch (e) {
@@ -138,6 +148,12 @@ export async function diagAll(diags: AllEntities) {
     let log = createLogger('diagnostics');
     let invalid = new Set<string>();
     for (let entity of diags.allEntities) {
+        if (entity.name === 'Task') {
+            continue;
+        }
+        if (entity.name === 'HyperLog') {
+            continue;
+        }
         if (!await isValid(entity)) {
             invalid.add(entity.name);
         }
