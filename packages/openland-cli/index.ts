@@ -4,7 +4,7 @@
 require('module-alias/register');
 import { openDatabase } from './utils/openDatabase';
 import yargs from 'yargs';
-import { diagnose, calculateCount } from 'openland-cli/diagnose';
+import { diagnose, calculateCount, removeOldIndexes } from 'openland-cli/diagnose';
 
 yargs
     .command('list', 'List available entities', {}, async () => {
@@ -22,7 +22,7 @@ yargs
         if (!entity) {
             throw Error('unable to find entity');
         }
-        diagnose(entity);
+        await diagnose(entity);
     })
     .command('count [name]', 'Count records', (y) => y.positional('name', { describe: 'Name of the entity', type: 'string' }), async (args) => {
         if (!args.name) {
@@ -33,7 +33,18 @@ yargs
         if (!entity) {
             throw Error('unable to find entity');
         }
-        calculateCount(entity);
+        await calculateCount(entity);
+    })
+    .command('fix-index [name]', 'Remove old indexes', (y) => y.positional('name', { describe: 'Name of the entity', type: 'string' }), async (args) => {
+        if (!args.name) {
+            throw Error('Please, provide entity');
+        }
+        let res = await openDatabase();
+        let entity = res.allEntities.find((v) => v.name === args.name);
+        if (!entity) {
+            throw Error('unable to find entity');
+        }
+        await removeOldIndexes(entity);
     })
     .demandCommand()
     .help()

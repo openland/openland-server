@@ -2,6 +2,7 @@ import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FEntity } from 'foundation-orm/FEntity';
 import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
+import { inTx } from '@openland/foundationdb';
 
 // function isOkInteger(src: number) {
 //     if (!Number.isFinite(src)) {
@@ -46,6 +47,16 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
         }
     }
     log.log(rootCtx, 'End: ' + invalid);
+}
+
+export async function removeOldIndexes(entity: FEntityFactory<FEntity>) {
+    let rootCtx = withLogPath(createNamedContext('diagnose'), entity.name);
+    let log = createLogger('diagnostics');
+    log.log(rootCtx, 'Start');
+    await inTx(rootCtx, async (ctx) => {
+        entity.directory.clearPrefixed(ctx, ['__indexes']);
+    });
+    log.log(rootCtx, 'End');
 }
 
 export async function calculateCount(entity: FEntityFactory<FEntity>) {
