@@ -46,7 +46,7 @@ export const timedWorker = async <Res extends JsonMap>(type: string, conf: Confi
             if (conf.time.weekDay > weekDay) {
                 nextDate += 1000 * 60 * 60 * 24 * (conf.time.weekDay - weekDay); // this week
             } else if (conf.time.weekDay < weekDay || isNotToday(conf.time.hours, conf.time.minutes)) {
-                nextDate += 1000 * 60 * 60 * 24 * (6 - weekDay + conf.time.weekDay); // next week
+                nextDate += 1000 * 60 * 60 * 24 * (7 - weekDay + conf.time.weekDay); // next week
             }
             return new Date(nextDate).setHours(conf.time.hours, conf.time.minutes, 0);
         } else if (conf.interval === 'every-day') {
@@ -73,7 +73,7 @@ export const timedWorker = async <Res extends JsonMap>(type: string, conf: Confi
 
     queue.start(async (_, ctx) => {
         let res = await handler(ctx);
-        // await pushNext(ctx);
+        await pushNext(ctx);
         return res;
     });
 };

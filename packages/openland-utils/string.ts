@@ -17,3 +17,4 @@ export function tab(n: number, str: string, skipFirstLine: boolean = false) {
 }
 
 export const plural = (n: number, forms: string[]) => n === 1 ? forms[0] : forms[1];
+export const formatNumberWithSign = (n: number): string => (n < 0 ? '' : '+') + n;

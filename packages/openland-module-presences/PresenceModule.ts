@@ -50,8 +50,17 @@ export class PresenceModule {
     }
 
     public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
+        const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
         await inTx(parent, async (ctx) => {
             let expires = Date.now() + timeout;
+            let userPresences = await this.FDB.Presence.allFromUser(ctx, uid);
+
+            let hasMobilePresence = userPresences
+                .find((e) => isMobile(e.platform));
+            if (!hasMobilePresence && isMobile(platform)) {
+                Modules.Hooks.onNewMobileUser(ctx);
+            }
+
             let ex = await this.FDB.Presence.findById(ctx, uid, tid);
             if (ex) {
                 ex.lastSeen = Date.now();
@@ -68,7 +77,7 @@ export class PresenceModule {
             if (!online) {
                 await this.FDB.Online.create(ctx, uid, { lastSeen: expires, active });
             } else if (online.lastSeen < expires) {
-                let userPresences = await this.FDB.Presence.allFromUser(ctx, uid);
+
                 let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now());
 
                 if (haveActivePresence) {

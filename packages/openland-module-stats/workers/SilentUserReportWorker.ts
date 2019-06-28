@@ -4,12 +4,9 @@ import { Modules } from '../../openland-modules/Modules';
 import { buildMessage, heading, userMention } from '../../openland-utils/MessageBuilder';
 import { FDB, Store } from '../../openland-module-db/FDB';
 import { plural } from '../../openland-utils/string';
-import { Context } from '@openland/context';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { createLogger } from '@openland/log';
-
-const getSuperNotificationsBotId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
-const getSuperReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-reports-chat-id');
+import { getSuperNotificationsBotId, getUserReportsChatId } from './utils';
 
 const log = createLogger('silent-user-report-worker');
 
@@ -19,7 +16,7 @@ export function createSilentUserReportWorker() {
         q.start( (item, rootCtx) => {
             return inTx(rootCtx, async (ctx) => {
                 const botId = await getSuperNotificationsBotId(ctx);
-                const chatId = await getSuperReportsChatId(ctx);
+                const chatId = await getUserReportsChatId(ctx);
 
                 if (!botId || !chatId) {
                     log.warn(ctx, 'botId or chatId not specified');
@@ -43,7 +40,7 @@ export function createSilentUserReportWorker() {
                     heading(
                         'Silent user report ',
                         userMention(profile!.firstName + ' ' + profile!.lastName, uid),
-                        orgName
+                        orgName,
                     ),
                     '\n',
                 ];

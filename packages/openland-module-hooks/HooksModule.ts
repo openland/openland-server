@@ -6,8 +6,6 @@ import { IDs } from '../openland-module-api/IDs';
 import { FDB, Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/schema';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
-import { createFirstWeekReportWorker } from './workers/FirstWeekReportWorker';
-import { createSilentUserReportWorker } from './workers/SilentUserReportWorker';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -18,9 +16,6 @@ const getSuperNotificationsChatId = async (ctx: Context) => await Modules.Super.
 
 @injectable()
 export class HooksModule {
-    private readonly firstWeekReportQueue = createFirstWeekReportWorker();
-    private readonly silentUserReportQueue = createSilentUserReportWorker();
-
     start = () => {
         // no op
     }
@@ -164,15 +159,17 @@ export class HooksModule {
 
     onUserActivated = async (ctx: Context, uid: number) => {
         await Modules.Metrics.onUserActivated(ctx, uid);
+        Modules.Stats.onNewEntrance(ctx);
 
         const user = await FDB.User.findById(ctx, uid);
         if (user!.invitedBy) {
-            await Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
+            Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
+            Modules.Stats.onSuccessfulInvite(ctx);
         }
 
-        await this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
-        await this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + 1000 * 60 * 60 * 24 * 2); // 2 days
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
+        await Modules.Stats.queueFirstWeekReport(ctx, uid);
+        await Modules.Stats.queueSilentUserReport(ctx, uid);
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
@@ -185,5 +182,9 @@ export class HooksModule {
 
     onChatMembersCountChange = async (ctx: Context, cid: number, delta: number) => {
         await Modules.Users.onChatMembersCountChange(ctx, cid, delta);
+    }
+
+    onNewMobileUser = (ctx: Context) => {
+        Modules.Stats.onNewMobileUser(ctx);
     }
 }
