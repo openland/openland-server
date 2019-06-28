@@ -10,7 +10,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
-class UserFullRoot {
+export class UserFullRoot {
     public readonly user: User;
     public readonly profile: UserProfile;
 

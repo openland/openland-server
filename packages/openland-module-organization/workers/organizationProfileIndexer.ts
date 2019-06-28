@@ -51,7 +51,7 @@ export function organizationProfileIndexer() {
                         listed: editorial.listed,
                         createdAt: item.createdAt,
                         updatedAt: item.updatedAt,
-                        shortname: shortname ? shortname.shortname : null,
+                        shortname: shortname ? shortname.shortname : undefined,
                         status: org.status,
                         membersCount
                     }

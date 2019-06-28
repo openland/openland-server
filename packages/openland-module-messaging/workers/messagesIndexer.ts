@@ -33,13 +33,11 @@ export function messagesIndexer() {
             updatedAt: {
                 type: 'date'
             },
-
         })
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
                 let room = await FDB.Conversation.findById(ctx, item.cid);
                 let userName = await Modules.Users.getUserFullName(ctx, item.uid);
-
                 return {
                     id: item.id,
                     doc: {
