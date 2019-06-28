@@ -93,7 +93,7 @@ export async function calculateCount(entity: FEntityFactory<FEntity>) {
 }
 
 async function isValid(entity: FEntityFactory<FEntity>) {
-    let rootCtx = withLogPath(createNamedContext('diagnose'), entity.name);
+    let rootCtx = createNamedContext(entity.name);
     let log = createLogger('diagnostics');
     let after: any = undefined;
     log.log(rootCtx, 'Start');
@@ -129,6 +129,7 @@ async function isValid(entity: FEntityFactory<FEntity>) {
             log.log(rootCtx, 'Processed ' + total + ' items');
         }
     }
+    log.log(rootCtx, 'End');
     return true;
 }
 
