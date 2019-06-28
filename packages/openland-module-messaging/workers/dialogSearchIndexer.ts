@@ -40,7 +40,7 @@ export function dialogSearchIndexer() {
             return {
                 id: item.cid + '_' + item.uid,
                 doc: {
-                    title,
+                    title: title || '',
                     cid: item.cid,
                     uid: item.uid,
                     visible: !!item.date,

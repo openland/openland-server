@@ -7,13 +7,27 @@ import { createLogger } from '@openland/log';
 
 const log = createLogger('elastic-indexer');
 
-export class SearchIndexer<T extends FEntity> {
+type SearchFieldType = 'integer' | 'keyword' | 'text' | 'boolean' | 'date' | 'long';
+
+type ToType<T extends SearchFieldType> =
+    T extends 'integer' ? number :
+    T extends 'keyword' ? any :
+    T extends 'text' ? string :
+    T extends 'boolean' ? boolean :
+    T extends 'date' ? number :
+    T extends 'long' ? number : never;
+
+type SearchIndexerProperties = { [key: string]: { type: SearchFieldType } };
+
+type HandlerReturnType<P extends SearchIndexerProperties> = { [K in keyof P]?: ToType<P[K]['type']> };
+
+export class SearchIndexer<T extends FEntity, P extends SearchIndexerProperties> {
     readonly name: string;
     readonly version: number;
     readonly index: string;
     readonly stream: FStream<T>;
     readonly client = Modules.Search.elastic.client;
-    properties?: any;
+    properties?: SearchIndexerProperties;
 
     constructor(name: string, version: number, index: string, stream: FStream<T>) {
         this.name = name;
@@ -22,12 +36,12 @@ export class SearchIndexer<T extends FEntity> {
         this.stream = stream;
     }
 
-    withProperties(properties: any) {
+    withProperties<Pr extends SearchIndexerProperties>(properties: Pr) {
         this.properties = properties;
-        return this;
+        return new SearchIndexer<T, Pr>(this.name, this.version, this.index, this.stream);
     }
 
-    start(handler: (item: T, ctx: Context) => Promise<{ id: string | number, doc: any } | null>) {
+    start(handler: (item: T, ctx: Context) => Promise<{ id: string | number, doc: HandlerReturnType<P> } | null>) {
         if (!Modules.Search.elastic.isWritable) {
             return;
         }

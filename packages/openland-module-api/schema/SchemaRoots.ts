@@ -42,6 +42,7 @@ import {
     NewCommentNotification,
     NotificationContent
 } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
+import { UserFullRoot } from '../../openland-module-users/User.resolver';
 
 //
 //  Root types
@@ -169,7 +170,7 @@ export namespace GQLRoots {
     export type PushSettingsRoot = any;
     export type SessionStateRoot = any;
     export type TypingEventRoot = any;
-    export type UserRoot = User | UserProfile | number;
+    export type UserRoot = User | UserProfile | number | UserFullRoot;
     export type UserEdgeRoot = any;
     export type UserConnectionRoot = any;
     export type ChatUserEdgeRoot = any;
