@@ -430,7 +430,6 @@ export default {
                 }
                 return 'done';
             });
-
             return true;
         }),
         debugConvertOrgChatToNormal: withPermission('super-admin', async (parent, args) => {
