@@ -711,13 +711,13 @@ export default {
             });
             return true;
         }),
-        debugResetAudienceCounter: withUser(async (root, args, uid) => {
-            await inTx(root, async ctx => {
-                await Store.UserAudienceCounter.set(ctx, (args.uid ? IDs.User.parse(args.uid) : uid), 0);
+        debugResetAudienceCounter: withPermission('super-admin', async (parent, args) => {
+            await inTx(parent, async ctx => {
+                await Store.UserAudienceCounter.set(ctx, (args.uid ? IDs.User.parse(args.uid) : parent.auth.uid!), 0);
             });
             return true;
         }),
-        debugCalcUsersAudienceCounter: withUser(async (parent, args, _uid) => {
+        debugCalcUsersAudienceCounter: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcUsersAudienceCounter', async (log) => {
                 let allUsers = await FDB.User.findAll(rootCtx);
                 let i = 0;
@@ -758,7 +758,7 @@ export default {
             });
             return true;
         }),
-        debugCalcUsers2WayDirectChatsCounter: withUser(async (parent, args, _uid) => {
+        debugCalcUsers2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
                 let all = await FDB.UserDialog.allFromUser(ctx, uid);
                 let direct2wayChatsCount = 0;
@@ -783,7 +783,7 @@ export default {
                         }
                     }
 
-                    if (receivedCount && receivedCount) {
+                    if (receivedCount > 0 && receivedCount > 0) {
                         direct2wayChatsCount++;
                     }
                     await Store.UserMessagesSentInDirectChatCounter.set(ctx, uid, dialog.cid, sentCount);
