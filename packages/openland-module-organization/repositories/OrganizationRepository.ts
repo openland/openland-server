@@ -57,7 +57,8 @@ export class OrganizationRepository {
                     ownerId: uid,
                     status: opts.status,
                     editorial: opts.editorial,
-                    private: input.isCommunity && input.isPrivate
+                    private: input.isCommunity && input.isPrivate,
+                    personal: input.personal
                 });
 
                 // Create organization profile

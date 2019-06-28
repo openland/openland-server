@@ -301,6 +301,7 @@ const Schema = declareSchema(() => {
         enumField('kind', ['organization', 'community']);
         field('editorial', 'boolean');
         field('private', 'boolean').nullable();
+        field('personal', 'boolean').nullable();
         rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
         enableTimestamps();
         enableVersioning();

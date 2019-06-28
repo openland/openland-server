@@ -2842,6 +2842,7 @@ export interface OrganizationShape {
     kind: 'organization' | 'community';
     editorial: boolean;
     private?: boolean| null;
+    personal?: boolean| null;
 }
 
 export class Organization extends FEntity {
@@ -2894,6 +2895,17 @@ export class Organization extends FEntity {
         this._value.private = value;
         this.markDirty();
     }
+    get personal(): boolean | null {
+        let res = this._value.personal;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set personal(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.personal) { return; }
+        this._value.personal = value;
+        this.markDirty();
+    }
 }
 
 export class OrganizationFactory extends FEntityFactory<Organization> {
@@ -2909,6 +2921,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
             { name: 'kind', type: 'enum', enumValues: ['organization', 'community'] },
             { name: 'editorial', type: 'boolean' },
             { name: 'private', type: 'boolean' },
+            { name: 'personal', type: 'boolean' },
         ],
         indexes: [
             { name: 'community', type: 'range', fields: [] },
@@ -2939,6 +2952,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         validators.notNull('editorial', src.editorial);
         validators.isBoolean('editorial', src.editorial);
         validators.isBoolean('private', src.private);
+        validators.isBoolean('personal', src.personal);
     }
 
     private static validateKey(key: Tuple[]) {
