@@ -1,3 +1,5 @@
+// tslint:disable:no-floating-promises
+// tslint:disable:no-console
 // Register Modules
 require('module-alias/register');
 import { openDatabase } from './utils/openDatabase';
