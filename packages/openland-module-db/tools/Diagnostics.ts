@@ -21,6 +21,7 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
     let log = createLogger('diagnostics');
     let after: any = undefined;
     log.log(rootCtx, 'Start');
+    let invalid = 0;
     while (true) {
         let ex = await entity.directory.range(rootCtx, [], { limit: 1000, after });
         if (ex.length === 0) {
@@ -31,11 +32,12 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
                 if (typeof tk === 'number') {
                     if (!isOkInteger(tk)) {
                         log.warn(rootCtx, 'Found invalid integer');
+                        invalid++;
                     }
                 }
             }
         }
         after = ex[ex.length - 1].key;
     }
-    log.log(rootCtx, 'End');
+    log.log(rootCtx, 'End: ' + invalid);
 }
