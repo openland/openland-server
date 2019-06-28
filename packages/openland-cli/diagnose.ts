@@ -56,7 +56,7 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
             log.log(rootCtx, 'Processed ' + total + ' items');
         }
     }
-    log.log(rootCtx, 'End: ' + invalid);
+    log.log(rootCtx, 'Results: ' + invalid + ' invalid of ' + total);
 }
 
 export async function removeOldIndexes(entity: FEntityFactory<FEntity>) {
