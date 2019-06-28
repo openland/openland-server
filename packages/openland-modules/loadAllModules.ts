@@ -53,6 +53,7 @@ import { createLogger } from '@openland/log';
 import { EntityStorage } from '@openland/foundationdb-entity';
 import { openStore } from 'openland-module-db/store';
 import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
+import { StatsModule } from '../openland-module-stats/StatsModule';
 
 const logger = createLogger('starting');
 
@@ -116,6 +117,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(ApiModule).toSelf().inSingletonScope();
     container.bind(DiscoverModule).toSelf().inSingletonScope();
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
+    container.bind(StatsModule).toSelf().inSingletonScope();
 
     loadCallsModule();
     loadFeedModule();
@@ -151,4 +153,5 @@ export async function startAllModules() {
     await container.get(NotificationCenterModule).start();
     await container.get(MetricsModule).start();
     await container.get(UserOnboardingModule).start();
+    await container.get(StatsModule).start();
 }

@@ -468,6 +468,42 @@ export class User2WayDirectChatsCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('globalStatisticsCounters');
+        return new GlobalStatisticsCountersFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(name: string) {
+        return this._findById([name]);
+    }
+
+    get(ctx: Context, name: string) {
+        return this._get(ctx, [name]);
+    }
+
+    set(ctx: Context, name: string, value: number) {
+        return this._set(ctx, [name], value);
+    }
+
+    add(ctx: Context, name: string, value: number) {
+        return this._add(ctx, [name], value);
+    }
+
+    increment(ctx: Context, name: string) {
+        return this._increment(ctx, [name]);
+    }
+
+    decrement(ctx: Context, name: string) {
+        return this._decrement(ctx, [name]);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -482,6 +518,7 @@ export interface Store extends BaseStore {
     readonly UserAudienceCounter: UserAudienceCounterFactory;
     readonly UserMessagesSentInDirectChatCounter: UserMessagesSentInDirectChatCounterFactory;
     readonly User2WayDirectChatsCounter: User2WayDirectChatsCounterFactory;
+    readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -498,6 +535,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserAudienceCounterPromise = UserAudienceCounterFactory.open(storage);
     let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
+    let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
     let UserCounter = await UserCounterPromise;
     let UserMessagesSentCounter = await UserMessagesSentCounterPromise;
     let UserMessagesSentInDirectChatTotalCounter = await UserMessagesSentInDirectChatTotalCounterPromise;
@@ -511,6 +549,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserAudienceCounter = await UserAudienceCounterPromise;
     let UserMessagesSentInDirectChatCounter = await UserMessagesSentInDirectChatCounterPromise;
     let User2WayDirectChatsCounter = await User2WayDirectChatsCounterPromise;
+    let GlobalStatisticsCounters = await GlobalStatisticsCountersPromise;
     return {
         storage,
         UserCounter,
@@ -526,5 +565,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserAudienceCounter,
         UserMessagesSentInDirectChatCounter,
         User2WayDirectChatsCounter,
+        GlobalStatisticsCounters,
     };
 }

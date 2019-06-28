@@ -4,12 +4,10 @@ import { inTx } from '@openland/foundationdb';
 import { FDB, Store } from '../../openland-module-db/FDB';
 import { buildMessage, heading, userMention } from '../../openland-utils/MessageBuilder';
 import { plural } from '../../openland-utils/string';
-import { Context } from '@openland/context';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { createLogger } from '@openland/log';
+import { getSuperNotificationsBotId, getUserReportsChatId } from './utils';
 
-const getSuperNotificationsBotId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
-const getSuperReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-reports-chat-id');
 const log = createLogger('first-week-report-worker');
 
 const calculateScore = (usedMobile: boolean, groupJoins: number, messages: number, invites: number) => {
@@ -30,7 +28,7 @@ export function createFirstWeekReportWorker() {
         q.start((item, rootCtx) => {
             return inTx(rootCtx, async (ctx) => {
                 const botId = await getSuperNotificationsBotId(ctx);
-                const chatId = await getSuperReportsChatId(ctx);
+                const chatId = await getUserReportsChatId(ctx);
 
                 if (!botId || !chatId) {
                     log.warn(ctx, 'botId or chatId not specified');

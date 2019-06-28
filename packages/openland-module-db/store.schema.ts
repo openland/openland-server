@@ -48,4 +48,8 @@ export default declareSchema(() => {
     atomicInt('User2WayDirectChatsCounter', () => {
         primaryKey('uid', 'number');
     });
+
+    atomicInt('GlobalStatisticsCounters', () => {
+        primaryKey('name', 'string');
+    });
 });

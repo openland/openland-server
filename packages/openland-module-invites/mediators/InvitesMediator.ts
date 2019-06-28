@@ -66,7 +66,7 @@ export class InvitesMediator {
             let supportUserId = await Modules.Users.getSupportUserId(ctx);
 
             if (!supportUserId) {
-                return;
+                return 'ok';
             }
 
             await Modules.Messaging.sendMessage(
