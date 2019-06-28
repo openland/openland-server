@@ -6,8 +6,25 @@ enum GlobalSearchEntryKind {
     SHAREDROOM
 }
 
+type MessageWithChat {
+    message: ModernMessage!
+    chat: Room!
+}
+
+type MessageEdge {
+    node: MessageWithChat!
+    cursor: String!
+}
+
+type MessageConnection {
+    edges: [MessageEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     alphaGlobalSearch(query: String!, kinds: [GlobalSearchEntryKind!]): [GlobalSearchEntry!]!
     featuredGroups: [SharedRoom!]
     featuredCommunities: [Organization!]
+
+    messagesSearch(query: String!, sort: String, first: Int!, after: String): MessageConnection!
 }

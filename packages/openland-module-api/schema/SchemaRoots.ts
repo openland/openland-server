@@ -175,7 +175,7 @@ export namespace GQLRoots {
     export type UserConnectionRoot = any;
     export type ChatUserEdgeRoot = any;
     export type ChatUserConnectionRoot = any;
-    export type RoomRoot = any;
+    export type RoomRoot = Conversation | number;
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
@@ -259,6 +259,9 @@ export namespace GQLRoots {
     //  Search
     //
     export type GlobalSearchEntryRoot = User | Organization | Conversation;
+    export type MessageEdgeRoot = { node: MessageWithChatRoot, cursor: string };
+    export type MessageConnectionRoot = { edges: MessageEdgeRoot[], pageInfo: PageInfoRoot };
+    export type MessageWithChatRoot = { message: Message, chat: RoomRoot };
 
     //
     //  Debug
@@ -331,5 +334,4 @@ export namespace GQLRoots {
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };
-
 }

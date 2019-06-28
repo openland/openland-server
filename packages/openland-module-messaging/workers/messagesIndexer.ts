@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 4, 'mesage', FDB.Message.createUpdatedStream(50))
+    declareSearchIndexer('message-index', 6, 'message', FDB.Message.createUpdatedStream(200))
         .withProperties({
             id: {
                 type: 'integer'
@@ -27,6 +27,9 @@ export function messagesIndexer() {
             deleted: {
                 type: 'boolean'
             },
+            text: {
+                type: 'text'
+            },
             createdAt: {
                 type: 'date'
             },
@@ -48,6 +51,7 @@ export function messagesIndexer() {
                         roomKind: room ? room.kind : 'unknown',
                         isService: !!item.isService,
                         deleted: !!item.deleted,
+                        text: item.text || undefined,
                         createdAt: item.createdAt,
                         updatedAt: item.updatedAt,
                     }
