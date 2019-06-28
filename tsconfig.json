@@ -108,6 +108,9 @@
       ],
       "openland-errors": [
         "openland-errors"
+      ],
+      "openland-cli": [
+        "openland-cli"
       ]
     }
   },

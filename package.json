@@ -192,6 +192,7 @@
     "openland-module-feed": "build/openland-module-feed",
     "openland-module-comments": "build/openland-module-comments",
     "openland-graphql": "build/openland-graphql",
-    "openland-errors": "build/openland-errors"
+    "openland-errors": "build/openland-errors",
+    "openland-cli": "build/openland-cli"
   }
 }
