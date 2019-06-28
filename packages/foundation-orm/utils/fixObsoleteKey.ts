@@ -1,4 +1,4 @@
-import { Tuple } from '@openland/foundationdb/lib/encoding';
+import { Tuple } from '@openland/foundationdb';
 
 function removePrefix(src: Tuple[], prefix: Tuple[]): Tuple[] {
     if (prefix.length === 0) {

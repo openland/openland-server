@@ -21,6 +21,7 @@ import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { openDatabase } from 'openland-server/foundationdb';
+import { diagnose } from './Diagnostics';
 
 export async function createGraphQLAdminSchema() {
     let rootCtx = createNamedContext('graphql-admin');
@@ -342,7 +343,7 @@ export async function createGraphQLAdminSchema() {
                     continue;
                 }
                 log.log(rootCtx, e.name);
-                // diag += await FDB.layer.db.diagnostics.runEntityDiagnostics(e);
+                await diagnose(e);
             }
             return diag;
         }

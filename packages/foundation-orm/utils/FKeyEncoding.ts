@@ -1,4 +1,4 @@
-import { Tuple, encoders } from '@openland/foundationdb/lib/encoding';
+import { Tuple, encoders } from '@openland/foundationdb';
 
 const byteFF = Buffer.alloc(1);
 byteFF.writeUInt8(0xff, 0);
