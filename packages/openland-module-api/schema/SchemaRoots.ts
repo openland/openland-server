@@ -308,6 +308,7 @@ export namespace GQLRoots {
     //
     export type DebugEventRoot = DebugEvent;
     export type DebugEventsStateRoot = { state: string };
+    export type DebugUserMetricsRoot = GQL.DebugUserMetrics;
 
     //
     //  Notification Center

@@ -46,6 +46,17 @@ type DebugEvent {
     key: String!
 }
 
+type DebugUserMetrics {
+    messagesSent: Int!
+    messagesReceived: Int!
+    totalChatsCount: Int!
+    directChatsCount: Int!
+    direct2WayChatsCount: Int!
+    directMessagesSent: Int!
+    successfulInvitesCount: Int!
+    audienceCount: Int!
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
@@ -58,6 +69,8 @@ extend type Query {
 
     debugCheckTasksIndex: String!
     debug2WayDirectChatsCounter: Int!
+
+    debugUserMetrics(id: ID!): DebugUserMetrics!
 }
 
 enum SuperNotificationType {
