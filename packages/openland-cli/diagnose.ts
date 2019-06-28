@@ -37,6 +37,16 @@ export async function diagnose(entity: FEntityFactory<FEntity>) {
                 log.warn(rootCtx, 'Found invalid primary key');
                 log.warn(rootCtx, k.key);
                 invalid++;
+                continue;
+            }
+
+            try {
+                entity.options.validator(k.value);
+            } catch (e) {
+                log.warn(rootCtx, 'Found invalid value');
+                log.warn(rootCtx, k.value);
+                log.warn(rootCtx, k.key);
+                invalid++;
             }
         }
         after = ex[ex.length - 1].key;
