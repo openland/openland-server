@@ -14,10 +14,10 @@ extend type Profile {
 }
 
 extend type Query {
-    badgeInRoom(roomId: ID!): UserBadge!
+    badgeInRoom(roomId: ID!): UserBadge
 
     # super-admin methods
-    superBadgeInRoom(roomId: ID!, userId: ID!): UserBadge!
+    superBadgeInRoom(roomId: ID!, userId: ID!): UserBadge
 }
 
 extend type Mutation {
