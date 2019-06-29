@@ -118,8 +118,8 @@ export class UsersModule {
         return await this.repo.updateRoomBadge(ctx, uid, cid, bid);
     }
 
-    async getUserBadge(ctx: Context, uid: number, cid?: number) {
-        return await this.repo.getUserBadge(ctx, uid, cid);
+    async getUserBadge(ctx: Context, uid: number, cid?: number, ignorePrimary?: boolean) {
+        return await this.repo.getUserBadge(ctx, uid, cid, ignorePrimary);
     }
 
     async getUserFullName(ctx: Context, uid: number) {

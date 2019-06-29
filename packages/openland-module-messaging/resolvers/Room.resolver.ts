@@ -85,7 +85,8 @@ export default {
             } else {
                 return null;
             }
-        }
+        },
+        myBadge: (root: RoomRoot, args: {}, parent: AppContext) => Modules.Users.getUserBadge(parent, parent.auth.uid!, (typeof root === 'number' ? root : root.id)),
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',

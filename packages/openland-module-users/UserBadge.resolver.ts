@@ -9,6 +9,20 @@ export default {
         name: (src) => src.name.substr(0, 40),
         verified: (src) => !!src.verifiedBy,
     },
+    Query: {
+        badgeInRoom: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.roomId);
+
+            return await Modules.Users.getUserBadge(ctx, uid, cid, true);
+        }),
+
+        superBadgeInRoom: withPermission('super-admin', async (ctx, args) => {
+            let uid = IDs.User.parse(args.userId);
+            let cid = IDs.Conversation.parse(args.roomId);
+
+            return await Modules.Users.getUserBadge(ctx, uid, cid, true);
+        }),
+    },
     Mutation: {
         badgeCreate: withUser(async (ctx, args, uid) => {
             await Modules.Users.createBadge(ctx, uid, args.name, false);

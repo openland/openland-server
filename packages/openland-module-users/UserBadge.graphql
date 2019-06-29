@@ -13,6 +13,13 @@ extend type Profile {
     primaryBadge: UserBadge
 }
 
+extend type Query {
+    badgeInRoom(roomId: ID!): UserBadge!
+
+    # super-admin methods
+    superBadgeInRoom(roomId: ID!, userId: ID!): UserBadge!
+}
+
 extend type Mutation {
     badgeCreate(name: String!): User!
     badgeCreateToRoom(roomId: ID!, name: String!): UserBadge!

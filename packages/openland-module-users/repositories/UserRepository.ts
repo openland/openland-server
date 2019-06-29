@@ -357,12 +357,14 @@ export class UserRepository {
         });
     }
 
-    async getUserBadge(ctx: Context, uid: number, cid?: number) {
+    async getUserBadge(ctx: Context, uid: number, cid?: number, ignorePrimary?: boolean) {
         const getPrimaryBadge = async () => {
-            let profile = await this.entities.UserProfile.findById(ctx, uid);
-
-            if (profile && profile.primaryBadge) {
-                return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
+            if (!ignorePrimary) {
+                let profile = await this.entities.UserProfile.findById(ctx, uid);
+    
+                if (profile && profile.primaryBadge) {
+                    return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
+                }
             }
             return null;
         };

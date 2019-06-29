@@ -5,6 +5,7 @@ type PrivateRoom {
     user: User!
     settings: RoomUserNotificaionSettings!
     pinnedMessage: ModernMessage
+    myBadge: UserBadge
 }
 
 enum SharedRoomKind {
@@ -57,6 +58,7 @@ type SharedRoom {
     canEdit: Boolean!
     canSendMessage: Boolean!
     archived: Boolean!
+    myBadge: UserBadge
 }
 
 type RoomSuper {
