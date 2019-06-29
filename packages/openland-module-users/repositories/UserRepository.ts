@@ -357,28 +357,30 @@ export class UserRepository {
         });
     }
 
-    async getUserBadge(ctx: Context, uid: number, cid?: number, ignorePrimary?: boolean) {
-        const getPrimaryBadge = async () => {
-            if (!ignorePrimary) {
-                let profile = await this.entities.UserProfile.findById(ctx, uid);
-    
-                if (profile && profile.primaryBadge) {
-                    return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
+    async getUserBadge(parent: Context, uid: number, cid?: number, ignorePrimary?: boolean) {
+        return await inTx(parent, async (ctx) => {
+            const getPrimaryBadge = async () => {
+                if (ignorePrimary !== true) {
+                    let profile = await this.entities.UserProfile.findById(ctx, uid);
+        
+                    if (profile && profile.primaryBadge) {
+                        return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
+                    }
                 }
-            }
-            return null;
-        };
-        const fetchBadge = (badge: UserBadge | null) => (badge && !badge.deleted) ? badge : null;
+                return null;
+            };
+            const fetchBadge = (badge: UserBadge | null) => (badge && !badge.deleted) ? badge : null;
 
-        if (!cid) {
-            return fetchBadge(await getPrimaryBadge());
-        }
-        let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
-        if (userRoomBadge && userRoomBadge.bid) {
-            return fetchBadge(await this.entities.UserBadge.findById(ctx, userRoomBadge.bid));
-        } else {
-            return fetchBadge(await getPrimaryBadge());
-        }
+            if (!cid) {
+                return fetchBadge(await getPrimaryBadge());
+            }
+            let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+            if (userRoomBadge && userRoomBadge.bid) {
+                return fetchBadge(await this.entities.UserBadge.findById(ctx, userRoomBadge.bid));
+            } else {
+                return fetchBadge(await getPrimaryBadge());
+            }
+        });
     }
 
     //

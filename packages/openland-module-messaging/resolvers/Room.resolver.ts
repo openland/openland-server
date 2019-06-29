@@ -86,7 +86,7 @@ export default {
                 return null;
             }
         },
-        myBadge: (root: RoomRoot, args: {}, parent: AppContext) => Modules.Users.getUserBadge(parent, parent.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        myBadge: (root: RoomRoot, args: {}, ctx: AppContext) => Modules.Users.getUserBadge(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -160,6 +160,7 @@ export default {
                 return false;
             }
         }),
+        myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
     },
     RoomMessage: {
         id: (src: Message) => {
