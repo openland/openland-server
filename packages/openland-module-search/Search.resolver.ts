@@ -216,7 +216,7 @@ export default {
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
                 }
-
+                
                 clauses.push({ terms: { cid: userDialogs.map(d => d.cid) }});
 
                 let hits = await Modules.Search.elastic.client.search({

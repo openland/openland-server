@@ -120,6 +120,7 @@ const Schema = declareSchema(() => {
 
         field('arguments', 'json');
         field('result', 'json').nullable();
+        field('startAt', 'number').nullable();
         enumField('taskStatus', ['pending', 'executing', 'failing', 'failed', 'completed']);
 
         field('taskFailureCount', 'number').nullable();
@@ -129,8 +130,11 @@ const Schema = declareSchema(() => {
         field('taskFailureMessage', 'string').nullable();
 
         rangeIndex('pending', ['taskType', 'createdAt'])
-            .withCondition((src) => src.taskStatus === 'pending')
+            .withCondition((src) => src.taskStatus === 'pending' && !src.startAt)
             .withDisplayName('tasksPending');
+        rangeIndex('delayedPending', ['taskType', 'startAt'])
+            .withCondition((src) => src.taskStatus === 'pending' && !!src.startAt)
+            .withDisplayName('tasksPendingDelayed');
         rangeIndex('executing', ['taskLockTimeout'])
             .withCondition((src) => src.taskStatus === 'executing')
             .withDisplayName('tasksExecuting');

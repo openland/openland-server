@@ -791,6 +791,7 @@ export class LockFactory extends FEntityFactory<Lock> {
 export interface TaskShape {
     arguments: any;
     result?: any| null;
+    startAt?: number| null;
     taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
     taskFailureCount?: number| null;
     taskFailureTime?: number| null;
@@ -821,6 +822,17 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.result) { return; }
         this._value.result = value;
+        this.markDirty();
+    }
+    get startAt(): number | null {
+        let res = this._value.startAt;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set startAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.startAt) { return; }
+        this._value.startAt = value;
         this.markDirty();
     }
     get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
@@ -900,6 +912,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         fields: [
             { name: 'arguments', type: 'json' },
             { name: 'result', type: 'json' },
+            { name: 'startAt', type: 'number' },
             { name: 'taskStatus', type: 'enum', enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] },
             { name: 'taskFailureCount', type: 'number' },
             { name: 'taskFailureTime', type: 'number' },
@@ -909,6 +922,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         ],
         indexes: [
             { name: 'pending', type: 'range', fields: ['taskType', 'createdAt'], displayName: 'tasksPending' },
+            { name: 'delayedPending', type: 'range', fields: ['taskType', 'startAt'], displayName: 'tasksPendingDelayed' },
             { name: 'executing', type: 'range', fields: ['taskLockTimeout'], displayName: 'tasksExecuting' },
             { name: 'failing', type: 'range', fields: ['taskFailureTime'], displayName: 'tasksFailing' },
         ],
@@ -917,11 +931,13 @@ export class TaskFactory extends FEntityFactory<Task> {
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('task');
         let config = { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, keyValidator: TaskFactory.validateKey, hasLiveStreams: false };
-        let indexPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'pending'), 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending');
+        let indexPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'pending'), 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending' && !src.startAt);
+        let indexDelayedPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'delayedPending'), 'delayedPending', ['taskType', 'startAt'], false, (src) => src.taskStatus === 'pending' && !!src.startAt);
         let indexExecuting = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'executing'), 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
         let indexFailing = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'failing'), 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
         let indexes = {
             pending: indexPending,
+            delayedPending: indexDelayedPending,
             executing: indexExecuting,
             failing: indexFailing,
         };
@@ -929,6 +945,7 @@ export class TaskFactory extends FEntityFactory<Task> {
     }
 
     readonly indexPending: FEntityIndex;
+    readonly indexDelayedPending: FEntityIndex;
     readonly indexExecuting: FEntityIndex;
     readonly indexFailing: FEntityIndex;
 
@@ -938,6 +955,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         validators.notNull('uid', src.uid);
         validators.isString('uid', src.uid);
         validators.notNull('arguments', src.arguments);
+        validators.isNumber('startAt', src.startAt);
         validators.notNull('taskStatus', src.taskStatus);
         validators.isEnum('taskStatus', src.taskStatus, ['pending', 'executing', 'failing', 'failed', 'completed']);
         validators.isNumber('taskFailureCount', src.taskFailureCount);
@@ -954,9 +972,10 @@ export class TaskFactory extends FEntityFactory<Task> {
         validators.isString('1', key[1]);
     }
 
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { pending: FEntityIndex, executing: FEntityIndex, failing: FEntityIndex }) {
-        super('Task', 'task', config, [indexes.pending, indexes.executing, indexes.failing], layer, directory);
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { pending: FEntityIndex, delayedPending: FEntityIndex, executing: FEntityIndex, failing: FEntityIndex }) {
+        super('Task', 'task', config, [indexes.pending, indexes.delayedPending, indexes.executing, indexes.failing], layer, directory);
         this.indexPending = indexes.pending;
+        this.indexDelayedPending = indexes.delayedPending;
         this.indexExecuting = indexes.executing;
         this.indexFailing = indexes.failing;
     }
@@ -993,6 +1012,24 @@ export class TaskFactory extends FEntityFactory<Task> {
     }
     createPendingStream(taskType: string, limit: number, after?: string) {
         return this._createStream(this.indexPending.directory, [taskType], limit, after); 
+    }
+    async allFromDelayedPendingAfter(ctx: Context, taskType: string, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexDelayedPending.directory, [taskType], after);
+    }
+    async rangeFromDelayedPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexDelayedPending.directory, [taskType], after, limit, reversed);
+    }
+    async rangeFromDelayedPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexDelayedPending.directory, [taskType], limit, reversed);
+    }
+    async rangeFromDelayedPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexDelayedPending.directory, [taskType], limit, after, reversed);
+    }
+    async allFromDelayedPending(ctx: Context, taskType: string) {
+        return await this._findAll(ctx, this.indexDelayedPending.directory, [taskType]);
+    }
+    createDelayedPendingStream(taskType: string, limit: number, after?: string) {
+        return this._createStream(this.indexDelayedPending.directory, [taskType], limit, after); 
     }
     async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, this.indexExecuting.directory, [], limit, reversed);

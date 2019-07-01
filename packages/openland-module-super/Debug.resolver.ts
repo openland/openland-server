@@ -13,7 +13,6 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
-import { UserError } from '../openland-errors/UserError';
 import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -870,16 +869,11 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
-                let i = 0;
                 while (true) {
-                    if (i === 5) {
-                        throw new UserError('LOL');
-                    }
                     let data = 'pong ' + Date.now();
                     logger.log(ctx, 'send lifecheck', data);
                     yield data;
                     await delay(1000);
-                    i++;
                 }
             },
         },
