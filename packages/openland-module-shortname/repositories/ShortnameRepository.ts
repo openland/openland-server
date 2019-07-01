@@ -122,6 +122,9 @@ export class ShortnameRepository {
                 oldShortname.enabled = false;
                 await oldShortname.flush(ctx);
             }
+            if (normalized === '') {
+                return true;
+            }
 
             let existing = await this.entities.ShortnameReservation.findById(ctx, normalized);
 
@@ -146,11 +149,11 @@ export class ShortnameRepository {
             let isAdmin = role === 'super-admin';
 
             // TODO: Implement correct shortname validation here
-            let normalized = shortname.toLowerCase();
+            let normalized = shortname.trim().toLowerCase();
             if (normalized.length > 16) {
                 throw new UserError('Shortname is too long');
             }
-            if (normalized.length < (isAdmin ? 3 : 5)) {
+            if (shortname.length !== 0 && normalized.length < (isAdmin ? 3 : 5)) {
                 throw new UserError('Shortname is too short');
             }
             if (!/^\w*$/.test(shortname)) {

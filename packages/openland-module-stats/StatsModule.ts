@@ -73,7 +73,7 @@ export class StatsModule {
 
         let report = [
             heading(
-                'First inviter ',
+                'New inviter ',
                 userMention(inviter!.firstName + ' ' + inviter!.lastName, inviterId),
                 inviterOrgName,
             ),
