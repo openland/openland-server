@@ -1,8 +1,8 @@
-import { DelayedQueue } from './DelayedQueue';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext, Context } from '@openland/context';
 import { FDB } from '../openland-module-db/FDB';
 import { JsonMap } from '../openland-utils/json';
+import { WorkQueue } from './WorkQueue';
 
 export enum WeekDay {
     Sunday = 0,
@@ -19,10 +19,10 @@ type Config =
     | { interval: 'every-day', time: { minutes: number, hours: number } }
     | { interval: 'every-hour', time: { minutes: number } };
 
-const rootCtx = createNamedContext('kek');
+const rootCtx = createNamedContext('timed-worker');
 export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, handler: (ctx: Context) => Promise<Res>) => {
     const taskType = 'timed_' + type;
-    const queue = new DelayedQueue<{}, Res>(taskType);
+    const queue = new WorkQueue<{}, Res>(taskType);
 
     const getNext = () => {
         const now = new Date();
@@ -73,7 +73,7 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
             }
         });
 
-        queue.start(async (_, ctx) => {
+        queue.addWorker(async (_, ctx) => {
             let res = await handler(ctx);
             await pushNext(ctx);
             return res;

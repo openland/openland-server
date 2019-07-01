@@ -104,6 +104,8 @@ extend type Mutation {
     debugCalcUsersAudienceCounter: Boolean!
     debugCalcUsers2WayDirectChatsCounter: Boolean!
     debugFixMessage(id: Int!): Boolean!
+    debugQueueSilentUserReport(delay: Int!): Boolean!
+    debugQueueFirstWeekUserReport(delay: Int!): Boolean!
 }
 
 extend type Subscription {

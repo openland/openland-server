@@ -829,6 +829,14 @@ export default {
 
             return true;
         }),
+        debugQueueFirstWeekUserReport: withPermission('super-admin', async (parent, args) => {
+            await Modules.Stats.queueFirstWeekReport(parent, parent.auth.uid!, args.delay);
+            return true;
+        }),
+        debugQueueSilentUserReport: withPermission('super-admin', async (parent, args) => {
+            await Modules.Stats.queueSilentUserReport(parent, parent.auth.uid!, args.delay);
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {
