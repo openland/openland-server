@@ -119,7 +119,7 @@ export class UsersModule {
     }
 
     async getUserBadge(ctx: Context, uid: number, cid?: number, ignorePrimary?: boolean) {
-        return await this.repo.getUserBadge(ctx, uid, cid, ignorePrimary);
+        return await this.repo.getUserBadge(ctx, uid, cid, true);
     }
 
     async getUserFullName(ctx: Context, uid: number) {
