@@ -65,14 +65,13 @@ export function createFirstWeekReportWorker() {
                 ];
 
                 if (mobileOnline) {
-                    report.push('📱 Mobile app is used');
+                    report.push('✅ Mobile ');
                 } else {
-                    report.push('🚫 Mobile app is not used');
+                    report.push('🚫 Mobile ');
                 }
-                report.push('\n');
-                report.push(`👨‍👦‍👦 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} joined\n`);
-                report.push(`😎 ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent, ${directMessages} DMs, ${groupMessages} in groups\n`);
-                report.push(`🤗 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}\n`);
+                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} `);
+                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs `);
+                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}`);
 
                 await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                     ...buildMessage(...report),

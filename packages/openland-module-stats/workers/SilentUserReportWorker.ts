@@ -38,7 +38,7 @@ export function createSilentUserReportWorker() {
 
                 let report = [
                     heading(
-                        'Silent user report ',
+                        'Silent user ',
                         userMention(profile!.firstName + ' ' + profile!.lastName, uid),
                         orgName,
                     ),
@@ -49,22 +49,20 @@ export function createSilentUserReportWorker() {
                 const mobileOnline = onlines
                     .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
                 if (mobileOnline) {
-                    report.push('📱 Mobile app is used');
+                    report.push('✅ Mobile ');
                 } else {
-                    report.push('🚫 Mobile app is not used');
+                    report.push('🚫 Mobile ');
                 }
-                report.push('\n');
 
                 const isDiscoverDone = await Modules.Discover.isDiscoverDone(ctx, uid);
                 if (isDiscoverDone) {
-                    report.push('🕵 "Chats for you" is completed');
+                    report.push('✅ Chats for you ');
                 } else {
-                    report.push('🕵 "Chats for you" is not completed');
+                    report.push('🚫 Chats for you ');
                 }
-                report.push('\n');
 
                 const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
-                report.push(`👨‍👦‍👦 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} joined\n`);
+                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])}\n`);
 
                 await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                     ...buildMessage(...report),
