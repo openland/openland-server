@@ -62,7 +62,7 @@ export function createSilentUserReportWorker() {
                 }
 
                 const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
-                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])}\n`);
+                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])}`);
 
                 await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                     ...buildMessage(...report),

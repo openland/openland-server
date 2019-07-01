@@ -164,7 +164,7 @@ export class HooksModule {
         const user = await FDB.User.findById(ctx, uid);
         if (user!.invitedBy) {
             Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
-            Modules.Stats.onSuccessfulInvite(ctx);
+            await Modules.Stats.onSuccessfulInvite(ctx, uid, user!.invitedBy);
         }
 
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
