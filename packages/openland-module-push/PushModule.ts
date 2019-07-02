@@ -1,5 +1,5 @@
 import { createPushWorker } from './workers/PushWorker';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { PushRepository } from './repositories/PushRepository';
 import { createAppleWorker } from './workers/AppleWorker';
 import { createAndroidWorker } from './workers/AndroidWorker';
@@ -40,11 +40,11 @@ export class PushModule {
         await this.repository.disablePushSafari(ctx, token, bundleId);
     }
 
-    sendCounterPush(ctx: Context, uid: number, conversationId: number, counter: number) {
+    async sendCounterPush(ctx: Context, uid: number) {
         return this.worker.pushWork(ctx, {
             uid: uid,
-            counter: counter,
-            conversationId: conversationId,
+            counter: 0,
+            conversationId: null,
             mobile: true,
             desktop: false,
             picture: null,

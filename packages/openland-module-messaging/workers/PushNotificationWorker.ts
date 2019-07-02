@@ -59,12 +59,14 @@ export function startPushNotificationWorker() {
                 // Ignore active users
                 if (isActive) {
                     log.debug(ctx, 'skip active');
+                    await Modules.Push.sendCounterPush(ctx, uid);
                     return;
                 }
 
                 // Pause notifications till 1 minute passes from last active timeout
                 if (lastSeen > (now - Delays[settings.notificationsDelay || 'none'])) {
                     log.debug(ctx, 'skip delay');
+                    await Modules.Push.sendCounterPush(ctx, uid);
                     return;
                 }
 
@@ -72,6 +74,7 @@ export function startPushNotificationWorker() {
                 if (state.readSeq === ustate.seq) {
                     log.debug(ctx, 'ignore read updates');
                     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                    await Modules.Push.sendCounterPush(ctx, uid);
                     return;
                 }
 
@@ -87,6 +90,7 @@ export function startPushNotificationWorker() {
                     state.lastPushSeq = ustate.seq;
                     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
                     log.debug(ctx, 'ignore user\'s with disabled notifications');
+                    await Modules.Push.sendCounterPush(ctx, uid);
                     return;
                 }
 
@@ -94,6 +98,7 @@ export function startPushNotificationWorker() {
                 if (state.lastPushSeq !== null && state.lastPushSeq >= ustate.seq) {
                     log.debug(ctx, 'ignore already processed updates');
                     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                    await Modules.Push.sendCounterPush(ctx, uid);
                     return;
                 }
 
@@ -222,11 +227,7 @@ export function startPushNotificationWorker() {
                 if (hasMessage) {
                     state.lastPushNotification = Date.now();
                 } else {
-                    // Deliver counter if there are no updates
-                    if (unreadCounter === undefined) {
-                        unreadCounter = await Store.UserCounter.byId(uid).get(ctx);
-                    }
-                    await Modules.Push.sendCounterPush(ctx, uid, 0, unreadCounter!);
+                    await Modules.Push.sendCounterPush(ctx, uid);
                 }
 
                 log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);

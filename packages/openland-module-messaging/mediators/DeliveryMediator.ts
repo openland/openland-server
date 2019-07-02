@@ -212,6 +212,9 @@ export class DeliveryMediator {
 
             // Mark user as needed notification delivery
             this.needNotification.setNeedNotificationDelivery(ctx, uid);
+
+            // Send counter
+            await Modules.Push.sendCounterPush(ctx, uid);
         });
     }
 
@@ -226,6 +229,8 @@ export class DeliveryMediator {
 
             // Mark user as needed notification delivery
             this.needNotification.setNeedNotificationDelivery(ctx, uid);
+            // Send counter
+            await Modules.Push.sendCounterPush(ctx, uid);
         });
     }
 }
