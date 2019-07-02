@@ -1,5 +1,5 @@
 import { inTx } from '@openland/foundationdb';
-import { withAccount, withUser, withPermission, withAny, withActivatedUser } from 'openland-module-api/Resolvers';
+import { withAccount, withUser, withPermission, withActivatedUser } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
@@ -417,7 +417,7 @@ export default {
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
             return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
         }),
-        betaRoomInviteInfo: withActivatedUser(async (ctx, args) => {
+        betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
         }),
         betaRoomInviteLink: withActivatedUser(async (ctx, args, uid) => {
