@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities } from '../../openland-module-db/schema';
+import { AllEntities, Message } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
@@ -50,12 +50,20 @@ export class CommentsNotificationsRepository {
     async onNewComment(parent: Context, commentId: number) {
         return await inTx(parent, async (ctx) => {
             let comment = (await this.entities.Comment.findById(ctx, commentId))!;
-            let subscriptions = await this.entities.CommentsSubscription.allFromPeer(ctx, comment.peerType, comment.peerId);
-            for (let subscription of subscriptions) {
-                if (subscription.status !== 'active') {
-                    // ignore inactive subscription
+
+            // Subscribe user if he was mentioned
+            let mentions = (comment.spans || []).filter(s => s.type === 'user_mention');
+            for (let mention of mentions) {
+                if (mention.type !== 'user_mention') {
                     continue;
                 }
+                if (!(await this.entities.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, mention.user))) {
+                    await this.subscribeToComments(ctx, comment.peerType, comment.peerId, mention.user, 'all');
+                }
+            }
+
+            let subscriptions = await this.entities.CommentsSubscription.allFromPeer(ctx, comment.peerType, comment.peerId);
+            for (let subscription of subscriptions) {
                 if (comment.uid === subscription.uid) {
                     // ignore self comment
                     continue;
@@ -63,6 +71,10 @@ export class CommentsNotificationsRepository {
                 let settings = await Modules.Users.getUserSettings(ctx, subscription.uid);
                 if (!settings.commentNotifications || settings.commentNotifications === 'none') {
                     // ignore disabled notifications
+                    continue;
+                }
+                if (subscription.status !== 'active') {
+                    // ignore inactive subscription
                     continue;
                 }
 
@@ -86,6 +98,24 @@ export class CommentsNotificationsRepository {
                 }
                 if (sendNotification) {
                     await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
+                }
+            }
+        });
+    }
+
+    async onNewMessage(parent: Context, message: Message) {
+        return await inTx(parent, async (ctx) => {
+            // Subscribe message sender creator to comments
+            await this.subscribeToComments(ctx, 'message', message.id, message.uid, 'all');
+
+            // Subscribe user to comments if he was mentioned
+            let mentions = (message.spans || []).filter(s => s.type === 'user_mention');
+            for (let mention of mentions) {
+                if (mention.type !== 'user_mention') {
+                    continue;
+                }
+                if (!(await this.entities.CommentsSubscription.findById(ctx, 'message', message.id, mention.user))) {
+                    await this.subscribeToComments(ctx, 'message', message.id, mention.user, 'all');
                 }
             }
         });

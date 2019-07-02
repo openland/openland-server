@@ -39,6 +39,7 @@ export class CommentsMediator {
             //
             await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid, 'all');
             // for old comments
+            // TODO: make migration instead
             let sub = await this.entities.CommentsSubscription.findById(ctx, 'message', messageId, message.uid);
             if (!sub) {
                 await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, message.uid, 'all');

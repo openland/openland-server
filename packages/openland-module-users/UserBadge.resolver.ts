@@ -6,7 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 export default {
     UserBadge: {
         id: (src) => IDs.UserBadge.serialize(src.id),
-        name: (src) => src.name.substr(0, 40),
+        name: (src) => src.name,
         verified: (src) => !!src.verifiedBy,
     },
     Query: {

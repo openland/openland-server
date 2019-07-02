@@ -79,7 +79,7 @@ export class MessagingMediator {
             await this.delivery.onNewMessage(ctx, res.message);
 
             // Subscribe to comments
-            await Modules.Comments.subscribeToComments(ctx, 'message', res.message.id, uid, 'all');
+            await Modules.Comments.notificationsMediator.onNewMessage(ctx, res.message);
 
             if (!message.ignoreAugmentation) {
                 // Augment
