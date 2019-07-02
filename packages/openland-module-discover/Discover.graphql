@@ -23,6 +23,7 @@ extend type Query {
 }
 
 extend type Mutation {
+    betaDiscoverSkip(selectedTagsIds: [String!]!): DiscoverPage
     betaNextDiscoverReset: Boolean!
     betaNextDiscoverPageOrChats(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
 }

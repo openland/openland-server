@@ -34,6 +34,9 @@ export default {
         }),
         betaNextDiscoverReset: withUser((ctx, args, uid) => {
             return Modules.Discover.reset(ctx, uid);
+        }),
+        betaDiscoverSkip: withUser((ctx, args, uid) => {
+            return Modules.Discover.skip(ctx, uid, args.selectedTagsIds);
         })
     }
 } as GQLResolver;
