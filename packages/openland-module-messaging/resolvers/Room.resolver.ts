@@ -1,5 +1,5 @@
 import { inTx } from '@openland/foundationdb';
-import { withAccount, withUser, withPermission, withActivatedUser } from 'openland-module-api/Resolvers';
+import { withAccount, withUser, withPermission, withActivatedUser, withAny } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
