@@ -67,7 +67,7 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         await inTx(rootCtx, async (ctx) => {
-            let pending = await FDB.DelayedTask.allFromPending(ctx, taskType);
+            let pending = await FDB.Task.allFromDelayedPending(ctx, taskType);
             if (pending.length === 0) {
                 await pushNext(ctx);
             }
