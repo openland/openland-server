@@ -24,10 +24,12 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         this.pubSubTopic = 'modern_work_added' + this.taskType;
     }
 
-    pushWork = async (parent: Context, work: ARGS) => {
+    pushWork = async (parent: Context, work: ARGS, startAt?: number) => {
         return await inTxLeaky(parent, async (ctx) => {
             getTransaction(ctx).afterCommit(() => {
-                EventBus.publish(this.pubSubTopic, {});
+                if (!startAt) {
+                    EventBus.publish(this.pubSubTopic, {});
+                }
             });
             // Do UNSAFE task creation since there won't be conflicts because our is is guaranteed to be unique (uuid)
             return await FDB.Task.create_UNSAFE(ctx, this.taskType, uuid(), {
@@ -35,9 +37,9 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 taskStatus: 'pending',
                 taskFailureCount: 0,
                 taskLockTimeout: 0,
-                taskLockSeed: ''
+                taskLockSeed: '',
+                startAt: startAt || null
             });
-
         });
     }
 
@@ -59,7 +61,10 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         let root = createNamedContext('worker-' + this.taskType);
         let workLoop = foreverBreakable(async () => {
             let task = await inTx(root, async (ctx) => {
-                let pend = await FDB.Task.allFromPending(ctx, this.taskType);
+                let pend = [
+                    ...(await FDB.Task.allFromPending(ctx, this.taskType)),
+                    ...(await FDB.Task.rangeFromDelayedPendingAfter(ctx, this.taskType, Date.now(), Number.MAX_SAFE_INTEGER, true))
+                ];
                 if (pend.length === 0) {
                     return null;
                 }

@@ -10,13 +10,32 @@ import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
 
 type DelayedEvents = 'activated20h' | 'activated30m';
-type Template = (user: UserProfile) => { type: string, message: string, keyboard?: MessageKeyboard };
-const templates: { [templateName: string]: (user: UserProfile) => { message: string, keyboard?: MessageKeyboard, type: string } } = {
-    wellcome: (user: UserProfile) => ({ type: 'wellcome', message: `Wellcome ${user.firstName}!` }),
-    gotoDiscover: (user: UserProfile) => ({ type: 'gotoDiscover', message: `${user.firstName}, time to complete discover`, keyboard: { buttons: [[{ title: 'Discover', url: '/onboarding_discover', style: 'DEFAULT' }]] } }),
-    sendFirstMessage: (user: UserProfile) => ({ type: 'sendFirstMessage', message: `${user.firstName} what R U waiting for?`, keyboard: { buttons: [[{ title: 'Send Your first message!', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] } }),
-    invite: (user: UserProfile) => ({ type: 'invite', message: `${user.firstName} invite freiends!`, keyboard: { buttons: [[{ title: 'Get invite link', url: '/onboarding_invite', style: 'DEFAULT' }]] } }),
-    installApps: (user: UserProfile) => ({ type: 'installApps', message: `${user.firstName} we have cool apps`, keyboard: { buttons: [[{ title: 'Get apps', url: '/onboarding_apps', style: 'DEFAULT' }]] } }),
+type Template = (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean };
+const templates: { [templateName: string]: (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean } } = {
+    wellcome: (user: UserProfile) => ({
+        type: 'wellcome',
+        message: ['A chat for Openland tips and announcements'], isSevice: true
+    }),
+    gotoDiscover: (user: UserProfile) => ({
+        type: 'gotoDiscover',
+        message: [{ type: 'loud_text', parts: ['Find chats for you'] }, '\nAre you ready to explore Openland?\nLet\'s find the most useful chats based on your interests and needs'],
+        keyboard: { buttons: [[{ title: 'Discover chats', url: '/onboarding_discover', style: 'DEFAULT' }]] }
+    }),
+    sendFirstMessage: (user: UserProfile) => ({
+        type: 'sendFirstMessage',
+        message: [{ type: 'loud_text', parts: ['Get help from Openland community'] }, '\nDo you need any expert advice or new connections for your projects?\nSimply ask for help in one of our chats'],
+        keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] }
+    }),
+    invite: (user: UserProfile) => ({
+        type: 'invite',
+        message: [{ type: 'loud_text', parts: ['Invite friends'] }, '\nHow do you like Openland community so far?\nIf you love being here, share the invitation with your teammates and friends'],
+        keyboard: { buttons: [[{ title: 'Get invite link', url: '/onboarding_invite', style: 'DEFAULT' }]] }
+    }),
+    installApps: (user: UserProfile) => ({
+        type: 'installApps',
+        message: [{ type: 'loud_text', parts: ['Stay in the loop'] }, '\nDo you want to get our fastest experience and never miss a message?\nOpenland has desktop and mobile apps for all your devices'],
+        keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT' }]] }
+    }),
 };
 
 @injectable()
@@ -152,7 +171,7 @@ export class UserOnboardingModule {
         }
         let t = template(user);
 
-        let messageParts: MessagePart[] = [t.message];
+        let messageParts: MessagePart[] = [...t.message];
         if (t.keyboard) {
             messageParts.push({ type: 'rich_attach', attach: { keyboard: t.keyboard } });
         }
@@ -162,7 +181,11 @@ export class UserOnboardingModule {
 
         if (user.email && user.email.includes('+test@maildu.de')) {
             let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
-            await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, buildMessage(...messageParts));
+            let message = buildMessage(...messageParts);
+            if (t.isSevice) {
+                message.isService = true;
+            }
+            await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
         }
 
     }

@@ -6,6 +6,7 @@ import { DraftsModule } from 'openland-module-drafts/DraftsModule';
 import { loadCommentsModule } from 'openland-module-comments/CommentsModule.container';
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 import { MetricsModule } from '../openland-module-metrics/MetricsModule';
+import { PushModule } from '../openland-module-push/PushModule';
 
 export function loadMessagingTestModule() {
     loadMessagingModule();
@@ -14,4 +15,5 @@ export function loadMessagingTestModule() {
     container.bind(TypingsModule).to(TypingsModuleMock as any).inSingletonScope();
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(MetricsModule).toSelf().inSingletonScope();
+    container.bind(PushModule).toSelf().inSingletonScope();
 }

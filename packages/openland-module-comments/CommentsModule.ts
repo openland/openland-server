@@ -13,7 +13,7 @@ export class CommentsModule {
     @lazyInject('CommentAugmentationMediator')
     private readonly augmentation!: CommentAugmentationMediator;
     @lazyInject('CommentsNotificationsMediator')
-    private readonly notificationsMediator!: CommentsNotificationsMediator;
+    readonly notificationsMediator!: CommentsNotificationsMediator;
 
     start = () => {
         this.augmentation.start();

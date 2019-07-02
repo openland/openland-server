@@ -18,3 +18,11 @@ export const getGlobalStatisticsForReport = (prefix?: string) => {
         successfulInvites: Store.GlobalStatisticsCounters.byId(namePrefix + 'successful-invites')
     };
 };
+
+export const resolveUsername = (firstName: string, lastName: string | null) => {
+    if (lastName) {
+        return firstName + ' ' + lastName;
+    } else {
+        return firstName;
+    }
+};
