@@ -1,5 +1,5 @@
 import { inTx } from '@openland/foundationdb';
-import { withAccount, withUser, withPermission, withAny } from 'openland-module-api/Resolvers';
+import { withAccount, withUser, withPermission, withActivatedUser, withAny } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
@@ -358,7 +358,7 @@ export default {
         roomSuper: withPermission('super-admin', async (ctx, args) => {
             return IdsFactory.resolve(args.id);
         }),
-        roomMessages: withUser(async (ctx, args, uid) => {
+        roomMessages: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
             if (!args.first || args.first <= 0) {
@@ -375,7 +375,7 @@ export default {
 
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
         }),
-        roomMember: withUser(async (ctx, args, uid) => {
+        roomMember: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
             let conversation = await FDB.Conversation.findById(ctx, roomId);
@@ -385,7 +385,7 @@ export default {
 
             return await FDB.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.memberId));
         }),
-        roomMembers: withUser(async (ctx, args, uid) => {
+        roomMembers: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
             let conversation = await FDB.Conversation.findById(ctx, roomId);
@@ -414,22 +414,22 @@ export default {
             }
         }),
 
-        betaRoomSearch: withUser(async (ctx, args, uid) => {
+        betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
             return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
         }),
         betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
         }),
-        betaRoomInviteLink: withUser(async (ctx, args, uid) => {
+        betaRoomInviteLink: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Conversation.parse(args.roomId), uid);
         }),
-        betaAvailableRooms: withUser(async (ctx, args, uid) => {
+        betaAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.findAvailableRooms(ctx, uid);
         }),
-        betaUserRooms: withUser(async (ctx, args, uid) => {
+        betaUserRooms: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.userRooms(ctx, uid, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
         }),
-        betaUserAvailableRooms: withUser(async (ctx, args, uid) => {
+        betaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.userAvailableRooms(ctx, uid, args.isChannel === null ? undefined : args.isChannel, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
         }),
     },

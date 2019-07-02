@@ -7,7 +7,7 @@ import { createDailyReportWorker } from './workers/DailyReportWorker';
 import { FDB, Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { buildMessage, heading, userMention } from '../openland-utils/MessageBuilder';
-import { getSuperNotificationsBotId, getUserReportsChatId } from './workers/utils';
+import { getSuperNotificationsBotId, getUserReportsChatId, resolveUsername } from './workers/utils';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { plural } from '../openland-utils/string';
@@ -77,10 +77,10 @@ export class StatsModule {
             newUserOrgName = ` @ ${(organization!).name}`;
         }
 
-        let report = [heading('New inviter ', userMention(inviter!.firstName + ' ' + inviter!.lastName, inviterId), inviterOrgName), '\n'];
+        let report = [heading('New inviter ', userMention(resolveUsername(inviter!.firstName, inviter!.lastName), inviterId), inviterOrgName), '\n'];
 
         report.push('Invited ');
-        report.push(userMention(newUser!.firstName + ' ' + newUser!.lastName, newUserId));
+        report.push(userMention(resolveUsername(newUser!.firstName, newUser!.lastName), newUserId));
         report.push(newUserOrgName);
 
         await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
@@ -110,7 +110,7 @@ export class StatsModule {
                 orgName = ` @ ${(organization!).name}`;
             }
 
-            let report = [heading('Silent user ', userMention(profile!.firstName + ' ' + profile!.lastName, uid), orgName), '\n'];
+            let report = [heading('Silent user ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName), '\n'];
 
             const onlines = await FDB.Presence.allFromUser(ctx, uid);
             const mobileOnline = onlines
@@ -178,7 +178,7 @@ export class StatsModule {
                 orgName = ` @ ${(organization!).name}`;
             }
 
-            let report = [heading('First week report ', userMention(profile!.firstName + ' ' + profile!.lastName, uid), orgName, ` ⚡️ ${score}`), '\n'];
+            let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
 
             if (mobileOnline) {
                 report.push('✅ Mobile ');
