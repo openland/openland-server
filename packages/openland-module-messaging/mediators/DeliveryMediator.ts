@@ -91,6 +91,8 @@ export class DeliveryMediator {
             // Update dialogs
             if (res.delta < 0) {
                 await this.repo.deliverMessageReadToUser(ctx, uid, mid);
+                // Send counter
+                await Modules.Push.sendCounterPush(ctx, uid);
             }
         });
     }
