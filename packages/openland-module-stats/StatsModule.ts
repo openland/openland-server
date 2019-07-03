@@ -179,15 +179,16 @@ export class StatsModule {
             }
 
             let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
-
-            if (mobileOnline) {
-                report.push('✅ Mobile ');
-            } else {
-                report.push('🚫 Mobile ');
+            if (score > 0) {
+                if (mobileOnline) {
+                    report.push('✅ Mobile ');
+                } else {
+                    report.push('🚫 Mobile ');
+                }
+                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} `);
+                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs `);
+                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}`);
             }
-            report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} `);
-            report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs `);
-            report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}`);
 
             await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,

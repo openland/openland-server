@@ -38,11 +38,13 @@ export class InvitesMediator {
             if (!invite) {
                 throw new NotFoundError('Invite not found');
             }
-            await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
-            let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
-            await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
+
             await Modules.Users.activateUser(ctx, uid, isNewUser, invite.creatorId);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
+
+            let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
+            await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
+            await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
             if (invite.entityName === 'ChannelInvitation') {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
