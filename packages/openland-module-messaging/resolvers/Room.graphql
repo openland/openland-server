@@ -48,6 +48,7 @@ type SharedRoom {
     organization: Organization
   
     membersCount: Int
+    featuredMembersCount: Int!
     members(first: Int, after: ID): [RoomMember!]!
     requests: [RoomMember!]
 
@@ -157,6 +158,7 @@ extend type Query {
     roomSuper(id: ID!): RoomSuper
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!
+    roomFeaturedMembers(roomId: ID!, first: Int): [RoomMember!]!
     roomMember(roomId: ID!, memberId: ID!): RoomMember
     betaRoomSearch(
         query: String,

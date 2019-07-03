@@ -334,4 +334,6 @@ export namespace GQLRoots {
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };
+
+    export type UserChatWithBadgeRoot = { budge: UserBadge, cid: number };
 }

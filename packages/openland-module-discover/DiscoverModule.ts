@@ -98,9 +98,9 @@ export class DiscoverModule {
     skip = async (parent: Context, uid: number, selectedTags: string[]) => {
         return inTx(parent, async (ctx) => {
             let chats = this.data.resolveSuggestedChats(selectedTags);
-          
             await this.saveSelectedTags(ctx, uid, selectedTags);
-            return  { chats };
+            await Modules.Hooks.onDiscoverSkipped(ctx, uid);
+            return { chats };
         });
     }
     start = () => {
