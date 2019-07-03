@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1a7010d28de9f056f00b8d2674058805';
+export const GQL_SPEC_VERSION = 'ee599ff151d16501230b5e32dd36f61f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2790,7 +2790,7 @@ export namespace GQL {
         shortname: Nullable<string>;
     }
     export interface UserChatWithBadge {
-        basge: UserBadge;
+        badge: UserBadge;
         chat: Room;
     }
     export interface UserBadge {
@@ -3158,7 +3158,7 @@ export interface GQLResolver {
     DiscoverPage?: ComplexTypedResolver<GQL.DiscoverPage, GQLRoots.DiscoverPageRoot, {chats: Nullable<GQLRoots.RoomRoot[]>, tagGroup: Nullable<GQLRoots.TagGroupRoot>}, {}>;
     TypingEvent?: ComplexTypedResolver<GQL.TypingEvent, GQLRoots.TypingEventRoot, {conversation: GQLRoots.ConversationRoot, chat: GQLRoots.RoomRoot, user: GQLRoots.UserRoot}, {}>;
     User?: ComplexTypedResolver<GQL.User, GQLRoots.UserRoot, {channelsJoined: GQLRoots.ChannelConversationRoot[], photoRef: Nullable<GQLRoots.ImageRefRoot>, pictureRef: Nullable<GQLRoots.ImageRefRoot>, chatsWithBadge: GQLRoots.UserChatWithBadgeRoot[], organizations: GQLRoots.OrganizationRoot[], primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>, badges: GQLRoots.UserBadgeRoot[], primaryBadge: Nullable<GQLRoots.UserBadgeRoot>}, {}>;
-    UserChatWithBadge?: ComplexTypedResolver<GQL.UserChatWithBadge, GQLRoots.UserChatWithBadgeRoot, {basge: GQLRoots.UserBadgeRoot, chat: GQLRoots.RoomRoot}, {}>;
+    UserChatWithBadge?: ComplexTypedResolver<GQL.UserChatWithBadge, GQLRoots.UserChatWithBadgeRoot, {badge: GQLRoots.UserBadgeRoot, chat: GQLRoots.RoomRoot}, {}>;
     UserBadge?: ComplexTypedResolver<GQL.UserBadge, GQLRoots.UserBadgeRoot, {}, {}>;
     UserEdge?: ComplexTypedResolver<GQL.UserEdge, GQLRoots.UserEdgeRoot, {node: GQLRoots.UserRoot}, {}>;
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, GQLRoots.UserConnectionRoot, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
