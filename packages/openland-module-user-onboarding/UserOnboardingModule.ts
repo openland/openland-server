@@ -8,6 +8,7 @@ import { DelayedQueue } from 'openland-module-workers/DelayedQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
+import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
 type DelayedEvents = 'activated20h' | 'activated30m';
 type Template = (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean };
@@ -37,14 +38,13 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
         keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT' }]] }
     }),
 };
-
+const q = new WorkQueue<{ uid: number, type: DelayedEvents }, { result: string }>('onboarding-delayed');
 @injectable()
 export class UserOnboardingModule {
-    private delayedWorker = new DelayedQueue<{ uid: number, type: DelayedEvents }, { result: string }>('onboarding-delayed');
 
     start = () => {
         if (serverRoleEnabled('workers')) {
-            this.delayedWorker.start((item, rootCtx) => {
+            q.addWorker((item, rootCtx) => {
                 return inTx(rootCtx, async (ctx) => {
                     await this.onTimeoutFired(ctx, item.type, item.uid);
                     return { result: item.type };
@@ -58,15 +58,24 @@ export class UserOnboardingModule {
     //
 
     onUserActivated = async (ctx: Context, uid: number) => {
-        await this.sendWellcome(ctx, uid);
-        await this.sendToDiscoverIfNeeded(ctx, uid);
-        await this.askSendFirstMessageAfterActivated(ctx, uid);
-        await this.delayedWorker.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
-        await this.delayedWorker.pushWork(ctx, { uid, type: 'activated20h' }, Date.now() + 1000 * 60 * 60 * 20);
+        //
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
+        await this.onFirstEntrance(ctx, uid);
         await this.askSendFirstMessageAfterDiscover(ctx, uid);
+    }
+
+    onDiscoverSkipped = async (ctx: Context, uid: number) => {
+        await this.onFirstEntrance(ctx, uid);
+        await this.sendToDiscoverIfNeeded(ctx, uid);
+        await q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
+
+    }
+
+    onFirstEntrance = async (ctx: Context, uid: number) => {
+        await this.sendWellcome(ctx, uid);
+        await q.pushWork(ctx, { uid, type: 'activated20h' }, Date.now() + 1000 * 60 * 60 * 20);
     }
 
     onTimeoutFired = async (ctx: Context, type: DelayedEvents, uid: number) => {
@@ -112,11 +121,6 @@ export class UserOnboardingModule {
     }
 
     // First message
-    private askSendFirstMessageAfterActivated = async (ctx: Context, uid: number) => {
-        if (await this.isDiscoverCompletedWithJoin(ctx, uid)) {
-            await this.askSendFirstMessage(ctx, uid);
-        }
-    }
     private askSendFirstMessageAfterDiscover = async (ctx: Context, uid: number) => {
         if (!await this.userDidSendMessageToGroups(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
@@ -124,7 +128,7 @@ export class UserOnboardingModule {
     }
 
     private askSendFirstMessageAfterShortDelay = async (ctx: Context, uid: number) => {
-        if (!await this.isDiscoverCompletedWithJoin(ctx, uid) && !await this.userDidSendMessageToGroups(ctx, uid) && await this.userIsMemberOfAtLesatOneGroup(ctx, uid)) {
+        if (!await this.userDidSendMessageToGroups(ctx, uid) && await this.userIsMemberOfAtLesatOneGroup(ctx, uid)) {
             await this.askSendFirstMessage(ctx, uid);
         }
     }

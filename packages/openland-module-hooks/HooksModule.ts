@@ -176,6 +176,10 @@ export class HooksModule {
         await Modules.UserOnboarding.onDiscoverCompleted(ctx, uid);
     }
 
+    onDiscoverSkipped = async (ctx: Context, uid: number) => {
+        await Modules.UserOnboarding.onDiscoverSkipped(ctx, uid);
+    }
+
     onMessageSent = async (ctx: Context, uid: number) => {
         await Modules.UserOnboarding.onMessageSent(ctx, uid);
     }
