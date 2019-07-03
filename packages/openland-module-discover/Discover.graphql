@@ -27,5 +27,6 @@ extend type Mutation {
     betaDiscoverSkip(selectedTagsIds: [String!]!): DiscoverPage
     betaNextDiscoverReset: Boolean!
     betaNextDiscoverPageOrChats(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
-    betaSaveSelectedTags(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
+    betaSaveSelectedTags(selectedTagsIds: [String!]!): DiscoverPage
+    betaSubmitNextDiscover(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
 }

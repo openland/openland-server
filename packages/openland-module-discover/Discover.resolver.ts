@@ -42,7 +42,10 @@ export default {
             return Modules.Discover.skip(ctx, uid, args.selectedTagsIds);
         }),
         betaSaveSelectedTags: withUser((ctx, args, uid) => {
-            return Modules.Discover.saveSelectedTags(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
+            return Modules.Discover.saveSelectedTags(ctx, uid, args.selectedTagsIds);
+        }),
+        betaSubmitNextDiscover: withUser((ctx, args, uid) => {
+            return Modules.Discover.submitNext(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         })
     }
 } as GQLResolver;
