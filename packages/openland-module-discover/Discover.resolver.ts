@@ -20,6 +20,9 @@ export default {
         betaNextDiscoverPage: withUser((ctx, args, uid) => {
             return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
+        gammaNextDiscoverPage: withUser((ctx, args, uid) => {
+            return Modules.Discover.gammaNextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
+        }),
         betaSuggestedRooms: withUser((ctx, args, uid) => {
             return Modules.Discover.suggestedChats(ctx, uid);
         }),
@@ -37,6 +40,9 @@ export default {
         }),
         betaDiscoverSkip: withUser((ctx, args, uid) => {
             return Modules.Discover.skip(ctx, uid, args.selectedTagsIds);
+        }),
+        betaSaveSelectedTags: withUser((ctx, args, uid) => {
+            return Modules.Discover.saveSelectedTags(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         })
     }
 } as GQLResolver;

@@ -68,12 +68,12 @@ export class HooksModule {
         }
 
         let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
-        let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
+        // let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
 
         if (conditions.type === 'BY_SUPER_ADMIN') {
             let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(adminName, conditions.uid), `\nLink: ${orgSuperUrl}`),
+                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(adminName, conditions.uid)),
                 ignoreAugmentation: true,
             });
         } else if (conditions.type === 'BY_INVITE' || conditions.type === 'OWNER_ADDED_TO_ORG') {
@@ -81,7 +81,7 @@ export class HooksModule {
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), ` via invite.\nLink: ${orgSuperUrl}`),
+                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), ` via invite.`),
                 ignoreAugmentation: true,
             });
         }
