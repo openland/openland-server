@@ -104,7 +104,7 @@ export default {
         }),
     },
     UserChatWithBadge: {
-        basge: src => src.budge,
+        badge: src => src.badge,
         chat: src => src.cid
     },
     Query: {
