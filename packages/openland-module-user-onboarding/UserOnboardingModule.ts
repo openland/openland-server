@@ -23,7 +23,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     }),
     sendFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
-        message: [{ type: 'loud_text', parts: ['Get help from Openland community'] }, '\nDo you need any expert advice or new connections for your projects?\nSimply ask for help in one of our chats'],
+        message: [{ type: 'loud_text', parts: ['Get help from Openland community'] }, '\nChoose a chat and share your challenges'],
         keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] }
     }),
     invite: (user: UserProfile) => ({
