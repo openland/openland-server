@@ -106,6 +106,7 @@ extend type Mutation {
     debugFixMessage(id: Int!): Boolean!
     debugQueueSilentUserReport(delay: Int!): Boolean!
     debugQueueFirstWeekUserReport(delay: Int!): Boolean!
+    debugEnableNotificationCenterForAll: Boolean!
 }
 
 extend type Subscription {

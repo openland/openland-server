@@ -836,6 +836,22 @@ export default {
         debugQueueSilentUserReport: withPermission('super-admin', async (parent, args) => {
             await Modules.Stats.queueSilentUserReport(parent, parent.auth.uid!, args.delay);
             return true;
+        }),
+        debugEnableNotificationCenterForAll: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugEnableNotificationCenterForAll', async (ctx, uid, log) => {
+                let settings = await FDB.UserSettings.findById(ctx, uid);
+                if (!settings) {
+                    return;
+                }
+
+                if (!settings.commentNotifications) {
+                    settings.commentNotifications = 'all';
+                }
+                if (!settings.commentNotificationsDelivery) {
+                    settings.commentNotificationsDelivery = 'all';
+                }
+            });
+            return true;
         })
     },
     Subscription: {
