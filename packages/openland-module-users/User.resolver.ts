@@ -98,9 +98,14 @@ export default {
         },
         alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
         chatsWithBadge: withProfile(async (ctx, src, profile) => {
+            // return false;
             let badges = await FDB.UserRoomBadge.allFromUser(ctx, src.id);
-            return badges.map(b => b.cid);
+            return await Promise.all(badges.map(b => ({ cid: b.cid, badge: FDB.UserBadge.findById(ctx, b.bid! )})));
         }),
+    },
+    UserChatWithBadge: {
+        basge: src => src.budge,
+        chat: src => src.cid
     },
     Query: {
         me: async function (_obj: any, _params: {}, ctx: AppContext) {

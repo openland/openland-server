@@ -27,7 +27,12 @@ type User {
     alphaTwitter: String    
     alphaLocations: [String!]
 
-    chatsWithBadge: [Room!]!
+    chatsWithBadge: [UserChatWithBadge!]!
+}
+
+type UserChatWithBadge {
+    basge: UserBadge!
+    chat: Room!
 }
 
 extend type Query {

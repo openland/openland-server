@@ -161,6 +161,9 @@ export default {
             }
         }),
         myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
+        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => {
+            return (await FDB.UserRoomBadge.allFromChat(ctx, id)).length;
+        }),
     },
     RoomMessage: {
         id: (src: Message) => {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a0ad6f878d757b18f3cfe7b5ab125b21';
+export const GQL_SPEC_VERSION = '1a7010d28de9f056f00b8d2674058805';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2778,7 +2778,7 @@ export namespace GQL {
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
         alphaLocations: Nullable<string[]>;
-        chatsWithBadge: Room[];
+        chatsWithBadge: UserChatWithBadge[];
         online: boolean;
         active: boolean;
         lastSeen: Nullable<string>;
@@ -2788,6 +2788,10 @@ export namespace GQL {
         badges: UserBadge[];
         primaryBadge: Nullable<UserBadge>;
         shortname: Nullable<string>;
+    }
+    export interface UserChatWithBadge {
+        basge: UserBadge;
+        chat: Room;
     }
     export interface UserBadge {
         id: string;
@@ -2853,6 +2857,7 @@ export namespace GQL {
         welcomeMessage: Nullable<WelcomeMessage>;
         organization: Nullable<Organization>;
         membersCount: Nullable<number>;
+        featuredMembersCount: number;
         members: RoomMember[];
         requests: Nullable<RoomMember[]>;
         membership: SharedRoomMembershipStatus;
@@ -3152,7 +3157,8 @@ export interface GQLResolver {
     TagGroup?: ComplexTypedResolver<GQL.TagGroup, GQLRoots.TagGroupRoot, {tags: GQLRoots.TagRoot[]}, {}>;
     DiscoverPage?: ComplexTypedResolver<GQL.DiscoverPage, GQLRoots.DiscoverPageRoot, {chats: Nullable<GQLRoots.RoomRoot[]>, tagGroup: Nullable<GQLRoots.TagGroupRoot>}, {}>;
     TypingEvent?: ComplexTypedResolver<GQL.TypingEvent, GQLRoots.TypingEventRoot, {conversation: GQLRoots.ConversationRoot, chat: GQLRoots.RoomRoot, user: GQLRoots.UserRoot}, {}>;
-    User?: ComplexTypedResolver<GQL.User, GQLRoots.UserRoot, {channelsJoined: GQLRoots.ChannelConversationRoot[], photoRef: Nullable<GQLRoots.ImageRefRoot>, pictureRef: Nullable<GQLRoots.ImageRefRoot>, chatsWithBadge: GQLRoots.RoomRoot[], organizations: GQLRoots.OrganizationRoot[], primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>, badges: GQLRoots.UserBadgeRoot[], primaryBadge: Nullable<GQLRoots.UserBadgeRoot>}, {}>;
+    User?: ComplexTypedResolver<GQL.User, GQLRoots.UserRoot, {channelsJoined: GQLRoots.ChannelConversationRoot[], photoRef: Nullable<GQLRoots.ImageRefRoot>, pictureRef: Nullable<GQLRoots.ImageRefRoot>, chatsWithBadge: GQLRoots.UserChatWithBadgeRoot[], organizations: GQLRoots.OrganizationRoot[], primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>, badges: GQLRoots.UserBadgeRoot[], primaryBadge: Nullable<GQLRoots.UserBadgeRoot>}, {}>;
+    UserChatWithBadge?: ComplexTypedResolver<GQL.UserChatWithBadge, GQLRoots.UserChatWithBadgeRoot, {basge: GQLRoots.UserBadgeRoot, chat: GQLRoots.RoomRoot}, {}>;
     UserBadge?: ComplexTypedResolver<GQL.UserBadge, GQLRoots.UserBadgeRoot, {}, {}>;
     UserEdge?: ComplexTypedResolver<GQL.UserEdge, GQLRoots.UserEdgeRoot, {node: GQLRoots.UserRoot}, {}>;
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, GQLRoots.UserConnectionRoot, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
