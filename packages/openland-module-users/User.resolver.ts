@@ -97,6 +97,10 @@ export default {
             return [];
         },
         alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
+        chatsWithBadge: withProfile(async (ctx, src, profile) => {
+            let badges = await FDB.UserRoomBadge.allFromUser(ctx, src.id);
+            return badges.map(b => b.cid);
+        }),
     },
     Query: {
         me: async function (_obj: any, _params: {}, ctx: AppContext) {

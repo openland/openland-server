@@ -413,6 +413,16 @@ export default {
                 return await FDB.RoomParticipant.rangeFromActive(ctx, roomId, args.first || 1000);
             }
         }),
+        roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.roomId);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
+            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            if (!conversation) {
+                throw new Error('Room not found');
+            }
+            let badges = await FDB.UserRoomBadge.rangeFromChat(ctx, roomId, args.first || 1000);
+            return await Promise.all(badges.map(b => FDB.RoomParticipant.findById(ctx, b.cid, b.uid)));
+        }),
 
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
             return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });

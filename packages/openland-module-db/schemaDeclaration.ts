@@ -1270,6 +1270,9 @@ const Schema = declareSchema(() => {
         primaryKey('cid', 'number');
         field('bid', 'number').nullable();
 
+        rangeIndex('chat', ['cid', 'uid']).withCondition((src) => !!src.bid);
+        rangeIndex('user', ['uid', 'cid']).withCondition((src) => !!src.bid);
+
         enableVersioning();
         enableTimestamps();
     });

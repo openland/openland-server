@@ -12079,14 +12079,25 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
             { name: 'bid', type: 'number' },
         ],
         indexes: [
+            { name: 'chat', type: 'range', fields: ['cid', 'uid'] },
+            { name: 'user', type: 'range', fields: ['uid', 'cid'] },
         ],
     };
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('userRoomBadge');
         let config = { enableVersioning: true, enableTimestamps: true, validator: UserRoomBadgeFactory.validate, keyValidator: UserRoomBadgeFactory.validateKey, hasLiveStreams: false };
-        return new UserRoomBadgeFactory(layer, directory, config);
+        let indexChat = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'chat'), 'chat', ['cid', 'uid'], false, (src) => !!src.bid);
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'user'), 'user', ['uid', 'cid'], false, (src) => !!src.bid);
+        let indexes = {
+            chat: indexChat,
+            user: indexUser,
+        };
+        return new UserRoomBadgeFactory(layer, directory, config, indexes);
     }
+
+    readonly indexChat: FEntityIndex;
+    readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
@@ -12101,8 +12112,10 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
         validators.isNumber('1', key[1]);
     }
 
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('UserRoomBadge', 'userRoomBadge', config, [], layer, directory);
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { chat: FEntityIndex, user: FEntityIndex }) {
+        super('UserRoomBadge', 'userRoomBadge', config, [indexes.chat, indexes.user], layer, directory);
+        this.indexChat = indexes.chat;
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -12119,6 +12132,42 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
     }
     watch(ctx: Context, uid: number, cid: number) {
         return this._watch(ctx, [uid, cid]);
+    }
+    async allFromChatAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexChat.directory, [cid], after);
+    }
+    async rangeFromChatAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexChat.directory, [cid], after, limit, reversed);
+    }
+    async rangeFromChat(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexChat.directory, [cid], limit, reversed);
+    }
+    async rangeFromChatWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexChat.directory, [cid], limit, after, reversed);
+    }
+    async allFromChat(ctx: Context, cid: number) {
+        return await this._findAll(ctx, this.indexChat.directory, [cid]);
+    }
+    createChatStream(cid: number, limit: number, after?: string) {
+        return this._createStream(this.indexChat.directory, [cid], limit, after); 
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
+    }
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserRoomBadge(ctx, this.layer, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserRoomBadge');

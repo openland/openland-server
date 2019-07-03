@@ -268,7 +268,7 @@ export class UserRepository {
         });
     }
 
-    async deleteBadge(parent: Context, uid: number, bid: number) {
+    async deleteBadge(parent: Context, uid: number, bid: number, skipAccessCheck: boolean = false) {
         return await inTx(parent, async (ctx) => {
             let userBadge = await this.entities.UserBadge.findById(ctx, bid);
             let profile = await this.entities.UserProfile.findById(ctx, uid);
@@ -277,7 +277,7 @@ export class UserRepository {
                 throw new NotFoundError();
             }
 
-            if (userBadge.uid !== uid) {
+            if (!skipAccessCheck && userBadge.uid !== uid) {
                 throw new AccessDeniedError();
             }
 
@@ -347,7 +347,12 @@ export class UserRepository {
             let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
 
             if (roomBadge) {
-                roomBadge.bid = bid;
+                if (bid === null && roomBadge.bid) {
+                    await this.deleteBadge(ctx, uid, roomBadge.bid, true);
+                    roomBadge.bid = bid;
+                } else {
+                    roomBadge.bid = bid;
+                }
             } else {
                 await this.entities.UserRoomBadge.create(ctx, uid, cid, {
                     bid: bid
