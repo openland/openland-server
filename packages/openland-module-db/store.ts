@@ -2,9 +2,9 @@
 // @ts-ignore
 import { Context } from '@openland/context';
 // @ts-ignore
-import { Subspace } from '@openland/foundationdb';
+import { Subspace, Watch, RangeOptions } from '@openland/foundationdb';
 // @ts-ignore
-import { EntityStorage, BaseStore } from '@openland/foundationdb-entity';
+import { EntityStorage, BaseStore, codecs as c } from '@openland/foundationdb-entity';
 // @ts-ignore
 import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundationdb-entity';
 
@@ -479,27 +479,27 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
         super(storage, subspace);
     }
 
-    byId(name: string) {
+    byId(name: number) {
         return this._findById([name]);
     }
 
-    get(ctx: Context, name: string) {
+    get(ctx: Context, name: number) {
         return this._get(ctx, [name]);
     }
 
-    set(ctx: Context, name: string, value: number) {
+    set(ctx: Context, name: number, value: number) {
         return this._set(ctx, [name], value);
     }
 
-    add(ctx: Context, name: string, value: number) {
+    add(ctx: Context, name: number, value: number) {
         return this._add(ctx, [name], value);
     }
 
-    increment(ctx: Context, name: string) {
+    increment(ctx: Context, name: number) {
         return this._increment(ctx, [name]);
     }
 
-    decrement(ctx: Context, name: string) {
+    decrement(ctx: Context, name: number) {
         return this._decrement(ctx, [name]);
     }
 }
@@ -536,35 +536,21 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
-    let UserCounter = await UserCounterPromise;
-    let UserMessagesSentCounter = await UserMessagesSentCounterPromise;
-    let UserMessagesSentInDirectChatTotalCounter = await UserMessagesSentInDirectChatTotalCounterPromise;
-    let UserMessagesReceivedCounter = await UserMessagesReceivedCounterPromise;
-    let UserMessagesChatsCounter = await UserMessagesChatsCounterPromise;
-    let UserMessagesDirectChatsCounter = await UserMessagesDirectChatsCounterPromise;
-    let UserSuccessfulInvitesCounter = await UserSuccessfulInvitesCounterPromise;
-    let UserDialogCounter = await UserDialogCounterPromise;
-    let UserDialogHaveMention = await UserDialogHaveMentionPromise;
-    let NotificationCenterCounter = await NotificationCenterCounterPromise;
-    let UserAudienceCounter = await UserAudienceCounterPromise;
-    let UserMessagesSentInDirectChatCounter = await UserMessagesSentInDirectChatCounterPromise;
-    let User2WayDirectChatsCounter = await User2WayDirectChatsCounterPromise;
-    let GlobalStatisticsCounters = await GlobalStatisticsCountersPromise;
     return {
         storage,
-        UserCounter,
-        UserMessagesSentCounter,
-        UserMessagesSentInDirectChatTotalCounter,
-        UserMessagesReceivedCounter,
-        UserMessagesChatsCounter,
-        UserMessagesDirectChatsCounter,
-        UserSuccessfulInvitesCounter,
-        UserDialogCounter,
-        UserDialogHaveMention,
-        NotificationCenterCounter,
-        UserAudienceCounter,
-        UserMessagesSentInDirectChatCounter,
-        User2WayDirectChatsCounter,
-        GlobalStatisticsCounters,
+        UserCounter: await UserCounterPromise,
+        UserMessagesSentCounter: await UserMessagesSentCounterPromise,
+        UserMessagesSentInDirectChatTotalCounter: await UserMessagesSentInDirectChatTotalCounterPromise,
+        UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
+        UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
+        UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
+        UserSuccessfulInvitesCounter: await UserSuccessfulInvitesCounterPromise,
+        UserDialogCounter: await UserDialogCounterPromise,
+        UserDialogHaveMention: await UserDialogHaveMentionPromise,
+        NotificationCenterCounter: await NotificationCenterCounterPromise,
+        UserAudienceCounter: await UserAudienceCounterPromise,
+        UserMessagesSentInDirectChatCounter: await UserMessagesSentInDirectChatCounterPromise,
+        User2WayDirectChatsCounter: await User2WayDirectChatsCounterPromise,
+        GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
     };
 }

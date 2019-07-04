@@ -1,55 +1,55 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
     atomicInt('UserCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
     atomicInt('UserMessagesSentCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
     atomicInt('UserMessagesSentInDirectChatTotalCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
     atomicInt('UserMessagesReceivedCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
     atomicInt('UserMessagesChatsCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
     atomicInt('UserMessagesDirectChatsCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
     atomicInt('UserSuccessfulInvitesCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
 
     atomicInt('UserDialogCounter', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
     });
     atomicBool('UserDialogHaveMention', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
     });
 
     atomicInt('NotificationCenterCounter', () => {
-        primaryKey('ncid', 'number');
+        primaryKey('ncid', integer());
     });
 
     atomicInt('UserAudienceCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
 
     atomicInt('UserMessagesSentInDirectChatCounter', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
     });
 
     atomicInt('User2WayDirectChatsCounter', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', integer());
     });
 
     atomicInt('GlobalStatisticsCounters', () => {
-        primaryKey('name', 'string');
+        primaryKey('name', integer());
     });
 });
