@@ -38,8 +38,8 @@ describe('InvitesMediator', () => {
         orgs = container.get<OrganizationModule>(OrganizationModule);
     });
 
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should add to channel via invite', async () => {

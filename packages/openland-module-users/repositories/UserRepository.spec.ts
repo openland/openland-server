@@ -9,8 +9,8 @@ describe('UserRepository', () => {
         await testEnvironmentStart('users');
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should create users', async () => {

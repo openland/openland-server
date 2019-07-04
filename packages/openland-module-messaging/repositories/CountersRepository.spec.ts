@@ -17,8 +17,8 @@ describe('CountersRepository', () => {
         // container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         loadUsersModule();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     it('should increment counter and decrement', async () => {
         let ctx = createNamedContext('test');

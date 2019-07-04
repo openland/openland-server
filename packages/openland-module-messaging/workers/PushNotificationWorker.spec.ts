@@ -120,7 +120,7 @@ describe('PushNotificationWorker', () => {
     //
     //     // await inTx(rootCtx, async ctx => {
     //     //     let online = await FDB.Online.findById(ctx, testData.reciever);
-    //     //     online!.lastSeen = Date.now() - 60000;
+    //     //     online!.las()tSeen = Date.now() - 60000;
     //     //     online!.active = false;
     //     //     online!.flush(ctx);
     //     // });
@@ -151,8 +151,8 @@ describe('PushNotificationWorker', () => {
             let settings2 = await Modules.Users.getUserSettings(ctx, USER_ID1);
             settings2.desktopNotifications = 'none';
             settings2.mobileNotifications = 'none';
-            settings.flush(ctx);
-            settings2.flush(ctx);
+            await settings.flush(ctx);
+            await settings2.flush(ctx);
 
             let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, USER_ID1, USER_ID2);
             await Modules.Messaging.markAsSeqRead(ctx, USER_ID1, 1);
@@ -169,7 +169,7 @@ describe('PushNotificationWorker', () => {
             let online = await FDB.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
-            online!.flush(ctx);
+            await online!.flush(ctx);
         });
 
         await delay(15000);
@@ -238,7 +238,7 @@ describe('PushNotificationWorker', () => {
             let online = await FDB.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
-            online!.flush(ctx);
+            await online!.flush(ctx);
         });
 
         await delay(15000);
@@ -279,8 +279,8 @@ describe('PushNotificationWorker', () => {
             settings.mobileNotifications = 'none';
             let settings2 = await Modules.Users.getUserSettings(ctx, USER_ID1);
             settings2.mobileNotifications = 'none';
-            settings.flush(ctx);
-            settings2.flush(ctx);
+            await settings.flush(ctx);
+            await settings2.flush(ctx);
 
             return {
                 message: await Modules.Messaging.sendMessage(ctx, chat.id, USER_ID2, { message: 'kek' }),
@@ -294,7 +294,7 @@ describe('PushNotificationWorker', () => {
             let online = await FDB.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
-            online!.flush(ctx);
+            await online!.flush(ctx);
         });
 
         await delay(15000);
@@ -335,8 +335,8 @@ describe('PushNotificationWorker', () => {
             settings.desktopNotifications = 'none';
             let settings2 = await Modules.Users.getUserSettings(ctx, USER_ID1);
             settings2.desktopNotifications = 'none';
-            settings.flush(ctx);
-            settings2.flush(ctx);
+            await settings.flush(ctx);
+            await settings2.flush(ctx);
 
             return {
                 message: await Modules.Messaging.sendMessage(ctx, chat.id, USER_ID2, { message: 'kek' }),
@@ -350,7 +350,7 @@ describe('PushNotificationWorker', () => {
             let online = await FDB.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
-            online!.flush(ctx);
+            await online!.flush(ctx);
         });
 
         await delay(15000);

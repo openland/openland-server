@@ -18,8 +18,8 @@ describe('PresenceModule', () => {
         loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should setOnline', async () => {

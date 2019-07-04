@@ -51,8 +51,8 @@ describe('Emails', () => {
         container.bind(SuperModule).toSelf().inSingletonScope();
         loadInvitesModule();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     const getSpy = () => {

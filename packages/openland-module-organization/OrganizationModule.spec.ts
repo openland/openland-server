@@ -24,8 +24,8 @@ describe('OrganizationModule', () => {
         container.bind(HooksModule).toSelf().inSingletonScope();
         // console.log('loaded in ' + (Date.now() - start) + ' ms');
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     async function createUser(ctx: Context, index: number) {

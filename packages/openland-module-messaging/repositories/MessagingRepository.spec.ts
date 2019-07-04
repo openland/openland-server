@@ -13,8 +13,8 @@ describe('MessagingRepository', () => {
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
         container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should create message and event', async () => {

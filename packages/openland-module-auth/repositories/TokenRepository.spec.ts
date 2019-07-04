@@ -8,8 +8,8 @@ describe('TokenRepository', () => {
         await testEnvironmentStart('tokens');
         container.bind('TokenRepository').to(TokenRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     
     it('should create tokens', async () => {

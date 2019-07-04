@@ -9,8 +9,8 @@ describe('CallRepository', () => {
         await testEnvironmentStart('calls-repo');
         container.bind(CallRepository).toSelf().inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     it('should create conference', async () => {
         let repo = container.get(CallRepository);
