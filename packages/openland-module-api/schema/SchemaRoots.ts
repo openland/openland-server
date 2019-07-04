@@ -1,3 +1,4 @@
+import { EnvironmentVariable } from './../../openland-module-db/store';
 import {
     Conversation,
     ConversationRoom,
@@ -13,7 +14,6 @@ import {
     ConversationEvent,
     AppHook,
     Presence,
-    EnvironmentVariable,
     Comment,
     CommentEvent,
     UserStorageRecord,
@@ -334,4 +334,5 @@ export namespace GQLRoots {
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };
+    export type UserChatWithBadgeRoot = { badge: UserBadge, cid: number };
 }

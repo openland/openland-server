@@ -19,10 +19,11 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageMention } from '../MessageInput';
+import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
 
 type RoomRoot = Conversation | number;
 
-function withConverationId<T>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => any) {
+function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
     return async (src: RoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
@@ -132,7 +133,7 @@ export default {
 
         pinnedMessage: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage))),
 
-        membership: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')),
+        membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
         role: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
         membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         members: withConverationId(async (ctx, id, args, showPlaceholder) => {
@@ -161,6 +162,7 @@ export default {
             }
         }),
         myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
+        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await FDB.UserRoomBadge.allFromChat(ctx, id)).length),
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -412,6 +414,16 @@ export default {
 
                 return await FDB.RoomParticipant.rangeFromActive(ctx, roomId, args.first || 1000);
             }
+        }),
+        roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.roomId);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
+            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            if (!conversation) {
+                throw new Error('Room not found');
+            }
+            let badges = await FDB.UserRoomBadge.rangeFromChat(ctx, roomId, args.first || 1000);
+            return await Promise.all(badges.map(b => FDB.RoomParticipant.findById(ctx, b.cid, b.uid)));
         }),
 
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {

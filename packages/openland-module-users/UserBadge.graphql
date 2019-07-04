@@ -5,36 +5,38 @@ type UserBadge {
 }
 
 extend type User {
+    # deprecated
     badges: [UserBadge!]!
     primaryBadge: UserBadge
 }
 
 extend type Profile {
+    # deprecated
     primaryBadge: UserBadge
 }
 
 extend type Query {
-    badgeInRoom(roomId: ID!): UserBadge
-
-    # super-admin methods
     superBadgeInRoom(roomId: ID!, userId: ID!): UserBadge
+
+    # deprecated
+    badgeInRoom(roomId: ID!): UserBadge @disabled
 }
 
 extend type Mutation {
-    badgeCreate(name: String!): User!
-    badgeCreateToRoom(roomId: ID!, name: String!): UserBadge!
-    badgeSetToRoom(roomId: ID!, badgeId: ID!): UserBadge!
-    badgeUnsetToRoom(roomId: ID!): Boolean!
-    badgeDelete(badgeId: ID!): User!
-    badgeSetPrimary(badgeId: ID!): User!
-    badgeUnsetPrimary: User!
-
-    # super-admin methods
-    superBadgeCreate(userId: ID!, name: String!): User!
     superBadgeCreateToRoom(roomId: ID!, userId: ID!, name: String!): UserBadge!
-    superBadgeSetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): UserBadge!
     superBadgeUnsetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): Boolean!
-    superBadgeDelete(badgeId: ID!, userId: ID!): User!
-    superBadgeVerify(badgeId: ID!, userId: ID!): User!
-    superBadgeUnverify(badgeId: ID!, userId: ID!): User!
+
+    # deprecated
+    badgeCreate(name: String!): User! @disabled
+    badgeCreateToRoom(roomId: ID!, name: String!): UserBadge! @disabled
+    badgeSetToRoom(roomId: ID!, badgeId: ID!): UserBadge! @disabled
+    badgeUnsetToRoom(roomId: ID!): Boolean! @disabled
+    badgeDelete(badgeId: ID!): User! @disabled
+    badgeSetPrimary(badgeId: ID!): User! @disabled
+    badgeUnsetPrimary: User! @disabled
+    superBadgeCreate(userId: ID!, name: String!): User! @disabled
+    superBadgeSetToRoom(roomId: ID!, badgeId: ID!, userId: ID!): UserBadge! @disabled
+    superBadgeDelete(badgeId: ID!, userId: ID!): User! @disabled
+    superBadgeVerify(badgeId: ID!, userId: ID!): User! @disabled
+    superBadgeUnverify(badgeId: ID!, userId: ID!): User! @disabled
 }

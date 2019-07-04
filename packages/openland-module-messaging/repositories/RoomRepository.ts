@@ -14,6 +14,7 @@ import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
+import { Store } from '../../openland-module-db/store';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -35,6 +36,7 @@ export type WelcomeMessageT = {
 @injectable()
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
+    @lazyInject('Store') private readonly store!: Store;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
@@ -1122,10 +1124,11 @@ export class RoomRepository {
         return await inTx(parent, async (ctx) => {
             await EventBus.publish(`chat_join_${cid}`, { uid, cid });
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
-
-            if (!room) {
+            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            if (!room || !roomProfile) {
                 throw new Error('Room not found');
             }
+            await this.store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
 
             if (room.oid) {
                 let org = await this.entities.Organization.findById(ctx, room.oid);
@@ -1142,7 +1145,6 @@ export class RoomRepository {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }
             }
-
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.id, uid);
@@ -1154,6 +1156,10 @@ export class RoomRepository {
     }
 
     private async onRoomLeave(parent: Context, cid: number, uid: number) {
-        await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
+        return await inTx(parent, async (ctx) => {
+            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            await this.store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
+            await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
+        });
     }
 }

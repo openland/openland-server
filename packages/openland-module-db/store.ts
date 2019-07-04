@@ -2,11 +2,13 @@
 // @ts-ignore
 import { Context } from '@openland/context';
 // @ts-ignore
-import { Subspace } from '@openland/foundationdb';
+import { Subspace, Watch, RangeOptions } from '@openland/foundationdb';
 // @ts-ignore
-import { EntityStorage, BaseStore } from '@openland/foundationdb-entity';
+import { EntityStorage, BaseStore, codecs as c } from '@openland/foundationdb-entity';
 // @ts-ignore
 import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundationdb-entity';
+// @ts-ignore
+import { Entity, EntityFactory, EntityDescriptor, SecondaryIndexDescriptor, ShapeWithMetadata, PrimaryKeyDescriptor, FieldDescriptor, StreamProps } from '@openland/foundationdb-entity';
 
 export class UserCounterFactory extends AtomicIntegerFactory {
 
@@ -504,6 +506,134 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
     }
 }
 
+export interface EnvironmentShape {
+    production: number;
+    comment: string;
+}
+
+export interface EnvironmentCreateShape {
+    comment: string;
+}
+
+export class Environment extends Entity<EnvironmentShape> {
+    get production(): number { return this._rawValue.production; }
+    get comment(): string { return this._rawValue.comment; }
+    set comment(value: string) {
+        let normalized = this.descriptor.codec.fields.comment.normalize(value);
+        if (this._rawValue.comment !== normalized) {
+            this._rawValue.comment = normalized;
+            this._updatedValues.comment = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class EnvironmentFactory extends EntityFactory<EnvironmentShape, Environment> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('environment');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'production', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'comment', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            production: c.integer,
+            comment: c.string,
+        });
+        let descriptor: EntityDescriptor<EnvironmentShape> = {
+            name: 'Environment',
+            storageKey: 'environment',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new EnvironmentFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<EnvironmentShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, production: number, src: EnvironmentCreateShape): Promise<Environment> {
+        return this._create(ctx, [production], this.descriptor.codec.normalize({ production, ...src }));
+    }
+
+    findById(ctx: Context, production: number): Promise<Environment | null> {
+        return this._findById(ctx, [production]);
+    }
+
+    watch(ctx: Context, production: number): Watch {
+        return this._watch(ctx, [production]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EnvironmentShape>): Environment {
+        return new Environment([value.production], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface EnvironmentVariableShape {
+    name: string;
+    value: string;
+}
+
+export interface EnvironmentVariableCreateShape {
+    value: string;
+}
+
+export class EnvironmentVariable extends Entity<EnvironmentVariableShape> {
+    get name(): string { return this._rawValue.name; }
+    get value(): string { return this._rawValue.value; }
+    set value(value: string) {
+        let normalized = this.descriptor.codec.fields.value.normalize(value);
+        if (this._rawValue.value !== normalized) {
+            this._rawValue.value = normalized;
+            this._updatedValues.value = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariableShape, EnvironmentVariable> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('environmentVariable');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'name', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'value', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            name: c.string,
+            value: c.string,
+        });
+        let descriptor: EntityDescriptor<EnvironmentVariableShape> = {
+            name: 'EnvironmentVariable',
+            storageKey: 'environmentVariable',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new EnvironmentVariableFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<EnvironmentVariableShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, name: string, src: EnvironmentVariableCreateShape): Promise<EnvironmentVariable> {
+        return this._create(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
+    }
+
+    findById(ctx: Context, name: string): Promise<EnvironmentVariable | null> {
+        return this._findById(ctx, [name]);
+    }
+
+    watch(ctx: Context, name: string): Watch {
+        return this._watch(ctx, [name]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EnvironmentVariableShape>): EnvironmentVariable {
+        return new EnvironmentVariable([value.name], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -519,6 +649,8 @@ export interface Store extends BaseStore {
     readonly UserMessagesSentInDirectChatCounter: UserMessagesSentInDirectChatCounterFactory;
     readonly User2WayDirectChatsCounter: User2WayDirectChatsCounterFactory;
     readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
+    readonly Environment: EnvironmentFactory;
+    readonly EnvironmentVariable: EnvironmentVariableFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -536,35 +668,25 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
-    let UserCounter = await UserCounterPromise;
-    let UserMessagesSentCounter = await UserMessagesSentCounterPromise;
-    let UserMessagesSentInDirectChatTotalCounter = await UserMessagesSentInDirectChatTotalCounterPromise;
-    let UserMessagesReceivedCounter = await UserMessagesReceivedCounterPromise;
-    let UserMessagesChatsCounter = await UserMessagesChatsCounterPromise;
-    let UserMessagesDirectChatsCounter = await UserMessagesDirectChatsCounterPromise;
-    let UserSuccessfulInvitesCounter = await UserSuccessfulInvitesCounterPromise;
-    let UserDialogCounter = await UserDialogCounterPromise;
-    let UserDialogHaveMention = await UserDialogHaveMentionPromise;
-    let NotificationCenterCounter = await NotificationCenterCounterPromise;
-    let UserAudienceCounter = await UserAudienceCounterPromise;
-    let UserMessagesSentInDirectChatCounter = await UserMessagesSentInDirectChatCounterPromise;
-    let User2WayDirectChatsCounter = await User2WayDirectChatsCounterPromise;
-    let GlobalStatisticsCounters = await GlobalStatisticsCountersPromise;
+    let EnvironmentPromise = EnvironmentFactory.open(storage);
+    let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
     return {
         storage,
-        UserCounter,
-        UserMessagesSentCounter,
-        UserMessagesSentInDirectChatTotalCounter,
-        UserMessagesReceivedCounter,
-        UserMessagesChatsCounter,
-        UserMessagesDirectChatsCounter,
-        UserSuccessfulInvitesCounter,
-        UserDialogCounter,
-        UserDialogHaveMention,
-        NotificationCenterCounter,
-        UserAudienceCounter,
-        UserMessagesSentInDirectChatCounter,
-        User2WayDirectChatsCounter,
-        GlobalStatisticsCounters,
+        UserCounter: await UserCounterPromise,
+        UserMessagesSentCounter: await UserMessagesSentCounterPromise,
+        UserMessagesSentInDirectChatTotalCounter: await UserMessagesSentInDirectChatTotalCounterPromise,
+        UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
+        UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
+        UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
+        UserSuccessfulInvitesCounter: await UserSuccessfulInvitesCounterPromise,
+        UserDialogCounter: await UserDialogCounterPromise,
+        UserDialogHaveMention: await UserDialogHaveMentionPromise,
+        NotificationCenterCounter: await NotificationCenterCounterPromise,
+        UserAudienceCounter: await UserAudienceCounterPromise,
+        UserMessagesSentInDirectChatCounter: await UserMessagesSentInDirectChatCounterPromise,
+        User2WayDirectChatsCounter: await User2WayDirectChatsCounterPromise,
+        GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
+        Environment: await EnvironmentPromise,
+        EnvironmentVariable: await EnvironmentVariablePromise,
     };
 }

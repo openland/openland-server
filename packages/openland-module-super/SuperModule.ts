@@ -11,7 +11,7 @@ import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/
 export class SuperModule {
     private readonly repo = new SuperRepository(FDB);
     private readonly permissionsRepo = new PermissionsRepository(FDB);
-    private readonly envVarsRepo = new EnvironmentVariablesRepository(FDB);
+    private readonly envVarsRepo = new EnvironmentVariablesRepository();
 
     async findAllSuperAdmins(ctx: Context) {
         return this.repo.findAllSuperAdmins(ctx);

@@ -22,151 +22,6 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
-export interface EnvironmentShape {
-    comment: string;
-}
-
-export class Environment extends FEntity {
-    readonly entityName: 'Environment' = 'Environment';
-    get production(): number { return this._value.production; }
-    get comment(): string {
-        return this._value.comment;
-    }
-    set comment(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.comment) { return; }
-        this._value.comment = value;
-        this.markDirty();
-    }
-}
-
-export class EnvironmentFactory extends FEntityFactory<Environment> {
-    static schema: FEntitySchema = {
-        name: 'Environment',
-        editable: true,
-        primaryKeys: [
-            { name: 'production', type: 'number' },
-        ],
-        fields: [
-            { name: 'comment', type: 'string' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('environment');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: EnvironmentFactory.validate, keyValidator: EnvironmentFactory.validateKey, hasLiveStreams: false };
-        return new EnvironmentFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('production', src.production);
-        validators.isNumber('production', src.production);
-        validators.notNull('comment', src.comment);
-        validators.isString('comment', src.comment);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('Environment', 'environment', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'production': rawId[0] };
-    }
-    async findById(ctx: Context, production: number) {
-        return await this._findById(ctx, [production]);
-    }
-    async create(ctx: Context, production: number, shape: EnvironmentShape) {
-        return await this._create(ctx, [production], { production, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, production: number, shape: EnvironmentShape) {
-        return await this._create_UNSAFE(ctx, [production], { production, ...shape });
-    }
-    watch(ctx: Context, production: number) {
-        return this._watch(ctx, [production]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Environment(ctx, this.layer, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
-    }
-}
-export interface EnvironmentVariableShape {
-    value: string;
-}
-
-export class EnvironmentVariable extends FEntity {
-    readonly entityName: 'EnvironmentVariable' = 'EnvironmentVariable';
-    get name(): string { return this._value.name; }
-    get value(): string {
-        return this._value.value;
-    }
-    set value(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.value) { return; }
-        this._value.value = value;
-        this.markDirty();
-    }
-}
-
-export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariable> {
-    static schema: FEntitySchema = {
-        name: 'EnvironmentVariable',
-        editable: true,
-        primaryKeys: [
-            { name: 'name', type: 'string' },
-        ],
-        fields: [
-            { name: 'value', type: 'string' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('environmentVariable');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: EnvironmentVariableFactory.validate, keyValidator: EnvironmentVariableFactory.validateKey, hasLiveStreams: false };
-        return new EnvironmentVariableFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('name', src.name);
-        validators.isString('name', src.name);
-        validators.notNull('value', src.value);
-        validators.isString('value', src.value);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('EnvironmentVariable', 'environmentVariable', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'name': rawId[0] };
-    }
-    async findById(ctx: Context, name: string) {
-        return await this._findById(ctx, [name]);
-    }
-    async create(ctx: Context, name: string, shape: EnvironmentVariableShape) {
-        return await this._create(ctx, [name], { name, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, name: string, shape: EnvironmentVariableShape) {
-        return await this._create_UNSAFE(ctx, [name], { name, ...shape });
-    }
-    watch(ctx: Context, name: string) {
-        return this._watch(ctx, [name]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new EnvironmentVariable(ctx, this.layer, this.directory, [value.name], value, this.options, isNew, this.indexes, 'EnvironmentVariable');
-    }
-}
 export interface OnlineShape {
     lastSeen: number;
     activeExpires?: number| null;
@@ -12079,14 +11934,25 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
             { name: 'bid', type: 'number' },
         ],
         indexes: [
+            { name: 'chat', type: 'range', fields: ['cid', 'uid'] },
+            { name: 'user', type: 'range', fields: ['uid', 'cid'] },
         ],
     };
 
     static async create(layer: EntityLayer) {
         let directory = await layer.resolveEntityDirectory('userRoomBadge');
         let config = { enableVersioning: true, enableTimestamps: true, validator: UserRoomBadgeFactory.validate, keyValidator: UserRoomBadgeFactory.validateKey, hasLiveStreams: false };
-        return new UserRoomBadgeFactory(layer, directory, config);
+        let indexChat = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'chat'), 'chat', ['cid', 'uid'], false, (src) => !!src.bid);
+        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'user'), 'user', ['uid', 'cid'], false, (src) => !!src.bid);
+        let indexes = {
+            chat: indexChat,
+            user: indexUser,
+        };
+        return new UserRoomBadgeFactory(layer, directory, config, indexes);
     }
+
+    readonly indexChat: FEntityIndex;
+    readonly indexUser: FEntityIndex;
 
     private static validate(src: any) {
         validators.notNull('uid', src.uid);
@@ -12101,8 +11967,10 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
         validators.isNumber('1', key[1]);
     }
 
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('UserRoomBadge', 'userRoomBadge', config, [], layer, directory);
+    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { chat: FEntityIndex, user: FEntityIndex }) {
+        super('UserRoomBadge', 'userRoomBadge', config, [indexes.chat, indexes.user], layer, directory);
+        this.indexChat = indexes.chat;
+        this.indexUser = indexes.user;
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
@@ -12119,6 +11987,42 @@ export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
     }
     watch(ctx: Context, uid: number, cid: number) {
         return this._watch(ctx, [uid, cid]);
+    }
+    async allFromChatAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexChat.directory, [cid], after);
+    }
+    async rangeFromChatAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexChat.directory, [cid], after, limit, reversed);
+    }
+    async rangeFromChat(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexChat.directory, [cid], limit, reversed);
+    }
+    async rangeFromChatWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexChat.directory, [cid], limit, after, reversed);
+    }
+    async allFromChat(ctx: Context, cid: number) {
+        return await this._findAll(ctx, this.indexChat.directory, [cid]);
+    }
+    createChatStream(cid: number, limit: number, after?: string) {
+        return this._createStream(this.indexChat.directory, [cid], limit, after); 
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, this.indexUser.directory, [uid]);
+    }
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(this.indexUser.directory, [uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserRoomBadge(ctx, this.layer, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserRoomBadge');
@@ -12364,8 +12268,6 @@ export interface AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly Environment: EnvironmentFactory;
-    readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly AuthToken: AuthTokenFactory;
@@ -12454,8 +12356,6 @@ export interface AllEntities {
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
-        EnvironmentFactory.schema,
-        EnvironmentVariableFactory.schema,
         OnlineFactory.schema,
         PresenceFactory.schema,
         AuthTokenFactory.schema,
@@ -12545,8 +12445,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     static async create(layer: EntityLayer) {
         let allEntities: FEntityFactory<FEntity>[] = [];
-        let EnvironmentPromise = EnvironmentFactory.create(layer);
-        let EnvironmentVariablePromise = EnvironmentVariableFactory.create(layer);
         let OnlinePromise = OnlineFactory.create(layer);
         let PresencePromise = PresenceFactory.create(layer);
         let AuthTokenPromise = AuthTokenFactory.create(layer);
@@ -12634,8 +12532,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserOnboardingStatePromise = UserOnboardingStateFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
-        allEntities.push(await EnvironmentPromise);
-        allEntities.push(await EnvironmentVariablePromise);
         allEntities.push(await OnlinePromise);
         allEntities.push(await PresencePromise);
         allEntities.push(await AuthTokenPromise);
@@ -12723,8 +12619,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserOnboardingStatePromise);
         let entities = {
             layer, allEntities,
-            Environment: await EnvironmentPromise,
-            EnvironmentVariable: await EnvironmentVariablePromise,
             Online: await OnlinePromise,
             Presence: await PresencePromise,
             AuthToken: await AuthTokenPromise,
@@ -12819,8 +12713,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly Environment: EnvironmentFactory;
-    readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly AuthToken: AuthTokenFactory;
@@ -12909,10 +12801,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
-        this.Environment = entities.Environment;
-        this.allEntities.push(this.Environment);
-        this.EnvironmentVariable = entities.EnvironmentVariable;
-        this.allEntities.push(this.EnvironmentVariable);
         this.Online = entities.Online;
         this.allEntities.push(this.Online);
         this.Presence = entities.Presence;

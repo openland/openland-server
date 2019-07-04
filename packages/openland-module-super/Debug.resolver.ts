@@ -912,7 +912,7 @@ export default {
                     throw new NotFoundError();
                 }
                 let key = FKeyEncoding.decodeFromString(state!.cursor);
-                let isDateBased = key.length === 2 && (typeof key[0] === 'number' && key[0] > 1183028484169);
+                let isDateBased = key.length === 2 && (typeof key[0] === 'number' && key[0]! > 1183028484169);
 
                 while (true) {
                     state = await inTx(rootCtx, async ctx2 => await FDB.ReaderState.findById(ctx2, args.reader));

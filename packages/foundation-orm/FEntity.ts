@@ -3,8 +3,7 @@ import { Context } from '@openland/context';
 import { tracer } from './utils/tracer';
 import { createLogger } from '@openland/log';
 import { EntityLayer } from './EntityLayer';
-import { Subspace, getTransaction, Transaction } from '@openland/foundationdb';
-import { Tuple } from '@openland/foundationdb';
+import { Subspace, getTransaction, Transaction, TupleItem } from '@openland/foundationdb';
 import { getLock } from './FEntityFactory';
 
 export interface FEntityOptions {
@@ -12,14 +11,14 @@ export interface FEntityOptions {
     enableTimestamps: boolean;
     hasLiveStreams: boolean;
     validator: (value: any) => void;
-    keyValidator: (key: Tuple[]) => void;
+    keyValidator: (key: TupleItem[]) => void;
 }
 
 const log = createLogger('fdb');
 
 export abstract class FEntity {
     abstract readonly entityName: string;
-    readonly keyspace: Subspace<Tuple[], any>;
+    readonly keyspace: Subspace<TupleItem[], any>;
 
     readonly rawId: (string | number)[];
     readonly layer: EntityLayer;
@@ -35,7 +34,7 @@ export abstract class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(ctx: Context, layer: EntityLayer, keyspace: Subspace<Tuple[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(ctx: Context, layer: EntityLayer, keyspace: Subspace<TupleItem[], any>, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.ctx = ctx;
         this.keyspace = keyspace;
         this.rawId = id;

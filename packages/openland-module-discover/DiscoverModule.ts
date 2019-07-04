@@ -9,6 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 export class DiscoverModule {
     private data = new DiscoverData();
 
+    // deprecated
     nextPage = async (parent: Context, uid: number, selectedTags: string[], exludedGroups: string[]) => {
         return inTx(parent, async (ctx) => {
             let page = this.data.next(selectedTags, exludedGroups);
@@ -34,12 +35,48 @@ export class DiscoverModule {
         });
     }
 
+    gammaNextPage = async (parent: Context, uid: number, selectedTags: string[], exludedGroups: string[]) => {
+        return inTx(parent, async () => {
+            return this.data.next(selectedTags, exludedGroups);
+        });
+    }
+
+    saveSelectedTags = async (parent: Context, uid: number, selectedTags: string[]) => {
+        return inTx(parent, async (ctx) => {
+            // save picked tags if chats resolved
+            // mark old as deleted
+            let oldTags = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            for (let old of oldTags) {
+                old.deleted = true;
+            }
+            // save new
+            for (let tagId of selectedTags) {
+                let existing = await FDB.DiscoverUserPickedTags.findById(ctx, uid, tagId);
+                if (existing) {
+                    existing.deleted = false;
+                } else {
+                    await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
+                }
+            }
+            await Modules.Hooks.onDiscoverCompleted(ctx, uid);
+        });
+    }
+
+    submitNext = async (parent: Context, uid: number, selectedTags: string[], exludedGroups: string[]) => {
+        return inTx(parent, async (ctx) => {
+            let page = this.data.next(selectedTags, exludedGroups);
+            if (page.chats) {
+                await this.saveSelectedTags(ctx, uid, selectedTags);
+            }
+            return page;
+        });
+    }
+
     suggestedChats = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
             let selected = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
             return this.data.resolveSuggestedChats(selected.map(s => s.id));
         });
-
     }
 
     isDiscoverDone = async (parent: Context, uid: number) => {
@@ -61,8 +98,9 @@ export class DiscoverModule {
     skip = async (parent: Context, uid: number, selectedTags: string[]) => {
         return inTx(parent, async (ctx) => {
             let chats = this.data.resolveSuggestedChats(selectedTags);
-            await Modules.Hooks.onDiscoverCompleted(ctx, uid);
-            return  { chats };
+            await this.saveSelectedTags(ctx, uid, selectedTags);
+            await Modules.Hooks.onDiscoverSkipped(ctx, uid);
+            return { chats };
         });
     }
     start = () => {

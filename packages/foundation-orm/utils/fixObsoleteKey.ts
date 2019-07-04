@@ -1,6 +1,6 @@
-import { Tuple } from '@openland/foundationdb';
+import { TupleItem } from '@openland/foundationdb';
 
-function removePrefix(src: Tuple[], prefix: Tuple[]): Tuple[] {
+function removePrefix(src: TupleItem[], prefix: TupleItem[]): TupleItem[] {
     if (prefix.length === 0) {
         return src;
     }
@@ -20,6 +20,6 @@ function removePrefix(src: Tuple[], prefix: Tuple[]): Tuple[] {
     return key;
 }
 
-export function fixObsoleteCursor(src: Tuple[], namespace: Tuple[], subspace: Tuple[]): Tuple[] {
+export function fixObsoleteCursor(src: TupleItem[], namespace: TupleItem[], subspace: TupleItem[]): TupleItem[] {
     return removePrefix(removePrefix(src, namespace), subspace);
 }
