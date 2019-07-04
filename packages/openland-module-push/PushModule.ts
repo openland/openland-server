@@ -6,6 +6,7 @@ import { createAndroidWorker } from './workers/AndroidWorker';
 import { createWebWorker } from './workers/WebWorker';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
+import { Push } from './workers/types';
 
 @injectable()
 export class PushModule {
@@ -56,4 +57,7 @@ export class PushModule {
         });
     }
 
+    async pushWork(ctx: Context, push: Push) {
+        await this.worker.pushWork(ctx, push);
+    }
 }

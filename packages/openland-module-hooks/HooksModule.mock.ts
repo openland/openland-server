@@ -64,4 +64,7 @@ export class HooksModuleMock {
         // Nothing to do
     }
 
+    onNewMobileUser = async (ctx: Context) => {
+        // Nothing to do
+    }
 }
