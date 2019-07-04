@@ -1,6 +1,6 @@
 import { ReadWriteLock } from './utils/readWriteLock';
 import { TransactionCache } from './utils/TransactionCache';
-import { Tuple, encoders } from '@openland/foundationdb/lib/encoding';
+import { TupleItem, encoders } from '@openland/foundationdb';
 import { Subspace, getTransaction } from '@openland/foundationdb';
 import { EntityLayer } from './EntityLayer';
 import { FEntity, FEntityOptions } from './FEntity';
@@ -35,7 +35,7 @@ export function getLock(ctx: Context, name: string) {
 const entityCache = new TransactionCache<any>('entity');
 
 export abstract class FEntityFactory<T extends FEntity> {
-    readonly directory: Subspace<Tuple[], any>;
+    readonly directory: Subspace<TupleItem[], any>;
     readonly layer: EntityLayer;
     readonly options: FEntityOptions;
     readonly indexes: FEntityIndex[];
@@ -109,7 +109,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected async _findFromIndex(parent: Context, keySpace: Subspace<Tuple[], any>, key: (string | number)[]) {
+    protected async _findFromIndex(parent: Context, keySpace: Subspace<TupleItem[], any>, key: (string | number)[]) {
         return this.readOp(parent, async () => {
             return await tracer.trace(parent, 'FindById', async (ctx) => {
                 let res = await keySpace.get(ctx, key);
@@ -121,23 +121,23 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected async _findRangeAllAfter(ctx: Context, keySpace: Subspace<Tuple[], any>, key: (string | number)[], after: any, reverse?: boolean) {
+    protected async _findRangeAllAfter(ctx: Context, keySpace: Subspace<TupleItem[], any>, key: (string | number)[], after: any, reverse?: boolean) {
         return this.readOp(ctx, async () => {
             let res = await keySpace.subspace(key).range(ctx, [], { after: [after], reverse });
             return res.map((v) => this.doCreateEntity(ctx, v.value, false));
         });
     }
 
-    protected async _findRange(ctx: Context, keySpace: Subspace<Tuple[], any>, key: (string | number)[], limit: number, reverse?: boolean) {
+    protected async _findRange(ctx: Context, keySpace: Subspace<TupleItem[], any>, key: (string | number)[], limit: number, reverse?: boolean) {
         return this.readOp(ctx, async () => {
             let res = await keySpace.range(ctx, key, { limit, reverse });
             return res.map((v) => this.doCreateEntity(ctx, v.value, false));
         });
     }
 
-    protected async _findRangeWithCursor(ctx: Context, keySpace: Subspace<Tuple[], any>, key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
+    protected async _findRangeWithCursor(ctx: Context, keySpace: Subspace<TupleItem[], any>, key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
         return this.readOp(ctx, async () => {
-            let res: { value: any, key: Tuple[] }[];
+            let res: { value: any, key: TupleItem[] }[];
             // Using subspace for shortest possible key
             let subspace = keySpace.subspace(key);
             if (after) {
@@ -167,7 +167,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected async _findRangeAfter(ctx: Context, keySpace: Subspace<Tuple[], any>, subspace: (string | number)[], after: (string | number), limit?: number, reverse?: boolean) {
+    protected async _findRangeAfter(ctx: Context, keySpace: Subspace<TupleItem[], any>, subspace: (string | number)[], after: (string | number), limit?: number, reverse?: boolean) {
         return this.readOp(ctx, async () => {
             let res = await keySpace
                 .range(ctx, subspace, { limit, reverse, after: [...subspace, after] });
@@ -175,14 +175,14 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected _createStream(keySpace: Subspace<Tuple[], any>, subspace: (string | number)[], limit: number, after?: string): FStream<T> {
+    protected _createStream(keySpace: Subspace<TupleItem[], any>, subspace: (string | number)[], limit: number, after?: string): FStream<T> {
         return new FStream(this, keySpace, subspace, limit, (s, ctx) => this.doCreateEntity(ctx, s, false), after);
     }
-    protected _createLiveStream(ctx: Context, keySpace: Subspace<Tuple[], any>, subspace: (string | number)[], limit: number, after?: string): AsyncIterable<FLiveStreamItem<T>> {
+    protected _createLiveStream(ctx: Context, keySpace: Subspace<TupleItem[], any>, subspace: (string | number)[], limit: number, after?: string): AsyncIterable<FLiveStreamItem<T>> {
         return new FLiveStream<T>(new FStream(this, keySpace, subspace, limit, (s, ctx2) => this.doCreateEntity(ctx2, s, false), after)).generator(ctx);
     }
 
-    protected async _findAll(ctx: Context, keySpace: Subspace<Tuple[], any>, key: (string | number)[]) {
+    protected async _findAll(ctx: Context, keySpace: Subspace<TupleItem[], any>, key: (string | number)[]) {
         return this.readOp(ctx, async () => {
             let res = await keySpace.range(ctx, key);
             return res.map((v) => this.doCreateEntity(ctx, v.value, false));

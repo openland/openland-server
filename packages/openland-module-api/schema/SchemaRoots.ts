@@ -1,3 +1,4 @@
+import { EnvironmentVariable } from './../../openland-module-db/store';
 import {
     Conversation,
     ConversationRoom,
@@ -13,7 +14,6 @@ import {
     ConversationEvent,
     AppHook,
     Presence,
-    EnvironmentVariable,
     Comment,
     CommentEvent,
     UserStorageRecord,

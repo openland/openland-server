@@ -1,26 +1,21 @@
-import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
+import { Store } from 'openland-module-db/FDB';
 
 export type EnvVarValueType = number | string | boolean;
 
 export class EnvironmentVariablesRepository {
-    private readonly entities: AllEntities;
-
-    constructor(entities: AllEntities) {
-        this.entities = entities;
-    }
 
     async set<T extends EnvVarValueType>(parent: Context, name: string, value: T, rawValue: boolean = false) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.EnvironmentVariable.findById(ctx, name);
+            let existing = await Store.EnvironmentVariable.findById(ctx, name);
             let valueToWrite = rawValue ? (value as string) : JSON.stringify(value);
 
             if (existing) {
                 existing.value = valueToWrite;
                 await existing.flush(ctx);
             } else {
-                let variable = await this.entities.EnvironmentVariable.create(ctx, name, { value: valueToWrite });
+                let variable = await Store.EnvironmentVariable.create(ctx, name, { value: valueToWrite });
                 await variable.flush(ctx);
             }
         });
@@ -28,7 +23,7 @@ export class EnvironmentVariablesRepository {
 
     async get<T extends EnvVarValueType>(parent: Context, name: string): Promise<T | null> {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.EnvironmentVariable.findById(ctx, name);
+            let existing = await Store.EnvironmentVariable.findById(ctx, name);
 
             if (existing) {
                 try {

@@ -52,19 +52,19 @@ const basicSpan = (type: string) => json(() => {
 
 const Schema = declareSchema(() => {
 
-    entity('Environment', () => {
-        primaryKey('production', 'number');
-        field('comment', 'string');
-        allowAdminEdit();
-    });
+    // entity('Environment', () => {
+    //     primaryKey('production', 'number');
+    //     field('comment', 'string');
+    //     allowAdminEdit();
+    // });
 
-    entity('EnvironmentVariable', () => {
-        primaryKey('name', 'string');
-        field('value', 'string');
-        allowAdminEdit();
-        enableTimestamps();
-        enableVersioning();
-    });
+    // entity('EnvironmentVariable', () => {
+    //     primaryKey('name', 'string');
+    //     field('value', 'string');
+    //     allowAdminEdit();
+    //     enableTimestamps();
+    //     enableVersioning();
+    // });
 
     entity('Online', () => {
         primaryKey('uid', 'number');

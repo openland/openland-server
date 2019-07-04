@@ -1,12 +1,11 @@
-import { Tuple } from '@openland/foundationdb/lib/encoding';
-import { Subspace, encoders } from '@openland/foundationdb';
+import { Subspace, encoders, TupleItem } from '@openland/foundationdb';
 
 export class FEntityIndex {
     readonly name: string;
     readonly fields: string[];
     readonly unique: boolean;
     readonly condition?: (src: any) => boolean;
-    readonly directory: Subspace<Tuple[], any>;
+    readonly directory: Subspace<TupleItem[], any>;
 
     constructor(
         directory: Subspace,

@@ -1,6 +1,7 @@
 // Register Modules
 require('module-alias/register');
-import { Store, openStore } from './../openland-module-db/store';
+import { Store } from 'openland-module-db/FDB';
+import { openStore } from './../openland-module-db/store';
 import '../openland-utils/Shutdown';
 import { EntityLayer } from 'foundation-orm/EntityLayer';
 import { Modules } from 'openland-modules/Modules';
@@ -53,12 +54,12 @@ export async function prepare() {
         // New Entity
         let storage = new EntityStorage(db);
         let store = await openStore(storage);
-        container.bind<Store>('Store')
+        container.bind('Store')
             .toDynamicValue(() => store)
             .inSingletonScope();
 
         let ctx = rootCtx;
-        if (await FDB.Environment.findById(ctx, 1)) {
+        if (await Store.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');
         }
 

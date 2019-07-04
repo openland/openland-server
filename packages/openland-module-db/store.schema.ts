@@ -1,6 +1,18 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
+
+    entity('Environment', () => {
+        primaryKey('production', integer());
+        field('comment', string());
+        // allowAdminEdit();
+    });
+
+    entity('EnvironmentVariable', () => {
+        primaryKey('name', string());
+        field('value', string());
+    });
+
     atomicInt('UserCounter', () => {
         primaryKey('uid', integer());
     });
@@ -50,6 +62,6 @@ export default declareSchema(() => {
     });
 
     atomicInt('GlobalStatisticsCounters', () => {
-        primaryKey('name', integer());
+        primaryKey('name', string());
     });
 });

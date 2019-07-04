@@ -1,6 +1,7 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
+import { Store } from 'openland-module-db/FDB';
 
 export default {
     EnvVar: {
@@ -10,10 +11,10 @@ export default {
 
     Query: {
         envVars: withPermission('super-admin', async (ctx, args) => {
-            return Modules.DB.entities.EnvironmentVariable.findAll(ctx);
+            return Store.EnvironmentVariable.findAll(ctx);
         }),
         envVar: withPermission('super-admin', async (ctx, args) => {
-            return Modules.DB.entities.EnvironmentVariable.findById(ctx, args.name);
+            return Store.EnvironmentVariable.findById(ctx, args.name);
         }),
     },
 
