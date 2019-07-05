@@ -87,7 +87,7 @@ describe('PushNotificationWorker', () => {
             };
         });
 
-        await delay(8000);
+        await delay(10000);
 
         expect(pushModuleResults.androidPushes).toEqual([]);
         expect(pushModuleResults.applePushes).toEqual([]);
