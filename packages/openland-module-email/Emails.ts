@@ -27,6 +27,7 @@ const loadUserState = async (ctx: Context, uid: number) => {
     if (!user) {
         throw Error('Internal inconsistency');
     }
+    Modules.Hooks.onEmailSent(ctx, uid);
     let profile = await Modules.Users.profileById(ctx, uid);
     if (profile) {
         return {

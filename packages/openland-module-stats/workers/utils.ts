@@ -5,6 +5,7 @@ import { Store } from '../../openland-module-db/FDB';
 export const getSuperNotificationsBotId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
 export const getUserReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-reports-chat-id');
 export const getGrowthReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'growth-reports-chat-id');
+export const getWeeklyReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'weekly-reports-chat-id');
 
 export const getGlobalStatisticsForReport = (prefix?: string) => {
     let namePrefix = '';
