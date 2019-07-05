@@ -1708,6 +1708,83 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
     }
 }
 
+export interface SuperAdminShape {
+    id: number;
+    role: string;
+    enabled: boolean;
+}
+
+export interface SuperAdminCreateShape {
+    role: string;
+    enabled: boolean;
+}
+
+export class SuperAdmin extends Entity<SuperAdminShape> {
+    get id(): number { return this._rawValue.id; }
+    get role(): string { return this._rawValue.role; }
+    set role(value: string) {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('superAdmin');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'role', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            role: c.string,
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<SuperAdminShape> = {
+            name: 'SuperAdmin',
+            storageKey: 'superAdmin',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new SuperAdminFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<SuperAdminShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: SuperAdminCreateShape): Promise<SuperAdmin> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<SuperAdmin | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<SuperAdminShape>): SuperAdmin {
+        return new SuperAdmin([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -1732,6 +1809,7 @@ export interface Store extends BaseStore {
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly ServiceCache: ServiceCacheFactory;
+    readonly SuperAdmin: SuperAdminFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -1758,6 +1836,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
     let ServiceCachePromise = ServiceCacheFactory.open(storage);
+    let SuperAdminPromise = SuperAdminFactory.open(storage);
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -1783,5 +1862,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,
         ServiceCache: await ServiceCachePromise,
+        SuperAdmin: await SuperAdminPromise,
     };
 }

@@ -2313,91 +2313,6 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         return new ReaderState(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
     }
 }
-export interface SuperAdminShape {
-    role: string;
-    enabled: boolean;
-}
-
-export class SuperAdmin extends FEntity {
-    readonly entityName: 'SuperAdmin' = 'SuperAdmin';
-    get id(): number { return this._value.id; }
-    get role(): string {
-        return this._value.role;
-    }
-    set role(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.role) { return; }
-        this._value.role = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
-    static schema: FEntitySchema = {
-        name: 'SuperAdmin',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'role', type: 'string' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('superAdmin');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate, keyValidator: SuperAdminFactory.validateKey, hasLiveStreams: false };
-        return new SuperAdminFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('role', src.role);
-        validators.isString('role', src.role);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('SuperAdmin', 'superAdmin', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: SuperAdminShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: SuperAdminShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SuperAdmin(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
-    }
-}
 export interface UserSettingsShape {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
     desktopNotifications: 'all' | 'direct' | 'none';
@@ -10900,7 +10815,6 @@ export interface AllEntities {
     readonly FeatureFlag: FeatureFlagFactory;
     readonly OrganizationFeatures: OrganizationFeaturesFactory;
     readonly ReaderState: ReaderStateFactory;
-    readonly SuperAdmin: SuperAdminFactory;
     readonly UserSettings: UserSettingsFactory;
     readonly ShortnameReservation: ShortnameReservationFactory;
     readonly AuthCodeSession: AuthCodeSessionFactory;
@@ -10980,7 +10894,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         FeatureFlagFactory.schema,
         OrganizationFeaturesFactory.schema,
         ReaderStateFactory.schema,
-        SuperAdminFactory.schema,
         UserSettingsFactory.schema,
         ShortnameReservationFactory.schema,
         AuthCodeSessionFactory.schema,
@@ -11061,7 +10974,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let FeatureFlagPromise = FeatureFlagFactory.create(layer);
         let OrganizationFeaturesPromise = OrganizationFeaturesFactory.create(layer);
         let ReaderStatePromise = ReaderStateFactory.create(layer);
-        let SuperAdminPromise = SuperAdminFactory.create(layer);
         let UserSettingsPromise = UserSettingsFactory.create(layer);
         let ShortnameReservationPromise = ShortnameReservationFactory.create(layer);
         let AuthCodeSessionPromise = AuthCodeSessionFactory.create(layer);
@@ -11140,7 +11052,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await FeatureFlagPromise);
         allEntities.push(await OrganizationFeaturesPromise);
         allEntities.push(await ReaderStatePromise);
-        allEntities.push(await SuperAdminPromise);
         allEntities.push(await UserSettingsPromise);
         allEntities.push(await ShortnameReservationPromise);
         allEntities.push(await AuthCodeSessionPromise);
@@ -11219,7 +11130,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             FeatureFlag: await FeatureFlagPromise,
             OrganizationFeatures: await OrganizationFeaturesPromise,
             ReaderState: await ReaderStatePromise,
-            SuperAdmin: await SuperAdminPromise,
             UserSettings: await UserSettingsPromise,
             ShortnameReservation: await ShortnameReservationPromise,
             AuthCodeSession: await AuthCodeSessionPromise,
@@ -11305,7 +11215,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly FeatureFlag: FeatureFlagFactory;
     readonly OrganizationFeatures: OrganizationFeaturesFactory;
     readonly ReaderState: ReaderStateFactory;
-    readonly SuperAdmin: SuperAdminFactory;
     readonly UserSettings: UserSettingsFactory;
     readonly ShortnameReservation: ShortnameReservationFactory;
     readonly AuthCodeSession: AuthCodeSessionFactory;
@@ -11400,8 +11309,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.OrganizationFeatures);
         this.ReaderState = entities.ReaderState;
         this.allEntities.push(this.ReaderState);
-        this.SuperAdmin = entities.SuperAdmin;
-        this.allEntities.push(this.SuperAdmin);
         this.UserSettings = entities.UserSettings;
         this.allEntities.push(this.UserSettings);
         this.ShortnameReservation = entities.ShortnameReservation;

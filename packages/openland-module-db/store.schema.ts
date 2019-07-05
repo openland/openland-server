@@ -164,4 +164,10 @@ export default declareSchema(() => {
         field('value', optional(string()));
         rangeIndex('fromService', ['service', 'key']);
     });
+
+    entity('SuperAdmin', () => {
+        primaryKey('id', integer());
+        field('role', string());
+        field('enabled', boolean());
+    });
 });

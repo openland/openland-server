@@ -268,12 +268,6 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    entity('SuperAdmin', () => {
-        primaryKey('id', 'number');
-        field('role', 'string');
-        field('enabled', 'boolean');
-    });
-
     entity('UserSettings', () => {
         primaryKey('id', 'number');
         enumField('emailFrequency', ['1hour', '15min', 'never', '24hour', '1week']);
