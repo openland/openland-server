@@ -181,112 +181,6 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return new AuthToken(ctx, this.layer, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
 }
-export interface ServiceCacheShape {
-    value?: string| null;
-}
-
-export class ServiceCache extends FEntity {
-    readonly entityName: 'ServiceCache' = 'ServiceCache';
-    get service(): string { return this._value.service; }
-    get key(): string { return this._value.key; }
-    get value(): string | null {
-        let res = this._value.value;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set value(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.value) { return; }
-        this._value.value = value;
-        this.markDirty();
-    }
-}
-
-export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
-    static schema: FEntitySchema = {
-        name: 'ServiceCache',
-        editable: false,
-        primaryKeys: [
-            { name: 'service', type: 'string' },
-            { name: 'key', type: 'string' },
-        ],
-        fields: [
-            { name: 'value', type: 'string' },
-        ],
-        indexes: [
-            { name: 'fromService', type: 'range', fields: ['service', 'key'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('serviceCache');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, keyValidator: ServiceCacheFactory.validateKey, hasLiveStreams: false };
-        let indexFromService = new FEntityIndex(await layer.resolveEntityIndexDirectory('serviceCache', 'fromService'), 'fromService', ['service', 'key'], false);
-        let indexes = {
-            fromService: indexFromService,
-        };
-        return new ServiceCacheFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexFromService: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('service', src.service);
-        validators.isString('service', src.service);
-        validators.notNull('key', src.key);
-        validators.isString('key', src.key);
-        validators.isString('value', src.value);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-        validators.notNull('1', key[1]);
-        validators.isString('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { fromService: FEntityIndex }) {
-        super('ServiceCache', 'serviceCache', config, [indexes.fromService], layer, directory);
-        this.indexFromService = indexes.fromService;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'service': rawId[0], 'key': rawId[1] };
-    }
-    async findById(ctx: Context, service: string, key: string) {
-        return await this._findById(ctx, [service, key]);
-    }
-    async create(ctx: Context, service: string, key: string, shape: ServiceCacheShape) {
-        return await this._create(ctx, [service, key], { service, key, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, service: string, key: string, shape: ServiceCacheShape) {
-        return await this._create_UNSAFE(ctx, [service, key], { service, key, ...shape });
-    }
-    watch(ctx: Context, service: string, key: string) {
-        return this._watch(ctx, [service, key]);
-    }
-    async allFromFromServiceAfter(ctx: Context, service: string, after: string) {
-        return await this._findRangeAllAfter(ctx, this.indexFromService.directory, [service], after);
-    }
-    async rangeFromFromServiceAfter(ctx: Context, service: string, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexFromService.directory, [service], after, limit, reversed);
-    }
-    async rangeFromFromService(ctx: Context, service: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexFromService.directory, [service], limit, reversed);
-    }
-    async rangeFromFromServiceWithCursor(ctx: Context, service: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexFromService.directory, [service], limit, after, reversed);
-    }
-    async allFromFromService(ctx: Context, service: string) {
-        return await this._findAll(ctx, this.indexFromService.directory, [service]);
-    }
-    createFromServiceStream(service: string, limit: number, after?: string) {
-        return this._createStream(this.indexFromService.directory, [service], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ServiceCache(ctx, this.layer, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
-    }
-}
 export interface TaskShape {
     arguments: any;
     result?: any| null;
@@ -11913,7 +11807,6 @@ export interface AllEntities {
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly AuthToken: AuthTokenFactory;
-    readonly ServiceCache: ServiceCacheFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -11998,7 +11891,6 @@ export interface AllEntities {
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
         AuthTokenFactory.schema,
-        ServiceCacheFactory.schema,
         TaskFactory.schema,
         DelayedTaskFactory.schema,
         PushFirebaseFactory.schema,
@@ -12084,7 +11976,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static async create(layer: EntityLayer) {
         let allEntities: FEntityFactory<FEntity>[] = [];
         let AuthTokenPromise = AuthTokenFactory.create(layer);
-        let ServiceCachePromise = ServiceCacheFactory.create(layer);
         let TaskPromise = TaskFactory.create(layer);
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let PushFirebasePromise = PushFirebaseFactory.create(layer);
@@ -12168,7 +12059,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await AuthTokenPromise);
-        allEntities.push(await ServiceCachePromise);
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
         allEntities.push(await PushFirebasePromise);
@@ -12252,7 +12142,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let entities = {
             layer, allEntities,
             AuthToken: await AuthTokenPromise,
-            ServiceCache: await ServiceCachePromise,
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
             PushFirebase: await PushFirebasePromise,
@@ -12343,7 +12232,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly AuthToken: AuthTokenFactory;
-    readonly ServiceCache: ServiceCacheFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -12429,8 +12317,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         super(entities.layer);
         this.AuthToken = entities.AuthToken;
         this.allEntities.push(this.AuthToken);
-        this.ServiceCache = entities.ServiceCache;
-        this.allEntities.push(this.ServiceCache);
         this.Task = entities.Task;
         this.allEntities.push(this.Task);
         this.DelayedTask = entities.DelayedTask;

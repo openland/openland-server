@@ -52,37 +52,6 @@ const basicSpan = (type: string) => json(() => {
 
 const Schema = declareSchema(() => {
 
-    // entity('Environment', () => {
-    //     primaryKey('production', 'number');
-    //     field('comment', 'string');
-    //     allowAdminEdit();
-    // });
-
-    // entity('EnvironmentVariable', () => {
-    //     primaryKey('name', 'string');
-    //     field('value', 'string');
-    //     allowAdminEdit();
-    //     enableTimestamps();
-    //     enableVersioning();
-    // });
-
-    // entity('Online', () => {
-    //     primaryKey('uid', 'number');
-    //     field('lastSeen', 'number');
-    //     field('activeExpires', 'number').nullable();
-    //     field('active', 'boolean').nullable();
-    // });
-
-    // entity('Presence', () => {
-    //     primaryKey('uid', 'number');
-    //     primaryKey('tid', 'string');
-    //     field('lastSeen', 'number');
-    //     field('lastSeenTimeout', 'number');
-    //     field('platform', 'string');
-    //     field('active', 'boolean').nullable();
-    //     rangeIndex('user', ['uid', 'lastSeen']);
-    // });
-
     entity('AuthToken', () => {
         primaryKey('uuid', 'string');
         field('salt', 'string');
@@ -93,15 +62,6 @@ const Schema = declareSchema(() => {
             .withDisplayName('authTokenBySalt');
         rangeIndex('user', ['uid', 'uuid'])
             .withCondition(src => src.enabled !== false);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('ServiceCache', () => {
-        primaryKey('service', 'string');
-        primaryKey('key', 'string');
-        field('value', 'string').nullable();
-        rangeIndex('fromService', ['service', 'key']);
         enableTimestamps();
         enableVersioning();
     });

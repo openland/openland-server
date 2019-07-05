@@ -17,6 +17,13 @@ export default declareSchema(() => {
         field('value', string());
     });
 
+    entity('ServiceCache', () => {
+        primaryKey('service', string());
+        primaryKey('key', string());
+        field('value', optional(string()));
+        rangeIndex('fromService', ['service', 'key']);
+    });
+
     //
     // Presence
     //

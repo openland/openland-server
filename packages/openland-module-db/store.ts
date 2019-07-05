@@ -634,6 +634,90 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
     }
 }
 
+export interface ServiceCacheShape {
+    service: string;
+    key: string;
+    value: string | null;
+}
+
+export interface ServiceCacheCreateShape {
+    value: string | null;
+}
+
+export class ServiceCache extends Entity<ServiceCacheShape> {
+    get service(): string { return this._rawValue.service; }
+    get key(): string { return this._rawValue.key; }
+    get value(): string | null { return this._rawValue.value; }
+    set value(value: string | null) {
+        let normalized = this.descriptor.codec.fields.value.normalize(value);
+        if (this._rawValue.value !== normalized) {
+            this._rawValue.value = normalized;
+            this._updatedValues.value = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, ServiceCache> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('serviceCache');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'fromService', storageKey: 'fromService', type: { type: 'range', fields: [{ name: 'service', type: 'string' }, { name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('serviceCache', 'fromService'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'service', type: 'string' });
+        primaryKeys.push({ name: 'key', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'value', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            service: c.string,
+            key: c.string,
+            value: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<ServiceCacheShape> = {
+            name: 'ServiceCache',
+            storageKey: 'serviceCache',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ServiceCacheFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ServiceCacheShape>) {
+        super(descriptor);
+    }
+
+    readonly fromService = Object.freeze({
+        findAll: async (ctx: Context, service: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [service])).items;
+        },
+        query: (ctx: Context, service: string, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [service], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (service: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [service], opts);
+        },
+        liveStream: (ctx: Context, service: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [service], opts);
+        }
+    });
+
+    create(ctx: Context, service: string, key: string, src: ServiceCacheCreateShape): Promise<ServiceCache> {
+        return this._create(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
+    }
+
+    findById(ctx: Context, service: string, key: string): Promise<ServiceCache | null> {
+        return this._findById(ctx, [service, key]);
+    }
+
+    watch(ctx: Context, service: string, key: string): Watch {
+        return this._watch(ctx, [service, key]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ServiceCacheShape>): ServiceCache {
+        return new ServiceCache([value.service, value.key], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface OnlineShape {
     uid: number;
     lastSeen: number;
@@ -864,6 +948,7 @@ export interface Store extends BaseStore {
     readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
+    readonly ServiceCache: ServiceCacheFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
 }
@@ -885,6 +970,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
+    let ServiceCachePromise = ServiceCacheFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     return {
@@ -905,6 +991,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,
+        ServiceCache: await ServiceCachePromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
     };
