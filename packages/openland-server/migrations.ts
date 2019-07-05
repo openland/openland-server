@@ -24,4 +24,24 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '100-remove-invalid-web-push-tokenss',
+    migration: async (parent) => {
+        let subspaces = [
+            Store.PushWeb.descriptor.subspace,
+            ...Store.PushWeb.descriptor.secondaryIndexes.map((v) => v.subspace)
+        ];
+        for (let s of subspaces) {
+            await inTx(parent, async (ctx) => {
+                let all = await s.range(ctx, []);
+                for (let a of all) {
+                    if (typeof a.value.tid === 'number') {
+                        s.clear(ctx, a.key);
+                    }
+                }
+            });
+        }
+    }
+});
+
 export default migrations;

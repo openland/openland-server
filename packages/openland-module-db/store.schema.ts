@@ -2,6 +2,26 @@ import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, fiel
 
 export default declareSchema(() => {
 
+    // //
+    // // User
+    // //
+
+    // entity('User', () => {
+    //     primaryKey('id', integer());
+    //     field('authId', string());
+    //     field('email', string());
+    //     field('isBot', boolean());
+    //     field('invitedBy', optional(integer()));
+    //     field('botOwner', optional(integer()));
+    //     field('isSuperBot', optional(boolean()));
+    //     field('status', enumString('pending', 'activated', 'suspended', 'deleted'));
+
+    //     uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
+    //     uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
+    //     rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
+    //     rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
+    // });
+
     //
     // Presence
     //

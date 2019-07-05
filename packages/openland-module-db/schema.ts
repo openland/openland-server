@@ -5039,78 +5039,6 @@ export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal
         return new CommentEventGlobal(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'CommentEventGlobal');
     }
 }
-export interface CommentGlobalEventSeqShape {
-    seq: number;
-}
-
-export class CommentGlobalEventSeq extends FEntity {
-    readonly entityName: 'CommentGlobalEventSeq' = 'CommentGlobalEventSeq';
-    get uid(): number { return this._value.uid; }
-    get seq(): number {
-        return this._value.seq;
-    }
-    set seq(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.seq) { return; }
-        this._value.seq = value;
-        this.markDirty();
-    }
-}
-
-export class CommentGlobalEventSeqFactory extends FEntityFactory<CommentGlobalEventSeq> {
-    static schema: FEntitySchema = {
-        name: 'CommentGlobalEventSeq',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-        ],
-        fields: [
-            { name: 'seq', type: 'number' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('commentGlobalEventSeq');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: CommentGlobalEventSeqFactory.validate, keyValidator: CommentGlobalEventSeqFactory.validateKey, hasLiveStreams: false };
-        return new CommentGlobalEventSeqFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('CommentGlobalEventSeq', 'commentGlobalEventSeq', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0] };
-    }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
-    }
-    async create(ctx: Context, uid: number, shape: CommentGlobalEventSeqShape) {
-        return await this._create(ctx, [uid], { uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, shape: CommentGlobalEventSeqShape) {
-        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
-    }
-    watch(ctx: Context, uid: number) {
-        return this._watch(ctx, [uid]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new CommentGlobalEventSeq(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'CommentGlobalEventSeq');
-    }
-}
 export interface ConversationSeqShape {
     seq: number;
 }
@@ -10397,7 +10325,6 @@ export interface AllEntities {
     readonly CommentEvent: CommentEventFactory;
     readonly CommentsSubscription: CommentsSubscriptionFactory;
     readonly CommentEventGlobal: CommentEventGlobalFactory;
-    readonly CommentGlobalEventSeq: CommentGlobalEventSeqFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -10472,7 +10399,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         CommentEventFactory.schema,
         CommentsSubscriptionFactory.schema,
         CommentEventGlobalFactory.schema,
-        CommentGlobalEventSeqFactory.schema,
         ConversationSeqFactory.schema,
         ConversationEventFactory.schema,
         UserDialogFactory.schema,
@@ -10548,7 +10474,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let CommentEventPromise = CommentEventFactory.create(layer);
         let CommentsSubscriptionPromise = CommentsSubscriptionFactory.create(layer);
         let CommentEventGlobalPromise = CommentEventGlobalFactory.create(layer);
-        let CommentGlobalEventSeqPromise = CommentGlobalEventSeqFactory.create(layer);
         let ConversationSeqPromise = ConversationSeqFactory.create(layer);
         let ConversationEventPromise = ConversationEventFactory.create(layer);
         let UserDialogPromise = UserDialogFactory.create(layer);
@@ -10622,7 +10547,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await CommentEventPromise);
         allEntities.push(await CommentsSubscriptionPromise);
         allEntities.push(await CommentEventGlobalPromise);
-        allEntities.push(await CommentGlobalEventSeqPromise);
         allEntities.push(await ConversationSeqPromise);
         allEntities.push(await ConversationEventPromise);
         allEntities.push(await UserDialogPromise);
@@ -10696,7 +10620,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             CommentEvent: await CommentEventPromise,
             CommentsSubscription: await CommentsSubscriptionPromise,
             CommentEventGlobal: await CommentEventGlobalPromise,
-            CommentGlobalEventSeq: await CommentGlobalEventSeqPromise,
             ConversationSeq: await ConversationSeqPromise,
             ConversationEvent: await ConversationEventPromise,
             UserDialog: await UserDialogPromise,
@@ -10777,7 +10700,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly CommentEvent: CommentEventFactory;
     readonly CommentsSubscription: CommentsSubscriptionFactory;
     readonly CommentEventGlobal: CommentEventGlobalFactory;
-    readonly CommentGlobalEventSeq: CommentGlobalEventSeqFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -10882,8 +10804,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.CommentsSubscription);
         this.CommentEventGlobal = entities.CommentEventGlobal;
         this.allEntities.push(this.CommentEventGlobal);
-        this.CommentGlobalEventSeq = entities.CommentGlobalEventSeq;
-        this.allEntities.push(this.CommentGlobalEventSeq);
         this.ConversationSeq = entities.ConversationSeq;
         this.allEntities.push(this.ConversationSeq);
         this.ConversationEvent = entities.ConversationEvent;
