@@ -631,12 +631,6 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    // deprecated
-    entity('CommentGlobalEventSeq', () => {
-        primaryKey('uid', 'number');
-        field('seq', 'number');
-    });
-
     //
     //  Comments end
     //
