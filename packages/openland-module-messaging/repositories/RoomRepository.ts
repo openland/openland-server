@@ -1128,8 +1128,9 @@ export class RoomRepository {
             if (!room || !roomProfile) {
                 throw new Error('Room not found');
             }
-            await this.store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
-
+            if (await this.isPublicCommunityChat(ctx, cid)) {
+                await this.store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
+            }
             if (room.oid) {
                 let org = await this.entities.Organization.findById(ctx, room.oid);
 
@@ -1158,8 +1159,26 @@ export class RoomRepository {
     private async onRoomLeave(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
-            await this.store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
+            if (await this.isPublicCommunityChat(ctx, cid)) {
+                await this.store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
+            }
             await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
         });
+    }
+
+    private async isPublicCommunityChat(ctx: Context, cid: number) {
+        let chat = await this.entities.Conversation.findById(ctx, cid);
+        if (!chat || chat.kind !== 'room') {
+            return false;
+        }
+        let room = (await this.entities.ConversationRoom.findById(ctx, cid))!;
+        if (room.kind !== 'public' || !room.oid) {
+            return false;
+        }
+        let org = await this.entities.Organization.findById(ctx, room.oid);
+        if (!org || org.kind !== 'community' || org.private) {
+            return false;
+        }
+        return true;
     }
 }
