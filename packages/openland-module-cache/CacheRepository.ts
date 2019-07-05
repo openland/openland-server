@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
-import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
+import { Store } from 'openland-module-db/FDB';
 
 export class CacheRepository<T> {
 
@@ -11,7 +11,7 @@ export class CacheRepository<T> {
     }
 
     async read(ctx: Context, key: string): Promise<T | null> {
-        let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
+        let ex = await Store.ServiceCache.findById(ctx, this.service, key);
         if (ex && ex.value) {
             return JSON.parse(ex.value) as any;
         }
@@ -20,9 +20,9 @@ export class CacheRepository<T> {
 
     async write(parent: Context, key: string, value: T) {
         await inTx(parent, async (ctx) => {
-            let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
+            let ex = await Store.ServiceCache.findById(ctx, this.service, key);
             if (!ex) {
-                await FDB.ServiceCache.create(ctx, this.service, key, { value: JSON.stringify(value) });
+                await Store.ServiceCache.create(ctx, this.service, key, { value: JSON.stringify(value) });
             } else {
                 ex.value = JSON.stringify(value);
             }
@@ -31,7 +31,7 @@ export class CacheRepository<T> {
 
     async delete(parent: Context, key: string) {
         await inTx(parent, async (ctx) => {
-            let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
+            let ex = await Store.ServiceCache.findById(ctx, this.service, key);
             if (ex) {
                 ex.value = null;
             }
@@ -40,7 +40,7 @@ export class CacheRepository<T> {
 
     async deleteAll(parent: Context) {
         await inTx(parent, async (ctx) => {
-            let all = await FDB.ServiceCache.allFromFromService(ctx, this.service);
+            let all = await Store.ServiceCache.fromService.findAll(ctx, this.service);
             for (let entry of all) {
                 entry.value = null;
             }
@@ -48,9 +48,9 @@ export class CacheRepository<T> {
     }
 
     async getCreationTime(ctx: Context, key: string): Promise<number | null> {
-        let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
+        let ex = await Store.ServiceCache.findById(ctx, this.service, key);
         if (ex) {
-            return ex.updatedAt;
+            return ex.metadata.updatedAt;
         }
         return null;
     }

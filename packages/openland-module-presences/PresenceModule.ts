@@ -1,9 +1,8 @@
+import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-import { FDB } from 'openland-module-db/FDB';
 import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-utils/asyncIterator';
 import { Pubsub, PubsubSubcription } from '../openland-module-pubsub/pubsub';
-import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { injectable } from 'inversify';
 import { Modules } from '../openland-modules/Modules';
@@ -29,14 +28,9 @@ export interface OnlineEvent {
 export class PresenceModule {
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
     private localSub = new Pubsub<OnlineEvent>(false);
-    private FDB: AllEntities = FDB;
     private rootCtx = createNamedContext('presence');
 
-    start = (fdb?: AllEntities) => {
-        // Nothing to do
-        if (fdb) {
-            this.FDB = fdb;
-        }
+    start = () => {
         // tslint:disable-next-line:no-floating-promises
         (async () => {
             let supportId = await Modules.Users.getSupportUserId(this.rootCtx);
@@ -53,7 +47,7 @@ export class PresenceModule {
         const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
         await inTx(parent, async (ctx) => {
             let expires = Date.now() + timeout;
-            let userPresences = await this.FDB.Presence.allFromUser(ctx, uid);
+            let userPresences = await Store.Presence.user.findAll(ctx, uid);
 
             let hasMobilePresence = userPresences
                 .find((e) => isMobile(e.platform));
@@ -61,7 +55,7 @@ export class PresenceModule {
                 Modules.Hooks.onNewMobileUser(ctx);
             }
 
-            let ex = await this.FDB.Presence.findById(ctx, uid, tid);
+            let ex = await Store.Presence.findById(ctx, uid, tid);
             if (ex) {
                 ex.lastSeen = Date.now();
                 ex.lastSeenTimeout = timeout;
@@ -69,13 +63,13 @@ export class PresenceModule {
                 ex.active = active;
                 await ex.flush(ctx);
             } else {
-                await this.FDB.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
+                await Store.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
             }
 
-            let online = await this.FDB.Online.findById(ctx, uid);
+            let online = await Store.Online.findById(ctx, uid);
 
             if (!online) {
-                await this.FDB.Online.create(ctx, uid, { lastSeen: expires, active });
+                await Store.Online.create(ctx, uid, { lastSeen: expires, active, activeExpires: null });
             } else if (online.lastSeen < expires) {
 
                 let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now());
@@ -109,7 +103,7 @@ export class PresenceModule {
 
     public async setOffline(parent: Context, uid: number) {
         await inTx(parent, async (ctx) => {
-            let online = await this.FDB.Online.findById(ctx, uid);
+            let online = await Store.Online.findById(ctx, uid);
             if (online) {
                 online.lastSeen = Date.now();
                 online.active = false;
@@ -137,7 +131,7 @@ export class PresenceModule {
             log.debug(ctx, 'get last seen from cache');
         } else {
             log.debug(ctx, 'get last seen from db');
-            value = await this.FDB.Online.findById(ctx, uid);
+            value = await Store.Online.findById(ctx, uid);
             if (value) {
                 this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
             } else {
@@ -162,7 +156,7 @@ export class PresenceModule {
         if (this.onlines.has(uid)) {
             value = this.onlines.get(uid);
         } else {
-            value = await this.FDB.Online.findById(ctx, uid);
+            value = await Store.Online.findById(ctx, uid);
             if (value) {
                 this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
             } else {
@@ -236,7 +230,7 @@ export class PresenceModule {
         });
 
         joinSub = EventBus.subscribe(`chat_join_${chatId}`, async (ev: { uid: number, cid: number }) => {
-            let online = await FDB.Online.findById(ctx, ev.uid);
+            let online = await Store.Online.findById(ctx, ev.uid);
             iterator.push({ userId: ev.uid, timeout: 0, online: online && online.lastSeen > Date.now() || false, active: (online && online.active || false), lastSeen: (online && online.lastSeen || Date.now()) });
             subscriptions.set(ev.uid, await this.localSub.subscribe(uid.toString(10), iterator.push));
         });
@@ -261,7 +255,7 @@ export class PresenceModule {
         let prevValue = 0;
 
         await perf('presence_init_state', async () => {
-            let membersOnline = await Promise.all(members.map(m => FDB.Online.findById(ctx, m)));
+            let membersOnline = await Promise.all(members.map(m => Store.Online.findById(ctx, m)));
             for (let online of membersOnline) {
                 if (online && online.lastSeen > Date.now()) {
                     onlineMembers.add(online.uid);

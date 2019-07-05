@@ -1,18 +1,18 @@
 // tslint:disable:no-floating-promises
-import { EntityLayer } from './../../foundation-orm/EntityLayer';
-import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
+import { Store, openStore } from './../../openland-module-db/store';
 import { PushRepository } from './PushRepository';
 import { createNamedContext } from '@openland/context';
 import { openTestDatabase } from 'openland-server/foundationdb';
+import { EntityStorage } from '@openland/foundationdb-entity';
 
 describe('PushRepository', () => {
     // Database Init
-    let entities: AllEntities;
+    let entities: Store;
 
     beforeAll(async () => {
         let db = await openTestDatabase();
-        let layer = new EntityLayer(db, 'app');
-        entities = await AllEntitiesDirect.create(layer);
+        let layer = new EntityStorage(db, 'app');
+        entities = await openStore(layer);
     });
 
     it('should register web push', async () => {

@@ -84,7 +84,7 @@ export default {
         }),
         userPresence: withPermission('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.uid);
-            let presence = await FDB.Presence.allFromUser(ctx, uid);
+            let presence = await Store.Presence.user.findAll(ctx, uid);
 
             if (args.lastSeenFiveMinute === true) {
                 let now = Date.now();

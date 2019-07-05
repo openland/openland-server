@@ -9,7 +9,7 @@ import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/
 
 @injectable()
 export class SuperModule {
-    private readonly repo = new SuperRepository(FDB);
+    private readonly repo = new SuperRepository();
     private readonly permissionsRepo = new PermissionsRepository(FDB);
     private readonly envVarsRepo = new EnvironmentVariablesRepository();
 

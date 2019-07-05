@@ -52,68 +52,6 @@ const basicSpan = (type: string) => json(() => {
 
 const Schema = declareSchema(() => {
 
-    // entity('Environment', () => {
-    //     primaryKey('production', 'number');
-    //     field('comment', 'string');
-    //     allowAdminEdit();
-    // });
-
-    // entity('EnvironmentVariable', () => {
-    //     primaryKey('name', 'string');
-    //     field('value', 'string');
-    //     allowAdminEdit();
-    //     enableTimestamps();
-    //     enableVersioning();
-    // });
-
-    entity('Online', () => {
-        primaryKey('uid', 'number');
-        field('lastSeen', 'number');
-        field('activeExpires', 'number').nullable();
-        field('active', 'boolean').nullable();
-    });
-
-    entity('Presence', () => {
-        primaryKey('uid', 'number');
-        primaryKey('tid', 'string');
-        field('lastSeen', 'number');
-        field('lastSeenTimeout', 'number');
-        field('platform', 'string');
-        field('active', 'boolean').nullable();
-        rangeIndex('user', ['uid', 'lastSeen']);
-    });
-
-    entity('AuthToken', () => {
-        primaryKey('uuid', 'string');
-        field('salt', 'string');
-        field('uid', 'number');
-        field('lastIp', 'string');
-        field('enabled', 'boolean').nullable();
-        uniqueIndex('salt', ['salt'])
-            .withDisplayName('authTokenBySalt');
-        rangeIndex('user', ['uid', 'uuid'])
-            .withCondition(src => src.enabled !== false);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('ServiceCache', () => {
-        primaryKey('service', 'string');
-        primaryKey('key', 'string');
-        field('value', 'string').nullable();
-        rangeIndex('fromService', ['service', 'key']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('Lock', () => {
-        primaryKey('key', 'string');
-        field('seed', 'string');
-        field('timeout', 'number');
-        field('version', 'number');
-        field('minVersion', 'number');
-    });
-
     entity('Task', () => {
         primaryKey('taskType', 'string');
         primaryKey('uid', 'string');
@@ -168,79 +106,6 @@ const Schema = declareSchema(() => {
             .withCondition((src) => src.taskStatus === 'failing')
             .withDisplayName('tasksFailing');
 
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    //
-    //  Pushes
-    //
-
-    entity('PushFirebase', () => {
-        primaryKey('id', 'string');
-        field('uid', 'number');
-        field('tid', 'string');
-        field('token', 'string').secure();
-        field('packageId', 'string');
-        field('sandbox', 'boolean');
-        field('enabled', 'boolean');
-        field('failures', 'number').nullable();
-        field('failedFirstAt', 'number').nullable();
-        field('failedLastAt', 'number').nullable();
-        field('disabledAt', 'number').nullable();
-        rangeIndex('user', ['uid', 'id']);
-        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('PushApple', () => {
-        primaryKey('id', 'string');
-        field('uid', 'number');
-        field('tid', 'string');
-        field('token', 'string').secure();
-        field('bundleId', 'string');
-        field('sandbox', 'boolean');
-        field('enabled', 'boolean');
-        field('failures', 'number').nullable();
-        field('failedFirstAt', 'number').nullable();
-        field('failedLastAt', 'number').nullable();
-        field('disabledAt', 'number').nullable();
-        rangeIndex('user', ['uid', 'id']);
-        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('PushWeb', () => {
-        primaryKey('id', 'string');
-        field('uid', 'number');
-        field('tid', 'string');
-        field('endpoint', 'string').secure();
-        field('enabled', 'boolean');
-        field('failures', 'number').nullable();
-        field('failedFirstAt', 'number').nullable();
-        field('failedLastAt', 'number').nullable();
-        field('disabledAt', 'number').nullable();
-        rangeIndex('user', ['uid', 'id']);
-        uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('PushSafari', () => {
-        primaryKey('id', 'string');
-        field('uid', 'number');
-        field('tid', 'string');
-        field('token', 'string').secure();
-        field('bundleId', 'string');
-        field('enabled', 'boolean');
-        field('failures', 'number').nullable();
-        field('failedFirstAt', 'number').nullable();
-        field('failedLastAt', 'number').nullable();
-        field('disabledAt', 'number').nullable();
-        rangeIndex('user', ['uid', 'id']);
-        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
         enableTimestamps();
         enableVersioning();
     });
@@ -387,12 +252,6 @@ const Schema = declareSchema(() => {
         field('version', 'number').nullable();
         enableVersioning();
         enableTimestamps();
-    });
-
-    entity('SuperAdmin', () => {
-        primaryKey('id', 'number');
-        field('role', 'string');
-        field('enabled', 'boolean');
     });
 
     entity('UserSettings', () => {

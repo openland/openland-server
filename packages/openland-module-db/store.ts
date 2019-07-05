@@ -506,6 +506,996 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
     }
 }
 
+export interface OnlineShape {
+    uid: number;
+    lastSeen: number;
+    activeExpires: number | null;
+    active: boolean | null;
+}
+
+export interface OnlineCreateShape {
+    lastSeen: number;
+    activeExpires: number | null;
+    active: boolean | null;
+}
+
+export class Online extends Entity<OnlineShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get lastSeen(): number { return this._rawValue.lastSeen; }
+    set lastSeen(value: number) {
+        let normalized = this.descriptor.codec.fields.lastSeen.normalize(value);
+        if (this._rawValue.lastSeen !== normalized) {
+            this._rawValue.lastSeen = normalized;
+            this._updatedValues.lastSeen = normalized;
+            this.invalidate();
+        }
+    }
+    get activeExpires(): number | null { return this._rawValue.activeExpires; }
+    set activeExpires(value: number | null) {
+        let normalized = this.descriptor.codec.fields.activeExpires.normalize(value);
+        if (this._rawValue.activeExpires !== normalized) {
+            this._rawValue.activeExpires = normalized;
+            this._updatedValues.activeExpires = normalized;
+            this.invalidate();
+        }
+    }
+    get active(): boolean | null { return this._rawValue.active; }
+    set active(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('online');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'lastSeen', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'activeExpires', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            lastSeen: c.integer,
+            activeExpires: c.optional(c.integer),
+            active: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<OnlineShape> = {
+            name: 'Online',
+            storageKey: 'online',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OnlineFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OnlineShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: OnlineCreateShape): Promise<Online> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<Online | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OnlineShape>): Online {
+        return new Online([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PresenceShape {
+    uid: number;
+    tid: string;
+    lastSeen: number;
+    lastSeenTimeout: number;
+    platform: string;
+    active: boolean | null;
+}
+
+export interface PresenceCreateShape {
+    lastSeen: number;
+    lastSeenTimeout: number;
+    platform: string;
+    active: boolean | null;
+}
+
+export class Presence extends Entity<PresenceShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get tid(): string { return this._rawValue.tid; }
+    get lastSeen(): number { return this._rawValue.lastSeen; }
+    set lastSeen(value: number) {
+        let normalized = this.descriptor.codec.fields.lastSeen.normalize(value);
+        if (this._rawValue.lastSeen !== normalized) {
+            this._rawValue.lastSeen = normalized;
+            this._updatedValues.lastSeen = normalized;
+            this.invalidate();
+        }
+    }
+    get lastSeenTimeout(): number { return this._rawValue.lastSeenTimeout; }
+    set lastSeenTimeout(value: number) {
+        let normalized = this.descriptor.codec.fields.lastSeenTimeout.normalize(value);
+        if (this._rawValue.lastSeenTimeout !== normalized) {
+            this._rawValue.lastSeenTimeout = normalized;
+            this._updatedValues.lastSeenTimeout = normalized;
+            this.invalidate();
+        }
+    }
+    get platform(): string { return this._rawValue.platform; }
+    set platform(value: string) {
+        let normalized = this.descriptor.codec.fields.platform.normalize(value);
+        if (this._rawValue.platform !== normalized) {
+            this._rawValue.platform = normalized;
+            this._updatedValues.platform = normalized;
+            this.invalidate();
+        }
+    }
+    get active(): boolean | null { return this._rawValue.active; }
+    set active(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('presence');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'lastSeen', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('presence', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'tid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'lastSeen', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'lastSeenTimeout', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'platform', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            tid: c.string,
+            lastSeen: c.integer,
+            lastSeenTimeout: c.integer,
+            platform: c.string,
+            active: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<PresenceShape> = {
+            name: 'Presence',
+            storageKey: 'presence',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PresenceFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PresenceShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        }
+    });
+
+    create(ctx: Context, uid: number, tid: string, src: PresenceCreateShape): Promise<Presence> {
+        return this._create(ctx, [uid, tid], this.descriptor.codec.normalize({ uid, tid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, tid: string): Promise<Presence | null> {
+        return this._findById(ctx, [uid, tid]);
+    }
+
+    watch(ctx: Context, uid: number, tid: string): Watch {
+        return this._watch(ctx, [uid, tid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PresenceShape>): Presence {
+        return new Presence([value.uid, value.tid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PushFirebaseShape {
+    id: string;
+    uid: number;
+    tid: string;
+    token: string;
+    packageId: string;
+    sandbox: boolean;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export interface PushFirebaseCreateShape {
+    uid: number;
+    tid: string;
+    token: string;
+    packageId: string;
+    sandbox: boolean;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export class PushFirebase extends Entity<PushFirebaseShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get tid(): string { return this._rawValue.tid; }
+    set tid(value: string) {
+        let normalized = this.descriptor.codec.fields.tid.normalize(value);
+        if (this._rawValue.tid !== normalized) {
+            this._rawValue.tid = normalized;
+            this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
+    get token(): string { return this._rawValue.token; }
+    set token(value: string) {
+        let normalized = this.descriptor.codec.fields.token.normalize(value);
+        if (this._rawValue.token !== normalized) {
+            this._rawValue.token = normalized;
+            this._updatedValues.token = normalized;
+            this.invalidate();
+        }
+    }
+    get packageId(): string { return this._rawValue.packageId; }
+    set packageId(value: string) {
+        let normalized = this.descriptor.codec.fields.packageId.normalize(value);
+        if (this._rawValue.packageId !== normalized) {
+            this._rawValue.packageId = normalized;
+            this._updatedValues.packageId = normalized;
+            this.invalidate();
+        }
+    }
+    get sandbox(): boolean { return this._rawValue.sandbox; }
+    set sandbox(value: boolean) {
+        let normalized = this.descriptor.codec.fields.sandbox.normalize(value);
+        if (this._rawValue.sandbox !== normalized) {
+            this._rawValue.sandbox = normalized;
+            this._updatedValues.sandbox = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get failures(): number | null { return this._rawValue.failures; }
+    set failures(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failures.normalize(value);
+        if (this._rawValue.failures !== normalized) {
+            this._rawValue.failures = normalized;
+            this._updatedValues.failures = normalized;
+            this.invalidate();
+        }
+    }
+    get failedFirstAt(): number | null { return this._rawValue.failedFirstAt; }
+    set failedFirstAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedFirstAt.normalize(value);
+        if (this._rawValue.failedFirstAt !== normalized) {
+            this._rawValue.failedFirstAt = normalized;
+            this._updatedValues.failedFirstAt = normalized;
+            this.invalidate();
+        }
+    }
+    get failedLastAt(): number | null { return this._rawValue.failedLastAt; }
+    set failedLastAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedLastAt.normalize(value);
+        if (this._rawValue.failedLastAt !== normalized) {
+            this._rawValue.failedLastAt = normalized;
+            this._updatedValues.failedLastAt = normalized;
+            this.invalidate();
+        }
+    }
+    get disabledAt(): number | null { return this._rawValue.disabledAt; }
+    set disabledAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.disabledAt.normalize(value);
+        if (this._rawValue.disabledAt !== normalized) {
+            this._rawValue.disabledAt = normalized;
+            this._updatedValues.disabledAt = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFirebase> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('pushFirebase');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushFirebase', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushFirebase', 'token'), condition: src => src.enabled });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'tid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'token', type: { type: 'string' }, secure: true });
+        fields.push({ name: 'packageId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'sandbox', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'failures', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedFirstAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedLastAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'disabledAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            tid: c.string,
+            token: c.string,
+            packageId: c.string,
+            sandbox: c.boolean,
+            enabled: c.boolean,
+            failures: c.optional(c.integer),
+            failedFirstAt: c.optional(c.integer),
+            failedLastAt: c.optional(c.integer),
+            disabledAt: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<PushFirebaseShape> = {
+            name: 'PushFirebase',
+            storageKey: 'pushFirebase',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PushFirebaseFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PushFirebaseShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        }
+    });
+
+    readonly token = Object.freeze({
+        find: async (ctx: Context, token: string) => {
+            return this._findFromUniqueIndex(ctx, [token], this.descriptor.secondaryIndexes[1]);
+        }
+    });
+
+    create(ctx: Context, id: string, src: PushFirebaseCreateShape): Promise<PushFirebase> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PushFirebase | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushFirebaseShape>): PushFirebase {
+        return new PushFirebase([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PushAppleShape {
+    id: string;
+    uid: number;
+    tid: string;
+    token: string;
+    bundleId: string;
+    sandbox: boolean;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export interface PushAppleCreateShape {
+    uid: number;
+    tid: string;
+    token: string;
+    bundleId: string;
+    sandbox: boolean;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export class PushApple extends Entity<PushAppleShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get tid(): string { return this._rawValue.tid; }
+    set tid(value: string) {
+        let normalized = this.descriptor.codec.fields.tid.normalize(value);
+        if (this._rawValue.tid !== normalized) {
+            this._rawValue.tid = normalized;
+            this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
+    get token(): string { return this._rawValue.token; }
+    set token(value: string) {
+        let normalized = this.descriptor.codec.fields.token.normalize(value);
+        if (this._rawValue.token !== normalized) {
+            this._rawValue.token = normalized;
+            this._updatedValues.token = normalized;
+            this.invalidate();
+        }
+    }
+    get bundleId(): string { return this._rawValue.bundleId; }
+    set bundleId(value: string) {
+        let normalized = this.descriptor.codec.fields.bundleId.normalize(value);
+        if (this._rawValue.bundleId !== normalized) {
+            this._rawValue.bundleId = normalized;
+            this._updatedValues.bundleId = normalized;
+            this.invalidate();
+        }
+    }
+    get sandbox(): boolean { return this._rawValue.sandbox; }
+    set sandbox(value: boolean) {
+        let normalized = this.descriptor.codec.fields.sandbox.normalize(value);
+        if (this._rawValue.sandbox !== normalized) {
+            this._rawValue.sandbox = normalized;
+            this._updatedValues.sandbox = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get failures(): number | null { return this._rawValue.failures; }
+    set failures(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failures.normalize(value);
+        if (this._rawValue.failures !== normalized) {
+            this._rawValue.failures = normalized;
+            this._updatedValues.failures = normalized;
+            this.invalidate();
+        }
+    }
+    get failedFirstAt(): number | null { return this._rawValue.failedFirstAt; }
+    set failedFirstAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedFirstAt.normalize(value);
+        if (this._rawValue.failedFirstAt !== normalized) {
+            this._rawValue.failedFirstAt = normalized;
+            this._updatedValues.failedFirstAt = normalized;
+            this.invalidate();
+        }
+    }
+    get failedLastAt(): number | null { return this._rawValue.failedLastAt; }
+    set failedLastAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedLastAt.normalize(value);
+        if (this._rawValue.failedLastAt !== normalized) {
+            this._rawValue.failedLastAt = normalized;
+            this._updatedValues.failedLastAt = normalized;
+            this.invalidate();
+        }
+    }
+    get disabledAt(): number | null { return this._rawValue.disabledAt; }
+    set disabledAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.disabledAt.normalize(value);
+        if (this._rawValue.disabledAt !== normalized) {
+            this._rawValue.disabledAt = normalized;
+            this._updatedValues.disabledAt = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('pushApple');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushApple', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushApple', 'token'), condition: src => src.enabled });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'tid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'token', type: { type: 'string' }, secure: true });
+        fields.push({ name: 'bundleId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'sandbox', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'failures', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedFirstAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedLastAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'disabledAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            tid: c.string,
+            token: c.string,
+            bundleId: c.string,
+            sandbox: c.boolean,
+            enabled: c.boolean,
+            failures: c.optional(c.integer),
+            failedFirstAt: c.optional(c.integer),
+            failedLastAt: c.optional(c.integer),
+            disabledAt: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<PushAppleShape> = {
+            name: 'PushApple',
+            storageKey: 'pushApple',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PushAppleFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PushAppleShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        }
+    });
+
+    readonly token = Object.freeze({
+        find: async (ctx: Context, token: string) => {
+            return this._findFromUniqueIndex(ctx, [token], this.descriptor.secondaryIndexes[1]);
+        }
+    });
+
+    create(ctx: Context, id: string, src: PushAppleCreateShape): Promise<PushApple> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PushApple | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushAppleShape>): PushApple {
+        return new PushApple([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PushWebShape {
+    id: string;
+    uid: number;
+    tid: string;
+    endpoint: string;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export interface PushWebCreateShape {
+    uid: number;
+    tid: string;
+    endpoint: string;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export class PushWeb extends Entity<PushWebShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get tid(): string { return this._rawValue.tid; }
+    set tid(value: string) {
+        let normalized = this.descriptor.codec.fields.tid.normalize(value);
+        if (this._rawValue.tid !== normalized) {
+            this._rawValue.tid = normalized;
+            this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
+    get endpoint(): string { return this._rawValue.endpoint; }
+    set endpoint(value: string) {
+        let normalized = this.descriptor.codec.fields.endpoint.normalize(value);
+        if (this._rawValue.endpoint !== normalized) {
+            this._rawValue.endpoint = normalized;
+            this._updatedValues.endpoint = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get failures(): number | null { return this._rawValue.failures; }
+    set failures(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failures.normalize(value);
+        if (this._rawValue.failures !== normalized) {
+            this._rawValue.failures = normalized;
+            this._updatedValues.failures = normalized;
+            this.invalidate();
+        }
+    }
+    get failedFirstAt(): number | null { return this._rawValue.failedFirstAt; }
+    set failedFirstAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedFirstAt.normalize(value);
+        if (this._rawValue.failedFirstAt !== normalized) {
+            this._rawValue.failedFirstAt = normalized;
+            this._updatedValues.failedFirstAt = normalized;
+            this.invalidate();
+        }
+    }
+    get failedLastAt(): number | null { return this._rawValue.failedLastAt; }
+    set failedLastAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedLastAt.normalize(value);
+        if (this._rawValue.failedLastAt !== normalized) {
+            this._rawValue.failedLastAt = normalized;
+            this._updatedValues.failedLastAt = normalized;
+            this.invalidate();
+        }
+    }
+    get disabledAt(): number | null { return this._rawValue.disabledAt; }
+    set disabledAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.disabledAt.normalize(value);
+        if (this._rawValue.disabledAt !== normalized) {
+            this._rawValue.disabledAt = normalized;
+            this._updatedValues.disabledAt = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('pushWeb');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushWeb', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'endpoint', storageKey: 'endpoint', type: { type: 'unique', fields: [{ name: 'endpoint', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushWeb', 'endpoint'), condition: src => src.enabled });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'tid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'endpoint', type: { type: 'string' }, secure: true });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'failures', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedFirstAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedLastAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'disabledAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            tid: c.string,
+            endpoint: c.string,
+            enabled: c.boolean,
+            failures: c.optional(c.integer),
+            failedFirstAt: c.optional(c.integer),
+            failedLastAt: c.optional(c.integer),
+            disabledAt: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<PushWebShape> = {
+            name: 'PushWeb',
+            storageKey: 'pushWeb',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PushWebFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PushWebShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        }
+    });
+
+    readonly endpoint = Object.freeze({
+        find: async (ctx: Context, endpoint: string) => {
+            return this._findFromUniqueIndex(ctx, [endpoint], this.descriptor.secondaryIndexes[1]);
+        }
+    });
+
+    create(ctx: Context, id: string, src: PushWebCreateShape): Promise<PushWeb> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PushWeb | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushWebShape>): PushWeb {
+        return new PushWeb([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PushSafariShape {
+    id: string;
+    uid: number;
+    tid: string;
+    token: string;
+    bundleId: string;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export interface PushSafariCreateShape {
+    uid: number;
+    tid: string;
+    token: string;
+    bundleId: string;
+    enabled: boolean;
+    failures: number | null;
+    failedFirstAt: number | null;
+    failedLastAt: number | null;
+    disabledAt: number | null;
+}
+
+export class PushSafari extends Entity<PushSafariShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get tid(): string { return this._rawValue.tid; }
+    set tid(value: string) {
+        let normalized = this.descriptor.codec.fields.tid.normalize(value);
+        if (this._rawValue.tid !== normalized) {
+            this._rawValue.tid = normalized;
+            this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
+    get token(): string { return this._rawValue.token; }
+    set token(value: string) {
+        let normalized = this.descriptor.codec.fields.token.normalize(value);
+        if (this._rawValue.token !== normalized) {
+            this._rawValue.token = normalized;
+            this._updatedValues.token = normalized;
+            this.invalidate();
+        }
+    }
+    get bundleId(): string { return this._rawValue.bundleId; }
+    set bundleId(value: string) {
+        let normalized = this.descriptor.codec.fields.bundleId.normalize(value);
+        if (this._rawValue.bundleId !== normalized) {
+            this._rawValue.bundleId = normalized;
+            this._updatedValues.bundleId = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get failures(): number | null { return this._rawValue.failures; }
+    set failures(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failures.normalize(value);
+        if (this._rawValue.failures !== normalized) {
+            this._rawValue.failures = normalized;
+            this._updatedValues.failures = normalized;
+            this.invalidate();
+        }
+    }
+    get failedFirstAt(): number | null { return this._rawValue.failedFirstAt; }
+    set failedFirstAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedFirstAt.normalize(value);
+        if (this._rawValue.failedFirstAt !== normalized) {
+            this._rawValue.failedFirstAt = normalized;
+            this._updatedValues.failedFirstAt = normalized;
+            this.invalidate();
+        }
+    }
+    get failedLastAt(): number | null { return this._rawValue.failedLastAt; }
+    set failedLastAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.failedLastAt.normalize(value);
+        if (this._rawValue.failedLastAt !== normalized) {
+            this._rawValue.failedLastAt = normalized;
+            this._updatedValues.failedLastAt = normalized;
+            this.invalidate();
+        }
+    }
+    get disabledAt(): number | null { return this._rawValue.disabledAt; }
+    set disabledAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.disabledAt.normalize(value);
+        if (this._rawValue.disabledAt !== normalized) {
+            this._rawValue.disabledAt = normalized;
+            this._updatedValues.disabledAt = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('pushSafari');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushSafari', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushSafari', 'token'), condition: src => src.enabled });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'tid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'token', type: { type: 'string' }, secure: true });
+        fields.push({ name: 'bundleId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'failures', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedFirstAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'failedLastAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'disabledAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            tid: c.string,
+            token: c.string,
+            bundleId: c.string,
+            enabled: c.boolean,
+            failures: c.optional(c.integer),
+            failedFirstAt: c.optional(c.integer),
+            failedLastAt: c.optional(c.integer),
+            disabledAt: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<PushSafariShape> = {
+            name: 'PushSafari',
+            storageKey: 'pushSafari',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PushSafariFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PushSafariShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        }
+    });
+
+    readonly token = Object.freeze({
+        find: async (ctx: Context, token: string) => {
+            return this._findFromUniqueIndex(ctx, [token], this.descriptor.secondaryIndexes[1]);
+        }
+    });
+
+    create(ctx: Context, id: string, src: PushSafariCreateShape): Promise<PushSafari> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PushSafari | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushSafariShape>): PushSafari {
+        return new PushSafari([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface EnvironmentShape {
     production: number;
     comment: string;
@@ -634,6 +1624,293 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
     }
 }
 
+export interface ServiceCacheShape {
+    service: string;
+    key: string;
+    value: string | null;
+}
+
+export interface ServiceCacheCreateShape {
+    value: string | null;
+}
+
+export class ServiceCache extends Entity<ServiceCacheShape> {
+    get service(): string { return this._rawValue.service; }
+    get key(): string { return this._rawValue.key; }
+    get value(): string | null { return this._rawValue.value; }
+    set value(value: string | null) {
+        let normalized = this.descriptor.codec.fields.value.normalize(value);
+        if (this._rawValue.value !== normalized) {
+            this._rawValue.value = normalized;
+            this._updatedValues.value = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, ServiceCache> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('serviceCache');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'fromService', storageKey: 'fromService', type: { type: 'range', fields: [{ name: 'service', type: 'string' }, { name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('serviceCache', 'fromService'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'service', type: 'string' });
+        primaryKeys.push({ name: 'key', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'value', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            service: c.string,
+            key: c.string,
+            value: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<ServiceCacheShape> = {
+            name: 'ServiceCache',
+            storageKey: 'serviceCache',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ServiceCacheFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ServiceCacheShape>) {
+        super(descriptor);
+    }
+
+    readonly fromService = Object.freeze({
+        findAll: async (ctx: Context, service: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [service])).items;
+        },
+        query: (ctx: Context, service: string, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [service], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (service: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [service], opts);
+        },
+        liveStream: (ctx: Context, service: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [service], opts);
+        }
+    });
+
+    create(ctx: Context, service: string, key: string, src: ServiceCacheCreateShape): Promise<ServiceCache> {
+        return this._create(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
+    }
+
+    findById(ctx: Context, service: string, key: string): Promise<ServiceCache | null> {
+        return this._findById(ctx, [service, key]);
+    }
+
+    watch(ctx: Context, service: string, key: string): Watch {
+        return this._watch(ctx, [service, key]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ServiceCacheShape>): ServiceCache {
+        return new ServiceCache([value.service, value.key], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface SuperAdminShape {
+    id: number;
+    role: string;
+    enabled: boolean;
+}
+
+export interface SuperAdminCreateShape {
+    role: string;
+    enabled: boolean;
+}
+
+export class SuperAdmin extends Entity<SuperAdminShape> {
+    get id(): number { return this._rawValue.id; }
+    get role(): string { return this._rawValue.role; }
+    set role(value: string) {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('superAdmin');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'role', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            role: c.string,
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<SuperAdminShape> = {
+            name: 'SuperAdmin',
+            storageKey: 'superAdmin',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new SuperAdminFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<SuperAdminShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: SuperAdminCreateShape): Promise<SuperAdmin> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<SuperAdmin | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<SuperAdminShape>): SuperAdmin {
+        return new SuperAdmin([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface AuthTokenShape {
+    uuid: string;
+    salt: string;
+    uid: number;
+    lastIp: string;
+    enabled: boolean | null;
+}
+
+export interface AuthTokenCreateShape {
+    salt: string;
+    uid: number;
+    lastIp: string;
+    enabled: boolean | null;
+}
+
+export class AuthToken extends Entity<AuthTokenShape> {
+    get uuid(): string { return this._rawValue.uuid; }
+    get salt(): string { return this._rawValue.salt; }
+    set salt(value: string) {
+        let normalized = this.descriptor.codec.fields.salt.normalize(value);
+        if (this._rawValue.salt !== normalized) {
+            this._rawValue.salt = normalized;
+            this._updatedValues.salt = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get lastIp(): string { return this._rawValue.lastIp; }
+    set lastIp(value: string) {
+        let normalized = this.descriptor.codec.fields.lastIp.normalize(value);
+        if (this._rawValue.lastIp !== normalized) {
+            this._rawValue.lastIp = normalized;
+            this._updatedValues.lastIp = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean | null { return this._rawValue.enabled; }
+    set enabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('authToken');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('authToken', 'salt'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('authToken', 'user'), condition: src => src.enabled !== false });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uuid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'salt', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'lastIp', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uuid: c.string,
+            salt: c.string,
+            uid: c.integer,
+            lastIp: c.string,
+            enabled: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<AuthTokenShape> = {
+            name: 'AuthToken',
+            storageKey: 'authToken',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new AuthTokenFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<AuthTokenShape>) {
+        super(descriptor);
+    }
+
+    readonly salt = Object.freeze({
+        find: async (ctx: Context, salt: string) => {
+            return this._findFromUniqueIndex(ctx, [salt], this.descriptor.secondaryIndexes[0]);
+        }
+    });
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        }
+    });
+
+    create(ctx: Context, uuid: string, src: AuthTokenCreateShape): Promise<AuthToken> {
+        return this._create(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    findById(ctx: Context, uuid: string): Promise<AuthToken | null> {
+        return this._findById(ctx, [uuid]);
+    }
+
+    watch(ctx: Context, uuid: string): Watch {
+        return this._watch(ctx, [uuid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AuthTokenShape>): AuthToken {
+        return new AuthToken([value.uuid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -649,8 +1926,17 @@ export interface Store extends BaseStore {
     readonly UserMessagesSentInDirectChatCounter: UserMessagesSentInDirectChatCounterFactory;
     readonly User2WayDirectChatsCounter: User2WayDirectChatsCounterFactory;
     readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
+    readonly Online: OnlineFactory;
+    readonly Presence: PresenceFactory;
+    readonly PushFirebase: PushFirebaseFactory;
+    readonly PushApple: PushAppleFactory;
+    readonly PushWeb: PushWebFactory;
+    readonly PushSafari: PushSafariFactory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
+    readonly ServiceCache: ServiceCacheFactory;
+    readonly SuperAdmin: SuperAdminFactory;
+    readonly AuthToken: AuthTokenFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -668,8 +1954,17 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
+    let OnlinePromise = OnlineFactory.open(storage);
+    let PresencePromise = PresenceFactory.open(storage);
+    let PushFirebasePromise = PushFirebaseFactory.open(storage);
+    let PushApplePromise = PushAppleFactory.open(storage);
+    let PushWebPromise = PushWebFactory.open(storage);
+    let PushSafariPromise = PushSafariFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
+    let ServiceCachePromise = ServiceCacheFactory.open(storage);
+    let SuperAdminPromise = SuperAdminFactory.open(storage);
+    let AuthTokenPromise = AuthTokenFactory.open(storage);
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -686,7 +1981,16 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesSentInDirectChatCounter: await UserMessagesSentInDirectChatCounterPromise,
         User2WayDirectChatsCounter: await User2WayDirectChatsCounterPromise,
         GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
+        Online: await OnlinePromise,
+        Presence: await PresencePromise,
+        PushFirebase: await PushFirebasePromise,
+        PushApple: await PushApplePromise,
+        PushWeb: await PushWebPromise,
+        PushSafari: await PushSafariPromise,
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,
+        ServiceCache: await ServiceCachePromise,
+        SuperAdmin: await SuperAdminPromise,
+        AuthToken: await AuthTokenPromise,
     };
 }

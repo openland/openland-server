@@ -1,10 +1,10 @@
 import { FDB } from 'openland-module-db/FDB';
-import { SuperAdmin } from 'openland-module-db/schema';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { SuperAdmin } from 'openland-module-db/store';
 
 export default {
     SuperAdmin: {
