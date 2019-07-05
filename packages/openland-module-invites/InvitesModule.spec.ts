@@ -21,8 +21,8 @@ describe('RoomMediator', () => {
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should create room', async () => {

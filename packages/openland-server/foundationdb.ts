@@ -51,5 +51,11 @@ export async function openTestDatabase() {
     } else {
         db = await Database.openTest({ layers: createLayers(true) });
     }
+    Shutdown.registerWork({
+        name: 'database',
+        shutdown: async (ctx) => {
+            await db.close(ctx);
+        }
+    });
     return db;
 }

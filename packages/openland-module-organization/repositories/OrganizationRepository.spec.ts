@@ -23,8 +23,8 @@ describe('OrganizationRepository', () => {
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should create pending organization correctly', async () => {

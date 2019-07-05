@@ -23,8 +23,8 @@ describe('RoomMediator', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     async function randomUser(ctx: Context) {

@@ -10,8 +10,8 @@ describe('NeedNotificationDeliveryRepository', () => {
         await testEnvironmentStart('need-notification-repo');
         loadMessagingTestModule();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     it('should mark as needed', async () => {
         let repo = container.get<NeedNotificationDeliveryRepository>('NeedNotificationDeliveryRepository');

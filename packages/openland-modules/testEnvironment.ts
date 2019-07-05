@@ -14,6 +14,8 @@ import { UsersModule } from '../openland-module-users/UsersModule';
 import { openTestDatabase } from 'openland-server/foundationdb';
 import { createLogger } from '@openland/log';
 
+import { Shutdown } from '../openland-utils/Shutdown';
+
 const logger = createLogger('environment');
 
 export async function testEnvironmentStart(name: string) {
@@ -51,7 +53,8 @@ export async function testEnvironmentStart(name: string) {
         .inSingletonScope();
 }
 
-export function testEnvironmentEnd() {
+export async function testEnvironmentEnd() {
+    await Shutdown.shutdown();
     container.restore();
 }
 

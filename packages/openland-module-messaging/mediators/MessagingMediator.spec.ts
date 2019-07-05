@@ -28,8 +28,8 @@ describe('MessagingMediator', () => {
         container.bind(MediaModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
 
     it('should send message', async () => {

@@ -561,6 +561,9 @@ export default {
                 for (let id of args.roomsIds) {
                     res.push(await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(id), uid, true));
                 }
+                if (res.length) {
+                    await Modules.Hooks.onDiscoverCompleted(ctx, uid);
+                }
                 return res;
             });
         }),

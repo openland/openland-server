@@ -35,8 +35,8 @@ describe('UserStateRepository', () => {
         return { message: m1.message, state };
     };
 
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     it('should correctly handle messaging state', async () => {
         let repo = container.get<UserStateRepository>('UserStateRepository');

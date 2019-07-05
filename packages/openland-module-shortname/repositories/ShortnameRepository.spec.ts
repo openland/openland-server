@@ -18,8 +18,8 @@ describe('ShortnameRepository', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind('ShortnameRepository').to(ShortnameRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     it('should set user shortname', async () => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');

@@ -9,8 +9,8 @@ describe('RoomRepository', () => {
         await testEnvironmentStart('room-repo');
         container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll( async () => {
+      await  testEnvironmentEnd();
     });
     it('should create rooms', async () => {
         let ctx = createNamedContext('test');
