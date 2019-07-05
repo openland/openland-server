@@ -23,7 +23,7 @@ describe('PushNotificationWorker', () => {
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
-        container.get(MessagingModule).start();
+        container.get(MessagingModule).start(/* launch indexers */ false);
     });
     afterAll(async () => {
         await testEnvironmentEnd();

@@ -49,7 +49,7 @@ export class MessagingModule {
     //
     // Start 
     //
-    start = () => {
+    start = (launchIndexers: boolean = true) => {
         this.augmentation.start();
         this.delivery.start();
         if (serverRoleEnabled('workers')) {
@@ -58,16 +58,17 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
-        if (serverRoleEnabled('workers')) {
-            dialogSearchIndexer();
+        if (launchIndexers) {
+            if (serverRoleEnabled('workers')) {
+                dialogSearchIndexer();
+            }
+            if (serverRoleEnabled('workers')) {
+                messagesIndexer();
+            }
+            if (serverRoleEnabled('workers')) {
+                roomsSearchIndexer();
+            }
         }
-        if (serverRoleEnabled('workers')) {
-            messagesIndexer();
-        }
-        if (serverRoleEnabled('workers')) {
-            roomsSearchIndexer();
-        }
-
     }
 
     //
