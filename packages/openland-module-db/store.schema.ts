@@ -2,6 +2,26 @@ import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, fiel
 
 export default declareSchema(() => {
 
+    // //
+    // // User
+    // //
+
+    // entity('User', () => {
+    //     primaryKey('id', integer());
+    //     field('authId', string());
+    //     field('email', string());
+    //     field('isBot', boolean());
+    //     field('invitedBy', optional(integer()));
+    //     field('botOwner', optional(integer()));
+    //     field('isSuperBot', optional(boolean()));
+    //     field('status', enumString('pending', 'activated', 'suspended', 'deleted'));
+
+    //     uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
+    //     uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
+    //     rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
+    //     rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
+    // });
+
     //
     // Presence
     //
@@ -46,6 +66,9 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
     });
     atomicInt('UserSuccessfulInvitesCounter', () => {
+        primaryKey('uid', integer());
+    });
+    atomicInt('UserEmailSentCounter', () => {
         primaryKey('uid', integer());
     });
 
@@ -182,21 +205,16 @@ export default declareSchema(() => {
             .withCondition(src => src.enabled !== false);
     });
 
-    // Global counters START
-    atomicInt('UserGlobalCounterAllUnreadMessages', () => {
-        primaryKey('uid', integer());
+    entity('FeatureFlag', () => {
+        primaryKey('key', string());
+        field('title', string());
     });
 
-    atomicInt('UserGlobalCounterUnreadMessagesWithoutMuted', () => {
-        primaryKey('uid', integer());
+    entity('OrganizationFeatures', () => {
+        primaryKey('id', string());
+        field('featureKey', string());
+        field('organizationId', integer());
+        field('enabled', boolean());
+        uniqueIndex('organization', ['organizationId', 'featureKey']);
     });
-
-    atomicInt('UserGlobalCounterAllUnreadChats', () => {
-        primaryKey('uid', integer());
-    });
-
-    atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
-        primaryKey('uid', integer());
-    });
-    // Global counters END
 });

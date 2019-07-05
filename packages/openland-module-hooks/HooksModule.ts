@@ -191,4 +191,8 @@ export class HooksModule {
     onNewMobileUser = (ctx: Context) => {
         Modules.Stats.onNewMobileUser(ctx);
     }
+
+    onEmailSent = (ctx: Context, uid: number) => {
+        Modules.Stats.onEmailSent(ctx, uid);
+    }
 }

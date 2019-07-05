@@ -67,4 +67,8 @@ export class HooksModuleMock {
     onNewMobileUser = async (ctx: Context) => {
         // Nothing to do
     }
+
+    onEmailSent = async (ctx: Context, uid: number) => {
+        // nothing to do
+    }
 }

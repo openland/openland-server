@@ -1,6 +1,10 @@
 import { timedWorker, WeekDay } from '../../openland-module-workers/timedWorker';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
-import { getGlobalStatisticsForReport, getGrowthReportsChatId, getSuperNotificationsBotId } from './utils';
+import {
+    getGlobalStatisticsForReport,
+    getSuperNotificationsBotId,
+    getWeeklyReportsChatId,
+} from './utils';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { formatNumberWithSign, plural } from '../../openland-utils/string';
 import { Modules } from '../../openland-modules/Modules';
@@ -11,9 +15,9 @@ export function createWeeklyReportWorker() {
     if (serverRoleEnabled('workers')) {
         timedWorker('weekly-summary', {
             interval: 'every-week',
-            time: { weekDay: WeekDay.Monday, hours: 12, minutes: 0 }
+            time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 }
         }, async (ctx) => {
-            const chatId = await getGrowthReportsChatId(ctx);
+            const chatId = await getWeeklyReportsChatId(ctx);
             const botId = await getSuperNotificationsBotId(ctx);
             if (!chatId || !botId) {
                 log.warn(ctx, 'botId or chatId not specified');

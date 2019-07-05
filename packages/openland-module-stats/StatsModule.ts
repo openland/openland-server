@@ -44,6 +44,10 @@ export class StatsModule {
         Store.GlobalStatisticsCounters.byId('user-entrances').increment(ctx);
     }
 
+    onEmailSent = (ctx: Context, uid: number) => {
+        Store.UserEmailSentCounter.byId(uid).increment(ctx);
+    }
+
     onSuccessfulInvite = async (ctx: Context, newUserId: number, inviterId: number) => {
         Store.GlobalStatisticsCounters.byId('successful-invites').increment(ctx);
 
@@ -162,6 +166,10 @@ export class StatsModule {
             }
 
             const profile = await Modules.Users.profileById(ctx, uid);
+            if (profile!.email && profile!.email.endsWith('maildu.de')) {
+                return { result: 'completed' };
+            }
+
             const onlines = await Store.Presence.user.findAll(ctx, uid);
             const mobileOnline = !!onlines
                 .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
@@ -172,6 +180,9 @@ export class StatsModule {
             const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
             const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
 
+            const emailSent = await Store.UserEmailSentCounter.byId(uid).get(ctx);
+            const userSettings = await Modules.Users.getUserSettings(ctx, uid);
+
             let orgName = '';
             if (profile!.primaryOrganization) {
                 const organization = await FDB.OrganizationProfile.findById(ctx, profile!.primaryOrganization);
@@ -181,13 +192,51 @@ export class StatsModule {
             let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
             if (score > 0) {
                 if (mobileOnline) {
-                    report.push('✅ Mobile ');
+                    report.push('✅ Mobile  ');
                 } else {
-                    report.push('🚫 Mobile ');
+                    report.push('🚫 Mobile  ');
                 }
-                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} `);
-                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs `);
-                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}`);
+                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])}  `);
+                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs  `);
+                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}\n`);
+                report.push(`📭 ${emailSent} emails sent  `);
+
+                // privileges
+                switch (userSettings.desktopNotifications) {
+                    case 'all':
+                        report.push('✅');
+                        break;
+                    case 'direct':
+                        report.push('✔️');
+                        break;
+                    default:
+                        report.push('🚫');
+                        break;
+                }
+                report.push(' Desktop notifications  ');
+
+                switch (userSettings.mobileNotifications) {
+                    case 'all':
+                        report.push('✅');
+                        break;
+                    case 'direct':
+                        report.push('✔️');
+                        break;
+                    default:
+                        report.push('🚫');
+                        break;
+                }
+                report.push(' Mobile notifications  ');
+
+                switch (userSettings.emailFrequency) {
+                    case 'never':
+                        report.push('🚫️');
+                        break;
+                    default:
+                        report.push('✅');
+                        break;
+                }
+                report.push(' Email notifications');
             }
 
             await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {

@@ -1163,6 +1163,12 @@ export class RoomRepository {
                 await this.store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
             }
             await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
+
+            let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+
+            if (userRoomBadge && userRoomBadge.bid !== null) {
+                userRoomBadge.bid = null;
+            }
         });
     }
 

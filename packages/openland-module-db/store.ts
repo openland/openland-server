@@ -262,6 +262,42 @@ export class UserSuccessfulInvitesCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserEmailSentCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userEmailSentCounter');
+        return new UserEmailSentCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -843,7 +879,7 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        }
+        },
     });
 
     create(ctx: Context, uid: number, tid: string, src: PresenceCreateShape): Promise<Presence> {
@@ -1041,13 +1077,19 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        }
+        },
     });
 
     readonly token = Object.freeze({
         find: async (ctx: Context, token: string) => {
             return this._findFromUniqueIndex(ctx, [token], this.descriptor.secondaryIndexes[1]);
-        }
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
     });
 
     create(ctx: Context, id: string, src: PushFirebaseCreateShape): Promise<PushFirebase> {
@@ -1245,13 +1287,19 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        }
+        },
     });
 
     readonly token = Object.freeze({
         find: async (ctx: Context, token: string) => {
             return this._findFromUniqueIndex(ctx, [token], this.descriptor.secondaryIndexes[1]);
-        }
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
     });
 
     create(ctx: Context, id: string, src: PushAppleCreateShape): Promise<PushApple> {
@@ -1423,13 +1471,19 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        }
+        },
     });
 
     readonly endpoint = Object.freeze({
         find: async (ctx: Context, endpoint: string) => {
             return this._findFromUniqueIndex(ctx, [endpoint], this.descriptor.secondaryIndexes[1]);
-        }
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
     });
 
     create(ctx: Context, id: string, src: PushWebCreateShape): Promise<PushWeb> {
@@ -1614,13 +1668,19 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        }
+        },
     });
 
     readonly token = Object.freeze({
         find: async (ctx: Context, token: string) => {
             return this._findFromUniqueIndex(ctx, [token], this.descriptor.secondaryIndexes[1]);
-        }
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
     });
 
     create(ctx: Context, id: string, src: PushSafariCreateShape): Promise<PushSafari> {
@@ -1832,7 +1892,7 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
         },
         liveStream: (ctx: Context, service: string, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [service], opts);
-        }
+        },
     });
 
     create(ctx: Context, service: string, key: string, src: ServiceCacheCreateShape): Promise<ServiceCache> {
@@ -2020,7 +2080,13 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
     readonly salt = Object.freeze({
         find: async (ctx: Context, salt: string) => {
             return this._findFromUniqueIndex(ctx, [salt], this.descriptor.secondaryIndexes[0]);
-        }
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
     });
 
     readonly user = Object.freeze({
@@ -2035,7 +2101,7 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
-        }
+        },
     });
 
     create(ctx: Context, uuid: string, src: AuthTokenCreateShape): Promise<AuthToken> {
@@ -2055,6 +2121,173 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
     }
 }
 
+export interface FeatureFlagShape {
+    key: string;
+    title: string;
+}
+
+export interface FeatureFlagCreateShape {
+    title: string;
+}
+
+export class FeatureFlag extends Entity<FeatureFlagShape> {
+    get key(): string { return this._rawValue.key; }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class FeatureFlagFactory extends EntityFactory<FeatureFlagShape, FeatureFlag> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('featureFlag');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'key', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            key: c.string,
+            title: c.string,
+        });
+        let descriptor: EntityDescriptor<FeatureFlagShape> = {
+            name: 'FeatureFlag',
+            storageKey: 'featureFlag',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new FeatureFlagFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<FeatureFlagShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, key: string, src: FeatureFlagCreateShape): Promise<FeatureFlag> {
+        return this._create(ctx, [key], this.descriptor.codec.normalize({ key, ...src }));
+    }
+
+    findById(ctx: Context, key: string): Promise<FeatureFlag | null> {
+        return this._findById(ctx, [key]);
+    }
+
+    watch(ctx: Context, key: string): Watch {
+        return this._watch(ctx, [key]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeatureFlagShape>): FeatureFlag {
+        return new FeatureFlag([value.key], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationFeaturesShape {
+    id: string;
+    featureKey: string;
+    organizationId: number;
+    enabled: boolean;
+}
+
+export interface OrganizationFeaturesCreateShape {
+    featureKey: string;
+    organizationId: number;
+    enabled: boolean;
+}
+
+export class OrganizationFeatures extends Entity<OrganizationFeaturesShape> {
+    get id(): string { return this._rawValue.id; }
+    get featureKey(): string { return this._rawValue.featureKey; }
+    set featureKey(value: string) {
+        let normalized = this.descriptor.codec.fields.featureKey.normalize(value);
+        if (this._rawValue.featureKey !== normalized) {
+            this._rawValue.featureKey = normalized;
+            this._updatedValues.featureKey = normalized;
+            this.invalidate();
+        }
+    }
+    get organizationId(): number { return this._rawValue.organizationId; }
+    set organizationId(value: number) {
+        let normalized = this.descriptor.codec.fields.organizationId.normalize(value);
+        if (this._rawValue.organizationId !== normalized) {
+            this._rawValue.organizationId = normalized;
+            this._updatedValues.organizationId = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeaturesShape, OrganizationFeatures> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organizationFeatures');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'organizationId', type: 'integer' }, { name: 'featureKey', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationFeatures', 'organization'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'featureKey', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'organizationId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            featureKey: c.string,
+            organizationId: c.integer,
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<OrganizationFeaturesShape> = {
+            name: 'OrganizationFeatures',
+            storageKey: 'organizationFeatures',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationFeaturesFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationFeaturesShape>) {
+        super(descriptor);
+    }
+
+    readonly organization = Object.freeze({
+        find: async (ctx: Context, organizationId: number, featureKey: string) => {
+            return this._findFromUniqueIndex(ctx, [organizationId, featureKey], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, organizationId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [organizationId])).items;
+        },
+        query: (ctx: Context, organizationId: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [organizationId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+    });
+
+    create(ctx: Context, id: string, src: OrganizationFeaturesCreateShape): Promise<OrganizationFeatures> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<OrganizationFeatures | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationFeaturesShape>): OrganizationFeatures {
+        return new OrganizationFeatures([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -2063,6 +2296,7 @@ export interface Store extends BaseStore {
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserSuccessfulInvitesCounter: UserSuccessfulInvitesCounterFactory;
+    readonly UserEmailSentCounter: UserEmailSentCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
     readonly NotificationCenterCounter: NotificationCenterCounterFactory;
@@ -2085,6 +2319,8 @@ export interface Store extends BaseStore {
     readonly ServiceCache: ServiceCacheFactory;
     readonly SuperAdmin: SuperAdminFactory;
     readonly AuthToken: AuthTokenFactory;
+    readonly FeatureFlag: FeatureFlagFactory;
+    readonly OrganizationFeatures: OrganizationFeaturesFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -2095,6 +2331,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
     let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
     let UserSuccessfulInvitesCounterPromise = UserSuccessfulInvitesCounterFactory.open(storage);
+    let UserEmailSentCounterPromise = UserEmailSentCounterFactory.open(storage);
     let UserDialogCounterPromise = UserDialogCounterFactory.open(storage);
     let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.open(storage);
     let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(storage);
@@ -2117,6 +2354,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ServiceCachePromise = ServiceCacheFactory.open(storage);
     let SuperAdminPromise = SuperAdminFactory.open(storage);
     let AuthTokenPromise = AuthTokenFactory.open(storage);
+    let FeatureFlagPromise = FeatureFlagFactory.open(storage);
+    let OrganizationFeaturesPromise = OrganizationFeaturesFactory.open(storage);
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -2126,6 +2365,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
         UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
         UserSuccessfulInvitesCounter: await UserSuccessfulInvitesCounterPromise,
+        UserEmailSentCounter: await UserEmailSentCounterPromise,
         UserDialogCounter: await UserDialogCounterPromise,
         UserDialogHaveMention: await UserDialogHaveMentionPromise,
         NotificationCenterCounter: await NotificationCenterCounterPromise,
@@ -2148,5 +2388,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ServiceCache: await ServiceCachePromise,
         SuperAdmin: await SuperAdminPromise,
         AuthToken: await AuthTokenPromise,
+        FeatureFlag: await FeatureFlagPromise,
+        OrganizationFeatures: await OrganizationFeaturesPromise,
     };
 }
