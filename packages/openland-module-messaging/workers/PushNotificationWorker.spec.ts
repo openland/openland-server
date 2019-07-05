@@ -23,7 +23,7 @@ describe('PushNotificationWorker', () => {
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
-        container.get(MessagingModule).start();
+        container.get(MessagingModule).start(/* launch indexers */ false);
     });
     afterAll(async () => {
         await testEnvironmentEnd();
@@ -87,7 +87,7 @@ describe('PushNotificationWorker', () => {
             };
         });
 
-        await delay(8000);
+        await delay(10000);
 
         expect(pushModuleResults.androidPushes).toEqual([]);
         expect(pushModuleResults.applePushes).toEqual([]);
