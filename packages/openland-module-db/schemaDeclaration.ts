@@ -9,7 +9,6 @@ import {
     enumField,
     rangeIndex,
     uniqueIndex,
-    allowAdminEdit,
     jsonField,
     directory
 } from '../foundation-orm-gen';
@@ -225,23 +224,6 @@ const Schema = declareSchema(() => {
         rangeIndex('organization', ['status', 'oid', 'uid']).withDisplayName('usersFromOrganization');
         rangeIndex('user', ['status', 'uid', 'oid']).withDisplayName('organizationsFromUser');
 
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('FeatureFlag', () => {
-        primaryKey('key', 'string');
-        field('title', 'string');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('OrganizationFeatures', () => {
-        primaryKey('id', 'string');
-        field('featureKey', 'string');
-        field('organizationId', 'number');
-        field('enabled', 'boolean');
-        uniqueIndex('organization', ['organizationId', 'featureKey']).withRange();
         enableTimestamps();
         enableVersioning();
     });
@@ -810,14 +792,6 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'string');
         field('uid', 'number');
         uniqueIndex('user', ['uid']);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('SampleEntity', () => {
-        primaryKey('id', 'string');
-        field('data', 'string');
-        allowAdminEdit();
         enableVersioning();
         enableTimestamps();
     });

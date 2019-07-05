@@ -1,4 +1,4 @@
-import { FeatureFlag } from 'openland-module-db/schema';
+import { FeatureFlag } from './../openland-module-db/store';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';

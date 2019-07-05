@@ -181,4 +181,17 @@ export default declareSchema(() => {
         rangeIndex('user', ['uid', 'uuid'])
             .withCondition(src => src.enabled !== false);
     });
+
+    entity('FeatureFlag', () => {
+        primaryKey('key', string());
+        field('title', string());
+    });
+
+    entity('OrganizationFeatures', () => {
+        primaryKey('id', string());
+        field('featureKey', string());
+        field('organizationId', integer());
+        field('enabled', boolean());
+        uniqueIndex('organization', ['organizationId', 'featureKey']);
+    });
 });

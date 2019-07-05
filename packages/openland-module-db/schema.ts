@@ -1866,207 +1866,6 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         return new OrganizationMember(ctx, this.layer, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
     }
 }
-export interface FeatureFlagShape {
-    title: string;
-}
-
-export class FeatureFlag extends FEntity {
-    readonly entityName: 'FeatureFlag' = 'FeatureFlag';
-    get key(): string { return this._value.key; }
-    get title(): string {
-        return this._value.title;
-    }
-    set title(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.title) { return; }
-        this._value.title = value;
-        this.markDirty();
-    }
-}
-
-export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
-    static schema: FEntitySchema = {
-        name: 'FeatureFlag',
-        editable: false,
-        primaryKeys: [
-            { name: 'key', type: 'string' },
-        ],
-        fields: [
-            { name: 'title', type: 'string' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('featureFlag');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate, keyValidator: FeatureFlagFactory.validateKey, hasLiveStreams: false };
-        return new FeatureFlagFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('key', src.key);
-        validators.isString('key', src.key);
-        validators.notNull('title', src.title);
-        validators.isString('title', src.title);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('FeatureFlag', 'featureFlag', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'key': rawId[0] };
-    }
-    async findById(ctx: Context, key: string) {
-        return await this._findById(ctx, [key]);
-    }
-    async create(ctx: Context, key: string, shape: FeatureFlagShape) {
-        return await this._create(ctx, [key], { key, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, key: string, shape: FeatureFlagShape) {
-        return await this._create_UNSAFE(ctx, [key], { key, ...shape });
-    }
-    watch(ctx: Context, key: string) {
-        return this._watch(ctx, [key]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new FeatureFlag(ctx, this.layer, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
-    }
-}
-export interface OrganizationFeaturesShape {
-    featureKey: string;
-    organizationId: number;
-    enabled: boolean;
-}
-
-export class OrganizationFeatures extends FEntity {
-    readonly entityName: 'OrganizationFeatures' = 'OrganizationFeatures';
-    get id(): string { return this._value.id; }
-    get featureKey(): string {
-        return this._value.featureKey;
-    }
-    set featureKey(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.featureKey) { return; }
-        this._value.featureKey = value;
-        this.markDirty();
-    }
-    get organizationId(): number {
-        return this._value.organizationId;
-    }
-    set organizationId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.organizationId) { return; }
-        this._value.organizationId = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeatures> {
-    static schema: FEntitySchema = {
-        name: 'OrganizationFeatures',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'featureKey', type: 'string' },
-            { name: 'organizationId', type: 'number' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'organization', type: 'unique', fields: ['organizationId', 'featureKey'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organizationFeatures');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate, keyValidator: OrganizationFeaturesFactory.validateKey, hasLiveStreams: false };
-        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationFeatures', 'organization'), 'organization', ['organizationId', 'featureKey'], true);
-        let indexes = {
-            organization: indexOrganization,
-        };
-        return new OrganizationFeaturesFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexOrganization: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('featureKey', src.featureKey);
-        validators.isString('featureKey', src.featureKey);
-        validators.notNull('organizationId', src.organizationId);
-        validators.isNumber('organizationId', src.organizationId);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { organization: FEntityIndex }) {
-        super('OrganizationFeatures', 'organizationFeatures', config, [indexes.organization], layer, directory);
-        this.indexOrganization = indexes.organization;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: OrganizationFeaturesShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: OrganizationFeaturesShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async findFromOrganization(ctx: Context, organizationId: number, featureKey: string) {
-        return await this._findFromIndex(ctx, this.indexOrganization.directory, [organizationId, featureKey]);
-    }
-    async allFromOrganizationAfter(ctx: Context, organizationId: number, after: string) {
-        return await this._findRangeAllAfter(ctx, this.indexOrganization.directory, [organizationId], after);
-    }
-    async rangeFromOrganizationAfter(ctx: Context, organizationId: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexOrganization.directory, [organizationId], after, limit, reversed);
-    }
-    async rangeFromOrganization(ctx: Context, organizationId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexOrganization.directory, [organizationId], limit, reversed);
-    }
-    async rangeFromOrganizationWithCursor(ctx: Context, organizationId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [organizationId], limit, after, reversed);
-    }
-    async allFromOrganization(ctx: Context, organizationId: number) {
-        return await this._findAll(ctx, this.indexOrganization.directory, [organizationId]);
-    }
-    createOrganizationStream(organizationId: number, limit: number, after?: string) {
-        return this._createStream(this.indexOrganization.directory, [organizationId], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationFeatures(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
-    }
-}
 export interface ReaderStateShape {
     cursor: string;
     version?: number| null;
@@ -7075,79 +6874,6 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return new AppInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
-export interface SampleEntityShape {
-    data: string;
-}
-
-export class SampleEntity extends FEntity {
-    readonly entityName: 'SampleEntity' = 'SampleEntity';
-    get id(): string { return this._value.id; }
-    get data(): string {
-        return this._value.data;
-    }
-    set data(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.data) { return; }
-        this._value.data = value;
-        this.markDirty();
-    }
-}
-
-export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
-    static schema: FEntitySchema = {
-        name: 'SampleEntity',
-        editable: true,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'data', type: 'string' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('sampleEntity');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: SampleEntityFactory.validate, keyValidator: SampleEntityFactory.validateKey, hasLiveStreams: false };
-        return new SampleEntityFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('data', src.data);
-        validators.isString('data', src.data);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('SampleEntity', 'sampleEntity', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: SampleEntityShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: SampleEntityShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new SampleEntity(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
-    }
-}
 export interface OrganizationPublicInviteLinkShape {
     uid: number;
     oid: number;
@@ -10652,8 +10378,6 @@ export interface AllEntities {
     readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly OrganizationMember: OrganizationMemberFactory;
-    readonly FeatureFlag: FeatureFlagFactory;
-    readonly OrganizationFeatures: OrganizationFeaturesFactory;
     readonly ReaderState: ReaderStateFactory;
     readonly UserSettings: UserSettingsFactory;
     readonly ShortnameReservation: ShortnameReservationFactory;
@@ -10687,7 +10411,6 @@ export interface AllEntities {
     readonly ChannelInvitation: ChannelInvitationFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
-    readonly SampleEntity: SampleEntityFactory;
     readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
@@ -10730,8 +10453,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         OrganizationEditorialFactory.schema,
         OrganizationIndexingQueueFactory.schema,
         OrganizationMemberFactory.schema,
-        FeatureFlagFactory.schema,
-        OrganizationFeaturesFactory.schema,
         ReaderStateFactory.schema,
         UserSettingsFactory.schema,
         ShortnameReservationFactory.schema,
@@ -10765,7 +10486,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         ChannelInvitationFactory.schema,
         ChannelLinkFactory.schema,
         AppInviteLinkFactory.schema,
-        SampleEntityFactory.schema,
         OrganizationPublicInviteLinkFactory.schema,
         OrganizationInviteLinkFactory.schema,
         ConferenceRoomFactory.schema,
@@ -10809,8 +10529,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let OrganizationEditorialPromise = OrganizationEditorialFactory.create(layer);
         let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.create(layer);
         let OrganizationMemberPromise = OrganizationMemberFactory.create(layer);
-        let FeatureFlagPromise = FeatureFlagFactory.create(layer);
-        let OrganizationFeaturesPromise = OrganizationFeaturesFactory.create(layer);
         let ReaderStatePromise = ReaderStateFactory.create(layer);
         let UserSettingsPromise = UserSettingsFactory.create(layer);
         let ShortnameReservationPromise = ShortnameReservationFactory.create(layer);
@@ -10844,7 +10562,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let ChannelInvitationPromise = ChannelInvitationFactory.create(layer);
         let ChannelLinkPromise = ChannelLinkFactory.create(layer);
         let AppInviteLinkPromise = AppInviteLinkFactory.create(layer);
-        let SampleEntityPromise = SampleEntityFactory.create(layer);
         let OrganizationPublicInviteLinkPromise = OrganizationPublicInviteLinkFactory.create(layer);
         let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.create(layer);
         let ConferenceRoomPromise = ConferenceRoomFactory.create(layer);
@@ -10886,8 +10603,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await OrganizationEditorialPromise);
         allEntities.push(await OrganizationIndexingQueuePromise);
         allEntities.push(await OrganizationMemberPromise);
-        allEntities.push(await FeatureFlagPromise);
-        allEntities.push(await OrganizationFeaturesPromise);
         allEntities.push(await ReaderStatePromise);
         allEntities.push(await UserSettingsPromise);
         allEntities.push(await ShortnameReservationPromise);
@@ -10921,7 +10636,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await ChannelInvitationPromise);
         allEntities.push(await ChannelLinkPromise);
         allEntities.push(await AppInviteLinkPromise);
-        allEntities.push(await SampleEntityPromise);
         allEntities.push(await OrganizationPublicInviteLinkPromise);
         allEntities.push(await OrganizationInviteLinkPromise);
         allEntities.push(await ConferenceRoomPromise);
@@ -10963,8 +10677,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             OrganizationEditorial: await OrganizationEditorialPromise,
             OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
             OrganizationMember: await OrganizationMemberPromise,
-            FeatureFlag: await FeatureFlagPromise,
-            OrganizationFeatures: await OrganizationFeaturesPromise,
             ReaderState: await ReaderStatePromise,
             UserSettings: await UserSettingsPromise,
             ShortnameReservation: await ShortnameReservationPromise,
@@ -10998,7 +10710,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             ChannelInvitation: await ChannelInvitationPromise,
             ChannelLink: await ChannelLinkPromise,
             AppInviteLink: await AppInviteLinkPromise,
-            SampleEntity: await SampleEntityPromise,
             OrganizationPublicInviteLink: await OrganizationPublicInviteLinkPromise,
             OrganizationInviteLink: await OrganizationInviteLinkPromise,
             ConferenceRoom: await ConferenceRoomPromise,
@@ -11047,8 +10758,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly OrganizationMember: OrganizationMemberFactory;
-    readonly FeatureFlag: FeatureFlagFactory;
-    readonly OrganizationFeatures: OrganizationFeaturesFactory;
     readonly ReaderState: ReaderStateFactory;
     readonly UserSettings: UserSettingsFactory;
     readonly ShortnameReservation: ShortnameReservationFactory;
@@ -11082,7 +10791,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly ChannelInvitation: ChannelInvitationFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
-    readonly SampleEntity: SampleEntityFactory;
     readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
@@ -11136,10 +10844,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.OrganizationIndexingQueue);
         this.OrganizationMember = entities.OrganizationMember;
         this.allEntities.push(this.OrganizationMember);
-        this.FeatureFlag = entities.FeatureFlag;
-        this.allEntities.push(this.FeatureFlag);
-        this.OrganizationFeatures = entities.OrganizationFeatures;
-        this.allEntities.push(this.OrganizationFeatures);
         this.ReaderState = entities.ReaderState;
         this.allEntities.push(this.ReaderState);
         this.UserSettings = entities.UserSettings;
@@ -11206,8 +10910,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.ChannelLink);
         this.AppInviteLink = entities.AppInviteLink;
         this.allEntities.push(this.AppInviteLink);
-        this.SampleEntity = entities.SampleEntity;
-        this.allEntities.push(this.SampleEntity);
         this.OrganizationPublicInviteLink = entities.OrganizationPublicInviteLink;
         this.allEntities.push(this.OrganizationPublicInviteLink);
         this.OrganizationInviteLink = entities.OrganizationInviteLink;
