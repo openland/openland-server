@@ -189,18 +189,17 @@ export class StatsModule {
                 orgName = ` @ ${(organization!).name}`;
             }
 
-
             let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
             if (score > 0) {
                 if (mobileOnline) {
-                    report.push('✅ Mobile ');
+                    report.push('✅ Mobile  ');
                 } else {
-                    report.push('🚫 Mobile ');
+                    report.push('🚫 Mobile  ');
                 }
-                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])} `);
-                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs `);
-                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])} `);
-                report.push(`📭 ${emailSent} emails sent\n`);
+                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])}  `);
+                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs  `);
+                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}\n`);
+                report.push(`📭 ${emailSent} emails sent  `);
 
                 // privileges
                 switch (userSettings.desktopNotifications) {
@@ -214,7 +213,7 @@ export class StatsModule {
                         report.push('🚫');
                         break;
                 }
-                report.push(' Desktop notifications ');
+                report.push(' Desktop notifications  ');
 
                 switch (userSettings.mobileNotifications) {
                     case 'all':
@@ -227,7 +226,7 @@ export class StatsModule {
                         report.push('🚫');
                         break;
                 }
-                report.push(' Mobile notifications ');
+                report.push(' Mobile notifications  ');
 
                 switch (userSettings.emailFrequency) {
                     case 'never':
