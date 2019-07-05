@@ -23,13 +23,13 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     }),
     sendFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
-        message: [{ type: 'loud_text', parts: ['Get help from Openland community'] }, '\nChoose a chat and share your challenges'],
+        message: [{ type: 'loud_text', parts: ['Get help from Openland community'] }, '\nDo you need any expert advice or new connections for your projects? Simply ask for help in one of our chats '],
         keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] }
     }),
     invite: (user: UserProfile) => ({
         type: 'invite',
         message: [{ type: 'loud_text', parts: ['Invite friends'] }, '\nHow do you like Openland community so far?\nIf you love being here, share the invitation with your teammates and friends'],
-        keyboard: { buttons: [[{ title: 'Get invite link', url: '/onboarding_invite', style: 'DEFAULT' }]] }
+        keyboard: { buttons: [[{ title: 'Invite friends', url: '/onboarding_invite', style: 'DEFAULT' }]] }
     }),
     installApps: (user: UserProfile) => ({
         type: 'installApps',

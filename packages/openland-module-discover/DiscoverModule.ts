@@ -29,7 +29,6 @@ export class DiscoverModule {
                         await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
                     }
                 }
-                await Modules.Hooks.onDiscoverCompleted(ctx, uid);
             }
             return page;
         });
@@ -58,7 +57,6 @@ export class DiscoverModule {
                     await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
                 }
             }
-            await Modules.Hooks.onDiscoverCompleted(ctx, uid);
         });
     }
 
