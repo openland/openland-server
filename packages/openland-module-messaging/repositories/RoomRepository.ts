@@ -1,6 +1,6 @@
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape, UserRoomBadge } from 'openland-module-db/schema';
+import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
