@@ -12,7 +12,7 @@ import { Modules } from 'openland-modules/Modules';
 import { MessagingModule } from '../MessagingModule';
 import { delay } from '../../openland-utils/timer';
 import { createNamedContext } from '@openland/context';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 
 describe('PushNotificationWorker', () => {
     beforeAll(async () => {
@@ -166,7 +166,7 @@ describe('PushNotificationWorker', () => {
         });
 
         await inTx(rootCtx, async ctx => {
-            let online = await FDB.Online.findById(ctx, testData.reciever);
+            let online = await Store.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
             await online!.flush(ctx);
@@ -235,7 +235,7 @@ describe('PushNotificationWorker', () => {
         });
 
         await inTx(rootCtx, async ctx => {
-            let online = await FDB.Online.findById(ctx, testData.reciever);
+            let online = await Store.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
             await online!.flush(ctx);
@@ -291,7 +291,7 @@ describe('PushNotificationWorker', () => {
         });
 
         await inTx(rootCtx, async ctx => {
-            let online = await FDB.Online.findById(ctx, testData.reciever);
+            let online = await Store.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
             await online!.flush(ctx);
@@ -347,7 +347,7 @@ describe('PushNotificationWorker', () => {
         });
 
         await inTx(rootCtx, async ctx => {
-            let online = await FDB.Online.findById(ctx, testData.reciever);
+            let online = await Store.Online.findById(ctx, testData.reciever);
             online!.lastSeen = Date.now() - 61000;
             online!.active = false;
             await online!.flush(ctx);

@@ -66,22 +66,22 @@ const Schema = declareSchema(() => {
     //     enableVersioning();
     // });
 
-    entity('Online', () => {
-        primaryKey('uid', 'number');
-        field('lastSeen', 'number');
-        field('activeExpires', 'number').nullable();
-        field('active', 'boolean').nullable();
-    });
+    // entity('Online', () => {
+    //     primaryKey('uid', 'number');
+    //     field('lastSeen', 'number');
+    //     field('activeExpires', 'number').nullable();
+    //     field('active', 'boolean').nullable();
+    // });
 
-    entity('Presence', () => {
-        primaryKey('uid', 'number');
-        primaryKey('tid', 'string');
-        field('lastSeen', 'number');
-        field('lastSeenTimeout', 'number');
-        field('platform', 'string');
-        field('active', 'boolean').nullable();
-        rangeIndex('user', ['uid', 'lastSeen']);
-    });
+    // entity('Presence', () => {
+    //     primaryKey('uid', 'number');
+    //     primaryKey('tid', 'string');
+    //     field('lastSeen', 'number');
+    //     field('lastSeenTimeout', 'number');
+    //     field('platform', 'string');
+    //     field('active', 'boolean').nullable();
+    //     rangeIndex('user', ['uid', 'lastSeen']);
+    // });
 
     entity('AuthToken', () => {
         primaryKey('uuid', 'string');
@@ -104,14 +104,6 @@ const Schema = declareSchema(() => {
         rangeIndex('fromService', ['service', 'key']);
         enableTimestamps();
         enableVersioning();
-    });
-
-    entity('Lock', () => {
-        primaryKey('key', 'string');
-        field('seed', 'string');
-        field('timeout', 'number');
-        field('version', 'number');
-        field('minVersion', 'number');
     });
 
     entity('Task', () => {

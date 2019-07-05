@@ -1,6 +1,10 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
+
+    //
+    // System
+    //
 
     entity('Environment', () => {
         primaryKey('production', integer());
@@ -12,6 +16,31 @@ export default declareSchema(() => {
         primaryKey('name', string());
         field('value', string());
     });
+
+    //
+    // Presence
+    //
+
+    entity('Online', () => {
+        primaryKey('uid', integer());
+        field('lastSeen', integer());
+        field('activeExpires', optional(integer()));
+        field('active', optional(boolean()));
+    });
+
+    entity('Presence', () => {
+        primaryKey('uid', integer());
+        primaryKey('tid', string());
+        field('lastSeen', integer());
+        field('lastSeenTimeout', integer());
+        field('platform', string());
+        field('active', optional(boolean()));
+        rangeIndex('user', ['uid', 'lastSeen']);
+    });
+
+    //
+    // Counters
+    //
 
     atomicInt('UserCounter', () => {
         primaryKey('uid', integer());

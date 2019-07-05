@@ -22,250 +22,6 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
-export interface OnlineShape {
-    lastSeen: number;
-    activeExpires?: number| null;
-    active?: boolean| null;
-}
-
-export class Online extends FEntity {
-    readonly entityName: 'Online' = 'Online';
-    get uid(): number { return this._value.uid; }
-    get lastSeen(): number {
-        return this._value.lastSeen;
-    }
-    set lastSeen(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.lastSeen) { return; }
-        this._value.lastSeen = value;
-        this.markDirty();
-    }
-    get activeExpires(): number | null {
-        let res = this._value.activeExpires;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set activeExpires(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.activeExpires) { return; }
-        this._value.activeExpires = value;
-        this.markDirty();
-    }
-    get active(): boolean | null {
-        let res = this._value.active;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set active(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.active) { return; }
-        this._value.active = value;
-        this.markDirty();
-    }
-}
-
-export class OnlineFactory extends FEntityFactory<Online> {
-    static schema: FEntitySchema = {
-        name: 'Online',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-        ],
-        fields: [
-            { name: 'lastSeen', type: 'number' },
-            { name: 'activeExpires', type: 'number' },
-            { name: 'active', type: 'boolean' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('online');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate, keyValidator: OnlineFactory.validateKey, hasLiveStreams: false };
-        return new OnlineFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('lastSeen', src.lastSeen);
-        validators.isNumber('lastSeen', src.lastSeen);
-        validators.isNumber('activeExpires', src.activeExpires);
-        validators.isBoolean('active', src.active);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('Online', 'online', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0] };
-    }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
-    }
-    async create(ctx: Context, uid: number, shape: OnlineShape) {
-        return await this._create(ctx, [uid], { uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, shape: OnlineShape) {
-        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
-    }
-    watch(ctx: Context, uid: number) {
-        return this._watch(ctx, [uid]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Online(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
-    }
-}
-export interface PresenceShape {
-    lastSeen: number;
-    lastSeenTimeout: number;
-    platform: string;
-    active?: boolean| null;
-}
-
-export class Presence extends FEntity {
-    readonly entityName: 'Presence' = 'Presence';
-    get uid(): number { return this._value.uid; }
-    get tid(): string { return this._value.tid; }
-    get lastSeen(): number {
-        return this._value.lastSeen;
-    }
-    set lastSeen(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.lastSeen) { return; }
-        this._value.lastSeen = value;
-        this.markDirty();
-    }
-    get lastSeenTimeout(): number {
-        return this._value.lastSeenTimeout;
-    }
-    set lastSeenTimeout(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.lastSeenTimeout) { return; }
-        this._value.lastSeenTimeout = value;
-        this.markDirty();
-    }
-    get platform(): string {
-        return this._value.platform;
-    }
-    set platform(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.platform) { return; }
-        this._value.platform = value;
-        this.markDirty();
-    }
-    get active(): boolean | null {
-        let res = this._value.active;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set active(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.active) { return; }
-        this._value.active = value;
-        this.markDirty();
-    }
-}
-
-export class PresenceFactory extends FEntityFactory<Presence> {
-    static schema: FEntitySchema = {
-        name: 'Presence',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-            { name: 'tid', type: 'string' },
-        ],
-        fields: [
-            { name: 'lastSeen', type: 'number' },
-            { name: 'lastSeenTimeout', type: 'number' },
-            { name: 'platform', type: 'string' },
-            { name: 'active', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'user', type: 'range', fields: ['uid', 'lastSeen'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('presence');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, keyValidator: PresenceFactory.validateKey, hasLiveStreams: false };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('presence', 'user'), 'user', ['uid', 'lastSeen'], false);
-        let indexes = {
-            user: indexUser,
-        };
-        return new PresenceFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('tid', src.tid);
-        validators.isString('tid', src.tid);
-        validators.notNull('lastSeen', src.lastSeen);
-        validators.isNumber('lastSeen', src.lastSeen);
-        validators.notNull('lastSeenTimeout', src.lastSeenTimeout);
-        validators.isNumber('lastSeenTimeout', src.lastSeenTimeout);
-        validators.notNull('platform', src.platform);
-        validators.isString('platform', src.platform);
-        validators.isBoolean('active', src.active);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-        validators.notNull('1', key[1]);
-        validators.isString('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
-        super('Presence', 'presence', config, [indexes.user], layer, directory);
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0], 'tid': rawId[1] };
-    }
-    async findById(ctx: Context, uid: number, tid: string) {
-        return await this._findById(ctx, [uid, tid]);
-    }
-    async create(ctx: Context, uid: number, tid: string, shape: PresenceShape) {
-        return await this._create(ctx, [uid, tid], { uid, tid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, tid: string, shape: PresenceShape) {
-        return await this._create_UNSAFE(ctx, [uid, tid], { uid, tid, ...shape });
-    }
-    watch(ctx: Context, uid: number, tid: string) {
-        return this._watch(ctx, [uid, tid]);
-    }
-    async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [uid]);
-    }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [uid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Presence(ctx, this.layer, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
-    }
-}
 export interface AuthTokenShape {
     salt: string;
     uid: number;
@@ -529,118 +285,6 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ServiceCache(ctx, this.layer, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
-    }
-}
-export interface LockShape {
-    seed: string;
-    timeout: number;
-    version: number;
-    minVersion: number;
-}
-
-export class Lock extends FEntity {
-    readonly entityName: 'Lock' = 'Lock';
-    get key(): string { return this._value.key; }
-    get seed(): string {
-        return this._value.seed;
-    }
-    set seed(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.seed) { return; }
-        this._value.seed = value;
-        this.markDirty();
-    }
-    get timeout(): number {
-        return this._value.timeout;
-    }
-    set timeout(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.timeout) { return; }
-        this._value.timeout = value;
-        this.markDirty();
-    }
-    get version(): number {
-        return this._value.version;
-    }
-    set version(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.version) { return; }
-        this._value.version = value;
-        this.markDirty();
-    }
-    get minVersion(): number {
-        return this._value.minVersion;
-    }
-    set minVersion(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.minVersion) { return; }
-        this._value.minVersion = value;
-        this.markDirty();
-    }
-}
-
-export class LockFactory extends FEntityFactory<Lock> {
-    static schema: FEntitySchema = {
-        name: 'Lock',
-        editable: false,
-        primaryKeys: [
-            { name: 'key', type: 'string' },
-        ],
-        fields: [
-            { name: 'seed', type: 'string' },
-            { name: 'timeout', type: 'number' },
-            { name: 'version', type: 'number' },
-            { name: 'minVersion', type: 'number' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('lock');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate, keyValidator: LockFactory.validateKey, hasLiveStreams: false };
-        return new LockFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('key', src.key);
-        validators.isString('key', src.key);
-        validators.notNull('seed', src.seed);
-        validators.isString('seed', src.seed);
-        validators.notNull('timeout', src.timeout);
-        validators.isNumber('timeout', src.timeout);
-        validators.notNull('version', src.version);
-        validators.isNumber('version', src.version);
-        validators.notNull('minVersion', src.minVersion);
-        validators.isNumber('minVersion', src.minVersion);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('Lock', 'lock', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'key': rawId[0] };
-    }
-    async findById(ctx: Context, key: string) {
-        return await this._findById(ctx, [key]);
-    }
-    async create(ctx: Context, key: string, shape: LockShape) {
-        return await this._create(ctx, [key], { key, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, key: string, shape: LockShape) {
-        return await this._create_UNSAFE(ctx, [key], { key, ...shape });
-    }
-    watch(ctx: Context, key: string) {
-        return this._watch(ctx, [key]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Lock(ctx, this.layer, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
     }
 }
 export interface TaskShape {
@@ -12268,11 +11912,8 @@ export interface AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly Online: OnlineFactory;
-    readonly Presence: PresenceFactory;
     readonly AuthToken: AuthTokenFactory;
     readonly ServiceCache: ServiceCacheFactory;
-    readonly Lock: LockFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -12356,11 +11997,8 @@ export interface AllEntities {
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
-        OnlineFactory.schema,
-        PresenceFactory.schema,
         AuthTokenFactory.schema,
         ServiceCacheFactory.schema,
-        LockFactory.schema,
         TaskFactory.schema,
         DelayedTaskFactory.schema,
         PushFirebaseFactory.schema,
@@ -12445,11 +12083,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     static async create(layer: EntityLayer) {
         let allEntities: FEntityFactory<FEntity>[] = [];
-        let OnlinePromise = OnlineFactory.create(layer);
-        let PresencePromise = PresenceFactory.create(layer);
         let AuthTokenPromise = AuthTokenFactory.create(layer);
         let ServiceCachePromise = ServiceCacheFactory.create(layer);
-        let LockPromise = LockFactory.create(layer);
         let TaskPromise = TaskFactory.create(layer);
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let PushFirebasePromise = PushFirebaseFactory.create(layer);
@@ -12532,11 +12167,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserOnboardingStatePromise = UserOnboardingStateFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
-        allEntities.push(await OnlinePromise);
-        allEntities.push(await PresencePromise);
         allEntities.push(await AuthTokenPromise);
         allEntities.push(await ServiceCachePromise);
-        allEntities.push(await LockPromise);
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
         allEntities.push(await PushFirebasePromise);
@@ -12619,11 +12251,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserOnboardingStatePromise);
         let entities = {
             layer, allEntities,
-            Online: await OnlinePromise,
-            Presence: await PresencePromise,
             AuthToken: await AuthTokenPromise,
             ServiceCache: await ServiceCachePromise,
-            Lock: await LockPromise,
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
             PushFirebase: await PushFirebasePromise,
@@ -12713,11 +12342,8 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly Online: OnlineFactory;
-    readonly Presence: PresenceFactory;
     readonly AuthToken: AuthTokenFactory;
     readonly ServiceCache: ServiceCacheFactory;
-    readonly Lock: LockFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -12801,16 +12427,10 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
-        this.Online = entities.Online;
-        this.allEntities.push(this.Online);
-        this.Presence = entities.Presence;
-        this.allEntities.push(this.Presence);
         this.AuthToken = entities.AuthToken;
         this.allEntities.push(this.AuthToken);
         this.ServiceCache = entities.ServiceCache;
         this.allEntities.push(this.ServiceCache);
-        this.Lock = entities.Lock;
-        this.allEntities.push(this.Lock);
         this.Task = entities.Task;
         this.allEntities.push(this.Task);
         this.DelayedTask = entities.DelayedTask;

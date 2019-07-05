@@ -634,6 +634,219 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
     }
 }
 
+export interface OnlineShape {
+    uid: number;
+    lastSeen: number;
+    activeExpires: number | null;
+    active: boolean | null;
+}
+
+export interface OnlineCreateShape {
+    lastSeen: number;
+    activeExpires: number | null;
+    active: boolean | null;
+}
+
+export class Online extends Entity<OnlineShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get lastSeen(): number { return this._rawValue.lastSeen; }
+    set lastSeen(value: number) {
+        let normalized = this.descriptor.codec.fields.lastSeen.normalize(value);
+        if (this._rawValue.lastSeen !== normalized) {
+            this._rawValue.lastSeen = normalized;
+            this._updatedValues.lastSeen = normalized;
+            this.invalidate();
+        }
+    }
+    get activeExpires(): number | null { return this._rawValue.activeExpires; }
+    set activeExpires(value: number | null) {
+        let normalized = this.descriptor.codec.fields.activeExpires.normalize(value);
+        if (this._rawValue.activeExpires !== normalized) {
+            this._rawValue.activeExpires = normalized;
+            this._updatedValues.activeExpires = normalized;
+            this.invalidate();
+        }
+    }
+    get active(): boolean | null { return this._rawValue.active; }
+    set active(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('online');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'lastSeen', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'activeExpires', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            lastSeen: c.integer,
+            activeExpires: c.optional(c.integer),
+            active: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<OnlineShape> = {
+            name: 'Online',
+            storageKey: 'online',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OnlineFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OnlineShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: OnlineCreateShape): Promise<Online> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<Online | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OnlineShape>): Online {
+        return new Online([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PresenceShape {
+    uid: number;
+    tid: string;
+    lastSeen: number;
+    lastSeenTimeout: number;
+    platform: string;
+    active: boolean | null;
+}
+
+export interface PresenceCreateShape {
+    lastSeen: number;
+    lastSeenTimeout: number;
+    platform: string;
+    active: boolean | null;
+}
+
+export class Presence extends Entity<PresenceShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get tid(): string { return this._rawValue.tid; }
+    get lastSeen(): number { return this._rawValue.lastSeen; }
+    set lastSeen(value: number) {
+        let normalized = this.descriptor.codec.fields.lastSeen.normalize(value);
+        if (this._rawValue.lastSeen !== normalized) {
+            this._rawValue.lastSeen = normalized;
+            this._updatedValues.lastSeen = normalized;
+            this.invalidate();
+        }
+    }
+    get lastSeenTimeout(): number { return this._rawValue.lastSeenTimeout; }
+    set lastSeenTimeout(value: number) {
+        let normalized = this.descriptor.codec.fields.lastSeenTimeout.normalize(value);
+        if (this._rawValue.lastSeenTimeout !== normalized) {
+            this._rawValue.lastSeenTimeout = normalized;
+            this._updatedValues.lastSeenTimeout = normalized;
+            this.invalidate();
+        }
+    }
+    get platform(): string { return this._rawValue.platform; }
+    set platform(value: string) {
+        let normalized = this.descriptor.codec.fields.platform.normalize(value);
+        if (this._rawValue.platform !== normalized) {
+            this._rawValue.platform = normalized;
+            this._updatedValues.platform = normalized;
+            this.invalidate();
+        }
+    }
+    get active(): boolean | null { return this._rawValue.active; }
+    set active(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('presence');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'lastSeen', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('presence', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'tid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'lastSeen', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'lastSeenTimeout', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'platform', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            tid: c.string,
+            lastSeen: c.integer,
+            lastSeenTimeout: c.integer,
+            platform: c.string,
+            active: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<PresenceShape> = {
+            name: 'Presence',
+            storageKey: 'presence',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PresenceFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PresenceShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        }
+    });
+
+    create(ctx: Context, uid: number, tid: string, src: PresenceCreateShape): Promise<Presence> {
+        return this._create(ctx, [uid, tid], this.descriptor.codec.normalize({ uid, tid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, tid: string): Promise<Presence | null> {
+        return this._findById(ctx, [uid, tid]);
+    }
+
+    watch(ctx: Context, uid: number, tid: string): Watch {
+        return this._watch(ctx, [uid, tid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PresenceShape>): Presence {
+        return new Presence([value.uid, value.tid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -651,6 +864,8 @@ export interface Store extends BaseStore {
     readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
+    readonly Online: OnlineFactory;
+    readonly Presence: PresenceFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -670,6 +885,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
+    let OnlinePromise = OnlineFactory.open(storage);
+    let PresencePromise = PresenceFactory.open(storage);
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -688,5 +905,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,
+        Online: await OnlinePromise,
+        Presence: await PresencePromise,
     };
 }
