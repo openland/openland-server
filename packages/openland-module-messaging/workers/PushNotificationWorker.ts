@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { fetchMessageFallback, hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
@@ -201,7 +201,7 @@ export function startPushNotificationWorker() {
                     let pushBody = await fetchMessageFallback(message);
 
                     if (unreadCounter === undefined) {
-                        unreadCounter = await Store.UserCounter.byId(uid).get(ctx);
+                        unreadCounter = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
                     }
 
                     let push = {

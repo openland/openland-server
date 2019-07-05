@@ -506,6 +506,150 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserGlobalCounterAllUnreadMessagesFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterAllUnreadMessages');
+        return new UserGlobalCounterAllUnreadMessagesFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserGlobalCounterUnreadMessagesWithoutMutedFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterUnreadMessagesWithoutMuted');
+        return new UserGlobalCounterUnreadMessagesWithoutMutedFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserGlobalCounterAllUnreadChatsFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterAllUnreadChats');
+        return new UserGlobalCounterAllUnreadChatsFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterUnreadChatsWithoutMuted');
+        return new UserGlobalCounterUnreadChatsWithoutMutedFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export interface OnlineShape {
     uid: number;
     lastSeen: number;
@@ -1926,6 +2070,10 @@ export interface Store extends BaseStore {
     readonly UserMessagesSentInDirectChatCounter: UserMessagesSentInDirectChatCounterFactory;
     readonly User2WayDirectChatsCounter: User2WayDirectChatsCounterFactory;
     readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
+    readonly UserGlobalCounterAllUnreadMessages: UserGlobalCounterAllUnreadMessagesFactory;
+    readonly UserGlobalCounterUnreadMessagesWithoutMuted: UserGlobalCounterUnreadMessagesWithoutMutedFactory;
+    readonly UserGlobalCounterAllUnreadChats: UserGlobalCounterAllUnreadChatsFactory;
+    readonly UserGlobalCounterUnreadChatsWithoutMuted: UserGlobalCounterUnreadChatsWithoutMutedFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -1954,6 +2102,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
+    let UserGlobalCounterAllUnreadMessagesPromise = UserGlobalCounterAllUnreadMessagesFactory.open(storage);
+    let UserGlobalCounterUnreadMessagesWithoutMutedPromise = UserGlobalCounterUnreadMessagesWithoutMutedFactory.open(storage);
+    let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(storage);
+    let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
@@ -1981,6 +2133,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesSentInDirectChatCounter: await UserMessagesSentInDirectChatCounterPromise,
         User2WayDirectChatsCounter: await User2WayDirectChatsCounterPromise,
         GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
+        UserGlobalCounterAllUnreadMessages: await UserGlobalCounterAllUnreadMessagesPromise,
+        UserGlobalCounterUnreadMessagesWithoutMuted: await UserGlobalCounterUnreadMessagesWithoutMutedPromise,
+        UserGlobalCounterAllUnreadChats: await UserGlobalCounterAllUnreadChatsPromise,
+        UserGlobalCounterUnreadChatsWithoutMuted: await UserGlobalCounterUnreadChatsWithoutMutedPromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
         PushFirebase: await PushFirebasePromise,

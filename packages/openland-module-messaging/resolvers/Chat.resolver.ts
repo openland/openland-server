@@ -396,7 +396,7 @@ export default {
         },
         unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: AppContext) => {
             if (typeof src === 'number') {
-                return Store.UserCounter.byId(src).get(ctx);
+                return Modules.Messaging.fetchUserGlobalCounter(ctx, src);
             } else {
                 return src.counter;
             }

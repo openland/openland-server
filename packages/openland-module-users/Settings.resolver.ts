@@ -35,16 +35,18 @@ export default {
         NONE: 'none'
     },
     Settings: {
-        id: (src: UserSettings) => IDs.Settings.serialize(src.id),
+        id: src => IDs.Settings.serialize(src.id),
         primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await FDB.User.findById(ctx, src.id))!!.email,
-        emailFrequency: (src: UserSettings) => src.emailFrequency as any,
-        desktopNotifications: (src: UserSettings) => src.desktopNotifications as any,
-        mobileNotifications: (src: UserSettings) => src.mobileNotifications as any,
-        commentNotifications: (src: UserSettings) => src.commentNotifications ? src.commentNotifications : 'none' as any,
-        commentNotificationsDelivery: (src: UserSettings) => src.commentNotificationsDelivery ? src.commentNotificationsDelivery : 'none' as any,
-        mobileAlert: (src: UserSettings) => src.mobileAlert !== null && src.mobileAlert !== undefined ? src.mobileAlert : true,
-        mobileIncludeText: (src: UserSettings) => src.mobileIncludeText !== null && src.mobileAlert !== undefined ? src.mobileIncludeText : true,
-        notificationsDelay: (src: UserSettings) => src.notificationsDelay as any,
+        emailFrequency: src => src.emailFrequency as any,
+        desktopNotifications: src => src.desktopNotifications as any,
+        mobileNotifications: src => src.mobileNotifications as any,
+        commentNotifications: src => src.commentNotifications ? src.commentNotifications : 'none' as any,
+        commentNotificationsDelivery: src => src.commentNotificationsDelivery ? src.commentNotificationsDelivery : 'none' as any,
+        mobileAlert: src => src.mobileAlert !== null && src.mobileAlert !== undefined ? src.mobileAlert : true,
+        mobileIncludeText: src => src.mobileIncludeText !== null && src.mobileAlert !== undefined ? src.mobileIncludeText : true,
+        notificationsDelay: src => src.notificationsDelay as any,
+        countUnreadChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_chats' || src.globalCounterType === 'unread_chats_no_muted'),
+        excludeMutedChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_messages_no_muted' || src.globalCounterType === 'unread_chats_no_muted'),
     },
     Query: {
         settings: withUser(async (ctx, args, uid) => {
@@ -52,6 +54,56 @@ export default {
         }),
     },
     Mutation: {
+        settingsUpdate: withUser(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                let settings = await Modules.Users.getUserSettings(ctx, uid);
+                if (!args.settings) {
+                    return settings;
+                }
+                if (args.settings.emailFrequency) {
+                    settings.emailFrequency = args.settings.emailFrequency as any;
+                }
+                if (args.settings.desktopNotifications) {
+                    settings.desktopNotifications = args.settings.desktopNotifications as any;
+                }
+                if (args.settings.mobileNotifications) {
+                    settings.mobileNotifications = args.settings.mobileNotifications as any;
+                }
+                if (args.settings.mobileAlert !== null) {
+                    settings.mobileAlert = args.settings.mobileAlert as any;
+                }
+                if (args.settings.mobileIncludeText !== null) {
+                    settings.mobileIncludeText = args.settings.mobileIncludeText as any;
+                }
+                if (args.settings.notificationsDelay !== null) {
+                    settings.notificationsDelay = args.settings.notificationsDelay as any;
+                }
+                if (args.settings.commentNotifications && args.settings.commentNotifications !== null) {
+                    settings.commentNotifications = args.settings.commentNotifications as any;
+                }
+                if (args.settings.commentNotificationsDelivery && args.settings.commentNotificationsDelivery !== null) {
+                    settings.commentNotificationsDelivery = args.settings.commentNotificationsDelivery as any;
+                }
+
+                let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
+                let excludeMutedChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_messages_no_muted' || settings.globalCounterType === 'unread_chats_no_muted');
+
+                if (args.settings.countUnreadChats !== undefined && args.settings.countUnreadChats !== null) {
+                    countUnreadChats = args.settings.countUnreadChats;
+                }
+                if (args.settings.excludeMutedChats !== undefined && args.settings.excludeMutedChats !== null) {
+                    excludeMutedChats = args.settings.excludeMutedChats;
+                }
+
+                if (countUnreadChats) {
+                    settings.globalCounterType = excludeMutedChats ? 'unread_chats_no_muted' : 'unread_chats';
+                } else {
+                    settings.globalCounterType = excludeMutedChats ? 'unread_messages_no_muted' : 'unread_messages';
+                }
+
+                return settings;
+            });
+        }),
         updateSettings: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Users.getUserSettings(ctx, uid);
@@ -82,33 +134,24 @@ export default {
                 if (args.settings.commentNotificationsDelivery && args.settings.commentNotificationsDelivery !== null) {
                     settings.commentNotificationsDelivery = args.settings.commentNotificationsDelivery as any;
                 }
-                return settings;
-            });
-        }),
-        settingsUpdate: withUser(async (parent, args, uid) => {
-            return await inTx(parent, async (ctx) => {
-                let settings = await Modules.Users.getUserSettings(ctx, uid);
-                if (!args.settings) {
-                    return settings;
+
+                let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
+                let excludeMutedChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_messages_no_muted' || settings.globalCounterType === 'unread_chats_no_muted');
+
+                if (args.settings.countUnreadChats !== undefined && args.settings.countUnreadChats !== null) {
+                    countUnreadChats = args.settings.countUnreadChats;
                 }
-                if (args.settings.emailFrequency) {
-                    settings.emailFrequency = args.settings.emailFrequency as any;
+                if (args.settings.excludeMutedChats !== undefined && args.settings.excludeMutedChats !== null) {
+                    excludeMutedChats = args.settings.excludeMutedChats;
                 }
-                if (args.settings.desktopNotifications) {
-                    settings.desktopNotifications = args.settings.desktopNotifications as any;
+
+                if (countUnreadChats) {
+                    settings.globalCounterType = excludeMutedChats ? 'unread_chats_no_muted' : 'unread_chats';
+                } else {
+                    settings.globalCounterType = excludeMutedChats ? 'unread_messages_no_muted' : 'unread_messages';
                 }
-                if (args.settings.mobileNotifications) {
-                    settings.mobileNotifications = args.settings.mobileNotifications as any;
-                }
-                if (args.settings.mobileAlert !== null) {
-                    settings.mobileAlert = args.settings.mobileAlert as any;
-                }
-                if (args.settings.mobileIncludeText !== null) {
-                    settings.mobileIncludeText = args.settings.mobileIncludeText as any;
-                }
-                if (args.settings.notificationsDelay !== null) {
-                    settings.notificationsDelay = args.settings.notificationsDelay as any;
-                }
+                await Modules.Messaging.onGlobalCounterTypeChanged(ctx, uid);
+
                 return settings;
             });
         })

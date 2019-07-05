@@ -18,6 +18,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
+import { CounterStrategies, CounterStrategyAll } from '../openland-module-messaging/repositories/CounterStrategies';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -204,6 +205,14 @@ export default {
                 audienceCount: await Store.UserAudienceCounter.get(ctx, uid),
             };
         }),
+        debugGlobalCounters: withUser(async (ctx, args, uid) => {
+            return {
+                allUnreadMessages: await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid),
+                unreadMessagesWithoutMuted: await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid),
+                allUnreadChats: await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid),
+                unreadChatsWithoutMuted: await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid),
+            };
+        })
     },
     Mutation: {
         lifecheck: () => `i'm still ok`,
@@ -852,7 +861,27 @@ export default {
                 }
             });
             return true;
-        })
+        }),
+        debugResetGlobalCounters: withUser(async (parent, args, uid) => {
+            await inTx(parent, async ctx => {
+                for (let strategy of CounterStrategies) {
+                    strategy.counter().set(ctx, uid, 0);
+                }
+            });
+            return true;
+        }),
+        debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
+                let dialogs = await FDB.UserDialog.allFromUser(ctx, uid);
+                for (let strategy of CounterStrategies) {
+                    strategy.counter().set(ctx, uid, 0);
+                }
+                for (let dialog of dialogs) {
+                    await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                }
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

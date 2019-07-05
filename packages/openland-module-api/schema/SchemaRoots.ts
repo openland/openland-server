@@ -22,7 +22,7 @@ import {
     NotificationCenterEvent,
     CommentsSubscription,
     CommentEventGlobal,
-    UserBadge
+    UserBadge, UserSettings
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
@@ -116,7 +116,7 @@ export namespace GQLRoots {
     export type ReactionRoot = any;
     export type DialogRoot = any;
     export type DialogsConnectionRoot = any;
-    export type SettingsRoot = any;
+    export type SettingsRoot = UserSettings;
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
@@ -311,6 +311,7 @@ export namespace GQLRoots {
     export type DebugEventRoot = DebugEvent;
     export type DebugEventsStateRoot = { state: string };
     export type DebugUserMetricsRoot = GQL.DebugUserMetrics;
+    export type DebugGlobalCountersRoot = GQL.DebugGlobalCounters;
 
     //
     //  Notification Center

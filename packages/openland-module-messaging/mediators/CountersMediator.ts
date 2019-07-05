@@ -37,4 +37,10 @@ export class CountersMediator {
             return await this.repo.onDialogDeleted(ctx, uid, cid);
         });
     }
+
+    onDialogMuteChange = async (parent: Context, uid: number, cid: number) => {
+        return await inTx(parent, async (ctx) => {
+            return await this.repo.onDialogMuteChange(ctx, uid, cid);
+        });
+    }
 }

@@ -1,24 +1,12 @@
-import { Store } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities, Message } from 'openland-module-db/schema';
 import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from '@openland/context';
-import { MessageMention } from '../MessageInput';
-
-function hasMention(message: Message, uid: number) {
-    if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
-        return true;
-    } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
-        return true;
-    } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
-        return true;
-    } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-        return true;
-    }
-    return false;
-}
+import { hasMention } from '../resolvers/ModernMessage.resolver';
+import { Store } from '../../openland-module-db/store';
+import { CounterStrategyAll } from './CounterStrategies';
 
 @injectable()
 export class CountersRepository {
@@ -60,6 +48,8 @@ export class CountersRepository {
                 localCounter.increment(ctx);
                 globalCounter.increment(ctx);
 
+                await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageReceived();
+
                 return { delta: 1 };
             }
 
@@ -77,7 +67,7 @@ export class CountersRepository {
             if (message.uid !== uid && (!local.readMessageId || message.id > local.readMessageId)) {
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
-
+                await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageDeleted();
                 // Reset mention flag if needed
                 // TODO: Replace with counters
                 let haveMention = this.store.UserDialogHaveMention.byId(uid, message.cid);
@@ -130,6 +120,7 @@ export class CountersRepository {
                 if (delta !== 0) {
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
+                    await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageRead(-delta);
                 }
 
                 let mentionReset = false;
@@ -161,10 +152,18 @@ export class CountersRepository {
             let localUnread = (await localCounter.get(ctx) || 0);
             if (localUnread > 0) {
                 globalCounter.add(ctx, -localUnread);
+                await CounterStrategyAll.inContext(ctx, uid, cid).onChatDeleted();
                 localCounter.set(ctx, 0);
                 haveMention.set(ctx, false);
                 return -localUnread;
             }
+            return 0;
+        });
+    }
+
+    onDialogMuteChange = async (parent: Context, uid: number, cid: number) => {
+        return await inTx(parent, async (ctx) => {
+            await CounterStrategyAll.inContext(ctx, uid, cid).onMuteChange();
             return 0;
         });
     }

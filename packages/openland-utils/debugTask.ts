@@ -14,6 +14,7 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
         let superNotificationsAppId = await Modules.Super.getEnvVar<number>(rootCtx, 'super-notifications-app-id');
 
         const sendLog = async (str: string) => {
+            logger.log(rootCtx, str);
             if (superNotificationsAppId) {
                 let ctx = rootCtx;
                 let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, superNotificationsAppId);

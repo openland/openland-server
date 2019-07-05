@@ -134,6 +134,16 @@ export class DeliveryRepository {
                 mute,
                 allUnread: 0
             });
+
+            // TODO: remove this update, clients should respect global counter in dialog_mute_changed event
+            global.seq++;
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'message_read',
+                cid: cid,
+                unread: 0,
+                allUnread: 0,
+                haveMention: false,
+            });
         });
     }
 
@@ -174,6 +184,26 @@ export class DeliveryRepository {
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_read',
                 cid: msg.cid,
+                unread: 0,
+                allUnread: 0,
+                haveMention: false,
+            });
+        });
+    }
+
+    async deliverGlobalCounterToUser(parent: Context, uid: number) {
+        // TODO: create new event type for this
+        await inTx(parent, async (ctx) => {
+            // Deliver update
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
+            let dialogs = await this.entities.UserDialog.rangeFromUser(ctx, uid, 1);
+            if (dialogs.length === 0) {
+                return;
+            }
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'message_read',
+                cid: dialogs[0].cid,
                 unread: 0,
                 allUnread: 0,
                 haveMention: false,

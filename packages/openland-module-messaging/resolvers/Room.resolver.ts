@@ -606,8 +606,10 @@ export default {
                 let cid = IDs.Conversation.parse(args.roomId);
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
-                    await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
-                    settings.mute = args.settings.mute;
+                    if (settings.mute !== args.settings.mute) {
+                        settings.mute = args.settings.mute;
+                        await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
+                    }
                 }
                 return settings;
             });

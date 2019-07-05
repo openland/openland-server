@@ -2163,6 +2163,7 @@ export interface UserSettingsShape {
     mobileAlert?: boolean| null;
     mobileIncludeText?: boolean| null;
     notificationsDelay?: 'none' | '1min' | '15min'| null;
+    globalCounterType?: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted'| null;
 }
 
 export class UserSettings extends FEntity {
@@ -2250,6 +2251,17 @@ export class UserSettings extends FEntity {
         this._value.notificationsDelay = value;
         this.markDirty();
     }
+    get globalCounterType(): 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null {
+        let res = this._value.globalCounterType;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set globalCounterType(value: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null) {
+        this._checkIsWritable();
+        if (value === this._value.globalCounterType) { return; }
+        this._value.globalCounterType = value;
+        this.markDirty();
+    }
 }
 
 export class UserSettingsFactory extends FEntityFactory<UserSettings> {
@@ -2268,6 +2280,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
             { name: 'mobileAlert', type: 'boolean' },
             { name: 'mobileIncludeText', type: 'boolean' },
             { name: 'notificationsDelay', type: 'enum', enumValues: ['none', '1min', '15min'] },
+            { name: 'globalCounterType', type: 'enum', enumValues: ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted'] },
         ],
         indexes: [
         ],
@@ -2293,6 +2306,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isBoolean('mobileAlert', src.mobileAlert);
         validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
+        validators.isEnum('globalCounterType', src.globalCounterType, ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted']);
     }
 
     private static validateKey(key: Tuple[]) {

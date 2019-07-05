@@ -264,6 +264,7 @@ const Schema = declareSchema(() => {
         field('mobileAlert', 'boolean').nullable();
         field('mobileIncludeText', 'boolean').nullable();
         enumField('notificationsDelay', ['none', '1min', '15min']).nullable();
+        enumField('globalCounterType', ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted']).nullable();
         enableVersioning();
         enableTimestamps();
     });

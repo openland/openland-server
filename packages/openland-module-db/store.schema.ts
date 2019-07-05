@@ -181,4 +181,22 @@ export default declareSchema(() => {
         rangeIndex('user', ['uid', 'uuid'])
             .withCondition(src => src.enabled !== false);
     });
+
+    // Global counters START
+    atomicInt('UserGlobalCounterAllUnreadMessages', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterUnreadMessagesWithoutMuted', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterAllUnreadChats', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
+        primaryKey('uid', integer());
+    });
+    // Global counters END
 });
