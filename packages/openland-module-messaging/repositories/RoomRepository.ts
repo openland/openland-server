@@ -1,6 +1,6 @@
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
+import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape, UserRoomBadge } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
@@ -1163,6 +1163,12 @@ export class RoomRepository {
                 await this.store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
             }
             await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
+
+            let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+
+            if (userRoomBadge && userRoomBadge.bid !== null) {
+                userRoomBadge.bid = null;
+            }
         });
     }
 

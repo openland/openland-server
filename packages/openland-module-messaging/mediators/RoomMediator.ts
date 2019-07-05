@@ -279,12 +279,6 @@ export class RoomMediator {
                 let conv = await this.entities.ConversationRoom.findById(ctx, cid);
                 let isChannel = !!(conv && conv.isChannel);
 
-                let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
-
-                if (userRoomBadge && userRoomBadge.bid !== null) {
-                    userRoomBadge.bid === null;
-                }
-
                 if (!isChannel) {
                     await this.messaging.sendMessage(ctx, uid, cid, {
                         ...buildMessage(userMention(userName, uid), ` left the group`),
