@@ -22,165 +22,6 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
-export interface AuthTokenShape {
-    salt: string;
-    uid: number;
-    lastIp: string;
-    enabled?: boolean| null;
-}
-
-export class AuthToken extends FEntity {
-    readonly entityName: 'AuthToken' = 'AuthToken';
-    get uuid(): string { return this._value.uuid; }
-    get salt(): string {
-        return this._value.salt;
-    }
-    set salt(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.salt) { return; }
-        this._value.salt = value;
-        this.markDirty();
-    }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get lastIp(): string {
-        return this._value.lastIp;
-    }
-    set lastIp(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.lastIp) { return; }
-        this._value.lastIp = value;
-        this.markDirty();
-    }
-    get enabled(): boolean | null {
-        let res = this._value.enabled;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set enabled(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class AuthTokenFactory extends FEntityFactory<AuthToken> {
-    static schema: FEntitySchema = {
-        name: 'AuthToken',
-        editable: false,
-        primaryKeys: [
-            { name: 'uuid', type: 'string' },
-        ],
-        fields: [
-            { name: 'salt', type: 'string' },
-            { name: 'uid', type: 'number' },
-            { name: 'lastIp', type: 'string' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'salt', type: 'unique', fields: ['salt'], displayName: 'authTokenBySalt' },
-            { name: 'user', type: 'range', fields: ['uid', 'uuid'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('authToken');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, keyValidator: AuthTokenFactory.validateKey, hasLiveStreams: false };
-        let indexSalt = new FEntityIndex(await layer.resolveEntityIndexDirectory('authToken', 'salt'), 'salt', ['salt'], true);
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('authToken', 'user'), 'user', ['uid', 'uuid'], false, src => src.enabled !== false);
-        let indexes = {
-            salt: indexSalt,
-            user: indexUser,
-        };
-        return new AuthTokenFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexSalt: FEntityIndex;
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('uuid', src.uuid);
-        validators.isString('uuid', src.uuid);
-        validators.notNull('salt', src.salt);
-        validators.isString('salt', src.salt);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('lastIp', src.lastIp);
-        validators.isString('lastIp', src.lastIp);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { salt: FEntityIndex, user: FEntityIndex }) {
-        super('AuthToken', 'authToken', config, [indexes.salt, indexes.user], layer, directory);
-        this.indexSalt = indexes.salt;
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uuid': rawId[0] };
-    }
-    async findById(ctx: Context, uuid: string) {
-        return await this._findById(ctx, [uuid]);
-    }
-    async create(ctx: Context, uuid: string, shape: AuthTokenShape) {
-        return await this._create(ctx, [uuid], { uuid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uuid: string, shape: AuthTokenShape) {
-        return await this._create_UNSAFE(ctx, [uuid], { uuid, ...shape });
-    }
-    watch(ctx: Context, uuid: string) {
-        return this._watch(ctx, [uuid]);
-    }
-    async findFromSalt(ctx: Context, salt: string) {
-        return await this._findFromIndex(ctx, this.indexSalt.directory, [salt]);
-    }
-    async rangeFromSalt(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexSalt.directory, [], limit, reversed);
-    }
-    async rangeFromSaltWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexSalt.directory, [], limit, after, reversed);
-    }
-    async allFromSalt(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexSalt.directory, []);
-    }
-    createSaltStream(limit: number, after?: string) {
-        return this._createStream(this.indexSalt.directory, [], limit, after); 
-    }
-    async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [uid]);
-    }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [uid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AuthToken(ctx, this.layer, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
-    }
-}
 export interface TaskShape {
     arguments: any;
     result?: any| null;
@@ -10800,7 +10641,6 @@ export interface AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly AuthToken: AuthTokenFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -10879,7 +10719,6 @@ export interface AllEntities {
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
-        AuthTokenFactory.schema,
         TaskFactory.schema,
         DelayedTaskFactory.schema,
         UserProfilePrefilFactory.schema,
@@ -10959,7 +10798,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     static async create(layer: EntityLayer) {
         let allEntities: FEntityFactory<FEntity>[] = [];
-        let AuthTokenPromise = AuthTokenFactory.create(layer);
         let TaskPromise = TaskFactory.create(layer);
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let UserProfilePrefilPromise = UserProfilePrefilFactory.create(layer);
@@ -11037,7 +10875,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserOnboardingStatePromise = UserOnboardingStateFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
-        allEntities.push(await AuthTokenPromise);
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
         allEntities.push(await UserProfilePrefilPromise);
@@ -11115,7 +10952,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserOnboardingStatePromise);
         let entities = {
             layer, allEntities,
-            AuthToken: await AuthTokenPromise,
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
             UserProfilePrefil: await UserProfilePrefilPromise,
@@ -11200,7 +11036,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly AuthToken: AuthTokenFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -11279,8 +11114,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
-        this.AuthToken = entities.AuthToken;
-        this.allEntities.push(this.AuthToken);
         this.Task = entities.Task;
         this.allEntities.push(this.Task);
         this.DelayedTask = entities.DelayedTask;

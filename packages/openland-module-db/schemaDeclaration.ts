@@ -52,20 +52,6 @@ const basicSpan = (type: string) => json(() => {
 
 const Schema = declareSchema(() => {
 
-    entity('AuthToken', () => {
-        primaryKey('uuid', 'string');
-        field('salt', 'string');
-        field('uid', 'number');
-        field('lastIp', 'string');
-        field('enabled', 'boolean').nullable();
-        uniqueIndex('salt', ['salt'])
-            .withDisplayName('authTokenBySalt');
-        rangeIndex('user', ['uid', 'uuid'])
-            .withCondition(src => src.enabled !== false);
-        enableTimestamps();
-        enableVersioning();
-    });
-
     entity('Task', () => {
         primaryKey('taskType', 'string');
         primaryKey('uid', 'string');

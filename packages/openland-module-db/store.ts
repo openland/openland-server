@@ -1785,6 +1785,132 @@ export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin
     }
 }
 
+export interface AuthTokenShape {
+    uuid: string;
+    salt: string;
+    uid: number;
+    lastIp: string;
+    enabled: boolean | null;
+}
+
+export interface AuthTokenCreateShape {
+    salt: string;
+    uid: number;
+    lastIp: string;
+    enabled: boolean | null;
+}
+
+export class AuthToken extends Entity<AuthTokenShape> {
+    get uuid(): string { return this._rawValue.uuid; }
+    get salt(): string { return this._rawValue.salt; }
+    set salt(value: string) {
+        let normalized = this.descriptor.codec.fields.salt.normalize(value);
+        if (this._rawValue.salt !== normalized) {
+            this._rawValue.salt = normalized;
+            this._updatedValues.salt = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get lastIp(): string { return this._rawValue.lastIp; }
+    set lastIp(value: string) {
+        let normalized = this.descriptor.codec.fields.lastIp.normalize(value);
+        if (this._rawValue.lastIp !== normalized) {
+            this._rawValue.lastIp = normalized;
+            this._updatedValues.lastIp = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean | null { return this._rawValue.enabled; }
+    set enabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('authToken');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('authToken', 'salt'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('authToken', 'user'), condition: src => src.enabled !== false });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uuid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'salt', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'lastIp', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uuid: c.string,
+            salt: c.string,
+            uid: c.integer,
+            lastIp: c.string,
+            enabled: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<AuthTokenShape> = {
+            name: 'AuthToken',
+            storageKey: 'authToken',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new AuthTokenFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<AuthTokenShape>) {
+        super(descriptor);
+    }
+
+    readonly salt = Object.freeze({
+        find: async (ctx: Context, salt: string) => {
+            return this._findFromUniqueIndex(ctx, [salt], this.descriptor.secondaryIndexes[0]);
+        }
+    });
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        }
+    });
+
+    create(ctx: Context, uuid: string, src: AuthTokenCreateShape): Promise<AuthToken> {
+        return this._create(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    findById(ctx: Context, uuid: string): Promise<AuthToken | null> {
+        return this._findById(ctx, [uuid]);
+    }
+
+    watch(ctx: Context, uuid: string): Watch {
+        return this._watch(ctx, [uuid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AuthTokenShape>): AuthToken {
+        return new AuthToken([value.uuid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -1810,6 +1936,7 @@ export interface Store extends BaseStore {
     readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly ServiceCache: ServiceCacheFactory;
     readonly SuperAdmin: SuperAdminFactory;
+    readonly AuthToken: AuthTokenFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -1837,6 +1964,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
     let ServiceCachePromise = ServiceCacheFactory.open(storage);
     let SuperAdminPromise = SuperAdminFactory.open(storage);
+    let AuthTokenPromise = AuthTokenFactory.open(storage);
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -1863,5 +1991,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         EnvironmentVariable: await EnvironmentVariablePromise,
         ServiceCache: await ServiceCachePromise,
         SuperAdmin: await SuperAdminPromise,
+        AuthToken: await AuthTokenPromise,
     };
 }

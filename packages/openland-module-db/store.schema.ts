@@ -170,4 +170,15 @@ export default declareSchema(() => {
         field('role', string());
         field('enabled', boolean());
     });
+
+    entity('AuthToken', () => {
+        primaryKey('uuid', string());
+        field('salt', string());
+        field('uid', integer());
+        field('lastIp', string());
+        field('enabled', optional(boolean()));
+        uniqueIndex('salt', ['salt']);
+        rangeIndex('user', ['uid', 'uuid'])
+            .withCondition(src => src.enabled !== false);
+    });
 });
