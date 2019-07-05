@@ -6,8 +6,8 @@ describe('Store', () => {
     beforeAll(async () => {
         await testEnvironmentStart('messaging-mediator');
     });
-    afterAll(() => {
-        testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     it('should load environment variable', async () => {
