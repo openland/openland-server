@@ -75,7 +75,6 @@ function buildStrategy(getCounter: () => UserGlobalCounter, calculator: GlobalCo
                 onMessageRead: async (readCount: number) => await getCounter().add(ctx, uid, calculator.onMessageRead(await chatUnread, await isMuted, readCount)),
                 onChatDeleted: async () => await getCounter().add(ctx, uid, calculator.onChatDeleted(await chatUnread, await isMuted)),
                 onMuteChange: async () => {
-                    console.log(777, await isMuted);
                     return await getCounter().add(ctx, uid, calculator.onMuteChange(await chatUnread, await isMuted));
                 },
                 calcForChat: async () => await getCounter().add(ctx, uid, calculator.calcForChat(await chatUnread, await isMuted)),

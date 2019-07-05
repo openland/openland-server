@@ -217,4 +217,22 @@ export default declareSchema(() => {
         field('enabled', boolean());
         uniqueIndex('organization', ['organizationId', 'featureKey']);
     });
+
+    // Global counters START
+    atomicInt('UserGlobalCounterAllUnreadMessages', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterUnreadMessagesWithoutMuted', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterAllUnreadChats', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
+        primaryKey('uid', integer());
+    });
+    // Global counters END
 });
