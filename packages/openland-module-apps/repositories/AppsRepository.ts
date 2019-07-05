@@ -11,6 +11,7 @@ import { randomKey } from '../../openland-utils/random';
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
 import { resolveSequenceNumber } from 'openland-module-db/resolveSequenceNumber';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class AppsRepository {
@@ -74,7 +75,7 @@ export class AppsRepository {
     async getAppToken(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
             await this.checkAppAccess(ctx, uid, appId);
-            let tokens = await this.entities.AuthToken.allFromUser(ctx, appId);
+            let tokens = await Store.AuthToken.user.findAll(ctx, appId);
 
             if (tokens.length === 0) {
                 throw new InternalServerError();

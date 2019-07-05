@@ -1,4 +1,4 @@
-import { User, UserProfile } from 'openland-module-db/schema';
+import { User, UserBadge, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { FDB, Store } from 'openland-module-db/FDB';
@@ -98,9 +98,31 @@ export default {
         },
         alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
         chatsWithBadge: withProfile(async (ctx, src, profile) => {
-            // return false;
+            let res: {cid: number, badge: UserBadge}[] = [];
+
             let badges = await FDB.UserRoomBadge.allFromUser(ctx, src.id);
-            return await Promise.all(badges.map(b => ({ cid: b.cid, badge: FDB.UserBadge.findById(ctx, b.bid! )})));
+            for (let badge of badges) {
+                let chat = await FDB.ConversationRoom.findById(ctx, badge.cid);
+                if (!chat) {
+                    continue;
+                }
+                if (chat.kind !== 'public') {
+                    continue;
+                }
+                if (!chat.oid) {
+                    continue;
+                }
+                let org = await FDB.Organization.findById(ctx, chat.oid);
+                if (!org || org.kind !== 'community' || org.private) {
+                    continue;
+                }
+                if (!await Modules.Messaging.room.isRoomMember(ctx, src.id, badge.cid)) {
+                    continue;
+                }
+
+                res.push({ cid: badge.cid, badge: (await FDB.UserBadge.findById(ctx, badge.bid! ))! });
+            }
+            return res;
         }),
     },
     UserChatWithBadge: {

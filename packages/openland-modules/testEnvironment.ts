@@ -20,7 +20,7 @@ const logger = createLogger('environment');
 
 export async function testEnvironmentStart(name: string) {
     let ctx = createNamedContext('text-' + name);
-    logger.warn(ctx, 'Starting');
+    logger.log(ctx, 'Starting');
 
     // Reset container
     container.snapshot();

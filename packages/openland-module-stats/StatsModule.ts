@@ -116,7 +116,7 @@ export class StatsModule {
 
             let report = [heading('Silent user ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName), '\n'];
 
-            const onlines = await FDB.Presence.allFromUser(ctx, uid);
+            const onlines = await Store.Presence.user.findAll(ctx, uid);
             const mobileOnline = onlines
                 .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
             if (mobileOnline) {
@@ -170,7 +170,7 @@ export class StatsModule {
                 return { result: 'completed' };
             }
 
-            const onlines = await FDB.Presence.allFromUser(ctx, uid);
+            const onlines = await Store.Presence.user.findAll(ctx, uid);
             const mobileOnline = !!onlines
                 .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
             const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);

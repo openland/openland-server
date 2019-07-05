@@ -12,7 +12,6 @@ import { RedisBusProvider } from '@openland/foundationdb-bus-redis';
 function createLayers(test: boolean) {
     let layers: Layer[] = [
         new RandomLayer(),
-        new MigrationsLayer(migrations),
         new LockLayer(),
         new SingletonWorkerLayer(),
         new BusLayer(
@@ -23,6 +22,9 @@ function createLayers(test: boolean) {
                     process.env.REDIS_HOST
                 ))
     ];
+    if (!test) {
+        layers.push(new MigrationsLayer(migrations));
+    }
     return layers;
 }
 

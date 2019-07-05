@@ -1,8 +1,7 @@
-import { EnvironmentVariable } from './../../openland-module-db/store';
+import { EnvironmentVariable, Presence, AuthToken, FeatureFlag } from './../../openland-module-db/store';
 import {
     Conversation,
     ConversationRoom,
-    FeatureFlag,
     Message,
     Organization,
     User,
@@ -10,10 +9,8 @@ import {
     UserDialogSettings,
     UserProfile,
     FeedEvent,
-    AuthToken,
     ConversationEvent,
     AppHook,
-    Presence,
     Comment,
     CommentEvent,
     UserStorageRecord,

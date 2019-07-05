@@ -21,7 +21,7 @@ export class AudienceCounterRepository {
                 return;
             }
             let org = await this.fdb.Organization.findById(ctx, room.oid);
-            if (!org || org.kind !== 'community') {
+            if (!org || org.kind !== 'community' || org.private) {
                 return;
             }
 

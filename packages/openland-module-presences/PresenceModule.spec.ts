@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { delay } from '../openland-utils/timer';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
 import { PresenceModule } from './PresenceModule';
 import { UsersModule } from '../openland-module-users/UsersModule';
@@ -25,11 +25,11 @@ describe('PresenceModule', () => {
     it('should setOnline', async () => {
         let ctx = createNamedContext('test');
         await Modules.Presence.setOnline(ctx, 9, '1', 5000, 'test', true);
-        let p = await FDB.Presence.findById(ctx, 9, '1');
+        let p = await Store.Presence.findById(ctx, 9, '1');
         expect(p).not.toBeNull();
         expect(p!.lastSeenTimeout).toEqual(5000);
         expect(p!.platform).toEqual('test');
-        let online = await FDB.Online.findById(ctx, 9);
+        let online = await Store.Online.findById(ctx, 9);
         expect(online).not.toBeNull();
         expect(online!.uid).toEqual(9);
         expect(online!.lastSeen).toBeGreaterThan(Date.now());

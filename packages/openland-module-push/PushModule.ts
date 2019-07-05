@@ -1,5 +1,5 @@
 import { createPushWorker } from './workers/PushWorker';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { PushRepository } from './repositories/PushRepository';
 import { createAppleWorker } from './workers/AppleWorker';
 import { createAndroidWorker } from './workers/AndroidWorker';
@@ -10,7 +10,7 @@ import { Push } from './workers/types';
 
 @injectable()
 export class PushModule {
-    readonly repository = new PushRepository(FDB);
+    readonly repository = new PushRepository(Store);
     readonly appleWorker = createAppleWorker(this.repository);
     readonly androidWorker = createAndroidWorker(this.repository);
     readonly webWorker = createWebWorker(this.repository);
