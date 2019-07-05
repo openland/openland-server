@@ -1,28 +1,6 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
-
-    //
-    // System
-    //
-
-    entity('Environment', () => {
-        primaryKey('production', integer());
-        field('comment', string());
-        // allowAdminEdit();
-    });
-
-    entity('EnvironmentVariable', () => {
-        primaryKey('name', string());
-        field('value', string());
-    });
-
-    entity('ServiceCache', () => {
-        primaryKey('service', string());
-        primaryKey('key', string());
-        field('value', optional(string()));
-        rangeIndex('fromService', ['service', 'key']);
-    });
 
     //
     // Presence
@@ -99,5 +77,91 @@ export default declareSchema(() => {
 
     atomicInt('GlobalStatisticsCounters', () => {
         primaryKey('name', string());
+    });
+
+    //
+    // Push
+    //
+
+    entity('PushFirebase', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('tid', string());
+        field('token', string()).secure();
+        field('packageId', string());
+        field('sandbox', boolean());
+        field('enabled', boolean());
+        field('failures', optional(integer()));
+        field('failedFirstAt', optional(integer()));
+        field('failedLastAt', optional(integer()));
+        field('disabledAt', optional(integer()));
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
+    });
+
+    entity('PushApple', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('tid', string());
+        field('token', string()).secure();
+        field('bundleId', string());
+        field('sandbox', boolean());
+        field('enabled', boolean());
+        field('failures', optional(integer()));
+        field('failedFirstAt', optional(integer()));
+        field('failedLastAt', optional(integer()));
+        field('disabledAt', optional(integer()));
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
+    });
+
+    entity('PushWeb', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('tid', string());
+        field('endpoint', string()).secure();
+        field('enabled', boolean());
+        field('failures', optional(integer()));
+        field('failedFirstAt', optional(integer()));
+        field('failedLastAt', optional(integer()));
+        field('disabledAt', optional(integer()));
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
+    });
+
+    entity('PushSafari', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('tid', string());
+        field('token', string()).secure();
+        field('bundleId', string());
+        field('enabled', boolean());
+        field('failures', optional(integer()));
+        field('failedFirstAt', optional(integer()));
+        field('failedLastAt', optional(integer()));
+        field('disabledAt', optional(integer()));
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
+    });
+
+    //
+    // System
+    //
+
+    entity('Environment', () => {
+        primaryKey('production', integer());
+        field('comment', string());
+    });
+
+    entity('EnvironmentVariable', () => {
+        primaryKey('name', string());
+        field('value', string());
+    });
+
+    entity('ServiceCache', () => {
+        primaryKey('service', string());
+        primaryKey('key', string());
+        field('value', optional(string()));
+        rangeIndex('fromService', ['service', 'key']);
     });
 });
