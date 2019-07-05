@@ -25,11 +25,31 @@ migrations.push({
 });
 
 migrations.push({
-    key: '100-remove-invalid-web-push-tokenss',
+    key: '101-remove-invalid-web-push-tokenss',
     migration: async (parent) => {
         let subspaces = [
             Store.PushWeb.descriptor.subspace,
             ...Store.PushWeb.descriptor.secondaryIndexes.map((v) => v.subspace)
+        ];
+        for (let s of subspaces) {
+            await inTx(parent, async (ctx) => {
+                let all = await s.range(ctx, []);
+                for (let a of all) {
+                    if (typeof a.value.tid === 'number') {
+                        s.clear(ctx, a.key);
+                    }
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '102-remove-invalid-apple-push-tokenss',
+    migration: async (parent) => {
+        let subspaces = [
+            Store.PushApple.descriptor.subspace,
+            ...Store.PushApple.descriptor.secondaryIndexes.map((v) => v.subspace)
         ];
         for (let s of subspaces) {
             await inTx(parent, async (ctx) => {
