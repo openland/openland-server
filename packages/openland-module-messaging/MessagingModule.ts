@@ -59,7 +59,7 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             roomsSearchIndexer();
         }
-    };
+    }
 
     //
     //  Settings
@@ -149,9 +149,9 @@ export class MessagingModule {
 
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
         await this.delivery.onUserProfileUpdated(ctx, uid);
-    };
+    }
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
         await this.delivery.onOrganizationProfileUpdated(ctx, oid);
-    };
+    }
 }
