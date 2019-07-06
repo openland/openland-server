@@ -127,7 +127,7 @@ export class UserRepository {
                 lastName: Sanitizer.sanitizeString(input.lastName),
                 picture: Sanitizer.sanitizeImageRef(input.photoRef),
                 phone: Sanitizer.sanitizeString(input.phone),
-                email: Sanitizer.sanitizeString(input.email) || user.email,
+                email: (Sanitizer.sanitizeString(input.email) || user.email).toLowerCase(),
                 website: Sanitizer.sanitizeString(input.website),
                 about: Sanitizer.sanitizeString(input.about),
                 location: Sanitizer.sanitizeString(input.location),
