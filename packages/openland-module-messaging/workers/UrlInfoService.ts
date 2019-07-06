@@ -7,9 +7,9 @@ import { FDB } from 'openland-module-db/FDB';
 import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { UserProfile } from 'openland-module-db/schema';
 import { MessageKeyboard } from '../MessageInput';
 import { Context, createNamedContext } from '@openland/context';
+import { UserProfile } from 'openland-module-db/store';
 
 const rootCtx = createNamedContext('url-info');
 

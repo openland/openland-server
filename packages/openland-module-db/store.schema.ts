@@ -1,4 +1,4 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
 
@@ -20,6 +20,25 @@ export default declareSchema(() => {
         uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
         rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
         rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
+    });
+
+    entity('UserProfile', () => {
+        primaryKey('id', integer());
+        field('firstName', string());
+        field('lastName', optional(string()));
+        field('phone', optional(string()));
+        field('about', optional(string()));
+        field('website', optional(string()));
+        field('location', optional(string()));
+        field('email', optional(string()));
+        field('picture', optional(json()));
+        field('linkedin', optional(string()));
+        field('twitter', optional(string()));
+        field('locations', optional(json()));
+        field('primaryOrganization', optional(integer()));
+        field('primaryBadge', optional(integer()));
+        field('role', optional(string()));
+        rangeIndex('byUpdatedAt', ['updatedAt']);
     });
 
     entity('UserProfilePrefil', () => {

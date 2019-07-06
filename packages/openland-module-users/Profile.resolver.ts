@@ -1,6 +1,5 @@
 import { FDB, Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
-import { UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { inTx } from '@openland/foundationdb';
@@ -9,6 +8,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { UserProfile } from 'openland-module-db/store';
 
 export default {
     Profile: {
@@ -29,7 +29,7 @@ export default {
         alphaLocations: (src: UserProfile) => src.locations,
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
-        alphaJoinedAt: (src: UserProfile) => src.createdAt + '',
+        alphaJoinedAt: (src: UserProfile) => src.metadata.createdAt + '',
         alphaInvitedBy: async (src: UserProfile, args: {}, ctx: AppContext) => {
             let user = await Store.User.findById(ctx, src.id);
             if (user && user.invitedBy) {

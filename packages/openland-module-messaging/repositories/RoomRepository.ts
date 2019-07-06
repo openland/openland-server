@@ -628,7 +628,7 @@ export class RoomRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await this.entities.UserProfile.findById(ctx, _uid))!;
+            let profile = (await Store.UserProfile.findById(ctx, _uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         } else if (conv.kind === 'organization') {
             let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
@@ -643,7 +643,7 @@ export class RoomRepository {
                 let res = (await this.entities.RoomParticipant.allFromActive(ctx, conv.id)).filter((v) => v.uid !== uid);
                 let name: string[] = [];
                 for (let r2 of res) {
-                    let p2 = (await this.entities.UserProfile.findById(ctx, r2.uid))!;
+                    let p2 = (await Store.UserProfile.findById(ctx, r2.uid))!;
                     name.push([p2.firstName, p2.lastName].filter((v) => !!v).join(' '));
                 }
                 return name.join(', ');
@@ -669,7 +669,7 @@ export class RoomRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await this.entities.UserProfile.findById(ctx, _uid))!;
+            let profile = (await Store.UserProfile.findById(ctx, _uid))!;
             let res = buildBaseImageUrl(profile.picture);
             if (res) {
                 return res;

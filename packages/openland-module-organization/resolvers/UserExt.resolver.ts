@@ -1,8 +1,8 @@
+import { UserProfile } from 'openland-module-db/store';
 
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { withProfile, withUser } from 'openland-module-users/User.resolver';
-import { UserProfile } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';

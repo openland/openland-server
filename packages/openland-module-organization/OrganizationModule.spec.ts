@@ -64,7 +64,7 @@ describe('OrganizationModule', () => {
         expect(membership.role).toEqual('admin');
 
         // Should NOT update primary organization since organization is not activated yet
-        let profile2 = (await FDB.UserProfile.findById(ctx, user.id))!;
+        let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBeNull();
     });
 
@@ -75,7 +75,7 @@ describe('OrganizationModule', () => {
         await Modules.Users.activateUser(ctx, user.id, true);
         let org1 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
-        let profile2 = (await FDB.UserProfile.findById(ctx, user.id))!;
+        let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBe(org1.id);
     });
 
@@ -92,7 +92,7 @@ describe('OrganizationModule', () => {
         await Modules.Orgs.activateOrganization(ctx, org1.id, true);
         await Modules.Orgs.activateOrganization(ctx, org3.id, true);
 
-        let profile2 = (await FDB.UserProfile.findById(ctx, user.id))!;
+        let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBe(org2.id);
     });
 
@@ -102,11 +102,11 @@ describe('OrganizationModule', () => {
         // Create User and Org
         let user = await Modules.Users.createUser(ctx, 'test3', 'some3@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
-        let userp = (await FDB.UserProfile.findById(ctx, user.id))!;
+        let userp = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(userp.primaryOrganization).toBeNull();
         let user2 = await Modules.Users.createUser(ctx, 'test4', 'some4@email.comn');
         await Modules.Users.createUserProfile(ctx, user2.id, { firstName: 'Some Name' });
-        let user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
+        let user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user2p.primaryOrganization).toBeNull();
 
         // Create Organization
@@ -118,11 +118,11 @@ describe('OrganizationModule', () => {
 
         // Check users status
         let user4 = (await Store.User.findById(ctx, user.id))!;
-        let user4p = (await FDB.UserProfile.findById(ctx, user.id))!;
+        let user4p = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(user4.status).toEqual('activated');
         expect(user4p.primaryOrganization).toEqual(org.id);
         let user5 = (await Store.User.findById(ctx, user2.id))!;
-        let user5p = (await FDB.UserProfile.findById(ctx, user2.id))!;
+        let user5p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user5.status).toEqual('activated');
         expect(user5p.primaryOrganization).toEqual(org.id);
     });
@@ -188,7 +188,7 @@ describe('OrganizationModule', () => {
         await Modules.Users.createUserProfile(ctx, user2.id, { firstName: 'Some Name' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user.id);
         user2 = (await Store.User.findById(ctx, user2.id))!;
-        let user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
+        let user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user2.status).toEqual('activated');
         expect(user2p.primaryOrganization).toEqual(org.id);
     });
@@ -216,15 +216,15 @@ describe('OrganizationModule', () => {
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
         let org2 = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org2.id, user1.id);
-        let user1p = (await FDB.UserProfile.findById(ctx, user1.id))!;
-        let user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
+        let user1p = (await Store.UserProfile.findById(ctx, user1.id))!;
+        let user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user1p.primaryOrganization).toEqual(org.id);
         expect(user2p.primaryOrganization).toEqual(org.id);
 
         await Modules.Orgs.removeUserFromOrganization(ctx, user2.id, org.id, user1.id);
 
-        user1p = (await FDB.UserProfile.findById(ctx, user1.id))!;
-        user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
+        user1p = (await Store.UserProfile.findById(ctx, user1.id))!;
+        user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user1p.primaryOrganization).toEqual(org.id);
         expect(user2p.primaryOrganization).toEqual(org2.id);
     });

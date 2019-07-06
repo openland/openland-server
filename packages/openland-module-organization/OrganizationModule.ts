@@ -43,7 +43,7 @@ export class OrganizationModule {
             }
 
             // 2. Check if profile created
-            let profile = await Modules.DB.entities.UserProfile.findById(ctx, uid);
+            let profile = await Store.UserProfile.findById(ctx, uid);
             if (!profile) {
                 throw Error('Profile is not created');
             }
@@ -80,7 +80,7 @@ export class OrganizationModule {
                 }
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid, false);
-                    let profile = await FDB.UserProfile.findById(ctx, m.uid);
+                    let profile = await Store.UserProfile.findById(ctx, m.uid);
                     let org = await this.entities.Organization.findById(ctx, id);
                     if (profile && !profile.primaryOrganization && (org && org.kind === 'organization')) {
                         profile.primaryOrganization = id;
@@ -113,7 +113,7 @@ export class OrganizationModule {
             if (user.status === 'suspended') {
                 throw Error('User is suspended');
             }
-            let profile = await Modules.DB.entities.UserProfile.findById(ctx, uid);
+            let profile = await Store.UserProfile.findById(ctx, uid);
             if (!profile) {
                 throw Error('Profile is not created');
             }
@@ -204,7 +204,7 @@ export class OrganizationModule {
             }
 
             if (await this.repo.removeUserFromOrganization(ctx, uid, oid)) {
-                let profile = (await FDB.UserProfile.findById(ctx, uid))!;
+                let profile = (await Store.UserProfile.findById(ctx, uid))!;
                 if (profile.primaryOrganization === oid) {
                     profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                     await profile.flush(ctx);

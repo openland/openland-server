@@ -1,6 +1,6 @@
 import { ConversationRoom, Organization } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
@@ -45,7 +45,7 @@ export default {
 
         betaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserOwner(ctx, ctx.auth.uid!, src.id) : false,
         betaIsAdmin: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
-        betaIsPrimary: async (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? (await FDB.UserProfile.findById(ctx, ctx.auth.uid))!.primaryOrganization === src.id : false,
+        betaIsPrimary: async (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? (await Store.UserProfile.findById(ctx, ctx.auth.uid))!.primaryOrganization === src.id : false,
 
         // Refactor?
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),

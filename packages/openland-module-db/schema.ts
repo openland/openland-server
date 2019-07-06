@@ -498,278 +498,6 @@ export class DelayedTaskFactory extends FEntityFactory<DelayedTask> {
         return new DelayedTask(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'DelayedTask');
     }
 }
-export interface UserProfileShape {
-    firstName: string;
-    lastName?: string| null;
-    phone?: string| null;
-    about?: string| null;
-    website?: string| null;
-    location?: string| null;
-    email?: string| null;
-    picture?: any| null;
-    linkedin?: string| null;
-    twitter?: string| null;
-    locations?: any| null;
-    primaryOrganization?: number| null;
-    primaryBadge?: number| null;
-    role?: string| null;
-}
-
-export class UserProfile extends FEntity {
-    readonly entityName: 'UserProfile' = 'UserProfile';
-    get id(): number { return this._value.id; }
-    get firstName(): string {
-        return this._value.firstName;
-    }
-    set firstName(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.firstName) { return; }
-        this._value.firstName = value;
-        this.markDirty();
-    }
-    get lastName(): string | null {
-        let res = this._value.lastName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastName) { return; }
-        this._value.lastName = value;
-        this.markDirty();
-    }
-    get phone(): string | null {
-        let res = this._value.phone;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set phone(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.phone) { return; }
-        this._value.phone = value;
-        this.markDirty();
-    }
-    get about(): string | null {
-        let res = this._value.about;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set about(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.about) { return; }
-        this._value.about = value;
-        this.markDirty();
-    }
-    get website(): string | null {
-        let res = this._value.website;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set website(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.website) { return; }
-        this._value.website = value;
-        this.markDirty();
-    }
-    get location(): string | null {
-        let res = this._value.location;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set location(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.location) { return; }
-        this._value.location = value;
-        this.markDirty();
-    }
-    get email(): string | null {
-        let res = this._value.email;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set email(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.email) { return; }
-        this._value.email = value;
-        this.markDirty();
-    }
-    get picture(): any | null {
-        let res = this._value.picture;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set picture(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.picture) { return; }
-        this._value.picture = value;
-        this.markDirty();
-    }
-    get linkedin(): string | null {
-        let res = this._value.linkedin;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set linkedin(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.linkedin) { return; }
-        this._value.linkedin = value;
-        this.markDirty();
-    }
-    get twitter(): string | null {
-        let res = this._value.twitter;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set twitter(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.twitter) { return; }
-        this._value.twitter = value;
-        this.markDirty();
-    }
-    get locations(): any | null {
-        let res = this._value.locations;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set locations(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.locations) { return; }
-        this._value.locations = value;
-        this.markDirty();
-    }
-    get primaryOrganization(): number | null {
-        let res = this._value.primaryOrganization;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set primaryOrganization(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.primaryOrganization) { return; }
-        this._value.primaryOrganization = value;
-        this.markDirty();
-    }
-    get primaryBadge(): number | null {
-        let res = this._value.primaryBadge;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set primaryBadge(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.primaryBadge) { return; }
-        this._value.primaryBadge = value;
-        this.markDirty();
-    }
-    get role(): string | null {
-        let res = this._value.role;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set role(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.role) { return; }
-        this._value.role = value;
-        this.markDirty();
-    }
-}
-
-export class UserProfileFactory extends FEntityFactory<UserProfile> {
-    static schema: FEntitySchema = {
-        name: 'UserProfile',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'firstName', type: 'string' },
-            { name: 'lastName', type: 'string' },
-            { name: 'phone', type: 'string' },
-            { name: 'about', type: 'string' },
-            { name: 'website', type: 'string' },
-            { name: 'location', type: 'string' },
-            { name: 'email', type: 'string' },
-            { name: 'picture', type: 'json' },
-            { name: 'linkedin', type: 'string' },
-            { name: 'twitter', type: 'string' },
-            { name: 'locations', type: 'json' },
-            { name: 'primaryOrganization', type: 'number' },
-            { name: 'primaryBadge', type: 'number' },
-            { name: 'role', type: 'string' },
-        ],
-        indexes: [
-            { name: 'byUpdatedAt', type: 'range', fields: ['updatedAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userProfile');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate, keyValidator: UserProfileFactory.validateKey, hasLiveStreams: false };
-        let indexByUpdatedAt = new FEntityIndex(await layer.resolveEntityIndexDirectory('userProfile', 'byUpdatedAt'), 'byUpdatedAt', ['updatedAt'], false);
-        let indexes = {
-            byUpdatedAt: indexByUpdatedAt,
-        };
-        return new UserProfileFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexByUpdatedAt: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('firstName', src.firstName);
-        validators.isString('firstName', src.firstName);
-        validators.isString('lastName', src.lastName);
-        validators.isString('phone', src.phone);
-        validators.isString('about', src.about);
-        validators.isString('website', src.website);
-        validators.isString('location', src.location);
-        validators.isString('email', src.email);
-        validators.isString('linkedin', src.linkedin);
-        validators.isString('twitter', src.twitter);
-        validators.isNumber('primaryOrganization', src.primaryOrganization);
-        validators.isNumber('primaryBadge', src.primaryBadge);
-        validators.isString('role', src.role);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { byUpdatedAt: FEntityIndex }) {
-        super('UserProfile', 'userProfile', config, [indexes.byUpdatedAt], layer, directory);
-        this.indexByUpdatedAt = indexes.byUpdatedAt;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: UserProfileShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: UserProfileShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async rangeFromByUpdatedAt(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexByUpdatedAt.directory, [], limit, reversed);
-    }
-    async rangeFromByUpdatedAtWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexByUpdatedAt.directory, [], limit, after, reversed);
-    }
-    async allFromByUpdatedAt(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexByUpdatedAt.directory, []);
-    }
-    createByUpdatedAtStream(limit: number, after?: string) {
-        return this._createStream(this.indexByUpdatedAt.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserProfile(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
-    }
-}
 export interface UserIndexingQueueShape {
 }
 
@@ -9974,7 +9702,6 @@ export interface AllEntities {
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
-    readonly UserProfile: UserProfileFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly Organization: OrganizationFactory;
     readonly OrganizationProfile: OrganizationProfileFactory;
@@ -10046,7 +9773,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
         TaskFactory.schema,
         DelayedTaskFactory.schema,
-        UserProfileFactory.schema,
         UserIndexingQueueFactory.schema,
         OrganizationFactory.schema,
         OrganizationProfileFactory.schema,
@@ -10119,7 +9845,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let allEntities: FEntityFactory<FEntity>[] = [];
         let TaskPromise = TaskFactory.create(layer);
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
-        let UserProfilePromise = UserProfileFactory.create(layer);
         let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
         let OrganizationPromise = OrganizationFactory.create(layer);
         let OrganizationProfilePromise = OrganizationProfileFactory.create(layer);
@@ -10190,7 +9915,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
-        allEntities.push(await UserProfilePromise);
         allEntities.push(await UserIndexingQueuePromise);
         allEntities.push(await OrganizationPromise);
         allEntities.push(await OrganizationProfilePromise);
@@ -10261,7 +9985,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             layer, allEntities,
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
-            UserProfile: await UserProfilePromise,
             UserIndexingQueue: await UserIndexingQueuePromise,
             Organization: await OrganizationPromise,
             OrganizationProfile: await OrganizationProfilePromise,
@@ -10339,7 +10062,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
-    readonly UserProfile: UserProfileFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly Organization: OrganizationFactory;
     readonly OrganizationProfile: OrganizationProfileFactory;
@@ -10413,8 +10135,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.Task);
         this.DelayedTask = entities.DelayedTask;
         this.allEntities.push(this.DelayedTask);
-        this.UserProfile = entities.UserProfile;
-        this.allEntities.push(this.UserProfile);
         this.UserIndexingQueue = entities.UserIndexingQueue;
         this.allEntities.push(this.UserIndexingQueue);
         this.Organization = entities.Organization;

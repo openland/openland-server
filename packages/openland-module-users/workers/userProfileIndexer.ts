@@ -48,7 +48,7 @@ export function userProfileIndexer() {
         })
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
-                let profile = (await FDB.UserProfile.findById(ctx, item.id));
+                let profile = (await Store.UserProfile.findById(ctx, item.id));
 
                 if (!profile) {
                     return null;
@@ -66,7 +66,7 @@ export function userProfileIndexer() {
                 let invitedByName: string | undefined;
                 let user = await Store.User.findById(ctx, item.id);
                 if (user && user.invitedBy) {
-                    let inviter = await FDB.UserProfile.findById(ctx, user.invitedBy);
+                    let inviter = await Store.UserProfile.findById(ctx, user.invitedBy);
                     if (inviter) {
                         invitedByName = (inviter.firstName || '') + ' ' + (inviter.lastName || '');
                     }

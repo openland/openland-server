@@ -122,7 +122,7 @@ describe('InvitesMediator', () => {
         expect(user.status).toEqual('activated');
 
         // should make org primary
-        let userProfile = (await entities.UserProfile.findById(ctx, USER2_ID))!;
+        let userProfile = (await Store.UserProfile.findById(ctx, USER2_ID))!;
         expect(userProfile.primaryOrganization).toEqual(USER_ORG_ID);
     });
 
@@ -152,7 +152,7 @@ describe('InvitesMediator', () => {
         expect(user.status).toEqual('activated');
 
         // should make org primary
-        let userProfile = (await entities.UserProfile.findById(ctx, USER2_ID))!;
+        let userProfile = (await Store.UserProfile.findById(ctx, USER2_ID))!;
         expect(userProfile.primaryOrganization).toEqual(USER_ORG_ID);
     });
 

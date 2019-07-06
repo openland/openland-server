@@ -109,27 +109,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('UserProfile', () => {
-        primaryKey('id', 'number');
-        field('firstName', 'string');
-        field('lastName', 'string').nullable();
-        field('phone', 'string').nullable();
-        field('about', 'string').nullable();
-        field('website', 'string').nullable();
-        field('location', 'string').nullable();
-        field('email', 'string').nullable();
-        field('picture', 'json').nullable();
-        field('linkedin', 'string').nullable();
-        field('twitter', 'string').nullable();
-        field('locations', 'json').nullable();
-        field('primaryOrganization', 'number').nullable();
-        field('primaryBadge', 'number').nullable();
-        field('role', 'string').nullable();
-        rangeIndex('byUpdatedAt', ['updatedAt']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
     entity('UserIndexingQueue', () => {
         primaryKey('id', 'number');
         rangeIndex('updated', ['updatedAt']);

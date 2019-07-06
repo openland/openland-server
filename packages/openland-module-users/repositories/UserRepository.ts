@@ -104,13 +104,13 @@ export class UserRepository {
      */
 
     async findUserProfile(ctx: Context, uid: number) {
-        return this.entities.UserProfile.findById(ctx, uid);
+        return Store.UserProfile.findById(ctx, uid);
     }
 
     async createUserProfile(parent: Context, uid: number, input: ProfileInput) {
         return await inTx(parent, async (ctx) => {
             let user = (await Store.User.findById(ctx, uid))!;
-            let existing = await this.entities.UserProfile.findById(ctx, user.id!);
+            let existing = await Store.UserProfile.findById(ctx, user.id!);
             if (existing) {
                 return existing;
             }
@@ -122,7 +122,7 @@ export class UserRepository {
             );
 
             // Create pfofile
-            let profile = await this.entities.UserProfile.create(ctx, user.id!, {
+            let profile = await Store.UserProfile.create(ctx, user.id!, {
                 firstName: Sanitizer.sanitizeString(input.firstName)!,
                 lastName: Sanitizer.sanitizeString(input.lastName),
                 picture: Sanitizer.sanitizeImageRef(input.photoRef),
@@ -130,7 +130,13 @@ export class UserRepository {
                 email: Sanitizer.sanitizeString(input.email) || user.email,
                 website: Sanitizer.sanitizeString(input.website),
                 about: Sanitizer.sanitizeString(input.about),
-                location: Sanitizer.sanitizeString(input.location)
+                location: Sanitizer.sanitizeString(input.location),
+                linkedin: null,
+                twitter: null,
+                locations: null,
+                primaryOrganization: null,
+                primaryBadge: null,
+                role: null
             });
             await profile.flush(ctx);
             await this.markForUndexing(ctx, uid);
@@ -258,7 +264,7 @@ export class UserRepository {
                     let userBadges = await this.entities.UserBadge.rangeFromUser(ctx, uid, 2);
 
                     if (userBadges.length === 1) {
-                        let profile = await this.entities.UserProfile.findById(ctx, uid);
+                        let profile = await Store.UserProfile.findById(ctx, uid);
 
                         if (profile && !profile.primaryBadge) {
                             profile.primaryBadge = userBadge.id;
@@ -275,7 +281,7 @@ export class UserRepository {
     async deleteBadge(parent: Context, uid: number, bid: number, skipAccessCheck: boolean = false) {
         return await inTx(parent, async (ctx) => {
             let userBadge = await this.entities.UserBadge.findById(ctx, bid);
-            let profile = await this.entities.UserProfile.findById(ctx, uid);
+            let profile = await Store.UserProfile.findById(ctx, uid);
 
             if (!userBadge || !profile) {
                 throw new NotFoundError();
@@ -302,7 +308,7 @@ export class UserRepository {
 
     async updatePrimaryBadge(parent: Context, uid: number, bid: number | null) {
         return await inTx(parent, async (ctx) => {
-            let profile = await this.entities.UserProfile.findById(ctx, uid);
+            let profile = await Store.UserProfile.findById(ctx, uid);
 
             if (!profile) {
                 throw new NotFoundError();
@@ -370,7 +376,7 @@ export class UserRepository {
         return await inTx(parent, async (ctx) => {
             const getPrimaryBadge = async () => {
                 if (ignorePrimary !== true) {
-                    let profile = await this.entities.UserProfile.findById(ctx, uid);
+                    let profile = await Store.UserProfile.findById(ctx, uid);
 
                     if (profile && profile.primaryBadge) {
                         return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);

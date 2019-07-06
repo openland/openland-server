@@ -1,5 +1,5 @@
 import { inTx } from '@openland/foundationdb';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 
 export function invitesIndexer() {
@@ -19,7 +19,7 @@ export function invitesIndexer() {
             }
         })
         .start(async (item, parent) => {
-            let user = await inTx(parent, async (ctx) => await FDB.UserProfile.findById(ctx, item.creatorId));
+            let user = await inTx(parent, async (ctx) => await Store.UserProfile.findById(ctx, item.creatorId));
 
             return {
                 id: item.id!!,
