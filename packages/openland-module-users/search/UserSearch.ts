@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
 
@@ -25,7 +25,7 @@ export class UserSearch {
             };
 
             if (options && options.uid) {
-                let profilePromise = FDB.UserProfile.findById(ctx, options.uid);
+                let profilePromise = Store.UserProfile.findById(ctx, options.uid);
                 let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
                 let profile = await profilePromise;
                 let organizations = await organizationsPromise;

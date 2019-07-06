@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
@@ -8,7 +8,7 @@ import { SuperAdmin } from 'openland-module-db/store';
 
 export default {
     SuperAdmin: {
-        user: (src: SuperAdmin, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.id),
+        user: (src: SuperAdmin, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.id),
         role: (src: SuperAdmin) => {
             if (src.role === 'software-developer') {
                 return 'SOFTWARE_DEVELOPER';
@@ -18,7 +18,7 @@ export default {
                 return 'SUPER_ADMIN';
             }
         },
-        email: async (src: SuperAdmin, args: {}, ctx: AppContext) => (await FDB.User.findById(ctx, src.id))!.email,
+        email: async (src: SuperAdmin, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!.email,
     },
     Query: {
         superAdmins: withPermission('super-admin', (ctx) => {

@@ -148,7 +148,15 @@ export class DeliveryMediator {
     onDialogMuteChanged = async (parent: Context, uid: number, cid: number, mute: boolean) => {
         // Update dialogs
         await inTx(parent, async (ctx) => {
+            await this.counters.onDialogMuteChange(ctx, uid, cid);
             await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
+        });
+    }
+
+    onGlobalCounterTypeChanged = async (parent: Context, uid: number) => {
+        // Send new counter
+        await inTx(parent, async (ctx) => {
+            await this.repo.deliverGlobalCounterToUser(ctx, uid);
         });
     }
 

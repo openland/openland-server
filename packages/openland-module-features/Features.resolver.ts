@@ -1,7 +1,7 @@
+import { Store } from './../openland-module-db/FDB';
 import { FeatureFlag } from './../openland-module-db/store';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
@@ -21,7 +21,7 @@ export default {
             return Modules.Features.repo.createFeatureFlag(ctx, args.key, args.title);
         }),
         superAccountFeatureAdd: withPermission(['super-admin', 'software-developer'], async (ctx, args) => {
-            let org = await FDB.Organization.findById(ctx, IDs.SuperAccount.parse(args.id));
+            let org = await Store.Organization.findById(ctx, IDs.SuperAccount.parse(args.id));
             if (!org) {
                 throw Error('Unable to find organization');
             }
@@ -29,7 +29,7 @@ export default {
             return org;
         }),
         superAccountFeatureRemove: withPermission(['super-admin', 'software-developer'], async (ctx, args) => {
-            let org = await FDB.Organization.findById(ctx, IDs.SuperAccount.parse(args.id));
+            let org = await Store.Organization.findById(ctx, IDs.SuperAccount.parse(args.id));
             if (!org) {
                 throw Error('Unable to find organization');
             }

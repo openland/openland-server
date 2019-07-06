@@ -1,7 +1,7 @@
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { UserRepository } from './UserRepository';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 
 describe('UserRepository', () => {
@@ -42,7 +42,7 @@ describe('UserRepository', () => {
         expect(r.status).toEqual('deleted');
 
         // Should be deleted from index
-        let tr = await FDB.User.findFromAuthId(createNamedContext('test'), 'usertestauth3');
+        let tr = await Store.User.authId.find(createNamedContext('test'), 'usertestauth3');
         expect(tr).toBeNull();
 
         // Should create new user

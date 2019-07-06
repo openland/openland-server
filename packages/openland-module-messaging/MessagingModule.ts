@@ -124,6 +124,9 @@ export class MessagingModule {
         return await this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
     }
 
+    async fetchUserGlobalCounter(parent: Context, uid: number) {
+        return await this.userState.fetchUserGlobalCounter(parent, uid);
+    }
     //
     // Rooms
     //
@@ -134,6 +137,10 @@ export class MessagingModule {
 
     async getRoomSettings(ctx: Context, uid: number, cid: number) {
         return await this.userState.getRoomSettings(ctx, uid, cid);
+    }
+
+    onGlobalCounterTypeChanged = async (parent: Context, uid: number) => {
+        return await this.delivery.onGlobalCounterTypeChanged(parent, uid);
     }
 
     //

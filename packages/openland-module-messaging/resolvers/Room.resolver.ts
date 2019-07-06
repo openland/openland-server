@@ -3,7 +3,7 @@ import { withAccount, withUser, withPermission, withActivatedUser, withAny } fro
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import {
     Conversation,
     RoomProfile,
@@ -186,7 +186,7 @@ export default {
             }
         },
         filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, ctx: AppContext) => FDB.User.findById(ctx, src.uid),
+        sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
         date: (src: Message) => src.createdAt,
         repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
         isService: (src: Message) => src.isService,
@@ -213,7 +213,7 @@ export default {
             // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
         plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
+        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => Store.User.findById(ctx, id)) : null,
 
         alphaAttachments: async (src: Message) => {
             let attachments: { fileId: string, fileMetadata: any, filePreview?: string | null }[] = [];
@@ -239,7 +239,7 @@ export default {
         alphaMentions: async (src: Message) => src.complexMentions
     },
     RoomMember: {
-        user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
+        user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Store.User.findById(ctx, src.uid),
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
@@ -250,7 +250,7 @@ export default {
     RoomInvite: {
         id: (src: ChannelInvitation | ChannelLink) => src.id,
         room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
-        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
+        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.creatorId)
     },
 
     RoomUserNotificaionSettings: {
@@ -606,8 +606,10 @@ export default {
                 let cid = IDs.Conversation.parse(args.roomId);
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
-                    await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
-                    settings.mute = args.settings.mute;
+                    if (settings.mute !== args.settings.mute) {
+                        settings.mute = args.settings.mute;
+                        await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
+                    }
                 }
                 return settings;
             });

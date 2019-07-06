@@ -3,11 +3,11 @@ import { FDB, Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
-import { UserProfile } from 'openland-module-db/schema';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
+import { UserProfile } from 'openland-module-db/store';
 
 type DelayedEvents = 'activated20h' | 'activated30m';
 type Template = (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean };
@@ -168,7 +168,7 @@ export class UserOnboardingModule {
             return;
         }
 
-        let user = await FDB.UserProfile.findById(ctx, uid);
+        let user = await Store.UserProfile.findById(ctx, uid);
         if (!user) {
             return;
         }

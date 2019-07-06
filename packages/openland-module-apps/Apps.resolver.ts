@@ -7,6 +7,7 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { withProfile } from '../openland-module-users/User.resolver';
+import { Store } from 'openland-module-db/FDB';
 
 export default {
     AppToken: {
@@ -66,7 +67,7 @@ export default {
 
             await Modules.Bots.refreshAppToken(ctx, uid, botId);
 
-            return Modules.DB.entities.User.findById(ctx, botId);
+            return Store.User.findById(ctx, botId);
         }),
         updateAppProfile: withAccount(async (parent, args, uid, orgId) => {
             return await inTx(parent, async (ctx) => {
@@ -108,7 +109,7 @@ export default {
                     }
                 }
 
-                return Modules.DB.entities.User.findById(ctx, botId);
+                return Store.User.findById(ctx, botId);
             });
         }),
         deleteApp: withAccount(async (ctx, args, uid, orgId) => {

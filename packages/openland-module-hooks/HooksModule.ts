@@ -67,7 +67,7 @@ export class HooksModule {
             return;
         }
 
-        let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
+        let orgProfile = await Store.OrganizationProfile.findById(ctx, oid);
         // let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
 
         if (conditions.type === 'BY_SUPER_ADMIN') {
@@ -95,7 +95,7 @@ export class HooksModule {
             return;
         }
 
-        let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
+        let orgProfile = await Store.OrganizationProfile.findById(ctx, oid);
         let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
         let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
         await Modules.Messaging.sendMessage(ctx, chatId, botId, {
@@ -112,7 +112,7 @@ export class HooksModule {
             return;
         }
 
-        let user = await FDB.User.findById(ctx, uid);
+        let user = await Store.User.findById(ctx, uid);
         if (!user) {
             return;
         }
@@ -138,7 +138,7 @@ export class HooksModule {
                 ignoreAugmentation: true,
             });
         } else {
-            let org = await FDB.OrganizationProfile.findById(ctx, orgs[0]);
+            let org = await Store.OrganizationProfile.findById(ctx, orgs[0]);
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
                 ...buildMessage(`New user in waitlist: `, userMention(userName, uid), ` at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`),
                 ignoreAugmentation: true,
@@ -161,7 +161,7 @@ export class HooksModule {
         await Modules.Metrics.onUserActivated(ctx, uid);
         Modules.Stats.onNewEntrance(ctx);
 
-        const user = await FDB.User.findById(ctx, uid);
+        const user = await Store.User.findById(ctx, uid);
         if (user!.invitedBy) {
             Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
             await Modules.Stats.onSuccessfulInvite(ctx, uid, user!.invitedBy);

@@ -57,20 +57,25 @@ type DebugUserMetrics {
     audienceCount: Int!
 }
 
+type DebugGlobalCounters {
+    allUnreadMessages: Int!
+    unreadMessagesWithoutMuted: Int!
+    allUnreadChats: Int!
+    unreadChatsWithoutMuted: Int!
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
     debugUrlInfo(url: String!): UrlAugmentation
     userPresence(uid: ID!, lastSeenFiveMinute: Boolean): [DebugUserPresence!]!
     debugValidateMessages: String!
-
     organizationChatsStats: [OrganizationChatStats!]!
     debugEventsState: DebugEventsState!
-
     debugCheckTasksIndex: String!
     debug2WayDirectChatsCounter: Int!
-
     debugUserMetrics(id: ID!): DebugUserMetrics!
+    debugGlobalCounters: DebugGlobalCounters!
 }
 
 enum SuperNotificationType {
@@ -107,6 +112,8 @@ extend type Mutation {
     debugQueueSilentUserReport(delay: Int!): Boolean!
     debugQueueFirstWeekUserReport(delay: Int!): Boolean!
     debugEnableNotificationCenterForAll: Boolean!
+    debugResetGlobalCounters: Boolean!
+    debugCalcGlobalCountersForAll: Boolean!
 }
 
 extend type Subscription {

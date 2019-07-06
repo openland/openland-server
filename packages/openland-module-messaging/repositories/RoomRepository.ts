@@ -1,6 +1,7 @@
+import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
@@ -14,7 +15,7 @@ import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
-import { Store } from '../../openland-module-db/store';
+import { User, Store as SStore } from 'openland-module-db/store';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -36,7 +37,7 @@ export type WelcomeMessageT = {
 @injectable()
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
-    @lazyInject('Store') private readonly store!: Store;
+    @lazyInject('Store') private readonly store!: SStore;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
@@ -577,7 +578,7 @@ export class RoomRepository {
             //
             let conversationOrganization = await this.entities.ConversationOrganization.findById(ctx, cid);
             if (conversationOrganization) {
-                return await this.entities.Organization.findById(ctx, conversationOrganization.oid);
+                return await Store.Organization.findById(ctx, conversationOrganization.oid);
             }
 
             //
@@ -585,7 +586,7 @@ export class RoomRepository {
             //
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (room && room.oid) {
-                return await this.entities.Organization.findById(ctx, room.oid);
+                return await Store.Organization.findById(ctx, room.oid);
             }
 
             return null;
@@ -627,11 +628,11 @@ export class RoomRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await this.entities.UserProfile.findById(ctx, _uid))!;
+            let profile = (await Store.UserProfile.findById(ctx, _uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         } else if (conv.kind === 'organization') {
             let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
-            return (await this.entities.OrganizationProfile.findById(ctx, o!.oid))!.name;
+            return (await Store.OrganizationProfile.findById(ctx, o!.oid))!.name;
         } else {
             let r = (await this.entities.ConversationRoom.findById(ctx, conv.id))!;
             let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
@@ -642,7 +643,7 @@ export class RoomRepository {
                 let res = (await this.entities.RoomParticipant.allFromActive(ctx, conv.id)).filter((v) => v.uid !== uid);
                 let name: string[] = [];
                 for (let r2 of res) {
-                    let p2 = (await this.entities.UserProfile.findById(ctx, r2.uid))!;
+                    let p2 = (await Store.UserProfile.findById(ctx, r2.uid))!;
                     name.push([p2.firstName, p2.lastName].filter((v) => !!v).join(' '));
                 }
                 return name.join(', ');
@@ -668,7 +669,7 @@ export class RoomRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await this.entities.UserProfile.findById(ctx, _uid))!;
+            let profile = (await Store.UserProfile.findById(ctx, _uid))!;
             let res = buildBaseImageUrl(profile.picture);
             if (res) {
                 return res;
@@ -677,7 +678,7 @@ export class RoomRepository {
             }
         } else if (conv.kind === 'organization') {
             let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
-            let res = buildBaseImageUrl((await this.entities.OrganizationProfile.findById(ctx, o!.oid))!.photo);
+            let res = buildBaseImageUrl((await Store.OrganizationProfile.findById(ctx, o!.oid))!.photo);
             if (res) {
                 return res;
             } else {
@@ -715,7 +716,7 @@ export class RoomRepository {
         let sender = null;
 
         if (senderId) {
-            sender = await this.entities.User.findById(ctx, senderId);
+            sender = await Store.User.findById(ctx, senderId);
 
             if (!sender) {
                 sender = null;
@@ -875,7 +876,7 @@ export class RoomRepository {
                 //   User can see organization group only if he is a member of org
                 //   User can see any community group
                 //
-                let org = (await this.entities.Organization.findById(ctx, conversation.oid!))!;
+                let org = (await Store.Organization.findById(ctx, conversation.oid!))!;
                 if (org.kind === 'organization') {
                     if (!await Modules.Orgs.isUserMember(ctx, uid, org.id)) {
                         throw new AccessDeniedError();
@@ -935,7 +936,7 @@ export class RoomRepository {
         //
         //  Find all communities
         //
-        let allCommunities = await this.entities.Organization.allFromCommunity(parent);
+        let allCommunities = await Store.Organization.community.findAll(parent);
 
         let organizations = [...userOrgs, ...allCommunities.map(c => c.id)];
 
@@ -943,7 +944,7 @@ export class RoomRepository {
         //  Rooms from orgs & communities
         //
         for (let orgId of organizations) {
-            let org = await this.entities.Organization.findById(parent, orgId);
+            let org = await Store.Organization.findById(parent, orgId);
 
             if (!org) {
                 continue;
@@ -1018,7 +1019,7 @@ export class RoomRepository {
             //
             //  Find all communities
             //
-            let allCommunities = await this.entities.Organization.allFromCommunity(ctx);
+            let allCommunities = await Store.Organization.community.findAll(ctx);
 
             let organizations = [...userOrgs, ...allCommunities.map(c => c.id)];
 
@@ -1026,7 +1027,7 @@ export class RoomRepository {
             //  Rooms from orgs & communities
             //
             for (let orgId of organizations) {
-                let org = await this.entities.Organization.findById(ctx, orgId);
+                let org = await Store.Organization.findById(ctx, orgId);
 
                 if (!org) {
                     continue;
@@ -1132,7 +1133,7 @@ export class RoomRepository {
                 await this.store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
             }
             if (room.oid) {
-                let org = await this.entities.Organization.findById(ctx, room.oid);
+                let org = await Store.Organization.findById(ctx, room.oid);
 
                 if (!org) {
                     return;
@@ -1181,7 +1182,7 @@ export class RoomRepository {
         if (room.kind !== 'public' || !room.oid) {
             return false;
         }
-        let org = await this.entities.Organization.findById(ctx, room.oid);
+        let org = await Store.Organization.findById(ctx, room.oid);
         if (!org || org.kind !== 'community' || org.private) {
             return false;
         }

@@ -542,6 +542,1060 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserGlobalCounterAllUnreadMessagesFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterAllUnreadMessages');
+        return new UserGlobalCounterAllUnreadMessagesFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserGlobalCounterUnreadMessagesWithoutMutedFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterUnreadMessagesWithoutMuted');
+        return new UserGlobalCounterUnreadMessagesWithoutMutedFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserGlobalCounterAllUnreadChatsFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterAllUnreadChats');
+        return new UserGlobalCounterAllUnreadChatsFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userGlobalCounterUnreadChatsWithoutMuted');
+        return new UserGlobalCounterUnreadChatsWithoutMutedFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export interface UserShape {
+    id: number;
+    authId: string;
+    email: string;
+    isBot: boolean;
+    invitedBy: number | null;
+    botOwner: number | null;
+    isSuperBot: boolean | null;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+}
+
+export interface UserCreateShape {
+    authId: string;
+    email: string;
+    isBot: boolean;
+    invitedBy: number | null;
+    botOwner: number | null;
+    isSuperBot: boolean | null;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+}
+
+export class User extends Entity<UserShape> {
+    get id(): number { return this._rawValue.id; }
+    get authId(): string { return this._rawValue.authId; }
+    set authId(value: string) {
+        let normalized = this.descriptor.codec.fields.authId.normalize(value);
+        if (this._rawValue.authId !== normalized) {
+            this._rawValue.authId = normalized;
+            this._updatedValues.authId = normalized;
+            this.invalidate();
+        }
+    }
+    get email(): string { return this._rawValue.email; }
+    set email(value: string) {
+        let normalized = this.descriptor.codec.fields.email.normalize(value);
+        if (this._rawValue.email !== normalized) {
+            this._rawValue.email = normalized;
+            this._updatedValues.email = normalized;
+            this.invalidate();
+        }
+    }
+    get isBot(): boolean { return this._rawValue.isBot; }
+    set isBot(value: boolean) {
+        let normalized = this.descriptor.codec.fields.isBot.normalize(value);
+        if (this._rawValue.isBot !== normalized) {
+            this._rawValue.isBot = normalized;
+            this._updatedValues.isBot = normalized;
+            this.invalidate();
+        }
+    }
+    get invitedBy(): number | null { return this._rawValue.invitedBy; }
+    set invitedBy(value: number | null) {
+        let normalized = this.descriptor.codec.fields.invitedBy.normalize(value);
+        if (this._rawValue.invitedBy !== normalized) {
+            this._rawValue.invitedBy = normalized;
+            this._updatedValues.invitedBy = normalized;
+            this.invalidate();
+        }
+    }
+    get botOwner(): number | null { return this._rawValue.botOwner; }
+    set botOwner(value: number | null) {
+        let normalized = this.descriptor.codec.fields.botOwner.normalize(value);
+        if (this._rawValue.botOwner !== normalized) {
+            this._rawValue.botOwner = normalized;
+            this._updatedValues.botOwner = normalized;
+            this.invalidate();
+        }
+    }
+    get isSuperBot(): boolean | null { return this._rawValue.isSuperBot; }
+    set isSuperBot(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isSuperBot.normalize(value);
+        if (this._rawValue.isSuperBot !== normalized) {
+            this._rawValue.isSuperBot = normalized;
+            this._updatedValues.isSuperBot = normalized;
+            this.invalidate();
+        }
+    }
+    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' { return this._rawValue.status; }
+    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserFactory extends EntityFactory<UserShape, User> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('user');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'authId', storageKey: 'authId', type: { type: 'unique', fields: [{ name: 'authId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'authId'), condition: src => src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'email'), condition: src => src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'owner'), condition: src => src.botOwner });
+        secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'authId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'email', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'isBot', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'invitedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'botOwner', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'isSuperBot', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'activated', 'suspended', 'deleted'] }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            authId: c.string,
+            email: c.string,
+            isBot: c.boolean,
+            invitedBy: c.optional(c.integer),
+            botOwner: c.optional(c.integer),
+            isSuperBot: c.optional(c.boolean),
+            status: c.enum('pending', 'activated', 'suspended', 'deleted'),
+        });
+        let descriptor: EntityDescriptor<UserShape> = {
+            name: 'User',
+            storageKey: 'user',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserShape>) {
+        super(descriptor);
+    }
+
+    readonly authId = Object.freeze({
+        find: async (ctx: Context, authId: string) => {
+            return this._findFromUniqueIndex(ctx, [authId], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+    });
+
+    readonly email = Object.freeze({
+        find: async (ctx: Context, email: string) => {
+            return this._findFromUniqueIndex(ctx, [email], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+    });
+
+    readonly owner = Object.freeze({
+        findAll: async (ctx: Context, botOwner: number | null) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner])).items;
+        },
+        query: (ctx: Context, botOwner: number | null, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (botOwner: number | null, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [botOwner], opts);
+        },
+        liveStream: (ctx: Context, botOwner: number | null, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [botOwner], opts);
+        },
+    });
+
+    readonly superBots = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: UserCreateShape): Promise<User> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<User | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserShape>): User {
+        return new User([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserProfileShape {
+    id: number;
+    firstName: string;
+    lastName: string | null;
+    phone: string | null;
+    about: string | null;
+    website: string | null;
+    location: string | null;
+    email: string | null;
+    picture: any | null;
+    linkedin: string | null;
+    twitter: string | null;
+    locations: any | null;
+    primaryOrganization: number | null;
+    primaryBadge: number | null;
+    role: string | null;
+}
+
+export interface UserProfileCreateShape {
+    firstName: string;
+    lastName: string | null;
+    phone: string | null;
+    about: string | null;
+    website: string | null;
+    location: string | null;
+    email: string | null;
+    picture: any | null;
+    linkedin: string | null;
+    twitter: string | null;
+    locations: any | null;
+    primaryOrganization: number | null;
+    primaryBadge: number | null;
+    role: string | null;
+}
+
+export class UserProfile extends Entity<UserProfileShape> {
+    get id(): number { return this._rawValue.id; }
+    get firstName(): string { return this._rawValue.firstName; }
+    set firstName(value: string) {
+        let normalized = this.descriptor.codec.fields.firstName.normalize(value);
+        if (this._rawValue.firstName !== normalized) {
+            this._rawValue.firstName = normalized;
+            this._updatedValues.firstName = normalized;
+            this.invalidate();
+        }
+    }
+    get lastName(): string | null { return this._rawValue.lastName; }
+    set lastName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastName.normalize(value);
+        if (this._rawValue.lastName !== normalized) {
+            this._rawValue.lastName = normalized;
+            this._updatedValues.lastName = normalized;
+            this.invalidate();
+        }
+    }
+    get phone(): string | null { return this._rawValue.phone; }
+    set phone(value: string | null) {
+        let normalized = this.descriptor.codec.fields.phone.normalize(value);
+        if (this._rawValue.phone !== normalized) {
+            this._rawValue.phone = normalized;
+            this._updatedValues.phone = normalized;
+            this.invalidate();
+        }
+    }
+    get about(): string | null { return this._rawValue.about; }
+    set about(value: string | null) {
+        let normalized = this.descriptor.codec.fields.about.normalize(value);
+        if (this._rawValue.about !== normalized) {
+            this._rawValue.about = normalized;
+            this._updatedValues.about = normalized;
+            this.invalidate();
+        }
+    }
+    get website(): string | null { return this._rawValue.website; }
+    set website(value: string | null) {
+        let normalized = this.descriptor.codec.fields.website.normalize(value);
+        if (this._rawValue.website !== normalized) {
+            this._rawValue.website = normalized;
+            this._updatedValues.website = normalized;
+            this.invalidate();
+        }
+    }
+    get location(): string | null { return this._rawValue.location; }
+    set location(value: string | null) {
+        let normalized = this.descriptor.codec.fields.location.normalize(value);
+        if (this._rawValue.location !== normalized) {
+            this._rawValue.location = normalized;
+            this._updatedValues.location = normalized;
+            this.invalidate();
+        }
+    }
+    get email(): string | null { return this._rawValue.email; }
+    set email(value: string | null) {
+        let normalized = this.descriptor.codec.fields.email.normalize(value);
+        if (this._rawValue.email !== normalized) {
+            this._rawValue.email = normalized;
+            this._updatedValues.email = normalized;
+            this.invalidate();
+        }
+    }
+    get picture(): any | null { return this._rawValue.picture; }
+    set picture(value: any | null) {
+        let normalized = this.descriptor.codec.fields.picture.normalize(value);
+        if (this._rawValue.picture !== normalized) {
+            this._rawValue.picture = normalized;
+            this._updatedValues.picture = normalized;
+            this.invalidate();
+        }
+    }
+    get linkedin(): string | null { return this._rawValue.linkedin; }
+    set linkedin(value: string | null) {
+        let normalized = this.descriptor.codec.fields.linkedin.normalize(value);
+        if (this._rawValue.linkedin !== normalized) {
+            this._rawValue.linkedin = normalized;
+            this._updatedValues.linkedin = normalized;
+            this.invalidate();
+        }
+    }
+    get twitter(): string | null { return this._rawValue.twitter; }
+    set twitter(value: string | null) {
+        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
+        if (this._rawValue.twitter !== normalized) {
+            this._rawValue.twitter = normalized;
+            this._updatedValues.twitter = normalized;
+            this.invalidate();
+        }
+    }
+    get locations(): any | null { return this._rawValue.locations; }
+    set locations(value: any | null) {
+        let normalized = this.descriptor.codec.fields.locations.normalize(value);
+        if (this._rawValue.locations !== normalized) {
+            this._rawValue.locations = normalized;
+            this._updatedValues.locations = normalized;
+            this.invalidate();
+        }
+    }
+    get primaryOrganization(): number | null { return this._rawValue.primaryOrganization; }
+    set primaryOrganization(value: number | null) {
+        let normalized = this.descriptor.codec.fields.primaryOrganization.normalize(value);
+        if (this._rawValue.primaryOrganization !== normalized) {
+            this._rawValue.primaryOrganization = normalized;
+            this._updatedValues.primaryOrganization = normalized;
+            this.invalidate();
+        }
+    }
+    get primaryBadge(): number | null { return this._rawValue.primaryBadge; }
+    set primaryBadge(value: number | null) {
+        let normalized = this.descriptor.codec.fields.primaryBadge.normalize(value);
+        if (this._rawValue.primaryBadge !== normalized) {
+            this._rawValue.primaryBadge = normalized;
+            this._updatedValues.primaryBadge = normalized;
+            this.invalidate();
+        }
+    }
+    get role(): string | null { return this._rawValue.role; }
+    set role(value: string | null) {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProfile> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userProfile');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'byUpdatedAt', storageKey: 'byUpdatedAt', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userProfile', 'byUpdatedAt'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'firstName', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'lastName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'phone', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'about', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'website', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'location', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'email', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'locations', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'primaryOrganization', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'primaryBadge', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            firstName: c.string,
+            lastName: c.optional(c.string),
+            phone: c.optional(c.string),
+            about: c.optional(c.string),
+            website: c.optional(c.string),
+            location: c.optional(c.string),
+            email: c.optional(c.string),
+            picture: c.optional(c.any),
+            linkedin: c.optional(c.string),
+            twitter: c.optional(c.string),
+            locations: c.optional(c.any),
+            primaryOrganization: c.optional(c.integer),
+            primaryBadge: c.optional(c.integer),
+            role: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<UserProfileShape> = {
+            name: 'UserProfile',
+            storageKey: 'userProfile',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserProfileFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserProfileShape>) {
+        super(descriptor);
+    }
+
+    readonly byUpdatedAt = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: UserProfileCreateShape): Promise<UserProfile> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<UserProfile | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserProfileShape>): UserProfile {
+        return new UserProfile([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserProfilePrefilShape {
+    id: number;
+    firstName: string | null;
+    lastName: string | null;
+    picture: string | null;
+}
+
+export interface UserProfilePrefilCreateShape {
+    firstName: string | null;
+    lastName: string | null;
+    picture: string | null;
+}
+
+export class UserProfilePrefil extends Entity<UserProfilePrefilShape> {
+    get id(): number { return this._rawValue.id; }
+    get firstName(): string | null { return this._rawValue.firstName; }
+    set firstName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.firstName.normalize(value);
+        if (this._rawValue.firstName !== normalized) {
+            this._rawValue.firstName = normalized;
+            this._updatedValues.firstName = normalized;
+            this.invalidate();
+        }
+    }
+    get lastName(): string | null { return this._rawValue.lastName; }
+    set lastName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastName.normalize(value);
+        if (this._rawValue.lastName !== normalized) {
+            this._rawValue.lastName = normalized;
+            this._updatedValues.lastName = normalized;
+            this.invalidate();
+        }
+    }
+    get picture(): string | null { return this._rawValue.picture; }
+    set picture(value: string | null) {
+        let normalized = this.descriptor.codec.fields.picture.normalize(value);
+        if (this._rawValue.picture !== normalized) {
+            this._rawValue.picture = normalized;
+            this._updatedValues.picture = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilShape, UserProfilePrefil> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userProfilePrefil');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'firstName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'lastName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            firstName: c.optional(c.string),
+            lastName: c.optional(c.string),
+            picture: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<UserProfilePrefilShape> = {
+            name: 'UserProfilePrefil',
+            storageKey: 'userProfilePrefil',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserProfilePrefilFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserProfilePrefilShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: UserProfilePrefilCreateShape): Promise<UserProfilePrefil> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<UserProfilePrefil | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserProfilePrefilShape>): UserProfilePrefil {
+        return new UserProfilePrefil([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationShape {
+    id: number;
+    ownerId: number;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+    kind: 'organization' | 'community';
+    editorial: boolean;
+    private: boolean | null;
+    personal: boolean | null;
+}
+
+export interface OrganizationCreateShape {
+    ownerId: number;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+    kind: 'organization' | 'community';
+    editorial: boolean;
+    private: boolean | null;
+    personal: boolean | null;
+}
+
+export class Organization extends Entity<OrganizationShape> {
+    get id(): number { return this._rawValue.id; }
+    get ownerId(): number { return this._rawValue.ownerId; }
+    set ownerId(value: number) {
+        let normalized = this.descriptor.codec.fields.ownerId.normalize(value);
+        if (this._rawValue.ownerId !== normalized) {
+            this._rawValue.ownerId = normalized;
+            this._updatedValues.ownerId = normalized;
+            this.invalidate();
+        }
+    }
+    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' { return this._rawValue.status; }
+    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'organization' | 'community' { return this._rawValue.kind; }
+    set kind(value: 'organization' | 'community') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get editorial(): boolean { return this._rawValue.editorial; }
+    set editorial(value: boolean) {
+        let normalized = this.descriptor.codec.fields.editorial.normalize(value);
+        if (this._rawValue.editorial !== normalized) {
+            this._rawValue.editorial = normalized;
+            this._updatedValues.editorial = normalized;
+            this.invalidate();
+        }
+    }
+    get private(): boolean | null { return this._rawValue.private; }
+    set private(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.private.normalize(value);
+        if (this._rawValue.private !== normalized) {
+            this._rawValue.private = normalized;
+            this._updatedValues.private = normalized;
+            this.invalidate();
+        }
+    }
+    get personal(): boolean | null { return this._rawValue.personal; }
+    set personal(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.personal.normalize(value);
+        if (this._rawValue.personal !== normalized) {
+            this._rawValue.personal = normalized;
+            this._updatedValues.personal = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationFactory extends EntityFactory<OrganizationShape, Organization> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organization');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'community', storageKey: 'community', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('organization', 'community'), condition: (src) => src.kind === 'community' && src.status === 'activated' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'ownerId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'activated', 'suspended', 'deleted'] }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['organization', 'community'] }, secure: false });
+        fields.push({ name: 'editorial', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'private', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'personal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            ownerId: c.integer,
+            status: c.enum('pending', 'activated', 'suspended', 'deleted'),
+            kind: c.enum('organization', 'community'),
+            editorial: c.boolean,
+            private: c.optional(c.boolean),
+            personal: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<OrganizationShape> = {
+            name: 'Organization',
+            storageKey: 'organization',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationShape>) {
+        super(descriptor);
+    }
+
+    readonly community = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: OrganizationCreateShape): Promise<Organization> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<Organization | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationShape>): Organization {
+        return new Organization([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationProfileShape {
+    id: number;
+    name: string;
+    photo: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
+    about: string | null;
+    twitter: string | null;
+    facebook: string | null;
+    linkedin: string | null;
+    website: string | null;
+    joinedMembersCount: number | null;
+}
+
+export interface OrganizationProfileCreateShape {
+    name: string;
+    photo: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
+    about: string | null;
+    twitter: string | null;
+    facebook: string | null;
+    linkedin: string | null;
+    website: string | null;
+    joinedMembersCount: number | null;
+}
+
+export class OrganizationProfile extends Entity<OrganizationProfileShape> {
+    get id(): number { return this._rawValue.id; }
+    get name(): string { return this._rawValue.name; }
+    set name(value: string) {
+        let normalized = this.descriptor.codec.fields.name.normalize(value);
+        if (this._rawValue.name !== normalized) {
+            this._rawValue.name = normalized;
+            this._updatedValues.name = normalized;
+            this.invalidate();
+        }
+    }
+    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this._rawValue.photo; }
+    set photo(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null) {
+        let normalized = this.descriptor.codec.fields.photo.normalize(value);
+        if (this._rawValue.photo !== normalized) {
+            this._rawValue.photo = normalized;
+            this._updatedValues.photo = normalized;
+            this.invalidate();
+        }
+    }
+    get about(): string | null { return this._rawValue.about; }
+    set about(value: string | null) {
+        let normalized = this.descriptor.codec.fields.about.normalize(value);
+        if (this._rawValue.about !== normalized) {
+            this._rawValue.about = normalized;
+            this._updatedValues.about = normalized;
+            this.invalidate();
+        }
+    }
+    get twitter(): string | null { return this._rawValue.twitter; }
+    set twitter(value: string | null) {
+        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
+        if (this._rawValue.twitter !== normalized) {
+            this._rawValue.twitter = normalized;
+            this._updatedValues.twitter = normalized;
+            this.invalidate();
+        }
+    }
+    get facebook(): string | null { return this._rawValue.facebook; }
+    set facebook(value: string | null) {
+        let normalized = this.descriptor.codec.fields.facebook.normalize(value);
+        if (this._rawValue.facebook !== normalized) {
+            this._rawValue.facebook = normalized;
+            this._updatedValues.facebook = normalized;
+            this.invalidate();
+        }
+    }
+    get linkedin(): string | null { return this._rawValue.linkedin; }
+    set linkedin(value: string | null) {
+        let normalized = this.descriptor.codec.fields.linkedin.normalize(value);
+        if (this._rawValue.linkedin !== normalized) {
+            this._rawValue.linkedin = normalized;
+            this._updatedValues.linkedin = normalized;
+            this.invalidate();
+        }
+    }
+    get website(): string | null { return this._rawValue.website; }
+    set website(value: string | null) {
+        let normalized = this.descriptor.codec.fields.website.normalize(value);
+        if (this._rawValue.website !== normalized) {
+            this._rawValue.website = normalized;
+            this._updatedValues.website = normalized;
+            this.invalidate();
+        }
+    }
+    get joinedMembersCount(): number | null { return this._rawValue.joinedMembersCount; }
+    set joinedMembersCount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.joinedMembersCount.normalize(value);
+        if (this._rawValue.joinedMembersCount !== normalized) {
+            this._rawValue.joinedMembersCount = normalized;
+            this._updatedValues.joinedMembersCount = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationProfileFactory extends EntityFactory<OrganizationProfileShape, OrganizationProfile> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organizationProfile');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'name', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
+        fields.push({ name: 'about', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'facebook', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'website', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'joinedMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            name: c.string,
+            photo: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
+            about: c.optional(c.string),
+            twitter: c.optional(c.string),
+            facebook: c.optional(c.string),
+            linkedin: c.optional(c.string),
+            website: c.optional(c.string),
+            joinedMembersCount: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<OrganizationProfileShape> = {
+            name: 'OrganizationProfile',
+            storageKey: 'organizationProfile',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationProfileFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationProfileShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: OrganizationProfileCreateShape): Promise<OrganizationProfile> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<OrganizationProfile | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationProfileShape>): OrganizationProfile {
+        return new OrganizationProfile([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationEditorialShape {
+    id: number;
+    listed: boolean;
+    featured: boolean;
+}
+
+export interface OrganizationEditorialCreateShape {
+    listed: boolean;
+    featured: boolean;
+}
+
+export class OrganizationEditorial extends Entity<OrganizationEditorialShape> {
+    get id(): number { return this._rawValue.id; }
+    get listed(): boolean { return this._rawValue.listed; }
+    set listed(value: boolean) {
+        let normalized = this.descriptor.codec.fields.listed.normalize(value);
+        if (this._rawValue.listed !== normalized) {
+            this._rawValue.listed = normalized;
+            this._updatedValues.listed = normalized;
+            this.invalidate();
+        }
+    }
+    get featured(): boolean { return this._rawValue.featured; }
+    set featured(value: boolean) {
+        let normalized = this.descriptor.codec.fields.featured.normalize(value);
+        if (this._rawValue.featured !== normalized) {
+            this._rawValue.featured = normalized;
+            this._updatedValues.featured = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationEditorialFactory extends EntityFactory<OrganizationEditorialShape, OrganizationEditorial> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organizationEditorial');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'listed', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'featured', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            listed: c.boolean,
+            featured: c.boolean,
+        });
+        let descriptor: EntityDescriptor<OrganizationEditorialShape> = {
+            name: 'OrganizationEditorial',
+            storageKey: 'organizationEditorial',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationEditorialFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationEditorialShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: OrganizationEditorialCreateShape): Promise<OrganizationEditorial> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<OrganizationEditorial | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationEditorialShape>): OrganizationEditorial {
+        return new OrganizationEditorial([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface OnlineShape {
     uid: number;
     lastSeen: number;
@@ -2160,6 +3214,16 @@ export interface Store extends BaseStore {
     readonly UserMessagesSentInDirectChatCounter: UserMessagesSentInDirectChatCounterFactory;
     readonly User2WayDirectChatsCounter: User2WayDirectChatsCounterFactory;
     readonly GlobalStatisticsCounters: GlobalStatisticsCountersFactory;
+    readonly UserGlobalCounterAllUnreadMessages: UserGlobalCounterAllUnreadMessagesFactory;
+    readonly UserGlobalCounterUnreadMessagesWithoutMuted: UserGlobalCounterUnreadMessagesWithoutMutedFactory;
+    readonly UserGlobalCounterAllUnreadChats: UserGlobalCounterAllUnreadChatsFactory;
+    readonly UserGlobalCounterUnreadChatsWithoutMuted: UserGlobalCounterUnreadChatsWithoutMutedFactory;
+    readonly User: UserFactory;
+    readonly UserProfile: UserProfileFactory;
+    readonly UserProfilePrefil: UserProfilePrefilFactory;
+    readonly Organization: OrganizationFactory;
+    readonly OrganizationProfile: OrganizationProfileFactory;
+    readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -2191,6 +3255,16 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
     let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
     let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
+    let UserGlobalCounterAllUnreadMessagesPromise = UserGlobalCounterAllUnreadMessagesFactory.open(storage);
+    let UserGlobalCounterUnreadMessagesWithoutMutedPromise = UserGlobalCounterUnreadMessagesWithoutMutedFactory.open(storage);
+    let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(storage);
+    let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(storage);
+    let UserPromise = UserFactory.open(storage);
+    let UserProfilePromise = UserProfileFactory.open(storage);
+    let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
+    let OrganizationPromise = OrganizationFactory.open(storage);
+    let OrganizationProfilePromise = OrganizationProfileFactory.open(storage);
+    let OrganizationEditorialPromise = OrganizationEditorialFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
@@ -2221,6 +3295,16 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesSentInDirectChatCounter: await UserMessagesSentInDirectChatCounterPromise,
         User2WayDirectChatsCounter: await User2WayDirectChatsCounterPromise,
         GlobalStatisticsCounters: await GlobalStatisticsCountersPromise,
+        UserGlobalCounterAllUnreadMessages: await UserGlobalCounterAllUnreadMessagesPromise,
+        UserGlobalCounterUnreadMessagesWithoutMuted: await UserGlobalCounterUnreadMessagesWithoutMutedPromise,
+        UserGlobalCounterAllUnreadChats: await UserGlobalCounterAllUnreadChatsPromise,
+        UserGlobalCounterUnreadChatsWithoutMuted: await UserGlobalCounterUnreadChatsWithoutMutedPromise,
+        User: await UserPromise,
+        UserProfile: await UserProfilePromise,
+        UserProfilePrefil: await UserProfilePrefilPromise,
+        Organization: await OrganizationPromise,
+        OrganizationProfile: await OrganizationProfilePromise,
+        OrganizationEditorial: await OrganizationEditorialPromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
         PushFirebase: await PushFirebasePromise,

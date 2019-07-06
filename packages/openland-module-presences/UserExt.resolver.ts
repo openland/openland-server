@@ -1,9 +1,9 @@
 import { withUser } from 'openland-module-users/User.resolver';
-import { User } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { withLogPath } from '@openland/log';
+import { User } from 'openland-module-db/store';
 
 export default {
     User: {

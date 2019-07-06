@@ -1,6 +1,6 @@
 import { withAccount, withAny } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
 
@@ -26,7 +26,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = (await Promise.all(uids.map((v) => FDB.User.findById(ctx, v)))).filter(u => u);
+            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
 
             let offset = 0;
             if (args.after) {
@@ -75,7 +75,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = (await Promise.all(uids.map((v) => FDB.User.findById(ctx, v)))).filter(u => u);
+            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
 
             let offset = 0;
             if (args.after) {
@@ -123,7 +123,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = (await Promise.all(uids.map((v) => FDB.User.findById(ctx, v)))).filter(u => u);
+            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
 
             let offset = 0;
             if (args.after) {

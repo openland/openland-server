@@ -63,9 +63,9 @@ function toAmplitudeEvent(event: InternalTrackEvent, userProps?: AmplitudeUserPr
 }
 
 async function fetchUserProps(ctx: Context, uid: number): Promise<AmplitudeUserProps | null> {
-    let profile = await FDB.UserProfile.findById(ctx, uid);
+    let profile = await Store.UserProfile.findById(ctx, uid);
     if (profile) {
-        let date = new Date(profile.createdAt);
+        let date = new Date(profile.metadata.createdAt);
 
         let start = new Date(date.getFullYear(), 0, 0);
         let diff = ((date as any) - (start as any)) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);

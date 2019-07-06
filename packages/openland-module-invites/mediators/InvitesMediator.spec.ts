@@ -8,7 +8,6 @@ import { OrganizationModule } from 'openland-module-organization/OrganizationMod
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { InvitesMediator } from './InvitesMediator';
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
-import { AllEntities } from 'openland-module-db/schema';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
@@ -16,12 +15,12 @@ import { InvitesOrganizationRepository } from 'openland-module-invites/repositor
 import { Modules } from 'openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
+import { Store } from 'openland-module-db/FDB';
 
 describe('InvitesMediator', () => {
 
     let users: UsersModule;
     let orgs: OrganizationModule;
-    let entities: AllEntities;
     beforeAll(async () => {
         await testEnvironmentStart('invites-mediator');
         loadMessagingTestModule();
@@ -33,7 +32,6 @@ describe('InvitesMediator', () => {
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
 
-        entities = container.get<AllEntities>('FDB');
         users = container.get<UsersModule>(UsersModule);
         orgs = container.get<OrganizationModule>(OrganizationModule);
     });
@@ -64,11 +62,11 @@ describe('InvitesMediator', () => {
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER2_ID))!;
+        let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
-        let org = (await entities.Organization.findById(ctx, USER2_ORG_ID))!;
+        let org = (await Store.Organization.findById(ctx, USER2_ORG_ID))!;
         expect(org.status).toEqual('activated');
     });
 
@@ -87,11 +85,11 @@ describe('InvitesMediator', () => {
         await mediator.joinAppInvite(ctx, USER_ID, invite, true);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER_ID))!;
+        let user = (await Store.User.findById(ctx, USER_ID))!;
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
-        let org = (await entities.Organization.findById(ctx, USER_ORG_ID))!;
+        let org = (await Store.Organization.findById(ctx, USER_ORG_ID))!;
         expect(org.status).toEqual('activated');
     });
 
@@ -117,11 +115,11 @@ describe('InvitesMediator', () => {
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER2_ID))!;
+        let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
 
         // should make org primary
-        let userProfile = (await entities.UserProfile.findById(ctx, USER2_ID))!;
+        let userProfile = (await Store.UserProfile.findById(ctx, USER2_ID))!;
         expect(userProfile.primaryOrganization).toEqual(USER_ORG_ID);
     });
 
@@ -147,11 +145,11 @@ describe('InvitesMediator', () => {
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER2_ID))!;
+        let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
 
         // should make org primary
-        let userProfile = (await entities.UserProfile.findById(ctx, USER2_ID))!;
+        let userProfile = (await Store.UserProfile.findById(ctx, USER2_ID))!;
         expect(userProfile.primaryOrganization).toEqual(USER_ORG_ID);
     });
 

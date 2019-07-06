@@ -1,10 +1,10 @@
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 
 async function resolveRoleInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
-    let org = (await FDB.Organization.findById(ctx, oid))!;
+    let org = (await Store.Organization.findById(ctx, oid))!;
     let roles: string[] = [];
 
     for (let member of members) {
@@ -52,7 +52,7 @@ export async function resolveOrganizationJoinedMembers(
     let result: any[] = [];
 
     for (let i = 0; i < members.length; i++) {
-        let member = (await FDB.User.findById(ctx, members[i].uid))!;
+        let member = (await Store.User.findById(ctx, members[i].uid))!;
         result.push({
             _type: 'OrganizationJoinedMember',
             user: member,
@@ -85,7 +85,7 @@ export async function resolveOrganizationMembersWithStatus(ctx: Context, orgId: 
     let result: any[] = [];
 
     for (let i = 0; i < members.length; i++) {
-        let member = (await FDB.User.findById(ctx, members[i].uid))!;
+        let member = (await Store.User.findById(ctx, members[i].uid))!;
         result.push({
             _type: 'OrganizationJoinedMember',
             user: member,

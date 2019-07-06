@@ -1,9 +1,10 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
-import { Comment, ConversationRoom, Message, Notification, Organization } from '../openland-module-db/schema';
-import { FDB } from '../openland-module-db/FDB';
+import { Comment, ConversationRoom, Message, Notification } from '../openland-module-db/schema';
+import { FDB, Store } from '../openland-module-db/FDB';
 import { REACTIONS_LEGACY } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
+import { Organization } from 'openland-module-db/store';
 
 @injectable()
 export class MetricsModule {
@@ -50,7 +51,7 @@ export class MetricsModule {
     }
 
     async onChatInviteJoin(ctx: Context, uid: number, inviterId: number, chat: ConversationRoom) {
-        let user = (await FDB.User.findById(ctx, uid))!;
+        let user = (await Store.User.findById(ctx, uid))!;
         if (user.status === 'activated') {
             return;
         }
@@ -58,7 +59,7 @@ export class MetricsModule {
     }
 
     async onOpenlandInviteJoin(ctx: Context, uid: number, inviterId: number) {
-        let user = (await FDB.User.findById(ctx, uid))!;
+        let user = (await Store.User.findById(ctx, uid))!;
         if (user.status === 'activated') {
             return;
         }
@@ -66,7 +67,7 @@ export class MetricsModule {
     }
 
     async onOrganizationInviteJoin(ctx: Context, uid: number, inviterId: number, org: Organization) {
-        let user = (await FDB.User.findById(ctx, uid))!;
+        let user = (await Store.User.findById(ctx, uid))!;
         if (user.status === 'activated') {
             return;
         }

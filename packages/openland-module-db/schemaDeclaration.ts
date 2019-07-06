@@ -109,99 +109,9 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('UserProfilePrefil', () => {
-        primaryKey('id', 'number');
-        field('firstName', 'string').nullable();
-        field('lastName', 'string').nullable();
-        field('picture', 'string').nullable();
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('User', () => {
-        primaryKey('id', 'number');
-        field('authId', 'string');
-        field('email', 'string');
-        field('isBot', 'boolean');
-        field('invitedBy', 'number').nullable();
-        field('botOwner', 'number').nullable();
-        field('isSuperBot', 'boolean').nullable();
-        enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
-
-        uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
-        uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
-        rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
-        rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
-    });
-
-    entity('UserProfile', () => {
-        primaryKey('id', 'number');
-        field('firstName', 'string');
-        field('lastName', 'string').nullable();
-        field('phone', 'string').nullable();
-        field('about', 'string').nullable();
-        field('website', 'string').nullable();
-        field('location', 'string').nullable();
-        field('email', 'string').nullable();
-        field('picture', 'json').nullable();
-        field('linkedin', 'string').nullable();
-        field('twitter', 'string').nullable();
-        field('locations', 'json').nullable();
-        field('primaryOrganization', 'number').nullable();
-        field('primaryBadge', 'number').nullable();
-        field('role', 'string').nullable();
-        rangeIndex('byUpdatedAt', ['updatedAt']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
     entity('UserIndexingQueue', () => {
         primaryKey('id', 'number');
         rangeIndex('updated', ['updatedAt']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('Organization', () => {
-        primaryKey('id', 'number');
-        field('ownerId', 'number');
-        enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
-        enumField('kind', ['organization', 'community']);
-        field('editorial', 'boolean');
-        field('private', 'boolean').nullable();
-        field('personal', 'boolean').nullable();
-        rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('OrganizationProfile', () => {
-        primaryKey('id', 'number');
-        field('name', 'string');
-        jsonField('photo', () => {
-            jField('uuid', jString());
-            jField('crop', json(() => {
-                jField('x', jNumber());
-                jField('y', jNumber());
-                jField('w', jNumber());
-                jField('h', jNumber());
-            })).nullable();
-        }).nullable();
-        field('about', 'string').nullable();
-        field('twitter', 'string').nullable();
-        field('facebook', 'string').nullable();
-        field('linkedin', 'string').nullable();
-        field('website', 'string').nullable();
-
-        field('joinedMembersCount', 'number').nullable();
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('OrganizationEditorial', () => {
-        primaryKey('id', 'number');
-        field('listed', 'boolean');
-        field('featured', 'boolean');
         enableTimestamps();
         enableVersioning();
     });
@@ -246,6 +156,7 @@ const Schema = declareSchema(() => {
         field('mobileAlert', 'boolean').nullable();
         field('mobileIncludeText', 'boolean').nullable();
         enumField('notificationsDelay', ['none', '1min', '15min']).nullable();
+        enumField('globalCounterType', ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted']).nullable();
         enableVersioning();
         enableTimestamps();
     });

@@ -39,6 +39,8 @@ input UpdateSettingsInput {
     mobileIncludeText: Boolean
     mute: Boolean
     notificationsDelay: NotificationsDelay
+    countUnreadChats: Boolean
+    excludeMutedChats: Boolean
 }
 
 type Settings {
@@ -53,6 +55,8 @@ type Settings {
     mobileIncludeText: Boolean!
     mute: Boolean
     notificationsDelay: NotificationsDelay!
+    countUnreadChats: Boolean!
+    excludeMutedChats: Boolean!
 }
 
 extend type Query {

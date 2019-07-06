@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { OrganizationRepository } from './repositories/OrganizationRepository';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
@@ -12,14 +12,11 @@ import { organizationProfileIndexer } from './workers/organizationProfileIndexer
 import { Context } from '@openland/context';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { UserError } from '../openland-errors/UserError';
-import { AllEntities } from '../openland-module-db/schema';
 
 @injectable()
 export class OrganizationModule {
     @lazyInject('OrganizationRepository')
     private readonly repo!: OrganizationRepository;
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
 
     start = () => {
         if (serverRoleEnabled('workers')) {
@@ -32,7 +29,7 @@ export class OrganizationModule {
 
             // 1. Resolve user status
             let status: 'activated' | 'pending' = 'pending';
-            let user = await Modules.DB.entities.User.findById(ctx, uid);
+            let user = await Store.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }
@@ -43,7 +40,7 @@ export class OrganizationModule {
             }
 
             // 2. Check if profile created
-            let profile = await Modules.DB.entities.UserProfile.findById(ctx, uid);
+            let profile = await Store.UserProfile.findById(ctx, uid);
             if (!profile) {
                 throw Error('Profile is not created');
             }
@@ -80,8 +77,8 @@ export class OrganizationModule {
                 }
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid, false);
-                    let profile = await FDB.UserProfile.findById(ctx, m.uid);
-                    let org = await this.entities.Organization.findById(ctx, id);
+                    let profile = await Store.UserProfile.findById(ctx, m.uid);
+                    let org = await Store.Organization.findById(ctx, id);
                     if (profile && !profile.primaryOrganization && (org && org.kind === 'organization')) {
                         profile.primaryOrganization = id;
                     }
@@ -106,14 +103,14 @@ export class OrganizationModule {
         return await inTx(parent, async (ctx) => {
 
             // Check user state
-            let user = await Modules.DB.entities.User.findById(ctx, uid);
+            let user = await Store.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }
             if (user.status === 'suspended') {
                 throw Error('User is suspended');
             }
-            let profile = await Modules.DB.entities.UserProfile.findById(ctx, uid);
+            let profile = await Store.UserProfile.findById(ctx, uid);
             if (!profile) {
                 throw Error('Profile is not created');
             }
@@ -127,13 +124,13 @@ export class OrganizationModule {
 
             // Add member
             if (await this.repo.addUserToOrganization(ctx, uid, oid, by)) {
-                let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
+                let org = (await Store.Organization.findById(ctx, oid))!;
                 if (org.status === 'activated') {
                     // Activate user if organization is in activated state
                     await Modules.Users.activateUser(ctx, uid, isNewUser, by);
 
                     // Find and activate organizations created by user if have one
-                    let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Modules.DB.entities.Organization.findById(ctx, orgId)));
+                    let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Store.Organization.findById(ctx, orgId)));
                     userOrgs = userOrgs.filter(o => o!.ownerId === uid);
                     for (let userOrg of userOrgs) {
                         // Activate user organization
@@ -156,7 +153,7 @@ export class OrganizationModule {
                 return org;
             }
 
-            return await Modules.DB.entities.Organization.findById(ctx, oid);
+            return await Store.Organization.findById(ctx, oid);
         });
     }
 
@@ -204,7 +201,7 @@ export class OrganizationModule {
             }
 
             if (await this.repo.removeUserFromOrganization(ctx, uid, oid)) {
-                let profile = (await FDB.UserProfile.findById(ctx, uid))!;
+                let profile = (await Store.UserProfile.findById(ctx, uid))!;
                 if (profile.primaryOrganization === oid) {
                     profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                     await profile.flush(ctx);

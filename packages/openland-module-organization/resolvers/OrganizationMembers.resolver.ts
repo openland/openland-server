@@ -8,7 +8,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 
 export default {
     OrganizationMember: {
@@ -61,7 +61,7 @@ export default {
         }),
         betaOrganizationMemberRemove: withAccount(async (ctx, args, uid) => {
             await Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.Organization.parse(args.organizationId), uid);
-            return await FDB.Organization.findById(ctx, IDs.Organization.parse(args.organizationId));
+            return await Store.Organization.findById(ctx, IDs.Organization.parse(args.organizationId));
         }),
         betaOrganizationMemberAdd: withAccount(async (ctx, args, uid) => {
             return await inTx(ctx, async (c) => {
@@ -69,7 +69,7 @@ export default {
                 for (let u of toAdd) {
                     await Modules.Orgs.addUserToOrganization(c, IDs.User.parse(u), IDs.Organization.parse(args.organizationId), uid);
                 }
-                return await FDB.Organization.findById(c, IDs.Organization.parse(args.organizationId));
+                return await Store.Organization.findById(c, IDs.Organization.parse(args.organizationId));
             });
         }),
         // depricated

@@ -1,6 +1,5 @@
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
-import { UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { inTx } from '@openland/foundationdb';
@@ -9,6 +8,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { UserProfile } from 'openland-module-db/store';
 
 export default {
     Profile: {
@@ -29,11 +29,11 @@ export default {
         alphaLocations: (src: UserProfile) => src.locations,
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
-        alphaJoinedAt: (src: UserProfile) => src.createdAt + '',
+        alphaJoinedAt: (src: UserProfile) => src.metadata.createdAt + '',
         alphaInvitedBy: async (src: UserProfile, args: {}, ctx: AppContext) => {
-            let user = await FDB.User.findById(ctx, src.id);
+            let user = await Store.User.findById(ctx, src.id);
             if (user && user.invitedBy) {
-                return await FDB.User.findById(ctx, user.invitedBy);
+                return await Store.User.findById(ctx, user.invitedBy);
             }
             return null;
         },
@@ -59,7 +59,7 @@ export default {
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await FDB.User.findById(ctx, uid);
+                let user = await Store.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }
@@ -110,7 +110,7 @@ export default {
 
                 if (args.input.primaryOrganization) {
                     let oid = IDs.Organization.parse(args.input.primaryOrganization);
-                    let org = await FDB.Organization.findById(ctx, oid);
+                    let org = await Store.Organization.findById(ctx, oid);
                     if (org && org.kind === 'organization') {
                         profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
                     }
@@ -145,7 +145,7 @@ export default {
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await FDB.User.findById(ctx, uid);
+                let user = await Store.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }

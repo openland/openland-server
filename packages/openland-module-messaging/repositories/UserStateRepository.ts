@@ -135,4 +135,26 @@ export class UserStateRepository {
         }
         return;
     }
+
+    async fetchUserGlobalCounter(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let settings = await this.entities.UserSettings.findById(ctx, uid);
+            if (!settings) {
+                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+            }
+
+            if (settings.globalCounterType === 'unread_messages') {
+                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+            } else if (settings.globalCounterType === 'unread_chats') {
+                return await this.store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
+            } else if (settings.globalCounterType === 'unread_messages_no_muted') {
+                return await this.store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
+            } else if (settings.globalCounterType === 'unread_chats_no_muted') {
+                return await this.store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
+            } else {
+                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+            }
+        });
+    }
+
 }

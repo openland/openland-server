@@ -2,7 +2,7 @@ import { Modules } from '../openland-modules/Modules';
 import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
-import { FEntityFactory } from '../foundation-orm/FEntityFactory';
+import { EntityFactory } from '@openland/foundationdb-entity';
 
 const rootCtx = createNamedContext('debug-task');
 const logger = createLogger('debug-task');
@@ -14,6 +14,7 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
         let superNotificationsAppId = await Modules.Super.getEnvVar<number>(rootCtx, 'super-notifications-app-id');
 
         const sendLog = async (str: string) => {
+            logger.log(rootCtx, str);
             if (superNotificationsAppId) {
                 let ctx = rootCtx;
                 let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, superNotificationsAppId);
@@ -30,7 +31,7 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
     })();
 }
 
-export function debugTaskForAll(entity: FEntityFactory<any>, uid: number, name: string, handler: (ctx: Context, uid: number, log: (str: string) => Promise<void>) => Promise<void>) {
+export function debugTaskForAll(entity: EntityFactory<any, any>, uid: number, name: string, handler: (ctx: Context, uid: number, log: (str: string) => Promise<void>) => Promise<void>) {
     debugTask(uid, name, async (log) => {
         let allRecords = await entity.findAll(rootCtx);
         let i = 0;

@@ -3,13 +3,13 @@ import { IDs } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { UserProfile } from 'openland-module-db/schema';
 import { MessageKeyboard } from '../MessageInput';
 import { Context, createNamedContext } from '@openland/context';
+import { UserProfile } from 'openland-module-db/store';
 
 const rootCtx = createNamedContext('url-info');
 
@@ -90,7 +90,7 @@ export class UrlInfoService {
 }
 
 const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
-    let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(rootCtx, user!.primaryOrganization!);
+    let org = user!.primaryOrganization && await Store.OrganizationProfile.findById(rootCtx, user!.primaryOrganization!);
 
     return {
         url,
@@ -131,7 +131,7 @@ export function createUrlInfoService() {
             let orgId = IDs.Organization.parse(_orgId);
 
             let ctx = rootCtx;
-            let org = await FDB.OrganizationProfile.findById(ctx, orgId);
+            let org = await Store.OrganizationProfile.findById(ctx, orgId);
             let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
             return {
@@ -154,7 +154,7 @@ export function createUrlInfoService() {
 
             let channel = await FDB.ConversationRoom.findById(rootCtx, channelId);
 
-            if (!channel || channel!.kind !== 'public' || (channel.oid && (await FDB.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
+            if (!channel || channel!.kind !== 'public' || (channel.oid && (await Store.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
                 return null;
             }
 
@@ -233,7 +233,7 @@ export function createUrlInfoService() {
                 let orgId = shortname.ownerId;
 
                 let ctx = rootCtx;
-                let org = await FDB.OrganizationProfile.findById(ctx, orgId);
+                let org = await Store.OrganizationProfile.findById(ctx, orgId);
                 let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
                 return {
