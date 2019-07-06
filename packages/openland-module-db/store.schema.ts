@@ -1,26 +1,33 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
 
-    // //
-    // // User
-    // //
+    //
+    // User
+    //
 
-    // entity('User', () => {
-    //     primaryKey('id', integer());
-    //     field('authId', string());
-    //     field('email', string());
-    //     field('isBot', boolean());
-    //     field('invitedBy', optional(integer()));
-    //     field('botOwner', optional(integer()));
-    //     field('isSuperBot', optional(boolean()));
-    //     field('status', enumString('pending', 'activated', 'suspended', 'deleted'));
+    entity('User', () => {
+        primaryKey('id', integer());
+        field('authId', string());
+        field('email', string());
+        field('isBot', boolean());
+        field('invitedBy', optional(integer()));
+        field('botOwner', optional(integer()));
+        field('isSuperBot', optional(boolean()));
+        field('status', enumString('pending', 'activated', 'suspended', 'deleted'));
 
-    //     uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
-    //     uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
-    //     rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
-    //     rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
-    // });
+        uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
+        uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
+        rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
+        rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
+    });
+
+    entity('UserProfilePrefil', () => {
+        primaryKey('id', integer());
+        field('firstName', optional(string()));
+        field('lastName', optional(string()));
+        field('picture', optional(string()));
+    });
 
     //
     // Presence

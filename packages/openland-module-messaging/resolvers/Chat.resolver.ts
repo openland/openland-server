@@ -15,7 +15,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
+import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization } from 'openland-module-db/schema';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -24,6 +24,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 import { createLogger } from '@openland/log';
+import { User } from 'openland-module-db/store';
 
 const logger = createLogger('chat');
 
@@ -134,7 +135,7 @@ export default {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            return FDB.User.findById(ctx, uid);
+            return Store.User.findById(ctx, uid);
         },
         blocked: async (src: Conversation, _: any, ctx: AppContext) => false,
         settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!!, src.id),
@@ -183,7 +184,7 @@ export default {
         },
         members: async (src: Conversation, args: {}, ctx: AppContext) => {
             let res = await FDB.RoomParticipant.allFromActive(ctx, src.id);
-            return Promise.all(res.map((v) => FDB.User.findById(ctx, v.uid)));
+            return Promise.all(res.map((v) => Store.User.findById(ctx, v.uid)));
         },
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
@@ -216,7 +217,7 @@ export default {
     },
 
     MessageReaction: {
-        user: (src: any, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.userId),
+        user: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.userId),
         reaction: (src: any) => src.reaction
     },
     UrlAugmentationExtra: {
@@ -283,7 +284,7 @@ export default {
             }
         },
         filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, ctx: AppContext) => FDB.User.findById(ctx, src.uid),
+        sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
         date: (src: Message) => src.createdAt,
         repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
         isService: (src: Message) => src.isService,
@@ -310,7 +311,7 @@ export default {
             // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
         plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
+        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => Store.User.findById(ctx, id)) : null,
         alphaAttachments: async (src: Message) => {
             let attachments: any[] = [];
 
@@ -337,11 +338,11 @@ export default {
     InviteServiceMetadata: {
         // users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
         users: (src: any, args: {}, ctx: AppContext) => [],
-        invitedBy: (src: any, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.invitedById)
+        invitedBy: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.invitedById)
     },
     KickServiceMetadata: {
         user: resolveUser(),
-        kickedBy: (src: any, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.kickedById)
+        kickedBy: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.kickedById)
     },
     PostRespondServiceMetadata: {
         post: (src: any, _, ctx) => FDB.Message.findById(ctx, src.postId),
@@ -376,10 +377,9 @@ export default {
     },
     ComposeSearchResult: {
         __resolveType(obj: User | Organization) {
-            // WTF, sequelize? Why Model is undefined??
-            if (obj.entityName === 'User') {
+            if (obj instanceof User) {
                 return 'User';
-            } else if (obj.entityName === 'Organization') {
+            } else if (obj instanceof Organization) {
                 return 'Organization';
             }
             throw Error('Unknown type');
@@ -405,7 +405,7 @@ export default {
 
     GroupConversationMember: {
         role: (src: RoomParticipant) => src.role === 'owner' ? 'creator' : src.role,
-        user: (src: RoomParticipant, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.uid)
+        user: (src: RoomParticipant, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.uid)
     },
 
     ConversationSettings: {
@@ -484,7 +484,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = (await Promise.all(uids.map((v) => FDB.User.findById(ctx, v)))).filter((v) => v && v.status === 'activated');
+            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter((v) => v && v.status === 'activated');
             let restored: any[] = [];
             for (let u of uids) {
                 let existing = users.find((v) => v!.id === u);

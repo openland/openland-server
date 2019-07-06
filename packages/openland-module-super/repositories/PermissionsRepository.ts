@@ -4,6 +4,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
+import { Store } from 'openland-module-db/FDB';
 
 export class PermissionsRepository {
     private readonly entities: AllEntities;
@@ -19,7 +20,7 @@ export class PermissionsRepository {
         // User Based Permissions
         //
         if (args.uid) {
-            let user = await this.entities.User.findById(ctx, args.uid);
+            let user = await Store.User.findById(ctx, args.uid);
             if (user == null) {
                 throw new NotFoundError(ErrorText.unableToFindUser);
             }

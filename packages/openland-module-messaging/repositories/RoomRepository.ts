@@ -1,6 +1,7 @@
+import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, User, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
@@ -14,7 +15,7 @@ import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
-import { Store } from '../../openland-module-db/store';
+import { User, Store as SStore } from 'openland-module-db/store';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -36,7 +37,7 @@ export type WelcomeMessageT = {
 @injectable()
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
-    @lazyInject('Store') private readonly store!: Store;
+    @lazyInject('Store') private readonly store!: SStore;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
@@ -715,7 +716,7 @@ export class RoomRepository {
         let sender = null;
 
         if (senderId) {
-            sender = await this.entities.User.findById(ctx, senderId);
+            sender = await Store.User.findById(ctx, senderId);
 
             if (!sender) {
                 sender = null;

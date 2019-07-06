@@ -1,7 +1,7 @@
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ErrorText } from '../openland-errors/ErrorText';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { MaybePromise } from './schema/SchemaUtils';
@@ -59,7 +59,7 @@ export function withActivatedUser<T, R>(resolver: (ctx: AppContext, args: T, uid
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        let user = await FDB.User.findById(ctx, ctx.auth.uid);
+        let user = await Store.User.findById(ctx, ctx.auth.uid);
         if (!user || user.status !== 'activated') {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
@@ -84,7 +84,7 @@ export function withAny<T, R>(resolver: (ctx: AppContext, args: T) => R): (_: an
 
 export function resolveUser<T extends { userId: number }>() {
     return function (src: T, args: T, ctx: AppContext) {
-        return FDB.User.findById(ctx, src.userId);
+        return Store.User.findById(ctx, src.userId);
     };
 }
 

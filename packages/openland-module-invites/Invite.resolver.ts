@@ -6,7 +6,7 @@ import {
 } from 'openland-module-db/schema';
 import { withUser, withAny, withAccount, withActivatedUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { AuthContext } from 'openland-module-auth/AuthContext';
@@ -40,7 +40,7 @@ async function resolveOrgInvite(ctx: Context, key: string) {
         photoRef: profile.photo,
         joined: !!invite.joined,
         membersCount: membersCount,
-        creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
+        creator: invite.uid ? await Store.User.findById(ctx, invite.uid) : null,
         forEmail: invite.email,
         forName: invite.firstName,
         description: profile.about,
@@ -94,7 +94,7 @@ export default {
             if (!invite) {
                 return null;
             }
-            let inviter = await FDB.User.findById(ctx, invite.uid);
+            let inviter = await Store.User.findById(ctx, invite.uid);
             return {
                 inviter: inviter,
             };
@@ -127,7 +127,7 @@ export default {
             let appInvite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(ctx, args.key);
 
             if (appInvite) {
-                let inviter = await FDB.User.findById(ctx, appInvite.uid);
+                let inviter = await Store.User.findById(ctx, appInvite.uid);
                 return {
                     type: 'app',
                     inviter: inviter,

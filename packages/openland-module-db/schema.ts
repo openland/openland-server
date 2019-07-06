@@ -498,343 +498,6 @@ export class DelayedTaskFactory extends FEntityFactory<DelayedTask> {
         return new DelayedTask(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'DelayedTask');
     }
 }
-export interface UserProfilePrefilShape {
-    firstName?: string| null;
-    lastName?: string| null;
-    picture?: string| null;
-}
-
-export class UserProfilePrefil extends FEntity {
-    readonly entityName: 'UserProfilePrefil' = 'UserProfilePrefil';
-    get id(): number { return this._value.id; }
-    get firstName(): string | null {
-        let res = this._value.firstName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set firstName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.firstName) { return; }
-        this._value.firstName = value;
-        this.markDirty();
-    }
-    get lastName(): string | null {
-        let res = this._value.lastName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastName) { return; }
-        this._value.lastName = value;
-        this.markDirty();
-    }
-    get picture(): string | null {
-        let res = this._value.picture;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set picture(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.picture) { return; }
-        this._value.picture = value;
-        this.markDirty();
-    }
-}
-
-export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> {
-    static schema: FEntitySchema = {
-        name: 'UserProfilePrefil',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'firstName', type: 'string' },
-            { name: 'lastName', type: 'string' },
-            { name: 'picture', type: 'string' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userProfilePrefil');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate, keyValidator: UserProfilePrefilFactory.validateKey, hasLiveStreams: false };
-        return new UserProfilePrefilFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.isString('firstName', src.firstName);
-        validators.isString('lastName', src.lastName);
-        validators.isString('picture', src.picture);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('UserProfilePrefil', 'userProfilePrefil', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: UserProfilePrefilShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: UserProfilePrefilShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserProfilePrefil(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
-    }
-}
-export interface UserShape {
-    authId: string;
-    email: string;
-    isBot: boolean;
-    invitedBy?: number| null;
-    botOwner?: number| null;
-    isSuperBot?: boolean| null;
-    status: 'pending' | 'activated' | 'suspended' | 'deleted';
-}
-
-export class User extends FEntity {
-    readonly entityName: 'User' = 'User';
-    get id(): number { return this._value.id; }
-    get authId(): string {
-        return this._value.authId;
-    }
-    set authId(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.authId) { return; }
-        this._value.authId = value;
-        this.markDirty();
-    }
-    get email(): string {
-        return this._value.email;
-    }
-    set email(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.email) { return; }
-        this._value.email = value;
-        this.markDirty();
-    }
-    get isBot(): boolean {
-        return this._value.isBot;
-    }
-    set isBot(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.isBot) { return; }
-        this._value.isBot = value;
-        this.markDirty();
-    }
-    get invitedBy(): number | null {
-        let res = this._value.invitedBy;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set invitedBy(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.invitedBy) { return; }
-        this._value.invitedBy = value;
-        this.markDirty();
-    }
-    get botOwner(): number | null {
-        let res = this._value.botOwner;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set botOwner(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.botOwner) { return; }
-        this._value.botOwner = value;
-        this.markDirty();
-    }
-    get isSuperBot(): boolean | null {
-        let res = this._value.isSuperBot;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set isSuperBot(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.isSuperBot) { return; }
-        this._value.isSuperBot = value;
-        this.markDirty();
-    }
-    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' {
-        return this._value.status;
-    }
-    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
-        this._checkIsWritable();
-        if (value === this._value.status) { return; }
-        this._value.status = value;
-        this.markDirty();
-    }
-}
-
-export class UserFactory extends FEntityFactory<User> {
-    static schema: FEntitySchema = {
-        name: 'User',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'authId', type: 'string' },
-            { name: 'email', type: 'string' },
-            { name: 'isBot', type: 'boolean' },
-            { name: 'invitedBy', type: 'number' },
-            { name: 'botOwner', type: 'number' },
-            { name: 'isSuperBot', type: 'boolean' },
-            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended', 'deleted'] },
-        ],
-        indexes: [
-            { name: 'authId', type: 'unique', fields: ['authId'] },
-            { name: 'email', type: 'unique', fields: ['email'] },
-            { name: 'owner', type: 'range', fields: ['botOwner', 'id'] },
-            { name: 'superBots', type: 'range', fields: [] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('user');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, keyValidator: UserFactory.validateKey, hasLiveStreams: false };
-        let indexAuthId = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'authId'), 'authId', ['authId'], true, src => src.status !== 'deleted');
-        let indexEmail = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'email'), 'email', ['email'], true, src => src.status !== 'deleted');
-        let indexOwner = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'owner'), 'owner', ['botOwner', 'id'], false, src => src.botOwner);
-        let indexSuperBots = new FEntityIndex(await layer.resolveEntityIndexDirectory('user', 'superBots'), 'superBots', [], false, src => src.isBot === true && src.isSuperBot);
-        let indexes = {
-            authId: indexAuthId,
-            email: indexEmail,
-            owner: indexOwner,
-            superBots: indexSuperBots,
-        };
-        return new UserFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexAuthId: FEntityIndex;
-    readonly indexEmail: FEntityIndex;
-    readonly indexOwner: FEntityIndex;
-    readonly indexSuperBots: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('authId', src.authId);
-        validators.isString('authId', src.authId);
-        validators.notNull('email', src.email);
-        validators.isString('email', src.email);
-        validators.notNull('isBot', src.isBot);
-        validators.isBoolean('isBot', src.isBot);
-        validators.isNumber('invitedBy', src.invitedBy);
-        validators.isNumber('botOwner', src.botOwner);
-        validators.isBoolean('isSuperBot', src.isSuperBot);
-        validators.notNull('status', src.status);
-        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { authId: FEntityIndex, email: FEntityIndex, owner: FEntityIndex, superBots: FEntityIndex }) {
-        super('User', 'user', config, [indexes.authId, indexes.email, indexes.owner, indexes.superBots], layer, directory);
-        this.indexAuthId = indexes.authId;
-        this.indexEmail = indexes.email;
-        this.indexOwner = indexes.owner;
-        this.indexSuperBots = indexes.superBots;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: UserShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: UserShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async findFromAuthId(ctx: Context, authId: string) {
-        return await this._findFromIndex(ctx, this.indexAuthId.directory, [authId]);
-    }
-    async rangeFromAuthId(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexAuthId.directory, [], limit, reversed);
-    }
-    async rangeFromAuthIdWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexAuthId.directory, [], limit, after, reversed);
-    }
-    async allFromAuthId(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexAuthId.directory, []);
-    }
-    createAuthIdStream(limit: number, after?: string) {
-        return this._createStream(this.indexAuthId.directory, [], limit, after); 
-    }
-    async findFromEmail(ctx: Context, email: string) {
-        return await this._findFromIndex(ctx, this.indexEmail.directory, [email]);
-    }
-    async rangeFromEmail(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexEmail.directory, [], limit, reversed);
-    }
-    async rangeFromEmailWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexEmail.directory, [], limit, after, reversed);
-    }
-    async allFromEmail(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexEmail.directory, []);
-    }
-    createEmailStream(limit: number, after?: string) {
-        return this._createStream(this.indexEmail.directory, [], limit, after); 
-    }
-    async allFromOwnerAfter(ctx: Context, botOwner: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexOwner.directory, [botOwner], after);
-    }
-    async rangeFromOwnerAfter(ctx: Context, botOwner: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexOwner.directory, [botOwner], after, limit, reversed);
-    }
-    async rangeFromOwner(ctx: Context, botOwner: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexOwner.directory, [botOwner], limit, reversed);
-    }
-    async rangeFromOwnerWithCursor(ctx: Context, botOwner: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexOwner.directory, [botOwner], limit, after, reversed);
-    }
-    async allFromOwner(ctx: Context, botOwner: number) {
-        return await this._findAll(ctx, this.indexOwner.directory, [botOwner]);
-    }
-    createOwnerStream(botOwner: number, limit: number, after?: string) {
-        return this._createStream(this.indexOwner.directory, [botOwner], limit, after); 
-    }
-    async rangeFromSuperBots(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexSuperBots.directory, [], limit, reversed);
-    }
-    async rangeFromSuperBotsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexSuperBots.directory, [], limit, after, reversed);
-    }
-    async allFromSuperBots(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexSuperBots.directory, []);
-    }
-    createSuperBotsStream(limit: number, after?: string) {
-        return this._createStream(this.indexSuperBots.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new User(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
-    }
-}
 export interface UserProfileShape {
     firstName: string;
     lastName?: string| null;
@@ -10311,8 +9974,6 @@ export interface AllEntities {
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
-    readonly UserProfilePrefil: UserProfilePrefilFactory;
-    readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly Organization: OrganizationFactory;
@@ -10385,8 +10046,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
         TaskFactory.schema,
         DelayedTaskFactory.schema,
-        UserProfilePrefilFactory.schema,
-        UserFactory.schema,
         UserProfileFactory.schema,
         UserIndexingQueueFactory.schema,
         OrganizationFactory.schema,
@@ -10460,8 +10119,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let allEntities: FEntityFactory<FEntity>[] = [];
         let TaskPromise = TaskFactory.create(layer);
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
-        let UserProfilePrefilPromise = UserProfilePrefilFactory.create(layer);
-        let UserPromise = UserFactory.create(layer);
         let UserProfilePromise = UserProfileFactory.create(layer);
         let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
         let OrganizationPromise = OrganizationFactory.create(layer);
@@ -10533,8 +10190,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
-        allEntities.push(await UserProfilePrefilPromise);
-        allEntities.push(await UserPromise);
         allEntities.push(await UserProfilePromise);
         allEntities.push(await UserIndexingQueuePromise);
         allEntities.push(await OrganizationPromise);
@@ -10606,8 +10261,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             layer, allEntities,
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
-            UserProfilePrefil: await UserProfilePrefilPromise,
-            User: await UserPromise,
             UserProfile: await UserProfilePromise,
             UserIndexingQueue: await UserIndexingQueuePromise,
             Organization: await OrganizationPromise,
@@ -10686,8 +10339,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
-    readonly UserProfilePrefil: UserProfilePrefilFactory;
-    readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly Organization: OrganizationFactory;
@@ -10762,10 +10413,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.Task);
         this.DelayedTask = entities.DelayedTask;
         this.allEntities.push(this.DelayedTask);
-        this.UserProfilePrefil = entities.UserProfilePrefil;
-        this.allEntities.push(this.UserProfilePrefil);
-        this.User = entities.User;
-        this.allEntities.push(this.User);
         this.UserProfile = entities.UserProfile;
         this.allEntities.push(this.UserProfile);
         this.UserIndexingQueue = entities.UserIndexingQueue;

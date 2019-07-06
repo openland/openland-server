@@ -112,7 +112,7 @@ export class HooksModule {
             return;
         }
 
-        let user = await FDB.User.findById(ctx, uid);
+        let user = await Store.User.findById(ctx, uid);
         if (!user) {
             return;
         }
@@ -161,7 +161,7 @@ export class HooksModule {
         await Modules.Metrics.onUserActivated(ctx, uid);
         Modules.Stats.onNewEntrance(ctx);
 
-        const user = await FDB.User.findById(ctx, uid);
+        const user = await Store.User.findById(ctx, uid);
         if (user!.invitedBy) {
             Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
             await Modules.Stats.onSuccessfulInvite(ctx, uid, user!.invitedBy);

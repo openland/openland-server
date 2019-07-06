@@ -1,12 +1,13 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withAccount } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
-import { FDB } from '../openland-module-db/FDB';
-import { Conversation, Message, Organization, User } from '../openland-module-db/schema';
+import { FDB, Store } from '../openland-module-db/FDB';
+import { Conversation, Message, Organization } from '../openland-module-db/schema';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { User } from 'openland-module-db/store';
 
 const log = createLogger('search-resolver');
 
@@ -140,7 +141,7 @@ export default {
 
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
-                    return FDB.User.findById(ctx, parseInt(hit._id, 10));
+                    return Store.User.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'organization') {
                     return FDB.Organization.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'dialog' || hit._type === 'room') {

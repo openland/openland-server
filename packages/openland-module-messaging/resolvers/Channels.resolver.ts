@@ -80,11 +80,11 @@ export default {
     ChannelMember: {
         role: (src) => src.role,
         status: (src) => src.status === 'joined' ? 'member' : 'left',
-        user: (src, args, ctx) => FDB.User.findById(ctx, src.uid)
+        user: (src, args, ctx) => Store.User.findById(ctx, src.uid)
     },
     ChannelInvite: {
         channel: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
-        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
+        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.creatorId)
     },
 
     Mutation: {

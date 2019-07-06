@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import express from 'express';
 import { randomNumbersString } from '../../openland-utils/random';
@@ -7,7 +8,6 @@ import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
 import { AuthCodeSession } from 'openland-module-db/schema';
 import { calculateBase64len } from '../../openland-utils/base64';
-import { FDB } from 'openland-module-db/FDB';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
 import { createNamedContext } from '@openland/context';
 
@@ -127,7 +127,7 @@ export async function sendCode(req: express.Request, response: express.Response)
             let isTest = isTestEmail(email);
 
             if (!isTest) {
-                let existing = (await FDB.User.findAll(ctx))
+                let existing = (await Store.User.findAll(ctx))
                     .find((v) => v.email === email || v.authId === 'email|' + email as any);
 
                 await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
@@ -250,7 +250,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.email) {
-            let existing = await FDB.User.findFromEmail(ctx, authSession.email.toLowerCase());
+            let existing = await Store.User.email.find(ctx, authSession.email.toLowerCase());
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });

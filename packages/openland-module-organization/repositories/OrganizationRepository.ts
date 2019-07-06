@@ -10,7 +10,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 
 @injectable()
 export class OrganizationRepository {
@@ -257,7 +257,7 @@ export class OrganizationRepository {
 
     async findOrganizationMembers(ctx: Context, oid: number) {
         return (await Promise.all((await this.findOrganizationMembership(ctx, oid))
-            .map((v) => this.entities.User.findById(ctx, v.uid))))
+            .map((v) => Store.User.findById(ctx, v.uid))))
             .map((v) => v!);
     }
 

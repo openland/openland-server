@@ -1,4 +1,4 @@
-import { User, UserBadge, UserProfile } from 'openland-module-db/schema';
+import { UserBadge, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { FDB, Store } from 'openland-module-db/FDB';
@@ -7,6 +7,7 @@ import { withAny, withUser as withUserResolver } from 'openland-module-api/Resol
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { User } from 'openland-module-db/store';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -21,7 +22,7 @@ export class UserFullRoot {
 }
 
 export async function userRootFull(ctx: AppContext, uid: number) {
-    let user = (await (FDB.User.findById(ctx, uid)))!;
+    let user = (await (Store.User.findById(ctx, uid)))!;
     let profile = (await (FDB.UserProfile.findById(ctx, uid)))!;
 
     return new UserFullRoot(user, profile);
@@ -30,14 +31,14 @@ export async function userRootFull(ctx: AppContext, uid: number) {
 export function withUser(handler: (ctx: AppContext, user: User) => any) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let user = (await (FDB.User.findById(ctx, src)))!;
+            let user = (await (Store.User.findById(ctx, src)))!;
             return handler(ctx, user);
         } else if (src instanceof UserFullRoot) {
             return handler(ctx, src.user);
-        } else if (src.entityName === 'User') {
+        } else if (src instanceof User) {
             return handler(ctx, src);
         } else {
-            let user = (await (FDB.User.findById(ctx, src.id)))!;
+            let user = (await (Store.User.findById(ctx, src.id)))!;
             return handler(ctx, user);
         }
     };
@@ -47,16 +48,16 @@ export function withProfile(handler: (ctx: AppContext, user: User, profile: User
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
 
         if (typeof src === 'number') {
-            let user = (await (FDB.User.findById(ctx, src)))!;
+            let user = (await (Store.User.findById(ctx, src)))!;
             let profile = (await (FDB.UserProfile.findById(ctx, src)))!;
             return handler(ctx, user, profile);
         } else if (src instanceof UserFullRoot) {
             return handler(ctx, src.user, src.profile);
-        } else if (src.entityName === 'User') {
+        } else if (src instanceof User) {
             let profile = (await (FDB.UserProfile.findById(ctx, src.id)))!;
             return handler(ctx, src, profile);
         } else {
-            let user = (await (FDB.User.findById(ctx, src.id)))!;
+            let user = (await (Store.User.findById(ctx, src.id)))!;
             return handler(ctx, user, src);
         }
 
@@ -142,9 +143,9 @@ export default {
             let user: User | null;
 
             if (shortname && shortname.enabled && shortname.ownerType === 'user') {
-                user = await FDB.User.findById(ctx, shortname.ownerId);
+                user = await Store.User.findById(ctx, shortname.ownerId);
             } else {
-                user = await FDB.User.findById(ctx, IDs.User.parse(args.id));
+                user = await Store.User.findById(ctx, IDs.User.parse(args.id));
             }
             if (user && user.status === 'deleted') {
                 throw new NotFoundError();

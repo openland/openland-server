@@ -62,11 +62,11 @@ export class AppsRepository {
 
     async findAppsCreatedByUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let apps = await this.entities.User.allFromOwner(ctx, uid);
+            let apps = await Store.User.owner.findAll(ctx, uid);
 
             let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
             if (isSuperAdmin) {
-                apps = [...apps, ...(await this.entities.User.allFromSuperBots(ctx)).filter(bot => bot.botOwner !== uid)];
+                apps = [...apps, ...(await Store.User.superBots.findAll(ctx)).filter(bot => bot.botOwner !== uid)];
             }
             return apps.filter(app => app.status !== 'deleted');
         });
@@ -105,7 +105,7 @@ export class AppsRepository {
                 return true;
             }
 
-            let appUser = await this.entities.User.findById(ctx, appId);
+            let appUser = await Store.User.findById(ctx, appId);
 
             return appUser && appUser.botOwner === uid;
         });
@@ -114,7 +114,7 @@ export class AppsRepository {
     async deleteApp(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
             await this.checkAppAccess(ctx, uid, appId);
-            let appUser = await this.entities.User.findById(ctx, appId);
+            let appUser = await Store.User.findById(ctx, appId);
             appUser!.status = 'deleted';
             await appUser!.flush(ctx);
             await Modules.Users.markForUndexing(ctx, appUser!.id);
@@ -184,7 +184,7 @@ export class AppsRepository {
 
     private async canCreateApp(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let user = await this.entities.User.findById(ctx, uid);
+            let user = await Store.User.findById(ctx, uid);
 
             if (!user || user.status !== 'activated') {
                 return false;

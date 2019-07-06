@@ -1,6 +1,6 @@
+import { Store } from './../openland-module-db/FDB';
 import { UserSettings } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB } from 'openland-module-db/FDB';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
@@ -36,7 +36,7 @@ export default {
     },
     Settings: {
         id: src => IDs.Settings.serialize(src.id),
-        primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await FDB.User.findById(ctx, src.id))!!.email,
+        primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!!.email,
         emailFrequency: src => src.emailFrequency as any,
         desktopNotifications: src => src.desktopNotifications as any,
         mobileNotifications: src => src.mobileNotifications as any,

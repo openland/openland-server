@@ -44,7 +44,7 @@ const createDebugEvent = async (parent: Context, uid: number, key: string) => {
 };
 
 export async function fetchAllUids(ctx: Context) {
-    let allUsers = await FDB.User.findAllKeys(ctx);
+    let allUsers = await Store.User.findAllKeys(ctx);
     let allUids: number[] = [];
     for (let key of allUsers) {
         key.splice(0, 2);
@@ -220,7 +220,7 @@ export default {
             let uid = ctx.auth.uid!;
             let oid = ctx.auth.oid!;
             let type = args.type;
-            let user = await FDB.User.findById(ctx, uid);
+            let user = await Store.User.findById(ctx, uid);
             let email = user!.email!;
             let isProd = process.env.APP_ENVIRONMENT === 'production';
 
@@ -297,7 +297,7 @@ export default {
         debugCreateTestUser: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let id = await Modules.Users.createTestUser(ctx, args.key, args.name);
-                return await FDB.User.findById(ctx, id);
+                return await Store.User.findById(ctx, id);
             });
         }),
         debugDeleteUrlInfoCache: withPermission('super-admin', async (ctx, args) => {
@@ -365,7 +365,7 @@ export default {
                     return { totalSent, totalReceived, totalSentDirect };
                 };
 
-                let users = await FDB.User.findAll(parent);
+                let users = await Store.User.findAll(parent);
 
                 let i = 0;
                 for (let user of users) {
@@ -552,7 +552,7 @@ export default {
         }),
         debugRemoveDeletedDialogs: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugRemoveDeletedDialogs', async (log) => {
-                let users = await FDB.User.findAll(rootCtx);
+                let users = await Store.User.findAll(rootCtx);
                 let i = 0;
                 for (let user of users) {
                     try {
@@ -727,7 +727,7 @@ export default {
         }),
         debugCalcUsersAudienceCounter: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcUsersAudienceCounter', async (log) => {
-                let allUsers = await FDB.User.findAll(rootCtx);
+                let allUsers = await Store.User.findAll(rootCtx);
                 let i = 0;
 
                 const calculateForUser = async (ctx: Context, uid: number) => {
@@ -767,7 +767,7 @@ export default {
             return true;
         }),
         debugCalcUsers2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
-            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
                 let all = await FDB.UserDialog.allFromUser(ctx, uid);
                 let direct2wayChatsCount = 0;
 
@@ -801,7 +801,7 @@ export default {
             return true;
         }),
         debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
-            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
                 let all = await FDB.UserDialog.allFromUser(ctx, uid);
                 let chatsCount = 0;
                 let directChatsCount = 0;
@@ -847,7 +847,7 @@ export default {
             return true;
         }),
         debugEnableNotificationCenterForAll: withPermission('super-admin', async (parent, args) => {
-            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugEnableNotificationCenterForAll', async (ctx, uid, log) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugEnableNotificationCenterForAll', async (ctx, uid, log) => {
                 let settings = await FDB.UserSettings.findById(ctx, uid);
                 if (!settings) {
                     return;
@@ -871,7 +871,7 @@ export default {
             return true;
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
-            debugTaskForAll(FDB.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 let dialogs = await FDB.UserDialog.allFromUser(ctx, uid);
                 for (let strategy of CounterStrategies) {
                     strategy.counter().set(ctx, uid, 0);

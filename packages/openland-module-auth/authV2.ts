@@ -1,3 +1,4 @@
+import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import fetch from 'node-fetch';
 import jwt from 'express-jwt';
@@ -5,7 +6,6 @@ import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
 import { Profile } from './utils/Profile';
 import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
-import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -93,10 +93,10 @@ export const Authenticator = async function (req: express.Request, response: exp
             let userKey = req.user.sub;
 
             // Account
-            let user = await FDB.User.findFromEmail(ctx, profile.email.toLowerCase());
+            let user = await Store.User.email.find(ctx, profile.email.toLowerCase());
             if (!user) {
                 user = await Modules.Users.createUser(ctx, userKey, profile.email);
-                await Modules.Hooks.onSignUp(ctx, user.id);
+                await Modules.Hooks.onSignUp(ctx, user!.id);
             }
 
             // Prefill

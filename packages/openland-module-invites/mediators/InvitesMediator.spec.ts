@@ -16,6 +16,7 @@ import { InvitesOrganizationRepository } from 'openland-module-invites/repositor
 import { Modules } from 'openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
+import { Store } from 'openland-module-db/FDB';
 
 describe('InvitesMediator', () => {
 
@@ -64,7 +65,7 @@ describe('InvitesMediator', () => {
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER2_ID))!;
+        let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
@@ -87,7 +88,7 @@ describe('InvitesMediator', () => {
         await mediator.joinAppInvite(ctx, USER_ID, invite, true);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER_ID))!;
+        let user = (await Store.User.findById(ctx, USER_ID))!;
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
@@ -117,7 +118,7 @@ describe('InvitesMediator', () => {
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER2_ID))!;
+        let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
 
         // should make org primary
@@ -147,7 +148,7 @@ describe('InvitesMediator', () => {
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await entities.User.findById(ctx, USER2_ID))!;
+        let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
 
         // should make org primary

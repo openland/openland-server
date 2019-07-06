@@ -109,31 +109,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('UserProfilePrefil', () => {
-        primaryKey('id', 'number');
-        field('firstName', 'string').nullable();
-        field('lastName', 'string').nullable();
-        field('picture', 'string').nullable();
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('User', () => {
-        primaryKey('id', 'number');
-        field('authId', 'string');
-        field('email', 'string');
-        field('isBot', 'boolean');
-        field('invitedBy', 'number').nullable();
-        field('botOwner', 'number').nullable();
-        field('isSuperBot', 'boolean').nullable();
-        enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
-
-        uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
-        uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
-        rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
-        rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
-    });
-
     entity('UserProfile', () => {
         primaryKey('id', 'number');
         field('firstName', 'string');

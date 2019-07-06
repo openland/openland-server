@@ -71,7 +71,7 @@ export class FixerRepository {
 
     async fixForAllUsers(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let users = await this.entities.User.findAll(ctx);
+            let users = await this.store.User.findAll(ctx);
 
             for (let user of users) {
                 await this.fixForUser(ctx, user.id);

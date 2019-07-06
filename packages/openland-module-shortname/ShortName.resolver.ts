@@ -2,12 +2,13 @@ import { withAccount } from '../openland-module-api/Resolvers';
 import { UserError } from '../openland-errors/UserError';
 import { ErrorText } from '../openland-errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
-import { Organization, User } from '../openland-module-db/schema';
+import { Organization } from '../openland-module-db/schema';
 import { withUser } from '../openland-module-users/User.resolver';
 import { AppContext } from '../openland-modules/AppContext';
+import { User } from 'openland-module-db/store';
 
 export default {
     ShortNameDestination: {
@@ -31,7 +32,7 @@ export default {
             }
 
             if (shortname.ownerType === 'user') {
-                return await FDB.User.findById(ctx, shortname.ownerId);
+                return await Store.User.findById(ctx, shortname.ownerId);
             } else if (shortname.ownerType === 'org') {
                 return await FDB.Organization.findById(ctx, shortname.ownerId);
             }

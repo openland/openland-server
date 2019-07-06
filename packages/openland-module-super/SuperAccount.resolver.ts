@@ -1,7 +1,7 @@
 import { withPermission } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { Organization } from 'openland-module-db/schema';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { UserError } from 'openland-errors/UserError';
 import { AppContext } from 'openland-modules/AppContext';
@@ -24,7 +24,7 @@ export default {
         features: async (src: Organization, args: {}, ctx: AppContext) => (await Modules.Features.repo.findOrganizationFeatureFlags(ctx, src.id)).filter(f => !!f),
         alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationEditorial.findById(ctx, src.id))!.listed,
         createdAt: (src: Organization) => src.createdAt + '',
-        createdBy: async (src: Organization, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.ownerId),
+        createdBy: async (src: Organization, args: {}, ctx: AppContext) => await Store.User.findById(ctx, src.ownerId),
     },
     Query: {
         superAccounts: withPermission('super-admin', (ctx) => {

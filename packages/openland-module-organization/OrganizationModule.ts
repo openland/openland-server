@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { OrganizationRepository } from './repositories/OrganizationRepository';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
@@ -32,7 +32,7 @@ export class OrganizationModule {
 
             // 1. Resolve user status
             let status: 'activated' | 'pending' = 'pending';
-            let user = await Modules.DB.entities.User.findById(ctx, uid);
+            let user = await Store.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }
@@ -106,7 +106,7 @@ export class OrganizationModule {
         return await inTx(parent, async (ctx) => {
 
             // Check user state
-            let user = await Modules.DB.entities.User.findById(ctx, uid);
+            let user = await Store.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }

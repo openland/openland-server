@@ -11,7 +11,7 @@ import { buildSchema } from '../openland-graphql/buildSchema';
 import { Schema } from './schema/Schema';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from './CacheContext';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { withLogMeta, createLogger } from '@openland/log';
@@ -39,7 +39,7 @@ export class ApiModule {
     }
 
     createClientForUser = async (email: string) => {
-        let uid = (await FDB.User.findAll(defaultCtx)).find((v) => v.email === email)!.id;
+        let uid = (await Store.User.findAll(defaultCtx)).find((v) => v.email === email)!.id;
         let tid = (await Store.AuthToken.findAll(defaultCtx)).find((v) => v.uid === uid)!.uuid;
         return this.createClient({ uid, tid });
     }

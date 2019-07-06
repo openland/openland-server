@@ -7,7 +7,7 @@ import { OrganizationRepository } from './repositories/OrganizationRepository';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { Context, createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../openland-module-users/UsersModule.container';
 // console.log('imported in ' + (Date.now() - start) + ' ms');
@@ -117,11 +117,11 @@ describe('OrganizationModule', () => {
         await Modules.Orgs.activateOrganization(ctx, org.id, true);
 
         // Check users status
-        let user4 = (await FDB.User.findById(ctx, user.id))!;
+        let user4 = (await Store.User.findById(ctx, user.id))!;
         let user4p = (await FDB.UserProfile.findById(ctx, user.id))!;
         expect(user4.status).toEqual('activated');
         expect(user4p.primaryOrganization).toEqual(org.id);
-        let user5 = (await FDB.User.findById(ctx, user2.id))!;
+        let user5 = (await Store.User.findById(ctx, user2.id))!;
         let user5p = (await FDB.UserProfile.findById(ctx, user2.id))!;
         expect(user5.status).toEqual('activated');
         expect(user5p.primaryOrganization).toEqual(org.id);
@@ -154,7 +154,7 @@ describe('OrganizationModule', () => {
         let user = await Modules.Users.createUser(ctx, 'test5', 'some5@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         await Modules.Users.activateUser(ctx, user.id, true);
-        user = (await FDB.User.findById(ctx, user.id))!;
+        user = (await Store.User.findById(ctx, user.id))!;
         expect(user.status).toEqual('activated');
 
         // Create organization
@@ -167,7 +167,7 @@ describe('OrganizationModule', () => {
         expect(org2.status).toEqual('suspended');
 
         // Check user status
-        let user4 = (await FDB.User.findById(ctx, user.id))!;
+        let user4 = (await Store.User.findById(ctx, user.id))!;
         expect(user4.status).toEqual('activated');
     });
 
@@ -178,7 +178,7 @@ describe('OrganizationModule', () => {
         let user = await Modules.Users.createUser(ctx, 'test6', 'some6@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         await Modules.Users.activateUser(ctx, user.id, true);
-        user = (await FDB.User.findById(ctx, user.id))!;
+        user = (await Store.User.findById(ctx, user.id))!;
         expect(user.status).toEqual('activated');
         let org = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         expect(org.status).toEqual('activated');
@@ -187,7 +187,7 @@ describe('OrganizationModule', () => {
         let user2 = await Modules.Users.createUser(ctx, 'test7', 'some7@email.com');
         await Modules.Users.createUserProfile(ctx, user2.id, { firstName: 'Some Name' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user.id);
-        user2 = (await FDB.User.findById(ctx, user2.id))!;
+        user2 = (await Store.User.findById(ctx, user2.id))!;
         let user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
         expect(user2.status).toEqual('activated');
         expect(user2p.primaryOrganization).toEqual(org.id);

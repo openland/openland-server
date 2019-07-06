@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
@@ -31,9 +31,9 @@ export default {
         alphaTwitter: (src: UserProfile) => src.twitter,
         alphaJoinedAt: (src: UserProfile) => src.createdAt + '',
         alphaInvitedBy: async (src: UserProfile, args: {}, ctx: AppContext) => {
-            let user = await FDB.User.findById(ctx, src.id);
+            let user = await Store.User.findById(ctx, src.id);
             if (user && user.invitedBy) {
-                return await FDB.User.findById(ctx, user.invitedBy);
+                return await Store.User.findById(ctx, user.invitedBy);
             }
             return null;
         },
@@ -59,7 +59,7 @@ export default {
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await FDB.User.findById(ctx, uid);
+                let user = await Store.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }
@@ -145,7 +145,7 @@ export default {
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await FDB.User.findById(ctx, uid);
+                let user = await Store.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }

@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
@@ -64,7 +64,7 @@ export function userProfileIndexer() {
                 searchData.push(profile.email);
 
                 let invitedByName: string | undefined;
-                let user = await FDB.User.findById(ctx, item.id);
+                let user = await Store.User.findById(ctx, item.id);
                 if (user && user.invitedBy) {
                     let inviter = await FDB.UserProfile.findById(ctx, user.invitedBy);
                     if (inviter) {

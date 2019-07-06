@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
@@ -26,7 +26,7 @@ export default {
             }
 
             // User unknown?! Just softly ignore errors
-            let res = await FDB.User.findById(ctx, auth.uid);
+            let res = await Store.User.findById(ctx, auth.uid);
             if (res === null) {
                 return {
                     isLoggedIn: false,

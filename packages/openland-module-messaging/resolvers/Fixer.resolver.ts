@@ -2,7 +2,7 @@ import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { debugTask } from '../../openland-utils/debugTask';
 
 export default {
@@ -12,7 +12,7 @@ export default {
         }),
         betaFixCountersForAll: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'fix-counters-for-all', async (log) => {
-                let users = await FDB.User.findAll(ctx);
+                let users = await Store.User.findAll(ctx);
                 let i = 0;
                 for (let user of users) {
                     try {

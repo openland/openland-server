@@ -686,6 +686,293 @@ export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicInteg
     }
 }
 
+export interface UserShape {
+    id: number;
+    authId: string;
+    email: string;
+    isBot: boolean;
+    invitedBy: number | null;
+    botOwner: number | null;
+    isSuperBot: boolean | null;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+}
+
+export interface UserCreateShape {
+    authId: string;
+    email: string;
+    isBot: boolean;
+    invitedBy: number | null;
+    botOwner: number | null;
+    isSuperBot: boolean | null;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+}
+
+export class User extends Entity<UserShape> {
+    get id(): number { return this._rawValue.id; }
+    get authId(): string { return this._rawValue.authId; }
+    set authId(value: string) {
+        let normalized = this.descriptor.codec.fields.authId.normalize(value);
+        if (this._rawValue.authId !== normalized) {
+            this._rawValue.authId = normalized;
+            this._updatedValues.authId = normalized;
+            this.invalidate();
+        }
+    }
+    get email(): string { return this._rawValue.email; }
+    set email(value: string) {
+        let normalized = this.descriptor.codec.fields.email.normalize(value);
+        if (this._rawValue.email !== normalized) {
+            this._rawValue.email = normalized;
+            this._updatedValues.email = normalized;
+            this.invalidate();
+        }
+    }
+    get isBot(): boolean { return this._rawValue.isBot; }
+    set isBot(value: boolean) {
+        let normalized = this.descriptor.codec.fields.isBot.normalize(value);
+        if (this._rawValue.isBot !== normalized) {
+            this._rawValue.isBot = normalized;
+            this._updatedValues.isBot = normalized;
+            this.invalidate();
+        }
+    }
+    get invitedBy(): number | null { return this._rawValue.invitedBy; }
+    set invitedBy(value: number | null) {
+        let normalized = this.descriptor.codec.fields.invitedBy.normalize(value);
+        if (this._rawValue.invitedBy !== normalized) {
+            this._rawValue.invitedBy = normalized;
+            this._updatedValues.invitedBy = normalized;
+            this.invalidate();
+        }
+    }
+    get botOwner(): number | null { return this._rawValue.botOwner; }
+    set botOwner(value: number | null) {
+        let normalized = this.descriptor.codec.fields.botOwner.normalize(value);
+        if (this._rawValue.botOwner !== normalized) {
+            this._rawValue.botOwner = normalized;
+            this._updatedValues.botOwner = normalized;
+            this.invalidate();
+        }
+    }
+    get isSuperBot(): boolean | null { return this._rawValue.isSuperBot; }
+    set isSuperBot(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isSuperBot.normalize(value);
+        if (this._rawValue.isSuperBot !== normalized) {
+            this._rawValue.isSuperBot = normalized;
+            this._updatedValues.isSuperBot = normalized;
+            this.invalidate();
+        }
+    }
+    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' { return this._rawValue.status; }
+    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserFactory extends EntityFactory<UserShape, User> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('user');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'authId', storageKey: 'authId', type: { type: 'unique', fields: [{ name: 'authId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'authId'), condition: src => src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'email'), condition: src => src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'owner'), condition: src => src.botOwner });
+        secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'authId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'email', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'isBot', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'invitedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'botOwner', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'isSuperBot', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'activated', 'suspended', 'deleted'] }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            authId: c.string,
+            email: c.string,
+            isBot: c.boolean,
+            invitedBy: c.optional(c.integer),
+            botOwner: c.optional(c.integer),
+            isSuperBot: c.optional(c.boolean),
+            status: c.enum('pending', 'activated', 'suspended', 'deleted'),
+        });
+        let descriptor: EntityDescriptor<UserShape> = {
+            name: 'User',
+            storageKey: 'user',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserShape>) {
+        super(descriptor);
+    }
+
+    readonly authId = Object.freeze({
+        find: async (ctx: Context, authId: string) => {
+            return this._findFromUniqueIndex(ctx, [authId], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+    });
+
+    readonly email = Object.freeze({
+        find: async (ctx: Context, email: string) => {
+            return this._findFromUniqueIndex(ctx, [email], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+    });
+
+    readonly owner = Object.freeze({
+        findAll: async (ctx: Context, botOwner: number | null) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner])).items;
+        },
+        query: (ctx: Context, botOwner: number | null, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (botOwner: number | null, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [botOwner], opts);
+        },
+        liveStream: (ctx: Context, botOwner: number | null, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [botOwner], opts);
+        },
+    });
+
+    readonly superBots = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: UserCreateShape): Promise<User> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<User | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserShape>): User {
+        return new User([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserProfilePrefilShape {
+    id: number;
+    firstName: string | null;
+    lastName: string | null;
+    picture: string | null;
+}
+
+export interface UserProfilePrefilCreateShape {
+    firstName: string | null;
+    lastName: string | null;
+    picture: string | null;
+}
+
+export class UserProfilePrefil extends Entity<UserProfilePrefilShape> {
+    get id(): number { return this._rawValue.id; }
+    get firstName(): string | null { return this._rawValue.firstName; }
+    set firstName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.firstName.normalize(value);
+        if (this._rawValue.firstName !== normalized) {
+            this._rawValue.firstName = normalized;
+            this._updatedValues.firstName = normalized;
+            this.invalidate();
+        }
+    }
+    get lastName(): string | null { return this._rawValue.lastName; }
+    set lastName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastName.normalize(value);
+        if (this._rawValue.lastName !== normalized) {
+            this._rawValue.lastName = normalized;
+            this._updatedValues.lastName = normalized;
+            this.invalidate();
+        }
+    }
+    get picture(): string | null { return this._rawValue.picture; }
+    set picture(value: string | null) {
+        let normalized = this.descriptor.codec.fields.picture.normalize(value);
+        if (this._rawValue.picture !== normalized) {
+            this._rawValue.picture = normalized;
+            this._updatedValues.picture = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilShape, UserProfilePrefil> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userProfilePrefil');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'firstName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'lastName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            firstName: c.optional(c.string),
+            lastName: c.optional(c.string),
+            picture: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<UserProfilePrefilShape> = {
+            name: 'UserProfilePrefil',
+            storageKey: 'userProfilePrefil',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserProfilePrefilFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserProfilePrefilShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: UserProfilePrefilCreateShape): Promise<UserProfilePrefil> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<UserProfilePrefil | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserProfilePrefilShape>): UserProfilePrefil {
+        return new UserProfilePrefil([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface OnlineShape {
     uid: number;
     lastSeen: number;
@@ -2308,6 +2595,8 @@ export interface Store extends BaseStore {
     readonly UserGlobalCounterUnreadMessagesWithoutMuted: UserGlobalCounterUnreadMessagesWithoutMutedFactory;
     readonly UserGlobalCounterAllUnreadChats: UserGlobalCounterAllUnreadChatsFactory;
     readonly UserGlobalCounterUnreadChatsWithoutMuted: UserGlobalCounterUnreadChatsWithoutMutedFactory;
+    readonly User: UserFactory;
+    readonly UserProfilePrefil: UserProfilePrefilFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -2343,6 +2632,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserGlobalCounterUnreadMessagesWithoutMutedPromise = UserGlobalCounterUnreadMessagesWithoutMutedFactory.open(storage);
     let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(storage);
     let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(storage);
+    let UserPromise = UserFactory.open(storage);
+    let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
@@ -2377,6 +2668,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserGlobalCounterUnreadMessagesWithoutMuted: await UserGlobalCounterUnreadMessagesWithoutMutedPromise,
         UserGlobalCounterAllUnreadChats: await UserGlobalCounterAllUnreadChatsPromise,
         UserGlobalCounterUnreadChatsWithoutMuted: await UserGlobalCounterUnreadChatsWithoutMutedPromise,
+        User: await UserPromise,
+        UserProfilePrefil: await UserProfilePrefilPromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
         PushFirebase: await PushFirebasePromise,

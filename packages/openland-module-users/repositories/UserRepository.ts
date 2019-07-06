@@ -11,6 +11,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { fetchNextDBSeq } from 'openland-utils/dbSeq';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { Store } from 'openland-module-db/FDB';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
 const userActivated = createHyperlogger<{ uid: number }>('user_activated');
@@ -38,11 +39,14 @@ export class UserRepository {
             let id = ++seq.value;
             await seq.flush(ctx);
 
-            let res = (await this.entities.User.create(ctx, id, {
+            let res = (await Store.User.create(ctx, id, {
                 authId: authId,
                 email: email.toLowerCase(),
                 isBot: false,
-                status: 'pending'
+                status: 'pending',
+                invitedBy: null,
+                isSuperBot: null,
+                botOwner: null
             }));
             await res.flush(ctx);
             await userCreated.event(ctx, { uid: id });
@@ -52,7 +56,7 @@ export class UserRepository {
 
     async activateUser(parent: Context, uid: number, invitedBy: number | null = null) {
         return await inTx(parent, async (ctx) => {
-            let user = (await this.entities.User.findById(ctx, uid))!;
+            let user = (await Store.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
@@ -71,7 +75,7 @@ export class UserRepository {
 
     async suspendUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let user = (await this.entities.User.findById(ctx, uid))!;
+            let user = (await Store.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
@@ -84,7 +88,7 @@ export class UserRepository {
 
     async deleteUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let user = (await this.entities.User.findById(ctx, uid))!;
+            let user = (await Store.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
@@ -105,7 +109,7 @@ export class UserRepository {
 
     async createUserProfile(parent: Context, uid: number, input: ProfileInput) {
         return await inTx(parent, async (ctx) => {
-            let user = (await this.entities.User.findById(ctx, uid))!;
+            let user = (await Store.User.findById(ctx, uid))!;
             let existing = await this.entities.UserProfile.findById(ctx, user.id!);
             if (existing) {
                 return existing;
@@ -191,17 +195,17 @@ export class UserRepository {
      */
 
     async findProfilePrefill(ctx: Context, uid: number) {
-        return this.entities.UserProfilePrefil.findById(ctx, uid);
+        return Store.UserProfilePrefil.findById(ctx, uid);
     }
 
     async saveProfilePrefill(parent: Context, uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
         await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserProfilePrefil.findById(ctx, uid);
+            let existing = await Store.UserProfilePrefil.findById(ctx, uid);
             if (!existing) {
-                await this.entities.UserProfilePrefil.create(ctx, uid, {
-                    firstName: prefill.firstName,
-                    lastName: prefill.lastName,
-                    picture: prefill.picture
+                await Store.UserProfilePrefil.create(ctx, uid, {
+                    firstName: prefill.firstName ? prefill.firstName : null,
+                    lastName: prefill.lastName ? prefill.lastName : null,
+                    picture: prefill.picture ? prefill.picture : null
                 });
             }
         });
@@ -214,7 +218,7 @@ export class UserRepository {
         if (this.userAuthIdCache.has(authId)) {
             return this.userAuthIdCache.get(authId);
         } else {
-            const user = await this.entities.User.findFromAuthId(ctx, authId);
+            const user = await Store.User.authId.find(ctx, authId);
 
             if (user === null) {
                 return;
@@ -367,7 +371,7 @@ export class UserRepository {
             const getPrimaryBadge = async () => {
                 if (ignorePrimary !== true) {
                     let profile = await this.entities.UserProfile.findById(ctx, uid);
-        
+
                     if (profile && profile.primaryBadge) {
                         return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
                     }
