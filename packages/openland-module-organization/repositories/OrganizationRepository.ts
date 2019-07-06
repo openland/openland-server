@@ -51,35 +51,39 @@ export class OrganizationRepository {
             //     }
             //     profile.primaryOrganization = organization.id;
             // } else {
-                // Create organization
-                organization = await this.entities.Organization.create(ctx, orgId, {
-                    kind: input.isCommunity ? 'community' : 'organization',
-                    ownerId: uid,
-                    status: opts.status,
-                    editorial: opts.editorial,
-                    private: input.isCommunity && input.isPrivate,
-                    personal: input.personal
-                });
+            // Create organization
+            organization = await Store.Organization.create(ctx, orgId, {
+                kind: input.isCommunity ? 'community' : 'organization',
+                ownerId: uid,
+                status: opts.status,
+                editorial: opts.editorial,
+                private: (input.isCommunity && input.isPrivate) ? true : false,
+                personal: input.personal ? input.personal : false
+            });
 
-                // Create organization profile
-                await this.entities.OrganizationProfile.create(ctx, orgId, {
-                    name: Sanitizer.sanitizeString(input.name)!,
-                    website: Sanitizer.sanitizeString(input.website),
-                    photo: Sanitizer.sanitizeImageRef(input.photoRef),
-                    about: Sanitizer.sanitizeString(input.about)
-                });
+            // Create organization profile
+            await Store.OrganizationProfile.create(ctx, orgId, {
+                name: Sanitizer.sanitizeString(input.name)!,
+                website: Sanitizer.sanitizeString(input.website),
+                photo: Sanitizer.sanitizeImageRef(input.photoRef),
+                about: Sanitizer.sanitizeString(input.about),
+                twitter: null,
+                facebook: null,
+                linkedin: null,
+                joinedMembersCount: null
+            });
 
-                // Create editorial data
-                await this.entities.OrganizationEditorial.create(ctx, orgId, {
-                    listed: true,
-                    featured: false
-                });
+            // Create editorial data
+            await Store.OrganizationEditorial.create(ctx, orgId, {
+                listed: true,
+                featured: false
+            });
 
-                // Add owner to organization
-                await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
-                    status: 'joined', role: 'admin', invitedBy: uid
-                });
-                await this.incrementOrganizationMembersCount(ctx, organization.id);
+            // Add owner to organization
+            await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
+                status: 'joined', role: 'admin', invitedBy: uid
+            });
+            await this.incrementOrganizationMembersCount(ctx, organization.id);
             // }
 
             // Mark for indexing
@@ -91,7 +95,7 @@ export class OrganizationRepository {
 
     async activateOrganization(parent: Context, id: number) {
         return await inTx(parent, async (ctx) => {
-            let org = (await this.entities.Organization.findById(ctx, id))!;
+            let org = (await Store.Organization.findById(ctx, id))!;
             if (org.status !== 'activated' && org.status !== 'deleted') {
                 org.status = 'activated';
                 await org.flush(ctx);
@@ -103,7 +107,7 @@ export class OrganizationRepository {
 
     async suspendOrganization(parent: Context, id: number) {
         return await inTx(parent, async (ctx) => {
-            let org = (await this.entities.Organization.findById(ctx, id))!;
+            let org = (await Store.Organization.findById(ctx, id))!;
             if (org.status !== 'suspended') {
                 org.status = 'suspended';
                 await org.flush(ctx);
@@ -116,7 +120,7 @@ export class OrganizationRepository {
 
     async addUserToOrganization(parent: Context, uid: number, oid: number, by: number | null) {
         return await inTx(parent, async (ctx) => {
-            let org = await this.entities.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
@@ -137,7 +141,7 @@ export class OrganizationRepository {
 
     async removeUserFromOrganization(parent: Context, uid: number, oid: number) {
         return await inTx(parent, async (ctx) => {
-            let org = await this.entities.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
@@ -174,7 +178,7 @@ export class OrganizationRepository {
 
     async deleteOrganization(parent: Context, uid: number, oid: number) {
         return await inTx(parent, async (ctx) => {
-            let organization = await this.entities.Organization.findById(ctx, oid);
+            let organization = await Store.Organization.findById(ctx, oid);
 
             if (!organization) {
                 throw new NotFoundError();
@@ -239,7 +243,7 @@ export class OrganizationRepository {
     }
 
     async isUserOwner(ctx: Context, uid: number, oid: number): Promise<boolean> {
-        let org = await this.entities.Organization.findById(ctx, oid);
+        let org = await Store.Organization.findById(ctx, oid);
         return !!(org && org.ownerId === uid);
     }
 
@@ -262,7 +266,7 @@ export class OrganizationRepository {
     }
 
     async organizationMembersCount(ctx: Context, oid: number): Promise<number> {
-        return ((await FDB.OrganizationProfile.findById(ctx, oid))!.joinedMembersCount || 0);
+        return ((await Store.OrganizationProfile.findById(ctx, oid))!.joinedMembersCount || 0);
     }
 
     async findUserOrganizations(ctx: Context, uid: number): Promise<number[]> {
@@ -282,7 +286,7 @@ export class OrganizationRepository {
         let userOrgs = await this.findUserOrganizations(ctx, uid);
         let primaryOrganization: number | null = null;
         for (let oid of userOrgs) {
-            let org = await this.entities.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (org && org.kind === 'organization') {
                 primaryOrganization = oid;
             }
@@ -311,8 +315,8 @@ export class OrganizationRepository {
 
     async renameOrganization(parent: Context, id: number, title: string) {
         return await inTx(parent, async (ctx) => {
-            let org = await this.entities.Organization.findById(ctx, id);
-            let profile = await this.entities.OrganizationProfile.findById(ctx, id);
+            let org = await Store.Organization.findById(ctx, id);
+            let profile = await Store.OrganizationProfile.findById(ctx, id);
             profile!.name = title;
             return org;
         });
@@ -320,23 +324,23 @@ export class OrganizationRepository {
 
     private incrementOrganizationMembersCount(parent: Context, oid: number) {
         return inTx(parent, async ctx => {
-           let profile = await this.entities.OrganizationProfile.findById(ctx, oid);
-           if (!profile) {
-               throw new NotFoundError();
-           }
+            let profile = await Store.OrganizationProfile.findById(ctx, oid);
+            if (!profile) {
+                throw new NotFoundError();
+            }
 
-           if (!profile.joinedMembersCount) {
-               profile.joinedMembersCount = 1;
-           } else {
-               profile.joinedMembersCount++;
-           }
+            if (!profile.joinedMembersCount) {
+                profile.joinedMembersCount = 1;
+            } else {
+                profile.joinedMembersCount++;
+            }
             await this.markForUndexing(ctx, oid);
         });
     }
 
     private decrementOrganizationMembersCount(parent: Context, oid: number) {
         return inTx(parent, async ctx => {
-            let profile = await this.entities.OrganizationProfile.findById(ctx, oid);
+            let profile = await Store.OrganizationProfile.findById(ctx, oid);
             if (!profile) {
                 throw new NotFoundError();
             }

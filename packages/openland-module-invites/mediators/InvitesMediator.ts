@@ -12,7 +12,7 @@ import { InvitesOrganizationRepository } from 'openland-module-invites/repositor
 import { Context } from '@openland/context';
 import { Emails } from '../../openland-module-email/Emails';
 import { UserError } from '../../openland-errors/UserError';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 
 @injectable()
 export class InvitesMediator {
@@ -117,8 +117,8 @@ export class InvitesMediator {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
             let ex = await FDB.OrganizationMember.findById(ctx, invite.oid, uid);
-            let org = (await FDB.Organization.findById(ctx, invite.oid))!;
-            let profile = (await FDB.OrganizationProfile.findById(ctx, invite.oid))!;
+            let org = (await Store.Organization.findById(ctx, invite.oid))!;
+            let profile = (await Store.OrganizationProfile.findById(ctx, invite.oid))!;
 
             if (ex && ex.status === 'left') {
                 throw new UserError(`Unfortunately, you cannot join ${profile.name}. One of ${org.kind === 'organization' ? 'organization' : 'community'} admins kicked you from ${profile.name}, and now you can only join it if a member adds you.`, 'CANT_JOIN_ORG');

@@ -1,8 +1,9 @@
+import { Organization } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { FDB, Store } from '../openland-module-db/FDB';
-import { Comment, Message, Organization } from '../openland-module-db/schema';
+import { Comment, Message } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
@@ -147,7 +148,7 @@ export default {
             for (let chat of chats) {
                 let messages = await FDB.Message.allFromChat(ctx, chat.id);
                 res.push({
-                    org: (await FDB.Organization.findById(ctx, chat.oid))!,
+                    org: (await Store.Organization.findById(ctx, chat.oid))!,
                     chat: chat.id,
                     messagesCount: messages.length,
                     lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].createdAt).toString() : '',
@@ -405,8 +406,8 @@ export default {
                     return false;
                 }
 
-                let org = await FDB.Organization.findById(ctx, orgId);
-                let orgProfile = await FDB.OrganizationProfile.findById(ctx, orgId);
+                let org = await Store.Organization.findById(ctx, orgId);
+                let orgProfile = await Store.OrganizationProfile.findById(ctx, orgId);
 
                 if (!org || !orgProfile) {
                     return false;
@@ -580,14 +581,14 @@ export default {
         }),
         debugReindexOrgs: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let orgs = await FDB.Organization.findAll(rootCtx);
+                let orgs = await Store.Organization.findAll(rootCtx);
                 let i = 0;
                 for (let o of orgs) {
                     try {
                         await inTx(rootCtx, async _ctx => {
                             if (args.marActivatedOrgsListed) {
-                                let org = await FDB.Organization.findById(_ctx, o.id);
-                                let editorial = await FDB.OrganizationEditorial.findById(_ctx, o.id);
+                                let org = await Store.Organization.findById(_ctx, o.id);
+                                let editorial = await Store.OrganizationEditorial.findById(_ctx, o.id);
 
                                 if (!org || !editorial) {
                                     return;
@@ -598,7 +599,7 @@ export default {
                                 await editorial.flush(ctx);
                                 await Modules.Orgs.markForUndexing(_ctx, o.id);
                             } else {
-                                let org = await FDB.Organization.findById(_ctx, o.id);
+                                let org = await Store.Organization.findById(_ctx, o.id);
                                 if (!org) {
                                     return;
                                 }
@@ -664,12 +665,12 @@ export default {
         }),
         debugCalcOrgsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcOrgsActiveMembers', async (log) => {
-                let allOrgs = await FDB.Organization.findAll(rootCtx);
+                let allOrgs = await Store.Organization.findAll(rootCtx);
                 let i = 0;
                 for (let org of allOrgs) {
                     await inTx(rootCtx, async (ctx) => {
                         let activeMembers = await Modules.Orgs.findOrganizationMembers(ctx, org.id);
-                        let _org = await FDB.OrganizationProfile.findById(ctx, org.id);
+                        let _org = await Store.OrganizationProfile.findById(ctx, org.id);
 
                         if (_org) {
                             _org.joinedMembersCount = activeMembers.length;
@@ -743,7 +744,7 @@ export default {
                         if (room.kind !== 'public' || !room.oid) {
                             continue;
                         }
-                        let org = await FDB.Organization.findById(ctx, room.oid);
+                        let org = await Store.Organization.findById(ctx, room.oid);
                         if (!org || org.kind !== 'community') {
                             continue;
                         }

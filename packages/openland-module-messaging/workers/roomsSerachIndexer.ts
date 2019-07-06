@@ -1,8 +1,8 @@
 import { inTx } from '@openland/foundationdb';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
-import { Organization } from '../../openland-module-db/schema';
+import { Organization } from 'openland-module-db/store';
 
 export function roomsSearchIndexer() {
     declareSearchIndexer('room-index', 9, 'room', FDB.RoomProfile.createUpdatedStream(50))
@@ -45,9 +45,9 @@ export function roomsSearchIndexer() {
 
                 let membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
 
-                let org: Organization|null = null;
+                let org: Organization | null = null;
                 if (room.oid) {
-                    org = (await FDB.Organization.findById(ctx, room.oid!))!;
+                    org = (await Store.Organization.findById(ctx, room.oid!))!;
                 }
 
                 let isListed = room.kind === 'public' && org && org.kind === 'community' && !org.private;

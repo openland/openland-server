@@ -3,6 +3,7 @@ import { lazyInject } from '../../openland-modules/Modules.container';
 import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class AudienceCounterRepository {
@@ -20,7 +21,7 @@ export class AudienceCounterRepository {
             if (room.kind !== 'public' || !room.oid) {
                 return;
             }
-            let org = await this.fdb.Organization.findById(ctx, room.oid);
+            let org = await Store.Organization.findById(ctx, room.oid);
             if (!org || org.kind !== 'community' || org.private) {
                 return;
             }

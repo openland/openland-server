@@ -15,7 +15,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization } from 'openland-module-db/schema';
+import { UserDialogSettings, Message, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -24,7 +24,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 import { createLogger } from '@openland/log';
-import { User } from 'openland-module-db/store';
+import { User, Organization } from 'openland-module-db/store';
 
 const logger = createLogger('chat');
 
@@ -55,10 +55,10 @@ export default {
             return IDs.Conversation.serialize((await FDB.ConversationOrganization.findById(ctx, src.id))!.oid);
         },
         title: async (src: Conversation, _: any, ctx: AppContext) => {
-            return (await FDB.OrganizationProfile.findById(ctx, (await FDB.ConversationOrganization.findById(ctx, src.id))!.oid))!.name;
+            return (await Store.OrganizationProfile.findById(ctx, (await FDB.ConversationOrganization.findById(ctx, src.id))!.oid))!.name;
         },
         photos: async (src: Conversation, _: any, ctx: AppContext) => {
-            let p = (await FDB.OrganizationProfile.findById(ctx, (await FDB.ConversationOrganization.findById(ctx, src.id))!.oid))!.photo;
+            let p = (await Store.OrganizationProfile.findById(ctx, (await FDB.ConversationOrganization.findById(ctx, src.id))!.oid))!.photo;
             if (p) {
                 return [buildBaseImageUrl(p)];
             } else {
@@ -70,7 +70,7 @@ export default {
         },
         topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
         organization: async (src: Conversation, _: any, ctx: AppContext) => {
-            return FDB.OrganizationProfile.findById(ctx, (await FDB.ConversationOrganization.findById(ctx, src.id))!.oid);
+            return Store.OrganizationProfile.findById(ctx, (await FDB.ConversationOrganization.findById(ctx, src.id))!.oid);
         },
         settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!!, src.id),
         organizations: () => []

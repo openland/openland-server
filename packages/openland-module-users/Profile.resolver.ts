@@ -110,7 +110,7 @@ export default {
 
                 if (args.input.primaryOrganization) {
                     let oid = IDs.Organization.parse(args.input.primaryOrganization);
-                    let org = await FDB.Organization.findById(ctx, oid);
+                    let org = await Store.Organization.findById(ctx, oid);
                     if (org && org.kind === 'organization') {
                         profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
                     }

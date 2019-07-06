@@ -113,7 +113,7 @@ export default {
                 if (!chat.oid) {
                     continue;
                 }
-                let org = await FDB.Organization.findById(ctx, chat.oid);
+                let org = await Store.Organization.findById(ctx, chat.oid);
                 if (!org || org.kind !== 'community' || org.private) {
                     continue;
                 }

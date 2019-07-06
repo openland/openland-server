@@ -6,7 +6,7 @@ import {
 } from 'openland-module-db/schema';
 import { withUser, withAny, withAccount, withActivatedUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { AuthContext } from 'openland-module-auth/AuthContext';
@@ -23,11 +23,11 @@ async function resolveOrgInvite(ctx: Context, key: string) {
     if (!invite.enabled) {
         return null;
     }
-    let org = await FDB.Organization.findById(ctx, invite.oid);
+    let org = await Store.Organization.findById(ctx, invite.oid);
     if (!org) {
         return null;
     }
-    let profile = (await FDB.OrganizationProfile.findById(ctx, invite.oid))!;
+    let profile = (await Store.OrganizationProfile.findById(ctx, invite.oid))!;
 
     let membersCount = await Modules.Orgs.organizationMembersCount(ctx, invite.oid);
 

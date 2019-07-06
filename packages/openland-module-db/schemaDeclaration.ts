@@ -116,50 +116,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('Organization', () => {
-        primaryKey('id', 'number');
-        field('ownerId', 'number');
-        enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
-        enumField('kind', ['organization', 'community']);
-        field('editorial', 'boolean');
-        field('private', 'boolean').nullable();
-        field('personal', 'boolean').nullable();
-        rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('OrganizationProfile', () => {
-        primaryKey('id', 'number');
-        field('name', 'string');
-        jsonField('photo', () => {
-            jField('uuid', jString());
-            jField('crop', json(() => {
-                jField('x', jNumber());
-                jField('y', jNumber());
-                jField('w', jNumber());
-                jField('h', jNumber());
-            })).nullable();
-        }).nullable();
-        field('about', 'string').nullable();
-        field('twitter', 'string').nullable();
-        field('facebook', 'string').nullable();
-        field('linkedin', 'string').nullable();
-        field('website', 'string').nullable();
-
-        field('joinedMembersCount', 'number').nullable();
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('OrganizationEditorial', () => {
-        primaryKey('id', 'number');
-        field('listed', 'boolean');
-        field('featured', 'boolean');
-        enableTimestamps();
-        enableVersioning();
-    });
-
     entity('OrganizationIndexingQueue', () => {
         primaryKey('id', 'number');
         rangeIndex('updated', ['updatedAt']);

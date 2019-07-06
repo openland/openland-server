@@ -577,428 +577,6 @@ export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> 
         return new UserIndexingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
     }
 }
-export interface OrganizationShape {
-    ownerId: number;
-    status: 'pending' | 'activated' | 'suspended' | 'deleted';
-    kind: 'organization' | 'community';
-    editorial: boolean;
-    private?: boolean| null;
-    personal?: boolean| null;
-}
-
-export class Organization extends FEntity {
-    readonly entityName: 'Organization' = 'Organization';
-    get id(): number { return this._value.id; }
-    get ownerId(): number {
-        return this._value.ownerId;
-    }
-    set ownerId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.ownerId) { return; }
-        this._value.ownerId = value;
-        this.markDirty();
-    }
-    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' {
-        return this._value.status;
-    }
-    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
-        this._checkIsWritable();
-        if (value === this._value.status) { return; }
-        this._value.status = value;
-        this.markDirty();
-    }
-    get kind(): 'organization' | 'community' {
-        return this._value.kind;
-    }
-    set kind(value: 'organization' | 'community') {
-        this._checkIsWritable();
-        if (value === this._value.kind) { return; }
-        this._value.kind = value;
-        this.markDirty();
-    }
-    get editorial(): boolean {
-        return this._value.editorial;
-    }
-    set editorial(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.editorial) { return; }
-        this._value.editorial = value;
-        this.markDirty();
-    }
-    get private(): boolean | null {
-        let res = this._value.private;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set private(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.private) { return; }
-        this._value.private = value;
-        this.markDirty();
-    }
-    get personal(): boolean | null {
-        let res = this._value.personal;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set personal(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.personal) { return; }
-        this._value.personal = value;
-        this.markDirty();
-    }
-}
-
-export class OrganizationFactory extends FEntityFactory<Organization> {
-    static schema: FEntitySchema = {
-        name: 'Organization',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'ownerId', type: 'number' },
-            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended', 'deleted'] },
-            { name: 'kind', type: 'enum', enumValues: ['organization', 'community'] },
-            { name: 'editorial', type: 'boolean' },
-            { name: 'private', type: 'boolean' },
-            { name: 'personal', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'community', type: 'range', fields: [] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organization');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, keyValidator: OrganizationFactory.validateKey, hasLiveStreams: false };
-        let indexCommunity = new FEntityIndex(await layer.resolveEntityIndexDirectory('organization', 'community'), 'community', [], false, (src) => src.kind === 'community' && src.status === 'activated');
-        let indexes = {
-            community: indexCommunity,
-        };
-        return new OrganizationFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexCommunity: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('ownerId', src.ownerId);
-        validators.isNumber('ownerId', src.ownerId);
-        validators.notNull('status', src.status);
-        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
-        validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['organization', 'community']);
-        validators.notNull('editorial', src.editorial);
-        validators.isBoolean('editorial', src.editorial);
-        validators.isBoolean('private', src.private);
-        validators.isBoolean('personal', src.personal);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { community: FEntityIndex }) {
-        super('Organization', 'organization', config, [indexes.community], layer, directory);
-        this.indexCommunity = indexes.community;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: OrganizationShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async rangeFromCommunity(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexCommunity.directory, [], limit, reversed);
-    }
-    async rangeFromCommunityWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexCommunity.directory, [], limit, after, reversed);
-    }
-    async allFromCommunity(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexCommunity.directory, []);
-    }
-    createCommunityStream(limit: number, after?: string) {
-        return this._createStream(this.indexCommunity.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Organization(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
-    }
-}
-export interface OrganizationProfileShape {
-    name: string;
-    photo?: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, }| null;
-    about?: string| null;
-    twitter?: string| null;
-    facebook?: string| null;
-    linkedin?: string| null;
-    website?: string| null;
-    joinedMembersCount?: number| null;
-}
-
-export class OrganizationProfile extends FEntity {
-    readonly entityName: 'OrganizationProfile' = 'OrganizationProfile';
-    get id(): number { return this._value.id; }
-    get name(): string {
-        return this._value.name;
-    }
-    set name(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.name) { return; }
-        this._value.name = value;
-        this.markDirty();
-    }
-    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null {
-        let res = this._value.photo;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set photo(value: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null) {
-        this._checkIsWritable();
-        if (value === this._value.photo) { return; }
-        this._value.photo = value;
-        this.markDirty();
-    }
-    get about(): string | null {
-        let res = this._value.about;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set about(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.about) { return; }
-        this._value.about = value;
-        this.markDirty();
-    }
-    get twitter(): string | null {
-        let res = this._value.twitter;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set twitter(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.twitter) { return; }
-        this._value.twitter = value;
-        this.markDirty();
-    }
-    get facebook(): string | null {
-        let res = this._value.facebook;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set facebook(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.facebook) { return; }
-        this._value.facebook = value;
-        this.markDirty();
-    }
-    get linkedin(): string | null {
-        let res = this._value.linkedin;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set linkedin(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.linkedin) { return; }
-        this._value.linkedin = value;
-        this.markDirty();
-    }
-    get website(): string | null {
-        let res = this._value.website;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set website(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.website) { return; }
-        this._value.website = value;
-        this.markDirty();
-    }
-    get joinedMembersCount(): number | null {
-        let res = this._value.joinedMembersCount;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set joinedMembersCount(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.joinedMembersCount) { return; }
-        this._value.joinedMembersCount = value;
-        this.markDirty();
-    }
-}
-
-export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfile> {
-    static schema: FEntitySchema = {
-        name: 'OrganizationProfile',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'name', type: 'string' },
-            { name: 'photo', type: 'json' },
-            { name: 'about', type: 'string' },
-            { name: 'twitter', type: 'string' },
-            { name: 'facebook', type: 'string' },
-            { name: 'linkedin', type: 'string' },
-            { name: 'website', type: 'string' },
-            { name: 'joinedMembersCount', type: 'number' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organizationProfile');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationProfileFactory.validate, keyValidator: OrganizationProfileFactory.validateKey, hasLiveStreams: false };
-        return new OrganizationProfileFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('name', src.name);
-        validators.isString('name', src.name);
-        validators.isJson('photo', src.photo, json(() => {
-            jField('uuid', jString());
-            jField('crop', json(() => {
-            jField('x', jNumber());
-            jField('y', jNumber());
-            jField('w', jNumber());
-            jField('h', jNumber());
-        })).nullable();
-        }));
-        validators.isString('about', src.about);
-        validators.isString('twitter', src.twitter);
-        validators.isString('facebook', src.facebook);
-        validators.isString('linkedin', src.linkedin);
-        validators.isString('website', src.website);
-        validators.isNumber('joinedMembersCount', src.joinedMembersCount);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('OrganizationProfile', 'organizationProfile', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: OrganizationProfileShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationProfileShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationProfile(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
-    }
-}
-export interface OrganizationEditorialShape {
-    listed: boolean;
-    featured: boolean;
-}
-
-export class OrganizationEditorial extends FEntity {
-    readonly entityName: 'OrganizationEditorial' = 'OrganizationEditorial';
-    get id(): number { return this._value.id; }
-    get listed(): boolean {
-        return this._value.listed;
-    }
-    set listed(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.listed) { return; }
-        this._value.listed = value;
-        this.markDirty();
-    }
-    get featured(): boolean {
-        return this._value.featured;
-    }
-    set featured(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.featured) { return; }
-        this._value.featured = value;
-        this.markDirty();
-    }
-}
-
-export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEditorial> {
-    static schema: FEntitySchema = {
-        name: 'OrganizationEditorial',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'listed', type: 'boolean' },
-            { name: 'featured', type: 'boolean' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organizationEditorial');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationEditorialFactory.validate, keyValidator: OrganizationEditorialFactory.validateKey, hasLiveStreams: false };
-        return new OrganizationEditorialFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('listed', src.listed);
-        validators.isBoolean('listed', src.listed);
-        validators.notNull('featured', src.featured);
-        validators.isBoolean('featured', src.featured);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('OrganizationEditorial', 'organizationEditorial', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: OrganizationEditorialShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationEditorialShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationEditorial(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
-    }
-}
 export interface OrganizationIndexingQueueShape {
 }
 
@@ -9703,9 +9281,6 @@ export interface AllEntities {
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
-    readonly Organization: OrganizationFactory;
-    readonly OrganizationProfile: OrganizationProfileFactory;
-    readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly OrganizationMember: OrganizationMemberFactory;
     readonly ReaderState: ReaderStateFactory;
@@ -9774,9 +9349,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         TaskFactory.schema,
         DelayedTaskFactory.schema,
         UserIndexingQueueFactory.schema,
-        OrganizationFactory.schema,
-        OrganizationProfileFactory.schema,
-        OrganizationEditorialFactory.schema,
         OrganizationIndexingQueueFactory.schema,
         OrganizationMemberFactory.schema,
         ReaderStateFactory.schema,
@@ -9846,9 +9418,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let TaskPromise = TaskFactory.create(layer);
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
-        let OrganizationPromise = OrganizationFactory.create(layer);
-        let OrganizationProfilePromise = OrganizationProfileFactory.create(layer);
-        let OrganizationEditorialPromise = OrganizationEditorialFactory.create(layer);
         let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.create(layer);
         let OrganizationMemberPromise = OrganizationMemberFactory.create(layer);
         let ReaderStatePromise = ReaderStateFactory.create(layer);
@@ -9916,9 +9485,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
         allEntities.push(await UserIndexingQueuePromise);
-        allEntities.push(await OrganizationPromise);
-        allEntities.push(await OrganizationProfilePromise);
-        allEntities.push(await OrganizationEditorialPromise);
         allEntities.push(await OrganizationIndexingQueuePromise);
         allEntities.push(await OrganizationMemberPromise);
         allEntities.push(await ReaderStatePromise);
@@ -9986,9 +9552,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
             UserIndexingQueue: await UserIndexingQueuePromise,
-            Organization: await OrganizationPromise,
-            OrganizationProfile: await OrganizationProfilePromise,
-            OrganizationEditorial: await OrganizationEditorialPromise,
             OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
             OrganizationMember: await OrganizationMemberPromise,
             ReaderState: await ReaderStatePromise,
@@ -10063,9 +9626,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
-    readonly Organization: OrganizationFactory;
-    readonly OrganizationProfile: OrganizationProfileFactory;
-    readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly OrganizationMember: OrganizationMemberFactory;
     readonly ReaderState: ReaderStateFactory;
@@ -10137,12 +9697,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.DelayedTask);
         this.UserIndexingQueue = entities.UserIndexingQueue;
         this.allEntities.push(this.UserIndexingQueue);
-        this.Organization = entities.Organization;
-        this.allEntities.push(this.Organization);
-        this.OrganizationProfile = entities.OrganizationProfile;
-        this.allEntities.push(this.OrganizationProfile);
-        this.OrganizationEditorial = entities.OrganizationEditorial;
-        this.allEntities.push(this.OrganizationEditorial);
         this.OrganizationIndexingQueue = entities.OrganizationIndexingQueue;
         this.allEntities.push(this.OrganizationIndexingQueue);
         this.OrganizationMember = entities.OrganizationMember;

@@ -118,12 +118,12 @@ export const Emails = {
     },
     async sendAccountActivatedEmail(parent: Context, oid: number, uid?: number) {
         await inTx(parent, async (ctx) => {
-            let org = await FDB.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
 
-            let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
+            let orgProfile = await Store.OrganizationProfile.findById(ctx, oid);
             let members: number[] = [];
 
             if (uid) {
@@ -148,11 +148,11 @@ export const Emails = {
     },
     async sendAccountDeactivatedEmail(parent: Context, oid: number, uid?: number) {
         await inTx(parent, async (ctx) => {
-            let org = await FDB.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
-            let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+            let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let members: number[] = [];
 
             if (uid) {
@@ -178,12 +178,12 @@ export const Emails = {
 
     async sendMemberRemovedEmail(parent: Context, oid: number, uid: number) {
         await inTx(parent, async (ctx) => {
-            let org = await FDB.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
 
-            let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+            let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let user = await loadUserState(ctx, uid);
 
             await Modules.Email.enqueueEmail(ctx, {
@@ -199,7 +199,7 @@ export const Emails = {
     },
     async sendMembershipLevelChangedEmail(parent: Context, oid: number, uid: number) {
         await inTx(parent, async (ctx) => {
-            let org = await FDB.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
@@ -214,7 +214,7 @@ export const Emails = {
 
             let user = await loadUserState(ctx, uid);
 
-            let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+            let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
 
             await Modules.Email.enqueueEmail(ctx, {
                 subject: `Your role at ${orgProfile.name!} was updated`,
@@ -230,7 +230,7 @@ export const Emails = {
     },
     async sendInviteEmail(parent: Context, oid: number, invite: OrganizationInviteLink) {
         await inTx(parent, async (ctx) => {
-            let org = await FDB.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
@@ -249,7 +249,7 @@ export const Emails = {
             }
 
             let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
-            let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+            let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let avatar = await genAvatar(ctx, invite.uid);
 
             await Modules.Email.enqueueEmail(ctx, {
@@ -272,7 +272,7 @@ export const Emails = {
 
     async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number, uid?: number, debug: boolean = false) {
         await inTx(parent, async (ctx) => {
-            let org = await FDB.Organization.findById(ctx, oid);
+            let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
@@ -291,7 +291,7 @@ export const Emails = {
                 members  = (await Modules.Orgs.findOrganizationMembers(ctx, oid)).map(m => m.id);
             }
 
-            let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+            let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             for (let member of members) {
                 if (member === memberId && !debug) {
                     continue;
@@ -344,7 +344,7 @@ export const Emails = {
         let roomTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, roomId, uid);
         let userProfile = await Modules.Users.profileById(ctx, uid);
 
-        let org = userProfile!.primaryOrganization ? await FDB.OrganizationProfile.findById(ctx, userProfile!.primaryOrganization!) : null;
+        let org = userProfile!.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, userProfile!.primaryOrganization!) : null;
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
         await Modules.Email.enqueueEmail(ctx, {

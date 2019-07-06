@@ -2,12 +2,12 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withAccount } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
 import { FDB, Store } from '../openland-module-db/FDB';
-import { Conversation, Message, Organization } from '../openland-module-db/schema';
+import { Conversation, Message } from '../openland-module-db/schema';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { User } from 'openland-module-db/store';
+import { User, Organization } from 'openland-module-db/store';
 
 const log = createLogger('search-resolver');
 
@@ -143,7 +143,7 @@ export default {
                 if (hit._type === 'user_profile') {
                     return Store.User.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'organization') {
-                    return FDB.Organization.findById(ctx, parseInt(hit._id, 10));
+                    return Store.Organization.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'dialog' || hit._type === 'room') {
                     let cid = (hit._source as any).cid;
                     if (!cid) {
@@ -193,7 +193,7 @@ export default {
                 body: { query: { bool: { must: [{ term: { kind: 'community' } }, { term: { featured: true } }] } } },
             });
             let oids = hits.hits.hits.map(hit => parseInt(hit._id, 10));
-            let orgs = oids.map(o => FDB.Organization.findById(ctx, o)!);
+            let orgs = oids.map(o => Store.Organization.findById(ctx, o)!);
             return await Promise.all(orgs);
         }),
 

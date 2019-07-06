@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/FDB';
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from '../../openland-modules/Modules';
@@ -36,9 +37,9 @@ export function organizationProfileIndexer() {
         })
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
-                let org = (await FDB.Organization.findById(ctx, item.id))!;
-                let profile = (await (FDB.OrganizationProfile.findById(ctx, item.id)))!;
-                let editorial = (await FDB.OrganizationEditorial.findById(ctx, item.id))!;
+                let org = (await Store.Organization.findById(ctx, item.id))!;
+                let profile = (await (Store.OrganizationProfile.findById(ctx, item.id)))!;
+                let editorial = (await Store.OrganizationEditorial.findById(ctx, item.id))!;
                 let shortname = await Modules.Shortnames.findOrganizationShortname(ctx, item.id);
                 let membersCount = await Modules.Orgs.organizationMembersCount(ctx, item.id);
 

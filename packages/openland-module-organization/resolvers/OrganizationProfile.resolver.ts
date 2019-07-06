@@ -1,6 +1,5 @@
-import { Organization } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { withAny, withUser, withAccount } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Modules } from 'openland-modules/Modules';
@@ -11,36 +10,37 @@ import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { Organization } from 'openland-module-db/store';
 
 export default {
     OrganizationProfile: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
-        name: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.name,
-        photoRef: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.photo,
+        name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
+        photoRef: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo,
 
-        website: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.website,
+        website: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
         websiteTitle: (src: Organization, args: {}, ctx: AppContext) => null,
-        about: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.about,
-        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.twitter,
-        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.facebook,
-        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
+        about: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
+        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
+        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
+        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
 
-        alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.listed,
+        alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.listed,
         alphaEditorial: (src: Organization) => src.editorial,
-        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
+        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: AppContext) => {
             if (ctx.auth.oid) {
-                return await FDB.Organization.findById(ctx, ctx.auth.oid);
+                return await Store.Organization.findById(ctx, ctx.auth.oid);
             }
             return null;
         },
         organizationProfile: withAny(async (ctx, args) => {
             // TODO: Fix permissions!11
-            let res = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
+            let res = await Store.Organization.findById(ctx, IDs.Organization.parse(args.id));
             if (!res) {
                 throw new NotFoundError('Unable to find organization');
             }
@@ -67,14 +67,14 @@ export default {
             }
 
             return await inTx(parent, async (ctx) => {
-                let existing = await FDB.Organization.findById(ctx, orgId);
+                let existing = await Store.Organization.findById(ctx, orgId);
 
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }
                 let isMemberOwner = uid === existing.ownerId;
 
-                let profile = (await FDB.OrganizationProfile.findById(ctx, orgId))!;
+                let profile = (await Store.OrganizationProfile.findById(ctx, orgId))!;
 
                 if (args.input.name !== undefined) {
                     await validate(
@@ -110,7 +110,7 @@ export default {
                     existing.private = args.input.alphaIsPrivate;
                 }
 
-                let editorial = (await FDB.OrganizationEditorial.findById(ctx, orgId))!;
+                let editorial = (await Store.OrganizationEditorial.findById(ctx, orgId))!;
 
                 if (args.input.alphaPublished !== undefined && isSuper) {
                     editorial.listed = !!Sanitizer.sanitizeAny(args.input.alphaPublished);

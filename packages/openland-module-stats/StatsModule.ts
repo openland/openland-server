@@ -4,7 +4,7 @@ import { createSilentUserReportWorker } from './workers/SilentUserReportWorker';
 import { Context } from '@openland/context';
 import { createWeeklyReportWorker } from './workers/WeeklyReportWorker';
 import { createDailyReportWorker } from './workers/DailyReportWorker';
-import { FDB, Store } from '../openland-module-db/FDB';
+import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { buildMessage, heading, userMention } from '../openland-utils/MessageBuilder';
 import { getSuperNotificationsBotId, getUserReportsChatId, resolveUsername } from './workers/utils';
@@ -71,13 +71,13 @@ export class StatsModule {
 
         let inviterOrgName = '';
         if (inviter!.primaryOrganization) {
-            const organization = await FDB.OrganizationProfile.findById(ctx, inviter!.primaryOrganization);
+            const organization = await Store.OrganizationProfile.findById(ctx, inviter!.primaryOrganization);
             inviterOrgName = ` @ ${(organization!).name}`;
         }
 
         let newUserOrgName = '';
         if (newUser!.primaryOrganization) {
-            const organization = await FDB.OrganizationProfile.findById(ctx, newUser!.primaryOrganization);
+            const organization = await Store.OrganizationProfile.findById(ctx, newUser!.primaryOrganization);
             newUserOrgName = ` @ ${(organization!).name}`;
         }
 
@@ -110,7 +110,7 @@ export class StatsModule {
             const profile = await Modules.Users.profileById(ctx, uid);
             let orgName = '';
             if (profile!.primaryOrganization) {
-                const organization = await FDB.OrganizationProfile.findById(ctx, profile!.primaryOrganization);
+                const organization = await Store.OrganizationProfile.findById(ctx, profile!.primaryOrganization);
                 orgName = ` @ ${(organization!).name}`;
             }
 
@@ -185,7 +185,7 @@ export class StatsModule {
 
             let orgName = '';
             if (profile!.primaryOrganization) {
-                const organization = await FDB.OrganizationProfile.findById(ctx, profile!.primaryOrganization);
+                const organization = await Store.OrganizationProfile.findById(ctx, profile!.primaryOrganization);
                 orgName = ` @ ${(organization!).name}`;
             }
 

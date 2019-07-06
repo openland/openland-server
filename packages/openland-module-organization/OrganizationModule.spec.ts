@@ -7,10 +7,9 @@ import { OrganizationRepository } from './repositories/OrganizationRepository';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Context, createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../openland-module-users/UsersModule.container';
-// console.log('imported in ' + (Date.now() - start) + ' ms');
 
 describe('OrganizationModule', () => {
     beforeAll(async () => {
@@ -49,7 +48,7 @@ describe('OrganizationModule', () => {
         let res = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
 
         // Validate organization
-        let org = (await FDB.Organization.findById(ctx, res.id))!;
+        let org = (await Store.Organization.findById(ctx, res.id))!;
         expect(org).not.toBeUndefined();
         expect(org).not.toBeNull();
         expect(org.status).toEqual('pending');
@@ -142,7 +141,7 @@ describe('OrganizationModule', () => {
         await Modules.Orgs.activateOrganization(ctx, org.id, true);
         await Modules.Orgs.deleteOrganization(ctx, user.id, org.id);
         await Modules.Orgs.activateOrganization(ctx, org.id, true);
-        org = (await FDB.Organization.findById(ctx, org.id))!;
+        org = (await Store.Organization.findById(ctx, org.id))!;
 
         expect(org.status).toEqual('deleted');
     });
@@ -163,7 +162,7 @@ describe('OrganizationModule', () => {
 
         // Deactivate organization
         await Modules.Orgs.suspendOrganization(ctx, org.id);
-        let org2 = (await FDB.Organization.findById(ctx, org.id))!;
+        let org2 = (await Store.Organization.findById(ctx, org.id))!;
         expect(org2.status).toEqual('suspended');
 
         // Check user status

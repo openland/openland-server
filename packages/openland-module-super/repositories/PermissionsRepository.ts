@@ -56,7 +56,7 @@ export class PermissionsRepository {
             //
             // Organization features
             //
-            let org = await this.entities.Organization.findById(ctx, args.oid);
+            let org = await Store.Organization.findById(ctx, args.oid);
             if (org) {
                 let features = await Modules.Features.repo.findOrganizationFeatures(ctx, org.id!);
                 for (let f of features) {

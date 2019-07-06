@@ -5,10 +5,9 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
-import { Organization } from '../openland-module-db/schema';
 import { withUser } from '../openland-module-users/User.resolver';
 import { AppContext } from '../openland-modules/AppContext';
-import { User } from 'openland-module-db/store';
+import { User, Organization } from 'openland-module-db/store';
 
 export default {
     ShortNameDestination: {
@@ -34,7 +33,7 @@ export default {
             if (shortname.ownerType === 'user') {
                 return await Store.User.findById(ctx, shortname.ownerId);
             } else if (shortname.ownerType === 'org') {
-                return await FDB.Organization.findById(ctx, shortname.ownerId);
+                return await Store.Organization.findById(ctx, shortname.ownerId);
             }
 
             return null;

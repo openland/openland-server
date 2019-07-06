@@ -12,14 +12,11 @@ import { organizationProfileIndexer } from './workers/organizationProfileIndexer
 import { Context } from '@openland/context';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { UserError } from '../openland-errors/UserError';
-import { AllEntities } from '../openland-module-db/schema';
 
 @injectable()
 export class OrganizationModule {
     @lazyInject('OrganizationRepository')
     private readonly repo!: OrganizationRepository;
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
 
     start = () => {
         if (serverRoleEnabled('workers')) {
@@ -81,7 +78,7 @@ export class OrganizationModule {
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid, false);
                     let profile = await Store.UserProfile.findById(ctx, m.uid);
-                    let org = await this.entities.Organization.findById(ctx, id);
+                    let org = await Store.Organization.findById(ctx, id);
                     if (profile && !profile.primaryOrganization && (org && org.kind === 'organization')) {
                         profile.primaryOrganization = id;
                     }
@@ -127,13 +124,13 @@ export class OrganizationModule {
 
             // Add member
             if (await this.repo.addUserToOrganization(ctx, uid, oid, by)) {
-                let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
+                let org = (await Store.Organization.findById(ctx, oid))!;
                 if (org.status === 'activated') {
                     // Activate user if organization is in activated state
                     await Modules.Users.activateUser(ctx, uid, isNewUser, by);
 
                     // Find and activate organizations created by user if have one
-                    let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Modules.DB.entities.Organization.findById(ctx, orgId)));
+                    let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Store.Organization.findById(ctx, orgId)));
                     userOrgs = userOrgs.filter(o => o!.ownerId === uid);
                     for (let userOrg of userOrgs) {
                         // Activate user organization
@@ -156,7 +153,7 @@ export class OrganizationModule {
                 return org;
             }
 
-            return await Modules.DB.entities.Organization.findById(ctx, oid);
+            return await Store.Organization.findById(ctx, oid);
         });
     }
 

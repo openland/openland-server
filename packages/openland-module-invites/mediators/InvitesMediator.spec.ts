@@ -8,7 +8,6 @@ import { OrganizationModule } from 'openland-module-organization/OrganizationMod
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { InvitesMediator } from './InvitesMediator';
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
-import { AllEntities } from 'openland-module-db/schema';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
@@ -22,7 +21,6 @@ describe('InvitesMediator', () => {
 
     let users: UsersModule;
     let orgs: OrganizationModule;
-    let entities: AllEntities;
     beforeAll(async () => {
         await testEnvironmentStart('invites-mediator');
         loadMessagingTestModule();
@@ -34,7 +32,6 @@ describe('InvitesMediator', () => {
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
 
-        entities = container.get<AllEntities>('FDB');
         users = container.get<UsersModule>(UsersModule);
         orgs = container.get<OrganizationModule>(OrganizationModule);
     });
@@ -69,7 +66,7 @@ describe('InvitesMediator', () => {
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
-        let org = (await entities.Organization.findById(ctx, USER2_ORG_ID))!;
+        let org = (await Store.Organization.findById(ctx, USER2_ORG_ID))!;
         expect(org.status).toEqual('activated');
     });
 
@@ -92,7 +89,7 @@ describe('InvitesMediator', () => {
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
-        let org = (await entities.Organization.findById(ctx, USER_ORG_ID))!;
+        let org = (await Store.Organization.findById(ctx, USER_ORG_ID))!;
         expect(org.status).toEqual('activated');
     });
 

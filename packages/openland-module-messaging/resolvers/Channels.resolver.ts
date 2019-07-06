@@ -58,7 +58,7 @@ export default {
 
             return member.status;
         },
-        organization: async (src, args, ctx) => FDB.Organization.findById(ctx, (await FDB.ConversationRoom.findById(ctx, src.id))!.oid!),
+        organization: async (src, args, ctx) => Store.Organization.findById(ctx, (await FDB.ConversationRoom.findById(ctx, src.id))!.oid!),
         isRoot: (src) => false,
         settings: (src, args, ctx) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),
 

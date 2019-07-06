@@ -13,6 +13,7 @@ import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
 import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class RoomMediator {
@@ -65,7 +66,7 @@ export class RoomMediator {
                 throw new NotFoundError();
             }
 
-            let isPublic = conv.kind === 'public' && (conv.oid && (await this.entities.Organization.findById(ctx, conv.oid))!.kind === 'community');
+            let isPublic = conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
             let isMemberOfOrg = (conv.oid && await Modules.Orgs.isUserMember(ctx, uid, conv.oid)) || false;
             if (!isPublic && !invited && !isMemberOfOrg) {
                 throw new UserError('You can\'t join non-public room');

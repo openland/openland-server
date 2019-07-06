@@ -1,4 +1,4 @@
-import { ConversationRoom, Organization } from 'openland-module-db/schema';
+import { ConversationRoom } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -8,6 +8,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { Organization } from 'openland-module-db/store';
 
 const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppContext) => {
     let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
@@ -34,14 +35,14 @@ export default {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
         isMine: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, src.id) : false,
 
-        name: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.name,
-        photo: async (src: Organization, args: {}, ctx: AppContext) => buildBaseImageUrl(((await FDB.OrganizationProfile.findById(ctx, src.id)))!.photo),
+        name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
+        photo: async (src: Organization, args: {}, ctx: AppContext) => buildBaseImageUrl(((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo),
 
-        website: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.website,
-        about: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.about,
-        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.twitter,
-        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.facebook,
-        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
+        website: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
+        about: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
+        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
+        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
+        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
 
         betaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserOwner(ctx, ctx.auth.uid!, src.id) : false,
         betaIsAdmin: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
@@ -63,20 +64,20 @@ export default {
             }, src.id);
         },
         alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
-        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
+        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
 
         betaPublicRooms: resolveOrganizationRooms,
         status: async (src: Organization) => src.status,
-        membersCount: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
+        membersCount: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
         personal: async (src: Organization) => src.personal || false,
     },
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: AppContext) => {
             if (ctx.auth.uid) {
                 return (await Promise.all((await FDB.OrganizationMember.allFromUser(ctx, 'joined', ctx.auth.uid))
-                    .map((v) => FDB.Organization.findById(ctx, v.oid))))
+                    .map((v) => Store.Organization.findById(ctx, v.oid))))
                     .filter((v) => v!.status !== 'suspended' && v!.status !== 'deleted');
             }
             return [];
@@ -91,7 +92,7 @@ export default {
                 orgId = IDs.Organization.parse(args.id);
             }
 
-            let res = await FDB.Organization.findById(ctx, orgId);
+            let res = await Store.Organization.findById(ctx, orgId);
             if (!res || res.status === 'deleted') {
                 throw new NotFoundError('Unable to find organization');
             }

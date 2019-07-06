@@ -1,4 +1,4 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
 
@@ -46,6 +46,48 @@ export default declareSchema(() => {
         field('firstName', optional(string()));
         field('lastName', optional(string()));
         field('picture', optional(string()));
+    });
+
+    //
+    // Organization
+    //
+
+    entity('Organization', () => {
+        primaryKey('id', integer());
+        field('ownerId', integer());
+        field('status', enumString('pending', 'activated', 'suspended', 'deleted'));
+        field('kind', enumString('organization', 'community'));
+        field('editorial', boolean());
+        field('private', optional(boolean()));
+        field('personal', optional(boolean()));
+        rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
+    });
+
+    entity('OrganizationProfile', () => {
+        primaryKey('id', integer());
+        field('name', string());
+        field('photo', optional(struct({
+           uuid:  string(),
+           crop: optional(struct({
+               x: integer(),
+               y: integer(),
+               w: integer(),
+               h: integer()
+           }))
+        })));
+        field('about', optional(string()));
+        field('twitter', optional(string()));
+        field('facebook', optional(string()));
+        field('linkedin', optional(string()));
+        field('website', optional(string()));
+
+        field('joinedMembersCount', optional(integer()));
+    });
+
+    entity('OrganizationEditorial', () => {
+        primaryKey('id', integer());
+        field('listed', boolean());
+        field('featured', boolean());
     });
 
     //

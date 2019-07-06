@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
 import { QueryParser, buildElasticQuery } from 'openland-utils/QueryParser';
@@ -29,7 +29,7 @@ export default {
                 }
             });
 
-            let res = (await Promise.all(hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10))))).filter(r => !!r);
+            let res = (await Promise.all(hits.hits.hits.map((v) => Store.Organization.findById(ctx, parseInt(v._id, 10))))).filter(r => !!r);
 
             return res[0];
         }),
@@ -57,7 +57,7 @@ export default {
                 }
             });
 
-            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10)));
+            let orgs = hits.hits.hits.map((v) => Store.Organization.findById(ctx, parseInt(v._id, 10)));
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);
@@ -139,7 +139,7 @@ export default {
                 }
             });
 
-            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10)));
+            let orgs = hits.hits.hits.map((v) => Store.Organization.findById(ctx, parseInt(v._id, 10)));
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);

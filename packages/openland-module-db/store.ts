@@ -1222,6 +1222,380 @@ export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilSha
     }
 }
 
+export interface OrganizationShape {
+    id: number;
+    ownerId: number;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+    kind: 'organization' | 'community';
+    editorial: boolean;
+    private: boolean | null;
+    personal: boolean | null;
+}
+
+export interface OrganizationCreateShape {
+    ownerId: number;
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
+    kind: 'organization' | 'community';
+    editorial: boolean;
+    private: boolean | null;
+    personal: boolean | null;
+}
+
+export class Organization extends Entity<OrganizationShape> {
+    get id(): number { return this._rawValue.id; }
+    get ownerId(): number { return this._rawValue.ownerId; }
+    set ownerId(value: number) {
+        let normalized = this.descriptor.codec.fields.ownerId.normalize(value);
+        if (this._rawValue.ownerId !== normalized) {
+            this._rawValue.ownerId = normalized;
+            this._updatedValues.ownerId = normalized;
+            this.invalidate();
+        }
+    }
+    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' { return this._rawValue.status; }
+    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'organization' | 'community' { return this._rawValue.kind; }
+    set kind(value: 'organization' | 'community') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get editorial(): boolean { return this._rawValue.editorial; }
+    set editorial(value: boolean) {
+        let normalized = this.descriptor.codec.fields.editorial.normalize(value);
+        if (this._rawValue.editorial !== normalized) {
+            this._rawValue.editorial = normalized;
+            this._updatedValues.editorial = normalized;
+            this.invalidate();
+        }
+    }
+    get private(): boolean | null { return this._rawValue.private; }
+    set private(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.private.normalize(value);
+        if (this._rawValue.private !== normalized) {
+            this._rawValue.private = normalized;
+            this._updatedValues.private = normalized;
+            this.invalidate();
+        }
+    }
+    get personal(): boolean | null { return this._rawValue.personal; }
+    set personal(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.personal.normalize(value);
+        if (this._rawValue.personal !== normalized) {
+            this._rawValue.personal = normalized;
+            this._updatedValues.personal = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationFactory extends EntityFactory<OrganizationShape, Organization> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organization');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'community', storageKey: 'community', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('organization', 'community'), condition: (src) => src.kind === 'community' && src.status === 'activated' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'ownerId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'activated', 'suspended', 'deleted'] }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['organization', 'community'] }, secure: false });
+        fields.push({ name: 'editorial', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'private', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'personal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            ownerId: c.integer,
+            status: c.enum('pending', 'activated', 'suspended', 'deleted'),
+            kind: c.enum('organization', 'community'),
+            editorial: c.boolean,
+            private: c.optional(c.boolean),
+            personal: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<OrganizationShape> = {
+            name: 'Organization',
+            storageKey: 'organization',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationShape>) {
+        super(descriptor);
+    }
+
+    readonly community = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: OrganizationCreateShape): Promise<Organization> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<Organization | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationShape>): Organization {
+        return new Organization([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationProfileShape {
+    id: number;
+    name: string;
+    photo: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
+    about: string | null;
+    twitter: string | null;
+    facebook: string | null;
+    linkedin: string | null;
+    website: string | null;
+    joinedMembersCount: number | null;
+}
+
+export interface OrganizationProfileCreateShape {
+    name: string;
+    photo: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
+    about: string | null;
+    twitter: string | null;
+    facebook: string | null;
+    linkedin: string | null;
+    website: string | null;
+    joinedMembersCount: number | null;
+}
+
+export class OrganizationProfile extends Entity<OrganizationProfileShape> {
+    get id(): number { return this._rawValue.id; }
+    get name(): string { return this._rawValue.name; }
+    set name(value: string) {
+        let normalized = this.descriptor.codec.fields.name.normalize(value);
+        if (this._rawValue.name !== normalized) {
+            this._rawValue.name = normalized;
+            this._updatedValues.name = normalized;
+            this.invalidate();
+        }
+    }
+    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this._rawValue.photo; }
+    set photo(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null) {
+        let normalized = this.descriptor.codec.fields.photo.normalize(value);
+        if (this._rawValue.photo !== normalized) {
+            this._rawValue.photo = normalized;
+            this._updatedValues.photo = normalized;
+            this.invalidate();
+        }
+    }
+    get about(): string | null { return this._rawValue.about; }
+    set about(value: string | null) {
+        let normalized = this.descriptor.codec.fields.about.normalize(value);
+        if (this._rawValue.about !== normalized) {
+            this._rawValue.about = normalized;
+            this._updatedValues.about = normalized;
+            this.invalidate();
+        }
+    }
+    get twitter(): string | null { return this._rawValue.twitter; }
+    set twitter(value: string | null) {
+        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
+        if (this._rawValue.twitter !== normalized) {
+            this._rawValue.twitter = normalized;
+            this._updatedValues.twitter = normalized;
+            this.invalidate();
+        }
+    }
+    get facebook(): string | null { return this._rawValue.facebook; }
+    set facebook(value: string | null) {
+        let normalized = this.descriptor.codec.fields.facebook.normalize(value);
+        if (this._rawValue.facebook !== normalized) {
+            this._rawValue.facebook = normalized;
+            this._updatedValues.facebook = normalized;
+            this.invalidate();
+        }
+    }
+    get linkedin(): string | null { return this._rawValue.linkedin; }
+    set linkedin(value: string | null) {
+        let normalized = this.descriptor.codec.fields.linkedin.normalize(value);
+        if (this._rawValue.linkedin !== normalized) {
+            this._rawValue.linkedin = normalized;
+            this._updatedValues.linkedin = normalized;
+            this.invalidate();
+        }
+    }
+    get website(): string | null { return this._rawValue.website; }
+    set website(value: string | null) {
+        let normalized = this.descriptor.codec.fields.website.normalize(value);
+        if (this._rawValue.website !== normalized) {
+            this._rawValue.website = normalized;
+            this._updatedValues.website = normalized;
+            this.invalidate();
+        }
+    }
+    get joinedMembersCount(): number | null { return this._rawValue.joinedMembersCount; }
+    set joinedMembersCount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.joinedMembersCount.normalize(value);
+        if (this._rawValue.joinedMembersCount !== normalized) {
+            this._rawValue.joinedMembersCount = normalized;
+            this._updatedValues.joinedMembersCount = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationProfileFactory extends EntityFactory<OrganizationProfileShape, OrganizationProfile> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organizationProfile');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'name', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
+        fields.push({ name: 'about', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'facebook', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'website', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'joinedMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            name: c.string,
+            photo: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
+            about: c.optional(c.string),
+            twitter: c.optional(c.string),
+            facebook: c.optional(c.string),
+            linkedin: c.optional(c.string),
+            website: c.optional(c.string),
+            joinedMembersCount: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<OrganizationProfileShape> = {
+            name: 'OrganizationProfile',
+            storageKey: 'organizationProfile',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationProfileFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationProfileShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: OrganizationProfileCreateShape): Promise<OrganizationProfile> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<OrganizationProfile | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationProfileShape>): OrganizationProfile {
+        return new OrganizationProfile([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationEditorialShape {
+    id: number;
+    listed: boolean;
+    featured: boolean;
+}
+
+export interface OrganizationEditorialCreateShape {
+    listed: boolean;
+    featured: boolean;
+}
+
+export class OrganizationEditorial extends Entity<OrganizationEditorialShape> {
+    get id(): number { return this._rawValue.id; }
+    get listed(): boolean { return this._rawValue.listed; }
+    set listed(value: boolean) {
+        let normalized = this.descriptor.codec.fields.listed.normalize(value);
+        if (this._rawValue.listed !== normalized) {
+            this._rawValue.listed = normalized;
+            this._updatedValues.listed = normalized;
+            this.invalidate();
+        }
+    }
+    get featured(): boolean { return this._rawValue.featured; }
+    set featured(value: boolean) {
+        let normalized = this.descriptor.codec.fields.featured.normalize(value);
+        if (this._rawValue.featured !== normalized) {
+            this._rawValue.featured = normalized;
+            this._updatedValues.featured = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OrganizationEditorialFactory extends EntityFactory<OrganizationEditorialShape, OrganizationEditorial> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organizationEditorial');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'listed', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'featured', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            listed: c.boolean,
+            featured: c.boolean,
+        });
+        let descriptor: EntityDescriptor<OrganizationEditorialShape> = {
+            name: 'OrganizationEditorial',
+            storageKey: 'organizationEditorial',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationEditorialFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationEditorialShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: OrganizationEditorialCreateShape): Promise<OrganizationEditorial> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<OrganizationEditorial | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationEditorialShape>): OrganizationEditorial {
+        return new OrganizationEditorial([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface OnlineShape {
     uid: number;
     lastSeen: number;
@@ -2847,6 +3221,9 @@ export interface Store extends BaseStore {
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
+    readonly Organization: OrganizationFactory;
+    readonly OrganizationProfile: OrganizationProfileFactory;
+    readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly PushFirebase: PushFirebaseFactory;
@@ -2885,6 +3262,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
+    let OrganizationPromise = OrganizationFactory.open(storage);
+    let OrganizationProfilePromise = OrganizationProfileFactory.open(storage);
+    let OrganizationEditorialPromise = OrganizationEditorialFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
@@ -2922,6 +3302,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
+        Organization: await OrganizationPromise,
+        OrganizationProfile: await OrganizationProfilePromise,
+        OrganizationEditorial: await OrganizationEditorialPromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
         PushFirebase: await PushFirebasePromise,

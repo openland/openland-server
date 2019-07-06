@@ -1,9 +1,10 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
-import { Comment, ConversationRoom, Message, Notification, Organization } from '../openland-module-db/schema';
+import { Comment, ConversationRoom, Message, Notification } from '../openland-module-db/schema';
 import { FDB, Store } from '../openland-module-db/FDB';
 import { REACTIONS_LEGACY } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
+import { Organization } from 'openland-module-db/store';
 
 @injectable()
 export class MetricsModule {
