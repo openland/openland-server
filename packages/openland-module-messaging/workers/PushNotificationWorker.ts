@@ -7,19 +7,106 @@ import { fetchMessageFallback, hasMention } from 'openland-module-messaging/reso
 import { createLogger, withLogPath } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
+import { Context } from '@openland/context';
 
 const Delays = {
-    'none': 10 * 1000,
-    '1min': 60 * 1000,
-    '15min': 15 * 60 * 1000
+    'none': 10 * 1000, '1min': 60 * 1000, '15min': 15 * 60 * 1000,
 };
 
 const log = createLogger('push');
 
+export const shouldIgnoreUser = (ctx: Context, user: {
+    lastSeen: 'online' | 'never_online' | number,
+    isActive: boolean,
+    notificationsDelay: '1min' | '15min' | 'none' | null,
+    notificationsReadSeq: number | null,
+    userStateSeq: number,
+    lastPushSeq: number | null,
+    mobileNotifications: 'all' | 'direct' | 'none',
+    desktopNotifications: 'all' | 'direct' | 'none'
+}) => {
+
+    if (user.lastSeen === 'never_online') {
+        log.debug(ctx, 'skip never-online');
+        return true;
+    }
+
+    // // Pause notifications only if delay was set
+    // // if (settings.notificationsDelay !== 'none') {
+    // // Ignore online
+    // if (lastSeen === 'online') {
+    //     log.debug(ctx, 'skip online');
+    //     return;
+    // }
+
+    // Ignore active users
+    if (user.isActive) {
+        log.debug(ctx, 'skip active');
+        return true;
+    }
+
+    let now = Date.now();
+    // Pause notifications till 1 minute passes from last active timeout
+    if (user.lastSeen > (now - Delays[user.notificationsDelay || 'none'])) {
+        log.debug(ctx, 'skip delay');
+        return true;
+    }
+
+    // Ignore read updates
+    if (user.notificationsReadSeq === user.userStateSeq) {
+        log.debug(ctx, 'ignore read updates');
+        return true;
+    }
+
+    // Ignore never opened apps
+    if (user.notificationsReadSeq === null) {
+        log.debug(ctx, 'ignore never opened apps');
+        return true;
+    }
+
+    // Ignore user's with disabled notifications
+    if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
+        log.debug(ctx, 'ignore user\'s with disabled notifications');
+        return true;
+    }
+
+    // Ignore already processed updates
+    if (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq) {
+        log.debug(ctx, 'ignore already processed updates');
+        return true;
+    }
+    return false;
+};
+
+export const shouldResetNotificationDelivery = (ctx: Context, user: {
+    uid: number,
+    lastSeen: 'online' | 'never_online' | number,
+    notificationsReadSeq: number | null,
+    userStateSeq: number,
+    lastPushSeq: number | null,
+    mobileNotifications: 'all' | 'direct' | 'none',
+    desktopNotifications: 'all' | 'direct' | 'none'
+}) => {
+    return user.lastSeen === 'never_online'
+        || user.notificationsReadSeq === user.userStateSeq // Ignore read updates
+        || user.notificationsReadSeq === null // Ignore never opened apps
+        || (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') // Ignore user's with disabled notifications
+        || (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq);  // Ignore already processed updates
+};
+
+export const shouldUpdateUserSeq = (ctx: Context, user: {
+    mobileNotifications: 'all' | 'direct' | 'none',
+    desktopNotifications:  'all' | 'direct' | 'none',
+}) => {
+    if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
+        return true;
+    }
+    return false;
+};
+
 export function startPushNotificationWorker() {
     singletonWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000, db: FDB.layer.db }, async (parent) => {
-        let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
-        let unreadUsers = await inTx(parent, async (ctx) => await needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
+        let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length);
         } else {
@@ -32,78 +119,39 @@ export function startPushNotificationWorker() {
                 ctx = withLogPath(ctx, 'user ' + uid);
 
                 // Loading user's settings and state
+
                 let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);
                 let settings = await Modules.Users.getUserSettings(ctx, uid);
                 let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
-
-                let now = Date.now();
-
                 let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
                 let isActive = await Modules.Presence.isActive(ctx, uid);
 
-                // Ignore never-online users
-                if (lastSeen === 'never_online') {
-                    log.debug(ctx, 'skip never-online');
-                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                    return;
-                }
+                const user = {
+                    uid,
+                    lastSeen,
+                    isActive,
+                    notificationsDelay: settings.notificationsDelay,
+                    notificationsReadSeq: state.readSeq,
+                    userStateSeq: ustate.seq,
+                    lastPushSeq: state.lastPushSeq,
+                    mobileNotifications: settings.mobileNotifications,
+                    desktopNotifications: settings.desktopNotifications,
+                };
 
-                // // Pause notifications only if delay was set
-                // // if (settings.notificationsDelay !== 'none') {
-                // // Ignore online
-                // if (lastSeen === 'online') {
-                //     log.debug(ctx, 'skip online');
-                //     return;
-                // }
-
-                // Ignore active users
-                if (isActive) {
-                    log.debug(ctx, 'skip active');
+                if (shouldIgnoreUser(ctx, user)) {
                     await Modules.Push.sendCounterPush(ctx, uid);
-                    return;
-                }
 
-                // Pause notifications till 1 minute passes from last active timeout
-                if (lastSeen > (now - Delays[settings.notificationsDelay || 'none'])) {
-                    log.debug(ctx, 'skip delay');
-                    await Modules.Push.sendCounterPush(ctx, uid);
-                    return;
-                }
-
-                // Ignore read updates
-                if (state.readSeq === ustate.seq) {
-                    log.debug(ctx, 'ignore read updates');
-                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                    await Modules.Push.sendCounterPush(ctx, uid);
-                    return;
-                }
-
-                // Ignore never opened apps
-                if (state.readSeq === null) {
-                    log.debug(ctx, 'ignore never opened apps');
-                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                    return;
-                }
-
-                // Ignore user's with disabled notifications
-                if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
-                    state.lastPushSeq = ustate.seq;
-                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                    log.debug(ctx, 'ignore user\'s with disabled notifications');
-                    await Modules.Push.sendCounterPush(ctx, uid);
-                    return;
-                }
-
-                // Ignore already processed updates
-                if (state.lastPushSeq !== null && state.lastPushSeq >= ustate.seq) {
-                    log.debug(ctx, 'ignore already processed updates');
-                    needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                    await Modules.Push.sendCounterPush(ctx, uid);
+                    if (shouldResetNotificationDelivery(ctx, user)) {
+                        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                    }
+                    if (shouldUpdateUserSeq(ctx, user)) {
+                        state.lastPushSeq = ustate.seq;
+                    }
                     return;
                 }
 
                 // Scanning updates
-                let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
+                let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq!, state.lastPushSeq || 0);
 
                 let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, afterSec);
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
@@ -128,15 +176,19 @@ export function startPushNotificationWorker() {
                     if (senderId === uid) {
                         continue;
                     }
+
                     let sender = await Modules.Users.profileById(ctx, senderId);
+                    let receiver = await Modules.Users.profileById(ctx, uid);
+                    let conversation = await FDB.Conversation.findById(ctx, message.cid);
+
                     if (!sender) {
                         continue;
                     }
-                    let receiver = await Modules.Users.profileById(ctx, uid);
+
                     if (!receiver) {
                         continue;
                     }
-                    let conversation = await FDB.Conversation.findById(ctx, message.cid);
+
                     if (!conversation) {
                         continue;
                     }
@@ -215,7 +267,7 @@ export function startPushNotificationWorker() {
                         desktop: sendDesktop,
                         mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
                         mobileIncludeText: (settings.mobileIncludeText !== undefined && settings.mobileIncludeText !== null) ? settings.mobileIncludeText : true,
-                        silent: null
+                        silent: null,
                     };
 
                     log.debug(ctx, 'new_push', JSON.stringify(push));
@@ -233,7 +285,7 @@ export function startPushNotificationWorker() {
                 log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);
 
                 state.lastPushSeq = ustate.seq;
-                needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
             });
         }
     });

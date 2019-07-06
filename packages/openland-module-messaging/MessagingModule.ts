@@ -28,15 +28,7 @@ export class MessagingModule {
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
 
-    constructor(
-        @inject('MessagingMediator') messaging: MessagingMediator,
-        @inject('UserStateRepository') userState: UserStateRepository,
-        @inject('FixerRepository') fixer: FixerRepository,
-        @inject('AugmentationMediator') augmentation: AugmentationMediator,
-        @inject('DeliveryMediator') delivery: DeliveryMediator,
-        @inject('RoomMediator') room: RoomMediator,
-        @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository
-    ) {
+    constructor(@inject('MessagingMediator') messaging: MessagingMediator, @inject('UserStateRepository') userState: UserStateRepository, @inject('FixerRepository') fixer: FixerRepository, @inject('AugmentationMediator') augmentation: AugmentationMediator, @inject('DeliveryMediator') delivery: DeliveryMediator, @inject('RoomMediator') room: RoomMediator, @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository) {
         this.delivery = delivery;
         this.userState = userState;
         this.messaging = messaging;
@@ -49,7 +41,7 @@ export class MessagingModule {
     //
     // Start 
     //
-    start = (launchIndexers: boolean = true) => {
+    start = () => {
         this.augmentation.start();
         this.delivery.start();
         if (serverRoleEnabled('workers')) {
@@ -58,18 +50,16 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
-        if (launchIndexers) {
-            if (serverRoleEnabled('workers')) {
-                dialogSearchIndexer();
-            }
-            if (serverRoleEnabled('workers')) {
-                messagesIndexer();
-            }
-            if (serverRoleEnabled('workers')) {
-                roomsSearchIndexer();
-            }
+        if (serverRoleEnabled('workers')) {
+            dialogSearchIndexer();
         }
-    }
+        if (serverRoleEnabled('workers')) {
+            messagesIndexer();
+        }
+        if (serverRoleEnabled('workers')) {
+            roomsSearchIndexer();
+        }
+    };
 
     //
     //  Settings
@@ -152,9 +142,9 @@ export class MessagingModule {
 
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
         await this.delivery.onUserProfileUpdated(ctx, uid);
-    }
+    };
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
         await this.delivery.onOrganizationProfileUpdated(ctx, oid);
-    }
+    };
 }
