@@ -1,7 +1,7 @@
 import { LiveStreamItem } from '@openland/foundationdb-entity';
 import { ConversationEvent } from './../../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { withUser } from 'openland-module-api/Resolvers';
@@ -60,16 +60,16 @@ export default {
     },
 
     ConversationMessageReceived: {
-        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
-        betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
+        betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
     },
     ConversationMessageUpdated: {
-        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
-        betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
+        betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
     },
     ConversationMessageDeleted: {
-        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
-        betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
+        betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
     },
     ConversationLostAccess: {
         lostAccess: () => true
@@ -146,11 +146,11 @@ export default {
         },
     },
     ConversationEventMessage: {
-        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
         seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventEditMessage: {
-        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => Store.Message.findById(ctx, src.mid!),
         seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventDelete: {

@@ -1,8 +1,8 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
-import { Comment, Message } from '../openland-module-db/schema';
-import { FDB, Store } from '../openland-module-db/FDB';
+import { Comment, Message } from '../openland-module-db/store';
+import { Store } from '../openland-module-db/FDB';
 import { REACTIONS_LEGACY } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
 import { Organization, Notification, ConversationRoom } from 'openland-module-db/store';
 
@@ -43,7 +43,7 @@ export class MetricsModule {
     async onCommentCreated(ctx: Context, message: Message, comment: Comment) {
         await trackServerEvent(ctx, { name: 'comment_to_message_received', uid: message.uid });
         if (comment.parentCommentId) {
-            let parentComment = await FDB.Comment.findById(ctx, comment.parentCommentId);
+            let parentComment = await Store.Comment.findById(ctx, comment.parentCommentId);
             if (parentComment) {
                 await trackServerEvent(ctx, { name: 'reply_to_comment_received', uid: parentComment.uid });
             }

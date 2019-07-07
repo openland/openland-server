@@ -1,8 +1,8 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withAccount } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
-import { FDB, Store } from '../openland-module-db/FDB';
-import { Message } from '../openland-module-db/schema';
+import { Store } from '../openland-module-db/FDB';
+import { Message } from '../openland-module-db/store';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
@@ -230,7 +230,7 @@ export default {
                     },
                 });
 
-                let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => FDB.Message.findById(ctx, parseInt(v._id, 10))));
+                let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
                 let offset = 0;
                 if (args.after) {
                     offset = parseInt(args.after, 10);

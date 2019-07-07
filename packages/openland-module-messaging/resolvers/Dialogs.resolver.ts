@@ -6,8 +6,8 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { createLogger } from '@openland/log';
+import { encoders } from '@openland/foundationdb';
 
 const logger = createLogger('dialogs');
 
@@ -94,7 +94,7 @@ export default {
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
 
             if (args.after) {
-                let dc = FKeyEncoding.decodeFromString(args.after);
+                let dc = encoders.tuple.unpack(Buffer.from(args.after, 'hex'));
                 let aft = dc[0] as number;
                 allDialogs = allDialogs.filter((v) => v.date! <= aft);
             }
@@ -106,7 +106,7 @@ export default {
                     hasMore: false
                 };
             } else {
-                let cursor = FKeyEncoding.encodeKeyToString([allDialogs[args.first].date!]);
+                let cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
                 return {
                     items: allDialogs.slice(0, args.first),
                     cursor: cursor,

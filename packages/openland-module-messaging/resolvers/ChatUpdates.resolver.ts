@@ -1,7 +1,7 @@
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ChatUpdateContainerRoot = GQLRoots.ChatUpdateContainerRoot;
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -55,9 +55,9 @@ export default {
         by: src => src.uid
     },
     ChatMessageReceived: {
-        message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
         repeatKey: async (src, args, ctx) => {
-            let msg = await FDB.Message.findById(ctx, src.mid!);
+            let msg = await Store.Message.findById(ctx, src.mid!);
             if (msg) {
                 return msg.repeatKey;
             }
@@ -65,10 +65,10 @@ export default {
         }
     },
     ChatMessageUpdated: {
-        message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
     },
     ChatMessageDeleted: {
-        message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
     },
     ChatLostAccess: {
         lostAccess: () => true

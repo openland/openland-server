@@ -20,14 +20,14 @@ import { UsersModule } from '../openland-module-users/UsersModule';
 import { Modules } from '../openland-modules/Modules';
 import { EmailTask } from './EmailTask';
 import { loadMessagingTestModule } from '../openland-module-messaging/Messaging.container.test';
-import { FDB } from '../openland-module-db/FDB';
-import { Message } from '../openland-module-db/schema';
+import { Message } from '../openland-module-db/store';
 import { OrganizationRepository } from '../openland-module-organization/repositories/OrganizationRepository';
 import { OrganizationModule } from '../openland-module-organization/OrganizationModule';
 import { SuperModule } from '../openland-module-super/SuperModule';
 import { loadInvitesModule } from '../openland-module-invites/Invites.container';
 import { Context, createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../openland-module-users/UsersModule.container';
+import { Store } from 'openland-module-db/FDB';
 
 // Welcome and Organization activated email delivery rules:
 //
@@ -107,7 +107,7 @@ describe('Emails', () => {
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let event = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
-        let message = (await FDB.Message.findById(ctx, event.mid!))!;
+        let message = (await Store.Message.findById(ctx, event.mid!))!;
 
         await Emails.sendUnreadMessages(ctx, uid, [message]);
 
@@ -126,9 +126,9 @@ describe('Emails', () => {
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let messages: Message[] = [];
         let event = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
-        messages.push((await FDB.Message.findById(ctx, event.mid!))!);
+        messages.push((await Store.Message.findById(ctx, event.mid!))!);
         let event2 = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
-        messages.push((await FDB.Message.findById(ctx, event2.mid!))!);
+        messages.push((await Store.Message.findById(ctx, event2.mid!))!);
 
         await Emails.sendUnreadMessages(ctx, uid, messages);
 

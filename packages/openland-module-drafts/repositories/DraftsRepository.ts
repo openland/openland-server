@@ -1,14 +1,8 @@
 import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 
 export class DraftsRepository {
-    readonly entities: AllEntities;
-
-    constructor(entities: AllEntities) {
-        this.entities = entities;
-    }
 
     findDraft = async (ctx: Context, uid: number, conversationId: number) => {
         let existing = await Store.MessageDraft.findById(ctx, uid, conversationId);

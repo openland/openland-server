@@ -1,7 +1,7 @@
 import { CommentEventGlobal } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
@@ -38,7 +38,7 @@ export default {
     },
     CommentPeerUpdated: {
         seq: src => src.seq,
-        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await FDB.Comment.allFromPeer(ctx, src.peerType! as any, src.peerId!) })
+        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!) })
     },
     Query: {
         commentGlobalUpdatesState: withUser(async (ctx, args, uid) => {

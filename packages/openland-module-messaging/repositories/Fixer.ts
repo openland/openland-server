@@ -1,5 +1,4 @@
 import { inTx } from '@openland/foundationdb';
-import { AllEntities } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
@@ -10,14 +9,11 @@ const logger = createLogger('fixer');
 
 @injectable()
 export class FixerRepository {
-    private readonly entities: AllEntities;
     private readonly userState: UserStateRepository;
 
     constructor(
-        @inject('FDB') entities: AllEntities,
         @inject('UserStateRepository') userState: UserStateRepository
     ) {
-        this.entities = entities;
         this.userState = userState;
     }
 
@@ -43,12 +39,12 @@ export class FixerRepository {
                     }
 
                     if (a.readMessageId) {
-                        let total = Math.max(0, (await this.entities.Message.allFromChatAfter(ctx, a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length);
+                        let total = Math.max(0, (await Store.Message.chat.query(ctx, a.cid, { after: a.readMessageId })).items.filter((v) => v.uid !== uid).length);
                         totalUnread += total;
                         logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
                         counter.set(ctx, total);
                     } else {
-                        let total = Math.max(0, (await this.entities.Message.allFromChat(ctx, a.cid)).filter((v) => v.uid !== uid).length);
+                        let total = Math.max(0, (await Store.Message.chat.findAll(ctx, a.cid)).filter((v) => v.uid !== uid).length);
                         totalUnread += total;
                         logger.debug(ctx, '[' + uid + '] fix counter in chat #' + a.cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
                         counter.set(ctx, total);

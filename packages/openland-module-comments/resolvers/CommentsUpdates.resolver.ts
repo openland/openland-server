@@ -1,6 +1,6 @@
 import { CommentEvent } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
@@ -40,10 +40,10 @@ export default {
         }
     },
     CommentReceived: {
-        comment: (src, args, ctx) => FDB.Comment.findById(ctx, src.commentId!)
+        comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!)
     },
     CommentUpdated: {
-        comment: (src, args, ctx) => FDB.Comment.findById(ctx, src.commentId!)
+        comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!)
     },
 
     Subscription: {

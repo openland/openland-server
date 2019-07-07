@@ -1,7 +1,6 @@
 import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomMediator } from './RoomMediator';
-import { FDB } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingMediator } from './MessagingMediator';
@@ -16,6 +15,7 @@ import { MediaModule } from '../../openland-module-media/MediaModule';
 import { IDs } from '../../openland-module-api/IDs';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
+import { Store } from 'openland-module-db/FDB';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -28,8 +28,8 @@ describe('MessagingMediator', () => {
         container.bind(MediaModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     it('should send message', async () => {
@@ -43,7 +43,7 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
-        let message = (await FDB.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!))!;
+        let message = (await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!))!;
 
         let textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
 
@@ -63,13 +63,13 @@ describe('MessagingMediator', () => {
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!;
 
         await mediator.setReaction(ctx, MSG_ID, USER_ID, '❤️');
-        let message = (await FDB.Message.findById(ctx, MSG_ID))!;
+        let message = (await Store.Message.findById(ctx, MSG_ID))!;
 
         let reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message, {}, {} as any);
         expect(reactionsResolved[0].reaction).toEqual('❤️');
 
         await mediator.setReaction(ctx, MSG_ID, USER_ID, '❤️', true);
-        message = (await FDB.Message.findById(ctx, MSG_ID))!;
+        message = (await Store.Message.findById(ctx, MSG_ID))!;
 
         reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message, {}, {} as any);
         expect(reactionsResolved.length).toEqual(0);
@@ -85,13 +85,13 @@ describe('MessagingMediator', () => {
 
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).mid!;
 
-        let message = (await FDB.Message.findById(ctx, MSG_ID))!;
+        let message = (await Store.Message.findById(ctx, MSG_ID))!;
         let textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
         expect(textResolved).toEqual('boom');
 
         await mediator.editMessage(ctx, MSG_ID, USER_ID, { message: 'boom shakalaka' }, false);
 
-        message = (await FDB.Message.findById(ctx, MSG_ID))!;
+        message = (await Store.Message.findById(ctx, MSG_ID))!;
         textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
         expect(textResolved).toEqual('boom shakalaka');
 
@@ -123,7 +123,7 @@ describe('MessagingMediator', () => {
 
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', attachments: [richAttachment] })).mid!;
 
-        let message = (await FDB.Message.findById(ctx, MSG_ID))!;
+        let message = (await Store.Message.findById(ctx, MSG_ID))!;
         let augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
         // expect(augmentationResolved).toEqual(augmentation);
 
@@ -138,7 +138,7 @@ describe('MessagingMediator', () => {
 
         await mediator.editMessage(ctx, MSG_ID, USER_ID, { attachments: newAttachments }, false);
 
-        message = (await FDB.Message.findById(ctx, MSG_ID))!;
+        message = (await Store.Message.findById(ctx, MSG_ID))!;
         augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
         expect(augmentationResolved).toBeNull();
 
@@ -153,16 +153,16 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         for (let i = 0; i < 4; i++) {
-            await FDB.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: i.toString() })).mid!);
+            await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: i.toString() })).mid!);
         }
 
         // load history first pack
-        let range = await FDB.Message.rangeFromChat(ctx, room.id, 2, true);
+        let range = (await Store.Message.chat.query(ctx, room.id, { limit: 2, reverse: true })).items;
         expect(range[0].text).toEqual('3');
         expect(range[1].text).toEqual('2');
 
         // load range before oldest message in prev range
-        range = await FDB.Message.rangeFromChatAfter(ctx, room.id, range[1].id, 2, true);
+        range = (await Store.Message.chat.query(ctx, room.id, { after: range[1].id, limit: 2, reverse: true })).items;
 
         expect(range[0].text).toEqual('1');
         expect(range[1].text).toEqual('0');

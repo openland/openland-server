@@ -1,6 +1,6 @@
 import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
@@ -38,7 +38,7 @@ describe('RoomMediator', () => {
         expect(profile).not.toBeNull();
         expect(profile).not.toBeUndefined();
         expect(profile.kind).toEqual('public');
-        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        let messages = await Store.Message.chat.findAll(ctx, room.id);
         expect(messages.length).toBe(1);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[0].cid).toBe(room.id);
@@ -70,7 +70,7 @@ describe('RoomMediator', () => {
             }
         }
         await mediator.inviteToRoom(ctx, room.id, USER_ID, [USER2_ID]);
-        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        let messages = await Store.Message.chat.findAll(ctx, room.id);
         expect(messages.length).toBe(2);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[1].uid).toBe(USER_ID);

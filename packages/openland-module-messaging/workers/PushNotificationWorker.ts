@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { fetchMessageFallback, hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
@@ -105,7 +105,7 @@ export const shouldUpdateUserSeq = (ctx: Context, user: {
 };
 
 export function startPushNotificationWorker() {
-    singletonWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000, db: FDB.layer.db }, async (parent) => {
+    singletonWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000, db: Store.storage.db }, async (parent) => {
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length);
@@ -166,7 +166,7 @@ export function startPushNotificationWorker() {
                     }
 
                     let messageId = m.mid!;
-                    let message = await FDB.Message.findById(ctx, messageId);
+                    let message = await Store.Message.findById(ctx, messageId);
                     if (!message) {
                         continue;
                     }

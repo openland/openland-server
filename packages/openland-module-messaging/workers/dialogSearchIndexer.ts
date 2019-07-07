@@ -1,4 +1,4 @@
-import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer2';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 

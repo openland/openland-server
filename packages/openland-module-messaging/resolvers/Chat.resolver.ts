@@ -15,9 +15,8 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { Message } from 'openland-module-db/schema';
-import { FDB, Store } from 'openland-module-db/FDB';
-import { FEntity } from 'foundation-orm/FEntity';
+import { Message } from 'openland-module-db/store';
+import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
@@ -222,11 +221,11 @@ export default {
     },
     UrlAugmentationExtra: {
         __resolveType(src: any) {
-            if ((src instanceof (FEntity) && src.entityName === 'User')) {
+            if (src instanceof User) {
                 return 'User';
-            } else if ((src instanceof (FEntity) && src.entityName === 'Organization')) {
+            } else if (src instanceof Organization) {
                 return 'Organization';
-            } else if ((src instanceof (FEntity) && src.entityName === 'Conversation')) {
+            } else if (src instanceof Conversation) {
                 return 'ChannelConversation';
             }
 
@@ -285,7 +284,7 @@ export default {
         },
         filePreview: (src: Message) => null,
         sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
-        date: (src: Message) => src.createdAt,
+        date: (src: Message) => src.metadata.createdAt,
         repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
         isService: (src: Message) => src.isService,
         serviceMetadata: (src: Message) => {
@@ -300,7 +299,7 @@ export default {
         reactions: (src: Message) => src.reactions || [],
         replyMessages: async (src: Message, args: {}, ctx: AppContext) => {
             if (src.replyMessages) {
-                let messages = await Promise.all((src.replyMessages as number[]).map(id => FDB.Message.findById(ctx, id)));
+                let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
                 let filtered = messages.filter(m => !!m);
                 if (filtered.length > 0) {
                     return filtered;
@@ -345,7 +344,7 @@ export default {
         kickedBy: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.kickedById)
     },
     PostRespondServiceMetadata: {
-        post: (src: any, _, ctx) => FDB.Message.findById(ctx, src.postId),
+        post: (src: any, _, ctx) => Store.Message.findById(ctx, src.postId),
         postRoom: (src: any) => src.postRoomId,
         responder: (src: any) => src.responderId,
         respondType: (src: any) => src.respondType
@@ -456,19 +455,19 @@ export default {
 
             let beforeMessage: Message | null = null;
             if (args.before) {
-                beforeMessage = await FDB.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
+                beforeMessage = await Store.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
             }
 
             if (beforeMessage) {
                 return {
                     seq: 0,
-                    messages: await FDB.Message.rangeFromChatAfter(ctx, conversationId, beforeMessage.id, args.first!, true)
+                    messages: (await Store.Message.chat.query(ctx, conversationId, { after: beforeMessage.id, limit: args.first!, reverse: true })).items
                 };
             }
 
             return {
                 seq: 0,
-                messages: await FDB.Message.rangeFromChat(ctx, conversationId, args.first!, true)
+                messages: (await Store.Message.chat.query(ctx, conversationId, { limit: args.first!, reverse: true })).items
             };
         }),
         alphaChatsSearchForCompose: withAccount(async (ctx, args, uid, oid) => {
@@ -594,7 +593,7 @@ export default {
         alphaDeleteMessageUrlAugmentation: withUser(async (ctx, args, uid) => {
             let mid = IDs.ConversationMessage.parse(args.messageId);
 
-            let message = await FDB.Message.findById(ctx, mid);
+            let message = await Store.Message.findById(ctx, mid);
             if (!message || message.deleted) {
                 throw new NotFoundError();
             }

@@ -1,17 +1,13 @@
+import { Message } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities, Message } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class CommentsNotificationsRepository {
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
-    @lazyInject('UserStateRepository')
 
     async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
         return await inTx(parent, async (ctx) => {
@@ -50,7 +46,7 @@ export class CommentsNotificationsRepository {
 
     async onNewComment(parent: Context, commentId: number) {
         return await inTx(parent, async (ctx) => {
-            let comment = (await this.entities.Comment.findById(ctx, commentId))!;
+            let comment = (await Store.Comment.findById(ctx, commentId))!;
 
             // Subscribe user if he was mentioned
             let mentions = (comment.spans || []).filter(s => s.type === 'user_mention');
@@ -85,13 +81,13 @@ export class CommentsNotificationsRepository {
                     sendNotification = true;
                 } else if (settings.commentNotifications === 'direct') {
                     if (comment.parentCommentId) {
-                        let parentComment = await this.entities.Comment.findById(ctx, comment.parentCommentId);
+                        let parentComment = await Store.Comment.findById(ctx, comment.parentCommentId);
                         if (parentComment && parentComment.uid === subscription.uid) {
                             sendNotification = true;
                         }
                     }
                     if (comment.peerType === 'message') {
-                        let message = await this.entities.Message.findById(ctx, comment.peerId);
+                        let message = await Store.Message.findById(ctx, comment.peerId);
                         if (message && message.uid === subscription.uid) {
                             sendNotification = true;
                         }

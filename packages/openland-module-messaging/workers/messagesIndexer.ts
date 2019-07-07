@@ -1,10 +1,10 @@
 import { inTx } from '@openland/foundationdb';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 6, 'message', FDB.Message.createUpdatedStream(200))
+    declareSearchIndexer('message-index', 6, 'message', Store.Message.updated.stream({ batchSize: 200 }))
         .withProperties({
             id: {
                 type: 'integer'
@@ -52,8 +52,8 @@ export function messagesIndexer() {
                         isService: !!item.isService,
                         deleted: !!item.deleted,
                         text: item.text || undefined,
-                        createdAt: item.createdAt,
-                        updatedAt: item.updatedAt,
+                        createdAt: item.metadata.createdAt,
+                        updatedAt: item.metadata.updatedAt,
                     }
                 };
             });

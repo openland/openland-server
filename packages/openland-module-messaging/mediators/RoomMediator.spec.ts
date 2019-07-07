@@ -1,7 +1,7 @@
 import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomMediator } from './RoomMediator';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from '../../openland-module-super/SuperModule';
@@ -45,7 +45,7 @@ describe('RoomMediator', () => {
         expect(profile).not.toBeNull();
         expect(profile).not.toBeUndefined();
         expect(profile.kind).toEqual('public');
-        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        let messages = await Store.Message.chat.findAll(ctx, room.id);
         expect(messages.length).toBe(1);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[0].cid).toBe(room.id);
@@ -62,7 +62,7 @@ describe('RoomMediator', () => {
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
-        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        let messages = await Store.Message.chat.findAll(ctx, room.id);
         expect(messages.length).toBe(2);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[1].uid).toBe(USER2_ID);
@@ -260,7 +260,7 @@ describe('RoomMediator', () => {
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
-        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        let messages = await Store.Message.chat.findAll(ctx, room.id);
         expect(messages.length).toBe(2);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[1].uid).toBe(USER2_ID);

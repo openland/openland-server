@@ -3,7 +3,6 @@ import { Store } from './../../openland-module-db/FDB';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import NotificationCenterUpdateContainerRoot = GQLRoots.NotificationCenterUpdateContainerRoot;
-import { FDB } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
@@ -79,8 +78,8 @@ export default {
         content: async (src, args, ctx) => src.updatedContent
     },
     UpdatedNotificationContentComment: {
-        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await FDB.Comment.allFromPeer(ctx, src.peerType! as any, src.peerId!) }),
-        comment: async (src, args, ctx) => src.commentId && await FDB.Comment.findById(ctx, src.commentId)
+        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!) }),
+        comment: async (src, args, ctx) => src.commentId && await Store.Comment.findById(ctx, src.commentId)
     },
 
     Subscription: {

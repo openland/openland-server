@@ -1,19 +1,13 @@
 import { inTx } from '@openland/foundationdb';
-import { AllEntities } from 'openland-module-db/schema';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { UserError } from 'openland-errors/UserError';
 import { randomInviteKey } from 'openland-utils/random';
-import { injectable, inject } from 'inversify';
+import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class InvitesRoomRepository {
-    readonly entities: AllEntities;
-
-    constructor(@inject('FDB') entities: AllEntities) {
-        this.entities = entities;
-    }
 
     async resolveInvite(ctx: Context, id: string) {
         let ex = await Store.ChannelInvitation.findById(ctx, id);

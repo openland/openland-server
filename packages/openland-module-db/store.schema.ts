@@ -214,6 +214,230 @@ export default declareSchema(() => {
     });
 
     //
+    // Content
+    //
+    const basicSpan = struct({
+        offset: integer(),
+        length: integer(),
+    });
+    const ImageRef = struct({
+        uuid: string(),
+        crop: optional(struct({
+            x: integer(),
+            y: integer(),
+            w: integer(),
+            h: integer()
+        }))
+    });
+    const FileInfo = struct({
+        name: string(),
+        size: integer(),
+        isImage: boolean(),
+        isStored: boolean(),
+        imageWidth: optional(integer()),
+        imageHeight: optional(integer()),
+        imageFormat: optional(string()),
+        mimeType: string()
+    });
+
+    entity('Message', () => {
+        primaryKey('id', integer());
+        field('cid', integer());
+        field('uid', integer());
+        field('repeatKey', optional(string()));
+
+        field('text', optional(string())).secure();
+        field('replyMessages', optional(array(integer())));
+        field('serviceMetadata', optional(json()));
+        field('reactions', optional(array(struct({
+            userId: integer(),
+            reaction: string()
+        }))));
+        field('edited', optional(boolean()));
+        field('isMuted', boolean());
+        field('isService', boolean());
+        field('deleted', optional(boolean()));
+        field('spans', optional(array(union({
+            user_mention: struct({
+                offset: integer(),
+                length: integer(),
+                user: integer()
+            }),
+            multi_user_mention: struct({
+                offset: integer(),
+                length: integer(),
+                users: array(integer())
+            }),
+            room_mention: struct({
+                offset: integer(),
+                length: integer(),
+                room: integer()
+            }),
+            link: struct({
+                offset: integer(),
+                length: integer(),
+                url: string()
+            }),
+            date_text: struct({
+                offset: integer(),
+                length: integer(),
+                date: integer(),
+            }),
+            bold_text: basicSpan,
+            italic_text: basicSpan,
+            irony_text: basicSpan,
+            inline_code_text: basicSpan,
+            code_block_text: basicSpan,
+            insane_text: basicSpan,
+            loud_text: basicSpan,
+            rotating_text: basicSpan,
+            all_mention: basicSpan
+        }))));
+        field('attachmentsModern', optional(array(union({
+            file_attachment: struct({
+                id: string(),
+                fileId: string(),
+                filePreview: optional(string()),
+                fileMetadata: optional(FileInfo)
+            }),
+            rich_attachment: struct({
+                id: string(),
+                title: optional(string()),
+                subTitle: optional(string()),
+                titleLink: optional(string()),
+                text: optional(string()),
+                icon: optional(ImageRef),
+                image: optional(ImageRef),
+                iconInfo: optional(FileInfo),
+                imageInfo: optional(FileInfo),
+                titleLinkHostname: optional(string()),
+                keyboard: optional(struct({
+                    buttons: array(array(struct({
+                        title: string(),
+                        style: enumString('DEFAULT', 'LIGHT'),
+                        url: optional(string()),
+                    })))
+                }))
+            })
+        }))));
+
+        // deprecated start
+        field('fileId', optional(string())).secure();
+        field('fileMetadata', optional(struct({
+            name: string(),
+            size: integer(),
+            isStored: optional(boolean()),
+            isImage: optional(boolean()),
+            imageWidth: optional(integer()),
+            imageHeight: optional(integer()),
+            imageFormat: optional(string()),
+            mimeType: string()
+        }))).secure();
+        field('filePreview', optional(string())).secure();
+        field('augmentation', optional(json()));
+        field('mentions', optional(json()));
+        field('attachments', optional(json()));
+        field('buttons', optional(json()));
+        field('type', optional(string()));
+        field('title', optional(string()));
+        field('postType', optional(string()));
+        field('complexMentions', optional(json()));
+        // deprecated end
+
+        rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('updated', ['updatedAt']);
+        uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
+    });
+
+    //
+    // Comments
+    //
+
+    entity('Comment', () => {
+        primaryKey('id', integer());
+        field('peerId', integer());
+        field('peerType', enumString('message'));
+        field('parentCommentId', optional(integer()));
+        field('uid', integer());
+
+        field('text', optional(string())).secure();
+        field('reactions', optional(array(struct({
+            userId: integer(),
+            reaction: string()
+        }))));
+        field('spans', optional(array(union({
+            user_mention: struct({
+                offset: integer(),
+                length: integer(),
+                user: integer()
+            }),
+            multi_user_mention: struct({
+                offset: integer(),
+                length: integer(),
+                users: array(integer())
+            }),
+            room_mention: struct({
+                offset: integer(),
+                length: integer(),
+                room: integer()
+            }),
+            link: struct({
+                offset: integer(),
+                length: integer(),
+                url: string()
+            }),
+            date_text: struct({
+                offset: integer(),
+                length: integer(),
+                date: integer()
+            }),
+            bold_text: basicSpan,
+            italic_text: basicSpan,
+            irony_text: basicSpan,
+            inline_code_text: basicSpan,
+            code_block_text: basicSpan,
+            insane_text: basicSpan,
+            loud_text: basicSpan,
+            rotating_text: basicSpan,
+            all_mention: basicSpan
+        }))));
+        field('attachments', optional(array(union({
+            file_attachment: struct({
+                id: string(),
+                fileId: string(),
+                filePreview: optional(string()),
+                fileMetadata: optional(FileInfo),
+            }),
+            rich_attachment: struct({
+                id: string(),
+                title: optional(string()),
+                subTitle: optional(string()),
+                titleLink: optional(string()),
+                text: optional(string()),
+                icon: optional(ImageRef),
+                image: optional(ImageRef),
+                iconInfo: optional(FileInfo),
+                imageInfo: optional(FileInfo),
+                titleLinkHostname: optional(string()),
+                keyboard: optional(struct({
+                    buttons: array(array(struct({
+                        title: string(),
+                        style: enumString('DEFAULT', 'LIGHT'),
+                        url: optional(string())
+                    })))
+                }))
+            })
+        }))));
+
+        field('deleted', optional(boolean()));
+        field('edited', optional(boolean()));
+        field('visible', optional(boolean()));
+
+        rangeIndex('peer', ['peerType', 'peerId', 'id']);
+        rangeIndex('child', ['parentCommentId', 'id']);
+    });
+
+    //
     // Messaging
     //
 
@@ -916,8 +1140,6 @@ export default declareSchema(() => {
 
         rangeIndex('pending', ['taskType', 'delay'])
             .withCondition((src) => src.taskStatus === 'pending');
-        // rangeIndex('executing', ['taskLockTimeout'])
-        //     .withCondition((src) => src.taskStatus === 'executing');
         rangeIndex('failing', ['taskFailureTime'])
             .withCondition((src) => src.taskStatus === 'failing');
     });

@@ -1,12 +1,11 @@
-import { FEntity } from 'foundation-orm/FEntity';
-import { FStream } from 'foundation-orm/FStream';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { singletonWorker } from '@openland/foundationdb-singleton';
+import { Stream } from '@openland/foundationdb-entity/lib/Stream';
 
-export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
-    singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: FDB.layer.db }, async (root) => {
+export function updateReader<T>(name: string, version: number, stream: Stream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
+    singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.ReaderState.findById(ctx, name));
         let first = false;
         if (existing) {
@@ -33,11 +32,11 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
                 if (existing && latest) {
                     // Update if not changed
                     if (existing.metadata.versionCode === latest.metadata.versionCode) {
-                        latest.cursor = stream.cursor;
+                        latest.cursor = stream.cursor!;
                         latest.version = version;
                     }
                 } else if (!latest) {
-                    await Store.ReaderState.create(ctx, name, { cursor: stream.cursor, version: version });
+                    await Store.ReaderState.create(ctx, name, { cursor: stream.cursor!, version: version });
                 }
             });
         }

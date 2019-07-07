@@ -1,8 +1,7 @@
-import { RoomParticipantCreateShape } from './../../openland-module-db/store';
+import { RoomParticipantCreateShape, Message } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, Message } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
@@ -37,7 +36,6 @@ export type WelcomeMessageT = {
 
 @injectable()
 export class RoomRepository {
-    @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
@@ -267,7 +265,7 @@ export class RoomRepository {
     async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await Store.Conversation.findById(ctx, cid);
-            let message = await this.entities.Message.findById(ctx, mid);
+            let message = await Store.Message.findById(ctx, mid);
             if (!message || !conv || message.deleted) {
                 throw new NotFoundError();
             }
@@ -322,7 +320,7 @@ export class RoomRepository {
                         messageContent = 'Document';
                     }
                 } else if (msg.replyMessages && msg.replyMessages.length > 0) {
-                    let replyMsg = await this.entities.Message.findById(ctx, msg.replyMessages[0]);
+                    let replyMsg = await Store.Message.findById(ctx, msg.replyMessages[0]);
 
                     if (replyMsg) {
                         return getMessageContent(replyMsg);

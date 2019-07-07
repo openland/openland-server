@@ -1,5 +1,4 @@
 import { Store } from './../../openland-module-db/FDB';
-import { FDB } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -10,7 +9,7 @@ export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
             let root = createNamedContext('task-scheduler');
-            singletonWorker({ db: FDB.layer.db, name: 'modern_work_scheduler', delay: 1000 }, async () => {
+            singletonWorker({ db: Store.storage.db, name: 'modern_work_scheduler', delay: 1000 }, async () => {
 
                 //
                 // Timeout tasks in executing state

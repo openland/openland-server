@@ -3,7 +3,6 @@ import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { CommentInput, CommentsRepository } from '../repositories/CommentsRepository';
 import { Context } from '@openland/context';
-import { AllEntities } from '../../openland-module-db/schema';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
@@ -15,8 +14,6 @@ import { Store } from 'openland-module-db/FDB';
 export class CommentsMediator {
     @lazyInject('CommentsRepository')
     private readonly repo!: CommentsRepository;
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
     @lazyInject('CommentAugmentationMediator')
     private readonly augmentation!: CommentAugmentationMediator;
     @lazyInject('CommentsNotificationsMediator')
@@ -25,7 +22,7 @@ export class CommentsMediator {
     async addMessageComment(parent: Context, messageId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
             // TODO: check access
-            let message = await this.entities.Message.findById(ctx, messageId);
+            let message = await Store.Message.findById(ctx, messageId);
             if (!message || message.deleted) {
                 throw new NotFoundError();
             }
@@ -71,7 +68,7 @@ export class CommentsMediator {
 
     async editComment(parent: Context, commentId: number, uid: number, newComment: CommentInput, markEdited: boolean) {
         return await inTx(parent, async (ctx) => {
-            let comment = await this.entities.Comment.findById(ctx, commentId);
+            let comment = await Store.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
@@ -93,14 +90,14 @@ export class CommentsMediator {
 
     async deleteComment(parent: Context, commentId: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let comment = await this.entities.Comment.findById(ctx, commentId);
+            let comment = await Store.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
             let haveSpecialRights = false;
 
             if (comment.peerType === 'message') {
-                let message = await this.entities.Message.findById(ctx, comment.peerId);
+                let message = await Store.Message.findById(ctx, comment.peerId);
                 if (message) {
                     haveSpecialRights = await Modules.Messaging.room.canEditRoom(ctx, message.cid, uid);
                 }
@@ -113,7 +110,7 @@ export class CommentsMediator {
             let res = this.repo.deleteComment(ctx, commentId);
 
             if (comment.peerType === 'message') {
-                let message = await this.entities.Message.findById(ctx, comment.peerId);
+                let message = await Store.Message.findById(ctx, comment.peerId);
 
                 if (message) {
                     //

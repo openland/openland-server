@@ -1,9 +1,8 @@
-import { FStream } from 'foundation-orm/FStream';
-import { FEntity } from 'foundation-orm/FEntity';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { Modules } from 'openland-modules/Modules';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { Stream } from '@openland/foundationdb-entity/lib/Stream';
 
 const log = createLogger('elastic-indexer');
 
@@ -21,15 +20,15 @@ type SearchIndexerProperties = { [key: string]: { type: SearchFieldType } };
 
 type HandlerReturnType<P extends SearchIndexerProperties> = { [K in keyof P]?: ToType<P[K]['type']> };
 
-export class SearchIndexer<T extends FEntity, P extends SearchIndexerProperties> {
+export class SearchIndexer<T, P extends SearchIndexerProperties> {
     readonly name: string;
     readonly version: number;
     readonly index: string;
-    readonly stream: FStream<T>;
+    readonly stream: Stream<T>;
     readonly client = Modules.Search.elastic.client;
     properties?: SearchIndexerProperties;
 
-    constructor(name: string, version: number, index: string, stream: FStream<T>) {
+    constructor(name: string, version: number, index: string, stream: Stream<T>) {
         this.name = name;
         this.version = version;
         this.index = index;
@@ -67,7 +66,8 @@ export class SearchIndexer<T extends FEntity, P extends SearchIndexerProperties>
             }
             let converted: any[] = [];
             for (let i of items) {
-                log.log(ctx, this.name, 'Indexing ' + i.rawId.join('.'));
+                // TODO: Reimplement
+                // log.log(ctx, this.name, 'Indexing ' + i.rawId.join('.'));
                 let c = await handler(i, ctx);
                 if (c) {
                     converted.push({
@@ -98,6 +98,6 @@ export class SearchIndexer<T extends FEntity, P extends SearchIndexerProperties>
     }
 }
 
-export function declareSearchIndexer<T extends FEntity>(name: string, version: number, index: string, stream: FStream<T>) {
+export function declareSearchIndexer<T>(name: string, version: number, index: string, stream: Stream<T>) {
     return new SearchIndexer(name, version, index, stream);
 }

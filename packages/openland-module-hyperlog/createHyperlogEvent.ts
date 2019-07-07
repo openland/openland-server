@@ -1,6 +1,6 @@
 import { RandomLayer } from '@openland/foundationdb-random';
 import { inTxLeaky } from '@openland/foundationdb';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 
@@ -11,7 +11,7 @@ export function createHyperlogger<T>(type: string) {
         event: async (parent: Context, event: T) => {
             try {
                 await inTxLeaky(parent, async (ctx) => {
-                    await Store.HyperLog.create_UNSAFE(ctx, FDB.layer.db.get(RandomLayer).nextRandomId(), {
+                    await Store.HyperLog.create_UNSAFE(ctx, Store.storage.db.get(RandomLayer).nextRandomId(), {
                         type: type,
                         date: Date.now(),
                         body: event

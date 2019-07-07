@@ -1,5 +1,5 @@
 import { Store } from 'openland-module-db/FDB';
-import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer2';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from '../../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 

@@ -1,6 +1,6 @@
 import { HyperLog } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { updateReader } from '../../openland-module-workers/updateReader2';
+import { updateReader } from '../../openland-module-workers/updateReader';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';

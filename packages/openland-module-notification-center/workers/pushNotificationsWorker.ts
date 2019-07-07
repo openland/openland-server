@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { createLogger, withLogPath } from '@openland/log';
 import { Modules } from '../../openland-modules/Modules';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { fetchMessageFallback } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
@@ -15,7 +15,7 @@ const Delays = {
 const log = createLogger('notification-center-push');
 
 export function startPushNotificationWorker() {
-    singletonWorker({ db: FDB.layer.db, name: 'notification_center_push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
+    singletonWorker({ db: Store.storage.db, name: 'notification_center_push_notifications', delay: 3000, startDelay: 3000 }, async (parent) => {
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
@@ -134,8 +134,8 @@ export function startPushNotificationWorker() {
                         let commentNotification = notification.content.find(c => c.type === 'new_comment');
                         if (commentNotification) {
                             pushBody += 'New comment';
-                            let comment = await FDB.Comment.findById(ctx, commentNotification.commentId);
-                            let message = await FDB.Message.findById(ctx, comment!.peerId);
+                            let comment = await Store.Comment.findById(ctx, commentNotification.commentId);
+                            let message = await Store.Message.findById(ctx, comment!.peerId);
                             let chat = await Store.Conversation.findById(ctx, message!.cid);
                             let chatName = await Modules.Messaging.room.resolveConversationTitle(ctx, chat!.id, uid);
                             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);

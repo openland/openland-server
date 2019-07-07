@@ -1,5 +1,5 @@
 import { Store } from 'openland-module-db/FDB';
-import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer2';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 
 export function declareHyperlogIndexer() {
     declareSearchIndexer('hyperlog', 1, 'hyperlog', Store.HyperLog.created.stream({ batchSize: 5000 }))

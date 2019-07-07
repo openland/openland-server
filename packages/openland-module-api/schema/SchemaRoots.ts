@@ -18,12 +18,10 @@ import {
     ConversationRoom,
     CommentEvent,
     CommentsSubscription,
-    CommentEventGlobal
-} from './../../openland-module-db/store';
-import {
+    CommentEventGlobal,
     Message,
     Comment
-} from '../../openland-module-db/schema';
+} from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
     BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,

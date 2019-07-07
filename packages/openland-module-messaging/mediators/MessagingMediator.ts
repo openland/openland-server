@@ -4,7 +4,6 @@ import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/M
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { DeliveryMediator } from './DeliveryMediator';
-import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { AugmentationMediator } from './AugmentationMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -23,8 +22,6 @@ const linkifyInstance = createLinkifyInstance();
 @injectable()
 export class MessagingMediator {
 
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
     @lazyInject('MessagingRepository')
     private readonly repo!: MessagingRepository;
     @lazyInject('DeliveryMediator')
@@ -111,7 +108,7 @@ export class MessagingMediator {
     editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
         return await inTx(parent, async (ctx) => {
             // Permissions
-            let message = (await this.entities.Message.findById(ctx, mid!))!;
+            let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
                 if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
                     throw new AccessDeniedError();
@@ -142,7 +139,7 @@ export class MessagingMediator {
 
             // Update
             let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
-            message = (await this.entities.Message.findById(ctx, mid!))!;
+            message = (await Store.Message.findById(ctx, mid!))!;
 
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
@@ -174,7 +171,7 @@ export class MessagingMediator {
             }
 
             // Delivery
-            let message = (await this.entities.Message.findById(ctx, res!.mid!))!;
+            let message = (await Store.Message.findById(ctx, res!.mid!))!;
             await this.delivery.onUpdateMessage(ctx, message);
             if (!reset) {
                 await Modules.Metrics.onReactionAdded(ctx, message, reaction);
@@ -187,7 +184,7 @@ export class MessagingMediator {
     deleteMessage = async (parent: Context, mid: number, uid: number) => {
         return await inTx(parent, async (ctx) => {
 
-            let message = (await this.entities.Message.findById(ctx, mid!))!;
+            let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
                 if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
                     throw new AccessDeniedError();
@@ -198,7 +195,7 @@ export class MessagingMediator {
             let res = await this.repo.deleteMessage(ctx, mid);
 
             // Delivery
-            message = (await this.entities.Message.findById(ctx, res!.mid!))!;
+            message = (await Store.Message.findById(ctx, res!.mid!))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
             let chatProfile = await Store.RoomProfile.findById(ctx, message.cid);
@@ -223,7 +220,7 @@ export class MessagingMediator {
 
     readRoom = async (parent: Context, uid: number, cid: number, mid: number) => {
         return await inTx(parent, async (ctx) => {
-            let msg = await this.entities.Message.findById(ctx, mid);
+            let msg = await Store.Message.findById(ctx, mid);
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');
             }

@@ -1,8 +1,8 @@
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { Modules } from '../../openland-modules/Modules';
-import { FDB, Store } from '../../openland-module-db/FDB';
-import { Comment } from '../../openland-module-db/schema';
+import { Store } from '../../openland-module-db/FDB';
+import { Comment } from '../../openland-module-db/store';
 import { Emails } from '../../openland-module-email/Emails';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
@@ -17,7 +17,7 @@ const Delays = {
 const log = createLogger('notification_center_email');
 
 export function startEmailNotificationWorker() {
-    singletonWorker({ name: 'notification_center_email_notifications', db: FDB.layer.db, delay: 15000, startDelay: 3000 }, async (parent) => {
+    singletonWorker({ name: 'notification_center_email_notifications', db: Store.storage.db, delay: 15000, startDelay: 3000 }, async (parent) => {
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'email'));
         if (unreadUsers.length > 0) {
@@ -112,7 +112,7 @@ export function startEmailNotificationWorker() {
 
                     let newComment = notification.content && notification.content.find(c => c.type === 'new_comment');
                     if (newComment) {
-                        unreadComments.push((await FDB.Comment.findById(ctx, newComment.commentId))!);
+                        unreadComments.push((await Store.Comment.findById(ctx, newComment.commentId))!);
                     }
                 }
 

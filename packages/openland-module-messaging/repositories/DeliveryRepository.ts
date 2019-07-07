@@ -1,24 +1,22 @@
 import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, Message } from 'openland-module-db/schema';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { Context } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
+import { Message } from 'openland-module-db/store';
 
 @injectable()
 export class DeliveryRepository {
-    private readonly entities: AllEntities;
+
     private readonly userState: UserStateRepository;
     private readonly metrics: ChatMetricsRepository;
 
     constructor(
-        @inject('FDB') entities: AllEntities,
         @inject('UserStateRepository') userState: UserStateRepository,
         @inject('ChatMetricsRepository') metrics: ChatMetricsRepository
     ) {
-        this.entities = entities;
         this.userState = userState;
         this.metrics = metrics;
     }
@@ -33,7 +31,7 @@ export class DeliveryRepository {
 
             // Update dialog and deliver update
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            local.date = message.createdAt;
+            local.date = message.metadata.createdAt;
 
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
@@ -174,7 +172,7 @@ export class DeliveryRepository {
 
     async deliverMessageReadToUser(parent: Context, uid: number, mid: number) {
         await inTx(parent, async (ctx) => {
-            let msg = await this.entities.Message.findById(ctx, mid);
+            let msg = await Store.Message.findById(ctx, mid);
             if (!msg) {
                 throw Error('Unable to find message');
             }

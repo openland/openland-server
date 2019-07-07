@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
-import { FDB, Store } from '../openland-module-db/FDB';
+import { Store } from '../openland-module-db/FDB';
 import { uuid } from '../openland-utils/uuid';
 import { JsonMap } from '../openland-utils/json';
 import { singletonWorker } from '@openland/foundationdb-singleton';
@@ -28,7 +28,7 @@ export class DelayedQueue<ARGS, RES extends JsonMap> {
     }
 
     start = (handler: (item: ARGS, ctx: Context) => RES | Promise<RES>) => {
-        singletonWorker({ db: FDB.layer.db, name: `delayed_queue_${this.taskType}`, delay: 3000, startDelay: 0 }, async (parent) => {
+        singletonWorker({ db: Store.storage.db, name: `delayed_queue_${this.taskType}`, delay: 3000, startDelay: 0 }, async (parent) => {
             await inTx(parent, async ctx => {
                 let tasks = (await Store.DelayedTask.pending.query(ctx, this.taskType, { after: Date.now() * -1, limit: 10 })).items;
                 for (let task of tasks) {

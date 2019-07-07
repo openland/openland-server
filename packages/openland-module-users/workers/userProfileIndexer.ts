@@ -1,5 +1,5 @@
 import { Store } from 'openland-module-db/FDB';
-import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer2';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 
@@ -87,8 +87,8 @@ export function userProfileIndexer() {
                         letInvitedByName: invitedByName,
                         ivitedByName: invitedByName,
                         status: user!.status,
-                        createdAt: (item as any).createdAt,
-                        updatedAt: (item as any).updatedAt,
+                        createdAt: item.metadata.createdAt,
+                        updatedAt: item.metadata.updatedAt,
                     }
                 };
             });

@@ -1,6 +1,5 @@
 import { injectable } from 'inversify';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
-import { AllEntities, Message } from 'openland-module-db/schema';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoService';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
@@ -8,6 +7,8 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { Context } from '@openland/context';
+import { Store } from 'openland-module-db/FDB';
+import { Message } from 'openland-module-db/store';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -15,7 +16,6 @@ const linkifyInstance = createLinkifyInstance();
 export class AugmentationMediator {
     private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
 
-    @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('MessagingRepository') private readonly messaging!: MessagingRepository;
 
     private started = false;
@@ -29,7 +29,7 @@ export class AugmentationMediator {
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
             this.queue.addWorker(async (item, ctx) => {
-                let message = await this.entities.Message.findById(ctx, item.messageId);
+                let message = await Store.Message.findById(ctx, item.messageId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };

@@ -1,14 +1,13 @@
-import { Organization } from './../openland-module-db/store';
+import { Organization, Message, Comment } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
-import { FDB, Store } from '../openland-module-db/FDB';
-import { Comment, Message } from '../openland-module-db/schema';
+import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
-import { inTx } from '@openland/foundationdb';
+import { inTx, encoders } from '@openland/foundationdb';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
@@ -17,7 +16,6 @@ import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
 import { CounterStrategies, CounterStrategyAll } from '../openland-module-messaging/repositories/CounterStrategies';
 
 const URLInfoService = createUrlInfoService();
@@ -112,7 +110,7 @@ export default {
                 }
 
                 try {
-                    messages.push(...await FDB.Message.allFromChat(ctx, dialog.cid));
+                    messages.push(...await Store.Message.chat.findAll(ctx, dialog.cid));
                 } catch (e) {
                     res += e.toString() + '\n\n';
                 }
@@ -145,12 +143,12 @@ export default {
             let res: { org: Organization, chat: number, messagesCount: number, lastMessageDate: string }[] = [];
 
             for (let chat of chats) {
-                let messages = await FDB.Message.allFromChat(ctx, chat.id);
+                let messages = await Store.Message.chat.findAll(ctx, chat.id);
                 res.push({
                     org: (await Store.Organization.findById(ctx, chat.oid))!,
                     chat: chat.id,
                     messagesCount: messages.length,
-                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].createdAt).toString() : '',
+                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].metadata.createdAt).toString() : '',
                 });
             }
 
@@ -260,16 +258,16 @@ export default {
             } else if (type === 'UNREAD_MESSAGE') {
                 let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
                 let dialog = dialogs.items[0];
-                let messages = await FDB.Message.rangeFromChat(ctx, dialog.cid, 1, true);
+                let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
 
-                await Emails.sendUnreadMessages(ctx, uid, messages);
+                await Emails.sendUnreadMessages(ctx, uid, messages.items);
             } else if (type === 'UNREAD_MESSAGES') {
                 let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
                 let messages: Message[] = [];
 
                 for (let dialog of dialogs.items) {
-                    let msgs = await FDB.Message.rangeFromChat(ctx, dialog.cid, 1, true);
-                    messages.push(msgs[0]);
+                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+                    messages.push(msgs.items[0]);
                 }
 
                 await Emails.sendUnreadMessages(ctx, uid, messages);
@@ -349,7 +347,7 @@ export default {
                                 continue;
                             }
                         }
-                        let messages = await FDB.Message.allFromChat(ctx, a.cid);
+                        let messages = await Store.Message.chat.findAll(ctx, a.cid);
                         for (let message of messages) {
                             if (message.uid === uid) {
                                 totalSent++;
@@ -492,7 +490,7 @@ export default {
 
                 for (let state of commentSeqs) {
                     await inTx(rootCtx, async _ctx => {
-                        let comments = await FDB.Comment.allFromPeer(_ctx, state.peerType as any, state.peerId);
+                        let comments = await Store.Comment.peer.findAll(_ctx, state.peerType as any, state.peerId);
 
                         let id2Comment = new Map<number, Comment>();
                         for (let comment of comments) {
@@ -543,7 +541,7 @@ export default {
         }),
         debugSetCommentVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
-                let comment = await FDB.Comment.findById(ctx, IDs.Comment.parse(args.commentId));
+                let comment = await Store.Comment.findById(ctx, IDs.Comment.parse(args.commentId));
                 if (comment) {
                     comment.visible = args.visible;
                 }
@@ -687,7 +685,7 @@ export default {
         }),
         debugCreateCommentSubscriptions: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCreateCommentSubscriptions', async (log) => {
-                let allComments = await FDB.Comment.findAll(rootCtx);
+                let allComments = await Store.Comment.findAll(rootCtx);
                 let i = 0;
                 for (let comment of allComments) {
                     await inTx(rootCtx, async (ctx) => {
@@ -776,7 +774,7 @@ export default {
                     if (!chat || chat.kind !== 'private') {
                         continue;
                     }
-                    let messages = await FDB.Message.allFromChat(ctx, dialog.cid);
+                    let messages = await Store.Message.chat.findAll(ctx, dialog.cid);
 
                     let sentCount = 0;
                     let receivedCount = 0;
@@ -826,7 +824,7 @@ export default {
         debugFixMessage: withPermission('super-admin', async (parent, args) => {
             let mid = args.id;
             await inTx(parent, async ctx => {
-                let message = await FDB.Message.findByRawId_UNSAFE(ctx, [mid]);
+                let message = await Store.Message.findById(ctx, mid);
                 if (!message) {
                     return;
                 }
@@ -940,13 +938,13 @@ export default {
                 if (!state) {
                     throw new NotFoundError();
                 }
-                let key = FKeyEncoding.decodeFromString(state!.cursor);
+                let key = encoders.tuple.unpack(Buffer.from(state!.cursor, 'hex'));
                 let isDateBased = key.length === 2 && (typeof key[0] === 'number' && key[0]! > 1183028484169);
 
                 while (true) {
                     state = await inTx(rootCtx, async ctx2 => await Store.ReaderState.findById(ctx2, args.reader));
-                    let data = FKeyEncoding.decodeFromString(state!.cursor);
-                    let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as number))}, id: ${data[1]}` : JSON.stringify(data);
+                    let data = state!.cursor;
+                    let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as any as number))}, id: ${data[1]}` : JSON.stringify(data);
                     if (str !== prev) {
                         yield str;
                         prev = str;

@@ -1,6 +1,5 @@
 import { inTx } from '@openland/foundationdb';
-import { injectable, inject } from 'inversify';
-import { AllEntities } from 'openland-module-db/schema';
+import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
@@ -9,9 +8,6 @@ let log = createLogger('call-repo');
 
 @injectable()
 export class CallRepository {
-
-    @inject('FDB')
-    entities!: AllEntities;
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {

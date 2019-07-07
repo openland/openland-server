@@ -1,6 +1,5 @@
-import { ConversationEvent } from 'openland-module-db/store';
+import { ConversationEvent, Message } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, Message } from 'openland-module-db/schema';
 import {
     MessageAttachment,
     MessageAttachmentInput,
@@ -17,8 +16,6 @@ import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class MessagingRepository {
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
     @lazyInject('ChatMetricsRepository')
     private readonly chatMetrics!: ChatMetricsRepository;
 
@@ -28,7 +25,7 @@ export class MessagingRepository {
             //
             // Check for duplicates
             //
-            if (message.repeatKey && await this.entities.Message.findFromRepeat(ctx, uid, cid, message.repeatKey)) {
+            if (message.repeatKey && await Store.Message.repeat.find(ctx, uid, cid, message.repeatKey)) {
                 throw new DoubleInvokeError();
             }
 
@@ -41,7 +38,7 @@ export class MessagingRepository {
             // Persist Messages
             //
             let mid = await this.fetchNextMessageId(ctx);
-            let msg = await this.entities.Message.create(ctx, mid, {
+            let msg = await Store.Message.create(ctx, mid, {
                 cid: cid,
                 uid: uid,
                 isMuted: message.isMuted || false,
@@ -92,7 +89,7 @@ export class MessagingRepository {
 
     async editMessage(parent: Context, mid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
         return await inTx(parent, async (ctx) => {
-            let message = await this.entities.Message.findById(ctx, mid);
+            let message = await Store.Message.findById(ctx, mid);
             if (!message) {
                 throw new Error('Message not found');
             }
@@ -140,7 +137,7 @@ export class MessagingRepository {
 
     async deleteMessage(parent: Context, mid: number): Promise<ConversationEvent> {
         return await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid));
+            let message = (await Store.Message.findById(ctx, mid));
 
             if (!message || message.deleted) {
                 throw new Error('Message not found');
@@ -168,7 +165,7 @@ export class MessagingRepository {
 
     async setReaction(parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) {
         return await inTx(parent, async (ctx) => {
-            let message = await this.entities.Message.findById(ctx, mid);
+            let message = await Store.Message.findById(ctx, mid);
 
             if (!message) {
                 throw new Error('Message not found');
@@ -206,7 +203,7 @@ export class MessagingRepository {
 
     async markMessageUpdated(parent: Context, mid: number) {
         return await inTx(parent, async (ctx) => {
-            let message = await this.entities.Message.findById(ctx, mid);
+            let message = await Store.Message.findById(ctx, mid);
 
             if (!message) {
                 throw new Error('Message not found');
@@ -225,7 +222,7 @@ export class MessagingRepository {
      * @param cid conversation id
      */
     async findTopMessage(ctx: Context, cid: number) {
-        let res = await this.entities.Message.rangeFromChat(ctx, cid, 1, true);
+        let res = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true })).items;
         if (res.length === 0) {
             return null;
         } else {
@@ -268,7 +265,7 @@ export class MessagingRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: this.entities.layer.db.get(RandomLayer).nextRandomId()
+                    id: Store.storage.db.get(RandomLayer).nextRandomId()
                 });
             }
 

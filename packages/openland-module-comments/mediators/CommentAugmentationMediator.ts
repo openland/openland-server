@@ -1,5 +1,5 @@
+import { Comment } from './../../openland-module-db/store';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
-import { AllEntities, Comment } from '../../openland-module-db/schema';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
@@ -8,6 +8,7 @@ import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../../op
 import { CommentsRepository } from '../repositories/CommentsRepository';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { Context } from '@openland/context';
+import { Store } from 'openland-module-db/FDB';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -15,7 +16,6 @@ const linkifyInstance = createLinkifyInstance();
 export class CommentAugmentationMediator {
     private readonly queue = new WorkQueue<{ commentId: number }, { result: string }>('comment_augmentation_task');
 
-    @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('CommentsRepository') private readonly comments!: CommentsRepository;
 
     private started = false;
@@ -29,7 +29,7 @@ export class CommentAugmentationMediator {
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
             this.queue.addWorker(async (item, ctx) => {
-                let message = await this.entities.Comment.findById(ctx, item.commentId);
+                let message = await Store.Comment.findById(ctx, item.commentId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };
