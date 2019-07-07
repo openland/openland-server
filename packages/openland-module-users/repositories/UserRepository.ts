@@ -406,11 +406,11 @@ export class UserRepository {
     //
     async markForUndexing(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserIndexingQueue.findById(ctx, uid);
+            let existing = await Store.UserIndexingQueue.findById(ctx, uid);
             if (existing) {
-                existing.markDirty();
+                existing.invalidate();
             } else {
-                await this.entities.UserIndexingQueue.create(ctx, uid, {});
+                await Store.UserIndexingQueue.create(ctx, uid, {});
             }
         });
     }

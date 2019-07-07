@@ -1,5 +1,4 @@
 import { inTx } from '@openland/foundationdb';
-import { AllEntities } from 'openland-module-db/schema';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
@@ -9,14 +8,11 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
-import { lazyInject } from '../../openland-modules/Modules.container';
 import { FDB, Store } from '../../openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/store';
 
 @injectable()
 export class OrganizationRepository {
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
 
     async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput, opts: { editorial: boolean, status: 'activated' | 'pending' | 'suspended' }) {
         await validate(
@@ -301,11 +297,11 @@ export class OrganizationRepository {
     //
     async markForUndexing(parent: Context, oid: number) {
         await inTx(parent, async (ctx) => {
-            let existing = await this.entities.OrganizationIndexingQueue.findById(ctx, oid);
+            let existing = await Store.OrganizationIndexingQueue.findById(ctx, oid);
             if (existing) {
-                existing.markDirty();
+                existing.invalidate();
             } else {
-                await this.entities.OrganizationIndexingQueue.create(ctx, oid, {});
+                await Store.OrganizationIndexingQueue.create(ctx, oid, {});
             }
         });
     }

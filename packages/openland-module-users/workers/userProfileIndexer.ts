@@ -1,10 +1,10 @@
-import { FDB, Store } from 'openland-module-db/FDB';
-import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
+import { Store } from 'openland-module-db/FDB';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer2';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 
 export function userProfileIndexer() {
-    declareSearchIndexer('user-profile-index', 16, 'user_profile', FDB.UserIndexingQueue.createUpdatedStream(50))
+    declareSearchIndexer('user-profile-index', 16, 'user_profile', Store.UserIndexingQueue.updated.stream({ batchSize: 50 }))
         .withProperties({
             primaryOrganization: {
                 type: 'keyword'

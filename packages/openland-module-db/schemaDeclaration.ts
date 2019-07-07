@@ -51,20 +51,6 @@ const basicSpan = (type: string) => json(() => {
 
 const Schema = declareSchema(() => {
 
-    entity('UserIndexingQueue', () => {
-        primaryKey('id', 'number');
-        rangeIndex('updated', ['updatedAt']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('OrganizationIndexingQueue', () => {
-        primaryKey('id', 'number');
-        rangeIndex('updated', ['updatedAt']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
     //
     // Conversation
     //

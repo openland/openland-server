@@ -61,6 +61,11 @@ export default declareSchema(() => {
         field('globalCounterType', optional(enumString('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')));
     });
 
+    entity('UserIndexingQueue', () => {
+        primaryKey('id', integer());
+        rangeIndex('updated', ['updatedAt']);
+    });
+
     //
     // Organization
     //
@@ -113,6 +118,11 @@ export default declareSchema(() => {
         uniqueIndex('ids', ['oid', 'uid']);
         rangeIndex('organization', ['status', 'oid', 'uid']);
         rangeIndex('user', ['status', 'uid', 'oid']);
+    });
+
+    entity('OrganizationIndexingQueue', () => {
+        primaryKey('id', integer());
+        rangeIndex('updated', ['updatedAt']);
     });
 
     //

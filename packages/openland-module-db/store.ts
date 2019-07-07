@@ -1406,6 +1406,77 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
     }
 }
 
+export interface UserIndexingQueueShape {
+    id: number;
+}
+
+export interface UserIndexingQueueCreateShape {
+}
+
+export class UserIndexingQueue extends Entity<UserIndexingQueueShape> {
+    get id(): number { return this._rawValue.id; }
+}
+
+export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueShape, UserIndexingQueue> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userIndexingQueue');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userIndexingQueue', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        let codec = c.struct({
+            id: c.integer,
+        });
+        let descriptor: EntityDescriptor<UserIndexingQueueShape> = {
+            name: 'UserIndexingQueue',
+            storageKey: 'userIndexingQueue',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserIndexingQueueFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserIndexingQueueShape>) {
+        super(descriptor);
+    }
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: UserIndexingQueueCreateShape): Promise<UserIndexingQueue> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: UserIndexingQueueCreateShape): UserIndexingQueue {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<UserIndexingQueue | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserIndexingQueueShape>): UserIndexingQueue {
+        return new UserIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface OrganizationShape {
     id: number;
     ownerId: number;
@@ -1932,6 +2003,77 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationMemberShape>): OrganizationMember {
         return new OrganizationMember([value.oid, value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OrganizationIndexingQueueShape {
+    id: number;
+}
+
+export interface OrganizationIndexingQueueCreateShape {
+}
+
+export class OrganizationIndexingQueue extends Entity<OrganizationIndexingQueueShape> {
+    get id(): number { return this._rawValue.id; }
+}
+
+export class OrganizationIndexingQueueFactory extends EntityFactory<OrganizationIndexingQueueShape, OrganizationIndexingQueue> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('organizationIndexingQueue');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationIndexingQueue', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        let codec = c.struct({
+            id: c.integer,
+        });
+        let descriptor: EntityDescriptor<OrganizationIndexingQueueShape> = {
+            name: 'OrganizationIndexingQueue',
+            storageKey: 'organizationIndexingQueue',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OrganizationIndexingQueueFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OrganizationIndexingQueueShape>) {
+        super(descriptor);
+    }
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: OrganizationIndexingQueueCreateShape): Promise<OrganizationIndexingQueue> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: OrganizationIndexingQueueCreateShape): OrganizationIndexingQueue {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<OrganizationIndexingQueue | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationIndexingQueueShape>): OrganizationIndexingQueue {
+        return new OrganizationIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -7169,10 +7311,12 @@ export interface Store extends BaseStore {
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
     readonly UserSettings: UserSettingsFactory;
+    readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly Organization: OrganizationFactory;
     readonly OrganizationProfile: OrganizationProfileFactory;
     readonly OrganizationEditorial: OrganizationEditorialFactory;
     readonly OrganizationMember: OrganizationMemberFactory;
+    readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly MessageDraft: MessageDraftFactory;
@@ -7243,10 +7387,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
     let UserSettingsPromise = UserSettingsFactory.open(storage);
+    let UserIndexingQueuePromise = UserIndexingQueueFactory.open(storage);
     let OrganizationPromise = OrganizationFactory.open(storage);
     let OrganizationProfilePromise = OrganizationProfileFactory.open(storage);
     let OrganizationEditorialPromise = OrganizationEditorialFactory.open(storage);
     let OrganizationMemberPromise = OrganizationMemberFactory.open(storage);
+    let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     let MessageDraftPromise = MessageDraftFactory.open(storage);
@@ -7316,10 +7462,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
         UserSettings: await UserSettingsPromise,
+        UserIndexingQueue: await UserIndexingQueuePromise,
         Organization: await OrganizationPromise,
         OrganizationProfile: await OrganizationProfilePromise,
         OrganizationEditorial: await OrganizationEditorialPromise,
         OrganizationMember: await OrganizationMemberPromise,
+        OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
         MessageDraft: await MessageDraftPromise,

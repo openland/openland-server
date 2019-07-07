@@ -22,164 +22,6 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
-export interface UserIndexingQueueShape {
-}
-
-export class UserIndexingQueue extends FEntity {
-    readonly entityName: 'UserIndexingQueue' = 'UserIndexingQueue';
-    get id(): number { return this._value.id; }
-}
-
-export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> {
-    static schema: FEntitySchema = {
-        name: 'UserIndexingQueue',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-        ],
-        indexes: [
-            { name: 'updated', type: 'range', fields: ['updatedAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userIndexingQueue');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, keyValidator: UserIndexingQueueFactory.validateKey, hasLiveStreams: false };
-        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('userIndexingQueue', 'updated'), 'updated', ['updatedAt'], false);
-        let indexes = {
-            updated: indexUpdated,
-        };
-        return new UserIndexingQueueFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUpdated: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { updated: FEntityIndex }) {
-        super('UserIndexingQueue', 'userIndexingQueue', config, [indexes.updated], layer, directory);
-        this.indexUpdated = indexes.updated;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: UserIndexingQueueShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: UserIndexingQueueShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
-    }
-    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
-    }
-    async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexUpdated.directory, []);
-    }
-    createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(this.indexUpdated.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserIndexingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
-    }
-}
-export interface OrganizationIndexingQueueShape {
-}
-
-export class OrganizationIndexingQueue extends FEntity {
-    readonly entityName: 'OrganizationIndexingQueue' = 'OrganizationIndexingQueue';
-    get id(): number { return this._value.id; }
-}
-
-export class OrganizationIndexingQueueFactory extends FEntityFactory<OrganizationIndexingQueue> {
-    static schema: FEntitySchema = {
-        name: 'OrganizationIndexingQueue',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-        ],
-        indexes: [
-            { name: 'updated', type: 'range', fields: ['updatedAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organizationIndexingQueue');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, keyValidator: OrganizationIndexingQueueFactory.validateKey, hasLiveStreams: false };
-        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationIndexingQueue', 'updated'), 'updated', ['updatedAt'], false);
-        let indexes = {
-            updated: indexUpdated,
-        };
-        return new OrganizationIndexingQueueFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUpdated: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { updated: FEntityIndex }) {
-        super('OrganizationIndexingQueue', 'organizationIndexingQueue', config, [indexes.updated], layer, directory);
-        this.indexUpdated = indexes.updated;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: OrganizationIndexingQueueShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: OrganizationIndexingQueueShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
-    }
-    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
-    }
-    async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexUpdated.directory, []);
-    }
-    createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(this.indexUpdated.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationIndexingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
-    }
-}
 export interface ConversationShape {
     kind: 'private' | 'organization' | 'room';
     deleted?: boolean| null;
@@ -4868,8 +4710,6 @@ export interface AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly UserIndexingQueue: UserIndexingQueueFactory;
-    readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly Conversation: ConversationFactory;
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
@@ -4903,8 +4743,6 @@ export interface AllEntities {
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
-        UserIndexingQueueFactory.schema,
-        OrganizationIndexingQueueFactory.schema,
         ConversationFactory.schema,
         ConversationPrivateFactory.schema,
         ConversationOrganizationFactory.schema,
@@ -4939,8 +4777,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     static async create(layer: EntityLayer) {
         let allEntities: FEntityFactory<FEntity>[] = [];
-        let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
-        let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.create(layer);
         let ConversationPromise = ConversationFactory.create(layer);
         let ConversationPrivatePromise = ConversationPrivateFactory.create(layer);
         let ConversationOrganizationPromise = ConversationOrganizationFactory.create(layer);
@@ -4973,8 +4809,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
-        allEntities.push(await UserIndexingQueuePromise);
-        allEntities.push(await OrganizationIndexingQueuePromise);
         allEntities.push(await ConversationPromise);
         allEntities.push(await ConversationPrivatePromise);
         allEntities.push(await ConversationOrganizationPromise);
@@ -5007,8 +4841,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await ChatAudienceCalculatingQueuePromise);
         let entities = {
             layer, allEntities,
-            UserIndexingQueue: await UserIndexingQueuePromise,
-            OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
             Conversation: await ConversationPromise,
             ConversationPrivate: await ConversationPrivatePromise,
             ConversationOrganization: await ConversationOrganizationPromise,
@@ -5048,8 +4880,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly UserIndexingQueue: UserIndexingQueueFactory;
-    readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly Conversation: ConversationFactory;
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
@@ -5083,10 +4913,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
-        this.UserIndexingQueue = entities.UserIndexingQueue;
-        this.allEntities.push(this.UserIndexingQueue);
-        this.OrganizationIndexingQueue = entities.OrganizationIndexingQueue;
-        this.allEntities.push(this.OrganizationIndexingQueue);
         this.Conversation = entities.Conversation;
         this.allEntities.push(this.Conversation);
         this.ConversationPrivate = entities.ConversationPrivate;
