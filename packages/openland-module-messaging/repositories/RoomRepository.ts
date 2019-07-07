@@ -1165,7 +1165,7 @@ export class RoomRepository {
             }
             await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
 
-            let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+            let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
 
             if (userRoomBadge && userRoomBadge.bid !== null) {
                 userRoomBadge.bid = null;

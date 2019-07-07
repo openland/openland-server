@@ -225,6 +225,24 @@ export default declareSchema(() => {
         field('value', integer());
     });
 
+    entity('UserBadge', () => {
+        primaryKey('id', integer());
+        field('uid', integer());
+        field('name', string());
+        field('verifiedBy', optional(integer()));
+        field('deleted', optional(boolean()));
+        rangeIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('name', ['name', 'createdAt']);
+    });
+
+    entity('UserRoomBadge', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+        field('bid', optional(integer()));
+        rangeIndex('chat', ['cid', 'uid']).withCondition((src) => !!src.bid);
+        rangeIndex('user', ['uid', 'cid']).withCondition((src) => !!src.bid);
+    });
+
     //
     // Shortnames
     //

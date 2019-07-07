@@ -3184,6 +3184,249 @@ export class UserInfluencerIndexFactory extends EntityFactory<UserInfluencerInde
     }
 }
 
+export interface UserBadgeShape {
+    id: number;
+    uid: number;
+    name: string;
+    verifiedBy: number | null;
+    deleted: boolean | null;
+}
+
+export interface UserBadgeCreateShape {
+    uid: number;
+    name: string;
+    verifiedBy: number | null;
+    deleted: boolean | null;
+}
+
+export class UserBadge extends Entity<UserBadgeShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get name(): string { return this._rawValue.name; }
+    set name(value: string) {
+        let normalized = this.descriptor.codec.fields.name.normalize(value);
+        if (this._rawValue.name !== normalized) {
+            this._rawValue.name = normalized;
+            this._updatedValues.name = normalized;
+            this.invalidate();
+        }
+    }
+    get verifiedBy(): number | null { return this._rawValue.verifiedBy; }
+    set verifiedBy(value: number | null) {
+        let normalized = this.descriptor.codec.fields.verifiedBy.normalize(value);
+        if (this._rawValue.verifiedBy !== normalized) {
+            this._rawValue.verifiedBy = normalized;
+            this._updatedValues.verifiedBy = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userBadge');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userBadge', 'user'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'name', storageKey: 'name', type: { type: 'range', fields: [{ name: 'name', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userBadge', 'name'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'name', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'verifiedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+            name: c.string,
+            verifiedBy: c.optional(c.integer),
+            deleted: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<UserBadgeShape> = {
+            name: 'UserBadge',
+            storageKey: 'userBadge',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserBadgeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserBadgeShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly name = Object.freeze({
+        findAll: async (ctx: Context, name: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [name])).items;
+        },
+        query: (ctx: Context, name: string, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [name], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (name: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [name], opts);
+        },
+        liveStream: (ctx: Context, name: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [name], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: UserBadgeCreateShape): Promise<UserBadge> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: UserBadgeCreateShape): UserBadge {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<UserBadge | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserBadgeShape>): UserBadge {
+        return new UserBadge([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserRoomBadgeShape {
+    uid: number;
+    cid: number;
+    bid: number | null;
+}
+
+export interface UserRoomBadgeCreateShape {
+    bid: number | null;
+}
+
+export class UserRoomBadge extends Entity<UserRoomBadgeShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get cid(): number { return this._rawValue.cid; }
+    get bid(): number | null { return this._rawValue.bid; }
+    set bid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.bid.normalize(value);
+        if (this._rawValue.bid !== normalized) {
+            this._rawValue.bid = normalized;
+            this._updatedValues.bid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, UserRoomBadge> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userRoomBadge');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userRoomBadge', 'chat'), condition: (src) => !!src.bid });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userRoomBadge', 'user'), condition: (src) => !!src.bid });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'bid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            cid: c.integer,
+            bid: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<UserRoomBadgeShape> = {
+            name: 'UserRoomBadge',
+            storageKey: 'userRoomBadge',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserRoomBadgeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserRoomBadgeShape>) {
+        super(descriptor);
+    }
+
+    readonly chat = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, cid: number, src: UserRoomBadgeCreateShape): Promise<UserRoomBadge> {
+        return this._create(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, src: UserRoomBadgeCreateShape): UserRoomBadge {
+        return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, cid: number): Promise<UserRoomBadge | null> {
+        return this._findById(ctx, [uid, cid]);
+    }
+
+    watch(ctx: Context, uid: number, cid: number): Watch {
+        return this._watch(ctx, [uid, cid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserRoomBadgeShape>): UserRoomBadge {
+        return new UserRoomBadge([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ShortnameReservationShape {
     shortname: string;
     ownerType: 'org' | 'user';
@@ -7327,6 +7570,8 @@ export interface Store extends BaseStore {
     readonly UserEdge: UserEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     readonly UserInfluencerIndex: UserInfluencerIndexFactory;
+    readonly UserBadge: UserBadgeFactory;
+    readonly UserRoomBadge: UserRoomBadgeFactory;
     readonly ShortnameReservation: ShortnameReservationFactory;
     readonly FeedSubscriber: FeedSubscriberFactory;
     readonly FeedSubscription: FeedSubscriptionFactory;
@@ -7403,6 +7648,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserEdgePromise = UserEdgeFactory.open(storage);
     let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(storage);
     let UserInfluencerIndexPromise = UserInfluencerIndexFactory.open(storage);
+    let UserBadgePromise = UserBadgeFactory.open(storage);
+    let UserRoomBadgePromise = UserRoomBadgeFactory.open(storage);
     let ShortnameReservationPromise = ShortnameReservationFactory.open(storage);
     let FeedSubscriberPromise = FeedSubscriberFactory.open(storage);
     let FeedSubscriptionPromise = FeedSubscriptionFactory.open(storage);
@@ -7478,6 +7725,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserEdge: await UserEdgePromise,
         UserInfluencerUserIndex: await UserInfluencerUserIndexPromise,
         UserInfluencerIndex: await UserInfluencerIndexPromise,
+        UserBadge: await UserBadgePromise,
+        UserRoomBadge: await UserRoomBadgePromise,
         ShortnameReservation: await ShortnameReservationPromise,
         FeedSubscriber: await FeedSubscriberPromise,
         FeedSubscription: await FeedSubscriptionPromise,

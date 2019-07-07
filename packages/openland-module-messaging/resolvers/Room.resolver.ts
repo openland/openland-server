@@ -161,7 +161,7 @@ export default {
             }
         }),
         myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
-        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await FDB.UserRoomBadge.allFromChat(ctx, id)).length),
+        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length),
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -421,7 +421,7 @@ export default {
             if (!conversation) {
                 throw new Error('Room not found');
             }
-            let badges = await FDB.UserRoomBadge.rangeFromChat(ctx, roomId, args.first || 1000);
+            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
             return await Promise.all(badges.map(b => FDB.RoomParticipant.findById(ctx, b.cid, b.uid)));
         }),
 

@@ -5,7 +5,8 @@ import {
     UserStorageRecord,
     UserSettings,
     AppHook,
-    DebugEvent
+    DebugEvent,
+    UserBadge
 } from './../../openland-module-db/store';
 import {
     Conversation,
@@ -21,8 +22,7 @@ import {
     UserNotificationCenter,
     NotificationCenterEvent,
     CommentsSubscription,
-    CommentEventGlobal,
-    UserBadge
+    CommentEventGlobal
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {

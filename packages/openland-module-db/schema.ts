@@ -4310,295 +4310,6 @@ export class NotificationCenterEventFactory extends FEntityFactory<NotificationC
         return new NotificationCenterEvent(ctx, this.layer, this.directory, [value.ncid, value.seq], value, this.options, isNew, this.indexes, 'NotificationCenterEvent');
     }
 }
-export interface UserBadgeShape {
-    uid: number;
-    name: string;
-    verifiedBy?: number| null;
-    deleted?: boolean| null;
-}
-
-export class UserBadge extends FEntity {
-    readonly entityName: 'UserBadge' = 'UserBadge';
-    get id(): number { return this._value.id; }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get name(): string {
-        return this._value.name;
-    }
-    set name(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.name) { return; }
-        this._value.name = value;
-        this.markDirty();
-    }
-    get verifiedBy(): number | null {
-        let res = this._value.verifiedBy;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set verifiedBy(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.verifiedBy) { return; }
-        this._value.verifiedBy = value;
-        this.markDirty();
-    }
-    get deleted(): boolean | null {
-        let res = this._value.deleted;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set deleted(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.deleted) { return; }
-        this._value.deleted = value;
-        this.markDirty();
-    }
-}
-
-export class UserBadgeFactory extends FEntityFactory<UserBadge> {
-    static schema: FEntitySchema = {
-        name: 'UserBadge',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'uid', type: 'number' },
-            { name: 'name', type: 'string' },
-            { name: 'verifiedBy', type: 'number' },
-            { name: 'deleted', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'user', type: 'range', fields: ['uid', 'id'] },
-            { name: 'name', type: 'range', fields: ['name', 'createdAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userBadge');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserBadgeFactory.validate, keyValidator: UserBadgeFactory.validateKey, hasLiveStreams: false };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userBadge', 'user'), 'user', ['uid', 'id'], false, (src) => !src.deleted);
-        let indexName = new FEntityIndex(await layer.resolveEntityIndexDirectory('userBadge', 'name'), 'name', ['name', 'createdAt'], false);
-        let indexes = {
-            user: indexUser,
-            name: indexName,
-        };
-        return new UserBadgeFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-    readonly indexName: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('name', src.name);
-        validators.isString('name', src.name);
-        validators.isNumber('verifiedBy', src.verifiedBy);
-        validators.isBoolean('deleted', src.deleted);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, name: FEntityIndex }) {
-        super('UserBadge', 'userBadge', config, [indexes.user, indexes.name], layer, directory);
-        this.indexUser = indexes.user;
-        this.indexName = indexes.name;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: UserBadgeShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: UserBadgeShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [uid]);
-    }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [uid], limit, after); 
-    }
-    async allFromNameAfter(ctx: Context, name: string, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexName.directory, [name], after);
-    }
-    async rangeFromNameAfter(ctx: Context, name: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexName.directory, [name], after, limit, reversed);
-    }
-    async rangeFromName(ctx: Context, name: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexName.directory, [name], limit, reversed);
-    }
-    async rangeFromNameWithCursor(ctx: Context, name: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexName.directory, [name], limit, after, reversed);
-    }
-    async allFromName(ctx: Context, name: string) {
-        return await this._findAll(ctx, this.indexName.directory, [name]);
-    }
-    createNameStream(name: string, limit: number, after?: string) {
-        return this._createStream(this.indexName.directory, [name], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserBadge(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserBadge');
-    }
-}
-export interface UserRoomBadgeShape {
-    bid?: number| null;
-}
-
-export class UserRoomBadge extends FEntity {
-    readonly entityName: 'UserRoomBadge' = 'UserRoomBadge';
-    get uid(): number { return this._value.uid; }
-    get cid(): number { return this._value.cid; }
-    get bid(): number | null {
-        let res = this._value.bid;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set bid(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.bid) { return; }
-        this._value.bid = value;
-        this.markDirty();
-    }
-}
-
-export class UserRoomBadgeFactory extends FEntityFactory<UserRoomBadge> {
-    static schema: FEntitySchema = {
-        name: 'UserRoomBadge',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-            { name: 'cid', type: 'number' },
-        ],
-        fields: [
-            { name: 'bid', type: 'number' },
-        ],
-        indexes: [
-            { name: 'chat', type: 'range', fields: ['cid', 'uid'] },
-            { name: 'user', type: 'range', fields: ['uid', 'cid'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userRoomBadge');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserRoomBadgeFactory.validate, keyValidator: UserRoomBadgeFactory.validateKey, hasLiveStreams: false };
-        let indexChat = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'chat'), 'chat', ['cid', 'uid'], false, (src) => !!src.bid);
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('userRoomBadge', 'user'), 'user', ['uid', 'cid'], false, (src) => !!src.bid);
-        let indexes = {
-            chat: indexChat,
-            user: indexUser,
-        };
-        return new UserRoomBadgeFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexChat: FEntityIndex;
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('cid', src.cid);
-        validators.isNumber('cid', src.cid);
-        validators.isNumber('bid', src.bid);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-        validators.isNumber('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { chat: FEntityIndex, user: FEntityIndex }) {
-        super('UserRoomBadge', 'userRoomBadge', config, [indexes.chat, indexes.user], layer, directory);
-        this.indexChat = indexes.chat;
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0], 'cid': rawId[1] };
-    }
-    async findById(ctx: Context, uid: number, cid: number) {
-        return await this._findById(ctx, [uid, cid]);
-    }
-    async create(ctx: Context, uid: number, cid: number, shape: UserRoomBadgeShape) {
-        return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, cid: number, shape: UserRoomBadgeShape) {
-        return await this._create_UNSAFE(ctx, [uid, cid], { uid, cid, ...shape });
-    }
-    watch(ctx: Context, uid: number, cid: number) {
-        return this._watch(ctx, [uid, cid]);
-    }
-    async allFromChatAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexChat.directory, [cid], after);
-    }
-    async rangeFromChatAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexChat.directory, [cid], after, limit, reversed);
-    }
-    async rangeFromChat(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexChat.directory, [cid], limit, reversed);
-    }
-    async rangeFromChatWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexChat.directory, [cid], limit, after, reversed);
-    }
-    async allFromChat(ctx: Context, cid: number) {
-        return await this._findAll(ctx, this.indexChat.directory, [cid]);
-    }
-    createChatStream(cid: number, limit: number, after?: string) {
-        return this._createStream(this.indexChat.directory, [cid], limit, after); 
-    }
-    async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [uid]);
-    }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [uid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserRoomBadge(ctx, this.layer, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserRoomBadge');
-    }
-}
 export interface ChatAudienceCalculatingQueueShape {
     active: boolean;
     delta: number;
@@ -4737,8 +4448,6 @@ export interface AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
-    readonly UserBadge: UserBadgeFactory;
-    readonly UserRoomBadge: UserRoomBadgeFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
@@ -4770,8 +4479,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         NotificationFactory.schema,
         NotificationCenterStateFactory.schema,
         NotificationCenterEventFactory.schema,
-        UserBadgeFactory.schema,
-        UserRoomBadgeFactory.schema,
         ChatAudienceCalculatingQueueFactory.schema,
     ];
 
@@ -4804,8 +4511,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let NotificationPromise = NotificationFactory.create(layer);
         let NotificationCenterStatePromise = NotificationCenterStateFactory.create(layer);
         let NotificationCenterEventPromise = NotificationCenterEventFactory.create(layer);
-        let UserBadgePromise = UserBadgeFactory.create(layer);
-        let UserRoomBadgePromise = UserRoomBadgeFactory.create(layer);
         let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -4836,8 +4541,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await NotificationPromise);
         allEntities.push(await NotificationCenterStatePromise);
         allEntities.push(await NotificationCenterEventPromise);
-        allEntities.push(await UserBadgePromise);
-        allEntities.push(await UserRoomBadgePromise);
         allEntities.push(await ChatAudienceCalculatingQueuePromise);
         let entities = {
             layer, allEntities,
@@ -4868,8 +4571,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             Notification: await NotificationPromise,
             NotificationCenterState: await NotificationCenterStatePromise,
             NotificationCenterEvent: await NotificationCenterEventPromise,
-            UserBadge: await UserBadgePromise,
-            UserRoomBadge: await UserRoomBadgePromise,
             ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
             NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
             NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
@@ -4907,8 +4608,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
-    readonly UserBadge: UserBadgeFactory;
-    readonly UserRoomBadge: UserRoomBadgeFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
 
     private constructor(entities: AllEntities) {
@@ -4967,10 +4666,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.NotificationCenterState);
         this.NotificationCenterEvent = entities.NotificationCenterEvent;
         this.allEntities.push(this.NotificationCenterEvent);
-        this.UserBadge = entities.UserBadge;
-        this.allEntities.push(this.UserBadge);
-        this.UserRoomBadge = entities.UserRoomBadge;
-        this.allEntities.push(this.UserRoomBadge);
         this.ChatAudienceCalculatingQueue = entities.ChatAudienceCalculatingQueue;
         this.allEntities.push(this.ChatAudienceCalculatingQueue);
         this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;

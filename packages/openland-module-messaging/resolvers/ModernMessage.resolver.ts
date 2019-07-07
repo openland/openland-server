@@ -1,8 +1,9 @@
+import { UserBadge } from 'openland-module-db/store';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
-import { Comment, Message, UserBadge } from '../../openland-module-db/schema';
+import { Comment, Message } from '../../openland-module-db/schema';
 import { FDB } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
