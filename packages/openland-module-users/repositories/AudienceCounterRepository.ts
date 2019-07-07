@@ -26,9 +26,9 @@ export class AudienceCounterRepository {
                 return;
             }
 
-            let existing = await this.fdb.ChatAudienceCalculatingQueue.findById(ctx, cid);
+            let existing = await Store.ChatAudienceCalculatingQueue.findById(ctx, cid);
             if (!existing) {
-                return await this.fdb.ChatAudienceCalculatingQueue.create(ctx, cid, { delta: membersCountDelta, active: true });
+                return await Store.ChatAudienceCalculatingQueue.create(ctx, cid, { delta: membersCountDelta, active: true });
             }
             if (existing.active) {
                 existing.delta += membersCountDelta;

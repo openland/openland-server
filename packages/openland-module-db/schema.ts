@@ -3411,406 +3411,10 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         return new UserDialogEvent(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
     }
 }
-export interface UserMessagingStateShape {
-    seq: number;
-    unread: number;
-    messagesSent?: number| null;
-    messagesReceived?: number| null;
-    chatsCount?: number| null;
-    directChatsCount?: number| null;
-}
-
-export class UserMessagingState extends FEntity {
-    readonly entityName: 'UserMessagingState' = 'UserMessagingState';
-    get uid(): number { return this._value.uid; }
-    get seq(): number {
-        return this._value.seq;
-    }
-    set seq(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.seq) { return; }
-        this._value.seq = value;
-        this.markDirty();
-    }
-    get unread(): number {
-        return this._value.unread;
-    }
-    set unread(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.unread) { return; }
-        this._value.unread = value;
-        this.markDirty();
-    }
-    get messagesSent(): number | null {
-        let res = this._value.messagesSent;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set messagesSent(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.messagesSent) { return; }
-        this._value.messagesSent = value;
-        this.markDirty();
-    }
-    get messagesReceived(): number | null {
-        let res = this._value.messagesReceived;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set messagesReceived(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.messagesReceived) { return; }
-        this._value.messagesReceived = value;
-        this.markDirty();
-    }
-    get chatsCount(): number | null {
-        let res = this._value.chatsCount;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set chatsCount(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.chatsCount) { return; }
-        this._value.chatsCount = value;
-        this.markDirty();
-    }
-    get directChatsCount(): number | null {
-        let res = this._value.directChatsCount;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set directChatsCount(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.directChatsCount) { return; }
-        this._value.directChatsCount = value;
-        this.markDirty();
-    }
-}
-
-export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
-    static schema: FEntitySchema = {
-        name: 'UserMessagingState',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-        ],
-        fields: [
-            { name: 'seq', type: 'number' },
-            { name: 'unread', type: 'number' },
-            { name: 'messagesSent', type: 'number' },
-            { name: 'messagesReceived', type: 'number' },
-            { name: 'chatsCount', type: 'number' },
-            { name: 'directChatsCount', type: 'number' },
-        ],
-        indexes: [
-            { name: 'hasUnread', type: 'range', fields: [] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userMessagingState');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate, keyValidator: UserMessagingStateFactory.validateKey, hasLiveStreams: false };
-        let indexHasUnread = new FEntityIndex(await layer.resolveEntityIndexDirectory('userMessagingState', 'hasUnread'), 'hasUnread', [], false, (src) => src.unread && src.unread > 0);
-        let indexes = {
-            hasUnread: indexHasUnread,
-        };
-        return new UserMessagingStateFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexHasUnread: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-        validators.notNull('unread', src.unread);
-        validators.isNumber('unread', src.unread);
-        validators.isNumber('messagesSent', src.messagesSent);
-        validators.isNumber('messagesReceived', src.messagesReceived);
-        validators.isNumber('chatsCount', src.chatsCount);
-        validators.isNumber('directChatsCount', src.directChatsCount);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { hasUnread: FEntityIndex }) {
-        super('UserMessagingState', 'userMessagingState', config, [indexes.hasUnread], layer, directory);
-        this.indexHasUnread = indexes.hasUnread;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0] };
-    }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
-    }
-    async create(ctx: Context, uid: number, shape: UserMessagingStateShape) {
-        return await this._create(ctx, [uid], { uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, shape: UserMessagingStateShape) {
-        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
-    }
-    watch(ctx: Context, uid: number) {
-        return this._watch(ctx, [uid]);
-    }
-    async rangeFromHasUnread(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexHasUnread.directory, [], limit, reversed);
-    }
-    async rangeFromHasUnreadWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexHasUnread.directory, [], limit, after, reversed);
-    }
-    async allFromHasUnread(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexHasUnread.directory, []);
-    }
-    createHasUnreadStream(limit: number, after?: string) {
-        return this._createStream(this.indexHasUnread.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserMessagingState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
-    }
-}
-export interface UserNotificationsStateShape {
-    readSeq?: number| null;
-    lastEmailNotification?: number| null;
-    lastPushNotification?: number| null;
-    lastEmailSeq?: number| null;
-    lastPushSeq?: number| null;
-}
-
-export class UserNotificationsState extends FEntity {
-    readonly entityName: 'UserNotificationsState' = 'UserNotificationsState';
-    get uid(): number { return this._value.uid; }
-    get readSeq(): number | null {
-        let res = this._value.readSeq;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set readSeq(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.readSeq) { return; }
-        this._value.readSeq = value;
-        this.markDirty();
-    }
-    get lastEmailNotification(): number | null {
-        let res = this._value.lastEmailNotification;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastEmailNotification(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastEmailNotification) { return; }
-        this._value.lastEmailNotification = value;
-        this.markDirty();
-    }
-    get lastPushNotification(): number | null {
-        let res = this._value.lastPushNotification;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastPushNotification(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastPushNotification) { return; }
-        this._value.lastPushNotification = value;
-        this.markDirty();
-    }
-    get lastEmailSeq(): number | null {
-        let res = this._value.lastEmailSeq;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastEmailSeq(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastEmailSeq) { return; }
-        this._value.lastEmailSeq = value;
-        this.markDirty();
-    }
-    get lastPushSeq(): number | null {
-        let res = this._value.lastPushSeq;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastPushSeq(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastPushSeq) { return; }
-        this._value.lastPushSeq = value;
-        this.markDirty();
-    }
-}
-
-export class UserNotificationsStateFactory extends FEntityFactory<UserNotificationsState> {
-    static schema: FEntitySchema = {
-        name: 'UserNotificationsState',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-        ],
-        fields: [
-            { name: 'readSeq', type: 'number' },
-            { name: 'lastEmailNotification', type: 'number' },
-            { name: 'lastPushNotification', type: 'number' },
-            { name: 'lastEmailSeq', type: 'number' },
-            { name: 'lastPushSeq', type: 'number' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userNotificationsState');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate, keyValidator: UserNotificationsStateFactory.validateKey, hasLiveStreams: false };
-        return new UserNotificationsStateFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.isNumber('readSeq', src.readSeq);
-        validators.isNumber('lastEmailNotification', src.lastEmailNotification);
-        validators.isNumber('lastPushNotification', src.lastPushNotification);
-        validators.isNumber('lastEmailSeq', src.lastEmailSeq);
-        validators.isNumber('lastPushSeq', src.lastPushSeq);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('UserNotificationsState', 'userNotificationsState', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0] };
-    }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
-    }
-    async create(ctx: Context, uid: number, shape: UserNotificationsStateShape) {
-        return await this._create(ctx, [uid], { uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, shape: UserNotificationsStateShape) {
-        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
-    }
-    watch(ctx: Context, uid: number) {
-        return this._watch(ctx, [uid]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserNotificationsState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
-    }
-}
-export interface ChatAudienceCalculatingQueueShape {
-    active: boolean;
-    delta: number;
-}
-
-export class ChatAudienceCalculatingQueue extends FEntity {
-    readonly entityName: 'ChatAudienceCalculatingQueue' = 'ChatAudienceCalculatingQueue';
-    get id(): number { return this._value.id; }
-    get active(): boolean {
-        return this._value.active;
-    }
-    set active(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.active) { return; }
-        this._value.active = value;
-        this.markDirty();
-    }
-    get delta(): number {
-        return this._value.delta;
-    }
-    set delta(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.delta) { return; }
-        this._value.delta = value;
-        this.markDirty();
-    }
-}
-
-export class ChatAudienceCalculatingQueueFactory extends FEntityFactory<ChatAudienceCalculatingQueue> {
-    static schema: FEntitySchema = {
-        name: 'ChatAudienceCalculatingQueue',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'number' },
-        ],
-        fields: [
-            { name: 'active', type: 'boolean' },
-            { name: 'delta', type: 'number' },
-        ],
-        indexes: [
-            { name: 'active', type: 'range', fields: ['createdAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('chatAudienceCalculatingQueue');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: ChatAudienceCalculatingQueueFactory.validate, keyValidator: ChatAudienceCalculatingQueueFactory.validateKey, hasLiveStreams: false };
-        let indexActive = new FEntityIndex(await layer.resolveEntityIndexDirectory('chatAudienceCalculatingQueue', 'active'), 'active', ['createdAt'], false, (src) => !!src.active);
-        let indexes = {
-            active: indexActive,
-        };
-        return new ChatAudienceCalculatingQueueFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexActive: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('active', src.active);
-        validators.isBoolean('active', src.active);
-        validators.notNull('delta', src.delta);
-        validators.isNumber('delta', src.delta);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { active: FEntityIndex }) {
-        super('ChatAudienceCalculatingQueue', 'chatAudienceCalculatingQueue', config, [indexes.active], layer, directory);
-        this.indexActive = indexes.active;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: number) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: number, shape: ChatAudienceCalculatingQueueShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: number, shape: ChatAudienceCalculatingQueueShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: number) {
-        return this._watch(ctx, [id]);
-    }
-    async rangeFromActive(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexActive.directory, [], limit, reversed);
-    }
-    async rangeFromActiveWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexActive.directory, [], limit, after, reversed);
-    }
-    async allFromActive(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexActive.directory, []);
-    }
-    createActiveStream(limit: number, after?: string) {
-        return this._createStream(this.indexActive.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChatAudienceCalculatingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChatAudienceCalculatingQueue');
-    }
-}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
     readonly allEntities: FEntityFactory<FEntity>[];
-    readonly NeedNotificationFlagDirectory: Directory;
     readonly Conversation: ConversationFactory;
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
@@ -3831,9 +3435,6 @@ export interface AllEntities {
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogEvent: UserDialogEventFactory;
-    readonly UserMessagingState: UserMessagingStateFactory;
-    readonly UserNotificationsState: UserNotificationsStateFactory;
-    readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -3857,9 +3458,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         UserDialogHandledMessageFactory.schema,
         UserDialogSettingsFactory.schema,
         UserDialogEventFactory.schema,
-        UserMessagingStateFactory.schema,
-        UserNotificationsStateFactory.schema,
-        ChatAudienceCalculatingQueueFactory.schema,
     ];
 
     static async create(layer: EntityLayer) {
@@ -3884,10 +3482,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.create(layer);
         let UserDialogSettingsPromise = UserDialogSettingsFactory.create(layer);
         let UserDialogEventPromise = UserDialogEventFactory.create(layer);
-        let UserMessagingStatePromise = UserMessagingStateFactory.create(layer);
-        let UserNotificationsStatePromise = UserNotificationsStateFactory.create(layer);
-        let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
-        let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         allEntities.push(await ConversationPromise);
         allEntities.push(await ConversationPrivatePromise);
         allEntities.push(await ConversationOrganizationPromise);
@@ -3908,9 +3502,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserDialogHandledMessagePromise);
         allEntities.push(await UserDialogSettingsPromise);
         allEntities.push(await UserDialogEventPromise);
-        allEntities.push(await UserMessagingStatePromise);
-        allEntities.push(await UserNotificationsStatePromise);
-        allEntities.push(await ChatAudienceCalculatingQueuePromise);
         let entities = {
             layer, allEntities,
             Conversation: await ConversationPromise,
@@ -3933,16 +3524,11 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             UserDialogHandledMessage: await UserDialogHandledMessagePromise,
             UserDialogSettings: await UserDialogSettingsPromise,
             UserDialogEvent: await UserDialogEventPromise,
-            UserMessagingState: await UserMessagingStatePromise,
-            UserNotificationsState: await UserNotificationsStatePromise,
-            ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
-            NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         };
         return new AllEntitiesDirect(entities);
     }
 
     readonly allEntities: FEntityFactory<FEntity>[] = [];
-    readonly NeedNotificationFlagDirectory: Directory;
     readonly Conversation: ConversationFactory;
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
@@ -3963,9 +3549,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogEvent: UserDialogEventFactory;
-    readonly UserMessagingState: UserMessagingStateFactory;
-    readonly UserNotificationsState: UserNotificationsStateFactory;
-    readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -4009,12 +3592,5 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.UserDialogSettings);
         this.UserDialogEvent = entities.UserDialogEvent;
         this.allEntities.push(this.UserDialogEvent);
-        this.UserMessagingState = entities.UserMessagingState;
-        this.allEntities.push(this.UserMessagingState);
-        this.UserNotificationsState = entities.UserNotificationsState;
-        this.allEntities.push(this.UserNotificationsState);
-        this.ChatAudienceCalculatingQueue = entities.ChatAudienceCalculatingQueue;
-        this.allEntities.push(this.ChatAudienceCalculatingQueue);
-        this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
     }
 }

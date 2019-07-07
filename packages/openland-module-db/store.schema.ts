@@ -318,6 +318,22 @@ export default declareSchema(() => {
 
     customDirectory('NotificationCenterNeedDeliveryFlag');
 
+    entity('UserMessagingState', () => {
+        primaryKey('uid', integer());
+        field('seq', integer());
+    });
+
+    entity('UserNotificationsState', () => {
+        primaryKey('uid', integer());
+        field('readSeq', optional(integer()));
+        field('lastEmailNotification', optional(integer()));
+        field('lastPushNotification', optional(integer()));
+        field('lastEmailSeq', optional(integer()));
+        field('lastPushSeq', optional(integer()));
+    });
+
+    customDirectory('NeedNotificationFlag');
+
     //
     // Feed
     //
@@ -429,6 +445,13 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
     });
     // Global counters END
+
+    entity('ChatAudienceCalculatingQueue', () => {
+        primaryKey('id', integer());
+        field('active', boolean());
+        field('delta', integer());
+        rangeIndex('active', ['createdAt']).withCondition((src) => !!src.active);
+    });
 
     //
     // Invites

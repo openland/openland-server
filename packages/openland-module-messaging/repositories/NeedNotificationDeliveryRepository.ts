@@ -1,18 +1,14 @@
 import { injectable } from 'inversify';
-import { lazyInject } from 'openland-modules/Modules.container';
-import { AllEntities } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 import { encoders } from '@openland/foundationdb';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class NeedNotificationDeliveryRepository {
 
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
-
     setNeedNotificationDelivery = (ctx: Context, uid: number) => {
 
-        let directory = this.entities.NeedNotificationFlagDirectory
+        let directory = Store.NeedNotificationFlagDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean);
 
@@ -21,14 +17,14 @@ export class NeedNotificationDeliveryRepository {
     }
 
     resetNeedNotificationDelivery = (ctx: Context, kind: 'email' | 'push', uid: number) => {
-        this.entities.NeedNotificationFlagDirectory
+        Store.NeedNotificationFlagDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .clear(ctx, [kind, uid]);
     }
 
     findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push') => {
-        return (await this.entities.NeedNotificationFlagDirectory
+        return (await Store.NeedNotificationFlagDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .range(ctx, [kind]))

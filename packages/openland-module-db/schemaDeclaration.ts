@@ -9,8 +9,7 @@ import {
     enumField,
     rangeIndex,
     uniqueIndex,
-    jsonField,
-    directory
+    jsonField
 } from '../foundation-orm-gen';
 import {
     jBool,
@@ -482,42 +481,6 @@ const Schema = declareSchema(() => {
         field('haveMention', 'boolean').nullable();
         enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
         rangeIndex('user', ['uid', 'seq']).withStreaming();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('UserMessagingState', () => {
-        primaryKey('uid', 'number');
-        field('seq', 'number');
-        field('unread', 'number');
-        field('messagesSent', 'number').nullable();
-        field('messagesReceived', 'number').nullable();
-        field('chatsCount', 'number').nullable();
-        field('directChatsCount', 'number').nullable();
-
-        rangeIndex('hasUnread', []).withCondition((src) => src.unread && src.unread > 0);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('UserNotificationsState', () => {
-        primaryKey('uid', 'number');
-        field('readSeq', 'number').nullable();
-        field('lastEmailNotification', 'number').nullable();
-        field('lastPushNotification', 'number').nullable();
-        field('lastEmailSeq', 'number').nullable();
-        field('lastPushSeq', 'number').nullable();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    directory('NeedNotificationFlag');
-
-    entity('ChatAudienceCalculatingQueue', () => {
-        primaryKey('id', 'number');
-        field('active', 'boolean');
-        field('delta', 'number');
-        rangeIndex('active', ['createdAt']).withCondition((src) => !!src.active);
         enableVersioning();
         enableTimestamps();
     });

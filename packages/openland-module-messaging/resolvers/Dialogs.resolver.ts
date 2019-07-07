@@ -115,7 +115,7 @@ export default {
             }
         }),
         alphaChats: withUser(async (ctx, args, uid) => {
-            let global = await FDB.UserMessagingState.findById(ctx, uid);
+            let global = await Store.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
             let conversations = await FDB.UserDialog
                 .rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);

@@ -40,9 +40,9 @@ export class UserStateRepository {
 
     async getUserNotificationState(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserNotificationsState.findById(ctx, uid);
+            let existing = await Store.UserNotificationsState.findById(ctx, uid);
             if (!existing) {
-                let created = await this.entities.UserNotificationsState.create(ctx, uid, {});
+                let created = await Store.UserNotificationsState.create(ctx, uid, {});
                 await created.flush(ctx);
                 return created;
             } else {
@@ -65,15 +65,10 @@ export class UserStateRepository {
 
     async getUserMessagingState(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserMessagingState.findById(ctx, uid);
+            let existing = await Store.UserMessagingState.findById(ctx, uid);
             if (!existing) {
-                let created = await this.entities.UserMessagingState.create(ctx, uid, {
-                    seq: 0,
-                    unread: 0,
-                    messagesReceived: 0,
-                    messagesSent: 0,
-                    chatsCount: 0,
-                    directChatsCount: 0
+                let created = await Store.UserMessagingState.create(ctx, uid, {
+                    seq: 0
                 });
                 await created.flush(ctx);
                 return created;

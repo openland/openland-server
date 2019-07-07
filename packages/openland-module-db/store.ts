@@ -4079,6 +4079,194 @@ export class NotificationCenterEventFactory extends EntityFactory<NotificationCe
     }
 }
 
+export interface UserMessagingStateShape {
+    uid: number;
+    seq: number;
+}
+
+export interface UserMessagingStateCreateShape {
+    seq: number;
+}
+
+export class UserMessagingState extends Entity<UserMessagingStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserMessagingStateFactory extends EntityFactory<UserMessagingStateShape, UserMessagingState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userMessagingState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            seq: c.integer,
+        });
+        let descriptor: EntityDescriptor<UserMessagingStateShape> = {
+            name: 'UserMessagingState',
+            storageKey: 'userMessagingState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserMessagingStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserMessagingStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: UserMessagingStateCreateShape): Promise<UserMessagingState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserMessagingStateCreateShape): UserMessagingState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserMessagingState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserMessagingStateShape>): UserMessagingState {
+        return new UserMessagingState([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserNotificationsStateShape {
+    uid: number;
+    readSeq: number | null;
+    lastEmailNotification: number | null;
+    lastPushNotification: number | null;
+    lastEmailSeq: number | null;
+    lastPushSeq: number | null;
+}
+
+export interface UserNotificationsStateCreateShape {
+    readSeq?: number | null | undefined;
+    lastEmailNotification?: number | null | undefined;
+    lastPushNotification?: number | null | undefined;
+    lastEmailSeq?: number | null | undefined;
+    lastPushSeq?: number | null | undefined;
+}
+
+export class UserNotificationsState extends Entity<UserNotificationsStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get readSeq(): number | null { return this._rawValue.readSeq; }
+    set readSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.readSeq.normalize(value);
+        if (this._rawValue.readSeq !== normalized) {
+            this._rawValue.readSeq = normalized;
+            this._updatedValues.readSeq = normalized;
+            this.invalidate();
+        }
+    }
+    get lastEmailNotification(): number | null { return this._rawValue.lastEmailNotification; }
+    set lastEmailNotification(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastEmailNotification.normalize(value);
+        if (this._rawValue.lastEmailNotification !== normalized) {
+            this._rawValue.lastEmailNotification = normalized;
+            this._updatedValues.lastEmailNotification = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPushNotification(): number | null { return this._rawValue.lastPushNotification; }
+    set lastPushNotification(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastPushNotification.normalize(value);
+        if (this._rawValue.lastPushNotification !== normalized) {
+            this._rawValue.lastPushNotification = normalized;
+            this._updatedValues.lastPushNotification = normalized;
+            this.invalidate();
+        }
+    }
+    get lastEmailSeq(): number | null { return this._rawValue.lastEmailSeq; }
+    set lastEmailSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastEmailSeq.normalize(value);
+        if (this._rawValue.lastEmailSeq !== normalized) {
+            this._rawValue.lastEmailSeq = normalized;
+            this._updatedValues.lastEmailSeq = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPushSeq(): number | null { return this._rawValue.lastPushSeq; }
+    set lastPushSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastPushSeq.normalize(value);
+        if (this._rawValue.lastPushSeq !== normalized) {
+            this._rawValue.lastPushSeq = normalized;
+            this._updatedValues.lastPushSeq = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserNotificationsStateFactory extends EntityFactory<UserNotificationsStateShape, UserNotificationsState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userNotificationsState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'readSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastEmailNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastPushNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastEmailSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastPushSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            readSeq: c.optional(c.integer),
+            lastEmailNotification: c.optional(c.integer),
+            lastPushNotification: c.optional(c.integer),
+            lastEmailSeq: c.optional(c.integer),
+            lastPushSeq: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<UserNotificationsStateShape> = {
+            name: 'UserNotificationsState',
+            storageKey: 'userNotificationsState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserNotificationsStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserNotificationsStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: UserNotificationsStateCreateShape): Promise<UserNotificationsState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserNotificationsStateCreateShape): UserNotificationsState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserNotificationsState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserNotificationsStateShape>): UserNotificationsState {
+        return new UserNotificationsState([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface FeedSubscriberShape {
     id: number;
     key: string;
@@ -4468,6 +4656,103 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedEventShape>): FeedEvent {
         return new FeedEvent([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ChatAudienceCalculatingQueueShape {
+    id: number;
+    active: boolean;
+    delta: number;
+}
+
+export interface ChatAudienceCalculatingQueueCreateShape {
+    active: boolean;
+    delta: number;
+}
+
+export class ChatAudienceCalculatingQueue extends Entity<ChatAudienceCalculatingQueueShape> {
+    get id(): number { return this._rawValue.id; }
+    get active(): boolean { return this._rawValue.active; }
+    set active(value: boolean) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+    get delta(): number { return this._rawValue.delta; }
+    set delta(value: number) {
+        let normalized = this.descriptor.codec.fields.delta.normalize(value);
+        if (this._rawValue.delta !== normalized) {
+            this._rawValue.delta = normalized;
+            this._updatedValues.delta = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ChatAudienceCalculatingQueueFactory extends EntityFactory<ChatAudienceCalculatingQueueShape, ChatAudienceCalculatingQueue> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('chatAudienceCalculatingQueue');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('chatAudienceCalculatingQueue', 'active'), condition: (src) => !!src.active });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'delta', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            active: c.boolean,
+            delta: c.integer,
+        });
+        let descriptor: EntityDescriptor<ChatAudienceCalculatingQueueShape> = {
+            name: 'ChatAudienceCalculatingQueue',
+            storageKey: 'chatAudienceCalculatingQueue',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ChatAudienceCalculatingQueueFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ChatAudienceCalculatingQueueShape>) {
+        super(descriptor);
+    }
+
+    readonly active = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: ChatAudienceCalculatingQueueCreateShape): Promise<ChatAudienceCalculatingQueue> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ChatAudienceCalculatingQueueCreateShape): ChatAudienceCalculatingQueue {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<ChatAudienceCalculatingQueue | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ChatAudienceCalculatingQueueShape>): ChatAudienceCalculatingQueue {
+        return new ChatAudienceCalculatingQueue([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -8110,10 +8395,13 @@ export interface Store extends BaseStore {
     readonly Notification: NotificationFactory;
     readonly NotificationCenterState: NotificationCenterStateFactory;
     readonly NotificationCenterEvent: NotificationCenterEventFactory;
+    readonly UserMessagingState: UserMessagingStateFactory;
+    readonly UserNotificationsState: UserNotificationsStateFactory;
     readonly FeedSubscriber: FeedSubscriberFactory;
     readonly FeedSubscription: FeedSubscriptionFactory;
     readonly FeedTopic: FeedTopicFactory;
     readonly FeedEvent: FeedEventFactory;
+    readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
     readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
@@ -8144,6 +8432,7 @@ export interface Store extends BaseStore {
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
+    readonly NeedNotificationFlagDirectory: Subspace;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -8194,10 +8483,13 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let NotificationPromise = NotificationFactory.open(storage);
     let NotificationCenterStatePromise = NotificationCenterStateFactory.open(storage);
     let NotificationCenterEventPromise = NotificationCenterEventFactory.open(storage);
+    let UserMessagingStatePromise = UserMessagingStateFactory.open(storage);
+    let UserNotificationsStatePromise = UserNotificationsStateFactory.open(storage);
     let FeedSubscriberPromise = FeedSubscriberFactory.open(storage);
     let FeedSubscriptionPromise = FeedSubscriptionFactory.open(storage);
     let FeedTopicPromise = FeedTopicFactory.open(storage);
     let FeedEventPromise = FeedEventFactory.open(storage);
+    let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
     let ChannelLinkPromise = ChannelLinkFactory.open(storage);
     let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
     let OrganizationPublicInviteLinkPromise = OrganizationPublicInviteLinkFactory.open(storage);
@@ -8228,6 +8520,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
+    let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -8277,10 +8570,13 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Notification: await NotificationPromise,
         NotificationCenterState: await NotificationCenterStatePromise,
         NotificationCenterEvent: await NotificationCenterEventPromise,
+        UserMessagingState: await UserMessagingStatePromise,
+        UserNotificationsState: await UserNotificationsStatePromise,
         FeedSubscriber: await FeedSubscriberPromise,
         FeedSubscription: await FeedSubscriptionPromise,
         FeedTopic: await FeedTopicPromise,
         FeedEvent: await FeedEventPromise,
+        ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
         ChannelLink: await ChannelLinkPromise,
         AppInviteLink: await AppInviteLinkPromise,
         OrganizationPublicInviteLink: await OrganizationPublicInviteLinkPromise,
@@ -8311,5 +8607,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
+        NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
     };
 }
