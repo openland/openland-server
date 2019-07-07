@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { OrganizationRepository } from './repositories/OrganizationRepository';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
@@ -206,14 +206,14 @@ export class OrganizationModule {
                     profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                     await profile.flush(ctx);
                 }
-                let userGroups = await FDB.RoomParticipant.allFromUserActive(ctx, uid);
+                let userGroups = await Store.RoomParticipant.active.findAll(ctx, uid);
                 for (let group of userGroups) {
-                    let conv = await FDB.Conversation.findById(ctx, group.cid);
+                    let conv = await Store.Conversation.findById(ctx, group.cid);
                     if (!conv) {
                         continue;
                     }
                     if (conv.kind === 'room') {
-                        let room = await FDB.ConversationRoom.findById(ctx, conv.id);
+                        let room = await Store.ConversationRoom.findById(ctx, conv.id);
                         if (!room) {
                             continue;
                         }

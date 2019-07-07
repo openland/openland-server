@@ -15,7 +15,7 @@ export class CallRepository {
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
-            let conv = (await this.entities.Conversation.findById(ctx, cid))!;
+            let conv = (await Store.Conversation.findById(ctx, cid))!;
             let strategy: 'direct' | 'bridged' = (!conv || conv.kind === 'private') ? 'direct' : 'bridged';
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {

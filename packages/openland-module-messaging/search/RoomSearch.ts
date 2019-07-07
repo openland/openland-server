@@ -1,8 +1,8 @@
+import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
 import { QueryParser } from '../../openland-utils/QueryParser';
-import { FDB } from '../../openland-module-db/FDB';
 
 const tracer = createTracer('room-search');
 
@@ -69,7 +69,7 @@ export class RoomSearch {
         });
 
         let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
-        let rooms = await Promise.all(ids.map((v) => FDB.Conversation.findById(ctx, v)));
+        let rooms = await Promise.all(ids.map((v) => Store.Conversation.findById(ctx, v)));
         let offset = 0;
         if (options.after) {
             offset = parseInt(options.after, 10);

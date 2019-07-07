@@ -1,7 +1,7 @@
 import { randomTestUser, testEnvironmentEnd, testEnvironmentStart } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomMediator } from './RoomMediator';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { SuperModule } from '../../openland-module-super/SuperModule';
@@ -41,7 +41,7 @@ describe('RoomMediator', () => {
         let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         expect(room.kind).toEqual('room');
-        let profile = (await FDB.ConversationRoom.findById(ctx, room.id))!;
+        let profile = (await Store.ConversationRoom.findById(ctx, room.id))!;
         expect(profile).not.toBeNull();
         expect(profile).not.toBeUndefined();
         expect(profile.kind).toEqual('public');
@@ -66,7 +66,7 @@ describe('RoomMediator', () => {
         expect(messages.length).toBe(2);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[1].uid).toBe(USER2_ID);
-        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
             expect(m.status).toBe('joined');
@@ -167,7 +167,7 @@ describe('RoomMediator', () => {
         await mediator.joinRoom(ctx, room.id, USER2_ID, true);
         let res = mediator.joinRoom(ctx, room.id, USER3_ID, true);
         await expect(res).rejects.toThrowError('You can\'t join non-public room');
-        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
             if (m.uid === USER_ID) {
@@ -191,7 +191,7 @@ describe('RoomMediator', () => {
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID, true);
         await mediator.joinRoom(ctx, room.id, USER3_ID, true);
-        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(3);
         for (let m of members) {
             if (m.uid === USER_ID) {
@@ -217,7 +217,7 @@ describe('RoomMediator', () => {
         let room = await mediator.createRoom(ctx, 'group', org.id, USER_ID, [], { title: 'Room' });
         await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         await expect(mediator.joinRoom(ctx, room.id, USER3_ID, true)).rejects.toThrowError('You can\'t join non-public room');
-        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(1);
         for (let m of members) {
             if (m.uid === USER_ID) {
@@ -240,7 +240,7 @@ describe('RoomMediator', () => {
         await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         await mediator.inviteToRoom(ctx, room.id, USER_ID, [ USER3_ID ]);
         await mediator.joinRoom(ctx, room.id, USER3_ID, false, true);
-        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
             if (m.uid === USER_ID) {
@@ -264,7 +264,7 @@ describe('RoomMediator', () => {
         expect(messages.length).toBe(2);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[1].uid).toBe(USER2_ID);
-        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
             expect(m.status).toBe('joined');
@@ -278,7 +278,7 @@ describe('RoomMediator', () => {
         }
 
         await mediator.kickFromRoom(ctx, room.id, USER_ID, USER2_ID);
-        members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(1);
         expect(members[0].uid).toBe(USER_ID);
     });

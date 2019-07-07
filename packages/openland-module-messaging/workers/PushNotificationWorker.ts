@@ -179,7 +179,7 @@ export function startPushNotificationWorker() {
 
                     let sender = await Modules.Users.profileById(ctx, senderId);
                     let receiver = await Modules.Users.profileById(ctx, uid);
-                    let conversation = await FDB.Conversation.findById(ctx, message.cid);
+                    let conversation = await Store.Conversation.findById(ctx, message.cid);
 
                     if (!sender) {
                         continue;

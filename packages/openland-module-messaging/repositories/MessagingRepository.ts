@@ -73,7 +73,7 @@ export class MessagingRepository {
             if (!message.isService) {
                 this.chatMetrics.onMessageSent(ctx, uid);
             }
-            let conv = (await this.entities.Conversation.findById(ctx, cid));
+            let conv = (await Store.Conversation.findById(ctx, cid));
             let direct = conv && conv.kind === 'private';
             if (direct) {
                 await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);

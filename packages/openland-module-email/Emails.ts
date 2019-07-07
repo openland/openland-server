@@ -3,7 +3,7 @@ import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 import { Comment, Message } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
@@ -340,8 +340,8 @@ export const Emails = {
     },
     async sendRoomInviteEmail(ctx: Context, uid: number, email: string, roomId: number, invite: ChannelInvitation) {
         let avatar = await genAvatar(ctx, uid);
-        let room = await FDB.ConversationRoom.findById(ctx, roomId);
-        let roomProfile = await FDB.RoomProfile.findById(ctx, roomId);
+        let room = await Store.ConversationRoom.findById(ctx, roomId);
+        let roomProfile = await Store.RoomProfile.findById(ctx, roomId);
         let roomTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, roomId, uid);
         let userProfile = await Modules.Users.profileById(ctx, uid);
 

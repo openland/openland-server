@@ -100,12 +100,12 @@ export default {
             let allDialogs = await Store.UserDialog.user.findAll(ctx, uid);
             let res = '';
             for (let dialog of allDialogs) {
-                let conv = (await FDB.Conversation.findById(ctx, dialog.cid))!;
+                let conv = (await Store.Conversation.findById(ctx, dialog.cid))!;
                 if (!conv) {
                     continue;
                 }
                 if (conv.kind === 'room') {
-                    let pat = await FDB.RoomParticipant.findById(ctx, dialog.cid, uid);
+                    let pat = await Store.RoomParticipant.findById(ctx, dialog.cid, uid);
                     if (!pat || pat.status !== 'joined') {
                         continue;
                     }
@@ -140,7 +140,7 @@ export default {
             return res;
         }),
         organizationChatsStats: withPermission('super-admin', async (ctx, args) => {
-            let chats = await FDB.ConversationOrganization.findAll(ctx);
+            let chats = await Store.ConversationOrganization.findAll(ctx);
 
             let res: { org: Organization, chat: number, messagesCount: number, lastMessageDate: string }[] = [];
 
@@ -337,13 +337,13 @@ export default {
                     let totalReceived = 0;
 
                     for (let a of all) {
-                        let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                        let conv = (await Store.Conversation.findById(ctx, a.cid))!;
                         if (!conv) {
                             continue;
                         }
 
                         if (conv.kind === 'room') {
-                            let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
+                            let pat = await Store.RoomParticipant.findById(ctx, a.cid, uid);
                             if (!pat || pat.status !== 'joined') {
                                 // a.unread = 0;
                                 continue;
@@ -415,7 +415,7 @@ export default {
                 chat.kind = 'room';
                 await chat.flush(ctx);
 
-                let room = await FDB.ConversationRoom.findById(ctx, chat.id);
+                let room = await Store.ConversationRoom.findById(ctx, chat.id);
                 if (room) {
                     // in some cases org chats already have room, i donn't know why
                     room.kind = 'public';
@@ -426,7 +426,7 @@ export default {
                     room.isChannel = false;
                     await room.flush(ctx);
                 } else {
-                    await FDB.ConversationRoom.create(ctx, chat.id, {
+                    await Store.ConversationRoom.create(ctx, chat.id, {
                         kind: 'public',
                         ownerId: org.ownerId,
                         oid: orgId,
@@ -436,7 +436,7 @@ export default {
                     });
                 }
 
-                await FDB.RoomProfile.create(ctx, chat.id, {
+                await Store.RoomProfile.create(ctx, chat.id, {
                     title: orgProfile.name,
                     image: orgProfile.photo,
                     description: orgProfile.about,
@@ -444,7 +444,7 @@ export default {
 
                 let orgMembers = await Store.OrganizationMember.organization.findAll(ctx, 'joined', orgId);
                 for (let member of orgMembers) {
-                    await FDB.RoomParticipant.create(ctx, chat.id, member.uid, {
+                    await Store.RoomParticipant.create(ctx, chat.id, member.uid, {
                         role: member.uid === org.ownerId ? 'owner' : 'member',
                         invitedBy: org.ownerId,
                         status: 'joined',
@@ -455,11 +455,11 @@ export default {
             });
         }),
         debugDeleteEmptyOrgChats: withPermission('super-admin', async (parent, args) => {
-            let chats = await FDB.ConversationOrganization.findAll(parent);
+            let chats = await Store.ConversationOrganization.findAll(parent);
             let i = 0;
             for (let chat of chats) {
                 await inTx(rootCtx, async ctx => {
-                    let conv = await FDB.Conversation.findById(ctx, chat.id);
+                    let conv = await Store.Conversation.findById(ctx, chat.id);
                     if (conv && conv.deleted) {
                         // ignore already deleted chats
                         logger.log(ctx, 'debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
@@ -559,7 +559,7 @@ export default {
                         await inTx(rootCtx, async _ctx => {
                             let all = await Store.UserDialog.user.findAll(_ctx, user.id);
                             for (let dialog of all) {
-                                let conv = (await FDB.Conversation.findById(_ctx, dialog.cid))!;
+                                let conv = (await Store.Conversation.findById(_ctx, dialog.cid))!;
                                 if (!conv || conv.deleted) {
                                     await Modules.Messaging.room.onDialogDelete(_ctx, dialog.cid, user.id);
                                 }
@@ -642,12 +642,12 @@ export default {
         }),
         debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcRoomsActiveMembers', async (log) => {
-                let allRooms = await FDB.RoomProfile.findAll(rootCtx);
+                let allRooms = await Store.RoomProfile.findAll(rootCtx);
                 let i = 0;
                 for (let room of allRooms) {
                     await inTx(rootCtx, async (ctx) => {
-                        let activeMembers = await FDB.RoomParticipant.allFromActive(ctx, room.id);
-                        let _room = await FDB.RoomProfile.findById(ctx, room.id);
+                        let activeMembers = await Store.RoomParticipant.active.findAll(ctx, room.id);
+                        let _room = await Store.RoomProfile.findById(ctx, room.id);
 
                         if (_room) {
                             _room.activeMembersCount = activeMembers.length;
@@ -735,11 +735,11 @@ export default {
                     let all = await Store.UserDialog.user.findAll(ctx, uid);
 
                     for (let a of all) {
-                        let chat = await FDB.Conversation.findById(ctx, a.cid);
+                        let chat = await Store.Conversation.findById(ctx, a.cid);
                         if (!chat || chat.kind !== 'room') {
                             continue;
                         }
-                        let room = (await FDB.ConversationRoom.findById(ctx, a.cid))!;
+                        let room = (await Store.ConversationRoom.findById(ctx, a.cid))!;
                         if (room.kind !== 'public' || !room.oid) {
                             continue;
                         }
@@ -747,7 +747,7 @@ export default {
                         if (!org || org.kind !== 'community') {
                             continue;
                         }
-                        let members = await FDB.RoomParticipant.allFromActive(ctx, chat.id);
+                        let members = await Store.RoomParticipant.active.findAll(ctx, chat.id);
                         audience += members.length;
                     }
                     await Store.UserAudienceCounter.set(ctx, uid, audience);
@@ -772,7 +772,7 @@ export default {
                 let direct2wayChatsCount = 0;
 
                 for (let dialog of all) {
-                    let chat = await FDB.Conversation.findById(ctx, dialog.cid);
+                    let chat = await Store.Conversation.findById(ctx, dialog.cid);
                     if (!chat || chat.kind !== 'private') {
                         continue;
                     }
@@ -807,7 +807,7 @@ export default {
                 let directChatsCount = 0;
 
                 for (let a of all) {
-                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                    let conv = (await Store.Conversation.findById(ctx, a.cid))!;
                     if (!conv) {
                         continue;
                     }

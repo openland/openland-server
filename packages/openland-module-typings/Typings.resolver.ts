@@ -3,7 +3,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { withUser } from 'openland-module-api/Resolvers';
 import { validate, optional, enumString } from 'openland-utils/NewInputValidator';
 import { TypingEvent } from './TypingEvent';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
@@ -16,8 +16,8 @@ export default {
     TypingEvent: {
         type: (src: TypingEvent) => src.type,
         cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.conversationId),
-        chat: (src: TypingEvent, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.conversationId),
+        conversation: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
+        chat: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {

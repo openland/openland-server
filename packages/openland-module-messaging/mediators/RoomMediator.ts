@@ -1,10 +1,10 @@
+import { ConversationRoom } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomRepository, WelcomeMessageT } from 'openland-module-messaging/repositories/RoomRepository';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { MessagingMediator } from './MessagingMediator';
-import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -18,8 +18,6 @@ import { Store } from 'openland-module-db/FDB';
 @injectable()
 export class RoomMediator {
 
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
     @lazyInject('RoomRepository')
     private readonly repo!: RoomRepository;
     @lazyInject('MessagingMediator')
@@ -61,7 +59,7 @@ export class RoomMediator {
         return await inTx(parent, async (ctx) => {
 
             // Check Room
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
             }
@@ -79,7 +77,7 @@ export class RoomMediator {
             }
 
             // Check if was kicked
-            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (participant && participant.status === 'kicked' && !request) {
                 throw new UserError(`Unfortunately, you cannot join ${await this.resolveConversationTitle(ctx, cid, uid)}. Someone kicked you from this group, and now you can only join it if a group member adds you.`, 'CANT_JOIN_GROUP');
             }
@@ -107,13 +105,13 @@ export class RoomMediator {
 
             }
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
     async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
             }
@@ -156,7 +154,7 @@ export class RoomMediator {
 
             }
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
@@ -166,7 +164,7 @@ export class RoomMediator {
                 throw new UserError('Unable to kick yourself');
             }
 
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
             }
@@ -209,7 +207,7 @@ export class RoomMediator {
                 await this.delivery.onDialogDelete(ctx, kickedUid, cid);
             }
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
@@ -217,7 +215,7 @@ export class RoomMediator {
         return await inTx(parent, async (ctx) => {
             let canKick = false;
 
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 return false;
             }
@@ -266,7 +264,7 @@ export class RoomMediator {
             // decline request
             await this.repo.declineJoinRoomRequest(ctx, cid, requestedUid);
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
@@ -277,7 +275,7 @@ export class RoomMediator {
                 // Send message
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
 
-                let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+                let conv = await Store.ConversationRoom.findById(ctx, cid);
                 let isChannel = !!(conv && conv.isChannel);
 
                 if (!isChannel) {
@@ -297,13 +295,13 @@ export class RoomMediator {
                 await this.delivery.onDialogDelete(ctx, uid, cid);
             }
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
     async canEditRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 return false;
             }
@@ -341,7 +339,7 @@ export class RoomMediator {
 
     async checkCanSendMessage(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 return false;
             }
@@ -368,14 +366,14 @@ export class RoomMediator {
 
     async updateRoomProfile(parent: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
             let userName = await Modules.Users.getUserFullName(ctx, uid);
             await this.checkCanEditChat(ctx, cid, uid);
             let res = await this.repo.updateRoomProfile(ctx, cid, uid, profile);
-            let roomProfile = (await this.entities.RoomProfile.findById(ctx, cid))!;
+            let roomProfile = (await Store.RoomProfile.findById(ctx, cid))!;
 
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
@@ -402,7 +400,7 @@ export class RoomMediator {
                 await this.delivery.onDialogTitleUpdate(parent, cid, profile.title!);
             }
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
@@ -418,7 +416,7 @@ export class RoomMediator {
 
     async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.Conversation.findById(ctx, cid);
+            let conv = await Store.Conversation.findById(ctx, cid);
             if (!conv) {
                 throw new AccessDeniedError();
             }
@@ -434,7 +432,7 @@ export class RoomMediator {
 
     async unpinMessage(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.Conversation.findById(ctx, cid);
+            let conv = await Store.Conversation.findById(ctx, cid);
             if (!conv) {
                 throw new AccessDeniedError();
             }
@@ -450,12 +448,12 @@ export class RoomMediator {
 
     async updateMemberRole(parent: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
         return await inTx(parent, async (ctx) => {
-            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (!p || p.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
 
-            let p2 = await this.entities.RoomParticipant.findById(ctx, cid, updatedUid);
+            let p2 = await Store.RoomParticipant.findById(ctx, cid, updatedUid);
             if (!p2 || p2.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
@@ -479,13 +477,13 @@ export class RoomMediator {
 
     async deleteRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.Conversation.findById(ctx, cid);
+            let conv = await Store.Conversation.findById(ctx, cid);
             if (!conv || (conv.kind !== 'room' && conv.kind !== 'organization')) {
                 throw new NotFoundError();
             }
 
             if (conv.kind === 'room') {
-                let room = await this.entities.ConversationRoom.findById(ctx, cid);
+                let room = await Store.ConversationRoom.findById(ctx, cid);
                 if (!room) {
                     throw new NotFoundError();
                 }
@@ -523,7 +521,7 @@ export class RoomMediator {
 
     async archiveRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new NotFoundError();
             }
@@ -617,7 +615,7 @@ export class RoomMediator {
         let role = await Modules.Messaging.room.resolveUserRole(ctx, uid, cid);
         let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
         if (role === 'admin' || role === 'owner' || isSuperAdmin) {
-            return await this.entities.RoomParticipant.allFromRequests(ctx, cid);
+            return await Store.RoomParticipant.requests.findAll(ctx, cid);
         }
         return null;
     }
@@ -628,9 +626,9 @@ export class RoomMediator {
 
     async userRooms(parent: Context, uid: number, limit?: number, after?: number) {
         if (after !== undefined) {
-            return (await this.entities.RoomParticipant.rangeFromUserActiveAfter(parent, uid, after, limit || 10000)).map(p => p.cid);
+            return (await Store.RoomParticipant.active.query(parent, uid, { after, limit: limit || 10000 })).items.map(p => p.cid);
         } else {
-            return (await this.entities.RoomParticipant.rangeFromUserActive(parent, uid, limit || 10000)).map(p => p.cid);
+            return (await Store.RoomParticipant.active.query(parent, uid, { limit: limit || 10000 })).items.map(p => p.cid);
         }
     }
 

@@ -153,7 +153,7 @@ export class DeliveryRepository {
 
             // Update metrics
             this.metrics.onChatDeleted(ctx, uid);
-            let chat = await this.entities.Conversation.findById(ctx, cid);
+            let chat = await Store.Conversation.findById(ctx, cid);
             if (chat && chat.kind === 'private') {
                 this.metrics.onDirectChatDeleted(ctx, uid);
             }

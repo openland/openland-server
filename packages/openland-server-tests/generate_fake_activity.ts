@@ -8,12 +8,12 @@ import { loadAllModules } from 'openland-modules/loadAllModules';
 import faker from 'faker';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
-import { AllEntities, AllEntitiesDirect, Conversation } from 'openland-module-db/schema';
+import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { range } from '../openland-utils/range';
 import { openDatabase } from 'openland-server/foundationdb';
-import { openStore } from 'openland-module-db/store';
+import { openStore, Conversation } from 'openland-module-db/store';
 
 let rootCtx = createNamedContext('prepare');
 faker.seed(123);

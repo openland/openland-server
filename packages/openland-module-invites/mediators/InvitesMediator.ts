@@ -13,7 +13,7 @@ import { InvitesOrganizationRepository } from 'openland-module-invites/repositor
 import { Context } from '@openland/context';
 import { Emails } from '../../openland-module-email/Emails';
 import { UserError } from '../../openland-errors/UserError';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 
 @injectable()
 export class InvitesMediator {
@@ -43,7 +43,7 @@ export class InvitesMediator {
             await Modules.Users.activateUser(ctx, uid, isNewUser, invite.creatorId);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
 
-            let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
+            let chat = await Store.ConversationRoom.findById(ctx, invite.channelId);
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
             await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
             if (invite instanceof ChannelInvitation) {

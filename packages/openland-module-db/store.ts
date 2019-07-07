@@ -2298,6 +2298,775 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
     }
 }
 
+export interface ConversationShape {
+    id: number;
+    kind: 'private' | 'organization' | 'room';
+    deleted: boolean | null;
+    archived: boolean | null;
+}
+
+export interface ConversationCreateShape {
+    kind: 'private' | 'organization' | 'room';
+    deleted?: boolean | null | undefined;
+    archived?: boolean | null | undefined;
+}
+
+export class Conversation extends Entity<ConversationShape> {
+    get id(): number { return this._rawValue.id; }
+    get kind(): 'private' | 'organization' | 'room' { return this._rawValue.kind; }
+    set kind(value: 'private' | 'organization' | 'room') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+    get archived(): boolean | null { return this._rawValue.archived; }
+    set archived(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.archived.normalize(value);
+        if (this._rawValue.archived !== normalized) {
+            this._rawValue.archived = normalized;
+            this._updatedValues.archived = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationFactory extends EntityFactory<ConversationShape, Conversation> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversation');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['private', 'organization', 'room'] }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'archived', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            kind: c.enum('private', 'organization', 'room'),
+            deleted: c.optional(c.boolean),
+            archived: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<ConversationShape> = {
+            name: 'Conversation',
+            storageKey: 'conversation',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: ConversationCreateShape): Promise<Conversation> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConversationCreateShape): Conversation {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<Conversation | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationShape>): Conversation {
+        return new Conversation([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConversationPrivateShape {
+    id: number;
+    uid1: number;
+    uid2: number;
+    pinnedMessage: number | null;
+}
+
+export interface ConversationPrivateCreateShape {
+    uid1: number;
+    uid2: number;
+    pinnedMessage?: number | null | undefined;
+}
+
+export class ConversationPrivate extends Entity<ConversationPrivateShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid1(): number { return this._rawValue.uid1; }
+    set uid1(value: number) {
+        let normalized = this.descriptor.codec.fields.uid1.normalize(value);
+        if (this._rawValue.uid1 !== normalized) {
+            this._rawValue.uid1 = normalized;
+            this._updatedValues.uid1 = normalized;
+            this.invalidate();
+        }
+    }
+    get uid2(): number { return this._rawValue.uid2; }
+    set uid2(value: number) {
+        let normalized = this.descriptor.codec.fields.uid2.normalize(value);
+        if (this._rawValue.uid2 !== normalized) {
+            this._rawValue.uid2 = normalized;
+            this._updatedValues.uid2 = normalized;
+            this.invalidate();
+        }
+    }
+    get pinnedMessage(): number | null { return this._rawValue.pinnedMessage; }
+    set pinnedMessage(value: number | null) {
+        let normalized = this.descriptor.codec.fields.pinnedMessage.normalize(value);
+        if (this._rawValue.pinnedMessage !== normalized) {
+            this._rawValue.pinnedMessage = normalized;
+            this._updatedValues.pinnedMessage = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationPrivateFactory extends EntityFactory<ConversationPrivateShape, ConversationPrivate> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversationPrivate');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'unique', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationPrivate', 'users'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid1', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'uid2', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'pinnedMessage', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid1: c.integer,
+            uid2: c.integer,
+            pinnedMessage: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<ConversationPrivateShape> = {
+            name: 'ConversationPrivate',
+            storageKey: 'conversationPrivate',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationPrivateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationPrivateShape>) {
+        super(descriptor);
+    }
+
+    readonly users = Object.freeze({
+        find: async (ctx: Context, uid1: number, uid2: number) => {
+            return this._findFromUniqueIndex(ctx, [uid1, uid2], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, uid1: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid1])).items;
+        },
+        query: (ctx: Context, uid1: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid1], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: number, src: ConversationPrivateCreateShape): Promise<ConversationPrivate> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConversationPrivateCreateShape): ConversationPrivate {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<ConversationPrivate | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationPrivateShape>): ConversationPrivate {
+        return new ConversationPrivate([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConversationOrganizationShape {
+    id: number;
+    oid: number;
+}
+
+export interface ConversationOrganizationCreateShape {
+    oid: number;
+}
+
+export class ConversationOrganization extends Entity<ConversationOrganizationShape> {
+    get id(): number { return this._rawValue.id; }
+    get oid(): number { return this._rawValue.oid; }
+    set oid(value: number) {
+        let normalized = this.descriptor.codec.fields.oid.normalize(value);
+        if (this._rawValue.oid !== normalized) {
+            this._rawValue.oid = normalized;
+            this._updatedValues.oid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationOrganizationFactory extends EntityFactory<ConversationOrganizationShape, ConversationOrganization> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversationOrganization');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationOrganization', 'organization'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'oid', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            oid: c.integer,
+        });
+        let descriptor: EntityDescriptor<ConversationOrganizationShape> = {
+            name: 'ConversationOrganization',
+            storageKey: 'conversationOrganization',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationOrganizationFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationOrganizationShape>) {
+        super(descriptor);
+    }
+
+    readonly organization = Object.freeze({
+        find: async (ctx: Context, oid: number) => {
+            return this._findFromUniqueIndex(ctx, [oid], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: number, src: ConversationOrganizationCreateShape): Promise<ConversationOrganization> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConversationOrganizationCreateShape): ConversationOrganization {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<ConversationOrganization | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationOrganizationShape>): ConversationOrganization {
+        return new ConversationOrganization([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConversationRoomShape {
+    id: number;
+    kind: 'organization' | 'internal' | 'public' | 'group';
+    oid: number | null;
+    ownerId: number | null;
+    featured: boolean | null;
+    listed: boolean | null;
+    isChannel: boolean | null;
+}
+
+export interface ConversationRoomCreateShape {
+    kind: 'organization' | 'internal' | 'public' | 'group';
+    oid?: number | null | undefined;
+    ownerId?: number | null | undefined;
+    featured?: boolean | null | undefined;
+    listed?: boolean | null | undefined;
+    isChannel?: boolean | null | undefined;
+}
+
+export class ConversationRoom extends Entity<ConversationRoomShape> {
+    get id(): number { return this._rawValue.id; }
+    get kind(): 'organization' | 'internal' | 'public' | 'group' { return this._rawValue.kind; }
+    set kind(value: 'organization' | 'internal' | 'public' | 'group') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get oid(): number | null { return this._rawValue.oid; }
+    set oid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.oid.normalize(value);
+        if (this._rawValue.oid !== normalized) {
+            this._rawValue.oid = normalized;
+            this._updatedValues.oid = normalized;
+            this.invalidate();
+        }
+    }
+    get ownerId(): number | null { return this._rawValue.ownerId; }
+    set ownerId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.ownerId.normalize(value);
+        if (this._rawValue.ownerId !== normalized) {
+            this._rawValue.ownerId = normalized;
+            this._updatedValues.ownerId = normalized;
+            this.invalidate();
+        }
+    }
+    get featured(): boolean | null { return this._rawValue.featured; }
+    set featured(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.featured.normalize(value);
+        if (this._rawValue.featured !== normalized) {
+            this._rawValue.featured = normalized;
+            this._updatedValues.featured = normalized;
+            this.invalidate();
+        }
+    }
+    get listed(): boolean | null { return this._rawValue.listed; }
+    set listed(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.listed.normalize(value);
+        if (this._rawValue.listed !== normalized) {
+            this._rawValue.listed = normalized;
+            this._updatedValues.listed = normalized;
+            this.invalidate();
+        }
+    }
+    get isChannel(): boolean | null { return this._rawValue.isChannel; }
+    set isChannel(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isChannel.normalize(value);
+        if (this._rawValue.isChannel !== normalized) {
+            this._rawValue.isChannel = normalized;
+            this._updatedValues.isChannel = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversationRoom');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'oid', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organization'), condition: (v) => v.kind === 'public' || v.kind === 'internal' });
+        secondaryIndexes.push({ name: 'organizationPublicRooms', storageKey: 'organizationPublicRooms', type: { type: 'unique', fields: [{ name: 'oid', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organizationPublicRooms'), condition: (v) => v.kind === 'public' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['organization', 'internal', 'public', 'group'] }, secure: false });
+        fields.push({ name: 'oid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'ownerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'featured', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'listed', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            kind: c.enum('organization', 'internal', 'public', 'group'),
+            oid: c.optional(c.integer),
+            ownerId: c.optional(c.integer),
+            featured: c.optional(c.boolean),
+            listed: c.optional(c.boolean),
+            isChannel: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<ConversationRoomShape> = {
+            name: 'ConversationRoom',
+            storageKey: 'conversationRoom',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationRoomFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationRoomShape>) {
+        super(descriptor);
+    }
+
+    readonly organization = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    readonly organizationPublicRooms = Object.freeze({
+        find: async (ctx: Context, oid: number | null, id: number) => {
+            return this._findFromUniqueIndex(ctx, [oid, id], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, oid: number | null) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [oid])).items;
+        },
+        query: (ctx: Context, oid: number | null, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: number, src: ConversationRoomCreateShape): Promise<ConversationRoom> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConversationRoomCreateShape): ConversationRoom {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<ConversationRoom | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationRoomShape>): ConversationRoom {
+        return new ConversationRoom([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface RoomProfileShape {
+    id: number;
+    title: string;
+    image: any | null;
+    description: string | null;
+    socialImage: any | null;
+    pinnedMessage: number | null;
+    welcomeMessageIsOn: boolean | null;
+    welcomeMessageSender: number | null;
+    welcomeMessageText: string | null;
+    activeMembersCount: number | null;
+}
+
+export interface RoomProfileCreateShape {
+    title: string;
+    image?: any | null | undefined;
+    description?: string | null | undefined;
+    socialImage?: any | null | undefined;
+    pinnedMessage?: number | null | undefined;
+    welcomeMessageIsOn?: boolean | null | undefined;
+    welcomeMessageSender?: number | null | undefined;
+    welcomeMessageText?: string | null | undefined;
+    activeMembersCount?: number | null | undefined;
+}
+
+export class RoomProfile extends Entity<RoomProfileShape> {
+    get id(): number { return this._rawValue.id; }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get image(): any | null { return this._rawValue.image; }
+    set image(value: any | null) {
+        let normalized = this.descriptor.codec.fields.image.normalize(value);
+        if (this._rawValue.image !== normalized) {
+            this._rawValue.image = normalized;
+            this._updatedValues.image = normalized;
+            this.invalidate();
+        }
+    }
+    get description(): string | null { return this._rawValue.description; }
+    set description(value: string | null) {
+        let normalized = this.descriptor.codec.fields.description.normalize(value);
+        if (this._rawValue.description !== normalized) {
+            this._rawValue.description = normalized;
+            this._updatedValues.description = normalized;
+            this.invalidate();
+        }
+    }
+    get socialImage(): any | null { return this._rawValue.socialImage; }
+    set socialImage(value: any | null) {
+        let normalized = this.descriptor.codec.fields.socialImage.normalize(value);
+        if (this._rawValue.socialImage !== normalized) {
+            this._rawValue.socialImage = normalized;
+            this._updatedValues.socialImage = normalized;
+            this.invalidate();
+        }
+    }
+    get pinnedMessage(): number | null { return this._rawValue.pinnedMessage; }
+    set pinnedMessage(value: number | null) {
+        let normalized = this.descriptor.codec.fields.pinnedMessage.normalize(value);
+        if (this._rawValue.pinnedMessage !== normalized) {
+            this._rawValue.pinnedMessage = normalized;
+            this._updatedValues.pinnedMessage = normalized;
+            this.invalidate();
+        }
+    }
+    get welcomeMessageIsOn(): boolean | null { return this._rawValue.welcomeMessageIsOn; }
+    set welcomeMessageIsOn(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.welcomeMessageIsOn.normalize(value);
+        if (this._rawValue.welcomeMessageIsOn !== normalized) {
+            this._rawValue.welcomeMessageIsOn = normalized;
+            this._updatedValues.welcomeMessageIsOn = normalized;
+            this.invalidate();
+        }
+    }
+    get welcomeMessageSender(): number | null { return this._rawValue.welcomeMessageSender; }
+    set welcomeMessageSender(value: number | null) {
+        let normalized = this.descriptor.codec.fields.welcomeMessageSender.normalize(value);
+        if (this._rawValue.welcomeMessageSender !== normalized) {
+            this._rawValue.welcomeMessageSender = normalized;
+            this._updatedValues.welcomeMessageSender = normalized;
+            this.invalidate();
+        }
+    }
+    get welcomeMessageText(): string | null { return this._rawValue.welcomeMessageText; }
+    set welcomeMessageText(value: string | null) {
+        let normalized = this.descriptor.codec.fields.welcomeMessageText.normalize(value);
+        if (this._rawValue.welcomeMessageText !== normalized) {
+            this._rawValue.welcomeMessageText = normalized;
+            this._updatedValues.welcomeMessageText = normalized;
+            this.invalidate();
+        }
+    }
+    get activeMembersCount(): number | null { return this._rawValue.activeMembersCount; }
+    set activeMembersCount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.activeMembersCount.normalize(value);
+        if (this._rawValue.activeMembersCount !== normalized) {
+            this._rawValue.activeMembersCount = normalized;
+            this._updatedValues.activeMembersCount = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProfile> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('roomProfile');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomProfile', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'image', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'description', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'socialImage', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'pinnedMessage', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'welcomeMessageIsOn', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'welcomeMessageSender', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'welcomeMessageText', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'activeMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            title: c.string,
+            image: c.optional(c.any),
+            description: c.optional(c.string),
+            socialImage: c.optional(c.any),
+            pinnedMessage: c.optional(c.integer),
+            welcomeMessageIsOn: c.optional(c.boolean),
+            welcomeMessageSender: c.optional(c.integer),
+            welcomeMessageText: c.optional(c.string),
+            activeMembersCount: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<RoomProfileShape> = {
+            name: 'RoomProfile',
+            storageKey: 'roomProfile',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new RoomProfileFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<RoomProfileShape>) {
+        super(descriptor);
+    }
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: RoomProfileCreateShape): Promise<RoomProfile> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: RoomProfileCreateShape): RoomProfile {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<RoomProfile | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<RoomProfileShape>): RoomProfile {
+        return new RoomProfile([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface RoomParticipantShape {
+    cid: number;
+    uid: number;
+    invitedBy: number;
+    role: 'member' | 'admin' | 'owner';
+    status: 'joined' | 'requested' | 'left' | 'kicked';
+}
+
+export interface RoomParticipantCreateShape {
+    invitedBy: number;
+    role: 'member' | 'admin' | 'owner';
+    status: 'joined' | 'requested' | 'left' | 'kicked';
+}
+
+export class RoomParticipant extends Entity<RoomParticipantShape> {
+    get cid(): number { return this._rawValue.cid; }
+    get uid(): number { return this._rawValue.uid; }
+    get invitedBy(): number { return this._rawValue.invitedBy; }
+    set invitedBy(value: number) {
+        let normalized = this.descriptor.codec.fields.invitedBy.normalize(value);
+        if (this._rawValue.invitedBy !== normalized) {
+            this._rawValue.invitedBy = normalized;
+            this._updatedValues.invitedBy = normalized;
+            this.invalidate();
+        }
+    }
+    get role(): 'member' | 'admin' | 'owner' { return this._rawValue.role; }
+    set role(value: 'member' | 'admin' | 'owner') {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
+            this.invalidate();
+        }
+    }
+    get status(): 'joined' | 'requested' | 'left' | 'kicked' { return this._rawValue.status; }
+    set status(value: 'joined' | 'requested' | 'left' | 'kicked') {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, RoomParticipant> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('roomParticipant');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'active'), condition: (src) => src.status === 'joined' });
+        secondaryIndexes.push({ name: 'requests', storageKey: 'requests', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'requests'), condition: (src) => src.status === 'requested' });
+        secondaryIndexes.push({ name: 'userActive', storageKey: 'userActive', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'userActive'), condition: (src) => src.status === 'joined' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'invitedBy', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'role', type: { type: 'enum', values: ['member', 'admin', 'owner'] }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['joined', 'requested', 'left', 'kicked'] }, secure: false });
+        let codec = c.struct({
+            cid: c.integer,
+            uid: c.integer,
+            invitedBy: c.integer,
+            role: c.enum('member', 'admin', 'owner'),
+            status: c.enum('joined', 'requested', 'left', 'kicked'),
+        });
+        let descriptor: EntityDescriptor<RoomParticipantShape> = {
+            name: 'RoomParticipant',
+            storageKey: 'roomParticipant',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new RoomParticipantFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<RoomParticipantShape>) {
+        super(descriptor);
+    }
+
+    readonly active = Object.freeze({
+        find: async (ctx: Context, cid: number, uid: number) => {
+            return this._findFromUniqueIndex(ctx, [cid, uid], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly requests = Object.freeze({
+        find: async (ctx: Context, cid: number, uid: number) => {
+            return this._findFromUniqueIndex(ctx, [cid, uid], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly userActive = Object.freeze({
+        find: async (ctx: Context, uid: number, cid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[2]);
+        },
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, cid: number, uid: number, src: RoomParticipantCreateShape): Promise<RoomParticipant> {
+        return this._create(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, cid: number, uid: number, src: RoomParticipantCreateShape): RoomParticipant {
+        return this._create_UNSAFE(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
+    }
+
+    findById(ctx: Context, cid: number, uid: number): Promise<RoomParticipant | null> {
+        return this._findById(ctx, [cid, uid]);
+    }
+
+    watch(ctx: Context, cid: number, uid: number): Watch {
+        return this._watch(ctx, [cid, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<RoomParticipantShape>): RoomParticipant {
+        return new RoomParticipant([value.cid, value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface MessageDraftShape {
     uid: number;
     cid: number;
@@ -9096,6 +9865,12 @@ export interface Store extends BaseStore {
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
+    readonly Conversation: ConversationFactory;
+    readonly ConversationPrivate: ConversationPrivateFactory;
+    readonly ConversationOrganization: ConversationOrganizationFactory;
+    readonly ConversationRoom: ConversationRoomFactory;
+    readonly RoomProfile: RoomProfileFactory;
+    readonly RoomParticipant: RoomParticipantFactory;
     readonly MessageDraft: MessageDraftFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
@@ -9190,6 +9965,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.open(storage);
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
+    let ConversationPromise = ConversationFactory.open(storage);
+    let ConversationPrivatePromise = ConversationPrivateFactory.open(storage);
+    let ConversationOrganizationPromise = ConversationOrganizationFactory.open(storage);
+    let ConversationRoomPromise = ConversationRoomFactory.open(storage);
+    let RoomProfilePromise = RoomProfileFactory.open(storage);
+    let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessageDraftPromise = MessageDraftFactory.open(storage);
     let ConversationSeqPromise = ConversationSeqFactory.open(storage);
     let ConversationEventPromise = ConversationEventFactory.open(storage);
@@ -9283,6 +10064,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
         Online: await OnlinePromise,
         Presence: await PresencePromise,
+        Conversation: await ConversationPromise,
+        ConversationPrivate: await ConversationPrivatePromise,
+        ConversationOrganization: await ConversationOrganizationPromise,
+        ConversationRoom: await ConversationRoomPromise,
+        RoomProfile: await RoomProfilePromise,
+        RoomParticipant: await RoomParticipantPromise,
         MessageDraft: await MessageDraftPromise,
         ConversationSeq: await ConversationSeqPromise,
         ConversationEvent: await ConversationEventPromise,

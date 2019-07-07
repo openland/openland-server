@@ -102,9 +102,9 @@ export function startEmailNotificationWorker() {
                     }
 
                     // disable email notificaitons for channels
-                    let conversation = (await FDB.Conversation.findById(ctx, message.cid))!;
+                    let conversation = (await Store.Conversation.findById(ctx, message.cid))!;
                     if (conversation.kind === 'room') {
-                        if ((await FDB.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
+                        if ((await Store.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
                             continue;
                         }
                     }

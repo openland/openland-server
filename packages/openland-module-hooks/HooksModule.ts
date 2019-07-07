@@ -3,7 +3,7 @@ import { injectable } from 'inversify';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
-import { FDB, Store } from '../openland-module-db/FDB';
+import { Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/store';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
@@ -147,7 +147,7 @@ export class HooksModule {
     }
 
     onAppHookCreated = async (ctx: Context, uid: number, hook: AppHook) => {
-        let conv = await FDB.RoomProfile.findById(ctx, hook.chatId);
+        let conv = await Store.RoomProfile.findById(ctx, hook.chatId);
         if (!conv) {
             return;
         }

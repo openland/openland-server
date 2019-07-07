@@ -28,14 +28,14 @@ export class FixerRepository {
                 let all = await Store.UserDialog.user.findAll(ctx, uid);
                 let totalUnread = 0;
                 for (let a of all) {
-                    let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
+                    let conv = (await Store.Conversation.findById(ctx, a.cid))!;
                     let counter = Store.UserDialogCounter.byId(uid, a.cid);
                     if (!conv) {
                         counter.set(ctx, 0);
                         continue;
                     }
                     if (conv.kind === 'room') {
-                        let pat = await this.entities.RoomParticipant.findById(ctx, a.cid, uid);
+                        let pat = await Store.RoomParticipant.findById(ctx, a.cid, uid);
                         if (!pat || pat.status !== 'joined') {
                             counter.set(ctx, 0);
                             continue;

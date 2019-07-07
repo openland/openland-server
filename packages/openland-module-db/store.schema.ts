@@ -147,6 +147,73 @@ export default declareSchema(() => {
     });
 
     //
+    // Conversations
+    //
+
+    entity('Conversation', () => {
+        primaryKey('id', integer());
+        field('kind', enumString('private', 'organization', 'room'));
+        field('deleted', optional(boolean()));
+        field('archived', optional(boolean()));
+    });
+
+    entity('ConversationPrivate', () => {
+        primaryKey('id', integer());
+        field('uid1', integer());
+        field('uid2', integer());
+        field('pinnedMessage', optional(integer()));
+        uniqueIndex('users', ['uid1', 'uid2']);
+    });
+
+    entity('ConversationOrganization', () => {
+        primaryKey('id', integer());
+        field('oid', integer());
+        uniqueIndex('organization', ['oid']);
+    });
+
+    entity('ConversationRoom', () => {
+        primaryKey('id', integer());
+        field('kind', enumString('organization', 'internal', 'public', 'group'));
+        field('oid', optional(integer()));
+        field('ownerId', optional(integer()));
+        field('featured', optional(boolean()));
+        field('listed', optional(boolean()));
+        field('isChannel', optional(boolean()));
+        rangeIndex('organization', ['oid'])
+            .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
+        uniqueIndex('organizationPublicRooms', ['oid', 'id'])
+            .withCondition((v) => v.kind === 'public');
+    });
+
+    entity('RoomProfile', () => {
+        primaryKey('id', integer());
+
+        field('title', string());
+        field('image', optional(json()));
+        field('description', optional(string()));
+        field('socialImage', optional(json()));
+        field('pinnedMessage', optional(integer()));
+        field('welcomeMessageIsOn', optional(boolean()));
+        field('welcomeMessageSender', optional(integer()));
+        field('welcomeMessageText', optional(string()));
+
+        field('activeMembersCount', optional(integer()));
+
+        rangeIndex('updated', ['updatedAt']);
+    });
+
+    entity('RoomParticipant', () => {
+        primaryKey('cid', integer());
+        primaryKey('uid', integer());
+        field('invitedBy', integer());
+        field('role', enumString('member', 'admin', 'owner'));
+        field('status', enumString('joined', 'requested', 'left', 'kicked'));
+        uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined');
+        uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
+        uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
+    });
+
+    //
     // Messaging
     //
 

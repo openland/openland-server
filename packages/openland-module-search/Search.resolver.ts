@@ -2,12 +2,12 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withAccount } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
 import { FDB, Store } from '../openland-module-db/FDB';
-import { Conversation, Message } from '../openland-module-db/schema';
+import { Message } from '../openland-module-db/schema';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { User, Organization } from 'openland-module-db/store';
+import { User, Organization, Conversation } from 'openland-module-db/store';
 
 const log = createLogger('search-resolver');
 
@@ -149,7 +149,7 @@ export default {
                     if (!cid) {
                         return null;
                     }
-                    return FDB.Conversation.findById(ctx, cid);
+                    return Store.Conversation.findById(ctx, cid);
                 } else {
                     return null;
                 }
@@ -217,8 +217,8 @@ export default {
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
                 }
-                
-                clauses.push({ terms: { cid: userDialogs.map(d => d.cid) }});
+
+                clauses.push({ terms: { cid: userDialogs.map(d => d.cid) } });
 
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'message',

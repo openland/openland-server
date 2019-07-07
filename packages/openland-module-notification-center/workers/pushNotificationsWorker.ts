@@ -136,7 +136,7 @@ export function startPushNotificationWorker() {
                             pushBody += 'New comment';
                             let comment = await FDB.Comment.findById(ctx, commentNotification.commentId);
                             let message = await FDB.Message.findById(ctx, comment!.peerId);
-                            let chat = await FDB.Conversation.findById(ctx, message!.cid);
+                            let chat = await Store.Conversation.findById(ctx, message!.cid);
                             let chatName = await Modules.Messaging.room.resolveConversationTitle(ctx, chat!.id, uid);
                             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
 

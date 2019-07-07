@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
@@ -102,7 +102,7 @@ export default {
 
             let badges = await Store.UserRoomBadge.user.findAll(ctx, src.id);
             for (let badge of badges) {
-                let chat = await FDB.ConversationRoom.findById(ctx, badge.cid);
+                let chat = await Store.ConversationRoom.findById(ctx, badge.cid);
                 if (!chat) {
                     continue;
                 }

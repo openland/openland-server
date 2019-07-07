@@ -5,7 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
 import { AppContext } from 'openland-modules/AppContext';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
@@ -154,7 +154,7 @@ export default {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
 
-            let chat = await FDB.Conversation.findById(ctx, coid);
+            let chat = await Store.Conversation.findById(ctx, coid);
             await Modules.Calls.repo.removePeer(ctx, pid);
             if (chat && chat.kind === 'private') {
                 await Modules.Calls.repo.endConference(ctx, coid);

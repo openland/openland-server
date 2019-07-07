@@ -1,6 +1,5 @@
 import { UserDialogEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities } from 'openland-module-db/schema';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -8,11 +7,9 @@ import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class UserStateRepository {
-    private readonly entities: AllEntities;
     private readonly metrics: ChatMetricsRepository;
 
-    constructor(@inject('FDB') entities: AllEntities, @inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
-        this.entities = entities;
+    constructor(@inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
         this.metrics = metrics;
     }
 
@@ -85,7 +82,7 @@ export class UserStateRepository {
             if (!existing) {
 
                 // Update chats counters
-                let chat = await this.entities.Conversation.findById(ctx, cid);
+                let chat = await Store.Conversation.findById(ctx, cid);
                 if (chat && chat.kind === 'private') {
                     this.metrics.onDirectChatCreated(ctx, uid);
                 }

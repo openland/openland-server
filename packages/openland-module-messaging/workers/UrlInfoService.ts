@@ -3,7 +3,7 @@ import { IDs } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
@@ -152,13 +152,13 @@ export function createUrlInfoService() {
             let ctx = rootCtx;
             let channelId = IDs.Conversation.parse(_channelId);
 
-            let channel = await FDB.ConversationRoom.findById(rootCtx, channelId);
+            let channel = await Store.ConversationRoom.findById(rootCtx, channelId);
 
             if (!channel || channel!.kind !== 'public' || (channel.oid && (await Store.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
                 return null;
             }
 
-            let profile = await FDB.RoomProfile.findById(rootCtx, channelId);
+            let profile = await Store.RoomProfile.findById(rootCtx, channelId);
             if (!profile) {
                 return null;
             }
@@ -186,8 +186,8 @@ export function createUrlInfoService() {
                 return null;
             }
 
-            let profile = await FDB.RoomProfile.findById(ctx, chatInvite.channelId);
-            let conv = await FDB.ConversationRoom.findById(ctx, chatInvite.channelId);
+            let profile = await Store.RoomProfile.findById(ctx, chatInvite.channelId);
+            let conv = await Store.ConversationRoom.findById(ctx, chatInvite.channelId);
 
             if (!profile) {
                 return null;

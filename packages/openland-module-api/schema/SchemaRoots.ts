@@ -13,11 +13,11 @@ import {
     NotificationCenterEvent,
     ConversationEvent,
     UserDialogEvent,
-    UserDialogSettings
+    UserDialogSettings,
+    Conversation,
+    ConversationRoom
 } from './../../openland-module-db/store';
 import {
-    Conversation,
-    ConversationRoom,
     Message,
     Comment,
     CommentEvent,

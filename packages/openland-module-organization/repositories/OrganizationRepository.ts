@@ -8,7 +8,7 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/store';
 
 @injectable()
@@ -190,7 +190,7 @@ export class OrganizationRepository {
                 throw new UserError('Organization that has active members cannot be deleted');
             }
 
-            let chats = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, oid);
+            let chats = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
 
             if (chats.length > 0) {
                 for (let chat of chats) {

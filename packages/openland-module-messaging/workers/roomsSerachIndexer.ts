@@ -1,11 +1,11 @@
 import { inTx } from '@openland/foundationdb';
-import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer2';
+import { Store } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 import { Organization } from 'openland-module-db/store';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 9, 'room', FDB.RoomProfile.createUpdatedStream(50))
+    declareSearchIndexer('room-index', 9, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -37,7 +37,7 @@ export function roomsSearchIndexer() {
         })
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
-                let room = await FDB.ConversationRoom.findById(ctx, item.id);
+                let room = await Store.ConversationRoom.findById(ctx, item.id);
 
                 if (!room) {
                     throw new Error('Room not found');
@@ -57,8 +57,8 @@ export function roomsSearchIndexer() {
                     doc: {
                         title: item.title,
                         cid: item.id,
-                        createdAt: item.createdAt,
-                        updatedAt: item.updatedAt,
+                        createdAt: item.metadata.createdAt,
+                        updatedAt: item.metadata.updatedAt,
                         featured: room.featured === true,
                         listed: isListed || false,
                         membersCount: membersCount,

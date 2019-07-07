@@ -15,6 +15,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { currentTime } from 'openland-utils/timer';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
+import { Store } from 'openland-module-db/FDB';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -46,7 +47,7 @@ export class MessagingMediator {
             // Permissions
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
-                let conv = await this.entities.Conversation.findById(ctx, cid);
+                let conv = await Store.Conversation.findById(ctx, cid);
                 if (conv && conv.archived) {
                     throw new AccessDeniedError();
                 }
@@ -200,7 +201,7 @@ export class MessagingMediator {
             message = (await this.entities.Message.findById(ctx, res!.mid!))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
-            let chatProfile = await this.entities.RoomProfile.findById(ctx, message.cid);
+            let chatProfile = await Store.RoomProfile.findById(ctx, message.cid);
             if (chatProfile && chatProfile.pinnedMessage && chatProfile.pinnedMessage === message.id) {
                 await this.room.unpinMessage(ctx, message.cid, uid);
             }

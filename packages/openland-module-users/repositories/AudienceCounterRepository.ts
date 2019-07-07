@@ -1,23 +1,18 @@
 import { injectable } from 'inversify';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class AudienceCounterRepository {
-    @lazyInject('FDB')
-    private readonly fdb!: AllEntities;
-
     async addToCalculatingQueue(parent: Context, cid: number, membersCountDelta: number) {
         return await inTx(parent, async ctx => {
             // Only public chats from communities should pass to queue
-            let chat = await this.fdb.Conversation.findById(ctx, cid);
+            let chat = await Store.Conversation.findById(ctx, cid);
             if (!chat || chat.kind !== 'room') {
                 return;
             }
-            let room = (await this.fdb.ConversationRoom.findById(ctx, cid))!;
+            let room = (await Store.ConversationRoom.findById(ctx, cid))!;
             if (room.kind !== 'public' || !room.oid) {
                 return;
             }
