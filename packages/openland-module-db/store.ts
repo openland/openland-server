@@ -2,9 +2,9 @@
 // @ts-ignore
 import { Context } from '@openland/context';
 // @ts-ignore
-import { Subspace, Watch, RangeOptions } from '@openland/foundationdb';
+import { Subspace, Watch } from '@openland/foundationdb';
 // @ts-ignore
-import { EntityStorage, BaseStore, codecs as c } from '@openland/foundationdb-entity';
+import { EntityStorage, BaseStore, RangeQueryOptions, codecs as c } from '@openland/foundationdb-entity';
 // @ts-ignore
 import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundationdb-entity';
 // @ts-ignore
@@ -822,8 +822,8 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -834,8 +834,8 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -843,8 +843,8 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         findAll: async (ctx: Context, botOwner: number | null) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner])).items;
         },
-        query: (ctx: Context, botOwner: number | null, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, botOwner: number | null, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (botOwner: number | null, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[2], [botOwner], opts);
@@ -1108,8 +1108,8 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
@@ -1445,8 +1445,8 @@ export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueSha
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
@@ -1950,8 +1950,8 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         findAll: async (ctx: Context, oid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [oid])).items;
         },
-        query: (ctx: Context, oid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, oid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -1959,8 +1959,8 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         findAll: async (ctx: Context, status: 'requested' | 'joined' | 'left', oid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [status, oid])).items;
         },
-        query: (ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [status, oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [status, oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (status: 'requested' | 'joined' | 'left', oid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [status, oid], opts);
@@ -1974,8 +1974,8 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         findAll: async (ctx: Context, status: 'requested' | 'joined' | 'left', uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [status, uid])).items;
         },
-        query: (ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [status, uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [status, uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (status: 'requested' | 'joined' | 'left', uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[2], [status, uid], opts);
@@ -2045,8 +2045,8 @@ export class OrganizationIndexingQueueFactory extends EntityFactory<Organization
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
@@ -2266,8 +2266,8 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -2520,8 +2520,8 @@ export class ConversationEventFactory extends EntityFactory<ConversationEventSha
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
@@ -2549,6 +2549,541 @@ export class ConversationEventFactory extends EntityFactory<ConversationEventSha
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationEventShape>): ConversationEvent {
         return new ConversationEvent([value.cid, value.seq], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserDialogShape {
+    uid: number;
+    cid: number;
+    unread: number;
+    readMessageId: number | null;
+    date: number | null;
+    haveMention: boolean | null;
+    title: string | null;
+    photo: any | null;
+    hidden: boolean | null;
+    disableGlobalCounter: boolean | null;
+}
+
+export interface UserDialogCreateShape {
+    unread: number;
+    readMessageId?: number | null | undefined;
+    date?: number | null | undefined;
+    haveMention?: boolean | null | undefined;
+    title?: string | null | undefined;
+    photo?: any | null | undefined;
+    hidden?: boolean | null | undefined;
+    disableGlobalCounter?: boolean | null | undefined;
+}
+
+export class UserDialog extends Entity<UserDialogShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get cid(): number { return this._rawValue.cid; }
+    get unread(): number { return this._rawValue.unread; }
+    set unread(value: number) {
+        let normalized = this.descriptor.codec.fields.unread.normalize(value);
+        if (this._rawValue.unread !== normalized) {
+            this._rawValue.unread = normalized;
+            this._updatedValues.unread = normalized;
+            this.invalidate();
+        }
+    }
+    get readMessageId(): number | null { return this._rawValue.readMessageId; }
+    set readMessageId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.readMessageId.normalize(value);
+        if (this._rawValue.readMessageId !== normalized) {
+            this._rawValue.readMessageId = normalized;
+            this._updatedValues.readMessageId = normalized;
+            this.invalidate();
+        }
+    }
+    get date(): number | null { return this._rawValue.date; }
+    set date(value: number | null) {
+        let normalized = this.descriptor.codec.fields.date.normalize(value);
+        if (this._rawValue.date !== normalized) {
+            this._rawValue.date = normalized;
+            this._updatedValues.date = normalized;
+            this.invalidate();
+        }
+    }
+    get haveMention(): boolean | null { return this._rawValue.haveMention; }
+    set haveMention(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.haveMention.normalize(value);
+        if (this._rawValue.haveMention !== normalized) {
+            this._rawValue.haveMention = normalized;
+            this._updatedValues.haveMention = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string | null { return this._rawValue.title; }
+    set title(value: string | null) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get photo(): any | null { return this._rawValue.photo; }
+    set photo(value: any | null) {
+        let normalized = this.descriptor.codec.fields.photo.normalize(value);
+        if (this._rawValue.photo !== normalized) {
+            this._rawValue.photo = normalized;
+            this._updatedValues.photo = normalized;
+            this.invalidate();
+        }
+    }
+    get hidden(): boolean | null { return this._rawValue.hidden; }
+    set hidden(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.hidden.normalize(value);
+        if (this._rawValue.hidden !== normalized) {
+            this._rawValue.hidden = normalized;
+            this._updatedValues.hidden = normalized;
+            this.invalidate();
+        }
+    }
+    get disableGlobalCounter(): boolean | null { return this._rawValue.disableGlobalCounter; }
+    set disableGlobalCounter(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.disableGlobalCounter.normalize(value);
+        if (this._rawValue.disableGlobalCounter !== normalized) {
+            this._rawValue.disableGlobalCounter = normalized;
+            this._updatedValues.disableGlobalCounter = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userDialog');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'date', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'user'), condition: (src) => !!src.date && !src.hidden });
+        secondaryIndexes.push({ name: 'conversation', storageKey: 'conversation', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'conversation'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'unread', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'readMessageId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'date', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'haveMention', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'hidden', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'disableGlobalCounter', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            cid: c.integer,
+            unread: c.integer,
+            readMessageId: c.optional(c.integer),
+            date: c.optional(c.integer),
+            haveMention: c.optional(c.boolean),
+            title: c.optional(c.string),
+            photo: c.optional(c.any),
+            hidden: c.optional(c.boolean),
+            disableGlobalCounter: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<UserDialogShape> = {
+            name: 'UserDialog',
+            storageKey: 'userDialog',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserDialogFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserDialogShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly conversation = Object.freeze({
+        find: async (ctx: Context, cid: number, uid: number) => {
+            return this._findFromUniqueIndex(ctx, [cid, uid], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, cid: number, src: UserDialogCreateShape): Promise<UserDialog> {
+        return this._create(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, src: UserDialogCreateShape): UserDialog {
+        return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, cid: number): Promise<UserDialog | null> {
+        return this._findById(ctx, [uid, cid]);
+    }
+
+    watch(ctx: Context, uid: number, cid: number): Watch {
+        return this._watch(ctx, [uid, cid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogShape>): UserDialog {
+        return new UserDialog([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserDialogHandledMessageShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export interface UserDialogHandledMessageCreateShape {
+}
+
+export class UserDialogHandledMessage extends Entity<UserDialogHandledMessageShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get cid(): number { return this._rawValue.cid; }
+    get mid(): number { return this._rawValue.mid; }
+}
+
+export class UserDialogHandledMessageFactory extends EntityFactory<UserDialogHandledMessageShape, UserDialogHandledMessage> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userDialogHandledMessage');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        primaryKeys.push({ name: 'mid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        let codec = c.struct({
+            uid: c.integer,
+            cid: c.integer,
+            mid: c.integer,
+        });
+        let descriptor: EntityDescriptor<UserDialogHandledMessageShape> = {
+            name: 'UserDialogHandledMessage',
+            storageKey: 'userDialogHandledMessage',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserDialogHandledMessageFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserDialogHandledMessageShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, cid: number, mid: number, src: UserDialogHandledMessageCreateShape): Promise<UserDialogHandledMessage> {
+        return this._create(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, mid: number, src: UserDialogHandledMessageCreateShape): UserDialogHandledMessage {
+        return this._create_UNSAFE(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage | null> {
+        return this._findById(ctx, [uid, cid, mid]);
+    }
+
+    watch(ctx: Context, uid: number, cid: number, mid: number): Watch {
+        return this._watch(ctx, [uid, cid, mid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogHandledMessageShape>): UserDialogHandledMessage {
+        return new UserDialogHandledMessage([value.uid, value.cid, value.mid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserDialogSettingsShape {
+    uid: number;
+    cid: number;
+    mute: boolean;
+}
+
+export interface UserDialogSettingsCreateShape {
+    mute: boolean;
+}
+
+export class UserDialogSettings extends Entity<UserDialogSettingsShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get cid(): number { return this._rawValue.cid; }
+    get mute(): boolean { return this._rawValue.mute; }
+    set mute(value: boolean) {
+        let normalized = this.descriptor.codec.fields.mute.normalize(value);
+        if (this._rawValue.mute !== normalized) {
+            this._rawValue.mute = normalized;
+            this._updatedValues.mute = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserDialogSettingsFactory extends EntityFactory<UserDialogSettingsShape, UserDialogSettings> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userDialogSettings');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'mute', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            cid: c.integer,
+            mute: c.boolean,
+        });
+        let descriptor: EntityDescriptor<UserDialogSettingsShape> = {
+            name: 'UserDialogSettings',
+            storageKey: 'userDialogSettings',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserDialogSettingsFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserDialogSettingsShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, cid: number, src: UserDialogSettingsCreateShape): Promise<UserDialogSettings> {
+        return this._create(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, src: UserDialogSettingsCreateShape): UserDialogSettings {
+        return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, cid: number): Promise<UserDialogSettings | null> {
+        return this._findById(ctx, [uid, cid]);
+    }
+
+    watch(ctx: Context, uid: number, cid: number): Watch {
+        return this._watch(ctx, [uid, cid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogSettingsShape>): UserDialogSettings {
+        return new UserDialogSettings([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserDialogEventShape {
+    uid: number;
+    seq: number;
+    cid: number | null;
+    mid: number | null;
+    allUnread: number | null;
+    unread: number | null;
+    title: string | null;
+    photo: any | null;
+    mute: boolean | null;
+    haveMention: boolean | null;
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
+}
+
+export interface UserDialogEventCreateShape {
+    cid?: number | null | undefined;
+    mid?: number | null | undefined;
+    allUnread?: number | null | undefined;
+    unread?: number | null | undefined;
+    title?: string | null | undefined;
+    photo?: any | null | undefined;
+    mute?: boolean | null | undefined;
+    haveMention?: boolean | null | undefined;
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
+}
+
+export class UserDialogEvent extends Entity<UserDialogEventShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get seq(): number { return this._rawValue.seq; }
+    get cid(): number | null { return this._rawValue.cid; }
+    set cid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.cid.normalize(value);
+        if (this._rawValue.cid !== normalized) {
+            this._rawValue.cid = normalized;
+            this._updatedValues.cid = normalized;
+            this.invalidate();
+        }
+    }
+    get mid(): number | null { return this._rawValue.mid; }
+    set mid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.mid.normalize(value);
+        if (this._rawValue.mid !== normalized) {
+            this._rawValue.mid = normalized;
+            this._updatedValues.mid = normalized;
+            this.invalidate();
+        }
+    }
+    get allUnread(): number | null { return this._rawValue.allUnread; }
+    set allUnread(value: number | null) {
+        let normalized = this.descriptor.codec.fields.allUnread.normalize(value);
+        if (this._rawValue.allUnread !== normalized) {
+            this._rawValue.allUnread = normalized;
+            this._updatedValues.allUnread = normalized;
+            this.invalidate();
+        }
+    }
+    get unread(): number | null { return this._rawValue.unread; }
+    set unread(value: number | null) {
+        let normalized = this.descriptor.codec.fields.unread.normalize(value);
+        if (this._rawValue.unread !== normalized) {
+            this._rawValue.unread = normalized;
+            this._updatedValues.unread = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string | null { return this._rawValue.title; }
+    set title(value: string | null) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get photo(): any | null { return this._rawValue.photo; }
+    set photo(value: any | null) {
+        let normalized = this.descriptor.codec.fields.photo.normalize(value);
+        if (this._rawValue.photo !== normalized) {
+            this._rawValue.photo = normalized;
+            this._updatedValues.photo = normalized;
+            this.invalidate();
+        }
+    }
+    get mute(): boolean | null { return this._rawValue.mute; }
+    set mute(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.mute.normalize(value);
+        if (this._rawValue.mute !== normalized) {
+            this._rawValue.mute = normalized;
+            this._updatedValues.mute = normalized;
+            this.invalidate();
+        }
+    }
+    get haveMention(): boolean | null { return this._rawValue.haveMention; }
+    set haveMention(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.haveMention.normalize(value);
+        if (this._rawValue.haveMention !== normalized) {
+            this._rawValue.haveMention = normalized;
+            this._updatedValues.haveMention = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' { return this._rawValue.kind; }
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, UserDialogEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userDialogEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialogEvent', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'seq', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'cid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'mid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'allUnread', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'unread', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'mute', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'haveMention', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            seq: c.integer,
+            cid: c.optional(c.integer),
+            mid: c.optional(c.integer),
+            allUnread: c.optional(c.integer),
+            unread: c.optional(c.integer),
+            title: c.optional(c.string),
+            photo: c.optional(c.any),
+            mute: c.optional(c.boolean),
+            haveMention: c.optional(c.boolean),
+            kind: c.enum('message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'),
+        });
+        let descriptor: EntityDescriptor<UserDialogEventShape> = {
+            name: 'UserDialogEvent',
+            storageKey: 'userDialogEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserDialogEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserDialogEventShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, seq: number, src: UserDialogEventCreateShape): Promise<UserDialogEvent> {
+        return this._create(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, seq: number, src: UserDialogEventCreateShape): UserDialogEvent {
+        return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent | null> {
+        return this._findById(ctx, [uid, seq]);
+    }
+
+    watch(ctx: Context, uid: number, seq: number): Watch {
+        return this._watch(ctx, [uid, seq]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogEventShape>): UserDialogEvent {
+        return new UserDialogEvent([value.uid, value.seq], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -2742,8 +3277,8 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         findAll: async (ctx: Context, cid: number, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid, uid])).items;
         },
-        query: (ctx: Context, cid: number, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid, uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, cid: number, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid, uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -2751,8 +3286,8 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [cid], opts);
@@ -2766,8 +3301,8 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
@@ -2954,8 +3489,8 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
@@ -3107,8 +3642,8 @@ export class ConferenceConnectionFactory extends EntityFactory<ConferenceConnect
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
@@ -3183,8 +3718,8 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         findAll: async (ctx: Context, uid1: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid1])).items;
         },
-        query: (ctx: Context, uid1: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid1], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid1: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid1], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid1: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid1], opts);
@@ -3198,8 +3733,8 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         findAll: async (ctx: Context, uid2: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid2])).items;
         },
-        query: (ctx: Context, uid2: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid2], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid2: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid2], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid2: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [uid2], opts);
@@ -3458,8 +3993,8 @@ export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -3473,8 +4008,8 @@ export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
         findAll: async (ctx: Context, name: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [name])).items;
         },
-        query: (ctx: Context, name: string, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [name], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, name: string, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [name], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (name: string, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [name], opts);
@@ -3562,8 +4097,8 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
@@ -3577,8 +4112,8 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
@@ -3691,8 +4226,8 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -3703,8 +4238,8 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -3852,8 +4387,8 @@ export class UserNotificationCenterFactory extends EntityFactory<UserNotificatio
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -3969,8 +4504,8 @@ export class NotificationFactory extends EntityFactory<NotificationShape, Notifi
         findAll: async (ctx: Context, ncid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid])).items;
         },
-        query: (ctx: Context, ncid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, ncid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (ncid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [ncid], opts);
@@ -4229,8 +4764,8 @@ export class NotificationCenterEventFactory extends EntityFactory<NotificationCe
         findAll: async (ctx: Context, ncid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid])).items;
         },
-        query: (ctx: Context, ncid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, ncid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (ncid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [ncid], opts);
@@ -4504,8 +5039,8 @@ export class FeedSubscriberFactory extends EntityFactory<FeedSubscriberShape, Fe
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -4587,8 +5122,8 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
         findAll: async (ctx: Context, sid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [sid])).items;
         },
-        query: (ctx: Context, sid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [sid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, sid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [sid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (sid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [sid], opts);
@@ -4602,8 +5137,8 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
         findAll: async (ctx: Context, tid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [tid])).items;
         },
-        query: (ctx: Context, tid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, tid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (tid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [tid], opts);
@@ -4689,8 +5224,8 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -4794,8 +5329,8 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         findAll: async (ctx: Context, tid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [tid])).items;
         },
-        query: (ctx: Context, tid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, tid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (tid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [tid], opts);
@@ -4809,8 +5344,8 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
@@ -4906,8 +5441,8 @@ export class ChatAudienceCalculatingQueueFactory extends EntityFactory<ChatAudie
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
@@ -5016,8 +5551,8 @@ export class ChannelLinkFactory extends EntityFactory<ChannelLinkShape, ChannelL
         findAll: async (ctx: Context, channelId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [channelId])).items;
         },
-        query: (ctx: Context, channelId: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [channelId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, channelId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [channelId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (channelId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [channelId], opts);
@@ -5103,8 +5638,8 @@ export class AppInviteLinkFactory extends EntityFactory<AppInviteLinkShape, AppI
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -5210,8 +5745,8 @@ export class OrganizationPublicInviteLinkFactory extends EntityFactory<Organizat
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -5409,8 +5944,8 @@ export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInv
         findAll: async (ctx: Context, oid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [oid])).items;
         },
-        query: (ctx: Context, oid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, oid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -5421,8 +5956,8 @@ export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInv
         findAll: async (ctx: Context, email: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [email])).items;
         },
-        query: (ctx: Context, email: string, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [email], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, email: string, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [email], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -5591,8 +6126,8 @@ export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationSha
         findAll: async (ctx: Context, createdAt: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [createdAt])).items;
         },
-        query: (ctx: Context, createdAt: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [createdAt], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, createdAt: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [createdAt], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (createdAt: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [createdAt], opts);
@@ -5606,8 +6141,8 @@ export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationSha
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
@@ -5697,8 +6232,8 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6013,8 +6548,8 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -6031,8 +6566,8 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6227,8 +6762,8 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -6245,8 +6780,8 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6415,8 +6950,8 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -6433,8 +6968,8 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6616,8 +7151,8 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -6634,8 +7169,8 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6719,8 +7254,8 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6800,8 +7335,8 @@ export class UserStorageNamespaceFactory extends EntityFactory<UserStorageNamesp
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -6911,8 +7446,8 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
         findAll: async (ctx: Context, uid: number, ns: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid, ns])).items;
         },
-        query: (ctx: Context, uid: number, ns: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid, ns], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, ns: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid, ns], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -7197,8 +7732,8 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
         findAll: async (ctx: Context, service: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [service])).items;
         },
-        query: (ctx: Context, service: string, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [service], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, service: string, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [service], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (service: string, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [service], opts);
@@ -7486,8 +8021,8 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -7495,8 +8030,8 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
@@ -7796,8 +8331,8 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
         findAll: async (ctx: Context, organizationId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [organizationId])).items;
         },
-        query: (ctx: Context, organizationId: number, opts?: RangeOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [organizationId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, organizationId: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [organizationId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -7902,8 +8437,8 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
@@ -7917,8 +8452,8 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
@@ -7932,8 +8467,8 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
@@ -8127,8 +8662,8 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         findAll: async (ctx: Context, taskType: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType])).items;
         },
-        query: (ctx: Context, taskType: string, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, taskType: string, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (taskType: string, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [taskType], opts);
@@ -8142,8 +8677,8 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         findAll: async (ctx: Context, taskType: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType])).items;
         },
-        query: (ctx: Context, taskType: string, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, taskType: string, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (taskType: string, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [taskType], opts);
@@ -8157,8 +8692,8 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
@@ -8172,8 +8707,8 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[3], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
@@ -8326,8 +8861,8 @@ export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedT
         findAll: async (ctx: Context, taskType: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType])).items;
         },
-        query: (ctx: Context, taskType: string, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, taskType: string, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (taskType: string, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [taskType], opts);
@@ -8341,8 +8876,8 @@ export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedT
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeOptions<number | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
@@ -8429,8 +8964,8 @@ export class DebugEventFactory extends EntityFactory<DebugEventShape, DebugEvent
         findAll: async (ctx: Context, uid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
         },
-        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (uid: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
@@ -8564,6 +9099,10 @@ export interface Store extends BaseStore {
     readonly MessageDraft: MessageDraftFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
+    readonly UserDialog: UserDialogFactory;
+    readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
+    readonly UserDialogSettings: UserDialogSettingsFactory;
+    readonly UserDialogEvent: UserDialogEventFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
     readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
@@ -8654,6 +9193,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let MessageDraftPromise = MessageDraftFactory.open(storage);
     let ConversationSeqPromise = ConversationSeqFactory.open(storage);
     let ConversationEventPromise = ConversationEventFactory.open(storage);
+    let UserDialogPromise = UserDialogFactory.open(storage);
+    let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.open(storage);
+    let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
+    let UserDialogEventPromise = UserDialogEventFactory.open(storage);
     let ConferenceRoomPromise = ConferenceRoomFactory.open(storage);
     let ConferencePeerPromise = ConferencePeerFactory.open(storage);
     let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
@@ -8743,6 +9286,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         MessageDraft: await MessageDraftPromise,
         ConversationSeq: await ConversationSeqPromise,
         ConversationEvent: await ConversationEventPromise,
+        UserDialog: await UserDialogPromise,
+        UserDialogHandledMessage: await UserDialogHandledMessagePromise,
+        UserDialogSettings: await UserDialogSettingsPromise,
+        UserDialogEvent: await UserDialogEventPromise,
         ConferenceRoom: await ConferenceRoomPromise,
         ConferencePeer: await ConferencePeerPromise,
         ConferenceMediaStream: await ConferenceMediaStreamPromise,

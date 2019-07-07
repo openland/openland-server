@@ -15,7 +15,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { UserDialogSettings, Message, RoomParticipant, Conversation } from 'openland-module-db/schema';
+import { Message, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -24,7 +24,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 import { createLogger } from '@openland/log';
-import { User, Organization } from 'openland-module-db/store';
+import { User, Organization, UserDialogSettings } from 'openland-module-db/store';
 
 const logger = createLogger('chat');
 

@@ -199,7 +199,7 @@ export default {
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
             try {
-                let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await FDB.UserDialog.allFromUser(ctx2, uid));
+                let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await Store.UserDialog.user.findAll(ctx2, uid));
 
                 let clauses: any[] = [];
                 let sort: any[] | undefined = undefined;

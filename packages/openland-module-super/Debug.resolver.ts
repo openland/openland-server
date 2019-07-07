@@ -14,7 +14,6 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
-import { fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -98,7 +97,7 @@ export default {
         debugValidateMessages: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
             let messages: Message[] = [];
-            let allDialogs = await FDB.UserDialog.allFromUser(ctx, uid);
+            let allDialogs = await Store.UserDialog.user.findAll(ctx, uid);
             let res = '';
             for (let dialog of allDialogs) {
                 let conv = (await FDB.Conversation.findById(ctx, dialog.cid))!;
@@ -259,13 +258,13 @@ export default {
             } else if (type === 'SIGIN_CODE') {
                 await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
             } else if (type === 'UNREAD_MESSAGE') {
-                let dialogs = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, 10, undefined, true);
+                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
                 let dialog = dialogs.items[0];
                 let messages = await FDB.Message.rangeFromChat(ctx, dialog.cid, 1, true);
 
                 await Emails.sendUnreadMessages(ctx, uid, messages);
             } else if (type === 'UNREAD_MESSAGES') {
-                let dialogs = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, 10, undefined, true);
+                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
                 let messages: Message[] = [];
 
                 for (let dialog of dialogs.items) {
@@ -332,7 +331,7 @@ export default {
         debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
                 const calculateForUser = async (ctx: Context, uid: number) => {
-                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                    let all = await Store.UserDialog.user.findAll(ctx, uid);
                     let totalSent = 0;
                     let totalSentDirect = 0;
                     let totalReceived = 0;
@@ -558,7 +557,7 @@ export default {
                 for (let user of users) {
                     try {
                         await inTx(rootCtx, async _ctx => {
-                            let all = await FDB.UserDialog.allFromUser(_ctx, user.id);
+                            let all = await Store.UserDialog.user.findAll(_ctx, user.id);
                             for (let dialog of all) {
                                 let conv = (await FDB.Conversation.findById(_ctx, dialog.cid))!;
                                 if (!conv || conv.deleted) {
@@ -620,25 +619,25 @@ export default {
             return true;
         }),
         debugFixUserDialogsIndex: withPermission('super-admin', async (parent, args) => {
-            debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let allUids = await fetchAllUids(parent);
-                for (let uid of allUids) {
-                    await inTx(rootCtx, async (ctx) => {
-                        let duplicatesCount = await fixIndexConsistency(
-                            ctx,
-                            FDB.UserDialog,
-                            ['__indexes', 'user', uid],
-                            value => [value.uid, value.cid],
-                            _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
-                        );
-                        if (duplicatesCount > 0) {
-                            await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
-                        }
-                    });
-                }
+            // debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
+            //     let allUids = await fetchAllUids(parent);
+            //     for (let uid of allUids) {
+            //         await inTx(rootCtx, async (ctx) => {
+            //             let duplicatesCount = await fixIndexConsistency(
+            //                 ctx,
+            //                 Store.UserDialog,
+            //                 ['__indexes', 'user', uid],
+            //                 value => [value.uid, value.cid],
+            //                 _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
+            //             );
+            //             if (duplicatesCount > 0) {
+            //                 await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
+            //             }
+            //         });
+            //     }
 
-                return 'done';
-            });
+            //     return 'done';
+            // });
             return true;
         }),
         debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
@@ -733,7 +732,7 @@ export default {
 
                 const calculateForUser = async (ctx: Context, uid: number) => {
                     let audience = 0;
-                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                    let all = await Store.UserDialog.user.findAll(ctx, uid);
 
                     for (let a of all) {
                         let chat = await FDB.Conversation.findById(ctx, a.cid);
@@ -769,7 +768,7 @@ export default {
         }),
         debugCalcUsers2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
-                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let all = await Store.UserDialog.user.findAll(ctx, uid);
                 let direct2wayChatsCount = 0;
 
                 for (let dialog of all) {
@@ -803,7 +802,7 @@ export default {
         }),
         debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
-                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let all = await Store.UserDialog.user.findAll(ctx, uid);
                 let chatsCount = 0;
                 let directChatsCount = 0;
 
@@ -873,7 +872,7 @@ export default {
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
-                let dialogs = await FDB.UserDialog.allFromUser(ctx, uid);
+                let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
                 for (let strategy of CounterStrategies) {
                     strategy.counter().set(ctx, uid, 0);
                 }

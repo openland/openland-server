@@ -1,5 +1,6 @@
+import { UserDialogEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
+import { AllEntities } from 'openland-module-db/schema';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -17,11 +18,11 @@ export class UserStateRepository {
 
     async getRoomSettings(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let res = await this.entities.UserDialogSettings.findById(ctx, uid, cid);
+            let res = await Store.UserDialogSettings.findById(ctx, uid, cid);
             if (res) {
                 return res;
             }
-            return await this.entities.UserDialogSettings.create(ctx, uid, cid, { mute: false });
+            return await Store.UserDialogSettings.create(ctx, uid, cid, { mute: false });
         });
     }
 
@@ -80,7 +81,7 @@ export class UserStateRepository {
 
     async getUserDialogState(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserDialog.findById(ctx, uid, cid);
+            let existing = await Store.UserDialog.findById(ctx, uid, cid);
             if (!existing) {
 
                 // Update chats counters
@@ -89,7 +90,7 @@ export class UserStateRepository {
                     this.metrics.onDirectChatCreated(ctx, uid);
                 }
 
-                let created = await this.entities.UserDialog.create(ctx, uid, cid, { unread: 0 });
+                let created = await Store.UserDialog.create(ctx, uid, cid, { unread: 0 });
                 await created.flush(ctx);
                 return created;
             } else {
@@ -118,7 +119,7 @@ export class UserStateRepository {
         let cursor = state;
         let loadMore = !!cursor;
         while (loadMore) {
-            let res = await this.entities.UserDialogEvent.rangeFromUserWithCursor(parent, uid, 1000, cursor);
+            let res = await Store.UserDialogEvent.user.query(parent, uid, { limit: 1000, afterCursor: cursor });
             cursor = res.cursor;
             if (res.items.length && res.cursor) {
                 yield { items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq };

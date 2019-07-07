@@ -1,7 +1,7 @@
+import { LiveStreamItem } from '@openland/foundationdb-entity';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB, Store } from 'openland-module-db/FDB';
-import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
-import { UserDialogEvent } from 'openland-module-db/schema';
+import { UserDialogEvent } from 'openland-module-db/store';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -13,7 +13,7 @@ export default {
      * Dialog Update Containers
      */
     DialogUpdateContainer: {
-        __resolveType(obj: FLiveStreamItem<UserDialogEvent>) {
+        __resolveType(obj: LiveStreamItem<UserDialogEvent>) {
             if (obj.items.length === 1) {
                 return 'DialogUpdateSingle';
             } else {
@@ -22,15 +22,15 @@ export default {
         }
     },
     DialogUpdateBatch: {
-        updates: (src: FLiveStreamItem<UserDialogEvent>) => src.items,
-        fromSeq: (src: FLiveStreamItem<UserDialogEvent>) => (src as any).fromSeq || src.items[0].seq,
-        seq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[src.items.length - 1].seq,
-        state: (src: FLiveStreamItem<UserDialogEvent>) => src.cursor
+        updates: (src: LiveStreamItem<UserDialogEvent>) => src.items,
+        fromSeq: (src: LiveStreamItem<UserDialogEvent>) => (src as any).fromSeq || src.items[0].seq,
+        seq: (src: LiveStreamItem<UserDialogEvent>) => src.items[src.items.length - 1].seq,
+        state: (src: LiveStreamItem<UserDialogEvent>) => src.cursor
     },
     DialogUpdateSingle: {
-        seq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[0].seq,
-        state: (src: FLiveStreamItem<UserDialogEvent>) => src.cursor,
-        update: (src: FLiveStreamItem<UserDialogEvent>) => src.items[0],
+        seq: (src: LiveStreamItem<UserDialogEvent>) => src.items[0].seq,
+        state: (src: LiveStreamItem<UserDialogEvent>) => src.cursor,
+        update: (src: LiveStreamItem<UserDialogEvent>) => src.items[0],
     },
     /*
      * Dialog Updates
@@ -132,7 +132,7 @@ export default {
 
     Query: {
         dialogsState: withUser(async (ctx, args, uid) => {
-            let tail = await FDB.UserDialogEvent.createUserStream(uid, 1).tail(ctx);
+            let tail = await Store.UserDialogEvent.user.stream(uid, { batchSize: 1 }).tail(ctx);
             return {
                 state: tail
             };
@@ -150,17 +150,17 @@ export default {
             subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
                 // zip previous updates in batches
                 let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
-                let subscribeAfter = args.fromState || undefined;
+                let subscribeAfter = args.fromState || null;
                 for await (let event of zipedGenerator) {
                     subscribeAfter = event.cursor;
                     yield event;
                 }
                 if (!subscribeAfter) {
-                    subscribeAfter = await FDB.UserDialogEvent.createUserStream(ctx.auth.uid!, 1).tail(ctx);
+                    subscribeAfter = await Store.UserDialogEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
                 }
 
                 // start subscription from last known event
-                let generator = FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, subscribeAfter);
+                let generator = Store.UserDialogEvent.user.liveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: subscribeAfter ? subscribeAfter : undefined });
                 for await (let event of generator) {
                     yield event;
                 }

@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { fetchMessageFallback, hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
@@ -96,7 +96,7 @@ export const shouldResetNotificationDelivery = (ctx: Context, user: {
 
 export const shouldUpdateUserSeq = (ctx: Context, user: {
     mobileNotifications: 'all' | 'direct' | 'none',
-    desktopNotifications:  'all' | 'direct' | 'none',
+    desktopNotifications: 'all' | 'direct' | 'none',
 }) => {
     if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
         return true;
@@ -153,7 +153,7 @@ export function startPushNotificationWorker() {
                 // Scanning updates
                 let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq!, state.lastPushSeq || 0);
 
-                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, afterSec);
+                let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, { after: afterSec })).items;
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                 let unreadCounter: number | undefined = undefined;

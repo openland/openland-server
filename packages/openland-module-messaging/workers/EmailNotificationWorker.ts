@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Emails } from '../../openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
@@ -84,7 +85,7 @@ export function startEmailNotificationWorker() {
                 }
 
                 // Fetch pending updates
-                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
+                let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, { after: Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq) })).items;
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                 let hasNonMuted = false;

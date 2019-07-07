@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
@@ -80,7 +80,7 @@ export default {
                     },
                     [] as any[]
                 );
-                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await FDB.UserDialog.findFromConversation(parent, c.id, uid)))).filter(d => !!d).map(d => d!);
+                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await Store.UserDialog.conversation.find(parent, c.id, uid)))).filter(d => !!d).map(d => d!);
                 return dialogs;
             });
         }),

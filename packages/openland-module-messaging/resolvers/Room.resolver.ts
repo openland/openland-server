@@ -1,4 +1,4 @@
-import { ChannelInvitation, ChannelLink } from './../../openland-module-db/store';
+import { ChannelInvitation, ChannelLink, UserDialogSettings } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { withAccount, withUser, withPermission, withActivatedUser, withAny } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
@@ -9,8 +9,7 @@ import {
     Conversation,
     RoomProfile,
     Message,
-    RoomParticipant,
-    UserDialogSettings,
+    RoomParticipant
 } from '../../openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';

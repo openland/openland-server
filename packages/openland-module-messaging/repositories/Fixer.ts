@@ -1,11 +1,10 @@
-import { Store } from './../../openland-module-db/store';
-import { lazyInject } from 'openland-modules/Modules.container';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { createLogger } from '@openland/log';
+import { Store } from 'openland-module-db/FDB';
 
 const logger = createLogger('fixer');
 
@@ -13,8 +12,6 @@ const logger = createLogger('fixer');
 export class FixerRepository {
     private readonly entities: AllEntities;
     private readonly userState: UserStateRepository;
-    @lazyInject('Store')
-    private readonly store!: Store;
 
     constructor(
         @inject('FDB') entities: AllEntities,
@@ -28,11 +25,11 @@ export class FixerRepository {
         return await inTx(parent, async (ctx) => {
             try {
                 logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
-                let all = await this.entities.UserDialog.allFromUser(ctx, uid);
+                let all = await Store.UserDialog.user.findAll(ctx, uid);
                 let totalUnread = 0;
                 for (let a of all) {
                     let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
-                    let counter = this.store.UserDialogCounter.byId(uid, a.cid);
+                    let counter = Store.UserDialogCounter.byId(uid, a.cid);
                     if (!conv) {
                         counter.set(ctx, 0);
                         continue;
@@ -57,7 +54,7 @@ export class FixerRepository {
                         counter.set(ctx, total);
                     }
                 }
-                let globalCounter = this.store.UserCounter.byId(uid);
+                let globalCounter = Store.UserCounter.byId(uid);
                 logger.debug(ctx, '[' + uid + '] fix global counter existing: ' + (await globalCounter.get(ctx) || 0) + ', updated: ' + totalUnread);
                 globalCounter.set(ctx, totalUnread);
 
@@ -71,7 +68,7 @@ export class FixerRepository {
 
     async fixForAllUsers(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let users = await this.store.User.findAll(ctx);
+            let users = await Store.User.findAll(ctx);
 
             for (let user of users) {
                 await this.fixForUser(ctx, user.id);
@@ -83,7 +80,7 @@ export class FixerRepository {
 
     async deliverUserCounters(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let all = await this.entities.UserDialog.allFromUser(ctx, uid);
+            let all = await Store.UserDialog.user.findAll(ctx, uid);
             //
             // Deliver new counters
             //
@@ -91,7 +88,7 @@ export class FixerRepository {
                 let global = await this.userState.getUserMessagingState(ctx, uid);
                 global.seq++;
                 await global.flush(ctx);
-                await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                await Store.UserDialogEvent.create(ctx, uid, global.seq, {
                     kind: 'message_read',
                     cid: dialog.cid,
                     unread: 0,

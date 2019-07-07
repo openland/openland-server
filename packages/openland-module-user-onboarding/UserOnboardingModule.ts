@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
@@ -197,7 +197,7 @@ export class UserOnboardingModule {
         let chatIds = await Modules.Discover.suggestedChats(ctx, uid);
         let completedDiscoverWithJoin = false;
         for (let cid of chatIds) {
-            if (await FDB.UserDialog.findById(ctx, uid, cid)) {
+            if (await Store.UserDialog.findById(ctx, uid, cid)) {
                 completedDiscoverWithJoin = true;
                 break;
             }

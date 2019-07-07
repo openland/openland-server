@@ -1,6 +1,6 @@
 import { withUser } from 'openland-module-api/Resolvers';
 import { FDB, Store } from 'openland-module-db/FDB';
-import { UserDialog } from 'openland-module-db/schema';
+import { UserDialog } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
@@ -89,7 +89,7 @@ export default {
                 return [];
             }
 
-            let allDialogs = [...(await FDB.UserDialog.allFromUser(ctx, uid))];
+            let allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
             allDialogs = allDialogs.filter((a) => !!a.date);
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
 
@@ -117,8 +117,8 @@ export default {
         alphaChats: withUser(async (ctx, args, uid) => {
             let global = await Store.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
-            let conversations = await FDB.UserDialog
-                .rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
+            let conversations = await Store.UserDialog
+                .user.query(ctx, uid, { limit: args.first, afterCursor: args.after ? args.after : undefined, reverse: true });
             let res = await Promise.all(conversations.items.map((v) => FDB.Conversation.findById(ctx, v.cid)));
             let index = 0;
             for (let r of res) {

@@ -170,6 +170,53 @@ export default declareSchema(() => {
         rangeIndex('user', ['cid', 'seq']);
     });
 
+    entity('UserDialog', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+        field('unread', integer());
+        field('readMessageId', optional(integer()));
+        field('date', optional(integer()));
+        field('haveMention', optional(boolean()));
+
+        field('title', optional(string()));
+        field('photo', optional(json()));
+
+        field('hidden', optional(boolean()));
+        field('disableGlobalCounter', optional(boolean()));
+
+        rangeIndex('user', ['uid', 'date'])
+            .withCondition((src) => !!src.date && !src.hidden);
+        uniqueIndex('conversation', ['cid', 'uid']);
+        rangeIndex('updated', ['updatedAt']);
+    });
+
+    entity('UserDialogHandledMessage', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+        primaryKey('mid', integer());
+    });
+
+    entity('UserDialogSettings', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+        field('mute', boolean());
+    });
+
+    entity('UserDialogEvent', () => {
+        primaryKey('uid', integer());
+        primaryKey('seq', integer());
+        field('cid', optional(integer()));
+        field('mid', optional(integer()));
+        field('allUnread', optional(integer()));
+        field('unread', optional(integer()));
+        field('title', optional(string()));
+        field('photo', optional(json()));
+        field('mute', optional(boolean()));
+        field('haveMention', optional(boolean()));
+        field('kind', enumString('message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'));
+        rangeIndex('user', ['uid', 'seq']);
+    });
+
     //
     // Conference
     //

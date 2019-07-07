@@ -403,67 +403,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
-
-    //
-    // User Messaging state
-    //
-
-    entity('UserDialog', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-        field('unread', 'number');
-        field('readMessageId', 'number').nullable();
-        field('date', 'number').nullable();
-        field('haveMention', 'boolean').nullable();
-
-        field('title', 'string').nullable();
-        field('photo', 'json').nullable();
-
-        field('hidden', 'boolean').nullable();
-        field('disableGlobalCounter', 'boolean').nullable();
-
-        rangeIndex('user', ['uid', 'date'])
-            .withCondition((src) => !!src.date && !src.hidden)
-            .withDisplayName('dialogsForUser');
-        uniqueIndex('conversation', ['cid', 'uid'])
-            .withRange();
-        rangeIndex('updated', ['updatedAt']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserDialogHandledMessage', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-        primaryKey('mid', 'number');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserDialogSettings', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-        field('mute', 'boolean');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserDialogEvent', () => {
-        primaryKey('uid', 'number');
-        primaryKey('seq', 'number');
-        field('cid', 'number').nullable();
-        field('mid', 'number').nullable();
-        field('allUnread', 'number').nullable();
-        field('unread', 'number').nullable();
-        field('title', 'string').nullable();
-        field('photo', 'json').nullable();
-        field('mute', 'boolean').nullable();
-        field('haveMention', 'boolean').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
-        rangeIndex('user', ['uid', 'seq']).withStreaming();
-        enableVersioning();
-        enableTimestamps();
-    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
