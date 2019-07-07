@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext, Context } from '@openland/context';
-import { FDB } from '../openland-module-db/FDB';
+import { Store } from '../openland-module-db/FDB';
 import { JsonMap } from '../openland-utils/json';
 import { WorkQueue } from './WorkQueue';
 
@@ -67,7 +67,7 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         await inTx(rootCtx, async (ctx) => {
-            let pending = await FDB.Task.allFromDelayedPending(ctx, taskType);
+            let pending = await Store.Task.delayedPending.findAll(ctx, taskType);
             if (pending.length === 0) {
                 await pushNext(ctx);
             }

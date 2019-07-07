@@ -870,6 +870,10 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: number, src: UserCreateShape): User {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: number): Promise<User | null> {
         return this._findById(ctx, [id]);
     }
@@ -1119,6 +1123,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: number, src: UserProfileCreateShape): UserProfile {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: number): Promise<UserProfile | null> {
         return this._findById(ctx, [id]);
     }
@@ -1207,6 +1215,10 @@ export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilSha
 
     create(ctx: Context, id: number, src: UserProfilePrefilCreateShape): Promise<UserProfilePrefil> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: UserProfilePrefilCreateShape): UserProfilePrefil {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<UserProfilePrefil | null> {
@@ -1377,6 +1389,10 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: number, src: UserSettingsCreateShape): UserSettings {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: number): Promise<UserSettings | null> {
         return this._findById(ctx, [id]);
     }
@@ -1517,6 +1533,10 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
 
     create(ctx: Context, id: number, src: OrganizationCreateShape): Promise<Organization> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: OrganizationCreateShape): Organization {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<Organization | null> {
@@ -1674,6 +1694,10 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: number, src: OrganizationProfileCreateShape): OrganizationProfile {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: number): Promise<OrganizationProfile | null> {
         return this._findById(ctx, [id]);
     }
@@ -1749,6 +1773,10 @@ export class OrganizationEditorialFactory extends EntityFactory<OrganizationEdit
 
     create(ctx: Context, id: number, src: OrganizationEditorialCreateShape): Promise<OrganizationEditorial> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: OrganizationEditorialCreateShape): OrganizationEditorial {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<OrganizationEditorial | null> {
@@ -1890,6 +1918,10 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         return this._create(ctx, [oid, uid], this.descriptor.codec.normalize({ oid, uid, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, oid: number, uid: number, src: OrganizationMemberCreateShape): OrganizationMember {
+        return this._create_UNSAFE(ctx, [oid, uid], this.descriptor.codec.normalize({ oid, uid, ...src }));
+    }
+
     findById(ctx: Context, oid: number, uid: number): Promise<OrganizationMember | null> {
         return this._findById(ctx, [oid, uid]);
     }
@@ -1978,6 +2010,10 @@ export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
 
     create(ctx: Context, uid: number, src: OnlineCreateShape): Promise<Online> {
         return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: OnlineCreateShape): Online {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
     findById(ctx: Context, uid: number): Promise<Online | null> {
@@ -2103,6 +2139,10 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
         return this._create(ctx, [uid, tid], this.descriptor.codec.normalize({ uid, tid, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, uid: number, tid: string, src: PresenceCreateShape): Presence {
+        return this._create_UNSAFE(ctx, [uid, tid], this.descriptor.codec.normalize({ uid, tid, ...src }));
+    }
+
     findById(ctx: Context, uid: number, tid: string): Promise<Presence | null> {
         return this._findById(ctx, [uid, tid]);
     }
@@ -2169,6 +2209,10 @@ export class MessageDraftFactory extends EntityFactory<MessageDraftShape, Messag
 
     create(ctx: Context, uid: number, cid: number, src: MessageDraftCreateShape): Promise<MessageDraft> {
         return this._create(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, src: MessageDraftCreateShape): MessageDraft {
+        return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
     }
 
     findById(ctx: Context, uid: number, cid: number): Promise<MessageDraft | null> {
@@ -2246,6 +2290,10 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
 
     create(ctx: Context, id: number, src: ConferenceRoomCreateShape): Promise<ConferenceRoom> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConferenceRoomCreateShape): ConferenceRoom {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<ConferenceRoom | null> {
@@ -2407,6 +2455,10 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
 
     create(ctx: Context, id: number, src: ConferencePeerCreateShape): Promise<ConferencePeer> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConferencePeerCreateShape): ConferencePeer {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<ConferencePeer | null> {
@@ -2593,6 +2645,10 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: number, src: ConferenceMediaStreamCreateShape): ConferenceMediaStream {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: number): Promise<ConferenceMediaStream | null> {
         return this._findById(ctx, [id]);
     }
@@ -2742,6 +2798,10 @@ export class ConferenceConnectionFactory extends EntityFactory<ConferenceConnect
         return this._create(ctx, [peer1, peer2], this.descriptor.codec.normalize({ peer1, peer2, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, peer1: number, peer2: number, src: ConferenceConnectionCreateShape): ConferenceConnection {
+        return this._create_UNSAFE(ctx, [peer1, peer2], this.descriptor.codec.normalize({ peer1, peer2, ...src }));
+    }
+
     findById(ctx: Context, peer1: number, peer2: number): Promise<ConferenceConnection | null> {
         return this._findById(ctx, [peer1, peer2]);
     }
@@ -2829,6 +2889,10 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         return this._create(ctx, [uid1, uid2], this.descriptor.codec.normalize({ uid1, uid2, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, uid1: number, uid2: number, src: UserEdgeCreateShape): UserEdge {
+        return this._create_UNSAFE(ctx, [uid1, uid2], this.descriptor.codec.normalize({ uid1, uid2, ...src }));
+    }
+
     findById(ctx: Context, uid1: number, uid2: number): Promise<UserEdge | null> {
         return this._findById(ctx, [uid1, uid2]);
     }
@@ -2893,6 +2957,10 @@ export class UserInfluencerUserIndexFactory extends EntityFactory<UserInfluencer
         return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, uid: number, src: UserInfluencerUserIndexCreateShape): UserInfluencerUserIndex {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
     findById(ctx: Context, uid: number): Promise<UserInfluencerUserIndex | null> {
         return this._findById(ctx, [uid]);
     }
@@ -2955,6 +3023,10 @@ export class UserInfluencerIndexFactory extends EntityFactory<UserInfluencerInde
 
     create(ctx: Context, uid: number, src: UserInfluencerIndexCreateShape): Promise<UserInfluencerIndex> {
         return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserInfluencerIndexCreateShape): UserInfluencerIndex {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
     findById(ctx: Context, uid: number): Promise<UserInfluencerIndex | null> {
@@ -3073,6 +3145,10 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         return this._create(ctx, [shortname], this.descriptor.codec.normalize({ shortname, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, shortname: string, src: ShortnameReservationCreateShape): ShortnameReservation {
+        return this._create_UNSAFE(ctx, [shortname], this.descriptor.codec.normalize({ shortname, ...src }));
+    }
+
     findById(ctx: Context, shortname: string): Promise<ShortnameReservation | null> {
         return this._findById(ctx, [shortname]);
     }
@@ -3148,6 +3224,10 @@ export class FeedSubscriberFactory extends EntityFactory<FeedSubscriberShape, Fe
 
     create(ctx: Context, id: number, src: FeedSubscriberCreateShape): Promise<FeedSubscriber> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: FeedSubscriberCreateShape): FeedSubscriber {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<FeedSubscriber | null> {
@@ -3250,6 +3330,10 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
         return this._create(ctx, [sid, tid], this.descriptor.codec.normalize({ sid, tid, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, sid: number, tid: number, src: FeedSubscriptionCreateShape): FeedSubscription {
+        return this._create_UNSAFE(ctx, [sid, tid], this.descriptor.codec.normalize({ sid, tid, ...src }));
+    }
+
     findById(ctx: Context, sid: number, tid: number): Promise<FeedSubscription | null> {
         return this._findById(ctx, [sid, tid]);
     }
@@ -3325,6 +3409,10 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
 
     create(ctx: Context, id: number, src: FeedTopicCreateShape): Promise<FeedTopic> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: FeedTopicCreateShape): FeedTopic {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<FeedTopic | null> {
@@ -3449,6 +3537,10 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: number, src: FeedEventCreateShape): FeedEvent {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: number): Promise<FeedEvent | null> {
         return this._findById(ctx, [id]);
     }
@@ -3555,6 +3647,10 @@ export class ChannelLinkFactory extends EntityFactory<ChannelLinkShape, ChannelL
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: ChannelLinkCreateShape): ChannelLink {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<ChannelLink | null> {
         return this._findById(ctx, [id]);
     }
@@ -3630,6 +3726,10 @@ export class AppInviteLinkFactory extends EntityFactory<AppInviteLinkShape, AppI
 
     create(ctx: Context, id: string, src: AppInviteLinkCreateShape): Promise<AppInviteLink> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: AppInviteLinkCreateShape): AppInviteLink {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: string): Promise<AppInviteLink | null> {
@@ -3733,6 +3833,10 @@ export class OrganizationPublicInviteLinkFactory extends EntityFactory<Organizat
 
     create(ctx: Context, id: string, src: OrganizationPublicInviteLinkCreateShape): Promise<OrganizationPublicInviteLink> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: OrganizationPublicInviteLinkCreateShape): OrganizationPublicInviteLink {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: string): Promise<OrganizationPublicInviteLink | null> {
@@ -3942,6 +4046,10 @@ export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInv
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: OrganizationInviteLinkCreateShape): OrganizationInviteLink {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<OrganizationInviteLink | null> {
         return this._findById(ctx, [id]);
     }
@@ -4129,6 +4237,10 @@ export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationSha
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: ChannelInvitationCreateShape): ChannelInvitation {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<ChannelInvitation | null> {
         return this._findById(ctx, [id]);
     }
@@ -4208,6 +4320,10 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
 
     create(ctx: Context, uid: number, id: string, src: DiscoverUserPickedTagsCreateShape): Promise<DiscoverUserPickedTags> {
         return this._create(ctx, [uid, id], this.descriptor.codec.normalize({ uid, id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, id: string, src: DiscoverUserPickedTagsCreateShape): DiscoverUserPickedTags {
+        return this._create_UNSAFE(ctx, [uid, id], this.descriptor.codec.normalize({ uid, id, ...src }));
     }
 
     findById(ctx: Context, uid: number, id: string): Promise<DiscoverUserPickedTags | null> {
@@ -4324,6 +4440,10 @@ export class UserOnboardingStateFactory extends EntityFactory<UserOnboardingStat
 
     create(ctx: Context, uid: number, src: UserOnboardingStateCreateShape): Promise<UserOnboardingState> {
         return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserOnboardingStateCreateShape): UserOnboardingState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
     findById(ctx: Context, uid: number): Promise<UserOnboardingState | null> {
@@ -4536,6 +4656,10 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: PushFirebaseCreateShape): PushFirebase {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<PushFirebase | null> {
         return this._findById(ctx, [id]);
     }
@@ -4746,6 +4870,10 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: PushAppleCreateShape): PushApple {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<PushApple | null> {
         return this._findById(ctx, [id]);
     }
@@ -4928,6 +5056,10 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
 
     create(ctx: Context, id: string, src: PushWebCreateShape): Promise<PushWeb> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: PushWebCreateShape): PushWeb {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: string): Promise<PushWeb | null> {
@@ -5127,6 +5259,10 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: PushSafariCreateShape): PushSafari {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<PushSafari | null> {
         return this._findById(ctx, [id]);
     }
@@ -5208,6 +5344,10 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
         return this._create(ctx, [appId, chatId], this.descriptor.codec.normalize({ appId, chatId, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, appId: number, chatId: number, src: AppHookCreateShape): AppHook {
+        return this._create_UNSAFE(ctx, [appId, chatId], this.descriptor.codec.normalize({ appId, chatId, ...src }));
+    }
+
     findById(ctx: Context, appId: number, chatId: number): Promise<AppHook | null> {
         return this._findById(ctx, [appId, chatId]);
     }
@@ -5283,6 +5423,10 @@ export class UserStorageNamespaceFactory extends EntityFactory<UserStorageNamesp
 
     create(ctx: Context, id: number, src: UserStorageNamespaceCreateShape): Promise<UserStorageNamespace> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: UserStorageNamespaceCreateShape): UserStorageNamespace {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<UserStorageNamespace | null> {
@@ -5392,6 +5536,10 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
         return this._create(ctx, [uid, id], this.descriptor.codec.normalize({ uid, id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, uid: number, id: number, src: UserStorageRecordCreateShape): UserStorageRecord {
+        return this._create_UNSAFE(ctx, [uid, id], this.descriptor.codec.normalize({ uid, id, ...src }));
+    }
+
     findById(ctx: Context, uid: number, id: number): Promise<UserStorageRecord | null> {
         return this._findById(ctx, [uid, id]);
     }
@@ -5454,6 +5602,10 @@ export class SequenceFactory extends EntityFactory<SequenceShape, Sequence> {
 
     create(ctx: Context, sequence: string, src: SequenceCreateShape): Promise<Sequence> {
         return this._create(ctx, [sequence], this.descriptor.codec.normalize({ sequence, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, sequence: string, src: SequenceCreateShape): Sequence {
+        return this._create_UNSAFE(ctx, [sequence], this.descriptor.codec.normalize({ sequence, ...src }));
     }
 
     findById(ctx: Context, sequence: string): Promise<Sequence | null> {
@@ -5520,6 +5672,10 @@ export class EnvironmentFactory extends EntityFactory<EnvironmentShape, Environm
         return this._create(ctx, [production], this.descriptor.codec.normalize({ production, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, production: number, src: EnvironmentCreateShape): Environment {
+        return this._create_UNSAFE(ctx, [production], this.descriptor.codec.normalize({ production, ...src }));
+    }
+
     findById(ctx: Context, production: number): Promise<Environment | null> {
         return this._findById(ctx, [production]);
     }
@@ -5582,6 +5738,10 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
 
     create(ctx: Context, name: string, src: EnvironmentVariableCreateShape): Promise<EnvironmentVariable> {
         return this._create(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, name: string, src: EnvironmentVariableCreateShape): EnvironmentVariable {
+        return this._create_UNSAFE(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
     }
 
     findById(ctx: Context, name: string): Promise<EnvironmentVariable | null> {
@@ -5668,6 +5828,10 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
         return this._create(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, service: string, key: string, src: ServiceCacheCreateShape): ServiceCache {
+        return this._create_UNSAFE(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
+    }
+
     findById(ctx: Context, service: string, key: string): Promise<ServiceCache | null> {
         return this._findById(ctx, [service, key]);
     }
@@ -5745,6 +5909,10 @@ export class ReaderStateFactory extends EntityFactory<ReaderStateShape, ReaderSt
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: ReaderStateCreateShape): ReaderState {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<ReaderState | null> {
         return this._findById(ctx, [id]);
     }
@@ -5820,6 +5988,10 @@ export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin
 
     create(ctx: Context, id: number, src: SuperAdminCreateShape): Promise<SuperAdmin> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: SuperAdminCreateShape): SuperAdmin {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
     findById(ctx: Context, id: number): Promise<SuperAdmin | null> {
@@ -5954,6 +6126,10 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         return this._create(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, uuid: string, src: AuthTokenCreateShape): AuthToken {
+        return this._create_UNSAFE(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
     findById(ctx: Context, uuid: string): Promise<AuthToken | null> {
         return this._findById(ctx, [uuid]);
     }
@@ -6070,6 +6246,10 @@ export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, 
         return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, uid: string, src: AuthCodeSessionCreateShape): AuthCodeSession {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
     findById(ctx: Context, uid: string): Promise<AuthCodeSession | null> {
         return this._findById(ctx, [uid]);
     }
@@ -6132,6 +6312,10 @@ export class FeatureFlagFactory extends EntityFactory<FeatureFlagShape, FeatureF
 
     create(ctx: Context, key: string, src: FeatureFlagCreateShape): Promise<FeatureFlag> {
         return this._create(ctx, [key], this.descriptor.codec.normalize({ key, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, key: string, src: FeatureFlagCreateShape): FeatureFlag {
+        return this._create_UNSAFE(ctx, [key], this.descriptor.codec.normalize({ key, ...src }));
     }
 
     findById(ctx: Context, key: string): Promise<FeatureFlag | null> {
@@ -6237,6 +6421,10 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
+    create_UNSAFE(ctx: Context, id: string, src: OrganizationFeaturesCreateShape): OrganizationFeatures {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
     findById(ctx: Context, id: string): Promise<OrganizationFeatures | null> {
         return this._findById(ctx, [id]);
     }
@@ -6247,6 +6435,713 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationFeaturesShape>): OrganizationFeatures {
         return new OrganizationFeatures([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface HyperLogShape {
+    id: string;
+    type: string;
+    date: number;
+    body: any;
+}
+
+export interface HyperLogCreateShape {
+    type: string;
+    date: number;
+    body: any;
+}
+
+export class HyperLog extends Entity<HyperLogShape> {
+    get id(): string { return this._rawValue.id; }
+    get type(): string { return this._rawValue.type; }
+    set type(value: string) {
+        let normalized = this.descriptor.codec.fields.type.normalize(value);
+        if (this._rawValue.type !== normalized) {
+            this._rawValue.type = normalized;
+            this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+    get date(): number { return this._rawValue.date; }
+    set date(value: number) {
+        let normalized = this.descriptor.codec.fields.date.normalize(value);
+        if (this._rawValue.date !== normalized) {
+            this._rawValue.date = normalized;
+            this._updatedValues.date = normalized;
+            this.invalidate();
+        }
+    }
+    get body(): any { return this._rawValue.body; }
+    set body(value: any) {
+        let normalized = this.descriptor.codec.fields.body.normalize(value);
+        if (this._rawValue.body !== normalized) {
+            this._rawValue.body = normalized;
+            this._updatedValues.body = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('hyperLog');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLog', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'userEvents', storageKey: 'userEvents', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLog', 'userEvents'), condition: (src) => src.type === 'track' });
+        secondaryIndexes.push({ name: 'onlineChangeEvents', storageKey: 'onlineChangeEvents', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLog', 'onlineChangeEvents'), condition: (src) => src.type === 'online_status' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'type', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'date', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'body', type: { type: 'json' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            type: c.string,
+            date: c.integer,
+            body: c.any,
+        });
+        let descriptor: EntityDescriptor<HyperLogShape> = {
+            name: 'HyperLog',
+            storageKey: 'hyperLog',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new HyperLogFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<HyperLogShape>) {
+        super(descriptor);
+    }
+
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    readonly userEvents = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    readonly onlineChangeEvents = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: HyperLogCreateShape): Promise<HyperLog> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: HyperLogCreateShape): HyperLog {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<HyperLog | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<HyperLogShape>): HyperLog {
+        return new HyperLog([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface TaskShape {
+    taskType: string;
+    uid: string;
+    arguments: any;
+    result: any;
+    startAt: number;
+    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+    taskFailureCount: number | null;
+    taskFailureTime: number | null;
+    taskLockSeed: string | null;
+    taskLockTimeout: number | null;
+    taskFailureMessage: string | null;
+}
+
+export interface TaskCreateShape {
+    arguments: any;
+    result: any;
+    startAt: number;
+    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+    taskFailureCount: number | null;
+    taskFailureTime: number | null;
+    taskLockSeed: string | null;
+    taskLockTimeout: number | null;
+    taskFailureMessage: string | null;
+}
+
+export class Task extends Entity<TaskShape> {
+    get taskType(): string { return this._rawValue.taskType; }
+    get uid(): string { return this._rawValue.uid; }
+    get arguments(): any { return this._rawValue.arguments; }
+    set arguments(value: any) {
+        let normalized = this.descriptor.codec.fields.arguments.normalize(value);
+        if (this._rawValue.arguments !== normalized) {
+            this._rawValue.arguments = normalized;
+            this._updatedValues.arguments = normalized;
+            this.invalidate();
+        }
+    }
+    get result(): any { return this._rawValue.result; }
+    set result(value: any) {
+        let normalized = this.descriptor.codec.fields.result.normalize(value);
+        if (this._rawValue.result !== normalized) {
+            this._rawValue.result = normalized;
+            this._updatedValues.result = normalized;
+            this.invalidate();
+        }
+    }
+    get startAt(): number { return this._rawValue.startAt; }
+    set startAt(value: number) {
+        let normalized = this.descriptor.codec.fields.startAt.normalize(value);
+        if (this._rawValue.startAt !== normalized) {
+            this._rawValue.startAt = normalized;
+            this._updatedValues.startAt = normalized;
+            this.invalidate();
+        }
+    }
+    get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' { return this._rawValue.taskStatus; }
+    set taskStatus(value: 'pending' | 'executing' | 'failing' | 'failed' | 'completed') {
+        let normalized = this.descriptor.codec.fields.taskStatus.normalize(value);
+        if (this._rawValue.taskStatus !== normalized) {
+            this._rawValue.taskStatus = normalized;
+            this._updatedValues.taskStatus = normalized;
+            this.invalidate();
+        }
+    }
+    get taskFailureCount(): number | null { return this._rawValue.taskFailureCount; }
+    set taskFailureCount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.taskFailureCount.normalize(value);
+        if (this._rawValue.taskFailureCount !== normalized) {
+            this._rawValue.taskFailureCount = normalized;
+            this._updatedValues.taskFailureCount = normalized;
+            this.invalidate();
+        }
+    }
+    get taskFailureTime(): number | null { return this._rawValue.taskFailureTime; }
+    set taskFailureTime(value: number | null) {
+        let normalized = this.descriptor.codec.fields.taskFailureTime.normalize(value);
+        if (this._rawValue.taskFailureTime !== normalized) {
+            this._rawValue.taskFailureTime = normalized;
+            this._updatedValues.taskFailureTime = normalized;
+            this.invalidate();
+        }
+    }
+    get taskLockSeed(): string | null { return this._rawValue.taskLockSeed; }
+    set taskLockSeed(value: string | null) {
+        let normalized = this.descriptor.codec.fields.taskLockSeed.normalize(value);
+        if (this._rawValue.taskLockSeed !== normalized) {
+            this._rawValue.taskLockSeed = normalized;
+            this._updatedValues.taskLockSeed = normalized;
+            this.invalidate();
+        }
+    }
+    get taskLockTimeout(): number | null { return this._rawValue.taskLockTimeout; }
+    set taskLockTimeout(value: number | null) {
+        let normalized = this.descriptor.codec.fields.taskLockTimeout.normalize(value);
+        if (this._rawValue.taskLockTimeout !== normalized) {
+            this._rawValue.taskLockTimeout = normalized;
+            this._updatedValues.taskLockTimeout = normalized;
+            this.invalidate();
+        }
+    }
+    get taskFailureMessage(): string | null { return this._rawValue.taskFailureMessage; }
+    set taskFailureMessage(value: string | null) {
+        let normalized = this.descriptor.codec.fields.taskFailureMessage.normalize(value);
+        if (this._rawValue.taskFailureMessage !== normalized) {
+            this._rawValue.taskFailureMessage = normalized;
+            this._updatedValues.taskFailureMessage = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class TaskFactory extends EntityFactory<TaskShape, Task> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('task');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'pending'), condition: (src) => src.taskStatus === 'pending' && !src.startAt });
+        secondaryIndexes.push({ name: 'delayedPending', storageKey: 'delayedPending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'startAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'delayedPending'), condition: (src) => src.taskStatus === 'pending' && !!src.startAt });
+        secondaryIndexes.push({ name: 'executing', storageKey: 'executing', type: { type: 'range', fields: [{ name: 'taskLockTimeout', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'executing'), condition: (src) => src.taskStatus === 'executing' });
+        secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'failing'), condition: (src) => src.taskStatus === 'failing' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'taskType', type: 'string' });
+        primaryKeys.push({ name: 'uid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'arguments', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'result', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'startAt', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'taskStatus', type: { type: 'enum', values: ['pending', 'executing', 'failing', 'failed', 'completed'] }, secure: false });
+        fields.push({ name: 'taskFailureCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'taskFailureTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'taskLockSeed', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'taskLockTimeout', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'taskFailureMessage', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            taskType: c.string,
+            uid: c.string,
+            arguments: c.any,
+            result: c.any,
+            startAt: c.integer,
+            taskStatus: c.enum('pending', 'executing', 'failing', 'failed', 'completed'),
+            taskFailureCount: c.optional(c.integer),
+            taskFailureTime: c.optional(c.integer),
+            taskLockSeed: c.optional(c.string),
+            taskLockTimeout: c.optional(c.integer),
+            taskFailureMessage: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<TaskShape> = {
+            name: 'Task',
+            storageKey: 'task',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new TaskFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<TaskShape>) {
+        super(descriptor);
+    }
+
+    readonly pending = Object.freeze({
+        findAll: async (ctx: Context, taskType: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType])).items;
+        },
+        query: (ctx: Context, taskType: string, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (taskType: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [taskType], opts);
+        },
+        liveStream: (ctx: Context, taskType: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [taskType], opts);
+        },
+    });
+
+    readonly delayedPending = Object.freeze({
+        findAll: async (ctx: Context, taskType: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType])).items;
+        },
+        query: (ctx: Context, taskType: string, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (taskType: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [taskType], opts);
+        },
+        liveStream: (ctx: Context, taskType: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [taskType], opts);
+        },
+    });
+
+    readonly executing = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+        },
+    });
+
+    readonly failing = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
+        },
+    });
+
+    create(ctx: Context, taskType: string, uid: string, src: TaskCreateShape): Promise<Task> {
+        return this._create(ctx, [taskType, uid], this.descriptor.codec.normalize({ taskType, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, taskType: string, uid: string, src: TaskCreateShape): Task {
+        return this._create_UNSAFE(ctx, [taskType, uid], this.descriptor.codec.normalize({ taskType, uid, ...src }));
+    }
+
+    findById(ctx: Context, taskType: string, uid: string): Promise<Task | null> {
+        return this._findById(ctx, [taskType, uid]);
+    }
+
+    watch(ctx: Context, taskType: string, uid: string): Watch {
+        return this._watch(ctx, [taskType, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<TaskShape>): Task {
+        return new Task([value.taskType, value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface DelayedTaskShape {
+    taskType: string;
+    uid: string;
+    delay: number;
+    arguments: any;
+    result: any | null;
+    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+    taskFailureTime: number | null;
+    taskFailureMessage: string | null;
+}
+
+export interface DelayedTaskCreateShape {
+    delay: number;
+    arguments: any;
+    result: any | null;
+    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+    taskFailureTime: number | null;
+    taskFailureMessage: string | null;
+}
+
+export class DelayedTask extends Entity<DelayedTaskShape> {
+    get taskType(): string { return this._rawValue.taskType; }
+    get uid(): string { return this._rawValue.uid; }
+    get delay(): number { return this._rawValue.delay; }
+    set delay(value: number) {
+        let normalized = this.descriptor.codec.fields.delay.normalize(value);
+        if (this._rawValue.delay !== normalized) {
+            this._rawValue.delay = normalized;
+            this._updatedValues.delay = normalized;
+            this.invalidate();
+        }
+    }
+    get arguments(): any { return this._rawValue.arguments; }
+    set arguments(value: any) {
+        let normalized = this.descriptor.codec.fields.arguments.normalize(value);
+        if (this._rawValue.arguments !== normalized) {
+            this._rawValue.arguments = normalized;
+            this._updatedValues.arguments = normalized;
+            this.invalidate();
+        }
+    }
+    get result(): any | null { return this._rawValue.result; }
+    set result(value: any | null) {
+        let normalized = this.descriptor.codec.fields.result.normalize(value);
+        if (this._rawValue.result !== normalized) {
+            this._rawValue.result = normalized;
+            this._updatedValues.result = normalized;
+            this.invalidate();
+        }
+    }
+    get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' { return this._rawValue.taskStatus; }
+    set taskStatus(value: 'pending' | 'executing' | 'failing' | 'failed' | 'completed') {
+        let normalized = this.descriptor.codec.fields.taskStatus.normalize(value);
+        if (this._rawValue.taskStatus !== normalized) {
+            this._rawValue.taskStatus = normalized;
+            this._updatedValues.taskStatus = normalized;
+            this.invalidate();
+        }
+    }
+    get taskFailureTime(): number | null { return this._rawValue.taskFailureTime; }
+    set taskFailureTime(value: number | null) {
+        let normalized = this.descriptor.codec.fields.taskFailureTime.normalize(value);
+        if (this._rawValue.taskFailureTime !== normalized) {
+            this._rawValue.taskFailureTime = normalized;
+            this._updatedValues.taskFailureTime = normalized;
+            this.invalidate();
+        }
+    }
+    get taskFailureMessage(): string | null { return this._rawValue.taskFailureMessage; }
+    set taskFailureMessage(value: string | null) {
+        let normalized = this.descriptor.codec.fields.taskFailureMessage.normalize(value);
+        if (this._rawValue.taskFailureMessage !== normalized) {
+            this._rawValue.taskFailureMessage = normalized;
+            this._updatedValues.taskFailureMessage = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedTask> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('delayedTask');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'delay', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('delayedTask', 'pending'), condition: (src) => src.taskStatus === 'pending' });
+        secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('delayedTask', 'failing'), condition: (src) => src.taskStatus === 'failing' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'taskType', type: 'string' });
+        primaryKeys.push({ name: 'uid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'delay', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'arguments', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'result', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'taskStatus', type: { type: 'enum', values: ['pending', 'executing', 'failing', 'failed', 'completed'] }, secure: false });
+        fields.push({ name: 'taskFailureTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'taskFailureMessage', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            taskType: c.string,
+            uid: c.string,
+            delay: c.integer,
+            arguments: c.any,
+            result: c.optional(c.any),
+            taskStatus: c.enum('pending', 'executing', 'failing', 'failed', 'completed'),
+            taskFailureTime: c.optional(c.integer),
+            taskFailureMessage: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<DelayedTaskShape> = {
+            name: 'DelayedTask',
+            storageKey: 'delayedTask',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DelayedTaskFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DelayedTaskShape>) {
+        super(descriptor);
+    }
+
+    readonly pending = Object.freeze({
+        findAll: async (ctx: Context, taskType: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType])).items;
+        },
+        query: (ctx: Context, taskType: string, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (taskType: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [taskType], opts);
+        },
+        liveStream: (ctx: Context, taskType: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [taskType], opts);
+        },
+    });
+
+    readonly failing = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    create(ctx: Context, taskType: string, uid: string, src: DelayedTaskCreateShape): Promise<DelayedTask> {
+        return this._create(ctx, [taskType, uid], this.descriptor.codec.normalize({ taskType, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, taskType: string, uid: string, src: DelayedTaskCreateShape): DelayedTask {
+        return this._create_UNSAFE(ctx, [taskType, uid], this.descriptor.codec.normalize({ taskType, uid, ...src }));
+    }
+
+    findById(ctx: Context, taskType: string, uid: string): Promise<DelayedTask | null> {
+        return this._findById(ctx, [taskType, uid]);
+    }
+
+    watch(ctx: Context, taskType: string, uid: string): Watch {
+        return this._watch(ctx, [taskType, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DelayedTaskShape>): DelayedTask {
+        return new DelayedTask([value.taskType, value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface DebugEventShape {
+    uid: number;
+    seq: number;
+    key: string | null;
+}
+
+export interface DebugEventCreateShape {
+    key: string | null;
+}
+
+export class DebugEvent extends Entity<DebugEventShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get seq(): number { return this._rawValue.seq; }
+    get key(): string | null { return this._rawValue.key; }
+    set key(value: string | null) {
+        let normalized = this.descriptor.codec.fields.key.normalize(value);
+        if (this._rawValue.key !== normalized) {
+            this._rawValue.key = normalized;
+            this._updatedValues.key = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DebugEventFactory extends EntityFactory<DebugEventShape, DebugEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('debugEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('debugEvent', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'seq', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'key', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            seq: c.integer,
+            key: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<DebugEventShape> = {
+            name: 'DebugEvent',
+            storageKey: 'debugEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DebugEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DebugEventShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, seq: number, src: DebugEventCreateShape): Promise<DebugEvent> {
+        return this._create(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, seq: number, src: DebugEventCreateShape): DebugEvent {
+        return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, seq: number): Promise<DebugEvent | null> {
+        return this._findById(ctx, [uid, seq]);
+    }
+
+    watch(ctx: Context, uid: number, seq: number): Watch {
+        return this._watch(ctx, [uid, seq]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DebugEventShape>): DebugEvent {
+        return new DebugEvent([value.uid, value.seq], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface DebugEventStateShape {
+    uid: number;
+    seq: number;
+}
+
+export interface DebugEventStateCreateShape {
+    seq: number;
+}
+
+export class DebugEventState extends Entity<DebugEventStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, DebugEventState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('debugEventState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            seq: c.integer,
+        });
+        let descriptor: EntityDescriptor<DebugEventStateShape> = {
+            name: 'DebugEventState',
+            storageKey: 'debugEventState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DebugEventStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DebugEventStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: DebugEventStateCreateShape): Promise<DebugEventState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: DebugEventStateCreateShape): DebugEventState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<DebugEventState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DebugEventStateShape>): DebugEventState {
+        return new DebugEventState([value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -6317,6 +7212,11 @@ export interface Store extends BaseStore {
     readonly AuthCodeSession: AuthCodeSessionFactory;
     readonly FeatureFlag: FeatureFlagFactory;
     readonly OrganizationFeatures: OrganizationFeaturesFactory;
+    readonly HyperLog: HyperLogFactory;
+    readonly Task: TaskFactory;
+    readonly DelayedTask: DelayedTaskFactory;
+    readonly DebugEvent: DebugEventFactory;
+    readonly DebugEventState: DebugEventStateFactory;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -6386,6 +7286,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let AuthCodeSessionPromise = AuthCodeSessionFactory.open(storage);
     let FeatureFlagPromise = FeatureFlagFactory.open(storage);
     let OrganizationFeaturesPromise = OrganizationFeaturesFactory.open(storage);
+    let HyperLogPromise = HyperLogFactory.open(storage);
+    let TaskPromise = TaskFactory.open(storage);
+    let DelayedTaskPromise = DelayedTaskFactory.open(storage);
+    let DebugEventPromise = DebugEventFactory.open(storage);
+    let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -6454,5 +7359,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         AuthCodeSession: await AuthCodeSessionPromise,
         FeatureFlag: await FeatureFlagPromise,
         OrganizationFeatures: await OrganizationFeaturesPromise,
+        HyperLog: await HyperLogPromise,
+        Task: await TaskPromise,
+        DelayedTask: await DelayedTaskPromise,
+        DebugEvent: await DebugEventPromise,
+        DebugEventState: await DebugEventStatePromise,
     };
 }

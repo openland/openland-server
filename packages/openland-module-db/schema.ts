@@ -22,482 +22,6 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
-export interface TaskShape {
-    arguments: any;
-    result?: any| null;
-    startAt?: number| null;
-    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
-    taskFailureCount?: number| null;
-    taskFailureTime?: number| null;
-    taskLockSeed?: string| null;
-    taskLockTimeout?: number| null;
-    taskFailureMessage?: string| null;
-}
-
-export class Task extends FEntity {
-    readonly entityName: 'Task' = 'Task';
-    get taskType(): string { return this._value.taskType; }
-    get uid(): string { return this._value.uid; }
-    get arguments(): any {
-        return this._value.arguments;
-    }
-    set arguments(value: any) {
-        this._checkIsWritable();
-        if (value === this._value.arguments) { return; }
-        this._value.arguments = value;
-        this.markDirty();
-    }
-    get result(): any | null {
-        let res = this._value.result;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set result(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.result) { return; }
-        this._value.result = value;
-        this.markDirty();
-    }
-    get startAt(): number | null {
-        let res = this._value.startAt;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set startAt(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.startAt) { return; }
-        this._value.startAt = value;
-        this.markDirty();
-    }
-    get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
-        return this._value.taskStatus;
-    }
-    set taskStatus(value: 'pending' | 'executing' | 'failing' | 'failed' | 'completed') {
-        this._checkIsWritable();
-        if (value === this._value.taskStatus) { return; }
-        this._value.taskStatus = value;
-        this.markDirty();
-    }
-    get taskFailureCount(): number | null {
-        let res = this._value.taskFailureCount;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskFailureCount(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskFailureCount) { return; }
-        this._value.taskFailureCount = value;
-        this.markDirty();
-    }
-    get taskFailureTime(): number | null {
-        let res = this._value.taskFailureTime;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskFailureTime(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskFailureTime) { return; }
-        this._value.taskFailureTime = value;
-        this.markDirty();
-    }
-    get taskLockSeed(): string | null {
-        let res = this._value.taskLockSeed;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskLockSeed(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskLockSeed) { return; }
-        this._value.taskLockSeed = value;
-        this.markDirty();
-    }
-    get taskLockTimeout(): number | null {
-        let res = this._value.taskLockTimeout;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskLockTimeout(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskLockTimeout) { return; }
-        this._value.taskLockTimeout = value;
-        this.markDirty();
-    }
-    get taskFailureMessage(): string | null {
-        let res = this._value.taskFailureMessage;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskFailureMessage(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskFailureMessage) { return; }
-        this._value.taskFailureMessage = value;
-        this.markDirty();
-    }
-}
-
-export class TaskFactory extends FEntityFactory<Task> {
-    static schema: FEntitySchema = {
-        name: 'Task',
-        editable: false,
-        primaryKeys: [
-            { name: 'taskType', type: 'string' },
-            { name: 'uid', type: 'string' },
-        ],
-        fields: [
-            { name: 'arguments', type: 'json' },
-            { name: 'result', type: 'json' },
-            { name: 'startAt', type: 'number' },
-            { name: 'taskStatus', type: 'enum', enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] },
-            { name: 'taskFailureCount', type: 'number' },
-            { name: 'taskFailureTime', type: 'number' },
-            { name: 'taskLockSeed', type: 'string' },
-            { name: 'taskLockTimeout', type: 'number' },
-            { name: 'taskFailureMessage', type: 'string' },
-        ],
-        indexes: [
-            { name: 'pending', type: 'range', fields: ['taskType', 'createdAt'], displayName: 'tasksPending' },
-            { name: 'delayedPending', type: 'range', fields: ['taskType', 'startAt'], displayName: 'tasksPendingDelayed' },
-            { name: 'executing', type: 'range', fields: ['taskLockTimeout'], displayName: 'tasksExecuting' },
-            { name: 'failing', type: 'range', fields: ['taskFailureTime'], displayName: 'tasksFailing' },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('task');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate, keyValidator: TaskFactory.validateKey, hasLiveStreams: false };
-        let indexPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'pending'), 'pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending' && !src.startAt);
-        let indexDelayedPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'delayedPending'), 'delayedPending', ['taskType', 'startAt'], false, (src) => src.taskStatus === 'pending' && !!src.startAt);
-        let indexExecuting = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'executing'), 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
-        let indexFailing = new FEntityIndex(await layer.resolveEntityIndexDirectory('task', 'failing'), 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
-        let indexes = {
-            pending: indexPending,
-            delayedPending: indexDelayedPending,
-            executing: indexExecuting,
-            failing: indexFailing,
-        };
-        return new TaskFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexPending: FEntityIndex;
-    readonly indexDelayedPending: FEntityIndex;
-    readonly indexExecuting: FEntityIndex;
-    readonly indexFailing: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('taskType', src.taskType);
-        validators.isString('taskType', src.taskType);
-        validators.notNull('uid', src.uid);
-        validators.isString('uid', src.uid);
-        validators.notNull('arguments', src.arguments);
-        validators.isNumber('startAt', src.startAt);
-        validators.notNull('taskStatus', src.taskStatus);
-        validators.isEnum('taskStatus', src.taskStatus, ['pending', 'executing', 'failing', 'failed', 'completed']);
-        validators.isNumber('taskFailureCount', src.taskFailureCount);
-        validators.isNumber('taskFailureTime', src.taskFailureTime);
-        validators.isString('taskLockSeed', src.taskLockSeed);
-        validators.isNumber('taskLockTimeout', src.taskLockTimeout);
-        validators.isString('taskFailureMessage', src.taskFailureMessage);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-        validators.notNull('1', key[1]);
-        validators.isString('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { pending: FEntityIndex, delayedPending: FEntityIndex, executing: FEntityIndex, failing: FEntityIndex }) {
-        super('Task', 'task', config, [indexes.pending, indexes.delayedPending, indexes.executing, indexes.failing], layer, directory);
-        this.indexPending = indexes.pending;
-        this.indexDelayedPending = indexes.delayedPending;
-        this.indexExecuting = indexes.executing;
-        this.indexFailing = indexes.failing;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'taskType': rawId[0], 'uid': rawId[1] };
-    }
-    async findById(ctx: Context, taskType: string, uid: string) {
-        return await this._findById(ctx, [taskType, uid]);
-    }
-    async create(ctx: Context, taskType: string, uid: string, shape: TaskShape) {
-        return await this._create(ctx, [taskType, uid], { taskType, uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, taskType: string, uid: string, shape: TaskShape) {
-        return await this._create_UNSAFE(ctx, [taskType, uid], { taskType, uid, ...shape });
-    }
-    watch(ctx: Context, taskType: string, uid: string) {
-        return this._watch(ctx, [taskType, uid]);
-    }
-    async allFromPendingAfter(ctx: Context, taskType: string, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexPending.directory, [taskType], after);
-    }
-    async rangeFromPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexPending.directory, [taskType], after, limit, reversed);
-    }
-    async rangeFromPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexPending.directory, [taskType], limit, reversed);
-    }
-    async rangeFromPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexPending.directory, [taskType], limit, after, reversed);
-    }
-    async allFromPending(ctx: Context, taskType: string) {
-        return await this._findAll(ctx, this.indexPending.directory, [taskType]);
-    }
-    createPendingStream(taskType: string, limit: number, after?: string) {
-        return this._createStream(this.indexPending.directory, [taskType], limit, after); 
-    }
-    async allFromDelayedPendingAfter(ctx: Context, taskType: string, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexDelayedPending.directory, [taskType], after);
-    }
-    async rangeFromDelayedPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexDelayedPending.directory, [taskType], after, limit, reversed);
-    }
-    async rangeFromDelayedPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexDelayedPending.directory, [taskType], limit, reversed);
-    }
-    async rangeFromDelayedPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexDelayedPending.directory, [taskType], limit, after, reversed);
-    }
-    async allFromDelayedPending(ctx: Context, taskType: string) {
-        return await this._findAll(ctx, this.indexDelayedPending.directory, [taskType]);
-    }
-    createDelayedPendingStream(taskType: string, limit: number, after?: string) {
-        return this._createStream(this.indexDelayedPending.directory, [taskType], limit, after); 
-    }
-    async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexExecuting.directory, [], limit, reversed);
-    }
-    async rangeFromExecutingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexExecuting.directory, [], limit, after, reversed);
-    }
-    async allFromExecuting(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexExecuting.directory, []);
-    }
-    createExecutingStream(limit: number, after?: string) {
-        return this._createStream(this.indexExecuting.directory, [], limit, after); 
-    }
-    async rangeFromFailing(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexFailing.directory, [], limit, reversed);
-    }
-    async rangeFromFailingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexFailing.directory, [], limit, after, reversed);
-    }
-    async allFromFailing(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexFailing.directory, []);
-    }
-    createFailingStream(limit: number, after?: string) {
-        return this._createStream(this.indexFailing.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new Task(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
-    }
-}
-export interface DelayedTaskShape {
-    delay: number;
-    arguments: any;
-    result?: any| null;
-    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
-    taskFailureTime?: number| null;
-    taskFailureMessage?: string| null;
-}
-
-export class DelayedTask extends FEntity {
-    readonly entityName: 'DelayedTask' = 'DelayedTask';
-    get taskType(): string { return this._value.taskType; }
-    get uid(): string { return this._value.uid; }
-    get delay(): number {
-        return this._value.delay;
-    }
-    set delay(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.delay) { return; }
-        this._value.delay = value;
-        this.markDirty();
-    }
-    get arguments(): any {
-        return this._value.arguments;
-    }
-    set arguments(value: any) {
-        this._checkIsWritable();
-        if (value === this._value.arguments) { return; }
-        this._value.arguments = value;
-        this.markDirty();
-    }
-    get result(): any | null {
-        let res = this._value.result;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set result(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.result) { return; }
-        this._value.result = value;
-        this.markDirty();
-    }
-    get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
-        return this._value.taskStatus;
-    }
-    set taskStatus(value: 'pending' | 'executing' | 'failing' | 'failed' | 'completed') {
-        this._checkIsWritable();
-        if (value === this._value.taskStatus) { return; }
-        this._value.taskStatus = value;
-        this.markDirty();
-    }
-    get taskFailureTime(): number | null {
-        let res = this._value.taskFailureTime;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskFailureTime(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskFailureTime) { return; }
-        this._value.taskFailureTime = value;
-        this.markDirty();
-    }
-    get taskFailureMessage(): string | null {
-        let res = this._value.taskFailureMessage;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set taskFailureMessage(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.taskFailureMessage) { return; }
-        this._value.taskFailureMessage = value;
-        this.markDirty();
-    }
-}
-
-export class DelayedTaskFactory extends FEntityFactory<DelayedTask> {
-    static schema: FEntitySchema = {
-        name: 'DelayedTask',
-        editable: false,
-        primaryKeys: [
-            { name: 'taskType', type: 'string' },
-            { name: 'uid', type: 'string' },
-        ],
-        fields: [
-            { name: 'delay', type: 'number' },
-            { name: 'arguments', type: 'json' },
-            { name: 'result', type: 'json' },
-            { name: 'taskStatus', type: 'enum', enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] },
-            { name: 'taskFailureTime', type: 'number' },
-            { name: 'taskFailureMessage', type: 'string' },
-        ],
-        indexes: [
-            { name: 'pending', type: 'range', fields: ['taskType', 'delay'], displayName: 'tasksPending' },
-            { name: 'executing', type: 'range', fields: ['taskLockTimeout'], displayName: 'tasksExecuting' },
-            { name: 'failing', type: 'range', fields: ['taskFailureTime'], displayName: 'tasksFailing' },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('delayedTask');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: DelayedTaskFactory.validate, keyValidator: DelayedTaskFactory.validateKey, hasLiveStreams: false };
-        let indexPending = new FEntityIndex(await layer.resolveEntityIndexDirectory('delayedTask', 'pending'), 'pending', ['taskType', 'delay'], false, (src) => src.taskStatus === 'pending');
-        let indexExecuting = new FEntityIndex(await layer.resolveEntityIndexDirectory('delayedTask', 'executing'), 'executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing');
-        let indexFailing = new FEntityIndex(await layer.resolveEntityIndexDirectory('delayedTask', 'failing'), 'failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing');
-        let indexes = {
-            pending: indexPending,
-            executing: indexExecuting,
-            failing: indexFailing,
-        };
-        return new DelayedTaskFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexPending: FEntityIndex;
-    readonly indexExecuting: FEntityIndex;
-    readonly indexFailing: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('taskType', src.taskType);
-        validators.isString('taskType', src.taskType);
-        validators.notNull('uid', src.uid);
-        validators.isString('uid', src.uid);
-        validators.notNull('delay', src.delay);
-        validators.isNumber('delay', src.delay);
-        validators.notNull('arguments', src.arguments);
-        validators.notNull('taskStatus', src.taskStatus);
-        validators.isEnum('taskStatus', src.taskStatus, ['pending', 'executing', 'failing', 'failed', 'completed']);
-        validators.isNumber('taskFailureTime', src.taskFailureTime);
-        validators.isString('taskFailureMessage', src.taskFailureMessage);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-        validators.notNull('1', key[1]);
-        validators.isString('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { pending: FEntityIndex, executing: FEntityIndex, failing: FEntityIndex }) {
-        super('DelayedTask', 'delayedTask', config, [indexes.pending, indexes.executing, indexes.failing], layer, directory);
-        this.indexPending = indexes.pending;
-        this.indexExecuting = indexes.executing;
-        this.indexFailing = indexes.failing;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'taskType': rawId[0], 'uid': rawId[1] };
-    }
-    async findById(ctx: Context, taskType: string, uid: string) {
-        return await this._findById(ctx, [taskType, uid]);
-    }
-    async create(ctx: Context, taskType: string, uid: string, shape: DelayedTaskShape) {
-        return await this._create(ctx, [taskType, uid], { taskType, uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, taskType: string, uid: string, shape: DelayedTaskShape) {
-        return await this._create_UNSAFE(ctx, [taskType, uid], { taskType, uid, ...shape });
-    }
-    watch(ctx: Context, taskType: string, uid: string) {
-        return this._watch(ctx, [taskType, uid]);
-    }
-    async allFromPendingAfter(ctx: Context, taskType: string, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexPending.directory, [taskType], after);
-    }
-    async rangeFromPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexPending.directory, [taskType], after, limit, reversed);
-    }
-    async rangeFromPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexPending.directory, [taskType], limit, reversed);
-    }
-    async rangeFromPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexPending.directory, [taskType], limit, after, reversed);
-    }
-    async allFromPending(ctx: Context, taskType: string) {
-        return await this._findAll(ctx, this.indexPending.directory, [taskType]);
-    }
-    createPendingStream(taskType: string, limit: number, after?: string) {
-        return this._createStream(this.indexPending.directory, [taskType], limit, after); 
-    }
-    async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexExecuting.directory, [], limit, reversed);
-    }
-    async rangeFromExecutingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexExecuting.directory, [], limit, after, reversed);
-    }
-    async allFromExecuting(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexExecuting.directory, []);
-    }
-    createExecutingStream(limit: number, after?: string) {
-        return this._createStream(this.indexExecuting.directory, [], limit, after); 
-    }
-    async rangeFromFailing(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexFailing.directory, [], limit, reversed);
-    }
-    async rangeFromFailingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexFailing.directory, [], limit, after, reversed);
-    }
-    async allFromFailing(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexFailing.directory, []);
-    }
-    createFailingStream(limit: number, after?: string) {
-        return this._createStream(this.indexFailing.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DelayedTask(ctx, this.layer, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'DelayedTask');
-    }
-}
 export interface UserIndexingQueueShape {
 }
 
@@ -4335,337 +3859,6 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         return new UserNotificationsState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
     }
 }
-export interface HyperLogShape {
-    type: string;
-    date: number;
-    body: any;
-}
-
-export class HyperLog extends FEntity {
-    readonly entityName: 'HyperLog' = 'HyperLog';
-    get id(): string { return this._value.id; }
-    get type(): string {
-        return this._value.type;
-    }
-    set type(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.type) { return; }
-        this._value.type = value;
-        this.markDirty();
-    }
-    get date(): number {
-        return this._value.date;
-    }
-    set date(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.date) { return; }
-        this._value.date = value;
-        this.markDirty();
-    }
-    get body(): any {
-        return this._value.body;
-    }
-    set body(value: any) {
-        this._checkIsWritable();
-        if (value === this._value.body) { return; }
-        this._value.body = value;
-        this.markDirty();
-    }
-}
-
-export class HyperLogFactory extends FEntityFactory<HyperLog> {
-    static schema: FEntitySchema = {
-        name: 'HyperLog',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'type', type: 'string' },
-            { name: 'date', type: 'number' },
-            { name: 'body', type: 'json' },
-        ],
-        indexes: [
-            { name: 'created', type: 'range', fields: ['createdAt'] },
-            { name: 'userEvents', type: 'range', fields: ['createdAt'], displayName: 'userEvents' },
-            { name: 'onlineChangeEvents', type: 'range', fields: ['createdAt'], displayName: 'onlineChangeEvents' },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('hyperLog');
-        let config = { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, keyValidator: HyperLogFactory.validateKey, hasLiveStreams: false };
-        let indexCreated = new FEntityIndex(await layer.resolveEntityIndexDirectory('hyperLog', 'created'), 'created', ['createdAt'], false);
-        let indexUserEvents = new FEntityIndex(await layer.resolveEntityIndexDirectory('hyperLog', 'userEvents'), 'userEvents', ['createdAt'], false, (src) => src.type === 'track');
-        let indexOnlineChangeEvents = new FEntityIndex(await layer.resolveEntityIndexDirectory('hyperLog', 'onlineChangeEvents'), 'onlineChangeEvents', ['createdAt'], false, (src) => src.type === 'online_status');
-        let indexes = {
-            created: indexCreated,
-            userEvents: indexUserEvents,
-            onlineChangeEvents: indexOnlineChangeEvents,
-        };
-        return new HyperLogFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexCreated: FEntityIndex;
-    readonly indexUserEvents: FEntityIndex;
-    readonly indexOnlineChangeEvents: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('type', src.type);
-        validators.isString('type', src.type);
-        validators.notNull('date', src.date);
-        validators.isNumber('date', src.date);
-        validators.notNull('body', src.body);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { created: FEntityIndex, userEvents: FEntityIndex, onlineChangeEvents: FEntityIndex }) {
-        super('HyperLog', 'hyperLog', config, [indexes.created, indexes.userEvents, indexes.onlineChangeEvents], layer, directory);
-        this.indexCreated = indexes.created;
-        this.indexUserEvents = indexes.userEvents;
-        this.indexOnlineChangeEvents = indexes.onlineChangeEvents;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: HyperLogShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: HyperLogShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async rangeFromCreated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexCreated.directory, [], limit, reversed);
-    }
-    async rangeFromCreatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexCreated.directory, [], limit, after, reversed);
-    }
-    async allFromCreated(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexCreated.directory, []);
-    }
-    createCreatedStream(limit: number, after?: string) {
-        return this._createStream(this.indexCreated.directory, [], limit, after); 
-    }
-    async rangeFromUserEvents(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUserEvents.directory, [], limit, reversed);
-    }
-    async rangeFromUserEventsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUserEvents.directory, [], limit, after, reversed);
-    }
-    async allFromUserEvents(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexUserEvents.directory, []);
-    }
-    createUserEventsStream(limit: number, after?: string) {
-        return this._createStream(this.indexUserEvents.directory, [], limit, after); 
-    }
-    async rangeFromOnlineChangeEvents(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexOnlineChangeEvents.directory, [], limit, reversed);
-    }
-    async rangeFromOnlineChangeEventsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexOnlineChangeEvents.directory, [], limit, after, reversed);
-    }
-    async allFromOnlineChangeEvents(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexOnlineChangeEvents.directory, []);
-    }
-    createOnlineChangeEventsStream(limit: number, after?: string) {
-        return this._createStream(this.indexOnlineChangeEvents.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new HyperLog(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
-    }
-}
-export interface DebugEventShape {
-    key?: string| null;
-}
-
-export class DebugEvent extends FEntity {
-    readonly entityName: 'DebugEvent' = 'DebugEvent';
-    get uid(): number { return this._value.uid; }
-    get seq(): number { return this._value.seq; }
-    get key(): string | null {
-        let res = this._value.key;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set key(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.key) { return; }
-        this._value.key = value;
-        this.markDirty();
-    }
-}
-
-export class DebugEventFactory extends FEntityFactory<DebugEvent> {
-    static schema: FEntitySchema = {
-        name: 'DebugEvent',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-            { name: 'seq', type: 'number' },
-        ],
-        fields: [
-            { name: 'key', type: 'string' },
-        ],
-        indexes: [
-            { name: 'user', type: 'range', fields: ['uid', 'seq'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('debugEvent');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: DebugEventFactory.validate, keyValidator: DebugEventFactory.validateKey, hasLiveStreams: true };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('debugEvent', 'user'), 'user', ['uid', 'seq'], false);
-        let indexes = {
-            user: indexUser,
-        };
-        return new DebugEventFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-        validators.isString('key', src.key);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-        validators.isNumber('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
-        super('DebugEvent', 'debugEvent', config, [indexes.user], layer, directory);
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0], 'seq': rawId[1] };
-    }
-    async findById(ctx: Context, uid: number, seq: number) {
-        return await this._findById(ctx, [uid, seq]);
-    }
-    async create(ctx: Context, uid: number, seq: number, shape: DebugEventShape) {
-        return await this._create(ctx, [uid, seq], { uid, seq, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, seq: number, shape: DebugEventShape) {
-        return await this._create_UNSAFE(ctx, [uid, seq], { uid, seq, ...shape });
-    }
-    watch(ctx: Context, uid: number, seq: number) {
-        return this._watch(ctx, [uid, seq]);
-    }
-    async allFromUserAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [uid]);
-    }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [uid], limit, after); 
-    }
-    createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, this.indexUser.directory, [uid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DebugEvent(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'DebugEvent');
-    }
-}
-export interface DebugEventStateShape {
-    seq: number;
-}
-
-export class DebugEventState extends FEntity {
-    readonly entityName: 'DebugEventState' = 'DebugEventState';
-    get uid(): number { return this._value.uid; }
-    get seq(): number {
-        return this._value.seq;
-    }
-    set seq(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.seq) { return; }
-        this._value.seq = value;
-        this.markDirty();
-    }
-}
-
-export class DebugEventStateFactory extends FEntityFactory<DebugEventState> {
-    static schema: FEntitySchema = {
-        name: 'DebugEventState',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-        ],
-        fields: [
-            { name: 'seq', type: 'number' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('debugEventState');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: DebugEventStateFactory.validate, keyValidator: DebugEventStateFactory.validateKey, hasLiveStreams: false };
-        return new DebugEventStateFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('DebugEventState', 'debugEventState', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0] };
-    }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
-    }
-    async create(ctx: Context, uid: number, shape: DebugEventStateShape) {
-        return await this._create(ctx, [uid], { uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, shape: DebugEventStateShape) {
-        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
-    }
-    watch(ctx: Context, uid: number) {
-        return this._watch(ctx, [uid]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DebugEventState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'DebugEventState');
-    }
-}
 export interface NotificationCenterShape {
     kind: 'user';
 }
@@ -5675,8 +4868,6 @@ export interface AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly Task: TaskFactory;
-    readonly DelayedTask: DelayedTaskFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly Conversation: ConversationFactory;
@@ -5701,9 +4892,6 @@ export interface AllEntities {
     readonly UserDialogEvent: UserDialogEventFactory;
     readonly UserMessagingState: UserMessagingStateFactory;
     readonly UserNotificationsState: UserNotificationsStateFactory;
-    readonly HyperLog: HyperLogFactory;
-    readonly DebugEvent: DebugEventFactory;
-    readonly DebugEventState: DebugEventStateFactory;
     readonly NotificationCenter: NotificationCenterFactory;
     readonly UserNotificationCenter: UserNotificationCenterFactory;
     readonly Notification: NotificationFactory;
@@ -5715,8 +4903,6 @@ export interface AllEntities {
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
-        TaskFactory.schema,
-        DelayedTaskFactory.schema,
         UserIndexingQueueFactory.schema,
         OrganizationIndexingQueueFactory.schema,
         ConversationFactory.schema,
@@ -5741,9 +4927,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         UserDialogEventFactory.schema,
         UserMessagingStateFactory.schema,
         UserNotificationsStateFactory.schema,
-        HyperLogFactory.schema,
-        DebugEventFactory.schema,
-        DebugEventStateFactory.schema,
         NotificationCenterFactory.schema,
         UserNotificationCenterFactory.schema,
         NotificationFactory.schema,
@@ -5756,8 +4939,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     static async create(layer: EntityLayer) {
         let allEntities: FEntityFactory<FEntity>[] = [];
-        let TaskPromise = TaskFactory.create(layer);
-        let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
         let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.create(layer);
         let ConversationPromise = ConversationFactory.create(layer);
@@ -5782,9 +4963,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserDialogEventPromise = UserDialogEventFactory.create(layer);
         let UserMessagingStatePromise = UserMessagingStateFactory.create(layer);
         let UserNotificationsStatePromise = UserNotificationsStateFactory.create(layer);
-        let HyperLogPromise = HyperLogFactory.create(layer);
-        let DebugEventPromise = DebugEventFactory.create(layer);
-        let DebugEventStatePromise = DebugEventStateFactory.create(layer);
         let NotificationCenterPromise = NotificationCenterFactory.create(layer);
         let UserNotificationCenterPromise = UserNotificationCenterFactory.create(layer);
         let NotificationPromise = NotificationFactory.create(layer);
@@ -5795,8 +4973,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
-        allEntities.push(await TaskPromise);
-        allEntities.push(await DelayedTaskPromise);
         allEntities.push(await UserIndexingQueuePromise);
         allEntities.push(await OrganizationIndexingQueuePromise);
         allEntities.push(await ConversationPromise);
@@ -5821,9 +4997,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserDialogEventPromise);
         allEntities.push(await UserMessagingStatePromise);
         allEntities.push(await UserNotificationsStatePromise);
-        allEntities.push(await HyperLogPromise);
-        allEntities.push(await DebugEventPromise);
-        allEntities.push(await DebugEventStatePromise);
         allEntities.push(await NotificationCenterPromise);
         allEntities.push(await UserNotificationCenterPromise);
         allEntities.push(await NotificationPromise);
@@ -5834,8 +5007,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await ChatAudienceCalculatingQueuePromise);
         let entities = {
             layer, allEntities,
-            Task: await TaskPromise,
-            DelayedTask: await DelayedTaskPromise,
             UserIndexingQueue: await UserIndexingQueuePromise,
             OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
             Conversation: await ConversationPromise,
@@ -5860,9 +5031,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             UserDialogEvent: await UserDialogEventPromise,
             UserMessagingState: await UserMessagingStatePromise,
             UserNotificationsState: await UserNotificationsStatePromise,
-            HyperLog: await HyperLogPromise,
-            DebugEvent: await DebugEventPromise,
-            DebugEventState: await DebugEventStatePromise,
             NotificationCenter: await NotificationCenterPromise,
             UserNotificationCenter: await UserNotificationCenterPromise,
             Notification: await NotificationPromise,
@@ -5880,8 +5048,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly allEntities: FEntityFactory<FEntity>[] = [];
     readonly NeedNotificationFlagDirectory: Directory;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Directory;
-    readonly Task: TaskFactory;
-    readonly DelayedTask: DelayedTaskFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly Conversation: ConversationFactory;
@@ -5906,9 +5072,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly UserDialogEvent: UserDialogEventFactory;
     readonly UserMessagingState: UserMessagingStateFactory;
     readonly UserNotificationsState: UserNotificationsStateFactory;
-    readonly HyperLog: HyperLogFactory;
-    readonly DebugEvent: DebugEventFactory;
-    readonly DebugEventState: DebugEventStateFactory;
     readonly NotificationCenter: NotificationCenterFactory;
     readonly UserNotificationCenter: UserNotificationCenterFactory;
     readonly Notification: NotificationFactory;
@@ -5920,10 +5083,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
-        this.Task = entities.Task;
-        this.allEntities.push(this.Task);
-        this.DelayedTask = entities.DelayedTask;
-        this.allEntities.push(this.DelayedTask);
         this.UserIndexingQueue = entities.UserIndexingQueue;
         this.allEntities.push(this.UserIndexingQueue);
         this.OrganizationIndexingQueue = entities.OrganizationIndexingQueue;
@@ -5972,12 +5131,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.UserMessagingState);
         this.UserNotificationsState = entities.UserNotificationsState;
         this.allEntities.push(this.UserNotificationsState);
-        this.HyperLog = entities.HyperLog;
-        this.allEntities.push(this.HyperLog);
-        this.DebugEvent = entities.DebugEvent;
-        this.allEntities.push(this.DebugEvent);
-        this.DebugEventState = entities.DebugEventState;
-        this.allEntities.push(this.DebugEventState);
         this.NotificationCenter = entities.NotificationCenter;
         this.allEntities.push(this.NotificationCenter);
         this.UserNotificationCenter = entities.UserNotificationCenter;

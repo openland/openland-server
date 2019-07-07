@@ -4,7 +4,8 @@ import {
     FeedEvent,
     UserStorageRecord,
     UserSettings,
-    AppHook
+    AppHook,
+    DebugEvent
 } from './../../openland-module-db/store';
 import {
     Conversation,
@@ -15,7 +16,6 @@ import {
     ConversationEvent,
     Comment,
     CommentEvent,
-    DebugEvent,
     Notification,
     NotificationCenter,
     UserNotificationCenter,

@@ -51,64 +51,6 @@ const basicSpan = (type: string) => json(() => {
 
 const Schema = declareSchema(() => {
 
-    entity('Task', () => {
-        primaryKey('taskType', 'string');
-        primaryKey('uid', 'string');
-
-        field('arguments', 'json');
-        field('result', 'json').nullable();
-        field('startAt', 'number').nullable();
-        enumField('taskStatus', ['pending', 'executing', 'failing', 'failed', 'completed']);
-
-        field('taskFailureCount', 'number').nullable();
-        field('taskFailureTime', 'number').nullable();
-        field('taskLockSeed', 'string').nullable();
-        field('taskLockTimeout', 'number').nullable();
-        field('taskFailureMessage', 'string').nullable();
-
-        rangeIndex('pending', ['taskType', 'createdAt'])
-            .withCondition((src) => src.taskStatus === 'pending' && !src.startAt)
-            .withDisplayName('tasksPending');
-        rangeIndex('delayedPending', ['taskType', 'startAt'])
-            .withCondition((src) => src.taskStatus === 'pending' && !!src.startAt)
-            .withDisplayName('tasksPendingDelayed');
-        rangeIndex('executing', ['taskLockTimeout'])
-            .withCondition((src) => src.taskStatus === 'executing')
-            .withDisplayName('tasksExecuting');
-        rangeIndex('failing', ['taskFailureTime'])
-            .withCondition((src) => src.taskStatus === 'failing')
-            .withDisplayName('tasksFailing');
-
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('DelayedTask', () => {
-        primaryKey('taskType', 'string');
-        primaryKey('uid', 'string');
-
-        field('delay', 'number');
-        field('arguments', 'json');
-        field('result', 'json').nullable();
-        enumField('taskStatus', ['pending', 'executing', 'failing', 'failed', 'completed']);
-
-        field('taskFailureTime', 'number').nullable();
-        field('taskFailureMessage', 'string').nullable();
-
-        rangeIndex('pending', ['taskType', 'delay'])
-            .withCondition((src) => src.taskStatus === 'pending')
-            .withDisplayName('tasksPending');
-        rangeIndex('executing', ['taskLockTimeout'])
-            .withCondition((src) => src.taskStatus === 'executing')
-            .withDisplayName('tasksExecuting');
-        rangeIndex('failing', ['taskFailureTime'])
-            .withCondition((src) => src.taskStatus === 'failing')
-            .withDisplayName('tasksFailing');
-
-        enableTimestamps();
-        enableVersioning();
-    });
-
     entity('UserIndexingQueue', () => {
         primaryKey('id', 'number');
         rangeIndex('updated', ['updatedAt']);
@@ -579,36 +521,6 @@ const Schema = declareSchema(() => {
         field('lastPushNotification', 'number').nullable();
         field('lastEmailSeq', 'number').nullable();
         field('lastPushSeq', 'number').nullable();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('HyperLog', () => {
-        primaryKey('id', 'string');
-        field('type', 'string');
-        field('date', 'number');
-        field('body', 'json');
-        rangeIndex('created', ['createdAt']);
-        rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track').withDisplayName('userEvents');
-        rangeIndex('onlineChangeEvents', ['createdAt']).withCondition((src) => src.type === 'online_status').withDisplayName('onlineChangeEvents');
-        enableTimestamps();
-    });
-
-    //
-    //  Debug
-    //
-    entity('DebugEvent', () => {
-        primaryKey('uid', 'number');
-        primaryKey('seq', 'number');
-        field('key', 'string').nullable();
-        rangeIndex('user', ['uid', 'seq']).withStreaming();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('DebugEventState', () => {
-        primaryKey('uid', 'number');
-        field('seq', 'number');
         enableVersioning();
         enableTimestamps();
     });

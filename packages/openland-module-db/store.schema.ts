@@ -322,6 +322,24 @@ export default declareSchema(() => {
         primaryKey('name', string());
     });
 
+    // Global counters START
+    atomicInt('UserGlobalCounterAllUnreadMessages', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterUnreadMessagesWithoutMuted', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterAllUnreadChats', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
+        primaryKey('uid', integer());
+    });
+    // Global counters END
+
     //
     // Invites
     //
@@ -564,21 +582,74 @@ export default declareSchema(() => {
         uniqueIndex('organization', ['organizationId', 'featureKey']);
     });
 
-    // Global counters START
-    atomicInt('UserGlobalCounterAllUnreadMessages', () => {
-        primaryKey('uid', integer());
+    entity('HyperLog', () => {
+        primaryKey('id', string());
+        field('type', string());
+        field('date', integer());
+        field('body', json());
+        rangeIndex('created', ['createdAt']);
+        rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track');
+        rangeIndex('onlineChangeEvents', ['createdAt']).withCondition((src) => src.type === 'online_status');
     });
 
-    atomicInt('UserGlobalCounterUnreadMessagesWithoutMuted', () => {
-        primaryKey('uid', integer());
+    entity('Task', () => {
+        primaryKey('taskType', string());
+        primaryKey('uid', string());
+
+        field('arguments', json());
+        field('result', json());
+        field('startAt', integer());
+        field('taskStatus', enumString('pending', 'executing', 'failing', 'failed', 'completed'));
+
+        field('taskFailureCount', optional(integer()));
+        field('taskFailureTime', optional(integer()));
+        field('taskLockSeed', optional(string()));
+        field('taskLockTimeout', optional(integer()));
+        field('taskFailureMessage', optional(string()));
+
+        rangeIndex('pending', ['taskType', 'createdAt'])
+            .withCondition((src) => src.taskStatus === 'pending' && !src.startAt);
+        rangeIndex('delayedPending', ['taskType', 'startAt'])
+            .withCondition((src) => src.taskStatus === 'pending' && !!src.startAt);
+        rangeIndex('executing', ['taskLockTimeout'])
+            .withCondition((src) => src.taskStatus === 'executing');
+        rangeIndex('failing', ['taskFailureTime'])
+            .withCondition((src) => src.taskStatus === 'failing');
     });
 
-    atomicInt('UserGlobalCounterAllUnreadChats', () => {
-        primaryKey('uid', integer());
+    entity('DelayedTask', () => {
+        primaryKey('taskType', string());
+        primaryKey('uid', string());
+
+        field('delay', integer());
+        field('arguments', json());
+        field('result', optional(json()));
+        field('taskStatus', enumString('pending', 'executing', 'failing', 'failed', 'completed'));
+
+        field('taskFailureTime', optional(integer()));
+        field('taskFailureMessage', optional(string()));
+
+        rangeIndex('pending', ['taskType', 'delay'])
+            .withCondition((src) => src.taskStatus === 'pending');
+        // rangeIndex('executing', ['taskLockTimeout'])
+        //     .withCondition((src) => src.taskStatus === 'executing');
+        rangeIndex('failing', ['taskFailureTime'])
+            .withCondition((src) => src.taskStatus === 'failing');
     });
 
-    atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
+    //
+    //  Debug
+    //
+
+    entity('DebugEvent', () => {
         primaryKey('uid', integer());
+        primaryKey('seq', integer());
+        field('key', optional(string()));
+        rangeIndex('user', ['uid', 'seq']);
     });
-    // Global counters END
+
+    entity('DebugEventState', () => {
+        primaryKey('uid', integer());
+        field('seq', integer());
+    });
 });

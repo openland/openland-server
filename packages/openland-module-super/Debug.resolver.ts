@@ -14,7 +14,7 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
-import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
+import { fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -26,9 +26,9 @@ const rootCtx = createNamedContext('resolver-debug');
 const logger = createLogger('debug');
 
 const nextDebugSeq = async (ctx: Context, uid: number) => {
-    let state = await FDB.DebugEventState.findById(ctx, uid!);
+    let state = await Store.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await FDB.DebugEventState.create(ctx, uid!, { seq: 1 });
+        await Store.DebugEventState.create(ctx, uid!, { seq: 1 });
         return 1;
     } else {
         state.seq++;
@@ -40,7 +40,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await FDB.DebugEvent.create(ctx, uid!, seq, { key });
+        await Store.DebugEvent.create(ctx, uid!, seq, { key });
     });
 };
 
@@ -158,33 +158,33 @@ export default {
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await FDB.DebugEvent.createUserStream(ctx.auth.uid!, 1).tail(ctx);
+            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
             return { state: tail };
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
-                let workers = [
-                    'emailSender',
-                    'push_sender',
-                    'push_sender_firebase',
-                    'push_sender_apns',
-                    'push_sender_web',
-                    'conversation_message_push_delivery',
-                    'comment_augmentation_task',
-                    'conversation_message_delivery',
-                    'conversation_message_task',
-                ];
+                // let workers = [
+                //     'emailSender',
+                //     'push_sender',
+                //     'push_sender_firebase',
+                //     'push_sender_apns',
+                //     'push_sender_web',
+                //     'conversation_message_push_delivery',
+                //     'comment_augmentation_task',
+                //     'conversation_message_delivery',
+                //     'conversation_message_task',
+                // ];
 
-                for (let worker of workers) {
-                    let duplicatesCount = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
-                    await log(`${worker} ${duplicatesCount} duplicates pending`);
-                }
+                // for (let worker of workers) {
+                //     let duplicatesCount = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
+                //     await log(`${worker} ${duplicatesCount} duplicates pending`);
+                // }
 
-                let duplicatesCountExecuting = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
-                await log(`${duplicatesCountExecuting} duplicates executing`);
+                // let duplicatesCountExecuting = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
+                // await log(`${duplicatesCountExecuting} duplicates executing`);
 
-                let duplicatesCountFailing = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
-                await log(`${duplicatesCountFailing} duplicates failing`);
+                // let duplicatesCountFailing = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
+                // await log(`${duplicatesCountFailing} duplicates failing`);
 
                 return 'done';
             });
@@ -909,7 +909,7 @@ export default {
                     }
                 })();
 
-                let generator = FDB.DebugEvent.createUserLiveStream(ctx, uid, 20, args.fromState || undefined);
+                let generator = Store.DebugEvent.user.liveStream(ctx, uid, { batchSize: 20, after: args.fromState || undefined });
 
                 for await (let event of generator) {
                     for (let item of event.items) {
