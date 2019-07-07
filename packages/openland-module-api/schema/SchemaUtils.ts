@@ -22,7 +22,10 @@ export type UnionTypeResolver<Root, ReturnType> = {
 };
 
 export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
-    [P in keyof T]?: (T[P] extends Nullable<object | object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> : Resolver<Root, ArgTypesMap[P], AppContext, T[P]>)
+    [P in keyof T]?:
+    T[P] extends Nullable<object> ?
+        Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> :
+        T[P] extends Nullable<object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> :  Resolver<Root, ArgTypesMap[P], AppContext, T[P]>
 };
 
 export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
