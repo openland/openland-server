@@ -6,7 +6,11 @@ import {
     UserSettings,
     AppHook,
     DebugEvent,
-    UserBadge
+    UserBadge,
+    Notification,
+    NotificationCenter,
+    UserNotificationCenter,
+    NotificationCenterEvent
 } from './../../openland-module-db/store';
 import {
     Conversation,
@@ -17,10 +21,6 @@ import {
     ConversationEvent,
     Comment,
     CommentEvent,
-    Notification,
-    NotificationCenter,
-    UserNotificationCenter,
-    NotificationCenterEvent,
     CommentsSubscription,
     CommentEventGlobal
 } from '../../openland-module-db/schema';
@@ -41,6 +41,7 @@ import {
     NotificationContent
 } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
+import { LiveStreamItem } from '@openland/foundationdb-entity';
 
 //
 //  Root types
@@ -319,9 +320,9 @@ export namespace GQLRoots {
     export type NotificationCenterRoot = NotificationCenter | UserNotificationCenter;
     export type NotificationRoot = Notification;
     export type NotificationCenterUpdatesStateRoot = { state: string };
-    export type NotificationCenterUpdateSingleRoot = FLiveStreamItem<NotificationCenterEvent>;
-    export type NotificationCenterUpdateBatchRoot = FLiveStreamItem<NotificationCenterEvent>;
-    export type NotificationCenterUpdateContainerRoot = FLiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateSingleRoot = LiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateBatchRoot = LiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateContainerRoot = LiveStreamItem<NotificationCenterEvent>;
     export type NotificationCenterUpdateRoot = NotificationCenterEvent;
     export type NotificationReceivedRoot = NotificationCenterEvent;
     export type NotificationDeletedRoot = NotificationCenterEvent;

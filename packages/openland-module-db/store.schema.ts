@@ -1,4 +1,4 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct, customDirectory, array, union } from '@openland/foundationdb-compiler';
 
 export default declareSchema(() => {
 
@@ -255,6 +255,68 @@ export default declareSchema(() => {
         uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
         uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
     });
+
+    //
+    // Notification Center
+    //
+
+    entity('NotificationCenter', () => {
+        primaryKey('id', integer());
+        field('kind', enumString('user'));
+    });
+
+    entity('UserNotificationCenter', () => {
+        primaryKey('id', integer());
+        field('uid', integer());
+        uniqueIndex('user', ['uid']);
+    });
+
+    entity('Notification', () => {
+        primaryKey('id', integer());
+        field('ncid', integer());
+
+        field('text', optional(string())).secure();
+
+        field('deleted', optional(boolean()));
+
+        field('content', optional(array(union({
+            'new_comment': struct({
+                commentId: integer()
+            })
+        }))));
+
+        rangeIndex('notificationCenter', ['ncid', 'id']).withCondition((src) => !src.deleted);
+    });
+
+    entity('NotificationCenterState', () => {
+        primaryKey('ncid', integer());
+        field('seq', integer());
+        field('readNotificationId', optional(integer()));
+
+        field('readSeq', optional(integer()));
+        field('lastEmailNotification', optional(integer()));
+        field('lastPushNotification', optional(integer()));
+        field('lastEmailSeq', optional(integer()));
+        field('lastPushSeq', optional(integer()));
+    });
+
+    entity('NotificationCenterEvent', () => {
+        primaryKey('ncid', integer());
+        primaryKey('seq', integer());
+        field('notificationId', optional(integer()));
+        field('updatedContent', optional(union({
+            comment: struct({
+                peerId: integer(),
+                peerType: string(),
+                commentId: optional(integer())
+            })
+        })));
+        field('kind', enumString('notification_received', 'notification_read', 'notification_deleted', 'notification_updated', 'notification_content_updated'));
+
+        rangeIndex('notificationCenter', ['ncid', 'seq']);
+    });
+
+    customDirectory('NotificationCenterNeedDeliveryFlag');
 
     //
     // Feed

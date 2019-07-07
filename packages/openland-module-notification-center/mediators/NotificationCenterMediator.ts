@@ -1,3 +1,4 @@
+import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -44,7 +45,7 @@ export class NotificationCenterMediator {
 
     async readUserNotification(parent: Context, nid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let notification = await this.fdb.Notification.findById(ctx, nid);
+            let notification = await Store.Notification.findById(ctx, nid);
             if (!notification) {
                 throw new NotFoundError();
             }
@@ -59,7 +60,7 @@ export class NotificationCenterMediator {
 
     async deleteUserNotification(parent: Context, nid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let notification = await this.fdb.Notification.findById(ctx, nid);
+            let notification = await Store.Notification.findById(ctx, nid);
             if (!notification) {
                 throw new NotFoundError();
             }

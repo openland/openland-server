@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { Modules } from '../../openland-modules/Modules';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { Comment } from '../../openland-module-db/schema';
 import { Emails } from '../../openland-module-email/Emails';
 import { singletonWorker } from '@openland/foundationdb-singleton';
@@ -99,13 +99,13 @@ export function startEmailNotificationWorker() {
 
                 // Fetch pending updates
                 let afterSeq = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq ? state.readSeq : 0);
-                let remainingUpdates = await FDB.NotificationCenterEvent.allFromNotificationCenterAfter(ctx, state.ncid, afterSeq);
+                let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, { after: afterSeq })).items;
                 let notifications = remainingUpdates.filter((v) => v.kind === 'notification_received');
 
                 let unreadComments: Comment[] = [];
 
                 for (let m of notifications) {
-                    let notification = await FDB.Notification.findById(ctx, m.notificationId!);
+                    let notification = await Store.Notification.findById(ctx, m.notificationId!);
                     if (!notification) {
                         continue;
                     }

@@ -1,10 +1,10 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { trackServerEvent } from '../openland-module-hyperlog/Log.resolver';
-import { Comment, ConversationRoom, Message, Notification } from '../openland-module-db/schema';
+import { Comment, ConversationRoom, Message } from '../openland-module-db/schema';
 import { FDB, Store } from '../openland-module-db/FDB';
 import { REACTIONS_LEGACY } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
-import { Organization } from 'openland-module-db/store';
+import { Organization, Notification } from 'openland-module-db/store';
 
 @injectable()
 export class MetricsModule {
@@ -36,16 +36,16 @@ export class MetricsModule {
 
     async onInternalNotificationReceived(ctx: Context, notification: Notification, uid: number) {
         if (notification.content && notification.content.find(c => c.type === 'new_comment')) {
-            await trackServerEvent(ctx, {name: 'comment_notification_received', uid});
+            await trackServerEvent(ctx, { name: 'comment_notification_received', uid });
         }
     }
 
     async onCommentCreated(ctx: Context, message: Message, comment: Comment) {
-        await trackServerEvent(ctx, {name: 'comment_to_message_received', uid: message.uid});
+        await trackServerEvent(ctx, { name: 'comment_to_message_received', uid: message.uid });
         if (comment.parentCommentId) {
             let parentComment = await FDB.Comment.findById(ctx, comment.parentCommentId);
             if (parentComment) {
-                await trackServerEvent(ctx, {name: 'reply_to_comment_received', uid: parentComment.uid});
+                await trackServerEvent(ctx, { name: 'reply_to_comment_received', uid: parentComment.uid });
             }
         }
     }
@@ -79,6 +79,6 @@ export class MetricsModule {
     }
 
     async onReactionAdded(ctx: Context, message: Message, reaction: string) {
-        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type:  REACTIONS_LEGACY.has(reaction) ? REACTIONS_LEGACY.get(reaction)!.toLowerCase() : reaction } });
+        await trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type: REACTIONS_LEGACY.has(reaction) ? REACTIONS_LEGACY.get(reaction)!.toLowerCase() : reaction } });
     }
 }

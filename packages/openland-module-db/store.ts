@@ -701,9 +701,9 @@ export interface UserCreateShape {
     authId: string;
     email: string;
     isBot: boolean;
-    invitedBy: number | null;
-    botOwner: number | null;
-    isSuperBot: boolean | null;
+    invitedBy?: number | null | undefined;
+    botOwner?: number | null | undefined;
+    isSuperBot?: boolean | null | undefined;
     status: 'pending' | 'activated' | 'suspended' | 'deleted';
 }
 
@@ -907,19 +907,19 @@ export interface UserProfileShape {
 
 export interface UserProfileCreateShape {
     firstName: string;
-    lastName: string | null;
-    phone: string | null;
-    about: string | null;
-    website: string | null;
-    location: string | null;
-    email: string | null;
-    picture: any | null;
-    linkedin: string | null;
-    twitter: string | null;
-    locations: any | null;
-    primaryOrganization: number | null;
-    primaryBadge: number | null;
-    role: string | null;
+    lastName?: string | null | undefined;
+    phone?: string | null | undefined;
+    about?: string | null | undefined;
+    website?: string | null | undefined;
+    location?: string | null | undefined;
+    email?: string | null | undefined;
+    picture?: any | null | undefined;
+    linkedin?: string | null | undefined;
+    twitter?: string | null | undefined;
+    locations?: any | null | undefined;
+    primaryOrganization?: number | null | undefined;
+    primaryBadge?: number | null | undefined;
+    role?: string | null | undefined;
 }
 
 export class UserProfile extends Entity<UserProfileShape> {
@@ -1148,9 +1148,9 @@ export interface UserProfilePrefilShape {
 }
 
 export interface UserProfilePrefilCreateShape {
-    firstName: string | null;
-    lastName: string | null;
-    picture: string | null;
+    firstName?: string | null | undefined;
+    lastName?: string | null | undefined;
+    picture?: string | null | undefined;
 }
 
 export class UserProfilePrefil extends Entity<UserProfilePrefilShape> {
@@ -1251,12 +1251,12 @@ export interface UserSettingsCreateShape {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
-    commentNotifications: 'all' | 'direct' | 'none' | null;
-    commentNotificationsDelivery: 'all' | 'none' | null;
-    mobileAlert: boolean | null;
-    mobileIncludeText: boolean | null;
-    notificationsDelay: 'none' | '1min' | '15min' | null;
-    globalCounterType: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null;
+    commentNotifications?: 'all' | 'direct' | 'none' | null | undefined;
+    commentNotificationsDelivery?: 'all' | 'none' | null | undefined;
+    mobileAlert?: boolean | null | undefined;
+    mobileIncludeText?: boolean | null | undefined;
+    notificationsDelay?: 'none' | '1min' | '15min' | null | undefined;
+    globalCounterType?: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null | undefined;
 }
 
 export class UserSettings extends Entity<UserSettingsShape> {
@@ -1492,8 +1492,8 @@ export interface OrganizationCreateShape {
     status: 'pending' | 'activated' | 'suspended' | 'deleted';
     kind: 'organization' | 'community';
     editorial: boolean;
-    private: boolean | null;
-    personal: boolean | null;
+    private?: boolean | null | undefined;
+    personal?: boolean | null | undefined;
 }
 
 export class Organization extends Entity<OrganizationShape> {
@@ -1637,13 +1637,13 @@ export interface OrganizationProfileShape {
 
 export interface OrganizationProfileCreateShape {
     name: string;
-    photo: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
-    about: string | null;
-    twitter: string | null;
-    facebook: string | null;
-    linkedin: string | null;
-    website: string | null;
-    joinedMembersCount: number | null;
+    photo?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
+    about?: string | null | undefined;
+    twitter?: string | null | undefined;
+    facebook?: string | null | undefined;
+    linkedin?: string | null | undefined;
+    website?: string | null | undefined;
+    joinedMembersCount?: number | null | undefined;
 }
 
 export class OrganizationProfile extends Entity<OrganizationProfileShape> {
@@ -1872,7 +1872,7 @@ export interface OrganizationMemberShape {
 }
 
 export interface OrganizationMemberCreateShape {
-    invitedBy: number | null;
+    invitedBy?: number | null | undefined;
     role: 'admin' | 'member';
     status: 'requested' | 'joined' | 'left';
 }
@@ -2086,8 +2086,8 @@ export interface OnlineShape {
 
 export interface OnlineCreateShape {
     lastSeen: number;
-    activeExpires: number | null;
-    active: boolean | null;
+    activeExpires?: number | null | undefined;
+    active?: boolean | null | undefined;
 }
 
 export class Online extends Entity<OnlineShape> {
@@ -2184,7 +2184,7 @@ export interface PresenceCreateShape {
     lastSeen: number;
     lastSeenTimeout: number;
     platform: string;
-    active: boolean | null;
+    active?: boolean | null | undefined;
 }
 
 export class Presence extends Entity<PresenceShape> {
@@ -2305,7 +2305,7 @@ export interface MessageDraftShape {
 }
 
 export interface MessageDraftCreateShape {
-    contents: string | null;
+    contents?: string | null | undefined;
 }
 
 export class MessageDraft extends Entity<MessageDraftShape> {
@@ -2377,8 +2377,8 @@ export interface ConferenceRoomShape {
 }
 
 export interface ConferenceRoomCreateShape {
-    startTime: number | null;
-    strategy: 'direct' | 'bridged' | null;
+    startTime?: number | null | undefined;
+    strategy?: 'direct' | 'bridged' | null | undefined;
 }
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
@@ -2632,11 +2632,11 @@ export interface ConferenceMediaStreamShape {
 export interface ConferenceMediaStreamCreateShape {
     cid: number;
     peer1: number;
-    peer2: number | null;
+    peer2?: number | null | undefined;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    offer: string | null;
-    answer: string | null;
+    offer?: string | null | undefined;
+    answer?: string | null | undefined;
     ice1: any;
     ice2: any;
 }
@@ -2818,8 +2818,8 @@ export interface ConferenceConnectionShape {
 export interface ConferenceConnectionCreateShape {
     cid: number;
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    offer: string | null;
-    answer: string | null;
+    offer?: string | null | undefined;
+    answer?: string | null | undefined;
     ice1: any;
     ice2: any;
 }
@@ -3195,8 +3195,8 @@ export interface UserBadgeShape {
 export interface UserBadgeCreateShape {
     uid: number;
     name: string;
-    verifiedBy: number | null;
-    deleted: boolean | null;
+    verifiedBy?: number | null | undefined;
+    deleted?: boolean | null | undefined;
 }
 
 export class UserBadge extends Entity<UserBadgeShape> {
@@ -3330,7 +3330,7 @@ export interface UserRoomBadgeShape {
 }
 
 export interface UserRoomBadgeCreateShape {
-    bid: number | null;
+    bid?: number | null | undefined;
 }
 
 export class UserRoomBadge extends Entity<UserRoomBadgeShape> {
@@ -3544,6 +3544,538 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ShortnameReservationShape>): ShortnameReservation {
         return new ShortnameReservation([value.shortname], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface NotificationCenterShape {
+    id: number;
+    kind: 'user';
+}
+
+export interface NotificationCenterCreateShape {
+    kind: 'user';
+}
+
+export class NotificationCenter extends Entity<NotificationCenterShape> {
+    get id(): number { return this._rawValue.id; }
+    get kind(): 'user' { return this._rawValue.kind; }
+    set kind(value: 'user') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class NotificationCenterFactory extends EntityFactory<NotificationCenterShape, NotificationCenter> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('notificationCenter');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['user'] }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            kind: c.enum('user'),
+        });
+        let descriptor: EntityDescriptor<NotificationCenterShape> = {
+            name: 'NotificationCenter',
+            storageKey: 'notificationCenter',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new NotificationCenterFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<NotificationCenterShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: NotificationCenterCreateShape): Promise<NotificationCenter> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: NotificationCenterCreateShape): NotificationCenter {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<NotificationCenter | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationCenterShape>): NotificationCenter {
+        return new NotificationCenter([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserNotificationCenterShape {
+    id: number;
+    uid: number;
+}
+
+export interface UserNotificationCenterCreateShape {
+    uid: number;
+}
+
+export class UserNotificationCenter extends Entity<UserNotificationCenterShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserNotificationCenterFactory extends EntityFactory<UserNotificationCenterShape, UserNotificationCenter> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userNotificationCenter');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userNotificationCenter', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+        });
+        let descriptor: EntityDescriptor<UserNotificationCenterShape> = {
+            name: 'UserNotificationCenter',
+            storageKey: 'userNotificationCenter',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserNotificationCenterFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserNotificationCenterShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        find: async (ctx: Context, uid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+    });
+
+    create(ctx: Context, id: number, src: UserNotificationCenterCreateShape): Promise<UserNotificationCenter> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: UserNotificationCenterCreateShape): UserNotificationCenter {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<UserNotificationCenter | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserNotificationCenterShape>): UserNotificationCenter {
+        return new UserNotificationCenter([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface NotificationShape {
+    id: number;
+    ncid: number;
+    text: string | null;
+    deleted: boolean | null;
+    content: ({ type: 'new_comment', commentId: number })[] | null;
+}
+
+export interface NotificationCreateShape {
+    ncid: number;
+    text?: string | null | undefined;
+    deleted?: boolean | null | undefined;
+    content?: ({ type: 'new_comment', commentId: number })[] | null | undefined;
+}
+
+export class Notification extends Entity<NotificationShape> {
+    get id(): number { return this._rawValue.id; }
+    get ncid(): number { return this._rawValue.ncid; }
+    set ncid(value: number) {
+        let normalized = this.descriptor.codec.fields.ncid.normalize(value);
+        if (this._rawValue.ncid !== normalized) {
+            this._rawValue.ncid = normalized;
+            this._updatedValues.ncid = normalized;
+            this.invalidate();
+        }
+    }
+    get text(): string | null { return this._rawValue.text; }
+    set text(value: string | null) {
+        let normalized = this.descriptor.codec.fields.text.normalize(value);
+        if (this._rawValue.text !== normalized) {
+            this._rawValue.text = normalized;
+            this._updatedValues.text = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+    get content(): ({ type: 'new_comment', commentId: number })[] | null { return this._rawValue.content; }
+    set content(value: ({ type: 'new_comment', commentId: number })[] | null) {
+        let normalized = this.descriptor.codec.fields.content.normalize(value);
+        if (this._rawValue.content !== normalized) {
+            this._rawValue.content = normalized;
+            this._updatedValues.content = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class NotificationFactory extends EntityFactory<NotificationShape, Notification> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('notification');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'notificationCenter', storageKey: 'notificationCenter', type: { type: 'range', fields: [{ name: 'ncid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('notification', 'notificationCenter'), condition: (src) => !src.deleted });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'ncid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { new_comment: { commentId: { type: 'integer' } } } } } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            ncid: c.integer,
+            text: c.optional(c.string),
+            deleted: c.optional(c.boolean),
+            content: c.optional(c.array(c.union({ new_comment: c.struct({ commentId: c.integer }) }))),
+        });
+        let descriptor: EntityDescriptor<NotificationShape> = {
+            name: 'Notification',
+            storageKey: 'notification',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new NotificationFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<NotificationShape>) {
+        super(descriptor);
+    }
+
+    readonly notificationCenter = Object.freeze({
+        findAll: async (ctx: Context, ncid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid])).items;
+        },
+        query: (ctx: Context, ncid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (ncid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [ncid], opts);
+        },
+        liveStream: (ctx: Context, ncid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [ncid], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: NotificationCreateShape): Promise<Notification> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: NotificationCreateShape): Notification {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<Notification | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationShape>): Notification {
+        return new Notification([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface NotificationCenterStateShape {
+    ncid: number;
+    seq: number;
+    readNotificationId: number | null;
+    readSeq: number | null;
+    lastEmailNotification: number | null;
+    lastPushNotification: number | null;
+    lastEmailSeq: number | null;
+    lastPushSeq: number | null;
+}
+
+export interface NotificationCenterStateCreateShape {
+    seq: number;
+    readNotificationId?: number | null | undefined;
+    readSeq?: number | null | undefined;
+    lastEmailNotification?: number | null | undefined;
+    lastPushNotification?: number | null | undefined;
+    lastEmailSeq?: number | null | undefined;
+    lastPushSeq?: number | null | undefined;
+}
+
+export class NotificationCenterState extends Entity<NotificationCenterStateShape> {
+    get ncid(): number { return this._rawValue.ncid; }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
+            this.invalidate();
+        }
+    }
+    get readNotificationId(): number | null { return this._rawValue.readNotificationId; }
+    set readNotificationId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.readNotificationId.normalize(value);
+        if (this._rawValue.readNotificationId !== normalized) {
+            this._rawValue.readNotificationId = normalized;
+            this._updatedValues.readNotificationId = normalized;
+            this.invalidate();
+        }
+    }
+    get readSeq(): number | null { return this._rawValue.readSeq; }
+    set readSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.readSeq.normalize(value);
+        if (this._rawValue.readSeq !== normalized) {
+            this._rawValue.readSeq = normalized;
+            this._updatedValues.readSeq = normalized;
+            this.invalidate();
+        }
+    }
+    get lastEmailNotification(): number | null { return this._rawValue.lastEmailNotification; }
+    set lastEmailNotification(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastEmailNotification.normalize(value);
+        if (this._rawValue.lastEmailNotification !== normalized) {
+            this._rawValue.lastEmailNotification = normalized;
+            this._updatedValues.lastEmailNotification = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPushNotification(): number | null { return this._rawValue.lastPushNotification; }
+    set lastPushNotification(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastPushNotification.normalize(value);
+        if (this._rawValue.lastPushNotification !== normalized) {
+            this._rawValue.lastPushNotification = normalized;
+            this._updatedValues.lastPushNotification = normalized;
+            this.invalidate();
+        }
+    }
+    get lastEmailSeq(): number | null { return this._rawValue.lastEmailSeq; }
+    set lastEmailSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastEmailSeq.normalize(value);
+        if (this._rawValue.lastEmailSeq !== normalized) {
+            this._rawValue.lastEmailSeq = normalized;
+            this._updatedValues.lastEmailSeq = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPushSeq(): number | null { return this._rawValue.lastPushSeq; }
+    set lastPushSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastPushSeq.normalize(value);
+        if (this._rawValue.lastPushSeq !== normalized) {
+            this._rawValue.lastPushSeq = normalized;
+            this._updatedValues.lastPushSeq = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class NotificationCenterStateFactory extends EntityFactory<NotificationCenterStateShape, NotificationCenterState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('notificationCenterState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'ncid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'readNotificationId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'readSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastEmailNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastPushNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastEmailSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastPushSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            ncid: c.integer,
+            seq: c.integer,
+            readNotificationId: c.optional(c.integer),
+            readSeq: c.optional(c.integer),
+            lastEmailNotification: c.optional(c.integer),
+            lastPushNotification: c.optional(c.integer),
+            lastEmailSeq: c.optional(c.integer),
+            lastPushSeq: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<NotificationCenterStateShape> = {
+            name: 'NotificationCenterState',
+            storageKey: 'notificationCenterState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new NotificationCenterStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<NotificationCenterStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, ncid: number, src: NotificationCenterStateCreateShape): Promise<NotificationCenterState> {
+        return this._create(ctx, [ncid], this.descriptor.codec.normalize({ ncid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, ncid: number, src: NotificationCenterStateCreateShape): NotificationCenterState {
+        return this._create_UNSAFE(ctx, [ncid], this.descriptor.codec.normalize({ ncid, ...src }));
+    }
+
+    findById(ctx: Context, ncid: number): Promise<NotificationCenterState | null> {
+        return this._findById(ctx, [ncid]);
+    }
+
+    watch(ctx: Context, ncid: number): Watch {
+        return this._watch(ctx, [ncid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationCenterStateShape>): NotificationCenterState {
+        return new NotificationCenterState([value.ncid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface NotificationCenterEventShape {
+    ncid: number;
+    seq: number;
+    notificationId: number | null;
+    updatedContent: { type: 'comment', peerId: number, peerType: string, commentId: number | null } | null;
+    kind: 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated' | 'notification_content_updated';
+}
+
+export interface NotificationCenterEventCreateShape {
+    notificationId?: number | null | undefined;
+    updatedContent?: { type: 'comment', peerId: number, peerType: string, commentId: number | null | undefined } | null | undefined;
+    kind: 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated' | 'notification_content_updated';
+}
+
+export class NotificationCenterEvent extends Entity<NotificationCenterEventShape> {
+    get ncid(): number { return this._rawValue.ncid; }
+    get seq(): number { return this._rawValue.seq; }
+    get notificationId(): number | null { return this._rawValue.notificationId; }
+    set notificationId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.notificationId.normalize(value);
+        if (this._rawValue.notificationId !== normalized) {
+            this._rawValue.notificationId = normalized;
+            this._updatedValues.notificationId = normalized;
+            this.invalidate();
+        }
+    }
+    get updatedContent(): { type: 'comment', peerId: number, peerType: string, commentId: number | null } | null { return this._rawValue.updatedContent; }
+    set updatedContent(value: { type: 'comment', peerId: number, peerType: string, commentId: number | null } | null) {
+        let normalized = this.descriptor.codec.fields.updatedContent.normalize(value);
+        if (this._rawValue.updatedContent !== normalized) {
+            this._rawValue.updatedContent = normalized;
+            this._updatedValues.updatedContent = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated' | 'notification_content_updated' { return this._rawValue.kind; }
+    set kind(value: 'notification_received' | 'notification_read' | 'notification_deleted' | 'notification_updated' | 'notification_content_updated') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class NotificationCenterEventFactory extends EntityFactory<NotificationCenterEventShape, NotificationCenterEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('notificationCenterEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'notificationCenter', storageKey: 'notificationCenter', type: { type: 'range', fields: [{ name: 'ncid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('notificationCenterEvent', 'notificationCenter'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'ncid', type: 'integer' });
+        primaryKeys.push({ name: 'seq', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'notificationId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'updatedContent', type: { type: 'optional', inner: { type: 'union', types: { comment: { peerId: { type: 'integer' }, peerType: { type: 'string' }, commentId: { type: 'optional', inner: { type: 'integer' } } } } } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['notification_received', 'notification_read', 'notification_deleted', 'notification_updated', 'notification_content_updated'] }, secure: false });
+        let codec = c.struct({
+            ncid: c.integer,
+            seq: c.integer,
+            notificationId: c.optional(c.integer),
+            updatedContent: c.optional(c.union({ comment: c.struct({ peerId: c.integer, peerType: c.string, commentId: c.optional(c.integer) }) })),
+            kind: c.enum('notification_received', 'notification_read', 'notification_deleted', 'notification_updated', 'notification_content_updated'),
+        });
+        let descriptor: EntityDescriptor<NotificationCenterEventShape> = {
+            name: 'NotificationCenterEvent',
+            storageKey: 'notificationCenterEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new NotificationCenterEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<NotificationCenterEventShape>) {
+        super(descriptor);
+    }
+
+    readonly notificationCenter = Object.freeze({
+        findAll: async (ctx: Context, ncid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid])).items;
+        },
+        query: (ctx: Context, ncid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ncid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (ncid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [ncid], opts);
+        },
+        liveStream: (ctx: Context, ncid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [ncid], opts);
+        },
+    });
+
+    create(ctx: Context, ncid: number, seq: number, src: NotificationCenterEventCreateShape): Promise<NotificationCenterEvent> {
+        return this._create(ctx, [ncid, seq], this.descriptor.codec.normalize({ ncid, seq, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, ncid: number, seq: number, src: NotificationCenterEventCreateShape): NotificationCenterEvent {
+        return this._create_UNSAFE(ctx, [ncid, seq], this.descriptor.codec.normalize({ ncid, seq, ...src }));
+    }
+
+    findById(ctx: Context, ncid: number, seq: number): Promise<NotificationCenterEvent | null> {
+        return this._findById(ctx, [ncid, seq]);
+    }
+
+    watch(ctx: Context, ncid: number, seq: number): Watch {
+        return this._watch(ctx, [ncid, seq]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationCenterEventShape>): NotificationCenterEvent {
+        return new NotificationCenterEvent([value.ncid, value.seq], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -4255,12 +4787,12 @@ export interface OrganizationInviteLinkCreateShape {
     oid: number;
     email: string;
     uid: number;
-    firstName: string | null;
-    lastName: string | null;
-    text: string | null;
-    ttl: number | null;
-    enabled: boolean | null;
-    joined: boolean | null;
+    firstName?: string | null | undefined;
+    lastName?: string | null | undefined;
+    text?: string | null | undefined;
+    ttl?: number | null | undefined;
+    enabled?: boolean | null | undefined;
+    joined?: boolean | null | undefined;
     role: 'MEMBER' | 'OWNER';
 }
 
@@ -4464,11 +4996,11 @@ export interface ChannelInvitationCreateShape {
     creatorId: number;
     channelId: number;
     email: string;
-    firstName: string | null;
-    lastName: string | null;
-    text: string | null;
-    acceptedById: number | null;
-    enabled: boolean | null;
+    firstName?: string | null | undefined;
+    lastName?: string | null | undefined;
+    text?: string | null | undefined;
+    acceptedById?: number | null | undefined;
+    enabled?: boolean | null | undefined;
 }
 
 export class ChannelInvitation extends Entity<ChannelInvitationShape> {
@@ -4734,11 +5266,11 @@ export interface UserOnboardingStateShape {
 }
 
 export interface UserOnboardingStateCreateShape {
-    wellcomeSent: boolean | null;
-    askCompleteDeiscoverSent: boolean | null;
-    askInviteSent: boolean | null;
-    askInstallAppsSent: boolean | null;
-    askSendFirstMessageSent: boolean | null;
+    wellcomeSent?: boolean | null | undefined;
+    askCompleteDeiscoverSent?: boolean | null | undefined;
+    askInviteSent?: boolean | null | undefined;
+    askInstallAppsSent?: boolean | null | undefined;
+    askSendFirstMessageSent?: boolean | null | undefined;
 }
 
 export class UserOnboardingState extends Entity<UserOnboardingStateShape> {
@@ -4865,10 +5397,10 @@ export interface PushFirebaseCreateShape {
     packageId: string;
     sandbox: boolean;
     enabled: boolean;
-    failures: number | null;
-    failedFirstAt: number | null;
-    failedLastAt: number | null;
-    disabledAt: number | null;
+    failures?: number | null | undefined;
+    failedFirstAt?: number | null | undefined;
+    failedLastAt?: number | null | undefined;
+    disabledAt?: number | null | undefined;
 }
 
 export class PushFirebase extends Entity<PushFirebaseShape> {
@@ -5079,10 +5611,10 @@ export interface PushAppleCreateShape {
     bundleId: string;
     sandbox: boolean;
     enabled: boolean;
-    failures: number | null;
-    failedFirstAt: number | null;
-    failedLastAt: number | null;
-    disabledAt: number | null;
+    failures?: number | null | undefined;
+    failedFirstAt?: number | null | undefined;
+    failedLastAt?: number | null | undefined;
+    disabledAt?: number | null | undefined;
 }
 
 export class PushApple extends Entity<PushAppleShape> {
@@ -5289,10 +5821,10 @@ export interface PushWebCreateShape {
     tid: string;
     endpoint: string;
     enabled: boolean;
-    failures: number | null;
-    failedFirstAt: number | null;
-    failedLastAt: number | null;
-    disabledAt: number | null;
+    failures?: number | null | undefined;
+    failedFirstAt?: number | null | undefined;
+    failedLastAt?: number | null | undefined;
+    disabledAt?: number | null | undefined;
 }
 
 export class PushWeb extends Entity<PushWebShape> {
@@ -5479,10 +6011,10 @@ export interface PushSafariCreateShape {
     token: string;
     bundleId: string;
     enabled: boolean;
-    failures: number | null;
-    failedFirstAt: number | null;
-    failedLastAt: number | null;
-    disabledAt: number | null;
+    failures?: number | null | undefined;
+    failedFirstAt?: number | null | undefined;
+    failedLastAt?: number | null | undefined;
+    disabledAt?: number | null | undefined;
 }
 
 export class PushSafari extends Entity<PushSafariShape> {
@@ -5838,7 +6370,7 @@ export interface UserStorageRecordShape {
 export interface UserStorageRecordCreateShape {
     ns: number;
     key: string;
-    value: string | null;
+    value?: string | null | undefined;
 }
 
 export class UserStorageRecord extends Entity<UserStorageRecordShape> {
@@ -6149,7 +6681,7 @@ export interface ServiceCacheShape {
 }
 
 export interface ServiceCacheCreateShape {
-    value: string | null;
+    value?: string | null | undefined;
 }
 
 export class ServiceCache extends Entity<ServiceCacheShape> {
@@ -6238,7 +6770,7 @@ export interface ReaderStateShape {
 
 export interface ReaderStateCreateShape {
     cursor: string;
-    version: number | null;
+    version?: number | null | undefined;
 }
 
 export class ReaderState extends Entity<ReaderStateShape> {
@@ -6404,7 +6936,7 @@ export interface AuthTokenCreateShape {
     salt: string;
     uid: number;
     lastIp: string;
-    enabled: boolean | null;
+    enabled?: boolean | null | undefined;
 }
 
 export class AuthToken extends Entity<AuthTokenShape> {
@@ -6541,7 +7073,7 @@ export interface AuthCodeSessionCreateShape {
     code: string;
     expires: number;
     email: string;
-    tokenId: string | null;
+    tokenId?: string | null | undefined;
     enabled: boolean;
 }
 
@@ -6984,11 +7516,11 @@ export interface TaskCreateShape {
     result: any;
     startAt: number;
     taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
-    taskFailureCount: number | null;
-    taskFailureTime: number | null;
-    taskLockSeed: string | null;
-    taskLockTimeout: number | null;
-    taskFailureMessage: string | null;
+    taskFailureCount?: number | null | undefined;
+    taskFailureTime?: number | null | undefined;
+    taskLockSeed?: string | null | undefined;
+    taskLockTimeout?: number | null | undefined;
+    taskFailureMessage?: string | null | undefined;
 }
 
 export class Task extends Entity<TaskShape> {
@@ -7219,10 +7751,10 @@ export interface DelayedTaskShape {
 export interface DelayedTaskCreateShape {
     delay: number;
     arguments: any;
-    result: any | null;
+    result?: any | null | undefined;
     taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
-    taskFailureTime: number | null;
-    taskFailureMessage: string | null;
+    taskFailureTime?: number | null | undefined;
+    taskFailureMessage?: string | null | undefined;
 }
 
 export class DelayedTask extends Entity<DelayedTaskShape> {
@@ -7381,7 +7913,7 @@ export interface DebugEventShape {
 }
 
 export interface DebugEventCreateShape {
-    key: string | null;
+    key?: string | null | undefined;
 }
 
 export class DebugEvent extends Entity<DebugEventShape> {
@@ -7573,6 +8105,11 @@ export interface Store extends BaseStore {
     readonly UserBadge: UserBadgeFactory;
     readonly UserRoomBadge: UserRoomBadgeFactory;
     readonly ShortnameReservation: ShortnameReservationFactory;
+    readonly NotificationCenter: NotificationCenterFactory;
+    readonly UserNotificationCenter: UserNotificationCenterFactory;
+    readonly Notification: NotificationFactory;
+    readonly NotificationCenterState: NotificationCenterStateFactory;
+    readonly NotificationCenterEvent: NotificationCenterEventFactory;
     readonly FeedSubscriber: FeedSubscriberFactory;
     readonly FeedSubscription: FeedSubscriptionFactory;
     readonly FeedTopic: FeedTopicFactory;
@@ -7606,6 +8143,7 @@ export interface Store extends BaseStore {
     readonly DelayedTask: DelayedTaskFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -7651,6 +8189,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserBadgePromise = UserBadgeFactory.open(storage);
     let UserRoomBadgePromise = UserRoomBadgeFactory.open(storage);
     let ShortnameReservationPromise = ShortnameReservationFactory.open(storage);
+    let NotificationCenterPromise = NotificationCenterFactory.open(storage);
+    let UserNotificationCenterPromise = UserNotificationCenterFactory.open(storage);
+    let NotificationPromise = NotificationFactory.open(storage);
+    let NotificationCenterStatePromise = NotificationCenterStateFactory.open(storage);
+    let NotificationCenterEventPromise = NotificationCenterEventFactory.open(storage);
     let FeedSubscriberPromise = FeedSubscriberFactory.open(storage);
     let FeedSubscriptionPromise = FeedSubscriptionFactory.open(storage);
     let FeedTopicPromise = FeedTopicFactory.open(storage);
@@ -7684,6 +8227,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     return {
         storage,
         UserCounter: await UserCounterPromise,
@@ -7728,6 +8272,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserBadge: await UserBadgePromise,
         UserRoomBadge: await UserRoomBadgePromise,
         ShortnameReservation: await ShortnameReservationPromise,
+        NotificationCenter: await NotificationCenterPromise,
+        UserNotificationCenter: await UserNotificationCenterPromise,
+        Notification: await NotificationPromise,
+        NotificationCenterState: await NotificationCenterStatePromise,
+        NotificationCenterEvent: await NotificationCenterEventPromise,
         FeedSubscriber: await FeedSubscriberPromise,
         FeedSubscription: await FeedSubscriptionPromise,
         FeedTopic: await FeedTopicPromise,
@@ -7761,5 +8310,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DelayedTask: await DelayedTaskPromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
     };
 }

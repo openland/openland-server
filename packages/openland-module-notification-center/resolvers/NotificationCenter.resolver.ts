@@ -4,14 +4,14 @@ import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import { FDB, Store } from '../../openland-module-db/FDB';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
-import { Notification } from '../../openland-module-db/schema';
+import { Notification } from 'openland-module-db/store';
 
 export default {
     NotificationCenter: {
         id: src => IDs.NotificationCenter.serialize(src.id),
         unread: (src, args, ctx) => Store.NotificationCenterCounter.byId(src.id).get(ctx),
         state: async (src, args, ctx) => {
-            let tail = await FDB.NotificationCenterEvent.createNotificationCenterStream(src.id, 1).tail(ctx);
+            let tail = await Store.NotificationCenterEvent.notificationCenter.stream(src.id, { batchSize: 1 }).tail(ctx);
             return { state: tail };
         },
     },
@@ -64,12 +64,12 @@ export default {
                 return [];
             }
             let items: Notification[] = [];
-            if (args.before && await FDB.Notification.findById(ctx, beforeId!)) {
-                items = await FDB.Notification.rangeFromNotificationCenterAfter(ctx, center.id, beforeId!, args.first!, true);
+            if (args.before && await Store.Notification.findById(ctx, beforeId!)) {
+                items = (await Store.Notification.notificationCenter.query(ctx, center.id, { after: beforeId!, limit: args.first!, reverse: true })).items;
             } else {
-                items = await FDB.Notification.rangeFromNotificationCenter(ctx, center.id, args.first, true);
+                items = (await Store.Notification.notificationCenter.query(ctx, center.id, { limit: args.first, reverse: true })).items;
             }
-            let haveMore = items.length >= args.first && (await FDB.Notification.rangeFromNotificationCenterAfter(ctx, center.id, items[args.first - 1].id, 1, true)).length > 0;
+            let haveMore = items.length >= args.first && (await Store.Notification.notificationCenter.query(ctx, center.id, { after: items[args.first - 1].id, limit: 1, reverse: true })).items.length > 0;
 
             return {
                 items: items,
