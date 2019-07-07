@@ -156,6 +156,20 @@ export default declareSchema(() => {
         field('contents', optional(string()));
     });
 
+    entity('ConversationSeq', () => {
+        primaryKey('cid', integer());
+        field('seq', integer());
+    });
+
+    entity('ConversationEvent', () => {
+        primaryKey('cid', integer());
+        primaryKey('seq', integer());
+        field('uid', optional(integer()));
+        field('mid', optional(integer()));
+        field('kind', enumString('chat_updated', 'message_received', 'message_updated', 'message_deleted'));
+        rangeIndex('user', ['cid', 'seq']);
+    });
+
     //
     // Conference
     //

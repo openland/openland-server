@@ -292,7 +292,7 @@ export class RoomRepository {
             }
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
             });
@@ -371,7 +371,7 @@ export class RoomRepository {
             }
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
             });
@@ -447,7 +447,7 @@ export class RoomRepository {
             await conv!.flush(ctx);
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
             });

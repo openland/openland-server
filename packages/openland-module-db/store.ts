@@ -2370,6 +2370,188 @@ export class MessageDraftFactory extends EntityFactory<MessageDraftShape, Messag
     }
 }
 
+export interface ConversationSeqShape {
+    cid: number;
+    seq: number;
+}
+
+export interface ConversationSeqCreateShape {
+    seq: number;
+}
+
+export class ConversationSeq extends Entity<ConversationSeqShape> {
+    get cid(): number { return this._rawValue.cid; }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationSeqFactory extends EntityFactory<ConversationSeqShape, ConversationSeq> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversationSeq');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            cid: c.integer,
+            seq: c.integer,
+        });
+        let descriptor: EntityDescriptor<ConversationSeqShape> = {
+            name: 'ConversationSeq',
+            storageKey: 'conversationSeq',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationSeqFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationSeqShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, cid: number, src: ConversationSeqCreateShape): Promise<ConversationSeq> {
+        return this._create(ctx, [cid], this.descriptor.codec.normalize({ cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, cid: number, src: ConversationSeqCreateShape): ConversationSeq {
+        return this._create_UNSAFE(ctx, [cid], this.descriptor.codec.normalize({ cid, ...src }));
+    }
+
+    findById(ctx: Context, cid: number): Promise<ConversationSeq | null> {
+        return this._findById(ctx, [cid]);
+    }
+
+    watch(ctx: Context, cid: number): Watch {
+        return this._watch(ctx, [cid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationSeqShape>): ConversationSeq {
+        return new ConversationSeq([value.cid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConversationEventShape {
+    cid: number;
+    seq: number;
+    uid: number | null;
+    mid: number | null;
+    kind: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted';
+}
+
+export interface ConversationEventCreateShape {
+    uid?: number | null | undefined;
+    mid?: number | null | undefined;
+    kind: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted';
+}
+
+export class ConversationEvent extends Entity<ConversationEventShape> {
+    get cid(): number { return this._rawValue.cid; }
+    get seq(): number { return this._rawValue.seq; }
+    get uid(): number | null { return this._rawValue.uid; }
+    set uid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get mid(): number | null { return this._rawValue.mid; }
+    set mid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.mid.normalize(value);
+        if (this._rawValue.mid !== normalized) {
+            this._rawValue.mid = normalized;
+            this._updatedValues.mid = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted' { return this._rawValue.kind; }
+    set kind(value: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationEventFactory extends EntityFactory<ConversationEventShape, ConversationEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversationEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationEvent', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        primaryKeys.push({ name: 'seq', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'mid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['chat_updated', 'message_received', 'message_updated', 'message_deleted'] }, secure: false });
+        let codec = c.struct({
+            cid: c.integer,
+            seq: c.integer,
+            uid: c.optional(c.integer),
+            mid: c.optional(c.integer),
+            kind: c.enum('chat_updated', 'message_received', 'message_updated', 'message_deleted'),
+        });
+        let descriptor: EntityDescriptor<ConversationEventShape> = {
+            name: 'ConversationEvent',
+            storageKey: 'conversationEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationEventShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined});
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
+
+    create(ctx: Context, cid: number, seq: number, src: ConversationEventCreateShape): Promise<ConversationEvent> {
+        return this._create(ctx, [cid, seq], this.descriptor.codec.normalize({ cid, seq, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, cid: number, seq: number, src: ConversationEventCreateShape): ConversationEvent {
+        return this._create_UNSAFE(ctx, [cid, seq], this.descriptor.codec.normalize({ cid, seq, ...src }));
+    }
+
+    findById(ctx: Context, cid: number, seq: number): Promise<ConversationEvent | null> {
+        return this._findById(ctx, [cid, seq]);
+    }
+
+    watch(ctx: Context, cid: number, seq: number): Watch {
+        return this._watch(ctx, [cid, seq]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationEventShape>): ConversationEvent {
+        return new ConversationEvent([value.cid, value.seq], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ConferenceRoomShape {
     id: number;
     startTime: number | null;
@@ -8380,6 +8562,8 @@ export interface Store extends BaseStore {
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly MessageDraft: MessageDraftFactory;
+    readonly ConversationSeq: ConversationSeqFactory;
+    readonly ConversationEvent: ConversationEventFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
     readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
@@ -8468,6 +8652,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OnlinePromise = OnlineFactory.open(storage);
     let PresencePromise = PresenceFactory.open(storage);
     let MessageDraftPromise = MessageDraftFactory.open(storage);
+    let ConversationSeqPromise = ConversationSeqFactory.open(storage);
+    let ConversationEventPromise = ConversationEventFactory.open(storage);
     let ConferenceRoomPromise = ConferenceRoomFactory.open(storage);
     let ConferencePeerPromise = ConferencePeerFactory.open(storage);
     let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
@@ -8555,6 +8741,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Online: await OnlinePromise,
         Presence: await PresencePromise,
         MessageDraft: await MessageDraftPromise,
+        ConversationSeq: await ConversationSeqPromise,
+        ConversationEvent: await ConversationEventPromise,
         ConferenceRoom: await ConferenceRoomPromise,
         ConferencePeer: await ConferencePeerPromise,
         ConferenceMediaStream: await ConferenceMediaStreamPromise,

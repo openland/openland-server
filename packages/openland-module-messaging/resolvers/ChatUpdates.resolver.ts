@@ -1,8 +1,7 @@
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { ConversationEvent } from '../../openland-module-db/schema';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ChatUpdateContainerRoot = GQLRoots.ChatUpdateContainerRoot;
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -10,6 +9,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { delay } from '../../openland-utils/timer';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { AppContext } from '../../openland-modules/AppContext';
+import { ConversationEvent } from 'openland-module-db/store';
 
 export default {
     ChatUpdateContainer: {
@@ -41,7 +41,7 @@ export default {
                 return 'ChatMessageUpdated';
             } else if (obj.kind === 'message_deleted') {
                 return 'ChatMessageDeleted';
-            }  else if (obj.kind === 'chat_updated') {
+            } else if (obj.kind === 'chat_updated') {
                 return 'ChatUpdated';
             } else if (obj.kind === 'lost_access') {
                 return 'ChatLostAccess';
@@ -77,7 +77,7 @@ export default {
     Query: {
         chatState: withUser(async (ctx, args, uid) => {
             let id = IDs.Conversation.parse(args.chatId);
-            let tail = await FDB.ConversationEvent.createUserStream(id, 1).tail(ctx);
+            let tail = await Store.ConversationEvent.user.stream(id, { batchSize: 1 }).tail(ctx);
             return {
                 state: tail
             };
@@ -89,7 +89,7 @@ export default {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function * (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
@@ -107,7 +107,7 @@ export default {
                     }
                 }
 
-                let generator = FDB.ConversationEvent.createUserLiveStream(ctx, chatId, 20, args.fromState || undefined);
+                let generator = Store.ConversationEvent.user.liveStream(ctx, chatId, { batchSize: 20, after: args.fromState || undefined });
                 let haveAccess = true;
                 let subscription = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
                     if (ev.uid === uid) {

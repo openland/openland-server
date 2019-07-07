@@ -1,7 +1,7 @@
+import { LiveStreamItem } from '@openland/foundationdb-entity';
+import { ConversationEvent } from './../../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { ConversationEvent } from 'openland-module-db/schema';
-import { FDB } from 'openland-module-db/FDB';
-import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { withUser } from 'openland-module-api/Resolvers';
@@ -15,7 +15,7 @@ export default {
      * Conversation Update Containers
      */
     ConversationUpdateContainer: {
-        __resolveType(obj: FLiveStreamItem<ConversationEvent>) {
+        __resolveType(obj: LiveStreamItem<ConversationEvent>) {
             if (obj.items.length === 1) {
                 return 'ConversationUpdateSingle';
             } else {
@@ -24,15 +24,15 @@ export default {
         }
     },
     ConversationUpdateBatch: {
-        updates: (src: FLiveStreamItem<ConversationEvent>) => src.items,
-        fromSeq: (src: FLiveStreamItem<ConversationEvent>) => src.items[0].seq,
-        seq: (src: FLiveStreamItem<ConversationEvent>) => src.items[src.items.length - 1].seq,
-        state: (src: FLiveStreamItem<ConversationEvent>) => src.cursor
+        updates: (src: LiveStreamItem<ConversationEvent>) => src.items,
+        fromSeq: (src: LiveStreamItem<ConversationEvent>) => src.items[0].seq,
+        seq: (src: LiveStreamItem<ConversationEvent>) => src.items[src.items.length - 1].seq,
+        state: (src: LiveStreamItem<ConversationEvent>) => src.cursor
     },
     ConversationUpdateSingle: {
-        seq: (src: FLiveStreamItem<ConversationEvent>) => src.items[0].seq,
-        state: (src: FLiveStreamItem<ConversationEvent>) => src.cursor,
-        update: (src: FLiveStreamItem<ConversationEvent>) => src.items[0],
+        seq: (src: LiveStreamItem<ConversationEvent>) => src.items[0].seq,
+        state: (src: LiveStreamItem<ConversationEvent>) => src.cursor,
+        update: (src: LiveStreamItem<ConversationEvent>) => src.items[0],
     },
 
     /*
@@ -78,7 +78,7 @@ export default {
     Query: {
         conversationState: withUser(async (ctx, args, uid) => {
             let id = IDs.Conversation.parse(args.id);
-            let tail = await FDB.ConversationEvent.createUserStream(id, 1).tail(ctx);
+            let tail = await Store.ConversationEvent.user.stream(id, { batchSize: 1 }).tail(ctx);
             return {
                 state: tail
             };
@@ -90,7 +90,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function * (r: any, args: GQL.SubscriptionConversationUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionConversationUpdatesArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
@@ -108,7 +108,7 @@ export default {
                     }
                 }
 
-                let generator = FDB.ConversationEvent.createUserLiveStream(ctx, chatId, 20, args.fromState || undefined);
+                let generator = Store.ConversationEvent.user.liveStream(ctx, chatId, { batchSize: 20, after: args.fromState || undefined });
                 let haveAccess = true;
                 let subscription = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
                     if (ev.uid === uid) {

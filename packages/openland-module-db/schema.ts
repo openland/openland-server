@@ -2599,212 +2599,6 @@ export class CommentEventGlobalFactory extends FEntityFactory<CommentEventGlobal
         return new CommentEventGlobal(ctx, this.layer, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'CommentEventGlobal');
     }
 }
-export interface ConversationSeqShape {
-    seq: number;
-}
-
-export class ConversationSeq extends FEntity {
-    readonly entityName: 'ConversationSeq' = 'ConversationSeq';
-    get cid(): number { return this._value.cid; }
-    get seq(): number {
-        return this._value.seq;
-    }
-    set seq(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.seq) { return; }
-        this._value.seq = value;
-        this.markDirty();
-    }
-}
-
-export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
-    static schema: FEntitySchema = {
-        name: 'ConversationSeq',
-        editable: false,
-        primaryKeys: [
-            { name: 'cid', type: 'number' },
-        ],
-        fields: [
-            { name: 'seq', type: 'number' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('conversationSeq');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate, keyValidator: ConversationSeqFactory.validateKey, hasLiveStreams: false };
-        return new ConversationSeqFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isNumber('cid', src.cid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('ConversationSeq', 'conversationSeq', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'cid': rawId[0] };
-    }
-    async findById(ctx: Context, cid: number) {
-        return await this._findById(ctx, [cid]);
-    }
-    async create(ctx: Context, cid: number, shape: ConversationSeqShape) {
-        return await this._create(ctx, [cid], { cid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, cid: number, shape: ConversationSeqShape) {
-        return await this._create_UNSAFE(ctx, [cid], { cid, ...shape });
-    }
-    watch(ctx: Context, cid: number) {
-        return this._watch(ctx, [cid]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationSeq(ctx, this.layer, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
-    }
-}
-export interface ConversationEventShape {
-    uid?: number| null;
-    mid?: number| null;
-    kind: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted';
-}
-
-export class ConversationEvent extends FEntity {
-    readonly entityName: 'ConversationEvent' = 'ConversationEvent';
-    get cid(): number { return this._value.cid; }
-    get seq(): number { return this._value.seq; }
-    get uid(): number | null {
-        let res = this._value.uid;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set uid(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get mid(): number | null {
-        let res = this._value.mid;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set mid(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.mid) { return; }
-        this._value.mid = value;
-        this.markDirty();
-    }
-    get kind(): 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted' {
-        return this._value.kind;
-    }
-    set kind(value: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted') {
-        this._checkIsWritable();
-        if (value === this._value.kind) { return; }
-        this._value.kind = value;
-        this.markDirty();
-    }
-}
-
-export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
-    static schema: FEntitySchema = {
-        name: 'ConversationEvent',
-        editable: false,
-        primaryKeys: [
-            { name: 'cid', type: 'number' },
-            { name: 'seq', type: 'number' },
-        ],
-        fields: [
-            { name: 'uid', type: 'number' },
-            { name: 'mid', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['chat_updated', 'message_received', 'message_updated', 'message_deleted'] },
-        ],
-        indexes: [
-            { name: 'user', type: 'range', fields: ['cid', 'seq'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('conversationEvent');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, keyValidator: ConversationEventFactory.validateKey, hasLiveStreams: true };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('conversationEvent', 'user'), 'user', ['cid', 'seq'], false);
-        let indexes = {
-            user: indexUser,
-        };
-        return new ConversationEventFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isNumber('cid', src.cid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-        validators.isNumber('uid', src.uid);
-        validators.isNumber('mid', src.mid);
-        validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['chat_updated', 'message_received', 'message_updated', 'message_deleted']);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-        validators.isNumber('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
-        super('ConversationEvent', 'conversationEvent', config, [indexes.user], layer, directory);
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'cid': rawId[0], 'seq': rawId[1] };
-    }
-    async findById(ctx: Context, cid: number, seq: number) {
-        return await this._findById(ctx, [cid, seq]);
-    }
-    async create(ctx: Context, cid: number, seq: number, shape: ConversationEventShape) {
-        return await this._create(ctx, [cid, seq], { cid, seq, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, cid: number, seq: number, shape: ConversationEventShape) {
-        return await this._create_UNSAFE(ctx, [cid, seq], { cid, seq, ...shape });
-    }
-    watch(ctx: Context, cid: number, seq: number) {
-        return this._watch(ctx, [cid, seq]);
-    }
-    async allFromUserAfter(ctx: Context, cid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [cid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [cid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [cid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [cid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, cid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [cid]);
-    }
-    createUserStream(cid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [cid], limit, after); 
-    }
-    createUserLiveStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createLiveStream(ctx, this.indexUser.directory, [cid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConversationEvent(ctx, this.layer, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
-    }
-}
 export interface UserDialogShape {
     unread: number;
     readMessageId?: number| null;
@@ -3429,8 +3223,6 @@ export interface AllEntities {
     readonly CommentEvent: CommentEventFactory;
     readonly CommentsSubscription: CommentsSubscriptionFactory;
     readonly CommentEventGlobal: CommentEventGlobalFactory;
-    readonly ConversationSeq: ConversationSeqFactory;
-    readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
@@ -3452,8 +3244,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         CommentEventFactory.schema,
         CommentsSubscriptionFactory.schema,
         CommentEventGlobalFactory.schema,
-        ConversationSeqFactory.schema,
-        ConversationEventFactory.schema,
         UserDialogFactory.schema,
         UserDialogHandledMessageFactory.schema,
         UserDialogSettingsFactory.schema,
@@ -3476,8 +3266,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let CommentEventPromise = CommentEventFactory.create(layer);
         let CommentsSubscriptionPromise = CommentsSubscriptionFactory.create(layer);
         let CommentEventGlobalPromise = CommentEventGlobalFactory.create(layer);
-        let ConversationSeqPromise = ConversationSeqFactory.create(layer);
-        let ConversationEventPromise = ConversationEventFactory.create(layer);
         let UserDialogPromise = UserDialogFactory.create(layer);
         let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.create(layer);
         let UserDialogSettingsPromise = UserDialogSettingsFactory.create(layer);
@@ -3496,8 +3284,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await CommentEventPromise);
         allEntities.push(await CommentsSubscriptionPromise);
         allEntities.push(await CommentEventGlobalPromise);
-        allEntities.push(await ConversationSeqPromise);
-        allEntities.push(await ConversationEventPromise);
         allEntities.push(await UserDialogPromise);
         allEntities.push(await UserDialogHandledMessagePromise);
         allEntities.push(await UserDialogSettingsPromise);
@@ -3518,8 +3304,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             CommentEvent: await CommentEventPromise,
             CommentsSubscription: await CommentsSubscriptionPromise,
             CommentEventGlobal: await CommentEventGlobalPromise,
-            ConversationSeq: await ConversationSeqPromise,
-            ConversationEvent: await ConversationEventPromise,
             UserDialog: await UserDialogPromise,
             UserDialogHandledMessage: await UserDialogHandledMessagePromise,
             UserDialogSettings: await UserDialogSettingsPromise,
@@ -3543,8 +3327,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly CommentEvent: CommentEventFactory;
     readonly CommentsSubscription: CommentsSubscriptionFactory;
     readonly CommentEventGlobal: CommentEventGlobalFactory;
-    readonly ConversationSeq: ConversationSeqFactory;
-    readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
@@ -3580,10 +3362,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.CommentsSubscription);
         this.CommentEventGlobal = entities.CommentEventGlobal;
         this.allEntities.push(this.CommentEventGlobal);
-        this.ConversationSeq = entities.ConversationSeq;
-        this.allEntities.push(this.ConversationSeq);
-        this.ConversationEvent = entities.ConversationEvent;
-        this.allEntities.push(this.ConversationEvent);
         this.UserDialog = entities.UserDialog;
         this.allEntities.push(this.UserDialog);
         this.UserDialogHandledMessage = entities.UserDialogHandledMessage;

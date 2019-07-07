@@ -10,7 +10,8 @@ import {
     Notification,
     NotificationCenter,
     UserNotificationCenter,
-    NotificationCenterEvent
+    NotificationCenterEvent,
+    ConversationEvent
 } from './../../openland-module-db/store';
 import {
     Conversation,
@@ -18,7 +19,6 @@ import {
     Message,
     UserDialogEvent,
     UserDialogSettings,
-    ConversationEvent,
     Comment,
     CommentEvent,
     CommentsSubscription,
@@ -244,15 +244,15 @@ export namespace GQLRoots {
     //  Chat updates
     //
     export type ChatUpdateRoot = ConversationEvent;
-    export type ChatUpdateBatchRoot = FLiveStreamItem<ConversationEvent>;
-    export type ChatUpdateSingleRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatUpdateBatchRoot = LiveStreamItem<ConversationEvent>;
+    export type ChatUpdateSingleRoot = LiveStreamItem<ConversationEvent>;
     export type ChatUpdatedRoot = ConversationEvent;
     export type ChatMessageReceivedRoot = ConversationEvent;
     export type ChatMessageUpdatedRoot = ConversationEvent;
     export type ChatMessageDeletedRoot = ConversationEvent;
     export type ChatLostAccessRoot = ConversationEvent;
     export type ChatUpdateStateRoot = any;
-    export type ChatUpdateContainerRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatUpdateContainerRoot = LiveStreamItem<ConversationEvent>;
 
     //
     //  Search

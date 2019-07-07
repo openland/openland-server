@@ -1,5 +1,6 @@
+import { ConversationEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, ConversationEvent, Message } from 'openland-module-db/schema';
+import { AllEntities, Message } from 'openland-module-db/schema';
 import {
     MessageAttachment,
     MessageAttachmentInput,
@@ -60,7 +61,7 @@ export class MessagingRepository {
             //
 
             let seq = await this.fetchConversationNextSeq(ctx, cid);
-            let res = await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            let res = await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'message_received',
                 uid: uid,
                 mid: mid
@@ -128,7 +129,7 @@ export class MessagingRepository {
             //
 
             let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
-            let res = await this.entities.ConversationEvent.create(ctx, message!.cid, seq, {
+            let res = await Store.ConversationEvent.create(ctx, message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
@@ -156,7 +157,7 @@ export class MessagingRepository {
             //
 
             let seq = await this.fetchConversationNextSeq(ctx, message.cid);
-            let res = await this.entities.ConversationEvent.create(ctx, message.cid, seq, {
+            let res = await Store.ConversationEvent.create(ctx, message.cid, seq, {
                 kind: 'message_deleted',
                 mid: message!.id
             });
@@ -194,7 +195,7 @@ export class MessagingRepository {
             //
 
             let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
-            let res = await this.entities.ConversationEvent.create(ctx, message!.cid, seq, {
+            let res = await Store.ConversationEvent.create(ctx, message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
@@ -212,7 +213,7 @@ export class MessagingRepository {
             }
 
             let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
-            return await this.entities.ConversationEvent.create(ctx, message!.cid, seq, {
+            return await Store.ConversationEvent.create(ctx, message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
@@ -234,10 +235,10 @@ export class MessagingRepository {
 
     async fetchConversationNextSeq(parent: Context, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.ConversationSeq.findById(ctx, cid);
+            let existing = await Store.ConversationSeq.findById(ctx, cid);
             let seq = 1;
             if (!existing) {
-                await (await this.entities.ConversationSeq.create(ctx, cid, { seq: 1 })).flush(ctx);
+                await (await Store.ConversationSeq.create(ctx, cid, { seq: 1 })).flush(ctx);
             } else {
                 seq = ++existing.seq;
                 await existing.flush(ctx);

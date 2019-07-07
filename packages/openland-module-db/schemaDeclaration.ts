@@ -405,26 +405,6 @@ const Schema = declareSchema(() => {
     });
 
     //
-    //  Comments end
-    //
-
-    entity('ConversationSeq', () => {
-        primaryKey('cid', 'number');
-        field('seq', 'number');
-    });
-
-    entity('ConversationEvent', () => {
-        primaryKey('cid', 'number');
-        primaryKey('seq', 'number');
-        field('uid', 'number').nullable();
-        field('mid', 'number').nullable();
-        enumField('kind', ['chat_updated', 'message_received', 'message_updated', 'message_deleted']);
-        rangeIndex('user', ['cid', 'seq']).withStreaming();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    //
     // User Messaging state
     //
 
