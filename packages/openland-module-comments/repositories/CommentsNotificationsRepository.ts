@@ -1,3 +1,4 @@
+import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
@@ -14,7 +15,7 @@ export class CommentsNotificationsRepository {
 
     async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
+            let existing = await Store.CommentsSubscription.findById(ctx, peerType, peerId, uid);
             if (existing) {
                 if (existing.status !== 'active' || existing.kind !== type) {
                     existing.status = 'active';
@@ -23,7 +24,7 @@ export class CommentsNotificationsRepository {
                 }
                 return true;
             }
-            await this.entities.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: type, status: 'active' });
+            await Store.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: type, status: 'active' });
             await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
             return true;
         });
@@ -31,7 +32,7 @@ export class CommentsNotificationsRepository {
 
     async unsubscribeFromComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
+            let existing = await Store.CommentsSubscription.findById(ctx, peerType, peerId, uid);
             if (!existing || existing.status === 'disabled') {
                 return true;
             }
@@ -43,7 +44,7 @@ export class CommentsNotificationsRepository {
 
     async getCommentsSubscription(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.entities.CommentsSubscription.findById(ctx, peerType, peerId, uid);
+            return await Store.CommentsSubscription.findById(ctx, peerType, peerId, uid);
         });
     }
 
@@ -57,12 +58,12 @@ export class CommentsNotificationsRepository {
                 if (mention.type !== 'user_mention') {
                     continue;
                 }
-                if (!(await this.entities.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, mention.user))) {
+                if (!(await Store.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, mention.user))) {
                     await this.subscribeToComments(ctx, comment.peerType, comment.peerId, mention.user, 'all');
                 }
             }
 
-            let subscriptions = await this.entities.CommentsSubscription.allFromPeer(ctx, comment.peerType, comment.peerId);
+            let subscriptions = await Store.CommentsSubscription.peer.findAll(ctx, comment.peerType, comment.peerId);
             for (let subscription of subscriptions) {
                 if (comment.uid === subscription.uid) {
                     // ignore self comment
@@ -114,7 +115,7 @@ export class CommentsNotificationsRepository {
                 if (mention.type !== 'user_mention') {
                     continue;
                 }
-                if (!(await this.entities.CommentsSubscription.findById(ctx, 'message', message.id, mention.user))) {
+                if (!(await Store.CommentsSubscription.findById(ctx, 'message', message.id, mention.user))) {
                     await this.subscribeToComments(ctx, 'message', message.id, mention.user, 'all');
                 }
             }

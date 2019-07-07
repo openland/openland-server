@@ -285,6 +285,50 @@ export default declareSchema(() => {
     });
 
     //
+    // Comments
+    //
+
+    entity('CommentState', () => {
+        primaryKey('peerType', string());
+        primaryKey('peerId', integer());
+        field('commentsCount', integer());
+    });
+
+    entity('CommentSeq', () => {
+        primaryKey('peerType', string());
+        primaryKey('peerId', integer());
+        field('seq', integer());
+    });
+
+    entity('CommentEvent', () => {
+        primaryKey('peerType', string());
+        primaryKey('peerId', integer());
+        primaryKey('seq', integer());
+        field('uid', optional(integer()));
+        field('commentId', optional(integer()));
+        field('kind', enumString('comment_received', 'comment_updated'));
+        rangeIndex('user', ['peerType', 'peerId', 'seq']);
+    });
+
+    entity('CommentsSubscription', () => {
+        primaryKey('peerType', string());
+        primaryKey('peerId', integer());
+        primaryKey('uid', integer());
+        field('kind', enumString('all', 'direct'));
+        field('status', enumString('active', 'disabled'));
+        rangeIndex('peer', ['peerType', 'peerId', 'uid']);
+    });
+
+    entity('CommentEventGlobal', () => {
+        primaryKey('uid', integer());
+        primaryKey('seq', integer());
+        field('peerType', optional(string()));
+        field('peerId', optional(integer()));
+        field('kind', enumString('comments_peer_updated'));
+        rangeIndex('user', ['uid', 'seq']);
+    });
+
+    //
     // Conference
     //
 

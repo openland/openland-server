@@ -268,51 +268,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
-
-    entity('CommentState', () => {
-        primaryKey('peerType', 'string');
-        primaryKey('peerId', 'number');
-        field('commentsCount', 'number');
-    });
-
-    entity('CommentSeq', () => {
-        primaryKey('peerType', 'string');
-        primaryKey('peerId', 'number');
-        field('seq', 'number');
-    });
-
-    entity('CommentEvent', () => {
-        primaryKey('peerType', 'string');
-        primaryKey('peerId', 'number');
-        primaryKey('seq', 'number');
-        field('uid', 'number').nullable();
-        field('commentId', 'number').nullable();
-        enumField('kind', ['comment_received', 'comment_updated']);
-        rangeIndex('user', ['peerType', 'peerId', 'seq']).withStreaming();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('CommentsSubscription', () => {
-        primaryKey('peerType', 'string');
-        primaryKey('peerId', 'number');
-        primaryKey('uid', 'number');
-        enumField('kind', ['all', 'direct']);
-        enumField('status', ['active', 'disabled']);
-
-        rangeIndex('peer', ['peerType', 'peerId', 'uid']);
-    });
-
-    entity('CommentEventGlobal', () => {
-        primaryKey('uid', 'number');
-        primaryKey('seq', 'number');
-        field('peerType', 'string').nullable();
-        field('peerId', 'number').nullable();
-        enumField('kind', ['comments_peer_updated']);
-        rangeIndex('user', ['uid', 'seq']).withStreaming();
-        enableVersioning();
-        enableTimestamps();
-    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

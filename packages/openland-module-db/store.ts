@@ -3856,6 +3856,487 @@ export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, 
     }
 }
 
+export interface CommentStateShape {
+    peerType: string;
+    peerId: number;
+    commentsCount: number;
+}
+
+export interface CommentStateCreateShape {
+    commentsCount: number;
+}
+
+export class CommentState extends Entity<CommentStateShape> {
+    get peerType(): string { return this._rawValue.peerType; }
+    get peerId(): number { return this._rawValue.peerId; }
+    get commentsCount(): number { return this._rawValue.commentsCount; }
+    set commentsCount(value: number) {
+        let normalized = this.descriptor.codec.fields.commentsCount.normalize(value);
+        if (this._rawValue.commentsCount !== normalized) {
+            this._rawValue.commentsCount = normalized;
+            this._updatedValues.commentsCount = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class CommentStateFactory extends EntityFactory<CommentStateShape, CommentState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('commentState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'peerType', type: 'string' });
+        primaryKeys.push({ name: 'peerId', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'commentsCount', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            peerType: c.string,
+            peerId: c.integer,
+            commentsCount: c.integer,
+        });
+        let descriptor: EntityDescriptor<CommentStateShape> = {
+            name: 'CommentState',
+            storageKey: 'commentState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new CommentStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<CommentStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, peerType: string, peerId: number, src: CommentStateCreateShape): Promise<CommentState> {
+        return this._create(ctx, [peerType, peerId], this.descriptor.codec.normalize({ peerType, peerId, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, peerType: string, peerId: number, src: CommentStateCreateShape): CommentState {
+        return this._create_UNSAFE(ctx, [peerType, peerId], this.descriptor.codec.normalize({ peerType, peerId, ...src }));
+    }
+
+    findById(ctx: Context, peerType: string, peerId: number): Promise<CommentState | null> {
+        return this._findById(ctx, [peerType, peerId]);
+    }
+
+    watch(ctx: Context, peerType: string, peerId: number): Watch {
+        return this._watch(ctx, [peerType, peerId]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentStateShape>): CommentState {
+        return new CommentState([value.peerType, value.peerId], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface CommentSeqShape {
+    peerType: string;
+    peerId: number;
+    seq: number;
+}
+
+export interface CommentSeqCreateShape {
+    seq: number;
+}
+
+export class CommentSeq extends Entity<CommentSeqShape> {
+    get peerType(): string { return this._rawValue.peerType; }
+    get peerId(): number { return this._rawValue.peerId; }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class CommentSeqFactory extends EntityFactory<CommentSeqShape, CommentSeq> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('commentSeq');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'peerType', type: 'string' });
+        primaryKeys.push({ name: 'peerId', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            peerType: c.string,
+            peerId: c.integer,
+            seq: c.integer,
+        });
+        let descriptor: EntityDescriptor<CommentSeqShape> = {
+            name: 'CommentSeq',
+            storageKey: 'commentSeq',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new CommentSeqFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<CommentSeqShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, peerType: string, peerId: number, src: CommentSeqCreateShape): Promise<CommentSeq> {
+        return this._create(ctx, [peerType, peerId], this.descriptor.codec.normalize({ peerType, peerId, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, peerType: string, peerId: number, src: CommentSeqCreateShape): CommentSeq {
+        return this._create_UNSAFE(ctx, [peerType, peerId], this.descriptor.codec.normalize({ peerType, peerId, ...src }));
+    }
+
+    findById(ctx: Context, peerType: string, peerId: number): Promise<CommentSeq | null> {
+        return this._findById(ctx, [peerType, peerId]);
+    }
+
+    watch(ctx: Context, peerType: string, peerId: number): Watch {
+        return this._watch(ctx, [peerType, peerId]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentSeqShape>): CommentSeq {
+        return new CommentSeq([value.peerType, value.peerId], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface CommentEventShape {
+    peerType: string;
+    peerId: number;
+    seq: number;
+    uid: number | null;
+    commentId: number | null;
+    kind: 'comment_received' | 'comment_updated';
+}
+
+export interface CommentEventCreateShape {
+    uid?: number | null | undefined;
+    commentId?: number | null | undefined;
+    kind: 'comment_received' | 'comment_updated';
+}
+
+export class CommentEvent extends Entity<CommentEventShape> {
+    get peerType(): string { return this._rawValue.peerType; }
+    get peerId(): number { return this._rawValue.peerId; }
+    get seq(): number { return this._rawValue.seq; }
+    get uid(): number | null { return this._rawValue.uid; }
+    set uid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get commentId(): number | null { return this._rawValue.commentId; }
+    set commentId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.commentId.normalize(value);
+        if (this._rawValue.commentId !== normalized) {
+            this._rawValue.commentId = normalized;
+            this._updatedValues.commentId = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'comment_received' | 'comment_updated' { return this._rawValue.kind; }
+    set kind(value: 'comment_received' | 'comment_updated') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class CommentEventFactory extends EntityFactory<CommentEventShape, CommentEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('commentEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('commentEvent', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'peerType', type: 'string' });
+        primaryKeys.push({ name: 'peerId', type: 'integer' });
+        primaryKeys.push({ name: 'seq', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'commentId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['comment_received', 'comment_updated'] }, secure: false });
+        let codec = c.struct({
+            peerType: c.string,
+            peerId: c.integer,
+            seq: c.integer,
+            uid: c.optional(c.integer),
+            commentId: c.optional(c.integer),
+            kind: c.enum('comment_received', 'comment_updated'),
+        });
+        let descriptor: EntityDescriptor<CommentEventShape> = {
+            name: 'CommentEvent',
+            storageKey: 'commentEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new CommentEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<CommentEventShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, peerType: string, peerId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
+        },
+        query: (ctx: Context, peerType: string, peerId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (peerType: string, peerId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
+        },
+        liveStream: (ctx: Context, peerType: string, peerId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
+        },
+    });
+
+    create(ctx: Context, peerType: string, peerId: number, seq: number, src: CommentEventCreateShape): Promise<CommentEvent> {
+        return this._create(ctx, [peerType, peerId, seq], this.descriptor.codec.normalize({ peerType, peerId, seq, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, peerType: string, peerId: number, seq: number, src: CommentEventCreateShape): CommentEvent {
+        return this._create_UNSAFE(ctx, [peerType, peerId, seq], this.descriptor.codec.normalize({ peerType, peerId, seq, ...src }));
+    }
+
+    findById(ctx: Context, peerType: string, peerId: number, seq: number): Promise<CommentEvent | null> {
+        return this._findById(ctx, [peerType, peerId, seq]);
+    }
+
+    watch(ctx: Context, peerType: string, peerId: number, seq: number): Watch {
+        return this._watch(ctx, [peerType, peerId, seq]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentEventShape>): CommentEvent {
+        return new CommentEvent([value.peerType, value.peerId, value.seq], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface CommentsSubscriptionShape {
+    peerType: string;
+    peerId: number;
+    uid: number;
+    kind: 'all' | 'direct';
+    status: 'active' | 'disabled';
+}
+
+export interface CommentsSubscriptionCreateShape {
+    kind: 'all' | 'direct';
+    status: 'active' | 'disabled';
+}
+
+export class CommentsSubscription extends Entity<CommentsSubscriptionShape> {
+    get peerType(): string { return this._rawValue.peerType; }
+    get peerId(): number { return this._rawValue.peerId; }
+    get uid(): number { return this._rawValue.uid; }
+    get kind(): 'all' | 'direct' { return this._rawValue.kind; }
+    set kind(value: 'all' | 'direct') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get status(): 'active' | 'disabled' { return this._rawValue.status; }
+    set status(value: 'active' | 'disabled') {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class CommentsSubscriptionFactory extends EntityFactory<CommentsSubscriptionShape, CommentsSubscription> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('commentsSubscription');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('commentsSubscription', 'peer'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'peerType', type: 'string' });
+        primaryKeys.push({ name: 'peerId', type: 'integer' });
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['all', 'direct'] }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['active', 'disabled'] }, secure: false });
+        let codec = c.struct({
+            peerType: c.string,
+            peerId: c.integer,
+            uid: c.integer,
+            kind: c.enum('all', 'direct'),
+            status: c.enum('active', 'disabled'),
+        });
+        let descriptor: EntityDescriptor<CommentsSubscriptionShape> = {
+            name: 'CommentsSubscription',
+            storageKey: 'commentsSubscription',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new CommentsSubscriptionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<CommentsSubscriptionShape>) {
+        super(descriptor);
+    }
+
+    readonly peer = Object.freeze({
+        findAll: async (ctx: Context, peerType: string, peerId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
+        },
+        query: (ctx: Context, peerType: string, peerId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (peerType: string, peerId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
+        },
+        liveStream: (ctx: Context, peerType: string, peerId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
+        },
+    });
+
+    create(ctx: Context, peerType: string, peerId: number, uid: number, src: CommentsSubscriptionCreateShape): Promise<CommentsSubscription> {
+        return this._create(ctx, [peerType, peerId, uid], this.descriptor.codec.normalize({ peerType, peerId, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, peerType: string, peerId: number, uid: number, src: CommentsSubscriptionCreateShape): CommentsSubscription {
+        return this._create_UNSAFE(ctx, [peerType, peerId, uid], this.descriptor.codec.normalize({ peerType, peerId, uid, ...src }));
+    }
+
+    findById(ctx: Context, peerType: string, peerId: number, uid: number): Promise<CommentsSubscription | null> {
+        return this._findById(ctx, [peerType, peerId, uid]);
+    }
+
+    watch(ctx: Context, peerType: string, peerId: number, uid: number): Watch {
+        return this._watch(ctx, [peerType, peerId, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentsSubscriptionShape>): CommentsSubscription {
+        return new CommentsSubscription([value.peerType, value.peerId, value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface CommentEventGlobalShape {
+    uid: number;
+    seq: number;
+    peerType: string | null;
+    peerId: number | null;
+    kind: 'comments_peer_updated';
+}
+
+export interface CommentEventGlobalCreateShape {
+    peerType?: string | null | undefined;
+    peerId?: number | null | undefined;
+    kind: 'comments_peer_updated';
+}
+
+export class CommentEventGlobal extends Entity<CommentEventGlobalShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get seq(): number { return this._rawValue.seq; }
+    get peerType(): string | null { return this._rawValue.peerType; }
+    set peerType(value: string | null) {
+        let normalized = this.descriptor.codec.fields.peerType.normalize(value);
+        if (this._rawValue.peerType !== normalized) {
+            this._rawValue.peerType = normalized;
+            this._updatedValues.peerType = normalized;
+            this.invalidate();
+        }
+    }
+    get peerId(): number | null { return this._rawValue.peerId; }
+    set peerId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.peerId.normalize(value);
+        if (this._rawValue.peerId !== normalized) {
+            this._rawValue.peerId = normalized;
+            this._updatedValues.peerId = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): 'comments_peer_updated' { return this._rawValue.kind; }
+    set kind(value: 'comments_peer_updated') {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalShape, CommentEventGlobal> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('commentEventGlobal');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('commentEventGlobal', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'seq', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'peerType', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'peerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['comments_peer_updated'] }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            seq: c.integer,
+            peerType: c.optional(c.string),
+            peerId: c.optional(c.integer),
+            kind: c.enum('comments_peer_updated'),
+        });
+        let descriptor: EntityDescriptor<CommentEventGlobalShape> = {
+            name: 'CommentEventGlobal',
+            storageKey: 'commentEventGlobal',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new CommentEventGlobalFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<CommentEventGlobalShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, seq: number, src: CommentEventGlobalCreateShape): Promise<CommentEventGlobal> {
+        return this._create(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, seq: number, src: CommentEventGlobalCreateShape): CommentEventGlobal {
+        return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, seq: number): Promise<CommentEventGlobal | null> {
+        return this._findById(ctx, [uid, seq]);
+    }
+
+    watch(ctx: Context, uid: number, seq: number): Watch {
+        return this._watch(ctx, [uid, seq]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentEventGlobalShape>): CommentEventGlobal {
+        return new CommentEventGlobal([value.uid, value.seq], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ConferenceRoomShape {
     id: number;
     startTime: number | null;
@@ -9878,6 +10359,11 @@ export interface Store extends BaseStore {
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogEvent: UserDialogEventFactory;
+    readonly CommentState: CommentStateFactory;
+    readonly CommentSeq: CommentSeqFactory;
+    readonly CommentEvent: CommentEventFactory;
+    readonly CommentsSubscription: CommentsSubscriptionFactory;
+    readonly CommentEventGlobal: CommentEventGlobalFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
     readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
@@ -9978,6 +10464,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.open(storage);
     let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
     let UserDialogEventPromise = UserDialogEventFactory.open(storage);
+    let CommentStatePromise = CommentStateFactory.open(storage);
+    let CommentSeqPromise = CommentSeqFactory.open(storage);
+    let CommentEventPromise = CommentEventFactory.open(storage);
+    let CommentsSubscriptionPromise = CommentsSubscriptionFactory.open(storage);
+    let CommentEventGlobalPromise = CommentEventGlobalFactory.open(storage);
     let ConferenceRoomPromise = ConferenceRoomFactory.open(storage);
     let ConferencePeerPromise = ConferencePeerFactory.open(storage);
     let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
@@ -10077,6 +10568,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogHandledMessage: await UserDialogHandledMessagePromise,
         UserDialogSettings: await UserDialogSettingsPromise,
         UserDialogEvent: await UserDialogEventPromise,
+        CommentState: await CommentStatePromise,
+        CommentSeq: await CommentSeqPromise,
+        CommentEvent: await CommentEventPromise,
+        CommentsSubscription: await CommentsSubscriptionPromise,
+        CommentEventGlobal: await CommentEventGlobalPromise,
         ConferenceRoom: await ConferenceRoomPromise,
         ConferencePeer: await ConferencePeerPromise,
         ConferenceMediaStream: await ConferenceMediaStreamPromise,

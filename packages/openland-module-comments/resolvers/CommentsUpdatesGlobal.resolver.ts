@@ -1,11 +1,11 @@
+import { CommentEventGlobal } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import CommentGlobalUpdateContainerRoot = GQLRoots.CommentGlobalUpdateContainerRoot;
-import { CommentEventGlobal } from '../../openland-module-db/schema';
 
 export default {
     CommentGlobalUpdateContainer: {
@@ -42,8 +42,8 @@ export default {
     },
     Query: {
         commentGlobalUpdatesState: withUser(async (ctx, args, uid) => {
-            let tail = await FDB.CommentEventGlobal.createUserStream(uid, 1).tail(ctx);
-            return {state: tail};
+            let tail = await Store.CommentEventGlobal.user.stream(uid, { batchSize: 1 }).tail(ctx);
+            return { state: tail };
         })
     },
     Subscription: {
@@ -54,7 +54,7 @@ export default {
                 if (!uid) {
                     throw new AccessDeniedError();
                 }
-                return FDB.CommentEventGlobal.createUserLiveStream(ctx, uid, 20, args.fromState || undefined);
+                return Store.CommentEventGlobal.user.liveStream(ctx, uid, { batchSize: 20, after: args.fromState || undefined });
             }
         }
     }

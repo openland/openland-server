@@ -1,6 +1,6 @@
+import { CommentEvent } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { CommentEvent } from '../../openland-module-db/schema';
-import { FDB } from '../../openland-module-db/FDB';
+import { FDB, Store } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
@@ -67,7 +67,7 @@ export default {
                     throw new UserError('Unknown peer');
                 }
 
-                let generator = FDB.CommentEvent.createUserLiveStream(ctx, peerType, peerId, 20, args.fromState || undefined);
+                let generator = Store.CommentEvent.user.liveStream(ctx, peerType, peerId, { batchSize: 20, after: args.fromState || undefined });
 
                 for await (let event of generator) {
                     yield event;

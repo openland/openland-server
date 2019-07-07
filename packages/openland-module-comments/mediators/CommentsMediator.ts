@@ -9,6 +9,7 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import { CommentAugmentationMediator } from './CommentAugmentationMediator';
 import { CommentsNotificationsMediator } from './CommentsNotificationsMediator';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class CommentsMediator {
@@ -40,7 +41,7 @@ export class CommentsMediator {
             await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, uid, 'all');
             // for old comments
             // TODO: make migration instead
-            let sub = await this.entities.CommentsSubscription.findById(ctx, 'message', messageId, message.uid);
+            let sub = await Store.CommentsSubscription.findById(ctx, 'message', messageId, message.uid);
             if (!sub) {
                 await this.notificationsMediator.subscribeToComments(ctx, 'message', messageId, message.uid, 'all');
             }

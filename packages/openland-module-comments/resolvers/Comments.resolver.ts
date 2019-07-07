@@ -1,3 +1,4 @@
+import { Store } from './../../openland-module-db/FDB';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
@@ -20,8 +21,8 @@ export default {
             }
         },
         state: async (src, args, ctx) => {
-            let tail = await FDB.CommentEvent.createUserStream(src.peerType, src.peerId, 1).tail(ctx);
-            return {state: tail};
+            let tail = await Store.CommentEvent.user.stream(src.peerType, src.peerId).tail(ctx);
+            return { state: tail };
         },
         count: src => src.comments.length,
         comments: src => src.comments,
@@ -33,7 +34,7 @@ export default {
             }
         },
         subscription: async (src, args, ctx) => {
-            let subscription = await FDB.CommentsSubscription.findById(ctx, src.peerType, src.peerId, ctx.auth.uid!);
+            let subscription = await Store.CommentsSubscription.findById(ctx, src.peerType, src.peerId, ctx.auth.uid!);
             if (subscription && subscription.status === 'active') {
                 return subscription;
             }
@@ -139,21 +140,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -240,21 +241,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -338,21 +339,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }

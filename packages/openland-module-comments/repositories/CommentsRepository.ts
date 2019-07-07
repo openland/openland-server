@@ -113,7 +113,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, peerType, peerId);
-            await this.entities.CommentEvent.create(ctx, peerType, peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, peerType, peerId, eventSec, {
                 uid,
                 commentId,
                 kind: 'comment_received'
@@ -173,7 +173,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
                 uid: comment.uid,
                 commentId,
                 kind: 'comment_updated'
@@ -237,7 +237,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
                 uid: comment.uid,
                 commentId,
                 kind: 'comment_updated'
@@ -248,11 +248,11 @@ export class CommentsRepository {
 
     async getCommentsState(parent: Context, peerType: CommentPeerType, peerId: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentState.findById(ctx, peerType, peerId);
+            let existing = await Store.CommentState.findById(ctx, peerType, peerId);
             if (existing) {
                 return existing;
             } else {
-                return await this.entities.CommentState.create(ctx, peerType, peerId, {commentsCount: 0});
+                return await Store.CommentState.create(ctx, peerType, peerId, {commentsCount: 0});
             }
         });
     }
@@ -284,7 +284,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
                 uid: comment.uid,
                 commentId,
                 kind: 'comment_updated'
@@ -309,10 +309,10 @@ export class CommentsRepository {
 
     private async fetchNextEventSeq(parent: Context, peerType: CommentPeerType, peerId: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentSeq.findById(ctx, peerType, peerId);
+            let existing = await Store.CommentSeq.findById(ctx, peerType, peerId);
             let seq = 1;
             if (!existing) {
-                await (await this.entities.CommentSeq.create(ctx, peerType, peerId, {seq: 1})).flush(ctx);
+                await (await Store.CommentSeq.create(ctx, peerType, peerId, {seq: 1})).flush(ctx);
             } else {
                 seq = ++existing.seq;
                 await existing.flush(ctx);

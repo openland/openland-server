@@ -15,14 +15,14 @@ import {
     UserDialogEvent,
     UserDialogSettings,
     Conversation,
-    ConversationRoom
-} from './../../openland-module-db/store';
-import {
-    Message,
-    Comment,
+    ConversationRoom,
     CommentEvent,
     CommentsSubscription,
     CommentEventGlobal
+} from './../../openland-module-db/store';
+import {
+    Message,
+    Comment
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
@@ -35,7 +35,6 @@ import {
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
-import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
 import {
     NewCommentNotification,
     NotificationContent
@@ -275,9 +274,9 @@ export namespace GQLRoots {
     //
     export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
-    export type CommentUpdateContainerRoot = FLiveStreamItem<CommentEvent>;
-    export type CommentUpdateSingleRoot = FLiveStreamItem<CommentEvent>;
-    export type CommentUpdateBatchRoot = FLiveStreamItem<CommentEvent>;
+    export type CommentUpdateContainerRoot = LiveStreamItem<CommentEvent>;
+    export type CommentUpdateSingleRoot = LiveStreamItem<CommentEvent>;
+    export type CommentUpdateBatchRoot = LiveStreamItem<CommentEvent>;
     export type CommentUpdateRoot = CommentEvent;
     export type CommentReceivedRoot = CommentEvent;
     export type CommentUpdatedRoot = CommentEvent;
@@ -286,9 +285,9 @@ export namespace GQLRoots {
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
 
-    export type CommentGlobalUpdateContainerRoot = FLiveStreamItem<CommentEventGlobal>;
-    export type CommentGlobalUpdateSingleRoot = FLiveStreamItem<CommentEventGlobal>;
-    export type CommentGlobalUpdateBatchRoot = FLiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateSingleRoot = LiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateBatchRoot = LiveStreamItem<CommentEventGlobal>;
     export type CommentGlobalUpdateRoot = CommentEventGlobal;
     export type CommentPeerUpdatedRoot = CommentEventGlobal;
     export type CommentGlobalUpdatesStateRoot = { state: string };

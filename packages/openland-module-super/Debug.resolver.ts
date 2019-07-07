@@ -487,7 +487,7 @@ export default {
         }),
         debugFixCommentsVisibility: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let commentSeqs = await FDB.CommentSeq.findAll(ctx);
+                let commentSeqs = await Store.CommentSeq.findAll(ctx);
                 let i = 0;
 
                 for (let state of commentSeqs) {
@@ -526,7 +526,7 @@ export default {
                             }
                         }
 
-                        let existing = await FDB.CommentState.findById(_ctx, state.peerType, state.peerId);
+                        let existing = await Store.CommentState.findById(_ctx, state.peerType, state.peerId);
                         if (existing) {
                             existing.commentsCount = visibleCount;
                         }
@@ -691,9 +691,9 @@ export default {
                 let i = 0;
                 for (let comment of allComments) {
                     await inTx(rootCtx, async (ctx) => {
-                        let subscription = await FDB.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, comment.uid);
+                        let subscription = await Store.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, comment.uid);
                         if (!subscription) {
-                            await FDB.CommentsSubscription.create(ctx, comment.peerType, comment.peerId, comment.uid, {
+                            await Store.CommentsSubscription.create(ctx, comment.peerType, comment.peerId, comment.uid, {
                                 status: 'active',
                                 kind: 'all',
                             });
