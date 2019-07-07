@@ -62,7 +62,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             await w.promise;
         };
         let root = createNamedContext('worker-' + this.taskType);
-        let workLoop = foreverBreakable(async () => {
+        let workLoop = foreverBreakable(root, async () => {
             let task = await inTx(root, async (ctx) => {
                 let pend = [
                     ...(await Store.Task.pending.findAll(ctx, this.taskType)),

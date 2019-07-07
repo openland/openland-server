@@ -1,6 +1,6 @@
 import { exponentialBackoffDelay } from './exponentialBackoffDelay';
 import { createLogger } from '@openland/log';
-import { createNamedContext } from '@openland/context';
+import { Context } from '@openland/context';
 
 // import { createLogger } from 'openland-log/createLogger';
 
@@ -16,7 +16,7 @@ export function delayBreakable(ms: number) {
         promiseResolver = resolve;
         setTimeout(resolve, ms);
     });
-    return {promise, resolver};
+    return { promise, resolver };
 }
 
 export async function delay(ms: number) {
@@ -60,7 +60,7 @@ export function debounce(ms: number, func: (...args: any[]) => any) {
 
 const log = createLogger('backoff');
 
-export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
+export async function backoff<T>(ctx: Context, callback: () => Promise<T>): Promise<T> {
     let currentFailureCount = 0;
     const minDelay = 500;
     const maxDelay = 15000;
@@ -70,7 +70,7 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
             return await callback();
         } catch (e) {
             if (currentFailureCount > 3) {
-                log.warn(createNamedContext('unknown'), e);
+                log.warn(ctx, e);
             }
             if (currentFailureCount < maxFailureCount) {
                 currentFailureCount++;
@@ -101,21 +101,21 @@ export async function retry<T>(callback: () => Promise<T>): Promise<T> {
     }
 }
 
-export function forever(callback: () => Promise<void>) {
+export function forever(ctx: Context, callback: () => Promise<void>) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         while (true) {
-            await backoff(callback);
+            await backoff(ctx, callback);
         }
     })();
 }
 
-export function foreverBreakable(callback: () => Promise<void>) {
+export function foreverBreakable(ctx: Context, callback: () => Promise<void>) {
     let working = true;
     // tslint:disable-next-line:no-floating-promises
     let promise = (async () => {
         while (working) {
-            await backoff(callback);
+            await backoff(ctx, callback);
         }
     })();
 
