@@ -123,17 +123,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('ShortnameReservation', () => {
-        primaryKey('shortname', 'string');
-        enumField('ownerType', ['org', 'user']);
-        field('ownerId', 'number');
-        field('enabled', 'boolean');
-        uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
-        uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
-        enableVersioning();
-        enableTimestamps();
-    });
-
     //
     // Conversation
     //
@@ -605,86 +594,6 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    entity('ChannelInvitation', () => {
-        primaryKey('id', 'string');
-        field('creatorId', 'number');
-        field('channelId', 'number');
-        field('email', 'string');
-        field('firstName', 'string').nullable();
-        field('lastName', 'string').nullable();
-        field('text', 'string').nullable();
-        field('acceptedById', 'number').nullable();
-        field('enabled', 'boolean');
-        rangeIndex('channel', ['createdAt', 'channelId']);
-        rangeIndex('updated', ['updatedAt']);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('ChannelLink', () => {
-        primaryKey('id', 'string');
-        field('creatorId', 'number');
-        field('channelId', 'number');
-        field('enabled', 'boolean');
-        rangeIndex('channel', ['channelId', 'createdAt']);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('AppInviteLink', () => {
-        primaryKey('id', 'string');
-        field('uid', 'number');
-        uniqueIndex('user', ['uid']);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('OrganizationPublicInviteLink', () => {
-        primaryKey('id', 'string');
-        field('uid', 'number');
-        field('oid', 'number');
-        field('enabled', 'boolean');
-        uniqueIndex('userInOrganization', ['uid', 'oid']).withCondition(src => src.enabled);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('OrganizationInviteLink', () => {
-        primaryKey('id', 'string');
-        field('oid', 'number');
-        field('email', 'string');
-        field('uid', 'number');
-        field('firstName', 'string').nullable();
-        field('lastName', 'string').nullable();
-        field('text', 'string').nullable();
-        field('ttl', 'number').nullable();
-        field('enabled', 'boolean');
-        field('joined', 'boolean');
-        enumField('role', ['MEMBER', 'OWNER']);
-        uniqueIndex('organization', ['oid', 'id']).withCondition(src => src.enabled);
-        uniqueIndex('emailInOrganization', ['email', 'oid']).withCondition(src => src.enabled);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('AppHook', () => {
-        primaryKey('appId', 'number');
-        primaryKey('chatId', 'number');
-        field('key', 'string');
-        uniqueIndex('key', ['key']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('DiscoverUserPickedTags', () => {
-        primaryKey('uid', 'number');
-        primaryKey('id', 'string');
-        field('deleted', 'boolean');
-        uniqueIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
-        enableTimestamps();
-        enableVersioning();
-    });
-
     //
     //  Debug
     //
@@ -818,15 +727,6 @@ const Schema = declareSchema(() => {
         rangeIndex('active', ['createdAt']).withCondition((src) => !!src.active);
         enableVersioning();
         enableTimestamps();
-    });
-
-    entity('UserOnboardingState', () => {
-        primaryKey('uid', 'number');
-        field('wellcomeSent', 'boolean').nullable();
-        field('askCompleteDeiscoverSent', 'boolean').nullable();
-        field('askInviteSent', 'boolean').nullable();
-        field('askInstallAppsSent', 'boolean').nullable();
-        field('askSendFirstMessageSent', 'boolean').nullable();
     });
 });
 

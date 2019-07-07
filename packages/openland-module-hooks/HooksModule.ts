@@ -4,7 +4,7 @@ import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent'
 import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
 import { FDB, Store } from '../openland-module-db/FDB';
-import { AppHook } from 'openland-module-db/schema';
+import { AppHook } from 'openland-module-db/store';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');

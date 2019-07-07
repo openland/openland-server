@@ -16,8 +16,8 @@ describe('CallRepository', () => {
         let repo = container.get(CallRepository);
         let conf1 = await repo.getOrCreateConference(createNamedContext('test'), 1);
         let conf2 = await repo.getOrCreateConference(createNamedContext('test'), 1);
-        expect(conf1.metadata.versionCode).toBe(1);
-        expect(conf2.metadata.versionCode).toBe(1);
+        expect(conf1.metadata.versionCode).toBe(0);
+        expect(conf2.metadata.versionCode).toBe(0);
     });
 
     it('should add peers', async () => {

@@ -1,3 +1,5 @@
+import { ChannelLink } from './../../openland-module-db/store';
+import { ChannelInvitation } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { withPermission, withAny, withAccount, withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
@@ -6,8 +8,6 @@ import { defined, emailValidator, stringNotEmpty, validate } from '../../openlan
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import {
-    ChannelInvitation,
-    ChannelLink,
     Conversation,
 } from 'openland-module-db/schema';
 import { FDB, Store } from 'openland-module-db/FDB';

@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { ChannelInvitation } from 'openland-module-db/schema';
+import { ChannelInvitation } from 'openland-module-db/store';
 import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';

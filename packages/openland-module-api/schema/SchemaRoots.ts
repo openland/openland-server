@@ -3,7 +3,8 @@ import {
     Organization,
     FeedEvent,
     UserStorageRecord,
-    UserSettings
+    UserSettings,
+    AppHook
 } from './../../openland-module-db/store';
 import {
     Conversation,
@@ -12,7 +13,6 @@ import {
     UserDialogEvent,
     UserDialogSettings,
     ConversationEvent,
-    AppHook,
     Comment,
     CommentEvent,
     DebugEvent,

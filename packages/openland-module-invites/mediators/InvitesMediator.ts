@@ -1,3 +1,4 @@
+import { ChannelInvitation } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -45,7 +46,7 @@ export class InvitesMediator {
             let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
             await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
-            if (invite.entityName === 'ChannelInvitation') {
+            if (invite instanceof ChannelInvitation) {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
             return invite.channelId;

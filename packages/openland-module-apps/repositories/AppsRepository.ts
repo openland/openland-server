@@ -1,7 +1,5 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -16,8 +14,6 @@ import { UserStorageRecord } from 'openland-module-db/store';
 
 @injectable()
 export class AppsRepository {
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
 
     async createApp(parent: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string, isSuperBot?: boolean }) {
         return await inTx(parent, async (ctx) => {
@@ -126,11 +122,11 @@ export class AppsRepository {
     async createChatHook(parent: Context, uid: number, appId: number, cid: number) {
         return await inTx(parent, async (ctx) => {
             await this.checkAppAccess(ctx, uid, appId);
-            let hook = await this.entities.AppHook.findById(ctx, appId, cid);
+            let hook = await Store.AppHook.findById(ctx, appId, cid);
             if (hook) {
                 hook.key = randomKey();
             } else {
-                hook = await this.entities.AppHook.create(ctx, appId, cid, { key: randomKey() });
+                hook = await Store.AppHook.create(ctx, appId, cid, { key: randomKey() });
             }
 
             await Modules.Hooks.onAppHookCreated(parent, uid, hook);

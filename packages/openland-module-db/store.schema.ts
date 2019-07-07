@@ -216,6 +216,19 @@ export default declareSchema(() => {
     });
 
     //
+    // Shortnames
+    //
+
+    entity('ShortnameReservation', () => {
+        primaryKey('shortname', string());
+        field('ownerType', enumString('org', 'user'));
+        field('ownerId', integer());
+        field('enabled', boolean());
+        uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
+        uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
+    });
+
+    //
     // Feed
     //
 
@@ -310,6 +323,82 @@ export default declareSchema(() => {
     });
 
     //
+    // Invites
+    //
+
+    entity('ChannelLink', () => {
+        primaryKey('id', string());
+        field('creatorId', integer());
+        field('channelId', integer());
+        field('enabled', boolean());
+        rangeIndex('channel', ['channelId', 'createdAt']);
+    });
+
+    entity('AppInviteLink', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        uniqueIndex('user', ['uid']);
+    });
+
+    entity('OrganizationPublicInviteLink', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('oid', integer());
+        field('enabled', boolean());
+        uniqueIndex('userInOrganization', ['uid', 'oid']).withCondition(src => src.enabled);
+    });
+
+    entity('OrganizationInviteLink', () => {
+        primaryKey('id', string());
+        field('oid', integer());
+        field('email', string());
+        field('uid', integer());
+        field('firstName', optional(string()));
+        field('lastName', optional(string()));
+        field('text', optional(string()));
+        field('ttl', optional(integer()));
+        field('enabled', optional(boolean()));
+        field('joined', optional(boolean()));
+        field('role', enumString('MEMBER', 'OWNER'));
+        uniqueIndex('organization', ['oid', 'id']).withCondition(src => src.enabled);
+        uniqueIndex('emailInOrganization', ['email', 'oid']).withCondition(src => src.enabled);
+    });
+
+    entity('ChannelInvitation', () => {
+        primaryKey('id', string());
+        field('creatorId', integer());
+        field('channelId', integer());
+        field('email', string());
+        field('firstName', optional(string()));
+        field('lastName', optional(string()));
+        field('text', optional(string()));
+        field('acceptedById', optional(integer()));
+        field('enabled', optional(boolean()));
+        rangeIndex('channel', ['createdAt', 'channelId']);
+        rangeIndex('updated', ['updatedAt']);
+    });
+
+    //
+    // Onboarding
+    //
+
+    entity('DiscoverUserPickedTags', () => {
+        primaryKey('uid', integer());
+        primaryKey('id', string());
+        field('deleted', boolean());
+        uniqueIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
+    });
+
+    entity('UserOnboardingState', () => {
+        primaryKey('uid', integer());
+        field('wellcomeSent', optional(boolean()));
+        field('askCompleteDeiscoverSent', optional(boolean()));
+        field('askInviteSent', optional(boolean()));
+        field('askInstallAppsSent', optional(boolean()));
+        field('askSendFirstMessageSent', optional(boolean()));
+    });
+
+    //
     // Push
     //
 
@@ -372,6 +461,17 @@ export default declareSchema(() => {
         field('disabledAt', optional(integer()));
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
+    });
+
+    //
+    // Apps
+    //
+
+    entity('AppHook', () => {
+        primaryKey('appId', integer());
+        primaryKey('chatId', integer());
+        field('key', string());
+        uniqueIndex('key', ['key']);
     });
 
     //

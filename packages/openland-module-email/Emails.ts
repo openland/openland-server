@@ -1,6 +1,7 @@
+import { OrganizationInviteLink, ChannelInvitation } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
-import { ChannelInvitation, Comment, Message, OrganizationInviteLink } from 'openland-module-db/schema';
+import { Comment, Message } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB, Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';

@@ -5,6 +5,7 @@ import { Modules } from '../openland-modules/Modules';
 import * as bodyParser from 'body-parser';
 import { jBool, jField, json, JsonSchema, jString, validateJson } from '../openland-utils/jsonSchema';
 import { createNamedContext } from '@openland/context';
+import { Store } from 'openland-module-db/FDB';
 // import { jField, json, jString } from '../openland-utils/jsonSchema';
 
 const Errors = {
@@ -47,7 +48,7 @@ const handleChatHook = handler(
                 return;
             }
 
-            let hook = await Modules.DB.entities.AppHook.findFromKey(ctx, hookKey);
+            let hook = await Store.AppHook.key.find(ctx, hookKey);
 
             if (!hook) {
                 sendError(response, Errors.hook_not_found);

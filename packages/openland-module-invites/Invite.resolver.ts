@@ -3,7 +3,7 @@ import {
     ChannelLink,
     OrganizationInviteLink,
     OrganizationPublicInviteLink
-} from 'openland-module-db/schema';
+} from 'openland-module-db/store';
 import { withUser, withAny, withAccount, withActivatedUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
@@ -16,7 +16,7 @@ import { Context } from '@openland/context';
 async function resolveOrgInvite(ctx: Context, key: string) {
     let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, key);
     let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, key);
-    let invite: { oid: number, uid: number, enabled: boolean, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
+    let invite: { oid: number, uid: number, enabled: boolean | null, ttl?: number | null, role?: string, joined?: boolean | null, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
     if (!invite) {
         return null;
     }

@@ -214,9 +214,15 @@ export class UserOnboardingModule {
     }
 
     private getOnboardingState = async (ctx: Context, uid: number) => {
-        let state = await FDB.UserOnboardingState.findById(ctx, uid);
+        let state = await Store.UserOnboardingState.findById(ctx, uid);
         if (!state) {
-            state = await FDB.UserOnboardingState.create(ctx, uid, {});
+            state = await Store.UserOnboardingState.create(ctx, uid, {
+                wellcomeSent: null,
+                askCompleteDeiscoverSent: null,
+                askInviteSent: null,
+                askInstallAppsSent: null,
+                askSendFirstMessageSent: null
+            });
         }
         return state;
     }

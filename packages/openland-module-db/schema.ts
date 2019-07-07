@@ -656,148 +656,6 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         return new OrganizationIndexingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
     }
 }
-export interface ShortnameReservationShape {
-    ownerType: 'org' | 'user';
-    ownerId: number;
-    enabled: boolean;
-}
-
-export class ShortnameReservation extends FEntity {
-    readonly entityName: 'ShortnameReservation' = 'ShortnameReservation';
-    get shortname(): string { return this._value.shortname; }
-    get ownerType(): 'org' | 'user' {
-        return this._value.ownerType;
-    }
-    set ownerType(value: 'org' | 'user') {
-        this._checkIsWritable();
-        if (value === this._value.ownerType) { return; }
-        this._value.ownerType = value;
-        this.markDirty();
-    }
-    get ownerId(): number {
-        return this._value.ownerId;
-    }
-    set ownerId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.ownerId) { return; }
-        this._value.ownerId = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class ShortnameReservationFactory extends FEntityFactory<ShortnameReservation> {
-    static schema: FEntitySchema = {
-        name: 'ShortnameReservation',
-        editable: false,
-        primaryKeys: [
-            { name: 'shortname', type: 'string' },
-        ],
-        fields: [
-            { name: 'ownerType', type: 'enum', enumValues: ['org', 'user'] },
-            { name: 'ownerId', type: 'number' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'user', type: 'unique', fields: ['ownerId'] },
-            { name: 'org', type: 'unique', fields: ['ownerId'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('shortnameReservation');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate, keyValidator: ShortnameReservationFactory.validateKey, hasLiveStreams: false };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('shortnameReservation', 'user'), 'user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled);
-        let indexOrg = new FEntityIndex(await layer.resolveEntityIndexDirectory('shortnameReservation', 'org'), 'org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled);
-        let indexes = {
-            user: indexUser,
-            org: indexOrg,
-        };
-        return new ShortnameReservationFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-    readonly indexOrg: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('shortname', src.shortname);
-        validators.isString('shortname', src.shortname);
-        validators.notNull('ownerType', src.ownerType);
-        validators.isEnum('ownerType', src.ownerType, ['org', 'user']);
-        validators.notNull('ownerId', src.ownerId);
-        validators.isNumber('ownerId', src.ownerId);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex, org: FEntityIndex }) {
-        super('ShortnameReservation', 'shortnameReservation', config, [indexes.user, indexes.org], layer, directory);
-        this.indexUser = indexes.user;
-        this.indexOrg = indexes.org;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'shortname': rawId[0] };
-    }
-    async findById(ctx: Context, shortname: string) {
-        return await this._findById(ctx, [shortname]);
-    }
-    async create(ctx: Context, shortname: string, shape: ShortnameReservationShape) {
-        return await this._create(ctx, [shortname], { shortname, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, shortname: string, shape: ShortnameReservationShape) {
-        return await this._create_UNSAFE(ctx, [shortname], { shortname, ...shape });
-    }
-    watch(ctx: Context, shortname: string) {
-        return this._watch(ctx, [shortname]);
-    }
-    async findFromUser(ctx: Context, ownerId: number) {
-        return await this._findFromIndex(ctx, this.indexUser.directory, [ownerId]);
-    }
-    async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexUser.directory, []);
-    }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [], limit, after); 
-    }
-    async findFromOrg(ctx: Context, ownerId: number) {
-        return await this._findFromIndex(ctx, this.indexOrg.directory, [ownerId]);
-    }
-    async rangeFromOrg(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexOrg.directory, [], limit, reversed);
-    }
-    async rangeFromOrgWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexOrg.directory, [], limit, after, reversed);
-    }
-    async allFromOrg(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexOrg.directory, []);
-    }
-    createOrgStream(limit: number, after?: string) {
-        return this._createStream(this.indexOrg.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ShortnameReservation(ctx, this.layer, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
-    }
-}
 export interface ConversationShape {
     kind: 'private' | 'organization' | 'room';
     deleted?: boolean| null;
@@ -4629,1022 +4487,6 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return new HyperLog(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
     }
 }
-export interface ChannelInvitationShape {
-    creatorId: number;
-    channelId: number;
-    email: string;
-    firstName?: string| null;
-    lastName?: string| null;
-    text?: string| null;
-    acceptedById?: number| null;
-    enabled: boolean;
-}
-
-export class ChannelInvitation extends FEntity {
-    readonly entityName: 'ChannelInvitation' = 'ChannelInvitation';
-    get id(): string { return this._value.id; }
-    get creatorId(): number {
-        return this._value.creatorId;
-    }
-    set creatorId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.creatorId) { return; }
-        this._value.creatorId = value;
-        this.markDirty();
-    }
-    get channelId(): number {
-        return this._value.channelId;
-    }
-    set channelId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.channelId) { return; }
-        this._value.channelId = value;
-        this.markDirty();
-    }
-    get email(): string {
-        return this._value.email;
-    }
-    set email(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.email) { return; }
-        this._value.email = value;
-        this.markDirty();
-    }
-    get firstName(): string | null {
-        let res = this._value.firstName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set firstName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.firstName) { return; }
-        this._value.firstName = value;
-        this.markDirty();
-    }
-    get lastName(): string | null {
-        let res = this._value.lastName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastName) { return; }
-        this._value.lastName = value;
-        this.markDirty();
-    }
-    get text(): string | null {
-        let res = this._value.text;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set text(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.text) { return; }
-        this._value.text = value;
-        this.markDirty();
-    }
-    get acceptedById(): number | null {
-        let res = this._value.acceptedById;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set acceptedById(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.acceptedById) { return; }
-        this._value.acceptedById = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> {
-    static schema: FEntitySchema = {
-        name: 'ChannelInvitation',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'creatorId', type: 'number' },
-            { name: 'channelId', type: 'number' },
-            { name: 'email', type: 'string' },
-            { name: 'firstName', type: 'string' },
-            { name: 'lastName', type: 'string' },
-            { name: 'text', type: 'string' },
-            { name: 'acceptedById', type: 'number' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'channel', type: 'range', fields: ['createdAt', 'channelId'] },
-            { name: 'updated', type: 'range', fields: ['updatedAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('channelInvitation');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, keyValidator: ChannelInvitationFactory.validateKey, hasLiveStreams: false };
-        let indexChannel = new FEntityIndex(await layer.resolveEntityIndexDirectory('channelInvitation', 'channel'), 'channel', ['createdAt', 'channelId'], false);
-        let indexUpdated = new FEntityIndex(await layer.resolveEntityIndexDirectory('channelInvitation', 'updated'), 'updated', ['updatedAt'], false);
-        let indexes = {
-            channel: indexChannel,
-            updated: indexUpdated,
-        };
-        return new ChannelInvitationFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexChannel: FEntityIndex;
-    readonly indexUpdated: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('creatorId', src.creatorId);
-        validators.isNumber('creatorId', src.creatorId);
-        validators.notNull('channelId', src.channelId);
-        validators.isNumber('channelId', src.channelId);
-        validators.notNull('email', src.email);
-        validators.isString('email', src.email);
-        validators.isString('firstName', src.firstName);
-        validators.isString('lastName', src.lastName);
-        validators.isString('text', src.text);
-        validators.isNumber('acceptedById', src.acceptedById);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { channel: FEntityIndex, updated: FEntityIndex }) {
-        super('ChannelInvitation', 'channelInvitation', config, [indexes.channel, indexes.updated], layer, directory);
-        this.indexChannel = indexes.channel;
-        this.indexUpdated = indexes.updated;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: ChannelInvitationShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: ChannelInvitationShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async allFromChannelAfter(ctx: Context, createdAt: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexChannel.directory, [createdAt], after);
-    }
-    async rangeFromChannelAfter(ctx: Context, createdAt: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexChannel.directory, [createdAt], after, limit, reversed);
-    }
-    async rangeFromChannel(ctx: Context, createdAt: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexChannel.directory, [createdAt], limit, reversed);
-    }
-    async rangeFromChannelWithCursor(ctx: Context, createdAt: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexChannel.directory, [createdAt], limit, after, reversed);
-    }
-    async allFromChannel(ctx: Context, createdAt: number) {
-        return await this._findAll(ctx, this.indexChannel.directory, [createdAt]);
-    }
-    createChannelStream(createdAt: number, limit: number, after?: string) {
-        return this._createStream(this.indexChannel.directory, [createdAt], limit, after); 
-    }
-    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUpdated.directory, [], limit, reversed);
-    }
-    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUpdated.directory, [], limit, after, reversed);
-    }
-    async allFromUpdated(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexUpdated.directory, []);
-    }
-    createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(this.indexUpdated.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChannelInvitation(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
-    }
-}
-export interface ChannelLinkShape {
-    creatorId: number;
-    channelId: number;
-    enabled: boolean;
-}
-
-export class ChannelLink extends FEntity {
-    readonly entityName: 'ChannelLink' = 'ChannelLink';
-    get id(): string { return this._value.id; }
-    get creatorId(): number {
-        return this._value.creatorId;
-    }
-    set creatorId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.creatorId) { return; }
-        this._value.creatorId = value;
-        this.markDirty();
-    }
-    get channelId(): number {
-        return this._value.channelId;
-    }
-    set channelId(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.channelId) { return; }
-        this._value.channelId = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
-    static schema: FEntitySchema = {
-        name: 'ChannelLink',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'creatorId', type: 'number' },
-            { name: 'channelId', type: 'number' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'channel', type: 'range', fields: ['channelId', 'createdAt'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('channelLink');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate, keyValidator: ChannelLinkFactory.validateKey, hasLiveStreams: false };
-        let indexChannel = new FEntityIndex(await layer.resolveEntityIndexDirectory('channelLink', 'channel'), 'channel', ['channelId', 'createdAt'], false);
-        let indexes = {
-            channel: indexChannel,
-        };
-        return new ChannelLinkFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexChannel: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('creatorId', src.creatorId);
-        validators.isNumber('creatorId', src.creatorId);
-        validators.notNull('channelId', src.channelId);
-        validators.isNumber('channelId', src.channelId);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { channel: FEntityIndex }) {
-        super('ChannelLink', 'channelLink', config, [indexes.channel], layer, directory);
-        this.indexChannel = indexes.channel;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: ChannelLinkShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: ChannelLinkShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async allFromChannelAfter(ctx: Context, channelId: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexChannel.directory, [channelId], after);
-    }
-    async rangeFromChannelAfter(ctx: Context, channelId: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexChannel.directory, [channelId], after, limit, reversed);
-    }
-    async rangeFromChannel(ctx: Context, channelId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexChannel.directory, [channelId], limit, reversed);
-    }
-    async rangeFromChannelWithCursor(ctx: Context, channelId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexChannel.directory, [channelId], limit, after, reversed);
-    }
-    async allFromChannel(ctx: Context, channelId: number) {
-        return await this._findAll(ctx, this.indexChannel.directory, [channelId]);
-    }
-    createChannelStream(channelId: number, limit: number, after?: string) {
-        return this._createStream(this.indexChannel.directory, [channelId], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ChannelLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
-    }
-}
-export interface AppInviteLinkShape {
-    uid: number;
-}
-
-export class AppInviteLink extends FEntity {
-    readonly entityName: 'AppInviteLink' = 'AppInviteLink';
-    get id(): string { return this._value.id; }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-}
-
-export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
-    static schema: FEntitySchema = {
-        name: 'AppInviteLink',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'uid', type: 'number' },
-        ],
-        indexes: [
-            { name: 'user', type: 'unique', fields: ['uid'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('appInviteLink');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate, keyValidator: AppInviteLinkFactory.validateKey, hasLiveStreams: false };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('appInviteLink', 'user'), 'user', ['uid'], true);
-        let indexes = {
-            user: indexUser,
-        };
-        return new AppInviteLinkFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
-        super('AppInviteLink', 'appInviteLink', config, [indexes.user], layer, directory);
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: AppInviteLinkShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: AppInviteLinkShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async findFromUser(ctx: Context, uid: number) {
-        return await this._findFromIndex(ctx, this.indexUser.directory, [uid]);
-    }
-    async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexUser.directory, []);
-    }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AppInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
-    }
-}
-export interface OrganizationPublicInviteLinkShape {
-    uid: number;
-    oid: number;
-    enabled: boolean;
-}
-
-export class OrganizationPublicInviteLink extends FEntity {
-    readonly entityName: 'OrganizationPublicInviteLink' = 'OrganizationPublicInviteLink';
-    get id(): string { return this._value.id; }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get oid(): number {
-        return this._value.oid;
-    }
-    set oid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.oid) { return; }
-        this._value.oid = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class OrganizationPublicInviteLinkFactory extends FEntityFactory<OrganizationPublicInviteLink> {
-    static schema: FEntitySchema = {
-        name: 'OrganizationPublicInviteLink',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'uid', type: 'number' },
-            { name: 'oid', type: 'number' },
-            { name: 'enabled', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'userInOrganization', type: 'unique', fields: ['uid', 'oid'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organizationPublicInviteLink');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, keyValidator: OrganizationPublicInviteLinkFactory.validateKey, hasLiveStreams: false };
-        let indexUserInOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationPublicInviteLink', 'userInOrganization'), 'userInOrganization', ['uid', 'oid'], true, src => src.enabled);
-        let indexes = {
-            userInOrganization: indexUserInOrganization,
-        };
-        return new OrganizationPublicInviteLinkFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUserInOrganization: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('oid', src.oid);
-        validators.isNumber('oid', src.oid);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { userInOrganization: FEntityIndex }) {
-        super('OrganizationPublicInviteLink', 'organizationPublicInviteLink', config, [indexes.userInOrganization], layer, directory);
-        this.indexUserInOrganization = indexes.userInOrganization;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: OrganizationPublicInviteLinkShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: OrganizationPublicInviteLinkShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async findFromUserInOrganization(ctx: Context, uid: number, oid: number) {
-        return await this._findFromIndex(ctx, this.indexUserInOrganization.directory, [uid, oid]);
-    }
-    async allFromUserInOrganizationAfter(ctx: Context, uid: number, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexUserInOrganization.directory, [uid], after);
-    }
-    async rangeFromUserInOrganizationAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUserInOrganization.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUserInOrganization(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUserInOrganization.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserInOrganizationWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUserInOrganization.directory, [uid], limit, after, reversed);
-    }
-    async allFromUserInOrganization(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUserInOrganization.directory, [uid]);
-    }
-    createUserInOrganizationStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUserInOrganization.directory, [uid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationPublicInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
-    }
-}
-export interface OrganizationInviteLinkShape {
-    oid: number;
-    email: string;
-    uid: number;
-    firstName?: string| null;
-    lastName?: string| null;
-    text?: string| null;
-    ttl?: number| null;
-    enabled: boolean;
-    joined: boolean;
-    role: 'MEMBER' | 'OWNER';
-}
-
-export class OrganizationInviteLink extends FEntity {
-    readonly entityName: 'OrganizationInviteLink' = 'OrganizationInviteLink';
-    get id(): string { return this._value.id; }
-    get oid(): number {
-        return this._value.oid;
-    }
-    set oid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.oid) { return; }
-        this._value.oid = value;
-        this.markDirty();
-    }
-    get email(): string {
-        return this._value.email;
-    }
-    set email(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.email) { return; }
-        this._value.email = value;
-        this.markDirty();
-    }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get firstName(): string | null {
-        let res = this._value.firstName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set firstName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.firstName) { return; }
-        this._value.firstName = value;
-        this.markDirty();
-    }
-    get lastName(): string | null {
-        let res = this._value.lastName;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set lastName(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.lastName) { return; }
-        this._value.lastName = value;
-        this.markDirty();
-    }
-    get text(): string | null {
-        let res = this._value.text;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set text(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.text) { return; }
-        this._value.text = value;
-        this.markDirty();
-    }
-    get ttl(): number | null {
-        let res = this._value.ttl;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set ttl(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.ttl) { return; }
-        this._value.ttl = value;
-        this.markDirty();
-    }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-    get joined(): boolean {
-        return this._value.joined;
-    }
-    set joined(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.joined) { return; }
-        this._value.joined = value;
-        this.markDirty();
-    }
-    get role(): 'MEMBER' | 'OWNER' {
-        return this._value.role;
-    }
-    set role(value: 'MEMBER' | 'OWNER') {
-        this._checkIsWritable();
-        if (value === this._value.role) { return; }
-        this._value.role = value;
-        this.markDirty();
-    }
-}
-
-export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationInviteLink> {
-    static schema: FEntitySchema = {
-        name: 'OrganizationInviteLink',
-        editable: false,
-        primaryKeys: [
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'oid', type: 'number' },
-            { name: 'email', type: 'string' },
-            { name: 'uid', type: 'number' },
-            { name: 'firstName', type: 'string' },
-            { name: 'lastName', type: 'string' },
-            { name: 'text', type: 'string' },
-            { name: 'ttl', type: 'number' },
-            { name: 'enabled', type: 'boolean' },
-            { name: 'joined', type: 'boolean' },
-            { name: 'role', type: 'enum', enumValues: ['MEMBER', 'OWNER'] },
-        ],
-        indexes: [
-            { name: 'organization', type: 'unique', fields: ['oid', 'id'] },
-            { name: 'emailInOrganization', type: 'unique', fields: ['email', 'oid'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('organizationInviteLink');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, keyValidator: OrganizationInviteLinkFactory.validateKey, hasLiveStreams: false };
-        let indexOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationInviteLink', 'organization'), 'organization', ['oid', 'id'], true, src => src.enabled);
-        let indexEmailInOrganization = new FEntityIndex(await layer.resolveEntityIndexDirectory('organizationInviteLink', 'emailInOrganization'), 'emailInOrganization', ['email', 'oid'], true, src => src.enabled);
-        let indexes = {
-            organization: indexOrganization,
-            emailInOrganization: indexEmailInOrganization,
-        };
-        return new OrganizationInviteLinkFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexOrganization: FEntityIndex;
-    readonly indexEmailInOrganization: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('oid', src.oid);
-        validators.isNumber('oid', src.oid);
-        validators.notNull('email', src.email);
-        validators.isString('email', src.email);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.isString('firstName', src.firstName);
-        validators.isString('lastName', src.lastName);
-        validators.isString('text', src.text);
-        validators.isNumber('ttl', src.ttl);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-        validators.notNull('joined', src.joined);
-        validators.isBoolean('joined', src.joined);
-        validators.notNull('role', src.role);
-        validators.isEnum('role', src.role, ['MEMBER', 'OWNER']);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.notNull('0', key[0]);
-        validators.isString('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { organization: FEntityIndex, emailInOrganization: FEntityIndex }) {
-        super('OrganizationInviteLink', 'organizationInviteLink', config, [indexes.organization, indexes.emailInOrganization], layer, directory);
-        this.indexOrganization = indexes.organization;
-        this.indexEmailInOrganization = indexes.emailInOrganization;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
-    }
-    async findById(ctx: Context, id: string) {
-        return await this._findById(ctx, [id]);
-    }
-    async create(ctx: Context, id: string, shape: OrganizationInviteLinkShape) {
-        return await this._create(ctx, [id], { id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, id: string, shape: OrganizationInviteLinkShape) {
-        return await this._create_UNSAFE(ctx, [id], { id, ...shape });
-    }
-    watch(ctx: Context, id: string) {
-        return this._watch(ctx, [id]);
-    }
-    async findFromOrganization(ctx: Context, oid: number, id: string) {
-        return await this._findFromIndex(ctx, this.indexOrganization.directory, [oid, id]);
-    }
-    async allFromOrganizationAfter(ctx: Context, oid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, this.indexOrganization.directory, [oid], after);
-    }
-    async rangeFromOrganizationAfter(ctx: Context, oid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexOrganization.directory, [oid], after, limit, reversed);
-    }
-    async rangeFromOrganization(ctx: Context, oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexOrganization.directory, [oid], limit, reversed);
-    }
-    async rangeFromOrganizationWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexOrganization.directory, [oid], limit, after, reversed);
-    }
-    async allFromOrganization(ctx: Context, oid: number) {
-        return await this._findAll(ctx, this.indexOrganization.directory, [oid]);
-    }
-    createOrganizationStream(oid: number, limit: number, after?: string) {
-        return this._createStream(this.indexOrganization.directory, [oid], limit, after); 
-    }
-    async findFromEmailInOrganization(ctx: Context, email: string, oid: number) {
-        return await this._findFromIndex(ctx, this.indexEmailInOrganization.directory, [email, oid]);
-    }
-    async allFromEmailInOrganizationAfter(ctx: Context, email: string, after: number) {
-        return await this._findRangeAllAfter(ctx, this.indexEmailInOrganization.directory, [email], after);
-    }
-    async rangeFromEmailInOrganizationAfter(ctx: Context, email: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexEmailInOrganization.directory, [email], after, limit, reversed);
-    }
-    async rangeFromEmailInOrganization(ctx: Context, email: string, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexEmailInOrganization.directory, [email], limit, reversed);
-    }
-    async rangeFromEmailInOrganizationWithCursor(ctx: Context, email: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexEmailInOrganization.directory, [email], limit, after, reversed);
-    }
-    async allFromEmailInOrganization(ctx: Context, email: string) {
-        return await this._findAll(ctx, this.indexEmailInOrganization.directory, [email]);
-    }
-    createEmailInOrganizationStream(email: string, limit: number, after?: string) {
-        return this._createStream(this.indexEmailInOrganization.directory, [email], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new OrganizationInviteLink(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
-    }
-}
-export interface AppHookShape {
-    key: string;
-}
-
-export class AppHook extends FEntity {
-    readonly entityName: 'AppHook' = 'AppHook';
-    get appId(): number { return this._value.appId; }
-    get chatId(): number { return this._value.chatId; }
-    get key(): string {
-        return this._value.key;
-    }
-    set key(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.key) { return; }
-        this._value.key = value;
-        this.markDirty();
-    }
-}
-
-export class AppHookFactory extends FEntityFactory<AppHook> {
-    static schema: FEntitySchema = {
-        name: 'AppHook',
-        editable: false,
-        primaryKeys: [
-            { name: 'appId', type: 'number' },
-            { name: 'chatId', type: 'number' },
-        ],
-        fields: [
-            { name: 'key', type: 'string' },
-        ],
-        indexes: [
-            { name: 'key', type: 'unique', fields: ['key'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('appHook');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, keyValidator: AppHookFactory.validateKey, hasLiveStreams: false };
-        let indexKey = new FEntityIndex(await layer.resolveEntityIndexDirectory('appHook', 'key'), 'key', ['key'], true);
-        let indexes = {
-            key: indexKey,
-        };
-        return new AppHookFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexKey: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('appId', src.appId);
-        validators.isNumber('appId', src.appId);
-        validators.notNull('chatId', src.chatId);
-        validators.isNumber('chatId', src.chatId);
-        validators.notNull('key', src.key);
-        validators.isString('key', src.key);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-        validators.isNumber('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { key: FEntityIndex }) {
-        super('AppHook', 'appHook', config, [indexes.key], layer, directory);
-        this.indexKey = indexes.key;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'appId': rawId[0], 'chatId': rawId[1] };
-    }
-    async findById(ctx: Context, appId: number, chatId: number) {
-        return await this._findById(ctx, [appId, chatId]);
-    }
-    async create(ctx: Context, appId: number, chatId: number, shape: AppHookShape) {
-        return await this._create(ctx, [appId, chatId], { appId, chatId, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, appId: number, chatId: number, shape: AppHookShape) {
-        return await this._create_UNSAFE(ctx, [appId, chatId], { appId, chatId, ...shape });
-    }
-    watch(ctx: Context, appId: number, chatId: number) {
-        return this._watch(ctx, [appId, chatId]);
-    }
-    async findFromKey(ctx: Context, key: string) {
-        return await this._findFromIndex(ctx, this.indexKey.directory, [key]);
-    }
-    async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexKey.directory, [], limit, reversed);
-    }
-    async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexKey.directory, [], limit, after, reversed);
-    }
-    async allFromKey(ctx: Context, ) {
-        return await this._findAll(ctx, this.indexKey.directory, []);
-    }
-    createKeyStream(limit: number, after?: string) {
-        return this._createStream(this.indexKey.directory, [], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new AppHook(ctx, this.layer, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
-    }
-}
-export interface DiscoverUserPickedTagsShape {
-    deleted: boolean;
-}
-
-export class DiscoverUserPickedTags extends FEntity {
-    readonly entityName: 'DiscoverUserPickedTags' = 'DiscoverUserPickedTags';
-    get uid(): number { return this._value.uid; }
-    get id(): string { return this._value.id; }
-    get deleted(): boolean {
-        return this._value.deleted;
-    }
-    set deleted(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.deleted) { return; }
-        this._value.deleted = value;
-        this.markDirty();
-    }
-}
-
-export class DiscoverUserPickedTagsFactory extends FEntityFactory<DiscoverUserPickedTags> {
-    static schema: FEntitySchema = {
-        name: 'DiscoverUserPickedTags',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-            { name: 'id', type: 'string' },
-        ],
-        fields: [
-            { name: 'deleted', type: 'boolean' },
-        ],
-        indexes: [
-            { name: 'user', type: 'unique', fields: ['uid', 'id'] },
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('discoverUserPickedTags');
-        let config = { enableVersioning: true, enableTimestamps: true, validator: DiscoverUserPickedTagsFactory.validate, keyValidator: DiscoverUserPickedTagsFactory.validateKey, hasLiveStreams: false };
-        let indexUser = new FEntityIndex(await layer.resolveEntityIndexDirectory('discoverUserPickedTags', 'user'), 'user', ['uid', 'id'], true, (src) => !src.deleted);
-        let indexes = {
-            user: indexUser,
-        };
-        return new DiscoverUserPickedTagsFactory(layer, directory, config, indexes);
-    }
-
-    readonly indexUser: FEntityIndex;
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('deleted', src.deleted);
-        validators.isBoolean('deleted', src.deleted);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-        validators.notNull('1', key[1]);
-        validators.isString('1', key[1]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions, indexes: { user: FEntityIndex }) {
-        super('DiscoverUserPickedTags', 'discoverUserPickedTags', config, [indexes.user], layer, directory);
-        this.indexUser = indexes.user;
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0], 'id': rawId[1] };
-    }
-    async findById(ctx: Context, uid: number, id: string) {
-        return await this._findById(ctx, [uid, id]);
-    }
-    async create(ctx: Context, uid: number, id: string, shape: DiscoverUserPickedTagsShape) {
-        return await this._create(ctx, [uid, id], { uid, id, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, id: string, shape: DiscoverUserPickedTagsShape) {
-        return await this._create_UNSAFE(ctx, [uid, id], { uid, id, ...shape });
-    }
-    watch(ctx: Context, uid: number, id: string) {
-        return this._watch(ctx, [uid, id]);
-    }
-    async findFromUser(ctx: Context, uid: number, id: string) {
-        return await this._findFromIndex(ctx, this.indexUser.directory, [uid, id]);
-    }
-    async allFromUserAfter(ctx: Context, uid: number, after: string) {
-        return await this._findRangeAllAfter(ctx, this.indexUser.directory, [uid], after);
-    }
-    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(ctx, this.indexUser.directory, [uid], after, limit, reversed);
-    }
-    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, this.indexUser.directory, [uid], limit, reversed);
-    }
-    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, this.indexUser.directory, [uid], limit, after, reversed);
-    }
-    async allFromUser(ctx: Context, uid: number) {
-        return await this._findAll(ctx, this.indexUser.directory, [uid]);
-    }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(this.indexUser.directory, [uid], limit, after); 
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new DiscoverUserPickedTags(ctx, this.layer, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'DiscoverUserPickedTags');
-    }
-}
 export interface DebugEventShape {
     key?: string| null;
 }
@@ -6827,135 +5669,6 @@ export class ChatAudienceCalculatingQueueFactory extends FEntityFactory<ChatAudi
         return new ChatAudienceCalculatingQueue(ctx, this.layer, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChatAudienceCalculatingQueue');
     }
 }
-export interface UserOnboardingStateShape {
-    wellcomeSent?: boolean| null;
-    askCompleteDeiscoverSent?: boolean| null;
-    askInviteSent?: boolean| null;
-    askInstallAppsSent?: boolean| null;
-    askSendFirstMessageSent?: boolean| null;
-}
-
-export class UserOnboardingState extends FEntity {
-    readonly entityName: 'UserOnboardingState' = 'UserOnboardingState';
-    get uid(): number { return this._value.uid; }
-    get wellcomeSent(): boolean | null {
-        let res = this._value.wellcomeSent;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set wellcomeSent(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.wellcomeSent) { return; }
-        this._value.wellcomeSent = value;
-        this.markDirty();
-    }
-    get askCompleteDeiscoverSent(): boolean | null {
-        let res = this._value.askCompleteDeiscoverSent;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set askCompleteDeiscoverSent(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.askCompleteDeiscoverSent) { return; }
-        this._value.askCompleteDeiscoverSent = value;
-        this.markDirty();
-    }
-    get askInviteSent(): boolean | null {
-        let res = this._value.askInviteSent;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set askInviteSent(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.askInviteSent) { return; }
-        this._value.askInviteSent = value;
-        this.markDirty();
-    }
-    get askInstallAppsSent(): boolean | null {
-        let res = this._value.askInstallAppsSent;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set askInstallAppsSent(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.askInstallAppsSent) { return; }
-        this._value.askInstallAppsSent = value;
-        this.markDirty();
-    }
-    get askSendFirstMessageSent(): boolean | null {
-        let res = this._value.askSendFirstMessageSent;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set askSendFirstMessageSent(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.askSendFirstMessageSent) { return; }
-        this._value.askSendFirstMessageSent = value;
-        this.markDirty();
-    }
-}
-
-export class UserOnboardingStateFactory extends FEntityFactory<UserOnboardingState> {
-    static schema: FEntitySchema = {
-        name: 'UserOnboardingState',
-        editable: false,
-        primaryKeys: [
-            { name: 'uid', type: 'number' },
-        ],
-        fields: [
-            { name: 'wellcomeSent', type: 'boolean' },
-            { name: 'askCompleteDeiscoverSent', type: 'boolean' },
-            { name: 'askInviteSent', type: 'boolean' },
-            { name: 'askInstallAppsSent', type: 'boolean' },
-            { name: 'askSendFirstMessageSent', type: 'boolean' },
-        ],
-        indexes: [
-        ],
-    };
-
-    static async create(layer: EntityLayer) {
-        let directory = await layer.resolveEntityDirectory('userOnboardingState');
-        let config = { enableVersioning: false, enableTimestamps: false, validator: UserOnboardingStateFactory.validate, keyValidator: UserOnboardingStateFactory.validateKey, hasLiveStreams: false };
-        return new UserOnboardingStateFactory(layer, directory, config);
-    }
-
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.isBoolean('wellcomeSent', src.wellcomeSent);
-        validators.isBoolean('askCompleteDeiscoverSent', src.askCompleteDeiscoverSent);
-        validators.isBoolean('askInviteSent', src.askInviteSent);
-        validators.isBoolean('askInstallAppsSent', src.askInstallAppsSent);
-        validators.isBoolean('askSendFirstMessageSent', src.askSendFirstMessageSent);
-    }
-
-    private static validateKey(key: Tuple[]) {
-        validators.isNumber('0', key[0]);
-    }
-
-    constructor(layer: EntityLayer, directory: Subspace, config: FEntityOptions) {
-        super('UserOnboardingState', 'userOnboardingState', config, [], layer, directory);
-    }
-    extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'uid': rawId[0] };
-    }
-    async findById(ctx: Context, uid: number) {
-        return await this._findById(ctx, [uid]);
-    }
-    async create(ctx: Context, uid: number, shape: UserOnboardingStateShape) {
-        return await this._create(ctx, [uid], { uid, ...shape });
-    }
-    async create_UNSAFE(ctx: Context, uid: number, shape: UserOnboardingStateShape) {
-        return await this._create_UNSAFE(ctx, [uid], { uid, ...shape });
-    }
-    watch(ctx: Context, uid: number) {
-        return this._watch(ctx, [uid]);
-    }
-    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new UserOnboardingState(ctx, this.layer, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserOnboardingState');
-    }
-}
 
 export interface AllEntities {
     readonly layer: EntityLayer;
@@ -6966,7 +5679,6 @@ export interface AllEntities {
     readonly DelayedTask: DelayedTaskFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
-    readonly ShortnameReservation: ShortnameReservationFactory;
     readonly Conversation: ConversationFactory;
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
@@ -6990,13 +5702,6 @@ export interface AllEntities {
     readonly UserMessagingState: UserMessagingStateFactory;
     readonly UserNotificationsState: UserNotificationsStateFactory;
     readonly HyperLog: HyperLogFactory;
-    readonly ChannelInvitation: ChannelInvitationFactory;
-    readonly ChannelLink: ChannelLinkFactory;
-    readonly AppInviteLink: AppInviteLinkFactory;
-    readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
-    readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
-    readonly AppHook: AppHookFactory;
-    readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly NotificationCenter: NotificationCenterFactory;
@@ -7007,7 +5712,6 @@ export interface AllEntities {
     readonly UserBadge: UserBadgeFactory;
     readonly UserRoomBadge: UserRoomBadgeFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
-    readonly UserOnboardingState: UserOnboardingStateFactory;
 }
 export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -7015,7 +5719,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         DelayedTaskFactory.schema,
         UserIndexingQueueFactory.schema,
         OrganizationIndexingQueueFactory.schema,
-        ShortnameReservationFactory.schema,
         ConversationFactory.schema,
         ConversationPrivateFactory.schema,
         ConversationOrganizationFactory.schema,
@@ -7039,13 +5742,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         UserMessagingStateFactory.schema,
         UserNotificationsStateFactory.schema,
         HyperLogFactory.schema,
-        ChannelInvitationFactory.schema,
-        ChannelLinkFactory.schema,
-        AppInviteLinkFactory.schema,
-        OrganizationPublicInviteLinkFactory.schema,
-        OrganizationInviteLinkFactory.schema,
-        AppHookFactory.schema,
-        DiscoverUserPickedTagsFactory.schema,
         DebugEventFactory.schema,
         DebugEventStateFactory.schema,
         NotificationCenterFactory.schema,
@@ -7056,7 +5752,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         UserBadgeFactory.schema,
         UserRoomBadgeFactory.schema,
         ChatAudienceCalculatingQueueFactory.schema,
-        UserOnboardingStateFactory.schema,
     ];
 
     static async create(layer: EntityLayer) {
@@ -7065,7 +5760,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let DelayedTaskPromise = DelayedTaskFactory.create(layer);
         let UserIndexingQueuePromise = UserIndexingQueueFactory.create(layer);
         let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.create(layer);
-        let ShortnameReservationPromise = ShortnameReservationFactory.create(layer);
         let ConversationPromise = ConversationFactory.create(layer);
         let ConversationPrivatePromise = ConversationPrivateFactory.create(layer);
         let ConversationOrganizationPromise = ConversationOrganizationFactory.create(layer);
@@ -7089,13 +5783,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserMessagingStatePromise = UserMessagingStateFactory.create(layer);
         let UserNotificationsStatePromise = UserNotificationsStateFactory.create(layer);
         let HyperLogPromise = HyperLogFactory.create(layer);
-        let ChannelInvitationPromise = ChannelInvitationFactory.create(layer);
-        let ChannelLinkPromise = ChannelLinkFactory.create(layer);
-        let AppInviteLinkPromise = AppInviteLinkFactory.create(layer);
-        let OrganizationPublicInviteLinkPromise = OrganizationPublicInviteLinkFactory.create(layer);
-        let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.create(layer);
-        let AppHookPromise = AppHookFactory.create(layer);
-        let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.create(layer);
         let DebugEventPromise = DebugEventFactory.create(layer);
         let DebugEventStatePromise = DebugEventStateFactory.create(layer);
         let NotificationCenterPromise = NotificationCenterFactory.create(layer);
@@ -7106,14 +5793,12 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         let UserBadgePromise = UserBadgeFactory.create(layer);
         let UserRoomBadgePromise = UserRoomBadgeFactory.create(layer);
         let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.create(layer);
-        let UserOnboardingStatePromise = UserOnboardingStateFactory.create(layer);
         let NeedNotificationFlagDirectoryPromise = layer.resolveCustomDirectory('needNotificationFlag');
         let NotificationCenterNeedDeliveryFlagDirectoryPromise = layer.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
         allEntities.push(await TaskPromise);
         allEntities.push(await DelayedTaskPromise);
         allEntities.push(await UserIndexingQueuePromise);
         allEntities.push(await OrganizationIndexingQueuePromise);
-        allEntities.push(await ShortnameReservationPromise);
         allEntities.push(await ConversationPromise);
         allEntities.push(await ConversationPrivatePromise);
         allEntities.push(await ConversationOrganizationPromise);
@@ -7137,13 +5822,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserMessagingStatePromise);
         allEntities.push(await UserNotificationsStatePromise);
         allEntities.push(await HyperLogPromise);
-        allEntities.push(await ChannelInvitationPromise);
-        allEntities.push(await ChannelLinkPromise);
-        allEntities.push(await AppInviteLinkPromise);
-        allEntities.push(await OrganizationPublicInviteLinkPromise);
-        allEntities.push(await OrganizationInviteLinkPromise);
-        allEntities.push(await AppHookPromise);
-        allEntities.push(await DiscoverUserPickedTagsPromise);
         allEntities.push(await DebugEventPromise);
         allEntities.push(await DebugEventStatePromise);
         allEntities.push(await NotificationCenterPromise);
@@ -7154,14 +5832,12 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         allEntities.push(await UserBadgePromise);
         allEntities.push(await UserRoomBadgePromise);
         allEntities.push(await ChatAudienceCalculatingQueuePromise);
-        allEntities.push(await UserOnboardingStatePromise);
         let entities = {
             layer, allEntities,
             Task: await TaskPromise,
             DelayedTask: await DelayedTaskPromise,
             UserIndexingQueue: await UserIndexingQueuePromise,
             OrganizationIndexingQueue: await OrganizationIndexingQueuePromise,
-            ShortnameReservation: await ShortnameReservationPromise,
             Conversation: await ConversationPromise,
             ConversationPrivate: await ConversationPrivatePromise,
             ConversationOrganization: await ConversationOrganizationPromise,
@@ -7185,13 +5861,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             UserMessagingState: await UserMessagingStatePromise,
             UserNotificationsState: await UserNotificationsStatePromise,
             HyperLog: await HyperLogPromise,
-            ChannelInvitation: await ChannelInvitationPromise,
-            ChannelLink: await ChannelLinkPromise,
-            AppInviteLink: await AppInviteLinkPromise,
-            OrganizationPublicInviteLink: await OrganizationPublicInviteLinkPromise,
-            OrganizationInviteLink: await OrganizationInviteLinkPromise,
-            AppHook: await AppHookPromise,
-            DiscoverUserPickedTags: await DiscoverUserPickedTagsPromise,
             DebugEvent: await DebugEventPromise,
             DebugEventState: await DebugEventStatePromise,
             NotificationCenter: await NotificationCenterPromise,
@@ -7202,7 +5871,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
             UserBadge: await UserBadgePromise,
             UserRoomBadge: await UserRoomBadgePromise,
             ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
-            UserOnboardingState: await UserOnboardingStatePromise,
             NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
             NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         };
@@ -7216,7 +5884,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly DelayedTask: DelayedTaskFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
-    readonly ShortnameReservation: ShortnameReservationFactory;
     readonly Conversation: ConversationFactory;
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
@@ -7240,13 +5907,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly UserMessagingState: UserMessagingStateFactory;
     readonly UserNotificationsState: UserNotificationsStateFactory;
     readonly HyperLog: HyperLogFactory;
-    readonly ChannelInvitation: ChannelInvitationFactory;
-    readonly ChannelLink: ChannelLinkFactory;
-    readonly AppInviteLink: AppInviteLinkFactory;
-    readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
-    readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
-    readonly AppHook: AppHookFactory;
-    readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly NotificationCenter: NotificationCenterFactory;
@@ -7257,7 +5917,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
     readonly UserBadge: UserBadgeFactory;
     readonly UserRoomBadge: UserRoomBadgeFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
-    readonly UserOnboardingState: UserOnboardingStateFactory;
 
     private constructor(entities: AllEntities) {
         super(entities.layer);
@@ -7269,8 +5928,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.UserIndexingQueue);
         this.OrganizationIndexingQueue = entities.OrganizationIndexingQueue;
         this.allEntities.push(this.OrganizationIndexingQueue);
-        this.ShortnameReservation = entities.ShortnameReservation;
-        this.allEntities.push(this.ShortnameReservation);
         this.Conversation = entities.Conversation;
         this.allEntities.push(this.Conversation);
         this.ConversationPrivate = entities.ConversationPrivate;
@@ -7317,20 +5974,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.UserNotificationsState);
         this.HyperLog = entities.HyperLog;
         this.allEntities.push(this.HyperLog);
-        this.ChannelInvitation = entities.ChannelInvitation;
-        this.allEntities.push(this.ChannelInvitation);
-        this.ChannelLink = entities.ChannelLink;
-        this.allEntities.push(this.ChannelLink);
-        this.AppInviteLink = entities.AppInviteLink;
-        this.allEntities.push(this.AppInviteLink);
-        this.OrganizationPublicInviteLink = entities.OrganizationPublicInviteLink;
-        this.allEntities.push(this.OrganizationPublicInviteLink);
-        this.OrganizationInviteLink = entities.OrganizationInviteLink;
-        this.allEntities.push(this.OrganizationInviteLink);
-        this.AppHook = entities.AppHook;
-        this.allEntities.push(this.AppHook);
-        this.DiscoverUserPickedTags = entities.DiscoverUserPickedTags;
-        this.allEntities.push(this.DiscoverUserPickedTags);
         this.DebugEvent = entities.DebugEvent;
         this.allEntities.push(this.DebugEvent);
         this.DebugEventState = entities.DebugEventState;
@@ -7351,8 +5994,6 @@ export class AllEntitiesDirect extends EntitiesBase implements AllEntities {
         this.allEntities.push(this.UserRoomBadge);
         this.ChatAudienceCalculatingQueue = entities.ChatAudienceCalculatingQueue;
         this.allEntities.push(this.ChatAudienceCalculatingQueue);
-        this.UserOnboardingState = entities.UserOnboardingState;
-        this.allEntities.push(this.UserOnboardingState);
         this.NeedNotificationFlagDirectory = entities.NeedNotificationFlagDirectory;
         this.NotificationCenterNeedDeliveryFlagDirectory = entities.NotificationCenterNeedDeliveryFlagDirectory;
     }
