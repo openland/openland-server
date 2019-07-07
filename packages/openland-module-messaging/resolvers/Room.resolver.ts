@@ -407,7 +407,7 @@ export default {
                     return await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 1000 });
                 }
 
-                return await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 });
+                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
             }
         }),
         roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
