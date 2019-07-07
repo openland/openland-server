@@ -443,7 +443,7 @@ export default {
                     description: orgProfile.about,
                 });
 
-                let orgMembers = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', orgId);
+                let orgMembers = await Store.OrganizationMember.organization.findAll(ctx, 'joined', orgId);
                 for (let member of orgMembers) {
                     await FDB.RoomParticipant.create(ctx, chat.id, member.uid, {
                         role: member.uid === org.ownerId ? 'owner' : 'member',
@@ -849,7 +849,7 @@ export default {
         }),
         debugEnableNotificationCenterForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugEnableNotificationCenterForAll', async (ctx, uid, log) => {
-                let settings = await FDB.UserSettings.findById(ctx, uid);
+                let settings = await Store.UserSettings.findById(ctx, uid);
                 if (!settings) {
                     return;
                 }
@@ -936,7 +936,7 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: AppContext) {
-                let state = await FDB.ReaderState.findById(ctx, args.reader);
+                let state = await Store.ReaderState.findById(ctx, args.reader);
                 let prev = '';
                 if (!state) {
                     throw new NotFoundError();
@@ -945,7 +945,7 @@ export default {
                 let isDateBased = key.length === 2 && (typeof key[0] === 'number' && key[0]! > 1183028484169);
 
                 while (true) {
-                    state = await inTx(rootCtx, async ctx2 => await FDB.ReaderState.findById(ctx2, args.reader));
+                    state = await inTx(rootCtx, async ctx2 => await Store.ReaderState.findById(ctx2, args.reader));
                     let data = FKeyEncoding.decodeFromString(state!.cursor);
                     let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as number))}, id: ${data[1]}` : JSON.stringify(data);
                     if (str !== prev) {

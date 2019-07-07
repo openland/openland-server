@@ -1,13 +1,13 @@
 import { FEntity } from 'foundation-orm/FEntity';
 import { FStream } from 'foundation-orm/FStream';
-import { FDB } from 'openland-module-db/FDB';
+import { FDB, Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 
 export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
     singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: FDB.layer.db }, async (root) => {
-        let existing = await inTx(root, async (ctx) => await FDB.ReaderState.findById(ctx, name));
+        let existing = await inTx(root, async (ctx) => await Store.ReaderState.findById(ctx, name));
         let first = false;
         if (existing) {
             if (existing.version === null || existing.version < version) {
@@ -29,15 +29,15 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
 
             // Commit offset
             await inTx(root, async (ctx) => {
-                let latest = await FDB.ReaderState.findById(ctx, name);
+                let latest = await Store.ReaderState.findById(ctx, name);
                 if (existing && latest) {
                     // Update if not changed
-                    if (existing.versionCode === latest.versionCode) {
+                    if (existing.metadata.versionCode === latest.metadata.versionCode) {
                         latest.cursor = stream.cursor;
                         latest.version = version;
                     }
                 } else if (!latest) {
-                    await FDB.ReaderState.create(ctx, name, { cursor: stream.cursor, version: version });
+                    await Store.ReaderState.create(ctx, name, { cursor: stream.cursor, version: version });
                 }
             });
         }

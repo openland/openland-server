@@ -60,7 +60,7 @@ export default {
 
             let isSuper = ['super-admin', 'editor'].indexOf((await Modules.Super.superRole(parent, uid)) || 'none') > -1;
 
-            let member = await FDB.OrganizationMember.findById(parent, orgId, uid);
+            let member = await Store.OrganizationMember.findById(parent, orgId, uid);
             let isMemberAdmin = (member !== null && member.status === 'joined' && member.role === 'admin');
             if (!isMemberAdmin && !isSuper) {
                 throw new UserError(ErrorText.permissionOnlyOwner);

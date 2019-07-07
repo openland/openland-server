@@ -129,7 +129,7 @@ export const Emails = {
             if (uid) {
                 members = [uid];
             } else {
-                members = (await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', oid)).map(m => m.uid);
+                members = (await Store.OrganizationMember.organization.findAll(ctx, 'joined', oid)).map(m => m.uid);
             }
 
             for (let m of members) {
@@ -158,7 +158,7 @@ export const Emails = {
             if (uid) {
                 members = [uid];
             } else {
-                members = (await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', oid)).map(m => m.uid);
+                members = (await Store.OrganizationMember.organization.findAll(ctx, 'joined', oid)).map(m => m.uid);
             }
 
             for (let m of members) {

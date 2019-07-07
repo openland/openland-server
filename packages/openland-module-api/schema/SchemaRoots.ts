@@ -1,6 +1,9 @@
 import {
     EnvironmentVariable, Presence, AuthToken, FeatureFlag, User, UserProfile,
-    Organization
+    Organization,
+    FeedEvent,
+    UserStorageRecord,
+    UserSettings
 } from './../../openland-module-db/store';
 import {
     Conversation,
@@ -8,12 +11,10 @@ import {
     Message,
     UserDialogEvent,
     UserDialogSettings,
-    FeedEvent,
     ConversationEvent,
     AppHook,
     Comment,
     CommentEvent,
-    UserStorageRecord,
     DebugEvent,
     Notification,
     NotificationCenter,
@@ -21,7 +22,7 @@ import {
     NotificationCenterEvent,
     CommentsSubscription,
     CommentEventGlobal,
-    UserBadge, UserSettings
+    UserBadge
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {

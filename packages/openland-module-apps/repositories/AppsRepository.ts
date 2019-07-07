@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities, UserStorageRecord } from '../../openland-module-db/schema';
+import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -12,6 +12,7 @@ import { ImageRef } from '../../openland-module-media/ImageRef';
 import { stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
 import { resolveSequenceNumber } from 'openland-module-db/resolveSequenceNumber';
 import { Store } from 'openland-module-db/FDB';
+import { UserStorageRecord } from 'openland-module-db/store';
 
 @injectable()
 export class AppsRepository {
@@ -158,12 +159,12 @@ export class AppsRepository {
             let ns = await this.resolveNamespace(ctx, namespace);
             let res: UserStorageRecord[] = [];
             for (let k of keys) {
-                let ex = await this.entities.UserStorageRecord.findFromKey(ctx, uid, ns, k);
+                let ex = await Store.UserStorageRecord.key.find(ctx, uid, ns, k);
                 if (ex) {
                     res.push(ex);
                 } else {
-                    let id = await resolveSequenceNumber(ctx, this.entities, 'user-record-id');
-                    res.push(await this.entities.UserStorageRecord.create(ctx, uid, id, { key: k, ns, value: null }));
+                    let id = await resolveSequenceNumber(ctx, 'user-record-id');
+                    res.push(await Store.UserStorageRecord.create(ctx, uid, id, { key: k, ns, value: null }));
                 }
             }
             return res;
@@ -172,12 +173,12 @@ export class AppsRepository {
 
     private async resolveNamespace(parent: Context, namespace: string) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserStorageNamespace.findFromNamespace(ctx, namespace);
+            let existing = await Store.UserStorageNamespace.namespace.find(ctx, namespace);
             if (existing) {
                 return existing.id;
             }
-            let id = await resolveSequenceNumber(ctx, this.entities, 'namespace-id');
-            await this.entities.UserStorageNamespace.create(ctx, id, { ns: namespace });
+            let id = await resolveSequenceNumber(ctx, 'namespace-id');
+            await Store.UserStorageNamespace.create(ctx, id, { ns: namespace });
             return id;
         });
     }

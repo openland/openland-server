@@ -1,17 +1,14 @@
-import { Store } from './../../openland-module-db/store';
-import { lazyInject } from 'openland-modules/Modules.container';
 import { inTx } from '@openland/foundationdb';
 import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class UserStateRepository {
     private readonly entities: AllEntities;
     private readonly metrics: ChatMetricsRepository;
-    @lazyInject('Store')
-    private readonly store!: Store;
 
     constructor(@inject('FDB') entities: AllEntities, @inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
         this.entities = entities;
@@ -56,13 +53,13 @@ export class UserStateRepository {
 
     async getUserMessagingUnread(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.store.UserCounter.byId(uid).get(ctx);
+            return await Store.UserCounter.byId(uid).get(ctx);
         });
     }
 
     async getUserMessagingDialogUnread(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.store.UserDialogCounter.byId(uid, cid).get(ctx);
+            return await Store.UserDialogCounter.byId(uid, cid).get(ctx);
         });
     }
 
@@ -138,21 +135,21 @@ export class UserStateRepository {
 
     async fetchUserGlobalCounter(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let settings = await this.entities.UserSettings.findById(ctx, uid);
+            let settings = await Store.UserSettings.findById(ctx, uid);
             if (!settings) {
-                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
             }
 
             if (settings.globalCounterType === 'unread_messages') {
-                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
             } else if (settings.globalCounterType === 'unread_chats') {
-                return await this.store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
             } else if (settings.globalCounterType === 'unread_messages_no_muted') {
-                return await this.store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
+                return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
             } else if (settings.globalCounterType === 'unread_chats_no_muted') {
-                return await this.store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
+                return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
             } else {
-                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
             }
         });
     }

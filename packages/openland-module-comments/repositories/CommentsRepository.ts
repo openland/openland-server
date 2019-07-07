@@ -17,6 +17,7 @@ import {
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { Store } from 'openland-module-db/FDB';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -294,13 +295,13 @@ export class CommentsRepository {
 
     private async fetchNextCommentId(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let ex = await this.entities.Sequence.findById(ctx, 'comment-id');
+            let ex = await Store.Sequence.findById(ctx, 'comment-id');
             if (ex) {
                 let res = ++ex.value;
                 await ex.flush(ctx);
                 return res;
             } else {
-                await this.entities.Sequence.create(ctx, 'comment-id', {value: 1});
+                await Store.Sequence.create(ctx, 'comment-id', {value: 1});
                 return 1;
             }
         });

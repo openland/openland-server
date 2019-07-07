@@ -75,7 +75,7 @@ export class OrganizationModule {
                 if (sendEmail) {
                     await Emails.sendAccountActivatedEmail(ctx, id);
                 }
-                for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
+                for (let m of await Store.OrganizationMember.organization.findAll(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid, false);
                     let profile = await Store.UserProfile.findById(ctx, m.uid);
                     let org = await Store.Organization.findById(ctx, id);
@@ -115,7 +115,7 @@ export class OrganizationModule {
                 throw Error('Profile is not created');
             }
 
-            let member = await Modules.DB.entities.OrganizationMember.findById(ctx, oid, by);
+            let member = await Store.OrganizationMember.findById(ctx, oid, by);
             let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
             let canAdd = (member && member.status === 'joined') || isSuperAdmin || skipChecks;
             if (!canAdd) {
@@ -161,7 +161,7 @@ export class OrganizationModule {
         return await inTx(parent, async (ctx) => {
 
             // Check current membership state
-            let member = await FDB.OrganizationMember.findById(ctx, oid, uid);
+            let member = await Store.OrganizationMember.findById(ctx, oid, uid);
             if (!member) {
                 return false;
             }

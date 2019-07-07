@@ -76,7 +76,7 @@ export default {
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: AppContext) => {
             if (ctx.auth.uid) {
-                return (await Promise.all((await FDB.OrganizationMember.allFromUser(ctx, 'joined', ctx.auth.uid))
+                return (await Promise.all((await Store.OrganizationMember.user.findAll(ctx, 'joined', ctx.auth.uid))
                     .map((v) => Store.Organization.findById(ctx, v.oid))))
                     .filter((v) => v!.status !== 'suspended' && v!.status !== 'deleted');
             }

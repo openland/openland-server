@@ -2,7 +2,7 @@ import { withAccount } from '../openland-module-api/Resolvers';
 import { UserError } from '../openland-errors/UserError';
 import { ErrorText } from '../openland-errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
 import { withUser } from '../openland-module-users/User.resolver';
@@ -49,7 +49,7 @@ export default {
         alphaSetOrgShortName: withAccount(async (ctx, args, uid) => {
             let orgId = IDs.Organization.parse(args.id);
 
-            let member = await FDB.OrganizationMember.findById(ctx, orgId, uid);
+            let member = await Store.OrganizationMember.findById(ctx, orgId, uid);
             if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }

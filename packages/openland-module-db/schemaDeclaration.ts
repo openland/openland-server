@@ -123,44 +123,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('OrganizationMember', () => {
-        primaryKey('oid', 'number');
-        primaryKey('uid', 'number');
-        field('invitedBy', 'number').nullable();
-        enumField('role', ['admin', 'member']);
-        enumField('status', ['requested', 'joined', 'left']);
-
-        uniqueIndex('ids', ['oid', 'uid']).withRange();
-        rangeIndex('organization', ['status', 'oid', 'uid']).withDisplayName('usersFromOrganization');
-        rangeIndex('user', ['status', 'uid', 'oid']).withDisplayName('organizationsFromUser');
-
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('ReaderState', () => {
-        primaryKey('id', 'string');
-        field('cursor', 'string');
-        field('version', 'number').nullable();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('UserSettings', () => {
-        primaryKey('id', 'number');
-        enumField('emailFrequency', ['1hour', '15min', 'never', '24hour', '1week']);
-        enumField('desktopNotifications', ['all', 'direct', 'none']);
-        enumField('mobileNotifications', ['all', 'direct', 'none']);
-        enumField('commentNotifications', ['all', 'direct', 'none']).nullable();
-        enumField('commentNotificationsDelivery', ['all', 'none']).nullable();
-        field('mobileAlert', 'boolean').nullable();
-        field('mobileIncludeText', 'boolean').nullable();
-        enumField('notificationsDelay', ['none', '1min', '15min']).nullable();
-        enumField('globalCounterType', ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted']).nullable();
-        enableVersioning();
-        enableTimestamps();
-    });
-
     entity('ShortnameReservation', () => {
         primaryKey('shortname', 'string');
         enumField('ownerType', ['org', 'user']);
@@ -168,17 +130,6 @@ const Schema = declareSchema(() => {
         field('enabled', 'boolean');
         uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
         uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('AuthCodeSession', () => {
-        primaryKey('uid', 'string');
-        field('code', 'string').secure();
-        field('expires', 'number');
-        field('email', 'string');
-        field('tokenId', 'string').nullable().secure();
-        field('enabled', 'boolean');
         enableVersioning();
         enableTimestamps();
     });
@@ -276,11 +227,6 @@ const Schema = declareSchema(() => {
     //
     // Conversation State
     //
-
-    entity('Sequence', () => {
-        primaryKey('sequence', 'string');
-        field('value', 'number');
-    });
 
     entity('Message', () => {
         primaryKey('id', 'number');
@@ -659,14 +605,6 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    entity('MessageDraft', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
-        field('contents', 'string').secure();
-        enableVersioning();
-        enableTimestamps();
-    });
-
     entity('ChannelInvitation', () => {
         primaryKey('id', 'string');
         field('creatorId', 'number');
@@ -729,153 +667,11 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    entity('ConferenceRoom', () => {
-        primaryKey('id', 'number');
-        field('startTime', 'number').nullable();
-        enumField('strategy', ['direct', 'bridged']).nullable();
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('ConferencePeer', () => {
-        primaryKey('id', 'number');
-        field('cid', 'number');
-        field('uid', 'number');
-        field('tid', 'string');
-        field('keepAliveTimeout', 'number');
-        field('enabled', 'boolean');
-        uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
-        rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
-        rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('ConferenceMediaStream', () => {
-        primaryKey('id', 'number');
-        field('cid', 'number');
-        field('peer1', 'number');
-        field('peer2', 'number').nullable();
-        enumField('kind', ['direct', 'bridged']);
-        enumField('state', ['wait-offer', 'wait-answer', 'online', 'completed']);
-        field('offer', 'string').nullable();
-        field('answer', 'string').nullable();
-        field('ice1', 'json');
-        field('ice2', 'json');
-        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('ConferenceConnection', () => {
-        primaryKey('peer1', 'number');
-        primaryKey('peer2', 'number');
-        field('cid', 'number');
-        enumField('state', ['wait-offer', 'wait-answer', 'online', 'completed']);
-        field('offer', 'string').nullable();
-        field('answer', 'string').nullable();
-        field('ice1', 'json');
-        field('ice2', 'json');
-        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    //
-    // Social Connections
-    //
-
-    entity('UserEdge', () => {
-        primaryKey('uid1', 'number');
-        primaryKey('uid2', 'number');
-        rangeIndex('forward', ['uid1', 'uid2']);
-        rangeIndex('reverse', ['uid2', 'uid1']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserInfluencerUserIndex', () => {
-        primaryKey('uid', 'number');
-        field('value', 'number');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserInfluencerIndex', () => {
-        primaryKey('uid', 'number');
-        field('value', 'number');
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    /* 
-     * Feed
-     */
-
-    entity('FeedSubscriber', () => {
-        primaryKey('id', 'number');
-        field('key', 'string');
-        enableTimestamps();
-        enableVersioning();
-
-        uniqueIndex('key', ['key']);
-    });
-
-    entity('FeedSubscription', () => {
-        primaryKey('sid', 'number');
-        primaryKey('tid', 'number');
-        field('enabled', 'boolean');
-
-        rangeIndex('subscriber', ['sid', 'tid']).withCondition((state) => state.enabled);
-        rangeIndex('topic', ['tid', 'sid']).withCondition((state) => state.enabled);
-    });
-
-    entity('FeedTopic', () => {
-        primaryKey('id', 'number');
-        field('key', 'string');
-        enableTimestamps();
-        enableVersioning();
-
-        uniqueIndex('key', ['key']);
-    });
-    entity('FeedEvent', () => {
-        primaryKey('id', 'number');
-        field('tid', 'number');
-
-        field('type', 'string');
-        field('content', 'json');
-
-        enableTimestamps();
-        enableVersioning();
-
-        rangeIndex('topic', ['tid', 'createdAt']);
-        rangeIndex('updated', ['updatedAt']);
-    });
-
     entity('AppHook', () => {
         primaryKey('appId', 'number');
         primaryKey('chatId', 'number');
         field('key', 'string');
         uniqueIndex('key', ['key']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserStorageNamespace', () => {
-        primaryKey('id', 'number');
-        field('ns', 'string');
-        uniqueIndex('namespace', ['ns']);
-        enableTimestamps();
-        enableVersioning();
-    });
-
-    entity('UserStorageRecord', () => {
-        primaryKey('uid', 'number');
-        primaryKey('id', 'number');
-        field('ns', 'number');
-        field('key', 'string');
-        field('value', 'string').nullable();
-        uniqueIndex('key', ['uid', 'ns', 'key']);
         enableTimestamps();
         enableVersioning();
     });

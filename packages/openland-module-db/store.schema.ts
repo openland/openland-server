@@ -48,6 +48,19 @@ export default declareSchema(() => {
         field('picture', optional(string()));
     });
 
+    entity('UserSettings', () => {
+        primaryKey('id', integer());
+        field('emailFrequency', enumString('1hour', '15min', 'never', '24hour', '1week'));
+        field('desktopNotifications', enumString('all', 'direct', 'none'));
+        field('mobileNotifications', enumString('all', 'direct', 'none'));
+        field('commentNotifications', optional(enumString('all', 'direct', 'none')));
+        field('commentNotificationsDelivery', optional(enumString('all', 'none')));
+        field('mobileAlert', optional(boolean()));
+        field('mobileIncludeText', optional(boolean()));
+        field('notificationsDelay', optional(enumString('none', '1min', '15min')));
+        field('globalCounterType', optional(enumString('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')));
+    });
+
     //
     // Organization
     //
@@ -67,13 +80,13 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('name', string());
         field('photo', optional(struct({
-           uuid:  string(),
-           crop: optional(struct({
-               x: integer(),
-               y: integer(),
-               w: integer(),
-               h: integer()
-           }))
+            uuid: string(),
+            crop: optional(struct({
+                x: integer(),
+                y: integer(),
+                w: integer(),
+                h: integer()
+            }))
         })));
         field('about', optional(string()));
         field('twitter', optional(string()));
@@ -88,6 +101,18 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('listed', boolean());
         field('featured', boolean());
+    });
+
+    entity('OrganizationMember', () => {
+        primaryKey('oid', integer());
+        primaryKey('uid', integer());
+        field('invitedBy', optional(integer()));
+        field('role', enumString('admin', 'member'));
+        field('status', enumString('requested', 'joined', 'left'));
+
+        uniqueIndex('ids', ['oid', 'uid']);
+        rangeIndex('organization', ['status', 'oid', 'uid']);
+        rangeIndex('user', ['status', 'uid', 'oid']);
     });
 
     //
@@ -109,6 +134,120 @@ export default declareSchema(() => {
         field('platform', string());
         field('active', optional(boolean()));
         rangeIndex('user', ['uid', 'lastSeen']);
+    });
+
+    //
+    // Messaging
+    //
+
+    entity('MessageDraft', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+        field('contents', optional(string()));
+    });
+
+    //
+    // Conference
+    //
+
+    entity('ConferenceRoom', () => {
+        primaryKey('id', integer());
+        field('startTime', optional(integer()));
+        field('strategy', optional(enumString('direct', 'bridged')));
+    });
+
+    entity('ConferencePeer', () => {
+        primaryKey('id', integer());
+        field('cid', integer());
+        field('uid', integer());
+        field('tid', string());
+        field('keepAliveTimeout', integer());
+        field('enabled', boolean());
+        uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
+        rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
+        rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
+    });
+
+    entity('ConferenceMediaStream', () => {
+        primaryKey('id', integer());
+        field('cid', integer());
+        field('peer1', integer());
+        field('peer2', optional(integer()));
+        field('kind', enumString('direct', 'bridged'));
+        field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
+        field('offer', optional(string()));
+        field('answer', optional(string()));
+        field('ice1', json());
+        field('ice2', json());
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
+    });
+
+    entity('ConferenceConnection', () => {
+        primaryKey('peer1', integer());
+        primaryKey('peer2', integer());
+        field('cid', integer());
+        field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
+        field('offer', optional(string()));
+        field('answer', optional(string()));
+        field('ice1', json());
+        field('ice2', json());
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
+    });
+
+    //
+    // Experience
+    //
+
+    entity('UserEdge', () => {
+        primaryKey('uid1', integer());
+        primaryKey('uid2', integer());
+        rangeIndex('forward', ['uid1', 'uid2']);
+        rangeIndex('reverse', ['uid2', 'uid1']);
+    });
+
+    entity('UserInfluencerUserIndex', () => {
+        primaryKey('uid', integer());
+        field('value', integer());
+    });
+
+    entity('UserInfluencerIndex', () => {
+        primaryKey('uid', integer());
+        field('value', integer());
+    });
+
+    //
+    // Feed
+    //
+
+    entity('FeedSubscriber', () => {
+        primaryKey('id', integer());
+        field('key', string());
+        uniqueIndex('key', ['key']);
+    });
+
+    entity('FeedSubscription', () => {
+        primaryKey('sid', integer());
+        primaryKey('tid', integer());
+        field('enabled', boolean());
+
+        rangeIndex('subscriber', ['sid', 'tid']).withCondition((state) => state.enabled);
+        rangeIndex('topic', ['tid', 'sid']).withCondition((state) => state.enabled);
+    });
+
+    entity('FeedTopic', () => {
+        primaryKey('id', integer());
+        field('key', string());
+        uniqueIndex('key', ['key']);
+    });
+    entity('FeedEvent', () => {
+        primaryKey('id', integer());
+        field('tid', integer());
+
+        field('type', string());
+        field('content', json());
+
+        rangeIndex('topic', ['tid', 'createdAt']);
+        rangeIndex('updated', ['updatedAt']);
     });
 
     //
@@ -236,8 +375,32 @@ export default declareSchema(() => {
     });
 
     //
+    // User Storage
+    //
+
+    entity('UserStorageNamespace', () => {
+        primaryKey('id', integer());
+        field('ns', string());
+        uniqueIndex('namespace', ['ns']);
+    });
+
+    entity('UserStorageRecord', () => {
+        primaryKey('uid', integer());
+        primaryKey('id', integer());
+        field('ns', integer());
+        field('key', string());
+        field('value', optional(string()));
+        uniqueIndex('key', ['uid', 'ns', 'key']);
+    });
+
+    //
     // System
     //
+
+    entity('Sequence', () => {
+        primaryKey('sequence', string());
+        field('value', integer());
+    });
 
     entity('Environment', () => {
         primaryKey('production', integer());
@@ -256,6 +419,12 @@ export default declareSchema(() => {
         rangeIndex('fromService', ['service', 'key']);
     });
 
+    entity('ReaderState', () => {
+        primaryKey('id', string());
+        field('cursor', string());
+        field('version', optional(integer()));
+    });
+
     entity('SuperAdmin', () => {
         primaryKey('id', integer());
         field('role', string());
@@ -271,6 +440,15 @@ export default declareSchema(() => {
         uniqueIndex('salt', ['salt']);
         rangeIndex('user', ['uid', 'uuid'])
             .withCondition(src => src.enabled !== false);
+    });
+
+    entity('AuthCodeSession', () => {
+        primaryKey('uid', string());
+        field('code', string()).secure();
+        field('expires', integer());
+        field('email', string());
+        field('tokenId', optional(string())).secure();
+        field('enabled', boolean());
     });
 
     entity('FeatureFlag', () => {

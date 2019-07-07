@@ -1,5 +1,5 @@
 import { Store } from './../openland-module-db/FDB';
-import { UserSettings } from 'openland-module-db/schema';
+import { UserSettings } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';

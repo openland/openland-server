@@ -83,7 +83,7 @@ export default {
             //
             // Organization rooms
             //
-            let organizations = await FDB.OrganizationMember.allFromUser(ctx, 'joined', uid);
+            let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
             let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
             let orgRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {

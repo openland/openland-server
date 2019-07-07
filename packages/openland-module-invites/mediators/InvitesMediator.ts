@@ -116,7 +116,7 @@ export class InvitesMediator {
             if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
-            let ex = await FDB.OrganizationMember.findById(ctx, invite.oid, uid);
+            let ex = await Store.OrganizationMember.findById(ctx, invite.oid, uid);
             let org = (await Store.Organization.findById(ctx, invite.oid))!;
             let profile = (await Store.OrganizationProfile.findById(ctx, invite.oid))!;
 

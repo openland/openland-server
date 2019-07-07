@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
-import { FDB, Store } from 'openland-module-db/FDB';
-import { OrganizationMember } from 'openland-module-db/schema';
+import { Store } from 'openland-module-db/FDB';
+import { OrganizationMember } from 'openland-module-db/store';
 import { Context } from '@openland/context';
 
 async function resolveRoleInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
@@ -27,23 +27,22 @@ export async function resolveOrganizationJoinedMembers(
 ) {
     let afterMember: OrganizationMember | null = null;
     if (args.afterMemberId) {
-        afterMember = await FDB.OrganizationMember.findById(ctx, orgId, args.afterMemberId);
+        afterMember = await Store.OrganizationMember.findById(ctx, orgId, args.afterMemberId);
     }
 
     let members;
     if (afterMember) {
-        members = await FDB.OrganizationMember.rangeFromOrganizationAfter(
+        members = (await Store.OrganizationMember.organization.query(
             ctx,
             'joined',
             orgId,
-            afterMember.uid,
-            args.first || 10,
-        );
+            { limit: args.first || 10, after: afterMember.uid }
+        )).items;
     } else {
         if (!args.first) {
             members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
         } else {
-            members = await FDB.OrganizationMember.rangeFromOrganization(ctx, 'joined', orgId, args.first);
+            members = (await Store.OrganizationMember.organization.query(ctx, 'joined', orgId, { limit: args.first })).items;
         }
     }
 
@@ -56,7 +55,7 @@ export async function resolveOrganizationJoinedMembers(
         result.push({
             _type: 'OrganizationJoinedMember',
             user: member,
-            joinedAt: members[i].createdAt,
+            joinedAt: members[i].metadata.createdAt,
             email: member.email,
             showInContacts: false,
             role: roles[i],
@@ -89,7 +88,7 @@ export async function resolveOrganizationMembersWithStatus(ctx: Context, orgId: 
         result.push({
             _type: 'OrganizationJoinedMember',
             user: member,
-            joinedAt: members[i].createdAt,
+            joinedAt: members[i].metadata.createdAt,
             email: member.email,
             showInContacts: false,
             role: roles[i]

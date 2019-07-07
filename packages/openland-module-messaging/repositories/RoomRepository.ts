@@ -605,7 +605,7 @@ export class RoomRepository {
                 return [];
             }
             let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
-            return (await this.entities.OrganizationMember.allFromOrganization(ctx, 'joined', org.oid)).map((v) => v.uid);
+            return (await Store.OrganizationMember.organization.findAll(ctx, 'joined', org.oid)).map((v) => v.uid);
         } else {
             throw new Error('Internal error');
         }
@@ -835,7 +835,7 @@ export class RoomRepository {
             if (conv.deleted) {
                 throw new AccessDeniedError();
             }
-            let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            let member = await Store.OrganizationMember.findById(ctx, org.oid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
@@ -892,7 +892,7 @@ export class RoomRepository {
             if (!org) {
                 throw new AccessDeniedError();
             }
-            let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            let member = await Store.OrganizationMember.findById(ctx, org.oid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
@@ -909,7 +909,7 @@ export class RoomRepository {
 
         if (conv.kind === 'organization') {
             let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
-            let orgMember = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            let orgMember = await Store.OrganizationMember.findById(ctx, org.oid, uid);
 
             if (orgMember && orgMember.status === 'left') {
                 return true;
@@ -1064,9 +1064,9 @@ export class RoomRepository {
 
     private async fetchNextConversationId(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let sequence = await this.entities.Sequence.findById(ctx, 'conversation-id');
+            let sequence = await Store.Sequence.findById(ctx, 'conversation-id');
             if (!sequence) {
-                sequence = (await this.entities.Sequence.create(ctx, 'conversation-id', { value: 0 }));
+                sequence = (await Store.Sequence.create(ctx, 'conversation-id', { value: 0 }));
                 await sequence.flush(ctx);
             }
             return ++sequence.value;

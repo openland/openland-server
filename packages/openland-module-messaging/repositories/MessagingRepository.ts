@@ -12,6 +12,7 @@ import { lazyInject } from '../../openland-modules/Modules.container';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { RandomLayer } from '@openland/foundationdb-random';
 import { Modules } from 'openland-modules/Modules';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class MessagingRepository {
@@ -247,13 +248,13 @@ export class MessagingRepository {
 
     private async fetchNextMessageId(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let ex = await this.entities.Sequence.findById(ctx, 'message-id');
+            let ex = await Store.Sequence.findById(ctx, 'message-id');
             if (ex) {
                 let res = ++ex.value;
                 await ex.flush(ctx);
                 return res;
             } else {
-                await this.entities.Sequence.create(ctx, 'message-id', { value: 1 });
+                await Store.Sequence.create(ctx, 'message-id', { value: 1 });
                 return 1;
             }
         });

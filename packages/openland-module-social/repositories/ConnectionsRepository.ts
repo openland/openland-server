@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 // import { createLogger } from 'openland-log/createLogger';
 
 // const log = createLogger('connections');
@@ -10,13 +10,13 @@ import { FDB } from 'openland-module-db/FDB';
 export class ConnectionsRepository {
     onMessageSent = async (parent: Context, fromUid: number, toUid: number) => {
         await inTx(parent, async (ctx) => {
-            if (!await FDB.UserEdge.findById(ctx, fromUid, toUid)) {
-                await FDB.UserEdge.create(ctx, fromUid, toUid, {});
-                let infind = await FDB.UserInfluencerUserIndex.findById(ctx, toUid);
+            if (!await Store.UserEdge.findById(ctx, fromUid, toUid)) {
+                await Store.UserEdge.create(ctx, fromUid, toUid, {});
+                let infind = await Store.UserInfluencerUserIndex.findById(ctx, toUid);
                 if (infind) {
                     infind.value++;
                 } else {
-                    await FDB.UserInfluencerUserIndex.create(ctx, toUid, { value: 1 });
+                    await Store.UserInfluencerUserIndex.create(ctx, toUid, { value: 1 });
                 }
             }
         });

@@ -437,7 +437,7 @@ export default {
                 } else if (id.type === IDs.User) {
                     return Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
                 } else if (id.type === IDs.Organization) {
-                    let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                    let member = await Store.OrganizationMember.findById(ctx, id.id as number, uid);
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }

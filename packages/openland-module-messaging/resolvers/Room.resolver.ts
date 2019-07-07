@@ -323,7 +323,7 @@ export default {
             } else if (id.type === IDs.User) {
                 return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
             } else if (id.type === IDs.Organization) {
-                let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                let member = await Store.OrganizationMember.findById(ctx, id.id as number, uid);
                 if (!member || member.status !== 'joined') {
                     throw new IDMailformedError('Invalid id');
                 }
@@ -346,7 +346,7 @@ export default {
                 } else if (id.type === IDs.User) {
                     res.push(await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid));
                 } else if (id.type === IDs.Organization) {
-                    let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                    let member = await Store.OrganizationMember.findById(ctx, id.id as number, uid);
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
@@ -396,7 +396,7 @@ export default {
             }
             if (conversation.kind === 'organization') {
                 let convOrg = await FDB.ConversationOrganization.findById(ctx, roomId);
-                let members = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', convOrg!.oid);
+                let members = await Store.OrganizationMember.organization.findAll(ctx, 'joined', convOrg!.oid);
                 return members.map(m => ({
                     cid: roomId,
                     uid: m.uid,

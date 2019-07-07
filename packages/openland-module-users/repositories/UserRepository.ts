@@ -32,9 +32,9 @@ export class UserRepository {
         return await inTx(parent, async (ctx) => {
 
             // Build next user id sequence number
-            let seq = (await this.entities.Sequence.findById(ctx, 'user-id'));
+            let seq = (await Store.Sequence.findById(ctx, 'user-id'));
             if (!seq) {
-                seq = await this.entities.Sequence.create(ctx, 'user-id', { value: 0 });
+                seq = await Store.Sequence.create(ctx, 'user-id', { value: 0 });
             }
             let id = ++seq.value;
             await seq.flush(ctx);
@@ -176,15 +176,18 @@ export class UserRepository {
 
     async getUserSettings(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let settings = await this.entities.UserSettings.findById(ctx, uid);
+            let settings = await Store.UserSettings.findById(ctx, uid);
             if (!settings) {
-                settings = await this.entities.UserSettings.create(ctx, uid, {
+                settings = await Store.UserSettings.create(ctx, uid, {
                     emailFrequency: '1hour',
                     desktopNotifications: 'all',
                     mobileNotifications: 'all',
                     mobileAlert: true,
                     mobileIncludeText: true,
-                    notificationsDelay: 'none'
+                    notificationsDelay: 'none',
+                    commentNotifications: null,
+                    commentNotificationsDelivery: null,
+                    globalCounterType: null
                 });
             }
             return settings;
@@ -192,7 +195,7 @@ export class UserRepository {
     }
 
     async waitForNextSettings(ctx: Context, uid: number) {
-        let w = await inTx(ctx, async (ctx2) => this.entities.UserSettings.watch(ctx2, uid));
+        let w = await inTx(ctx, async (ctx2) => Store.UserSettings.watch(ctx2, uid));
         await w.promise;
     }
 
