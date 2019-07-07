@@ -763,7 +763,7 @@ export default {
             if (args.before && await Store.Message.findById(ctx, beforeId!)) {
                 return (await Store.Message.chat.query(ctx, roomId, { after: beforeId!, limit: args.first!, reverse: true })).items;
             }
-            return await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true });
+            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
         message: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
