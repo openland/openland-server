@@ -6,7 +6,7 @@ import { createWeeklyReportWorker } from './workers/WeeklyReportWorker';
 import { createDailyReportWorker } from './workers/DailyReportWorker';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
-import { buildMessage, heading, userMention } from '../openland-utils/MessageBuilder';
+import { boldString, buildMessage, heading, userMention } from '../openland-utils/MessageBuilder';
 import { getSuperNotificationsBotId, getUserReportsChatId, resolveUsername } from './workers/utils';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
@@ -181,6 +181,9 @@ export class StatsModule {
             const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
 
             const emailSent = await Store.UserEmailSentCounter.byId(uid).get(ctx);
+            const browserPushSent = await Store.UserBrowserPushSentCounter.byId(uid).get(ctx);
+            const mobilePushSent = await Store.UserMobilePushSentCounter.byId(uid).get(ctx);
+
             const userSettings = await Modules.Users.getUserSettings(ctx, uid);
 
             let orgName = '';
@@ -191,52 +194,49 @@ export class StatsModule {
 
             let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
             if (score > 0) {
+                report.push(`👥 `);
+                report.push(boldString(`${groupsJoined} `));
+                report.push(`${plural(groupsJoined, ['group', 'groups'])}  `);
+                report.push(`➡️ `);
+                report.push(boldString(`${allMessages}·${directMessages}·${groupMessages} `));
+                report.push(`${plural(directMessages, ['message', 'messages'])} sent: all, dm, gm  `);
                 if (mobileOnline) {
-                    report.push('✅ Mobile  ');
+                    report.push('● mobile  ');
                 } else {
-                    report.push('🚫 Mobile  ');
+                    report.push('○ mobile  ');
                 }
-                report.push(`👥 ${groupsJoined} ${plural(groupsJoined, ['group', 'groups'])}  `);
-                report.push(`✉️ ${allMessages} ${plural(directMessages, ['message', 'messages'])} sent: ${directMessages} DMs, ${groupMessages} GMs  `);
-                report.push(`👋 ${successfulInvites} successful ${plural(successfulInvites, ['invite', 'invites'])}\n`);
-                report.push(`📭 ${emailSent} emails sent  `);
+                report.push(`👋 `);
+                report.push(boldString(`${successfulInvites}`));
+                report.push(` ${plural(successfulInvites, ['user', 'users'])} invited\n`);
+
+                report.push('🚨 ');
+                report.push(boldString(`${browserPushSent}·${emailSent}·${mobilePushSent} `));
+                report.push(`pushes: broswer, email, mobile  `);
 
                 // privileges
                 switch (userSettings.desktopNotifications) {
-                    case 'all':
-                        report.push('✅');
-                        break;
-                    case 'direct':
-                        report.push('✔️');
+                    case 'none':
+                        report.push('○');
                         break;
                     default:
-                        report.push('🚫');
-                        break;
+                        report.push('●');
                 }
-                report.push(' Desktop notifications  ');
-
-                switch (userSettings.mobileNotifications) {
-                    case 'all':
-                        report.push('✅');
-                        break;
-                    case 'direct':
-                        report.push('✔️');
-                        break;
-                    default:
-                        report.push('🚫');
-                        break;
-                }
-                report.push(' Mobile notifications  ');
-
                 switch (userSettings.emailFrequency) {
                     case 'never':
-                        report.push('🚫️');
+                        report.push('○');
                         break;
                     default:
-                        report.push('✅');
+                        report.push('●');
                         break;
                 }
-                report.push(' Email notifications');
+                switch (userSettings.mobileNotifications) {
+                    case 'none':
+                        report.push('○');
+                        break;
+                    default:
+                        report.push('●');
+                }
+                report.push(' privileges: browser, email, mobile');
             }
 
             await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {

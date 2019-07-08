@@ -139,6 +139,12 @@ export default declareSchema(() => {
     atomicInt('UserEmailSentCounter', () => {
         primaryKey('uid', integer());
     });
+    atomicInt('UserBrowserPushSentCounter', () => {
+        primaryKey('uid', integer());
+    });
+    atomicInt('UserMobilePushSentCounter', () => {
+        primaryKey('uid', integer());
+    });
 
     atomicInt('UserDialogCounter', () => {
         primaryKey('uid', integer());
