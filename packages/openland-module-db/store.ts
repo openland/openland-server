@@ -298,6 +298,78 @@ export class UserEmailSentCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserBrowserPushSentCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userBrowserPushSentCounter');
+        return new UserBrowserPushSentCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserMobilePushSentCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMobilePushSentCounter');
+        return new UserMobilePushSentCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -10965,6 +11037,8 @@ export interface Store extends BaseStore {
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserSuccessfulInvitesCounter: UserSuccessfulInvitesCounterFactory;
     readonly UserEmailSentCounter: UserEmailSentCounterFactory;
+    readonly UserBrowserPushSentCounter: UserBrowserPushSentCounterFactory;
+    readonly UserMobilePushSentCounter: UserMobilePushSentCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
     readonly NotificationCenterCounter: NotificationCenterCounterFactory;
@@ -11072,6 +11146,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
     let UserSuccessfulInvitesCounterPromise = UserSuccessfulInvitesCounterFactory.open(storage);
     let UserEmailSentCounterPromise = UserEmailSentCounterFactory.open(storage);
+    let UserBrowserPushSentCounterPromise = UserBrowserPushSentCounterFactory.open(storage);
+    let UserMobilePushSentCounterPromise = UserMobilePushSentCounterFactory.open(storage);
     let UserDialogCounterPromise = UserDialogCounterFactory.open(storage);
     let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.open(storage);
     let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(storage);
@@ -11178,6 +11254,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
         UserSuccessfulInvitesCounter: await UserSuccessfulInvitesCounterPromise,
         UserEmailSentCounter: await UserEmailSentCounterPromise,
+        UserBrowserPushSentCounter: await UserBrowserPushSentCounterPromise,
+        UserMobilePushSentCounter: await UserMobilePushSentCounterPromise,
         UserDialogCounter: await UserDialogCounterPromise,
         UserDialogHaveMention: await UserDialogHaveMentionPromise,
         NotificationCenterCounter: await NotificationCenterCounterPromise,

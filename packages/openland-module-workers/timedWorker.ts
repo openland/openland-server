@@ -73,10 +73,12 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
             }
         });
 
-        queue.addWorker(async (_, ctx) => {
-            let res = await handler(ctx);
-            await pushNext(ctx);
-            return res;
+        queue.addWorker( (_, parent) => {
+            return inTx(parent, async (ctx) => {
+                let res = await handler(ctx);
+                await pushNext(ctx);
+                return res;
+            });
         });
     })();
 };

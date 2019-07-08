@@ -6,6 +6,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
 import { withReadOnlyTransaction } from '@openland/foundationdb';
+import { Store } from '../../openland-module-db/FDB';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -44,7 +45,7 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         // Web Push
                         //
-
+                        Store.UserBrowserPushSentCounter.byId(args.uid).increment(ctx);
                         let webTokens = await repo.getUserWebPushTokens(ctx, args.uid);
                         for (let wp of webTokens) {
                             await Modules.Push.webWorker.pushWork(ctx, {
@@ -75,6 +76,8 @@ export function createPushWorker(repo: PushRepository) {
                         }
                     }
                     if (args.mobile) {
+                        Store.UserMobilePushSentCounter.byId(args.uid).increment(ctx);
+
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
                         //
                         // iOS
