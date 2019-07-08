@@ -182,6 +182,7 @@ export class HooksModule {
 
     onMessageSent = async (ctx: Context, uid: number) => {
         await Modules.UserOnboarding.onMessageSent(ctx, uid);
+        await Modules.Stats.onMessageSent(ctx);
     }
 
     onChatMembersCountChange = async (ctx: Context, cid: number, delta: number) => {

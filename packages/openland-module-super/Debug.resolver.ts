@@ -880,6 +880,20 @@ export default {
             });
             return true;
         }),
+        debugCreateDailyReport: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.generateDailyReport(ctx);
+            });
+
+            return true;
+        }),
+        debugCreateWeeklyReport: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.generateWeeklyReport(ctx);
+            });
+
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {

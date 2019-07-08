@@ -114,6 +114,8 @@ extend type Mutation {
     debugEnableNotificationCenterForAll: Boolean!
     debugResetGlobalCounters: Boolean!
     debugCalcGlobalCountersForAll: Boolean!
+    debugCreateDailyReport: Boolean!
+    debugCreateWeeklyReport: Boolean!
 }
 
 extend type Subscription {

@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
-import { Modules } from '../../openland-modules/Modules';
-import { Store } from '../../openland-module-db/FDB';
+import { Modules } from '../openland-modules/Modules';
+import { Store } from '../openland-module-db/FDB';
 
 export const getSuperNotificationsBotId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
 export const getUserReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-reports-chat-id');
@@ -16,7 +16,8 @@ export const getGlobalStatisticsForReport = (prefix?: string) => {
     return {
         userEntrances: Store.GlobalStatisticsCounters.byId(namePrefix + 'user-entrances'),
         mobileUsers: Store.GlobalStatisticsCounters.byId(namePrefix + 'mobile-users'),
-        successfulInvites: Store.GlobalStatisticsCounters.byId(namePrefix + 'successful-invites')
+        successfulInvites: Store.GlobalStatisticsCounters.byId(namePrefix + 'successful-invites'),
+        messages: Store.GlobalStatisticsCounters.byId( namePrefix + 'messages')
     };
 };
 

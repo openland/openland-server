@@ -7,10 +7,16 @@ import { createDailyReportWorker } from './workers/DailyReportWorker';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { boldString, buildMessage, heading, userMention } from '../openland-utils/MessageBuilder';
-import { getSuperNotificationsBotId, getUserReportsChatId, resolveUsername } from './workers/utils';
+import {
+    getGlobalStatisticsForReport,
+    getGrowthReportsChatId,
+    getSuperNotificationsBotId,
+    getUserReportsChatId, getWeeklyReportsChatId,
+    resolveUsername,
+} from './utils';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
-import { plural } from '../openland-utils/string';
+import { formatNumberWithSign, plural } from '../openland-utils/string';
 
 const log = createLogger('stats');
 
@@ -24,20 +30,12 @@ export class StatsModule {
         createWeeklyReportWorker();
     }
 
-    queueFirstWeekReport = (ctx: Context, uid: number, dbgDelay?: number) => {
-        let delay = dbgDelay ? dbgDelay : 1000 * 60 * 60 * 24 * 7; // 7 days
-
-        return this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
-    }
-
-    queueSilentUserReport = (ctx: Context, uid: number, dbgDelay?: number) => {
-        let delay = dbgDelay ? dbgDelay :  1000 * 60 * 60 * 24 * 2; // 2 days
-
-        return this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
-    }
-
     onNewMobileUser = (ctx: Context) => {
         Store.GlobalStatisticsCounters.byId('mobile-users').increment(ctx);
+    }
+
+    onMessageSent = (ctx: Context) => {
+        Store.GlobalStatisticsCounters.byId('messages').increment(ctx);
     }
 
     onNewEntrance = (ctx: Context) => {
@@ -55,6 +53,18 @@ export class StatsModule {
         if (invitesCnt === 1) {
             await this.generateNewInviterReport(ctx, newUserId, inviterId);
         }
+    }
+
+    queueFirstWeekReport = (ctx: Context, uid: number, dbgDelay?: number) => {
+        let delay = dbgDelay ? dbgDelay : 1000 * 60 * 60 * 24 * 7; // 7 days
+
+        return this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
+    }
+
+    queueSilentUserReport = (ctx: Context, uid: number, dbgDelay?: number) => {
+        let delay = dbgDelay ? dbgDelay :  1000 * 60 * 60 * 24 * 2; // 2 days
+
+        return this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
     }
 
     generateNewInviterReport = async (ctx: Context, newUserId: number, inviterId: number) => {
@@ -234,7 +244,10 @@ export class StatsModule {
                         report.push('○');
                         break;
                     default:
-                        report.push('●');
+                        if (mobileOnline) {
+                            report.push('●');
+                        }
+                        break;
                 }
                 report.push(' privileges: browser, email, mobile');
             }
@@ -244,6 +257,94 @@ export class StatsModule {
             });
 
             return { result: 'completed' };
+        });
+    }
+
+    generateDailyReport = async (ctx: Context) => {
+        const chatId = await getGrowthReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        const currentStats = getGlobalStatisticsForReport();
+        const yesterdayStats = getGlobalStatisticsForReport('yesterday');
+
+        const userEntrances = await currentStats.userEntrances.get(ctx);
+        const yesterdayUserEntrances = await yesterdayStats.userEntrances.get(ctx);
+        const newUserEntrances = userEntrances - yesterdayUserEntrances;
+        yesterdayStats.userEntrances.set(ctx, userEntrances);
+
+        const mobileUsers = await currentStats.mobileUsers.get(ctx);
+        const yesterdayMobileUsers = await yesterdayStats.mobileUsers.get(ctx);
+        const newMobileUsers = mobileUsers - yesterdayMobileUsers;
+        yesterdayStats.mobileUsers.set(ctx, mobileUsers);
+
+        const successfulInvites = await currentStats.successfulInvites.get(ctx);
+        const yesterdaySuccessfulInvites = await yesterdayStats.successfulInvites.get(ctx);
+        const newInvites = successfulInvites - yesterdaySuccessfulInvites;
+        yesterdayStats.successfulInvites.set(ctx, successfulInvites);
+
+        const report = [heading('Daily'), '\n'];
+        report.push(`🐥 ${newUserEntrances} new user ${plural(newUserEntrances, ['entrance', 'entrances'])}\n`);
+        report.push(`📱 ${newMobileUsers} new mobile ${plural(newMobileUsers, ['user', 'users'])}\n`);
+        report.push(`🙌🏽 ${newInvites} successful ${plural(newInvites, ['invite', 'invites'])}\n`);
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...report),
+            ignoreAugmentation: true,
+        });
+    }
+
+    generateWeeklyReport = async (ctx: Context) => {
+        const chatId = await getWeeklyReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        const allTimeStats = getGlobalStatisticsForReport();
+        const prevWeekStats = getGlobalStatisticsForReport('prev-week');
+        const prevWeekStatsSnapshot = getGlobalStatisticsForReport('prev-week-snapshot');
+
+        const userEntrances = await allTimeStats.userEntrances.get(ctx);
+        const prevWeekUserEntrances = await prevWeekStats.userEntrances.get(ctx);
+        const newUserEntrances = userEntrances - prevWeekUserEntrances;
+        const newUserEntrancesDiff = newUserEntrances - (await prevWeekStatsSnapshot.userEntrances.get(ctx));
+        prevWeekStats.userEntrances.set(ctx, userEntrances);
+        prevWeekStatsSnapshot.userEntrances.set(ctx, newUserEntrances);
+
+        const mobileUsers = await allTimeStats.mobileUsers.get(ctx);
+        const prevWeekMobileUsers = await prevWeekStats.mobileUsers.get(ctx);
+        const newMobileUsers = mobileUsers - prevWeekMobileUsers;
+        const newMobileUsersDiff = newMobileUsers - (await prevWeekStatsSnapshot.mobileUsers.get(ctx));
+        prevWeekStats.mobileUsers.set(ctx, mobileUsers);
+        prevWeekStatsSnapshot.mobileUsers.set(ctx, newMobileUsers);
+
+        // const successfulInvites = await allTimeStats.successfulInvites.get(ctx);
+        // const prevWeekSuccessfulInvites = await prevWeekStats.successfulInvites.get(ctx);
+        // const newInvites = successfulInvites - prevWeekSuccessfulInvites;
+        // const newInvitesDiff = newInvites - (await prevWeekStatsSnapshot.successfulInvites.get(ctx));
+        // prevWeekStats.successfulInvites.set(ctx, successfulInvites);
+        // prevWeekStatsSnapshot.successfulInvites.set(ctx, newInvites);
+
+        const messagesSent = await allTimeStats.messages.get(ctx);
+        const prvWeekMessagesSent = await prevWeekStats.messages.get(ctx);
+        const newMessages = messagesSent - prvWeekMessagesSent;
+        const newMessagesDiff = newMessages - (await prevWeekStatsSnapshot.messages.get(ctx));
+        prevWeekStats.messages.set(ctx, messagesSent);
+        prevWeekStatsSnapshot.messages.set(ctx, newMessages);
+
+        const report = [heading('Weekly'), '\n'];
+        report.push(`🐥 `, boldString(`${newUserEntrances}`), ` new user ${plural(newUserEntrances, ['entrance', 'entrances'])} (${formatNumberWithSign(newUserEntrancesDiff)})\n`);
+        report.push(`📱 `, boldString(`${newMobileUsers}`), ` new mobile ${plural(newMobileUsers, ['user', 'users'])} (${formatNumberWithSign(newMobileUsersDiff)})\n`);
+        report.push(`➡️ `, boldString(`${newMessages}`), ` ${plural(newMessages, ['message', 'messages'])} sent (${formatNumberWithSign(newMessagesDiff)})\n`);
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...report),
+            ignoreAugmentation: true,
         });
     }
 }
