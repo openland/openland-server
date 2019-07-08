@@ -1,5 +1,4 @@
 import { Store } from './../openland-module-db/store';
-import { EntityLayer } from 'foundation-orm/EntityLayer';
 import 'reflect-metadata';
 import { container } from './Modules.container';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
@@ -25,7 +24,6 @@ import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { AuthModule } from 'openland-module-auth/AuthModule';
-import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { loadMessagingModule } from 'openland-module-messaging/Messaging.container';
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
@@ -63,15 +61,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let start = currentTime();
         let db = await openDatabase();
         logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
-
-        // Old Entity
-        start = currentTime();
-        let layer = new EntityLayer(db, 'app');
-        let entities = await AllEntitiesDirect.create(layer);
-        logger.log(ctx, 'Layer started in ' + (currentTime() - start) + ' ms');
-        container.bind<AllEntities>('FDB')
-            .toDynamicValue(() => entities)
-            .inSingletonScope();
 
         // New entity
         let storage = new EntityStorage(db);

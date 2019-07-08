@@ -1,7 +1,7 @@
+import { Store } from './../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomRepository } from './RoomRepository';
-import { FDB } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 
 describe('RoomRepository', () => {
@@ -28,7 +28,7 @@ describe('RoomRepository', () => {
         expect(conv.kind).toEqual('room');
 
         // Room
-        let room = (await FDB.ConversationRoom.findById(ctx, conv.id))!;
+        let room = (await Store.ConversationRoom.findById(ctx, conv.id))!;
         expect(room.kind).toEqual('public');
         expect(room.oid).toEqual(ORG_ID);
         expect(room.ownerId).toEqual(USER_ID);
@@ -36,7 +36,7 @@ describe('RoomRepository', () => {
         expect(room.featured).toEqual(false);
 
         // Room profile
-        let roomProfile = (await FDB.RoomProfile.findById(ctx, conv.id))!;
+        let roomProfile = (await Store.RoomProfile.findById(ctx, conv.id))!;
         expect(roomProfile).not.toBeNull();
         expect(roomProfile).not.toBeUndefined();
         expect(roomProfile.title).toEqual('Room name '); // No preprocessing
@@ -45,8 +45,8 @@ describe('RoomRepository', () => {
         expect(roomProfile.socialImage).toEqual('Some random social image ref');
 
         // Room members
-        let members = await FDB.RoomParticipant.allFromActive(ctx, conv.id);
-        let requests = await FDB.RoomParticipant.allFromRequests(ctx, conv.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, conv.id);
+        let requests = await Store.RoomParticipant.requests.findAll(ctx, conv.id);
         expect(requests.length).toBe(0);
         expect(members.length).toBe(4);
         for (let m of members) {
@@ -72,7 +72,7 @@ describe('RoomRepository', () => {
         expect(await repo.addToRoom(ctx, conv.id, 3, USER_ID)).toBe(false); // Double invoke
         expect(await repo.addToRoom(ctx, conv.id, 4, USER_ID)).toBe(true);
         expect(await repo.addToRoom(ctx, conv.id, 5, USER_ID)).toBe(true);
-        let members = await FDB.RoomParticipant.allFromActive(ctx, conv.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, conv.id);
         expect(members.length).toBe(4);
         for (let m of members) {
             expect(m.cid).toEqual(conv.id);
@@ -96,7 +96,7 @@ describe('RoomRepository', () => {
         expect(await repo.kickFromRoom(ctx, conv.id, 3)).toBe(false); // Double invoke
         expect(await repo.kickFromRoom(ctx, conv.id, 4)).toBe(true);
         expect(await repo.kickFromRoom(ctx, conv.id, 5)).toBe(true);
-        expect((await FDB.RoomParticipant.allFromActive(ctx, conv.id)).length).toBe(1);
+        expect((await Store.RoomParticipant.active.findAll(ctx, conv.id)).length).toBe(1);
     });
 
     it('should be able to leave room', async () => {
@@ -109,7 +109,7 @@ describe('RoomRepository', () => {
         expect(await repo.leaveRoom(ctx, conv.id, 3)).toBe(false); // Double invoke
         expect(await repo.leaveRoom(ctx, conv.id, 4)).toBe(true);
         expect(await repo.leaveRoom(ctx, conv.id, 5)).toBe(true);
-        expect((await FDB.RoomParticipant.allFromActive(ctx, conv.id)).length).toBe(1);
+        expect((await Store.RoomParticipant.active.findAll(ctx, conv.id)).length).toBe(1);
     });
 
     it('should update inivited by value on re-adding user to a room', async () => {
@@ -124,7 +124,7 @@ describe('RoomRepository', () => {
         expect(await repo.leaveRoom(ctx, conv.id, USER2_ID)).toBe(true);
         expect(await repo.addToRoom(ctx, conv.id, USER2_ID, USER3_ID)).toBe(true); // No membeship validation of inviter
 
-        let members = await FDB.RoomParticipant.allFromActive(ctx, conv.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, conv.id);
         expect(members.length).toBe(2);
         for (let m of members) {
             expect(m.cid).toEqual(conv.id);
@@ -152,7 +152,7 @@ describe('RoomRepository', () => {
         expect(await repo.joinRoom(ctx, conv.id, USER2_ID)).toBe(true);
         expect(await repo.joinRoom(ctx, conv.id, USER2_ID)).toBe(false);
 
-        let members = await FDB.RoomParticipant.allFromActive(ctx, conv.id);
+        let members = await Store.RoomParticipant.active.findAll(ctx, conv.id);
         expect(members.length).toBe(2);
         for (let m of members) {
             expect(m.cid).toEqual(conv.id);

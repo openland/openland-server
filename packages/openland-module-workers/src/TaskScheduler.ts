@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -9,7 +9,7 @@ export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
             let root = createNamedContext('task-scheduler');
-            singletonWorker({ db: FDB.layer.db, name: 'modern_work_scheduler', delay: 1000 }, async () => {
+            singletonWorker({ db: Store.storage.db, name: 'modern_work_scheduler', delay: 1000 }, async () => {
 
                 //
                 // Timeout tasks in executing state
@@ -17,7 +17,7 @@ export class ModernScheduller {
                 // 
                 await inTx(root, async (ctx) => {
                     let now = Date.now();
-                    let failingTasks = await FDB.Task.rangeFromExecuting(ctx, 100);
+                    let failingTasks = (await Store.Task.executing.query(ctx, { limit: 100 })).items;
                     for (let f of failingTasks) {
                         if ((f.taskLockTimeout === null || f.taskLockTimeout <= now)) {
                             if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
@@ -40,7 +40,7 @@ export class ModernScheduller {
                 ///
                 await inTx(root, async (ctx) => {
                     let now = Date.now();
-                    let failingTasks = await FDB.Task.rangeFromFailing(ctx, 100);
+                    let failingTasks = (await Store.Task.failing.query(ctx, { limit: 100 })).items;
                     for (let f of failingTasks) {
                         if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
                             f.taskStatus = 'failed';

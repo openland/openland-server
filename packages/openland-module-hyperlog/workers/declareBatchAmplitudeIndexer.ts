@@ -1,12 +1,12 @@
+import { HyperLog } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { updateReader } from '../../openland-module-workers/updateReader';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import request, { Response } from 'request';
 import { randomKey } from '../../openland-utils/random';
 import { delay } from '../../openland-utils/timer';
-import { HyperLog } from '../../openland-module-db/schema';
 import { InternalTrackEvent } from '../Log.resolver';
 
 const log = createLogger('amplitude-batch-indexer');
@@ -130,7 +130,7 @@ const saveEvents = async (ctx: Context, events: any[], key: string) => {
 };
 
 export function declareBatchAmplitudeIndexer() {
-    updateReader('amplitude-batch-indexer', 9, FDB.HyperLog.createUserEventsStream(1000), async (items, first, parent) => {
+    updateReader('amplitude-batch-indexer', 9, Store.HyperLog.userEvents.stream({ batchSize: 1000 }), async (items, first, parent) => {
         let exportedCount = await inTx(parent, async (ctx) => {
             let exCount = 0;
             let eventsProd = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === true));

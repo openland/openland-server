@@ -1,5 +1,5 @@
+import { Store } from './../openland-module-db/FDB';
 import { JsonMap } from 'openland-utils/json';
-import { FDB } from 'openland-module-db/FDB';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
 import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
@@ -32,13 +32,16 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 }
             });
             // Do UNSAFE task creation since there won't be conflicts because our is is guaranteed to be unique (uuid)
-            return await FDB.Task.create_UNSAFE(ctx, this.taskType, uuid(), {
+            return await Store.Task.create_UNSAFE(ctx, this.taskType, uuid(), {
                 arguments: work,
                 taskStatus: 'pending',
                 taskFailureCount: 0,
                 taskLockTimeout: 0,
                 taskLockSeed: '',
-                startAt: startAt || null
+                startAt: startAt || Date.now(),
+                result: null,
+                taskFailureMessage: null,
+                taskFailureTime: null
             });
         });
     }
@@ -59,11 +62,11 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             await w.promise;
         };
         let root = createNamedContext('worker-' + this.taskType);
-        let workLoop = foreverBreakable(async () => {
+        let workLoop = foreverBreakable(root, async () => {
             let task = await inTx(root, async (ctx) => {
                 let pend = [
-                    ...(await FDB.Task.allFromPending(ctx, this.taskType)),
-                    ...(await FDB.Task.rangeFromDelayedPendingAfter(ctx, this.taskType, Date.now(), Number.MAX_SAFE_INTEGER, true))
+                    ...(await Store.Task.pending.findAll(ctx, this.taskType)),
+                    ...(await Store.Task.delayedPending.query(ctx, this.taskType, { after: Date.now(), reverse: true })).items
                 ];
                 if (pend.length === 0) {
                     return null;
@@ -74,14 +77,14 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 return res;
             });
             let locked = task && await inTx(root, async (ctx) => {
-                let tsk = (await FDB.Task.findById(ctx, task!.taskType, task!.uid))!;
+                let tsk = (await Store.Task.findById(ctx, task!.taskType, task!.uid))!;
                 if (tsk.taskStatus !== 'pending') {
                     return false;
                 }
                 tsk.taskLockSeed = lockSeed;
                 tsk.taskLockTimeout = Date.now() + 15000;
                 tsk.taskStatus = 'executing';
-                await workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.createdAt });
+                await workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.metadata.createdAt });
                 return true;
             });
             if (task && locked) {
@@ -93,7 +96,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 } catch (e) {
                     log.warn(root, e);
                     await inTx(root, async (ctx) => {
-                        let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
+                        let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
                         if (res2) {
                             if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                                 res2.taskStatus = 'failing';
@@ -124,12 +127,12 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
                 // Commiting
                 let commited = await inTx(root, async (ctx) => {
-                    let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
+                    let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                             res2.taskStatus = 'completed';
                             res2.result = res;
-                            await workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.createdAt });
+                            await workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
                             return true;
                         }
                     }

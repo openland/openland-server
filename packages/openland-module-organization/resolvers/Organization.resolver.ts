@@ -1,6 +1,5 @@
-import { ConversationRoom } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
@@ -8,7 +7,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { Organization } from 'openland-module-db/store';
+import { Organization, ConversationRoom } from 'openland-module-db/store';
 
 const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppContext) => {
     let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
@@ -17,9 +16,9 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
     }
 
     let roomsFull: { room: ConversationRoom, membersCount: number }[] = [];
-    let rooms = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
+    let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id);
     for (let room of rooms) {
-        let conv = await FDB.Conversation.findById(ctx, room.id);
+        let conv = await Store.Conversation.findById(ctx, room.id);
         if (conv && (conv.deleted || conv.archived)) {
             continue;
         }
@@ -52,14 +51,14 @@ export default {
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
         alphaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
         alphaOrganizationMembers: async (src, args, ctx) => {
-            return await resolveOrganizationJoinedMembers(ctx, { 
-                afterMemberId: args.after ? IDs.User.parse(args.after) : undefined, 
+            return await resolveOrganizationJoinedMembers(ctx, {
+                afterMemberId: args.after ? IDs.User.parse(args.after) : undefined,
                 first: args.first
             }, src.id);
         },
         alphaOrganizationAdminMembers: async (src, args, ctx) => {
-            return await resolveOrganizationJoinedAdminMembers(ctx, { 
-                afterMemberId: args.after ? IDs.User.parse(args.after) : undefined, 
+            return await resolveOrganizationJoinedAdminMembers(ctx, {
+                afterMemberId: args.after ? IDs.User.parse(args.after) : undefined,
                 first: args.first
             }, src.id);
         },
@@ -76,7 +75,7 @@ export default {
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: AppContext) => {
             if (ctx.auth.uid) {
-                return (await Promise.all((await FDB.OrganizationMember.allFromUser(ctx, 'joined', ctx.auth.uid))
+                return (await Promise.all((await Store.OrganizationMember.user.findAll(ctx, 'joined', ctx.auth.uid))
                     .map((v) => Store.Organization.findById(ctx, v.oid))))
                     .filter((v) => v!.status !== 'suspended' && v!.status !== 'deleted');
             }

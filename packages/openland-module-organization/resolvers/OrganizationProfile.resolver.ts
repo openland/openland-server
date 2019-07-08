@@ -1,5 +1,5 @@
 import { IDs } from 'openland-module-api/IDs';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { withAny, withUser, withAccount } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Modules } from 'openland-modules/Modules';
@@ -60,7 +60,7 @@ export default {
 
             let isSuper = ['super-admin', 'editor'].indexOf((await Modules.Super.superRole(parent, uid)) || 'none') > -1;
 
-            let member = await FDB.OrganizationMember.findById(parent, orgId, uid);
+            let member = await Store.OrganizationMember.findById(parent, orgId, uid);
             let isMemberAdmin = (member !== null && member.status === 'joined' && member.role === 'admin');
             if (!isMemberAdmin && !isSuper) {
                 throw new UserError(ErrorText.permissionOnlyOwner);
@@ -127,8 +127,8 @@ export default {
                 // Schedule indexing
                 await Modules.Orgs.markForUndexing(ctx, profile.id);
                 // Index rooms
-                let orgRooms = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
-                let profiles = await Promise.all(orgRooms.map(room => FDB.RoomProfile.findById(ctx, room.id)));
+                let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, orgId);
+                let profiles = await Promise.all(orgRooms.map(room => Store.RoomProfile.findById(ctx, room.id)));
                 for (let roomProfile of profiles) {
                     if (roomProfile) {
                         await roomProfile!.flush(ctx);

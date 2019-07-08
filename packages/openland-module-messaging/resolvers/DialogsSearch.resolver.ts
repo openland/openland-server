@@ -1,4 +1,4 @@
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
@@ -20,7 +20,7 @@ export default {
 
                 let conversations = Modules.Messaging.search
                     .searchForRooms(ctx, args.query, { uid, limit: 20 })
-                    .then((r) => r.map((v) => FDB.Conversation.findById(ctx, v)));
+                    .then((r) => r.map((v) => Store.Conversation.findById(ctx, v)));
 
                 // PERSONAL - search users first, then matching conversations with current user
                 let personal = Modules.Users.searchForUsers(ctx, args.query, { uid, limit: 20 })
@@ -64,7 +64,7 @@ export default {
 
                 let conversations = Modules.Messaging.search
                     .searchForRooms(ctx, args.query, { uid, limit: 20 })
-                    .then((r) => r.map((v) => FDB.Conversation.findById(ctx, v)));
+                    .then((r) => r.map((v) => Store.Conversation.findById(ctx, v)));
 
                 // PERSONAL - search users first, then matching conversations with current user
                 let personal = Modules.Users.searchForUsers(ctx, args.query, { uid, limit: 20 })
@@ -80,7 +80,7 @@ export default {
                     },
                     [] as any[]
                 );
-                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await FDB.UserDialog.findFromConversation(parent, c.id, uid)))).filter(d => !!d).map(d => d!);
+                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await Store.UserDialog.conversation.find(parent, c.id, uid)))).filter(d => !!d).map(d => d!);
                 return dialogs;
             });
         }),

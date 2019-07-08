@@ -1,5 +1,4 @@
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, OrganizationMember } from 'openland-module-db/schema';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
@@ -9,13 +8,11 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
+import { OrganizationMember } from 'openland-module-db/store';
 
 @injectable()
 export class OrganizationRepository {
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
 
     async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput, opts: { editorial: boolean, status: 'activated' | 'pending' | 'suspended' }) {
         await validate(
@@ -27,9 +24,9 @@ export class OrganizationRepository {
         return await inTx(parent, async (ctx) => {
 
             // Fetch Organization Number
-            let seq = (await this.entities.Sequence.findById(ctx, 'org-id'));
+            let seq = (await Store.Sequence.findById(ctx, 'org-id'));
             if (!seq) {
-                seq = await this.entities.Sequence.create(ctx, 'org-id', { value: 0 });
+                seq = await Store.Sequence.create(ctx, 'org-id', { value: 0 });
             }
             let orgId = ++seq.value;
             await seq.flush(ctx);
@@ -80,7 +77,7 @@ export class OrganizationRepository {
             });
 
             // Add owner to organization
-            await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
+            await Store.OrganizationMember.create(ctx, organization.id, uid, {
                 status: 'joined', role: 'admin', invitedBy: uid
             });
             await this.incrementOrganizationMembersCount(ctx, organization.id);
@@ -124,7 +121,7 @@ export class OrganizationRepository {
             if (!org) {
                 throw Error('Unable to find organization');
             }
-            let ex = await this.entities.OrganizationMember.findById(ctx, oid, uid);
+            let ex = await Store.OrganizationMember.findById(ctx, oid, uid);
             if (ex && ex.status === 'joined') {
                 return false;
             } else if (ex) {
@@ -132,7 +129,7 @@ export class OrganizationRepository {
                 await this.incrementOrganizationMembersCount(ctx, oid);
                 return true;
             } else {
-                await this.entities.OrganizationMember.create(ctx, oid, uid, { status: 'joined', role: 'member', invitedBy: by });
+                await Store.OrganizationMember.create(ctx, oid, uid, { status: 'joined', role: 'member', invitedBy: by });
                 await this.incrementOrganizationMembersCount(ctx, oid);
                 return true;
             }
@@ -149,7 +146,7 @@ export class OrganizationRepository {
                 throw Error('Unable to remove owner');
             }
 
-            let existing = await this.entities.OrganizationMember.findById(ctx, oid, uid);
+            let existing = await Store.OrganizationMember.findById(ctx, oid, uid);
             if (!existing || existing.status !== 'joined') {
                 return false;
             }
@@ -163,7 +160,7 @@ export class OrganizationRepository {
 
     async updateMembershipRole(parent: Context, uid: number, oid: number, role: 'admin' | 'member') {
         return await inTx(parent, async (ctx) => {
-            let member = await this.entities.OrganizationMember.findById(ctx, oid, uid);
+            let member = await Store.OrganizationMember.findById(ctx, oid, uid);
             if (!member || member.status !== 'joined') {
                 throw Error('User is not a member of organization');
             }
@@ -193,7 +190,7 @@ export class OrganizationRepository {
                 throw new UserError('Organization that has active members cannot be deleted');
             }
 
-            let chats = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, oid);
+            let chats = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
 
             if (chats.length > 0) {
                 for (let chat of chats) {
@@ -233,12 +230,12 @@ export class OrganizationRepository {
     //
 
     async isUserMember(ctx: Context, uid: number, oid: number): Promise<boolean> {
-        let isMember = await this.entities.OrganizationMember.findById(ctx, oid, uid);
+        let isMember = await Store.OrganizationMember.findById(ctx, oid, uid);
         return !!(isMember && isMember.status === 'joined');
     }
 
     async isUserAdmin(ctx: Context, uid: number, oid: number): Promise<boolean> {
-        let isOwner = await this.entities.OrganizationMember.findById(ctx, oid, uid);
+        let isOwner = await Store.OrganizationMember.findById(ctx, oid, uid);
         return !!(isOwner && isOwner.status === 'joined' && isOwner.role === 'admin');
     }
 
@@ -252,11 +249,11 @@ export class OrganizationRepository {
     //
 
     async findOrganizationMembership(ctx: Context, oid: number) {
-        return await this.entities.OrganizationMember.allFromOrganization(ctx, 'joined', oid);
+        return await Store.OrganizationMember.organization.findAll(ctx, 'joined', oid);
     }
 
     async findOrganizationMembersWithStatus(ctx: Context, oid: number, status: 'requested' | 'joined' | 'left') {
-        return await this.entities.OrganizationMember.allFromOrganization(ctx, status, oid);
+        return await Store.OrganizationMember.organization.findAll(ctx, status, oid);
     }
 
     async findOrganizationMembers(ctx: Context, oid: number) {
@@ -270,11 +267,11 @@ export class OrganizationRepository {
     }
 
     async findUserOrganizations(ctx: Context, uid: number): Promise<number[]> {
-        return (await this.entities.OrganizationMember.allFromUser(ctx, 'joined', uid)).map((v) => v.oid);
+        return (await Store.OrganizationMember.user.findAll(ctx, 'joined', uid)).map((v) => v.oid);
     }
 
     async findUserMembership(ctx: Context, uid: number, oid: number): Promise<OrganizationMember | null> {
-        return await this.entities.OrganizationMember.findById(ctx, oid, uid);
+        return await Store.OrganizationMember.findById(ctx, oid, uid);
     }
 
     async hasMemberWithEmail(ctx: Context, oid: number, email: string): Promise<boolean> {
@@ -300,11 +297,11 @@ export class OrganizationRepository {
     //
     async markForUndexing(parent: Context, oid: number) {
         await inTx(parent, async (ctx) => {
-            let existing = await this.entities.OrganizationIndexingQueue.findById(ctx, oid);
+            let existing = await Store.OrganizationIndexingQueue.findById(ctx, oid);
             if (existing) {
-                existing.markDirty();
+                existing.invalidate();
             } else {
-                await this.entities.OrganizationIndexingQueue.create(ctx, oid, {});
+                await Store.OrganizationIndexingQueue.create(ctx, oid, {});
             }
         });
     }

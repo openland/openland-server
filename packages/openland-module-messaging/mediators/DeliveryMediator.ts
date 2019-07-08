@@ -4,7 +4,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { DeliveryRepository } from 'openland-module-messaging/repositories/DeliveryRepository';
-import { Message, AllEntities } from 'openland-module-db/schema';
+import { Message } from 'openland-module-db/store';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
 import { RoomMediator } from './RoomMediator';
@@ -13,6 +13,7 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 import { Modules } from '../../openland-modules/Modules';
+import { Store } from 'openland-module-db/FDB';
 
 const tracer = createTracer('message-delivery');
 
@@ -21,7 +22,6 @@ export class DeliveryMediator {
     private readonly queue = new WorkQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }, { result: string }>('conversation_message_delivery');
     private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }, { result: string }>('conversation_message_delivery_user_multiple');
 
-    @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
@@ -47,7 +47,7 @@ export class DeliveryMediator {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
-                            let message = (await this.entities.Message.findById(ctx, item.messageId))!;
+                            let message = (await Store.Message.findById(ctx, item.messageId))!;
                             if (item.action === 'new' || item.action === undefined) {
                                 await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
                             } else if (item.action === 'delete') {
@@ -83,7 +83,7 @@ export class DeliveryMediator {
 
     onRoomRead = async (parent: Context, uid: number, mid: number) => {
         await inTx(parent, async (ctx) => {
-            let message = (await this.entities.Message.findById(ctx, mid))!;
+            let message = (await Store.Message.findById(ctx, mid))!;
 
             // Update counters
             let res = await this.counters.onMessageRead(ctx, uid, message);
@@ -157,6 +157,7 @@ export class DeliveryMediator {
         // Send new counter
         await inTx(parent, async (ctx) => {
             await this.repo.deliverGlobalCounterToUser(ctx, uid);
+            await this.needNotification.setNeedNotificationDelivery(ctx, uid);
         });
     }
 
@@ -167,7 +168,7 @@ export class DeliveryMediator {
     private async fanOutDelivery(parent: Context, mid: number, action: 'new' | 'update' | 'delete') {
         await tracer.trace(parent, 'fanOutDelivery:' + action, async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                let message = (await this.entities.Message.findById(ctx, mid))!;
+                let message = (await Store.Message.findById(ctx, mid))!;
                 let members = await this.room.findConversationMembers(ctx, message.cid);
 
                 // Deliver messages

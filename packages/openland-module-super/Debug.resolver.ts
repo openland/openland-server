@@ -1,24 +1,21 @@
-import { Organization } from './../openland-module-db/store';
+import { Organization, Message, Comment } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
-import { FDB, Store } from '../openland-module-db/FDB';
-import { Comment, Message } from '../openland-module-db/schema';
+import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
-import { inTx } from '@openland/foundationdb';
+import { inTx, encoders } from '@openland/foundationdb';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt } from '../openland-utils/random';
 import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
-import { checkIndexConsistency, fixIndexConsistency } from '../foundation-orm/utils/health';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import { FKeyEncoding } from '../foundation-orm/utils/FKeyEncoding';
 import { CounterStrategies, CounterStrategyAll } from '../openland-module-messaging/repositories/CounterStrategies';
 
 const URLInfoService = createUrlInfoService();
@@ -26,9 +23,9 @@ const rootCtx = createNamedContext('resolver-debug');
 const logger = createLogger('debug');
 
 const nextDebugSeq = async (ctx: Context, uid: number) => {
-    let state = await FDB.DebugEventState.findById(ctx, uid!);
+    let state = await Store.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await FDB.DebugEventState.create(ctx, uid!, { seq: 1 });
+        await Store.DebugEventState.create(ctx, uid!, { seq: 1 });
         return 1;
     } else {
         state.seq++;
@@ -40,7 +37,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await FDB.DebugEvent.create(ctx, uid!, seq, { key });
+        await Store.DebugEvent.create(ctx, uid!, seq, { key });
     });
 };
 
@@ -98,22 +95,22 @@ export default {
         debugValidateMessages: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
             let messages: Message[] = [];
-            let allDialogs = await FDB.UserDialog.allFromUser(ctx, uid);
+            let allDialogs = await Store.UserDialog.user.findAll(ctx, uid);
             let res = '';
             for (let dialog of allDialogs) {
-                let conv = (await FDB.Conversation.findById(ctx, dialog.cid))!;
+                let conv = (await Store.Conversation.findById(ctx, dialog.cid))!;
                 if (!conv) {
                     continue;
                 }
                 if (conv.kind === 'room') {
-                    let pat = await FDB.RoomParticipant.findById(ctx, dialog.cid, uid);
+                    let pat = await Store.RoomParticipant.findById(ctx, dialog.cid, uid);
                     if (!pat || pat.status !== 'joined') {
                         continue;
                     }
                 }
 
                 try {
-                    messages.push(...await FDB.Message.allFromChat(ctx, dialog.cid));
+                    messages.push(...await Store.Message.chat.findAll(ctx, dialog.cid));
                 } catch (e) {
                     res += e.toString() + '\n\n';
                 }
@@ -141,50 +138,50 @@ export default {
             return res;
         }),
         organizationChatsStats: withPermission('super-admin', async (ctx, args) => {
-            let chats = await FDB.ConversationOrganization.findAll(ctx);
+            let chats = await Store.ConversationOrganization.findAll(ctx);
 
             let res: { org: Organization, chat: number, messagesCount: number, lastMessageDate: string }[] = [];
 
             for (let chat of chats) {
-                let messages = await FDB.Message.allFromChat(ctx, chat.id);
+                let messages = await Store.Message.chat.findAll(ctx, chat.id);
                 res.push({
                     org: (await Store.Organization.findById(ctx, chat.oid))!,
                     chat: chat.id,
                     messagesCount: messages.length,
-                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].createdAt).toString() : '',
+                    lastMessageDate: messages.length > 0 ? new Date(messages[messages.length - 1].metadata.createdAt).toString() : '',
                 });
             }
 
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await FDB.DebugEvent.createUserStream(ctx.auth.uid!, 1).tail(ctx);
+            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
             return { state: tail };
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
-                let workers = [
-                    'emailSender',
-                    'push_sender',
-                    'push_sender_firebase',
-                    'push_sender_apns',
-                    'push_sender_web',
-                    'conversation_message_push_delivery',
-                    'comment_augmentation_task',
-                    'conversation_message_delivery',
-                    'conversation_message_task',
-                ];
+                // let workers = [
+                //     'emailSender',
+                //     'push_sender',
+                //     'push_sender_firebase',
+                //     'push_sender_apns',
+                //     'push_sender_web',
+                //     'conversation_message_push_delivery',
+                //     'comment_augmentation_task',
+                //     'conversation_message_delivery',
+                //     'conversation_message_task',
+                // ];
 
-                for (let worker of workers) {
-                    let duplicatesCount = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
-                    await log(`${worker} ${duplicatesCount} duplicates pending`);
-                }
+                // for (let worker of workers) {
+                //     let duplicatesCount = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'pending', worker], value => [value.taskType, value.uid]);
+                //     await log(`${worker} ${duplicatesCount} duplicates pending`);
+                // }
 
-                let duplicatesCountExecuting = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
-                await log(`${duplicatesCountExecuting} duplicates executing`);
+                // let duplicatesCountExecuting = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'executing'], value => [value.taskType, value.uid]);
+                // await log(`${duplicatesCountExecuting} duplicates executing`);
 
-                let duplicatesCountFailing = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
-                await log(`${duplicatesCountFailing} duplicates failing`);
+                // let duplicatesCountFailing = await checkIndexConsistency(parent, FDB.Task, ['__indexes', 'failing'], value => [value.taskType, value.uid]);
+                // await log(`${duplicatesCountFailing} duplicates failing`);
 
                 return 'done';
             });
@@ -259,18 +256,18 @@ export default {
             } else if (type === 'SIGIN_CODE') {
                 await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
             } else if (type === 'UNREAD_MESSAGE') {
-                let dialogs = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, 10, undefined, true);
+                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
                 let dialog = dialogs.items[0];
-                let messages = await FDB.Message.rangeFromChat(ctx, dialog.cid, 1, true);
+                let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
 
-                await Emails.sendUnreadMessages(ctx, uid, messages);
+                await Emails.sendUnreadMessages(ctx, uid, messages.items);
             } else if (type === 'UNREAD_MESSAGES') {
-                let dialogs = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, 10, undefined, true);
+                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
                 let messages: Message[] = [];
 
                 for (let dialog of dialogs.items) {
-                    let msgs = await FDB.Message.rangeFromChat(ctx, dialog.cid, 1, true);
-                    messages.push(msgs[0]);
+                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+                    messages.push(msgs.items[0]);
                 }
 
                 await Emails.sendUnreadMessages(ctx, uid, messages);
@@ -332,25 +329,25 @@ export default {
         debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
                 const calculateForUser = async (ctx: Context, uid: number) => {
-                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                    let all = await Store.UserDialog.user.findAll(ctx, uid);
                     let totalSent = 0;
                     let totalSentDirect = 0;
                     let totalReceived = 0;
 
                     for (let a of all) {
-                        let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                        let conv = (await Store.Conversation.findById(ctx, a.cid))!;
                         if (!conv) {
                             continue;
                         }
 
                         if (conv.kind === 'room') {
-                            let pat = await FDB.RoomParticipant.findById(ctx, a.cid, uid);
+                            let pat = await Store.RoomParticipant.findById(ctx, a.cid, uid);
                             if (!pat || pat.status !== 'joined') {
                                 // a.unread = 0;
                                 continue;
                             }
                         }
-                        let messages = await FDB.Message.allFromChat(ctx, a.cid);
+                        let messages = await Store.Message.chat.findAll(ctx, a.cid);
                         for (let message of messages) {
                             if (message.uid === uid) {
                                 totalSent++;
@@ -416,7 +413,7 @@ export default {
                 chat.kind = 'room';
                 await chat.flush(ctx);
 
-                let room = await FDB.ConversationRoom.findById(ctx, chat.id);
+                let room = await Store.ConversationRoom.findById(ctx, chat.id);
                 if (room) {
                     // in some cases org chats already have room, i donn't know why
                     room.kind = 'public';
@@ -427,7 +424,7 @@ export default {
                     room.isChannel = false;
                     await room.flush(ctx);
                 } else {
-                    await FDB.ConversationRoom.create(ctx, chat.id, {
+                    await Store.ConversationRoom.create(ctx, chat.id, {
                         kind: 'public',
                         ownerId: org.ownerId,
                         oid: orgId,
@@ -437,15 +434,15 @@ export default {
                     });
                 }
 
-                await FDB.RoomProfile.create(ctx, chat.id, {
+                await Store.RoomProfile.create(ctx, chat.id, {
                     title: orgProfile.name,
                     image: orgProfile.photo,
                     description: orgProfile.about,
                 });
 
-                let orgMembers = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', orgId);
+                let orgMembers = await Store.OrganizationMember.organization.findAll(ctx, 'joined', orgId);
                 for (let member of orgMembers) {
-                    await FDB.RoomParticipant.create(ctx, chat.id, member.uid, {
+                    await Store.RoomParticipant.create(ctx, chat.id, member.uid, {
                         role: member.uid === org.ownerId ? 'owner' : 'member',
                         invitedBy: org.ownerId,
                         status: 'joined',
@@ -456,11 +453,11 @@ export default {
             });
         }),
         debugDeleteEmptyOrgChats: withPermission('super-admin', async (parent, args) => {
-            let chats = await FDB.ConversationOrganization.findAll(parent);
+            let chats = await Store.ConversationOrganization.findAll(parent);
             let i = 0;
             for (let chat of chats) {
                 await inTx(rootCtx, async ctx => {
-                    let conv = await FDB.Conversation.findById(ctx, chat.id);
+                    let conv = await Store.Conversation.findById(ctx, chat.id);
                     if (conv && conv.deleted) {
                         // ignore already deleted chats
                         logger.log(ctx, 'debugDeleteEmptyOrgChats', chat.id, i, 'ignore deleted');
@@ -488,12 +485,12 @@ export default {
         }),
         debugFixCommentsVisibility: withPermission('super-admin', async (ctx, args) => {
             debugTask(ctx.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let commentSeqs = await FDB.CommentSeq.findAll(ctx);
+                let commentSeqs = await Store.CommentSeq.findAll(ctx);
                 let i = 0;
 
                 for (let state of commentSeqs) {
                     await inTx(rootCtx, async _ctx => {
-                        let comments = await FDB.Comment.allFromPeer(_ctx, state.peerType as any, state.peerId);
+                        let comments = await Store.Comment.peer.findAll(_ctx, state.peerType as any, state.peerId);
 
                         let id2Comment = new Map<number, Comment>();
                         for (let comment of comments) {
@@ -527,7 +524,7 @@ export default {
                             }
                         }
 
-                        let existing = await FDB.CommentState.findById(_ctx, state.peerType, state.peerId);
+                        let existing = await Store.CommentState.findById(_ctx, state.peerType, state.peerId);
                         if (existing) {
                             existing.commentsCount = visibleCount;
                         }
@@ -544,7 +541,7 @@ export default {
         }),
         debugSetCommentVisibility: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
-                let comment = await FDB.Comment.findById(ctx, IDs.Comment.parse(args.commentId));
+                let comment = await Store.Comment.findById(ctx, IDs.Comment.parse(args.commentId));
                 if (comment) {
                     comment.visible = args.visible;
                 }
@@ -558,9 +555,9 @@ export default {
                 for (let user of users) {
                     try {
                         await inTx(rootCtx, async _ctx => {
-                            let all = await FDB.UserDialog.allFromUser(_ctx, user.id);
+                            let all = await Store.UserDialog.user.findAll(_ctx, user.id);
                             for (let dialog of all) {
-                                let conv = (await FDB.Conversation.findById(_ctx, dialog.cid))!;
+                                let conv = (await Store.Conversation.findById(_ctx, dialog.cid))!;
                                 if (!conv || conv.deleted) {
                                     await Modules.Messaging.room.onDialogDelete(_ctx, dialog.cid, user.id);
                                 }
@@ -620,35 +617,35 @@ export default {
             return true;
         }),
         debugFixUserDialogsIndex: withPermission('super-admin', async (parent, args) => {
-            debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
-                let allUids = await fetchAllUids(parent);
-                for (let uid of allUids) {
-                    await inTx(rootCtx, async (ctx) => {
-                        let duplicatesCount = await fixIndexConsistency(
-                            ctx,
-                            FDB.UserDialog,
-                            ['__indexes', 'user', uid],
-                            value => [value.uid, value.cid],
-                            _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
-                        );
-                        if (duplicatesCount > 0) {
-                            await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
-                        }
-                    });
-                }
+            // debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
+            //     let allUids = await fetchAllUids(parent);
+            //     for (let uid of allUids) {
+            //         await inTx(rootCtx, async (ctx) => {
+            //             let duplicatesCount = await fixIndexConsistency(
+            //                 ctx,
+            //                 Store.UserDialog,
+            //                 ['__indexes', 'user', uid],
+            //                 value => [value.uid, value.cid],
+            //                 _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
+            //             );
+            //             if (duplicatesCount > 0) {
+            //                 await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
+            //             }
+            //         });
+            //     }
 
-                return 'done';
-            });
+            //     return 'done';
+            // });
             return true;
         }),
         debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcRoomsActiveMembers', async (log) => {
-                let allRooms = await FDB.RoomProfile.findAll(rootCtx);
+                let allRooms = await Store.RoomProfile.findAll(rootCtx);
                 let i = 0;
                 for (let room of allRooms) {
                     await inTx(rootCtx, async (ctx) => {
-                        let activeMembers = await FDB.RoomParticipant.allFromActive(ctx, room.id);
-                        let _room = await FDB.RoomProfile.findById(ctx, room.id);
+                        let activeMembers = await Store.RoomParticipant.active.findAll(ctx, room.id);
+                        let _room = await Store.RoomProfile.findById(ctx, room.id);
 
                         if (_room) {
                             _room.activeMembersCount = activeMembers.length;
@@ -688,13 +685,13 @@ export default {
         }),
         debugCreateCommentSubscriptions: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCreateCommentSubscriptions', async (log) => {
-                let allComments = await FDB.Comment.findAll(rootCtx);
+                let allComments = await Store.Comment.findAll(rootCtx);
                 let i = 0;
                 for (let comment of allComments) {
                     await inTx(rootCtx, async (ctx) => {
-                        let subscription = await FDB.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, comment.uid);
+                        let subscription = await Store.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, comment.uid);
                         if (!subscription) {
-                            await FDB.CommentsSubscription.create(ctx, comment.peerType, comment.peerId, comment.uid, {
+                            await Store.CommentsSubscription.create(ctx, comment.peerType, comment.peerId, comment.uid, {
                                 status: 'active',
                                 kind: 'all',
                             });
@@ -733,14 +730,14 @@ export default {
 
                 const calculateForUser = async (ctx: Context, uid: number) => {
                     let audience = 0;
-                    let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                    let all = await Store.UserDialog.user.findAll(ctx, uid);
 
                     for (let a of all) {
-                        let chat = await FDB.Conversation.findById(ctx, a.cid);
+                        let chat = await Store.Conversation.findById(ctx, a.cid);
                         if (!chat || chat.kind !== 'room') {
                             continue;
                         }
-                        let room = (await FDB.ConversationRoom.findById(ctx, a.cid))!;
+                        let room = (await Store.ConversationRoom.findById(ctx, a.cid))!;
                         if (room.kind !== 'public' || !room.oid) {
                             continue;
                         }
@@ -748,7 +745,7 @@ export default {
                         if (!org || org.kind !== 'community') {
                             continue;
                         }
-                        let members = await FDB.RoomParticipant.allFromActive(ctx, chat.id);
+                        let members = await Store.RoomParticipant.active.findAll(ctx, chat.id);
                         audience += members.length;
                     }
                     await Store.UserAudienceCounter.set(ctx, uid, audience);
@@ -769,15 +766,15 @@ export default {
         }),
         debugCalcUsers2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
-                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let all = await Store.UserDialog.user.findAll(ctx, uid);
                 let direct2wayChatsCount = 0;
 
                 for (let dialog of all) {
-                    let chat = await FDB.Conversation.findById(ctx, dialog.cid);
+                    let chat = await Store.Conversation.findById(ctx, dialog.cid);
                     if (!chat || chat.kind !== 'private') {
                         continue;
                     }
-                    let messages = await FDB.Message.allFromChat(ctx, dialog.cid);
+                    let messages = await Store.Message.chat.findAll(ctx, dialog.cid);
 
                     let sentCount = 0;
                     let receivedCount = 0;
@@ -803,12 +800,12 @@ export default {
         }),
         debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
-                let all = await FDB.UserDialog.allFromUser(ctx, uid);
+                let all = await Store.UserDialog.user.findAll(ctx, uid);
                 let chatsCount = 0;
                 let directChatsCount = 0;
 
                 for (let a of all) {
-                    let conv = (await FDB.Conversation.findById(ctx, a.cid))!;
+                    let conv = (await Store.Conversation.findById(ctx, a.cid))!;
                     if (!conv) {
                         continue;
                     }
@@ -827,7 +824,7 @@ export default {
         debugFixMessage: withPermission('super-admin', async (parent, args) => {
             let mid = args.id;
             await inTx(parent, async ctx => {
-                let message = await FDB.Message.findByRawId_UNSAFE(ctx, [mid]);
+                let message = await Store.Message.findById(ctx, mid);
                 if (!message) {
                     return;
                 }
@@ -849,7 +846,7 @@ export default {
         }),
         debugEnableNotificationCenterForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugEnableNotificationCenterForAll', async (ctx, uid, log) => {
-                let settings = await FDB.UserSettings.findById(ctx, uid);
+                let settings = await Store.UserSettings.findById(ctx, uid);
                 if (!settings) {
                     return;
                 }
@@ -873,7 +870,7 @@ export default {
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
-                let dialogs = await FDB.UserDialog.allFromUser(ctx, uid);
+                let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
                 for (let strategy of CounterStrategies) {
                     strategy.counter().set(ctx, uid, 0);
                 }
@@ -909,7 +906,7 @@ export default {
                     }
                 })();
 
-                let generator = FDB.DebugEvent.createUserLiveStream(ctx, uid, 20, args.fromState || undefined);
+                let generator = Store.DebugEvent.user.liveStream(ctx, uid, { batchSize: 20, after: args.fromState || undefined });
 
                 for await (let event of generator) {
                     for (let item of event.items) {
@@ -936,18 +933,18 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: AppContext) {
-                let state = await FDB.ReaderState.findById(ctx, args.reader);
+                let state = await Store.ReaderState.findById(ctx, args.reader);
                 let prev = '';
                 if (!state) {
                     throw new NotFoundError();
                 }
-                let key = FKeyEncoding.decodeFromString(state!.cursor);
+                let key = encoders.tuple.unpack(Buffer.from(state!.cursor, 'hex'));
                 let isDateBased = key.length === 2 && (typeof key[0] === 'number' && key[0]! > 1183028484169);
 
                 while (true) {
-                    state = await inTx(rootCtx, async ctx2 => await FDB.ReaderState.findById(ctx2, args.reader));
-                    let data = FKeyEncoding.decodeFromString(state!.cursor);
-                    let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as number))}, id: ${data[1]}` : JSON.stringify(data);
+                    state = await inTx(rootCtx, async ctx2 => await Store.ReaderState.findById(ctx2, args.reader));
+                    let data = state!.cursor;
+                    let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as any as number))}, id: ${data[1]}` : JSON.stringify(data);
                     if (str !== prev) {
                         yield str;
                         prev = str;

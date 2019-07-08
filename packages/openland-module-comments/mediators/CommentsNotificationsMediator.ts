@@ -3,7 +3,7 @@ import { lazyInject } from '../../openland-modules/Modules.container';
 import { CommentsNotificationsRepository } from '../repositories/CommentsNotificationsRepository';
 import { Context } from '@openland/context';
 import { CommentPeerType } from '../repositories/CommentsRepository';
-import { Comment, Message } from '../../openland-module-db/schema';
+import { Comment, Message } from '../../openland-module-db/store';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 

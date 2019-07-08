@@ -1,4 +1,4 @@
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
@@ -23,7 +23,7 @@ export default {
         location: (src: UserProfile) => src.location,
         linkedin: (src: UserProfile) => src.linkedin,
         twitter: (src: UserProfile) => src.twitter,
-        primaryBadge: (src: UserProfile, args: {}, ctx: AppContext) => src.primaryBadge ? FDB.UserBadge.findById(ctx, src.primaryBadge) : null,
+        primaryBadge: (src: UserProfile, args: {}, ctx: AppContext) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
 
         alphaRole: (src: UserProfile) => src.role,
         alphaLocations: (src: UserProfile) => src.locations,

@@ -1,30 +1,25 @@
-import { Store } from './../../openland-module-db/store';
-import { lazyInject } from 'openland-modules/Modules.container';
+import { UserDialogEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, UserDialogEvent } from 'openland-module-db/schema';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class UserStateRepository {
-    private readonly entities: AllEntities;
     private readonly metrics: ChatMetricsRepository;
-    @lazyInject('Store')
-    private readonly store!: Store;
 
-    constructor(@inject('FDB') entities: AllEntities, @inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
-        this.entities = entities;
+    constructor(@inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
         this.metrics = metrics;
     }
 
     async getRoomSettings(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let res = await this.entities.UserDialogSettings.findById(ctx, uid, cid);
+            let res = await Store.UserDialogSettings.findById(ctx, uid, cid);
             if (res) {
                 return res;
             }
-            return await this.entities.UserDialogSettings.create(ctx, uid, cid, { mute: false });
+            return await Store.UserDialogSettings.create(ctx, uid, cid, { mute: false });
         });
     }
 
@@ -43,9 +38,9 @@ export class UserStateRepository {
 
     async getUserNotificationState(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserNotificationsState.findById(ctx, uid);
+            let existing = await Store.UserNotificationsState.findById(ctx, uid);
             if (!existing) {
-                let created = await this.entities.UserNotificationsState.create(ctx, uid, {});
+                let created = await Store.UserNotificationsState.create(ctx, uid, {});
                 await created.flush(ctx);
                 return created;
             } else {
@@ -56,27 +51,22 @@ export class UserStateRepository {
 
     async getUserMessagingUnread(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.store.UserCounter.byId(uid).get(ctx);
+            return await Store.UserCounter.byId(uid).get(ctx);
         });
     }
 
     async getUserMessagingDialogUnread(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.store.UserDialogCounter.byId(uid, cid).get(ctx);
+            return await Store.UserDialogCounter.byId(uid, cid).get(ctx);
         });
     }
 
     async getUserMessagingState(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserMessagingState.findById(ctx, uid);
+            let existing = await Store.UserMessagingState.findById(ctx, uid);
             if (!existing) {
-                let created = await this.entities.UserMessagingState.create(ctx, uid, {
-                    seq: 0,
-                    unread: 0,
-                    messagesReceived: 0,
-                    messagesSent: 0,
-                    chatsCount: 0,
-                    directChatsCount: 0
+                let created = await Store.UserMessagingState.create(ctx, uid, {
+                    seq: 0
                 });
                 await created.flush(ctx);
                 return created;
@@ -88,16 +78,16 @@ export class UserStateRepository {
 
     async getUserDialogState(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserDialog.findById(ctx, uid, cid);
+            let existing = await Store.UserDialog.findById(ctx, uid, cid);
             if (!existing) {
 
                 // Update chats counters
-                let chat = await this.entities.Conversation.findById(ctx, cid);
+                let chat = await Store.Conversation.findById(ctx, cid);
                 if (chat && chat.kind === 'private') {
                     this.metrics.onDirectChatCreated(ctx, uid);
                 }
 
-                let created = await this.entities.UserDialog.create(ctx, uid, cid, { unread: 0 });
+                let created = await Store.UserDialog.create(ctx, uid, cid, { unread: 0 });
                 await created.flush(ctx);
                 return created;
             } else {
@@ -126,7 +116,7 @@ export class UserStateRepository {
         let cursor = state;
         let loadMore = !!cursor;
         while (loadMore) {
-            let res = await this.entities.UserDialogEvent.rangeFromUserWithCursor(parent, uid, 1000, cursor);
+            let res = await Store.UserDialogEvent.user.query(parent, uid, { limit: 1000, afterCursor: cursor });
             cursor = res.cursor;
             if (res.items.length && res.cursor) {
                 yield { items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq };
@@ -138,21 +128,21 @@ export class UserStateRepository {
 
     async fetchUserGlobalCounter(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let settings = await this.entities.UserSettings.findById(ctx, uid);
+            let settings = await Store.UserSettings.findById(ctx, uid);
             if (!settings) {
-                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
             }
 
             if (settings.globalCounterType === 'unread_messages') {
-                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
             } else if (settings.globalCounterType === 'unread_chats') {
-                return await this.store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
             } else if (settings.globalCounterType === 'unread_messages_no_muted') {
-                return await this.store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
+                return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
             } else if (settings.globalCounterType === 'unread_chats_no_muted') {
-                return await this.store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
+                return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
             } else {
-                return await this.store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
             }
         });
     }

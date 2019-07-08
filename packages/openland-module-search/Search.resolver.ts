@@ -1,13 +1,13 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withAccount } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
-import { FDB, Store } from '../openland-module-db/FDB';
-import { Conversation, Message } from '../openland-module-db/schema';
+import { Store } from '../openland-module-db/FDB';
+import { Message } from '../openland-module-db/store';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { User, Organization } from 'openland-module-db/store';
+import { User, Organization, Conversation } from 'openland-module-db/store';
 
 const log = createLogger('search-resolver');
 
@@ -83,7 +83,7 @@ export default {
             //
             // Organization rooms
             //
-            let organizations = await FDB.OrganizationMember.allFromUser(ctx, 'joined', uid);
+            let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
             let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
             let orgRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
@@ -149,7 +149,7 @@ export default {
                     if (!cid) {
                         return null;
                     }
-                    return FDB.Conversation.findById(ctx, cid);
+                    return Store.Conversation.findById(ctx, cid);
                 } else {
                     return null;
                 }
@@ -199,7 +199,7 @@ export default {
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
             try {
-                let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await FDB.UserDialog.allFromUser(ctx2, uid));
+                let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await Store.UserDialog.user.findAll(ctx2, uid));
 
                 let clauses: any[] = [];
                 let sort: any[] | undefined = undefined;
@@ -217,8 +217,8 @@ export default {
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
                 }
-                
-                clauses.push({ terms: { cid: userDialogs.map(d => d.cid) }});
+
+                clauses.push({ terms: { cid: userDialogs.map(d => d.cid) } });
 
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'message',
@@ -230,7 +230,7 @@ export default {
                     },
                 });
 
-                let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => FDB.Message.findById(ctx, parseInt(v._id, 10))));
+                let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
                 let offset = 0;
                 if (args.after) {
                     offset = parseInt(args.after, 10);

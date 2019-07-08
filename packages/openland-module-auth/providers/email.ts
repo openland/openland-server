@@ -6,7 +6,7 @@ import { Emails } from '../../openland-module-email/Emails';
 import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
-import { AuthCodeSession } from 'openland-module-db/schema';
+import { AuthCodeSession } from 'openland-module-db/store';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
 import { createNamedContext } from '@openland/context';

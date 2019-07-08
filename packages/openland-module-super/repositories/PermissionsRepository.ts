@@ -1,4 +1,3 @@
-import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { NotFoundError } from 'openland-errors/NotFoundError';
@@ -7,11 +6,6 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 
 export class PermissionsRepository {
-    private readonly entities: AllEntities;
-
-    constructor(entities: AllEntities) {
-        this.entities = entities;
-    }
 
     async resolvePermissions(ctx: Context, args: { uid: number | null | undefined, oid: number | null | undefined }) {
         let permissions = new Set<string>();
@@ -45,7 +39,7 @@ export class PermissionsRepository {
             // Membership
             //
 
-            let members = await this.entities.OrganizationMember.allFromUser(ctx, 'joined', args.uid);
+            let members = await Store.OrganizationMember.user.findAll(ctx, 'joined', args.uid);
             for (let member of members) {
                 permissions.add('org-' + IDs.Organization.serialize(member.oid) + '-member');
                 if (member.role === 'admin') {

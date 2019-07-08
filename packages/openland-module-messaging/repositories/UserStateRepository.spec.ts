@@ -1,19 +1,20 @@
 import 'reflect-metadata';
+import { Store } from './../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';
 import { MessagingRepository } from './MessagingRepository';
-import { UserDialogEvent, AllEntities } from 'openland-module-db/schema';
 import { DeliveryRepository } from './DeliveryRepository';
 import { Context, createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
+import { UserDialogEvent } from 'openland-module-db/store';
 
 describe('UserStateRepository', () => {
     let ctx: Context;
     let userStateRepo: UserStateRepository;
     let messagingRepo: MessagingRepository;
     let deliveryRepo: DeliveryRepository;
-    let entities: AllEntities;
+
     beforeAll(async () => {
         await testEnvironmentStart('user-state');
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
@@ -25,18 +26,17 @@ describe('UserStateRepository', () => {
         userStateRepo = container.get<UserStateRepository>('UserStateRepository');
         messagingRepo = container.get<MessagingRepository>('MessagingRepository');
         deliveryRepo = container.get<DeliveryRepository>('DeliveryRepository');
-        entities = container.get<AllEntities>('FDB');
-
     });
+
     const sendMessage = async (cid: number, text: string) => {
         let m1 = await messagingRepo.createMessage(ctx, cid, 2, { message: text });
         await deliveryRepo.deliverMessageToUser(ctx, 2, m1.message);
-        let state = await entities.UserDialogEvent.rangeFromUserWithCursor(ctx, 2, 1, undefined, true);
+        let state = await Store.UserDialogEvent.user.query(ctx, 2, { limit: 1, reverse: true });
         return { message: m1.message, state };
     };
 
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
     it('should correctly handle messaging state', async () => {
         let repo = container.get<UserStateRepository>('UserStateRepository');

@@ -1,28 +1,27 @@
 import {
     EnvironmentVariable, Presence, AuthToken, FeatureFlag, User, UserProfile,
-    Organization
-} from './../../openland-module-db/store';
-import {
-    Conversation,
-    ConversationRoom,
-    Message,
-    UserDialogEvent,
-    UserDialogSettings,
+    Organization,
     FeedEvent,
-    ConversationEvent,
-    AppHook,
-    Comment,
-    CommentEvent,
     UserStorageRecord,
+    UserSettings,
+    AppHook,
     DebugEvent,
+    UserBadge,
     Notification,
     NotificationCenter,
     UserNotificationCenter,
     NotificationCenterEvent,
+    ConversationEvent,
+    UserDialogEvent,
+    UserDialogSettings,
+    Conversation,
+    ConversationRoom,
+    CommentEvent,
     CommentsSubscription,
     CommentEventGlobal,
-    UserBadge, UserSettings
-} from '../../openland-module-db/schema';
+    Message,
+    Comment
+} from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
     BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
@@ -34,12 +33,12 @@ import {
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
-import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
 import {
     NewCommentNotification,
     NotificationContent
 } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
+import { LiveStreamItem } from '@openland/foundationdb-entity';
 
 //
 //  Root types
@@ -242,15 +241,15 @@ export namespace GQLRoots {
     //  Chat updates
     //
     export type ChatUpdateRoot = ConversationEvent;
-    export type ChatUpdateBatchRoot = FLiveStreamItem<ConversationEvent>;
-    export type ChatUpdateSingleRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatUpdateBatchRoot = LiveStreamItem<ConversationEvent>;
+    export type ChatUpdateSingleRoot = LiveStreamItem<ConversationEvent>;
     export type ChatUpdatedRoot = ConversationEvent;
     export type ChatMessageReceivedRoot = ConversationEvent;
     export type ChatMessageUpdatedRoot = ConversationEvent;
     export type ChatMessageDeletedRoot = ConversationEvent;
     export type ChatLostAccessRoot = ConversationEvent;
     export type ChatUpdateStateRoot = any;
-    export type ChatUpdateContainerRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatUpdateContainerRoot = LiveStreamItem<ConversationEvent>;
 
     //
     //  Search
@@ -273,9 +272,9 @@ export namespace GQLRoots {
     //
     export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
-    export type CommentUpdateContainerRoot = FLiveStreamItem<CommentEvent>;
-    export type CommentUpdateSingleRoot = FLiveStreamItem<CommentEvent>;
-    export type CommentUpdateBatchRoot = FLiveStreamItem<CommentEvent>;
+    export type CommentUpdateContainerRoot = LiveStreamItem<CommentEvent>;
+    export type CommentUpdateSingleRoot = LiveStreamItem<CommentEvent>;
+    export type CommentUpdateBatchRoot = LiveStreamItem<CommentEvent>;
     export type CommentUpdateRoot = CommentEvent;
     export type CommentReceivedRoot = CommentEvent;
     export type CommentUpdatedRoot = CommentEvent;
@@ -284,9 +283,9 @@ export namespace GQLRoots {
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
 
-    export type CommentGlobalUpdateContainerRoot = FLiveStreamItem<CommentEventGlobal>;
-    export type CommentGlobalUpdateSingleRoot = FLiveStreamItem<CommentEventGlobal>;
-    export type CommentGlobalUpdateBatchRoot = FLiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateSingleRoot = LiveStreamItem<CommentEventGlobal>;
+    export type CommentGlobalUpdateBatchRoot = LiveStreamItem<CommentEventGlobal>;
     export type CommentGlobalUpdateRoot = CommentEventGlobal;
     export type CommentPeerUpdatedRoot = CommentEventGlobal;
     export type CommentGlobalUpdatesStateRoot = { state: string };
@@ -318,9 +317,9 @@ export namespace GQLRoots {
     export type NotificationCenterRoot = NotificationCenter | UserNotificationCenter;
     export type NotificationRoot = Notification;
     export type NotificationCenterUpdatesStateRoot = { state: string };
-    export type NotificationCenterUpdateSingleRoot = FLiveStreamItem<NotificationCenterEvent>;
-    export type NotificationCenterUpdateBatchRoot = FLiveStreamItem<NotificationCenterEvent>;
-    export type NotificationCenterUpdateContainerRoot = FLiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateSingleRoot = LiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateBatchRoot = LiveStreamItem<NotificationCenterEvent>;
+    export type NotificationCenterUpdateContainerRoot = LiveStreamItem<NotificationCenterEvent>;
     export type NotificationCenterUpdateRoot = NotificationCenterEvent;
     export type NotificationReceivedRoot = NotificationCenterEvent;
     export type NotificationDeletedRoot = NotificationCenterEvent;

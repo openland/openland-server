@@ -1,4 +1,3 @@
-import { AllEntities, UserBadge } from 'openland-module-db/schema';
 import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -7,11 +6,11 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from '@openland/context';
 import { injectable } from 'inversify';
-import { lazyInject } from 'openland-modules/Modules.container';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { fetchNextDBSeq } from 'openland-utils/dbSeq';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { Store } from 'openland-module-db/FDB';
+import { UserBadge } from 'openland-module-db/store';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
 const userActivated = createHyperlogger<{ uid: number }>('user_activated');
@@ -20,10 +19,6 @@ const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_crea
 @injectable()
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
-
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
-
     /*
      * User
      */
@@ -32,9 +27,9 @@ export class UserRepository {
         return await inTx(parent, async (ctx) => {
 
             // Build next user id sequence number
-            let seq = (await this.entities.Sequence.findById(ctx, 'user-id'));
+            let seq = (await Store.Sequence.findById(ctx, 'user-id'));
             if (!seq) {
-                seq = await this.entities.Sequence.create(ctx, 'user-id', { value: 0 });
+                seq = await Store.Sequence.create(ctx, 'user-id', { value: 0 });
             }
             let id = ++seq.value;
             await seq.flush(ctx);
@@ -176,15 +171,18 @@ export class UserRepository {
 
     async getUserSettings(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let settings = await this.entities.UserSettings.findById(ctx, uid);
+            let settings = await Store.UserSettings.findById(ctx, uid);
             if (!settings) {
-                settings = await this.entities.UserSettings.create(ctx, uid, {
+                settings = await Store.UserSettings.create(ctx, uid, {
                     emailFrequency: '1hour',
                     desktopNotifications: 'all',
                     mobileNotifications: 'all',
                     mobileAlert: true,
                     mobileIncludeText: true,
-                    notificationsDelay: 'none'
+                    notificationsDelay: 'none',
+                    commentNotifications: null,
+                    commentNotificationsDelivery: null,
+                    globalCounterType: null
                 });
             }
             return settings;
@@ -192,7 +190,7 @@ export class UserRepository {
     }
 
     async waitForNextSettings(ctx: Context, uid: number) {
-        let w = await inTx(ctx, async (ctx2) => this.entities.UserSettings.watch(ctx2, uid));
+        let w = await inTx(ctx, async (ctx2) => Store.UserSettings.watch(ctx2, uid));
         await w.promise;
     }
 
@@ -253,7 +251,7 @@ export class UserRepository {
                 throw new Error('Max length: 40 characters');
             }
 
-            let userBadge = await this.entities.UserBadge.create(ctx, await fetchNextDBSeq(parent, 'badge-id'), { uid, name: badgeName });
+            let userBadge = await Store.UserBadge.create(ctx, await fetchNextDBSeq(parent, 'badge-id'), { uid, name: badgeName, verifiedBy: null, deleted: null });
             await userBadge.flush(ctx);
 
             if (cid) {
@@ -261,7 +259,7 @@ export class UserRepository {
             } else {
                 if (!isSuper) {
                     // set primary if needed
-                    let userBadges = await this.entities.UserBadge.rangeFromUser(ctx, uid, 2);
+                    let userBadges = (await Store.UserBadge.user.query(ctx, uid, { limit: 2 })).items;
 
                     if (userBadges.length === 1) {
                         let profile = await Store.UserProfile.findById(ctx, uid);
@@ -280,7 +278,7 @@ export class UserRepository {
 
     async deleteBadge(parent: Context, uid: number, bid: number, skipAccessCheck: boolean = false) {
         return await inTx(parent, async (ctx) => {
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid);
+            let userBadge = await Store.UserBadge.findById(ctx, bid);
             let profile = await Store.UserProfile.findById(ctx, uid);
 
             if (!userBadge || !profile) {
@@ -320,7 +318,7 @@ export class UserRepository {
                 return uid;
             }
 
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid);
+            let userBadge = await Store.UserBadge.findById(ctx, bid);
 
             if (!userBadge) {
                 throw new NotFoundError();
@@ -339,7 +337,7 @@ export class UserRepository {
 
     async verifyBadge(parent: Context, bid: number, by: number | null) {
         return await inTx(parent, async (ctx) => {
-            let userBadge = await this.entities.UserBadge.findById(ctx, bid);
+            let userBadge = await Store.UserBadge.findById(ctx, bid);
 
             if (!userBadge) {
                 throw new NotFoundError();
@@ -354,7 +352,7 @@ export class UserRepository {
 
     async updateRoomBadge(parent: Context, uid: number, cid: number, bid: number | null) {
         return await inTx(parent, async (ctx) => {
-            let roomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+            let roomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
 
             if (roomBadge) {
                 if (bid === null && roomBadge.bid) {
@@ -364,11 +362,11 @@ export class UserRepository {
                     roomBadge.bid = bid;
                 }
             } else {
-                await this.entities.UserRoomBadge.create(ctx, uid, cid, {
+                await Store.UserRoomBadge.create(ctx, uid, cid, {
                     bid: bid
                 });
             }
-            return bid ? await this.entities.UserBadge.findById(ctx, bid) : null;
+            return bid ? await Store.UserBadge.findById(ctx, bid) : null;
         });
     }
 
@@ -379,7 +377,7 @@ export class UserRepository {
                     let profile = await Store.UserProfile.findById(ctx, uid);
 
                     if (profile && profile.primaryBadge) {
-                        return await this.entities.UserBadge.findById(ctx, profile.primaryBadge);
+                        return await Store.UserBadge.findById(ctx, profile.primaryBadge);
                     }
                 }
                 return null;
@@ -389,9 +387,9 @@ export class UserRepository {
             if (!cid) {
                 return fetchBadge(await getPrimaryBadge());
             }
-            let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+            let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
             if (userRoomBadge && userRoomBadge.bid) {
-                return fetchBadge(await this.entities.UserBadge.findById(ctx, userRoomBadge.bid));
+                return fetchBadge(await Store.UserBadge.findById(ctx, userRoomBadge.bid));
             } else {
                 return fetchBadge(await getPrimaryBadge());
             }
@@ -403,11 +401,11 @@ export class UserRepository {
     //
     async markForUndexing(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.UserIndexingQueue.findById(ctx, uid);
+            let existing = await Store.UserIndexingQueue.findById(ctx, uid);
             if (existing) {
-                existing.markDirty();
+                existing.invalidate();
             } else {
-                await this.entities.UserIndexingQueue.create(ctx, uid, {});
+                await Store.UserIndexingQueue.create(ctx, uid, {});
             }
         });
     }

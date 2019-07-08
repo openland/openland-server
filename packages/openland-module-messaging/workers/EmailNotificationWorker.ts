@@ -1,8 +1,8 @@
+import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Emails } from '../../openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
-import { Message } from '../../openland-module-db/schema';
+import { Message } from '../../openland-module-db/store';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
 import { createLogger } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
@@ -18,7 +18,7 @@ const Delays = {
 const log = createLogger('email');
 
 export function startEmailNotificationWorker() {
-    singletonWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000, db: FDB.layer.db }, async (parent) => {
+    singletonWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000, db: Store.storage.db }, async (parent) => {
         let needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email'));
         if (unreadUsers.length > 0) {
@@ -84,14 +84,14 @@ export function startEmailNotificationWorker() {
                 }
 
                 // Fetch pending updates
-                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
+                let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, { after: Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq) })).items;
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                 let hasNonMuted = false;
                 let msgs: Message[] = [];
 
                 for (let m of messages) {
-                    let message = await FDB.Message.findById(ctx, m.mid!);
+                    let message = await Store.Message.findById(ctx, m.mid!);
                     if (!message) {
                         continue;
                     }
@@ -101,9 +101,9 @@ export function startEmailNotificationWorker() {
                     }
 
                     // disable email notificaitons for channels
-                    let conversation = (await FDB.Conversation.findById(ctx, message.cid))!;
+                    let conversation = (await Store.Conversation.findById(ctx, message.cid))!;
                     if (conversation.kind === 'room') {
-                        if ((await FDB.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
+                        if ((await Store.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
                             continue;
                         }
                     }

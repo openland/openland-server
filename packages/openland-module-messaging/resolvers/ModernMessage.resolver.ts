@@ -1,9 +1,9 @@
+import { UserBadge } from 'openland-module-db/store';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
-import { Comment, Message, UserBadge } from '../../openland-module-db/schema';
-import { FDB } from '../../openland-module-db/FDB';
+import { Comment, Message } from '../../openland-module-db/store';
 import { Context } from '@openland/context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
@@ -16,6 +16,7 @@ import { Texts } from '../texts';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { MessageMention } from '../MessageInput';
 import { AppContext } from 'openland-modules/AppContext';
+import { Store } from 'openland-module-db/FDB';
 
 export function hasMention(message: Message, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -303,7 +304,7 @@ async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): P
     if (src instanceof Message) {
         cid = src.cid;
     } else if (src instanceof Comment && src.peerType === 'message') {
-        let message = await FDB.Message.findById(ctx, src.peerId);
+        let message = await Store.Message.findById(ctx, src.peerId);
         cid = message!.cid;
     }
 
@@ -327,7 +328,7 @@ export default {
         //  State
         //
         id: src => IDs.ConversationMessage.serialize(src.id),
-        date: src => src.createdAt,
+        date: src => src.metadata.createdAt,
         sender: src => src.uid,
         senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
         isMentioned: (src, args, ctx) => {
@@ -391,7 +392,7 @@ export default {
         //  State
         //
         id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
-        date: src => src.createdAt,
+        date: src => src.metadata.createdAt,
         sender: async (src, args, ctx) => src.deleted ? await Modules.Users.getDeletedUserId(ctx) : src.uid,
         senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
@@ -426,7 +427,7 @@ export default {
             //  Modern spans
             //
             if (src.spans) {
-                return src.spans
+                return (src.spans as MessageSpan[])
                     .map(span => {
                         if (span.type === 'all_mention') {
                             return {
@@ -566,7 +567,7 @@ export default {
                 return [];
             }
             if (src.replyMessages) {
-                let messages = await Promise.all((src.replyMessages as number[]).map(id => FDB.Message.findById(ctx, id)));
+                let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
                 let filtered = messages.filter(m => !!m);
                 if (filtered.length > 0) {
                     return filtered;
@@ -759,14 +760,14 @@ export default {
             if (!args.first || args.first <= 0) {
                 return [];
             }
-            if (args.before && await FDB.Message.findById(ctx, beforeId!)) {
-                return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeId!, args.first!, true);
+            if (args.before && await Store.Message.findById(ctx, beforeId!)) {
+                return (await Store.Message.chat.query(ctx, roomId, { after: beforeId!, limit: args.first!, reverse: true })).items;
             }
-            return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
+            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
         message: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            let msg = await FDB.Message.findById(ctx, messageId);
+            let msg = await Store.Message.findById(ctx, messageId);
             if (!msg) {
                 return null;
             }
@@ -777,7 +778,7 @@ export default {
         }),
         lastReadedMessage: withUser(async (ctx, args, uid) => {
             let state = await Modules.Messaging.getUserDialogState(ctx, uid, IDs.Conversation.parse(args.chatId));
-            let msg = state.readMessageId && await FDB.Message.findById(ctx, state.readMessageId);
+            let msg = state.readMessageId && await Store.Message.findById(ctx, state.readMessageId);
             if (!msg) {
                 return null;
             }

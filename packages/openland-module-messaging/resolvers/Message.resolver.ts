@@ -1,6 +1,6 @@
-import { Message } from 'openland-module-db/schema';
+import { Message } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
@@ -9,7 +9,7 @@ type MessageRoot = Message | number;
 function withMessage<T>(handler: (ctx: AppContext, user: Message) => T) {
     return async (src: MessageRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let msg = (await (FDB.Message.findById(ctx, src)))!;
+            let msg = (await (Store.Message.findById(ctx, src)))!;
             return handler(ctx, msg);
         } else {
             return handler(ctx, src);
@@ -20,7 +20,7 @@ function withMessage<T>(handler: (ctx: AppContext, user: Message) => T) {
 export default {
     Message: {
         id: (src: MessageRoot) => IDs.Message.serialize(typeof src === 'number' ? src : src.id),
-        date: withMessage((ctx, src) => src.createdAt),
+        date: withMessage((ctx, src) => src.metadata.createdAt),
         sender: withMessage((ctx, src) => src.uid),
         edited: withMessage((ctx, src) => src.edited),
 

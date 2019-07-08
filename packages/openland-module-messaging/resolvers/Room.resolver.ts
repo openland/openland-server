@@ -1,18 +1,13 @@
+import { ChannelInvitation, ChannelLink, UserDialogSettings, Conversation, RoomProfile, RoomParticipant } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { withAccount, withUser, withPermission, withActivatedUser, withAny } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import {
-    Conversation,
-    RoomProfile,
-    Message,
-    RoomParticipant,
-    ChannelInvitation,
-    ChannelLink,
-    UserDialogSettings,
-} from '../../openland-module-db/schema';
+    Message
+} from '../../openland-module-db/store';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -39,10 +34,10 @@ function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, sho
     return async (src: RoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
-            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src)), showPlaceholder);
+            return handler(ctx, (await Store.RoomProfile.findById(ctx, src)), showPlaceholder);
         } else {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src.id) : false;
-            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id)), showPlaceholder);
+            return handler(ctx, (await Store.RoomProfile.findById(ctx, src.id)), showPlaceholder);
         }
     };
 }
@@ -52,7 +47,7 @@ export default {
         __resolveType: async (src: Conversation | number, ctx: AppContext) => {
             let conv: Conversation;
             if (typeof src === 'number') {
-                conv = (await FDB.Conversation.findById(ctx, src))!;
+                conv = (await Store.Conversation.findById(ctx, src))!;
             } else {
                 conv = src;
             }
@@ -68,7 +63,7 @@ export default {
         user: async (root: RoomRoot, args: {}, parent: AppContext) => {
             // In some cases we can't get ConversationPrivate here because it's not available in previous transaction, so we create new one
             return await inTx(parent, async (ctx) => {
-                let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
+                let proom = (await Store.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
                 if (proom.uid1 === parent.auth.uid!) {
                     return proom.uid2;
                 } else if (proom.uid2 === parent.auth.uid!) {
@@ -80,9 +75,9 @@ export default {
         },
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
         pinnedMessage: async (root, args, ctx) => {
-            let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
+            let proom = (await Store.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
             if (proom.pinnedMessage) {
-                return await FDB.Message.findById(ctx, proom.pinnedMessage);
+                return await Store.Message.findById(ctx, proom.pinnedMessage);
             } else {
                 return null;
             }
@@ -99,9 +94,9 @@ export default {
     SharedRoom: {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         kind: withConverationId(async (ctx, id) => {
-            let room = (await FDB.ConversationRoom.findById(ctx, id))!;
+            let room = (await Store.ConversationRoom.findById(ctx, id))!;
             // temp fix resolve openland internal chat
-            let conveOrg = (await FDB.ConversationOrganization.findById(ctx, id))!;
+            let conveOrg = (await Store.ConversationOrganization.findById(ctx, id))!;
             if (!room && conveOrg) {
                 return 'INTERNAL';
             }
@@ -119,7 +114,7 @@ export default {
             }
         }),
         isChannel: withConverationId(async (ctx, id) => {
-            let room = await FDB.ConversationRoom.findById(ctx, id);
+            let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isChannel);
         }),
         canSendMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
@@ -131,7 +126,7 @@ export default {
         description: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.description)),
         welcomeMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, id)),
 
-        pinnedMessage: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage))),
+        pinnedMessage: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))),
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
         role: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
@@ -142,19 +137,19 @@ export default {
             }
             let afterMember: RoomParticipant | null = null;
             if (args.after) {
-                afterMember = await FDB.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
+                afterMember = await Store.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
             }
             if (afterMember) {
-                return await FDB.RoomParticipant.rangeFromActiveAfter(ctx, id, afterMember.uid, args.first || 1000);
+                return (await Store.RoomParticipant.active.query(ctx, id, { after: afterMember.uid, limit: args.first || 1000 })).items;
             }
 
-            return await FDB.RoomParticipant.rangeFromActive(ctx, id, args.first || 1000);
+            return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
         }),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
         canEdit: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)),
         archived: withConverationId(async (ctx, id, args) => {
-            let conv = await FDB.Conversation.findById(ctx, id);
+            let conv = await Store.Conversation.findById(ctx, id);
             if (conv && conv.archived) {
                 return true;
             } else {
@@ -162,7 +157,7 @@ export default {
             }
         }),
         myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
-        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await FDB.UserRoomBadge.allFromChat(ctx, id)).length),
+        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length),
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -187,7 +182,7 @@ export default {
         },
         filePreview: (src: Message) => null,
         sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
-        date: (src: Message) => src.createdAt,
+        date: (src: Message) => src.metadata.createdAt,
         repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
         isService: (src: Message) => src.isService,
         serviceMetadata: (src: Message) => {
@@ -202,7 +197,7 @@ export default {
         reactions: (src: Message) => src.reactions || [],
         replyMessages: async (src: Message, args: {}, ctx: AppContext) => {
             if (src.replyMessages) {
-                let messages = await Promise.all((src.replyMessages as number[]).map(id => FDB.Message.findById(ctx, id)));
+                let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
                 let filtered = messages.filter(m => !!m);
                 if (filtered.length > 0) {
                     return filtered;
@@ -249,7 +244,7 @@ export default {
 
     RoomInvite: {
         id: (src: ChannelInvitation | ChannelLink) => src.id,
-        room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
+        room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.channelId),
         invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.creatorId)
     },
 
@@ -261,11 +256,11 @@ export default {
     RoomSuper: {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         featured: withConverationId(async (ctx, id) => {
-            let room = await FDB.ConversationRoom.findById(ctx, id);
+            let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.featured);
         }),
         listed: withConverationId(async (ctx, id) => {
-            let room = await FDB.ConversationRoom.findById(ctx, id);
+            let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.listed);
         }),
     },
@@ -307,7 +302,7 @@ export default {
     },
 
     SharedRoomMention: {
-        sharedRoom: (src, _, ctx) => FDB.ConversationRoom.findById(ctx, src.id)
+        sharedRoom: (src, _, ctx) => Store.ConversationRoom.findById(ctx, src.id)
     },
 
     Query: {
@@ -323,7 +318,7 @@ export default {
             } else if (id.type === IDs.User) {
                 return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
             } else if (id.type === IDs.Organization) {
-                let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                let member = await Store.OrganizationMember.findById(ctx, id.id as number, uid);
                 if (!member || member.status !== 'joined') {
                     throw new IDMailformedError('Invalid id');
                 }
@@ -346,7 +341,7 @@ export default {
                 } else if (id.type === IDs.User) {
                     res.push(await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid));
                 } else if (id.type === IDs.Organization) {
-                    let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
+                    let member = await Store.OrganizationMember.findById(ctx, id.id as number, uid);
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
@@ -368,35 +363,35 @@ export default {
             }
             let beforeMessage: Message | null = null;
             if (args.before) {
-                beforeMessage = await FDB.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
+                beforeMessage = await Store.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
             }
 
             if (beforeMessage) {
-                return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeMessage.id, args.first!, true);
+                return (await Store.Message.chat.query(ctx, roomId, { after: beforeMessage.id, limit: args.first!, reverse: true })).items;
             }
 
-            return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
+            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
         roomMember: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
-            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            let conversation = await Store.Conversation.findById(ctx, roomId);
             if (!conversation) {
                 throw new Error('Room not found');
             }
 
-            return await FDB.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.memberId));
+            return await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.memberId));
         }),
         roomMembers: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
-            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            let conversation = await Store.Conversation.findById(ctx, roomId);
             if (!conversation) {
                 throw new Error('Room not found');
             }
             if (conversation.kind === 'organization') {
-                let convOrg = await FDB.ConversationOrganization.findById(ctx, roomId);
-                let members = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', convOrg!.oid);
+                let convOrg = await Store.ConversationOrganization.findById(ctx, roomId);
+                let members = await Store.OrganizationMember.organization.findAll(ctx, 'joined', convOrg!.oid);
                 return members.map(m => ({
                     cid: roomId,
                     uid: m.uid,
@@ -406,24 +401,24 @@ export default {
             } else {
                 let afterMember: RoomParticipant | null = null;
                 if (args.after) {
-                    afterMember = await FDB.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
+                    afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
                 }
                 if (afterMember) {
-                    return await FDB.RoomParticipant.rangeFromActiveAfter(ctx, roomId, afterMember.uid, args.first || 1000);
+                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 1000 })).items;
                 }
 
-                return await FDB.RoomParticipant.rangeFromActive(ctx, roomId, args.first || 1000);
+                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
             }
         }),
         roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
-            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            let conversation = await Store.Conversation.findById(ctx, roomId);
             if (!conversation) {
                 throw new Error('Room not found');
             }
-            let badges = await FDB.UserRoomBadge.rangeFromChat(ctx, roomId, args.first || 1000);
-            return await Promise.all(badges.map(b => FDB.RoomParticipant.findById(ctx, b.cid, b.uid)));
+            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
+            return await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)));
         }),
 
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
@@ -595,7 +590,7 @@ export default {
             return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
         }),
         betaRoomInviteLinkJoin: withUser(async (ctx, args, uid) => {
-            return await FDB.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false));
+            return await Store.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false));
         }),
 
         //

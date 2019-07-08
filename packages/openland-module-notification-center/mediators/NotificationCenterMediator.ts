@@ -1,8 +1,8 @@
+import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { NotificationCenterRepository, NotificationInput } from '../repositories/NotificationCenterRepository';
-import { AllEntities } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -14,8 +14,6 @@ import { Modules } from '../../openland-modules/Modules';
 export class NotificationCenterMediator {
     @lazyInject('NotificationCenterRepository')
     private readonly repo!: NotificationCenterRepository;
-    @lazyInject('FDB')
-    private readonly fdb!: AllEntities;
     @lazyInject('NeedDeliveryRepository')
     private readonly needDelivery!: NeedDeliveryRepository;
 
@@ -44,7 +42,7 @@ export class NotificationCenterMediator {
 
     async readUserNotification(parent: Context, nid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let notification = await this.fdb.Notification.findById(ctx, nid);
+            let notification = await Store.Notification.findById(ctx, nid);
             if (!notification) {
                 throw new NotFoundError();
             }
@@ -59,7 +57,7 @@ export class NotificationCenterMediator {
 
     async deleteUserNotification(parent: Context, nid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let notification = await this.fdb.Notification.findById(ctx, nid);
+            let notification = await Store.Notification.findById(ctx, nid);
             if (!notification) {
                 throw new NotFoundError();
             }
@@ -102,7 +100,7 @@ export class NotificationCenterMediator {
             //
             // Send notification center events for all subscribed users
             //
-            let subscriptions = await this.fdb.CommentsSubscription.allFromPeer(ctx, peerType, peerId);
+            let subscriptions = await Store.CommentsSubscription.peer.findAll(ctx, peerType, peerId);
             for (let subscription of subscriptions) {
                 let userNotificationCenter = await this.notificationCenterForUser(ctx, subscription.uid);
                 return this.repo.onCommentPeerUpdated(ctx, userNotificationCenter.id, peerType, peerId, commentId);

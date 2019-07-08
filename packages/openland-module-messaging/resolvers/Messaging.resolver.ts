@@ -4,7 +4,7 @@ import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { UserError } from '../../openland-errors/UserError';
-import { FDB } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
@@ -99,7 +99,7 @@ export default {
         betaMessageDeleteAugmentation: withUser(async (ctx, args, uid) => {
             let mid = IDs.ConversationMessage.parse(args.mid);
 
-            let message = await FDB.Message.findById(ctx, mid);
+            let message = await Store.Message.findById(ctx, mid);
             if (!message || message.deleted) {
                 throw new NotFoundError();
             }

@@ -1,7 +1,7 @@
-import { AllEntitiesDirect } from './../../openland-module-db/schema';
 import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
 import { Database } from '@openland/foundationdb';
-import { EntityLayer } from '../../foundation-orm/EntityLayer';
+import { openStore } from 'openland-module-db/store';
+import { EntityStorage } from '@openland/foundationdb-entity';
 
 export async function openDatabase() {
     let db = await Database.open({
@@ -9,6 +9,6 @@ export async function openDatabase() {
             new BusLayer(new NoOpBus())
         ]
     });
-    let storage = new EntityLayer(db, 'app');
-    return await AllEntitiesDirect.create(storage);
+    let storage = new EntityStorage(db);
+    return await openStore(storage);
 }

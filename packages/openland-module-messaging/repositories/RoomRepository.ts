@@ -1,7 +1,7 @@
+import { RoomParticipantCreateShape, Message } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
-import { AllEntities, ConversationRoom, Message, RoomParticipantShape } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
@@ -15,7 +15,7 @@ import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
-import { User, Store as SStore } from 'openland-module-db/store';
+import { User, ConversationRoom } from 'openland-module-db/store';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -36,16 +36,14 @@ export type WelcomeMessageT = {
 
 @injectable()
 export class RoomRepository {
-    @lazyInject('FDB') private readonly entities!: AllEntities;
-    @lazyInject('Store') private readonly store!: SStore;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
-            let conv = await this.entities.Conversation.create(ctx, id, { kind: 'room' });
-            await this.entities.ConversationRoom.create(ctx, id, {
+            let conv = await Store.Conversation.create(ctx, id, { kind: 'room' });
+            await Store.ConversationRoom.create(ctx, id, {
                 kind,
                 ownerId: uid,
                 oid: kind === 'public' ? oid : undefined,
@@ -53,7 +51,7 @@ export class RoomRepository {
                 listed: kind === 'public' && listed !== false,
                 isChannel: channel,
             });
-            await this.entities.RoomProfile.create(ctx, id, {
+            await Store.RoomProfile.create(ctx, id, {
                 title: profile.title,
                 image: profile.image,
                 description: profile.description,
@@ -88,7 +86,7 @@ export class RoomRepository {
             await this.checkRoomExists(ctx, cid);
 
             // Create or update room participant
-            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
                 if (p.status === 'joined') {
                     return false;
@@ -117,7 +115,7 @@ export class RoomRepository {
             await this.checkRoomExists(ctx, cid);
 
             // Kick user from Room
-            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (!participant || participant.status !== 'joined') {
                 return false;
             }
@@ -134,7 +132,7 @@ export class RoomRepository {
             await this.checkRoomExists(ctx, cid);
 
             // Decline request
-            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (!participant || participant.status !== 'requested') {
                 return false;
             }
@@ -149,7 +147,7 @@ export class RoomRepository {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
 
-            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (!p || p.status !== 'joined') {
                 return false;
             }
@@ -166,7 +164,7 @@ export class RoomRepository {
             await this.checkRoomExists(ctx, cid);
 
             let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
-            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
                 if ((p.status === targetStatus) || (p.status === 'joined')) {
                     return false;
@@ -195,7 +193,7 @@ export class RoomRepository {
         return await inTx(parent, async (ctx) => {
             await this.checkRoomExists(ctx, cid);
 
-            let conv = await this.entities.RoomProfile.findById(ctx, cid);
+            let conv = await Store.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
@@ -254,7 +252,7 @@ export class RoomRepository {
                 if (!await Modules.Super.superRole(ctx, uid)) {
                     throw new AccessDeniedError();
                 }
-                let room = await this.entities.ConversationRoom.findById(ctx, cid);
+                let room = await Store.ConversationRoom.findById(ctx, cid);
                 room!.kind = profile.kind!;
             }
 
@@ -266,8 +264,8 @@ export class RoomRepository {
 
     async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.Conversation.findById(ctx, cid);
-            let message = await this.entities.Message.findById(ctx, mid);
+            let conv = await Store.Conversation.findById(ctx, cid);
+            let message = await Store.Message.findById(ctx, mid);
             if (!message || !conv || message.deleted) {
                 throw new NotFoundError();
             }
@@ -276,14 +274,14 @@ export class RoomRepository {
             }
 
             if (conv.kind === 'private') {
-                let privateConv = await this.entities.ConversationPrivate.findById(ctx, cid);
+                let privateConv = await Store.ConversationPrivate.findById(ctx, cid);
                 if (!privateConv) {
                     throw new NotFoundError();
                 }
                 privateConv.pinnedMessage = mid;
                 await privateConv.flush(ctx);
             } else if (conv.kind === 'room') {
-                let profile = await this.entities.RoomProfile.findById(ctx, cid);
+                let profile = await Store.RoomProfile.findById(ctx, cid);
                 if (!profile) {
                     throw new NotFoundError();
                 }
@@ -292,7 +290,7 @@ export class RoomRepository {
             }
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
             });
@@ -322,7 +320,7 @@ export class RoomRepository {
                         messageContent = 'Document';
                     }
                 } else if (msg.replyMessages && msg.replyMessages.length > 0) {
-                    let replyMsg = await this.entities.Message.findById(ctx, msg.replyMessages[0]);
+                    let replyMsg = await Store.Message.findById(ctx, msg.replyMessages[0]);
 
                     if (replyMsg) {
                         return getMessageContent(replyMsg);
@@ -342,12 +340,12 @@ export class RoomRepository {
 
     async unpinMessage(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.Conversation.findById(ctx, cid);
+            let conv = await Store.Conversation.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
             }
             if (conv.kind === 'room') {
-                let profile = await this.entities.RoomProfile.findById(ctx, cid);
+                let profile = await Store.RoomProfile.findById(ctx, cid);
                 if (!profile) {
                     throw new NotFoundError();
                 }
@@ -358,7 +356,7 @@ export class RoomRepository {
                 profile.pinnedMessage = null;
                 await profile.flush(ctx);
             } else if (conv.kind === 'private') {
-                let privateConv = await this.entities.ConversationPrivate.findById(ctx, cid);
+                let privateConv = await Store.ConversationPrivate.findById(ctx, cid);
                 if (!privateConv) {
                     throw new NotFoundError();
                 }
@@ -371,7 +369,7 @@ export class RoomRepository {
             }
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
             });
@@ -381,22 +379,22 @@ export class RoomRepository {
 
     async updateMemberRole(parent: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.RoomProfile.findById(ctx, cid);
+            let conv = await Store.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
-            let p2 = await this.entities.RoomParticipant.findById(ctx, cid, updatedUid);
+            let p2 = await Store.RoomParticipant.findById(ctx, cid, updatedUid);
             if (!p2 || p2.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
             p2.role = role;
-            return (await this.entities.Conversation.findById(ctx, conv.id))!;
+            return (await Store.Conversation.findById(ctx, conv.id))!;
         });
     }
 
     async moveRoom(parent: Context, cid: number, uid: number, toOrg: number) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
 
             if (!room) {
                 throw new NotFoundError();
@@ -408,7 +406,7 @@ export class RoomRepository {
 
             room.oid = toOrg;
 
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
@@ -420,7 +418,7 @@ export class RoomRepository {
             //     throw new NotFoundError();
             // }
 
-            let conv = await this.entities.Conversation.findById(ctx, cid);
+            let conv = await Store.Conversation.findById(ctx, cid);
             if (conv!.deleted) {
                 return false;
             }
@@ -433,13 +431,13 @@ export class RoomRepository {
 
     async archiveRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
 
             if (!room) {
                 throw new NotFoundError();
             }
 
-            let conv = await this.entities.Conversation.findById(ctx, cid);
+            let conv = await Store.Conversation.findById(ctx, cid);
             if (conv!.archived) {
                 return false;
             }
@@ -447,7 +445,7 @@ export class RoomRepository {
             await conv!.flush(ctx);
 
             let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+            await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'chat_updated',
                 uid
             });
@@ -462,27 +460,27 @@ export class RoomRepository {
 
     async setFeatured(parent: Context, cid: number, featued: boolean) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
             }
             room.featured = featued;
-            let profile = await this.entities.RoomProfile.findById(ctx, cid);
-            profile!.markDirty(); // Update profile for reindexing
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            let profile = await Store.RoomProfile.findById(ctx, cid);
+            profile!.invalidate(); // Update profile for reindexing
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
     async setListed(parent: Context, cid: number, listed: boolean) {
         return await inTx(parent, async (ctx) => {
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
             }
             room.listed = listed;
-            let profile = await this.entities.RoomProfile.findById(ctx, cid);
-            profile!.markDirty(); // Update profile for reindexing
-            return (await this.entities.Conversation.findById(ctx, cid))!;
+            let profile = await Store.RoomProfile.findById(ctx, cid);
+            profile!.invalidate(); // Update profile for reindexing
+            return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
 
@@ -491,14 +489,14 @@ export class RoomRepository {
     //
 
     async checkRoomExists(ctx: Context, cid: number) {
-        let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
         if (!conv) {
             throw new Error('Room not found');
         }
     }
 
     async isActiveMember(ctx: Context, uid: number, cid: number) {
-        let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+        let p = await Store.RoomParticipant.findById(ctx, cid, uid);
         if (!p) {
             return false;
         }
@@ -510,7 +508,7 @@ export class RoomRepository {
     }
 
     async findMembershipStatus(ctx: Context, uid: number, cid: number) {
-        let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+        let p = await Store.RoomParticipant.findById(ctx, cid, uid);
         if (!p) {
             return null;
         }
@@ -518,56 +516,56 @@ export class RoomRepository {
     }
 
     async resolveUserMembershipStatus(ctx: Context, uid: number, cid: number) {
-        let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+        let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
         return participant ? participant.status : 'none';
     }
 
     async resolveUserRole(ctx: Context, uid: number, cid: number) {
-        let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+        let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
         return participant ? participant.role : 'MEMBER';
     }
 
     async findActiveMembers(ctx: Context, cid: number) {
-        return this.entities.RoomParticipant.allFromActive(ctx, cid);
+        return Store.RoomParticipant.active.findAll(ctx, cid);
     }
 
     async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
         if (!status || status === 'joined') {
-            let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+            let profile = await Store.RoomProfile.findById(ctx, conversationId);
             return (profile && profile.activeMembersCount) || 0;
         }
-        return (await this.entities.RoomParticipant.allFromActive(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
+        return (await Store.RoomParticipant.active.findAll(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
     async resolvePrivateChat(parent: Context, uid1: number, uid2: number) {
-        let conv2 = await this.entities.ConversationPrivate.findFromUsers(parent, Math.min(uid1, uid2), Math.max(uid1, uid2));
+        let conv2 = await Store.ConversationPrivate.users.find(parent, Math.min(uid1, uid2), Math.max(uid1, uid2));
         if (conv2) {
-            return (await this.entities.Conversation.findById(parent, conv2.id))!;
+            return (await Store.Conversation.findById(parent, conv2.id))!;
         }
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationPrivate.findFromUsers(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
+            let conv = await Store.ConversationPrivate.users.find(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
-                await (await this.entities.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
-                conv = await this.entities.ConversationPrivate.create(ctx, id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
+                await (await Store.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
+                conv = await Store.ConversationPrivate.create(ctx, id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
                 this.metrics.onChatCreated(ctx, uid1);
                 this.metrics.onChatCreated(ctx, uid2);
                 await conv.flush(ctx);
             }
-            return (await this.entities.Conversation.findById(ctx, conv.id))!;
+            return (await Store.Conversation.findById(ctx, conv.id))!;
         });
     }
 
     async resolveOrganizationChat(parent: Context, oid: number) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationOrganization.findFromOrganization(ctx, oid);
+            let conv = await Store.ConversationOrganization.organization.find(ctx, oid);
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
-                await (await this.entities.Conversation.create(ctx, id, { kind: 'organization' })).flush(ctx);
-                conv = await this.entities.ConversationOrganization.create(ctx, id, { oid });
+                await (await Store.Conversation.create(ctx, id, { kind: 'organization' })).flush(ctx);
+                conv = await Store.ConversationOrganization.create(ctx, id, { oid });
                 await conv.flush(ctx);
             }
-            return (await this.entities.Conversation.findById(ctx, conv.id))!;
+            return (await Store.Conversation.findById(ctx, conv.id))!;
         });
     }
 
@@ -576,7 +574,7 @@ export class RoomRepository {
             //
             // Legacy organization-type conversations
             //
-            let conversationOrganization = await this.entities.ConversationOrganization.findById(ctx, cid);
+            let conversationOrganization = await Store.ConversationOrganization.findById(ctx, cid);
             if (conversationOrganization) {
                 return await Store.Organization.findById(ctx, conversationOrganization.oid);
             }
@@ -584,7 +582,7 @@ export class RoomRepository {
             //
             //  Modern rooms
             //
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
             if (room && room.oid) {
                 return await Store.Organization.findById(ctx, room.oid);
             }
@@ -594,32 +592,32 @@ export class RoomRepository {
     }
 
     async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
-        let conv = (await this.entities.Conversation.findById(ctx, cid))!;
+        let conv = (await Store.Conversation.findById(ctx, cid))!;
         if (conv.kind === 'private') {
-            let p = (await this.entities.ConversationPrivate.findById(ctx, cid))!;
+            let p = (await Store.ConversationPrivate.findById(ctx, cid))!;
             return [p.uid1, p.uid2];
         } else if (conv.kind === 'room') {
-            return (await this.entities.RoomParticipant.allFromActive(ctx, cid)).map((v) => v.uid);
+            return (await Store.RoomParticipant.active.findAll(ctx, cid)).map((v) => v.uid);
         } else if (conv.kind === 'organization') {
             if (conv.deleted) {
                 return [];
             }
-            let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
-            return (await this.entities.OrganizationMember.allFromOrganization(ctx, 'joined', org.oid)).map((v) => v.uid);
+            let org = (await Store.ConversationOrganization.findById(ctx, cid))!;
+            return (await Store.OrganizationMember.organization.findAll(ctx, 'joined', org.oid)).map((v) => v.uid);
         } else {
             throw new Error('Internal error');
         }
     }
 
     async resolveConversationTitle(ctx: Context, conversationId: number, uid: number): Promise<string> {
-        let conv = await this.entities.Conversation.findById(ctx, conversationId);
+        let conv = await Store.Conversation.findById(ctx, conversationId);
 
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
 
         if (conv.kind === 'private') {
-            let p = (await this.entities.ConversationPrivate.findById(ctx, conv.id))!;
+            let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
             let _uid;
             if (p.uid1 === uid) {
                 _uid = p.uid2;
@@ -631,16 +629,16 @@ export class RoomRepository {
             let profile = (await Store.UserProfile.findById(ctx, _uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         } else if (conv.kind === 'organization') {
-            let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
+            let o = await Store.ConversationOrganization.findById(ctx, conv.id);
             return (await Store.OrganizationProfile.findById(ctx, o!.oid))!.name;
         } else {
-            let r = (await this.entities.ConversationRoom.findById(ctx, conv.id))!;
-            let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
+            let r = (await Store.ConversationRoom.findById(ctx, conv.id))!;
+            let p = (await Store.RoomProfile.findById(ctx, conv.id))!;
             if (r.kind === 'group') {
                 if (p.title !== '') {
                     return p.title;
                 }
-                let res = (await this.entities.RoomParticipant.allFromActive(ctx, conv.id)).filter((v) => v.uid !== uid);
+                let res = (await Store.RoomParticipant.active.findAll(ctx, conv.id)).filter((v) => v.uid !== uid);
                 let name: string[] = [];
                 for (let r2 of res) {
                     let p2 = (await Store.UserProfile.findById(ctx, r2.uid))!;
@@ -653,14 +651,14 @@ export class RoomRepository {
     }
 
     async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
-        let conv = await this.entities.Conversation.findById(ctx, conversationId);
+        let conv = await Store.Conversation.findById(ctx, conversationId);
 
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
 
         if (conv.kind === 'private') {
-            let p = (await this.entities.ConversationPrivate.findById(ctx, conv.id))!;
+            let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
             let _uid;
             if (p.uid1 === uid) {
                 _uid = p.uid2;
@@ -677,7 +675,7 @@ export class RoomRepository {
                 return 'ph://' + doSimpleHash(IDs.User.serialize(_uid)) % 6;
             }
         } else if (conv.kind === 'organization') {
-            let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
+            let o = await Store.ConversationOrganization.findById(ctx, conv.id);
             let res = buildBaseImageUrl((await Store.OrganizationProfile.findById(ctx, o!.oid))!.photo);
             if (res) {
                 return res;
@@ -685,7 +683,7 @@ export class RoomRepository {
                 return 'ph://' + doSimpleHash(IDs.Organization.serialize(o!.oid)) % 6;
             }
         } else {
-            let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
+            let p = (await Store.RoomProfile.findById(ctx, conv.id))!;
             let res = buildBaseImageUrl(p.image);
             if (res) {
                 return res;
@@ -696,18 +694,18 @@ export class RoomRepository {
     }
 
     async resolveConversationSocialImage(ctx: Context, conversationId: number): Promise<string | null> {
-        let conv = await this.entities.Conversation.findById(ctx, conversationId);
+        let conv = await Store.Conversation.findById(ctx, conversationId);
 
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
 
-        let profile = await this.entities.RoomProfile.findById(ctx, conv.id);
+        let profile = await Store.RoomProfile.findById(ctx, conv.id);
         return profile ? buildBaseImageUrl(profile.socialImage) : null;
     }
 
     async resolveConversationWelcomeMessage(ctx: Context, conversationId: number): Promise<WelcomeMessageT | null> {
-        let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+        let profile = await Store.RoomProfile.findById(ctx, conversationId);
         if (!profile) {
             return null;
         }
@@ -735,7 +733,7 @@ export class RoomRepository {
     }
 
     async resolveConversationWelcomeMessageText(ctx: Context, conversationId: number): Promise<string | null> {
-        let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+        let profile = await Store.RoomProfile.findById(ctx, conversationId);
         if (!profile) {
             throw new NotFoundError();
         }
@@ -744,7 +742,7 @@ export class RoomRepository {
 
     async updateWelcomeMessage(parent: Context, cid: number, welcomeMessageIsOn: boolean, welcomeMessageSender: number | null | undefined, welcomeMessageText: string | null | undefined) {
         return await inTx(parent, async (ctx) => {
-            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            let profile = await Store.RoomProfile.findById(ctx, cid);
             if (!profile) {
                 throw new NotFoundError();
             }
@@ -767,7 +765,7 @@ export class RoomRepository {
         //
         // No one have access to deleted chat
         //
-        let conversation = await this.entities.Conversation.findById(ctx, conv.id);
+        let conversation = await Store.Conversation.findById(ctx, conv.id);
         if (conversation && conversation.deleted) {
             return false;
         }
@@ -805,12 +803,12 @@ export class RoomRepository {
     }
 
     async checkAccess(ctx: Context, uid: number, cid: number) {
-        let conv = await this.entities.Conversation.findById(ctx, cid);
+        let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv) {
             throw new AccessDeniedError();
         }
         if (conv.kind === 'private') {
-            let p = await this.entities.ConversationPrivate.findById(ctx, cid);
+            let p = await Store.ConversationPrivate.findById(ctx, cid);
             if (!p) {
                 throw new AccessDeniedError();
             }
@@ -818,24 +816,24 @@ export class RoomRepository {
                 throw new AccessDeniedError();
             }
         } else if (conv.kind === 'room') {
-            let convRoom = await this.entities.ConversationRoom.findById(ctx, cid);
+            let convRoom = await Store.ConversationRoom.findById(ctx, cid);
             if (convRoom && await this.userHaveAdminPermissionsInChat(ctx, convRoom, uid)) {
                 return;
             }
 
-            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let member = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
         } else if (conv.kind === 'organization') {
-            let org = await this.entities.ConversationOrganization.findById(ctx, cid);
+            let org = await Store.ConversationOrganization.findById(ctx, cid);
             if (!org) {
                 throw new AccessDeniedError();
             }
             if (conv.deleted) {
                 throw new AccessDeniedError();
             }
-            let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            let member = await Store.OrganizationMember.findById(ctx, org.oid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
@@ -845,12 +843,12 @@ export class RoomRepository {
     }
 
     async checkCanUserSeeChat(ctx: Context, uid: number, cid: number) {
-        let conv = await this.entities.Conversation.findById(ctx, cid);
+        let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv) {
             throw new AccessDeniedError();
         }
         if (conv.kind === 'private') {
-            let p = await this.entities.ConversationPrivate.findById(ctx, cid);
+            let p = await Store.ConversationPrivate.findById(ctx, cid);
             if (!p) {
                 throw new AccessDeniedError();
             }
@@ -858,8 +856,8 @@ export class RoomRepository {
                 throw new AccessDeniedError();
             }
         } else if (conv.kind === 'room') {
-            let conversation = (await this.entities.ConversationRoom.findById(ctx, cid))!;
-            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let conversation = (await Store.ConversationRoom.findById(ctx, cid))!;
+            let member = await Store.RoomParticipant.findById(ctx, cid, uid);
             let isMember = member && member.status === 'joined';
 
             if (isMember) {
@@ -888,11 +886,11 @@ export class RoomRepository {
                 }
             }
         } else if (conv.kind === 'organization') {
-            let org = await this.entities.ConversationOrganization.findById(ctx, cid);
+            let org = await Store.ConversationOrganization.findById(ctx, cid);
             if (!org) {
                 throw new AccessDeniedError();
             }
-            let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            let member = await Store.OrganizationMember.findById(ctx, org.oid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
@@ -902,14 +900,14 @@ export class RoomRepository {
     }
 
     async userWasKickedFromRoom(ctx: Context, uid: number, cid: number): Promise<boolean> {
-        let conv = await this.entities.Conversation.findById(ctx, cid);
+        let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv || (conv.kind !== 'room' && conv.kind !== 'organization')) {
             return false;
         }
 
         if (conv.kind === 'organization') {
-            let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
-            let orgMember = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            let org = (await Store.ConversationOrganization.findById(ctx, cid))!;
+            let orgMember = await Store.OrganizationMember.findById(ctx, org.oid, uid);
 
             if (orgMember && orgMember.status === 'left') {
                 return true;
@@ -917,7 +915,7 @@ export class RoomRepository {
                 return false;
             }
         } else if (conv.kind === 'room') {
-            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let member = await Store.RoomParticipant.findById(ctx, cid, uid);
 
             if (member && member.status === 'kicked') {
                 return true;
@@ -956,7 +954,7 @@ export class RoomRepository {
             //  Add all rooms from communities if not private
             //
             if (org.kind === 'community' && !org.private) {
-                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
+                let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(parent, orgId);
                 rooms
                     .filter(r => (isChannel === undefined) || (!!r.isChannel === isChannel))
                     .map(r => availableRooms.add(r.id));
@@ -964,7 +962,7 @@ export class RoomRepository {
                 //
                 //  Add rooms from org if user is member
                 //
-                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(parent, orgId);
+                let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(parent, orgId);
                 for (let room of rooms) {
                     if ((room.kind === 'public') && ((isChannel === undefined) || (!!room.isChannel === isChannel))) {
                         availableRooms.add(room.id);
@@ -975,8 +973,8 @@ export class RoomRepository {
 
         let toSort: { rid: number, count: number }[] = [];
         for (let rid of availableRooms) {
-            let conv = await this.entities.Conversation.findById(parent, rid);
-            let userAsMember = (await this.entities.RoomParticipant.findById(parent, rid, uid));
+            let conv = await Store.Conversation.findById(parent, rid);
+            let userAsMember = (await Store.RoomParticipant.findById(parent, rid, uid));
             if (
                 (!conv || conv.archived || conv.deleted) ||
                 (userAsMember && (userAsMember.status === 'left' || userAsMember.status === 'kicked'))
@@ -984,7 +982,7 @@ export class RoomRepository {
                 continue;
             }
 
-            let membersCount = (await this.entities.RoomProfile.findById(parent, rid)!)!.activeMembersCount || 0;
+            let membersCount = (await Store.RoomProfile.findById(parent, rid)!)!.activeMembersCount || 0;
             toSort.push({ rid, count: membersCount });
         }
         let res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
@@ -1008,9 +1006,9 @@ export class RoomRepository {
             //
             //  Rooms in which user exists
             //
-            let userDialogs = await this.entities.RoomParticipant.allFromUserActive(ctx, uid);
+            let userDialogs = await Store.RoomParticipant.active.findAll(ctx, uid);
             for (let dialog of userDialogs) {
-                let room = await this.entities.ConversationRoom.findById(ctx, dialog.cid);
+                let room = await Store.ConversationRoom.findById(ctx, dialog.cid);
                 if (room) {
                     availableRooms.add(dialog.cid);
                 }
@@ -1039,13 +1037,13 @@ export class RoomRepository {
                 //  Add all rooms from communities
                 //
                 if (org.kind === 'community') {
-                    let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
+                    let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, orgId);
                     rooms.map(r => availableRooms.add(r.id));
                 } else if (isUserMember) {
                     //
                     //  Add rooms from org if user is member
                     //
-                    let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
+                    let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, orgId);
                     for (let room of rooms) {
                         if (room.kind === 'public') {
                             availableRooms.add(room.id);
@@ -1064,18 +1062,18 @@ export class RoomRepository {
 
     private async fetchNextConversationId(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let sequence = await this.entities.Sequence.findById(ctx, 'conversation-id');
+            let sequence = await Store.Sequence.findById(ctx, 'conversation-id');
             if (!sequence) {
-                sequence = (await this.entities.Sequence.create(ctx, 'conversation-id', { value: 0 }));
+                sequence = (await Store.Sequence.create(ctx, 'conversation-id', { value: 0 }));
                 await sequence.flush(ctx);
             }
             return ++sequence.value;
         });
     }
 
-    private async createRoomParticipant(parent: Context, cid: number, uid: number, data: RoomParticipantShape) {
+    private async createRoomParticipant(parent: Context, cid: number, uid: number, data: RoomParticipantCreateShape) {
         return await inTx(parent, async ctx => {
-            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (!roomProfile) {
                 throw new NotFoundError();
             }
@@ -1084,13 +1082,13 @@ export class RoomRepository {
                 await this.incrementRoomActiveMembers(ctx, cid);
             }
 
-            return await this.entities.RoomParticipant.create(ctx, cid, uid, data);
+            return await Store.RoomParticipant.create(ctx, cid, uid, data);
         });
     }
 
     private async incrementRoomActiveMembers(parent: Context, cid: number) {
         return await inTx(parent, async ctx => {
-            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (!roomProfile) {
                 throw new NotFoundError();
             }
@@ -1106,7 +1104,7 @@ export class RoomRepository {
 
     private async decrementRoomActiveMembers(parent: Context, cid: number) {
         return await inTx(parent, async ctx => {
-            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (!roomProfile) {
                 throw new NotFoundError();
             }
@@ -1124,13 +1122,13 @@ export class RoomRepository {
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
             await EventBus.publish(`chat_join_${cid}`, { uid, cid });
-            let room = await this.entities.ConversationRoom.findById(ctx, cid);
-            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (!room || !roomProfile) {
                 throw new Error('Room not found');
             }
             if (await this.isPublicCommunityChat(ctx, cid)) {
-                await this.store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
+                await Store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
             }
             if (room.oid) {
                 let org = await Store.Organization.findById(ctx, room.oid);
@@ -1159,13 +1157,13 @@ export class RoomRepository {
 
     private async onRoomLeave(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let roomProfile = await this.entities.RoomProfile.findById(ctx, cid);
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.isPublicCommunityChat(ctx, cid)) {
-                await this.store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
+                await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
             }
-            await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
+            await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
 
-            let userRoomBadge = await this.entities.UserRoomBadge.findById(ctx, uid, cid);
+            let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
 
             if (userRoomBadge && userRoomBadge.bid !== null) {
                 userRoomBadge.bid = null;
@@ -1174,11 +1172,11 @@ export class RoomRepository {
     }
 
     private async isPublicCommunityChat(ctx: Context, cid: number) {
-        let chat = await this.entities.Conversation.findById(ctx, cid);
+        let chat = await Store.Conversation.findById(ctx, cid);
         if (!chat || chat.kind !== 'room') {
             return false;
         }
-        let room = (await this.entities.ConversationRoom.findById(ctx, cid))!;
+        let room = (await Store.ConversationRoom.findById(ctx, cid))!;
         if (room.kind !== 'public' || !room.oid) {
             return false;
         }

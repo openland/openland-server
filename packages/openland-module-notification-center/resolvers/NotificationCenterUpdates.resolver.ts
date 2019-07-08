@@ -1,9 +1,8 @@
+import { NotificationCenterEvent } from './../../openland-module-db/store';
 import { Store } from './../../openland-module-db/FDB';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import NotificationCenterUpdateContainerRoot = GQLRoots.NotificationCenterUpdateContainerRoot;
-import { NotificationCenterEvent } from '../../openland-module-db/schema';
-import { FDB } from '../../openland-module-db/FDB';
 import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
@@ -40,7 +39,7 @@ export default {
                 return 'NotificationDeleted';
             } else if (obj.kind === 'notification_updated') {
                 return 'NotificationUpdated';
-            }  else if (obj.kind === 'notification_content_updated') {
+            } else if (obj.kind === 'notification_content_updated') {
                 return 'NotificationContentUpdated';
             }
             throw Error('Unknown notification center update type: ' + obj.kind);
@@ -56,31 +55,31 @@ export default {
     },
 
     NotificationReceived: {
-        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
-        notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
-        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
+        notification: async (src, args, ctx) => await Store.Notification.findById(ctx, src.notificationId!),
+        unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationRead: {
-        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
-        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
+        unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationDeleted: {
-        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
-        notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
-        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
+        notification: async (src, args, ctx) => await Store.Notification.findById(ctx, src.notificationId!),
+        unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationUpdated: {
-        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
-        notification: async (src, args, ctx) => await FDB.Notification.findById(ctx, src.notificationId!),
-        unread:  async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
+        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
+        notification: async (src, args, ctx) => await Store.Notification.findById(ctx, src.notificationId!),
+        unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationContentUpdated: {
-        center: async (src, args, ctx) => await FDB.NotificationCenter.findById(ctx, src.ncid),
+        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
         content: async (src, args, ctx) => src.updatedContent
     },
     UpdatedNotificationContentComment: {
-        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await FDB.Comment.allFromPeer(ctx, src.peerType! as any, src.peerId!) }),
-        comment: async (src, args, ctx) => src.commentId && await FDB.Comment.findById(ctx, src.commentId)
+        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!) }),
+        comment: async (src, args, ctx) => src.commentId && await Store.Comment.findById(ctx, src.commentId)
     },
 
     Subscription: {
@@ -95,7 +94,7 @@ export default {
                 }
                 let center = await Modules.NotificationCenter.notificationCenterForUser(ctx, uid);
 
-                return FDB.NotificationCenterEvent.createNotificationCenterLiveStream(ctx, center.id, 20, args.fromState || undefined);
+                return Store.NotificationCenterEvent.notificationCenter.liveStream(ctx, center.id, { batchSize: 20, after: args.fromState || undefined });
             }
         }
     }

@@ -1,13 +1,12 @@
-import { UserBadge } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { FDB, Store } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import { User, UserProfile } from 'openland-module-db/store';
+import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -83,8 +82,8 @@ export default {
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
-        badges: withUser((ctx, src) => FDB.UserBadge.allFromUser(ctx, src.id)),
-        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? FDB.UserBadge.findById(ctx, profile.primaryBadge) : null),
+        badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),
+        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null),
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id)),
 
         // Deprecated
@@ -101,9 +100,9 @@ export default {
         chatsWithBadge: withProfile(async (ctx, src, profile) => {
             let res: { cid: number, badge: UserBadge }[] = [];
 
-            let badges = await FDB.UserRoomBadge.allFromUser(ctx, src.id);
+            let badges = await Store.UserRoomBadge.user.findAll(ctx, src.id);
             for (let badge of badges) {
-                let chat = await FDB.ConversationRoom.findById(ctx, badge.cid);
+                let chat = await Store.ConversationRoom.findById(ctx, badge.cid);
                 if (!chat) {
                     continue;
                 }
@@ -121,7 +120,7 @@ export default {
                     continue;
                 }
 
-                res.push({ cid: badge.cid, badge: (await FDB.UserBadge.findById(ctx, badge.bid!))! });
+                res.push({ cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))! });
             }
             return res;
         }),

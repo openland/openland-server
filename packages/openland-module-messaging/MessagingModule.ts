@@ -1,9 +1,9 @@
+import { ConversationEvent } from './../openland-module-db/store';
 import { injectable, inject } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { MessageInput } from './MessageInput';
-import { ConversationEvent } from 'openland-module-db/schema';
 import { UserStateRepository } from './repositories/UserStateRepository';
 import { AugmentationMediator } from './mediators/AugmentationMediator';
 import { DeliveryMediator } from './mediators/DeliveryMediator';

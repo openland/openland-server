@@ -1,7 +1,7 @@
 import { DocumentNode, getOperationAST } from 'graphql';
 
 export function isAsyncIterator(iterator: any): iterator is AsyncIterable<any> {
-    return iterator.hasOwnProperty(Symbol.asyncIterator);
+    return !!iterator[Symbol.asyncIterator];
 }
 
 export function isSubscriptionQuery(query: DocumentNode, operationName?: string) {

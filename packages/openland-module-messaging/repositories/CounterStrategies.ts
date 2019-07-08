@@ -1,5 +1,5 @@
 import { Context } from '@openland/context';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 
 type UserGlobalCounter = {
     get(ctx: Context, uid: number): Promise<number>
@@ -55,7 +55,7 @@ export const UnreadChatsWithoutMutedCalculator: GlobalCounterCalculator = {
 };
 
 const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
-    let settings = await FDB.UserDialogSettings.findById(ctx, uid, cid);
+    let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
     if (settings && settings.mute) {
         return true;
     }

@@ -1,13 +1,13 @@
 import { withUser } from 'openland-module-api/Resolvers';
-import { FDB, Store } from 'openland-module-db/FDB';
-import { UserDialog } from 'openland-module-db/schema';
+import { Store } from 'openland-module-db/FDB';
+import { UserDialog } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { createLogger } from '@openland/log';
+import { encoders } from '@openland/foundationdb';
 
 const logger = createLogger('dialogs');
 
@@ -16,11 +16,11 @@ export default {
         id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
         cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),
         fid: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            let conv = (await FDB.Conversation.findById(ctx, src.cid))!;
+            let conv = (await Store.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
-                return IDs.Organization.serialize((await FDB.ConversationOrganization.findById(ctx, src.cid))!.oid);
+                return IDs.Organization.serialize((await Store.ConversationOrganization.findById(ctx, src.cid))!.oid);
             } else if (conv.kind === 'private') {
-                let pc = (await FDB.ConversationPrivate.findById(ctx, conv.id))!;
+                let pc = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
                 let auth = AuthContext.get(ctx);
                 if (pc.uid1 === auth.uid) {
                     return IDs.User.serialize(pc.uid2);
@@ -36,13 +36,13 @@ export default {
             }
         },
         kind: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            let conv = (await FDB.Conversation.findById(ctx, src.cid))!;
+            let conv = (await Store.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
                 return 'INTERNAL';
             } else if (conv.kind === 'private') {
                 return 'PRIVATE';
             } else if (conv.kind === 'room') {
-                let room = (await FDB.ConversationRoom.findById(ctx, src.cid))!;
+                let room = (await Store.ConversationRoom.findById(ctx, src.cid))!;
                 if (room.kind === 'group') {
                     return 'GROUP';
                 } else if (room.kind === 'internal') {
@@ -57,7 +57,7 @@ export default {
             }
         },
         isChannel: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            let room = await FDB.ConversationRoom.findById(ctx, src.cid);
+            let room = await Store.ConversationRoom.findById(ctx, src.cid);
             return !!(room && room.isChannel);
         },
 
@@ -89,12 +89,12 @@ export default {
                 return [];
             }
 
-            let allDialogs = [...(await FDB.UserDialog.allFromUser(ctx, uid))];
+            let allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
             allDialogs = allDialogs.filter((a) => !!a.date);
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
 
             if (args.after) {
-                let dc = FKeyEncoding.decodeFromString(args.after);
+                let dc = encoders.tuple.unpack(Buffer.from(args.after, 'hex'));
                 let aft = dc[0] as number;
                 allDialogs = allDialogs.filter((v) => v.date! <= aft);
             }
@@ -106,7 +106,7 @@ export default {
                     hasMore: false
                 };
             } else {
-                let cursor = FKeyEncoding.encodeKeyToString([allDialogs[args.first].date!]);
+                let cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
                 return {
                     items: allDialogs.slice(0, args.first),
                     cursor: cursor,
@@ -115,11 +115,11 @@ export default {
             }
         }),
         alphaChats: withUser(async (ctx, args, uid) => {
-            let global = await FDB.UserMessagingState.findById(ctx, uid);
+            let global = await Store.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
-            let conversations = await FDB.UserDialog
-                .rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
-            let res = await Promise.all(conversations.items.map((v) => FDB.Conversation.findById(ctx, v.cid)));
+            let conversations = await Store.UserDialog
+                .user.query(ctx, uid, { limit: args.first, afterCursor: args.after ? args.after : undefined, reverse: true });
+            let res = await Promise.all(conversations.items.map((v) => Store.Conversation.findById(ctx, v.cid)));
             let index = 0;
             for (let r of res) {
                 if (!r) {

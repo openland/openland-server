@@ -1,12 +1,12 @@
 import { Modules } from 'openland-modules/Modules';
-import { ChannelInvitation } from 'openland-module-db/schema';
-import { FDB } from 'openland-module-db/FDB';
+import { ChannelInvitation } from 'openland-module-db/store';
+import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 
 export const ChannelInviteEmails = {
     async sendChannelInviteEmail(ctx: Context, invite: ChannelInvitation) {
-        let channel = await FDB.RoomProfile.findById(ctx, invite.channelId);
+        let channel = await Store.RoomProfile.findById(ctx, invite.channelId);
         if (!channel) {
             throw Error('Unable to find channel');
         }

@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { fetchMessageFallback, hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
@@ -96,7 +96,7 @@ export const shouldResetNotificationDelivery = (ctx: Context, user: {
 
 export const shouldUpdateUserSeq = (ctx: Context, user: {
     mobileNotifications: 'all' | 'direct' | 'none',
-    desktopNotifications:  'all' | 'direct' | 'none',
+    desktopNotifications: 'all' | 'direct' | 'none',
 }) => {
     if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
         return true;
@@ -105,7 +105,7 @@ export const shouldUpdateUserSeq = (ctx: Context, user: {
 };
 
 export function startPushNotificationWorker() {
-    singletonWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000, db: FDB.layer.db }, async (parent) => {
+    singletonWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000, db: Store.storage.db }, async (parent) => {
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length);
@@ -153,7 +153,7 @@ export function startPushNotificationWorker() {
                 // Scanning updates
                 let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq!, state.lastPushSeq || 0);
 
-                let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, uid, afterSec);
+                let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, { after: afterSec })).items;
                 let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                 let unreadCounter: number | undefined = undefined;
@@ -166,7 +166,7 @@ export function startPushNotificationWorker() {
                     }
 
                     let messageId = m.mid!;
-                    let message = await FDB.Message.findById(ctx, messageId);
+                    let message = await Store.Message.findById(ctx, messageId);
                     if (!message) {
                         continue;
                     }
@@ -179,7 +179,7 @@ export function startPushNotificationWorker() {
 
                     let sender = await Modules.Users.profileById(ctx, senderId);
                     let receiver = await Modules.Users.profileById(ctx, uid);
-                    let conversation = await FDB.Conversation.findById(ctx, message.cid);
+                    let conversation = await Store.Conversation.findById(ctx, message.cid);
 
                     if (!sender) {
                         continue;

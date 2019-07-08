@@ -1,7 +1,6 @@
+import { Comment } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities, Comment } from '../../openland-module-db/schema';
 import { Context } from '@openland/context';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import {
@@ -17,6 +16,7 @@ import {
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { Store } from 'openland-module-db/FDB';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -51,8 +51,6 @@ export type CommentPeerType = 'message';
 
 @injectable()
 export class CommentsRepository {
-    @lazyInject('FDB')
-    private readonly entities!: AllEntities;
 
     async createComment(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
@@ -60,7 +58,7 @@ export class CommentsRepository {
             // Check reply comment exists
             //
             if (commentInput.replyToComment) {
-                let replyComment = await this.entities.Comment.findById(ctx, commentInput.replyToComment);
+                let replyComment = await Store.Comment.findById(ctx, commentInput.replyToComment);
                 if (!replyComment || replyComment.peerType !== peerType || replyComment.peerId !== peerId || replyComment.visible === false) {
                     throw new NotFoundError();
                 }
@@ -91,7 +89,7 @@ export class CommentsRepository {
             //  Create comment
             //
             let commentId = await this.fetchNextCommentId(ctx);
-            let comment = await this.entities.Comment.create(ctx, commentId, {
+            let comment = await Store.Comment.create(ctx, commentId, {
                 peerId,
                 peerType,
                 parentCommentId: commentInput.replyToComment,
@@ -112,7 +110,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, peerType, peerId);
-            await this.entities.CommentEvent.create(ctx, peerType, peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, peerType, peerId, eventSec, {
                 uid,
                 commentId,
                 kind: 'comment_received'
@@ -124,7 +122,7 @@ export class CommentsRepository {
 
     async editComment(parent: Context, commentId: number, newComment: CommentInput, markEdited: boolean) {
         return await inTx(parent, async (ctx) => {
-            let comment = await this.entities.Comment.findById(ctx, commentId);
+            let comment = await Store.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
@@ -172,7 +170,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
                 uid: comment.uid,
                 commentId,
                 kind: 'comment_updated'
@@ -183,14 +181,14 @@ export class CommentsRepository {
 
     async deleteComment(parent: Context, commentId: number) {
         return await inTx(parent, async (ctx) => {
-            let comment = await this.entities.Comment.findById(ctx, commentId);
+            let comment = await Store.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
 
             comment.deleted = true;
 
-            let childs = await this.entities.Comment.allFromChild(ctx, comment.id);
+            let childs = await Store.Comment.child.findAll(ctx, comment.id);
             let numberOfCommentsMarkedInvisible = 0;
 
             // Mark visible if comment have visible sub-comments
@@ -207,13 +205,13 @@ export class CommentsRepository {
             if (!comment.visible && comment.parentCommentId) {
                 let comm: Comment | undefined = comment;
                 while (comm && comm.parentCommentId) {
-                    let parentComment: Comment | null = await this.entities.Comment.findById(ctx, comm.parentCommentId);
+                    let parentComment: Comment | null = await Store.Comment.findById(ctx, comm.parentCommentId);
 
                     if (!parentComment!.deleted) {
                         break;
                     }
 
-                    let parentChilds = await this.entities.Comment.allFromChild(ctx, comm.parentCommentId);
+                    let parentChilds = await Store.Comment.child.findAll(ctx, comm.parentCommentId);
 
                     if (!parentChilds.find(c => c.id !== comment!.id && (c.visible || false))) {
                         parentComment!.visible = false;
@@ -236,7 +234,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
                 uid: comment.uid,
                 commentId,
                 kind: 'comment_updated'
@@ -247,18 +245,18 @@ export class CommentsRepository {
 
     async getCommentsState(parent: Context, peerType: CommentPeerType, peerId: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentState.findById(ctx, peerType, peerId);
+            let existing = await Store.CommentState.findById(ctx, peerType, peerId);
             if (existing) {
                 return existing;
             } else {
-                return await this.entities.CommentState.create(ctx, peerType, peerId, {commentsCount: 0});
+                return await Store.CommentState.create(ctx, peerType, peerId, {commentsCount: 0});
             }
         });
     }
 
     async setReaction(parent: Context, commentId: number, uid: number, reaction: string, reset: boolean = false) {
         return await inTx(parent, async (ctx) => {
-            let comment = await this.entities.Comment.findById(ctx, commentId);
+            let comment = await Store.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
@@ -283,7 +281,7 @@ export class CommentsRepository {
             // Create event
             //
             let eventSec = await this.fetchNextEventSeq(ctx, comment.peerType, comment.peerId);
-            await this.entities.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
+            await Store.CommentEvent.create(ctx, comment.peerType, comment.peerId, eventSec, {
                 uid: comment.uid,
                 commentId,
                 kind: 'comment_updated'
@@ -294,13 +292,13 @@ export class CommentsRepository {
 
     private async fetchNextCommentId(parent: Context) {
         return await inTx(parent, async (ctx) => {
-            let ex = await this.entities.Sequence.findById(ctx, 'comment-id');
+            let ex = await Store.Sequence.findById(ctx, 'comment-id');
             if (ex) {
                 let res = ++ex.value;
                 await ex.flush(ctx);
                 return res;
             } else {
-                await this.entities.Sequence.create(ctx, 'comment-id', {value: 1});
+                await Store.Sequence.create(ctx, 'comment-id', {value: 1});
                 return 1;
             }
         });
@@ -308,10 +306,10 @@ export class CommentsRepository {
 
     private async fetchNextEventSeq(parent: Context, peerType: CommentPeerType, peerId: number) {
         return await inTx(parent, async (ctx) => {
-            let existing = await this.entities.CommentSeq.findById(ctx, peerType, peerId);
+            let existing = await Store.CommentSeq.findById(ctx, peerType, peerId);
             let seq = 1;
             if (!existing) {
-                await (await this.entities.CommentSeq.create(ctx, peerType, peerId, {seq: 1})).flush(ctx);
+                await (await Store.CommentSeq.create(ctx, peerType, peerId, {seq: 1})).flush(ctx);
             } else {
                 seq = ++existing.seq;
                 await existing.flush(ctx);
@@ -368,7 +366,7 @@ export class CommentsRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
-                    id: this.entities.layer.db.get(RandomLayer).nextRandomId()
+                    id: Store.storage.db.get(RandomLayer).nextRandomId()
                 });
             }
 

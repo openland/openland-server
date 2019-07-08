@@ -3,10 +3,7 @@ import { openStore } from 'openland-module-db/store';
 import { EntityStorage } from '@openland/foundationdb-entity';
 import { currentTime } from 'openland-utils/timer';
 import 'reflect-metadata';
-import { EntityLayer } from './../foundation-orm/EntityLayer';
 import { container } from './Modules.container';
-import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
-import { DBModule } from 'openland-module-db/DBModule';
 import { EmailModuleMock } from 'openland-module-email/EmailModule.mock';
 import { HooksModuleMock } from 'openland-module-hooks/HooksModule.mock';
 import { Context, createNamedContext } from '@openland/context';
@@ -35,15 +32,6 @@ export async function testEnvironmentStart(name: string) {
     logger.log(ctx, 'Opening database');
     let db = await openTestDatabase();
     logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
-
-    // Old Entity
-    start = currentTime();
-    let layer = new EntityLayer(db, 'app');
-    let entities = await AllEntitiesDirect.create(layer);
-    logger.log(ctx, 'Layer loaded in ' + (currentTime() - start) + ' ms');
-    container.bind(DBModule).toSelf().inSingletonScope();
-    container.bind<AllEntities>('FDB')
-        .toConstantValue(entities);
 
     // New Entity
     let storage = new EntityStorage(db);

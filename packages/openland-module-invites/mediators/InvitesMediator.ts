@@ -1,3 +1,4 @@
+import { ChannelInvitation } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -12,7 +13,7 @@ import { InvitesOrganizationRepository } from 'openland-module-invites/repositor
 import { Context } from '@openland/context';
 import { Emails } from '../../openland-module-email/Emails';
 import { UserError } from '../../openland-errors/UserError';
-import { FDB, Store } from '../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 
 @injectable()
 export class InvitesMediator {
@@ -42,10 +43,10 @@ export class InvitesMediator {
             await Modules.Users.activateUser(ctx, uid, isNewUser, invite.creatorId);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
 
-            let chat = await FDB.ConversationRoom.findById(ctx, invite.channelId);
+            let chat = await Store.ConversationRoom.findById(ctx, invite.channelId);
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
             await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
-            if (invite.entityName === 'ChannelInvitation') {
+            if (invite instanceof ChannelInvitation) {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
             return invite.channelId;
@@ -116,7 +117,7 @@ export class InvitesMediator {
             if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
-            let ex = await FDB.OrganizationMember.findById(ctx, invite.oid, uid);
+            let ex = await Store.OrganizationMember.findById(ctx, invite.oid, uid);
             let org = (await Store.Organization.findById(ctx, invite.oid))!;
             let profile = (await Store.OrganizationProfile.findById(ctx, invite.oid))!;
 

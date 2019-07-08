@@ -1,5 +1,5 @@
 import { SuperRepository } from './repositories/SuperRepository';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startAdminInterface } from './startAdminInterface';
 import { PermissionsRepository } from './repositories/PermissionsRepository';
@@ -10,7 +10,7 @@ import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/
 @injectable()
 export class SuperModule {
     private readonly repo = new SuperRepository();
-    private readonly permissionsRepo = new PermissionsRepository(FDB);
+    private readonly permissionsRepo = new PermissionsRepository();
     private readonly envVarsRepo = new EnvironmentVariablesRepository();
 
     async findAllSuperAdmins(ctx: Context) {
@@ -31,7 +31,7 @@ export class SuperModule {
 
     async calculateStats(ctx: Context) {
         return ({
-            messages: (await FDB.Sequence.findById(ctx, 'message-id'))!.value
+            messages: (await Store.Sequence.findById(ctx, 'message-id'))!.value
         });
     }
 

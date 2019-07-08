@@ -1,11 +1,11 @@
+import { ConferenceRoom, ConferencePeer } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
-import { ConferenceRoom, ConferencePeer } from 'openland-module-db/schema';
 import { Context } from '@openland/context';
 import { AppContext } from 'openland-modules/AppContext';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
@@ -16,7 +16,7 @@ export default {
         startTime: (src: ConferenceRoom) => src.startTime,
         peers: async (src: ConferenceRoom, args: {}, ctx: Context) => {
             let res = (await Modules.Calls.repo.findActiveMembers(ctx, src.id));
-            res.sort((a, b) => a.createdAt - b.createdAt);
+            res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
         },
         iceServers: () => {
@@ -27,9 +27,9 @@ export default {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
         user: (src: ConferencePeer) => src.uid,
         connection: async (src: ConferencePeer, args: {}, ctx: AppContext) => {
-            let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.cid, ctx.auth.uid!, ctx.auth.tid!);
+            let outgoing = await Store.ConferencePeer.auth.find(ctx, src.cid, ctx.auth.uid!, ctx.auth.tid!);
             if (outgoing) {
-                let connection = await FDB.ConferenceConnection.findById(ctx, Math.min(src.id, outgoing!.id), Math.max(src.id, outgoing!.id));
+                let connection = await Store.ConferenceConnection.findById(ctx, Math.min(src.id, outgoing!.id), Math.max(src.id, outgoing!.id));
                 if (!connection) {
                     return null;
                 }
@@ -79,7 +79,7 @@ export default {
         streams: async (src, args: {}, ctx: AppContext) => {
             // let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.id, ctx.auth.uid!, ctx.auth.tid!);
 
-            let connections = await FDB.ConferenceMediaStream.allFromConference(ctx, src.id);
+            let connections = await Store.ConferenceMediaStream.conference.findAll(ctx, src.id);
             let res = [];
             for (let c of connections) {
                 if (c.peer1 === src.peerId || c.peer2 === src.peerId) {
@@ -154,7 +154,7 @@ export default {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
 
-            let chat = await FDB.Conversation.findById(ctx, coid);
+            let chat = await Store.Conversation.findById(ctx, coid);
             await Modules.Calls.repo.removePeer(ctx, pid);
             if (chat && chat.kind === 'private') {
                 await Modules.Calls.repo.endConference(ctx, coid);
@@ -175,7 +175,7 @@ export default {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer);
-            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
 
@@ -183,7 +183,7 @@ export default {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid);
-            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
 
@@ -191,7 +191,7 @@ export default {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.streamFailed(ctx, mid, pid);
-            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
 
@@ -199,7 +199,7 @@ export default {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer);
-            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
 
@@ -207,7 +207,7 @@ export default {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.streamCandidate(ctx, mid, pid, args.candidate);
-            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
 
@@ -245,8 +245,8 @@ export default {
                     ...(async function* func() {
                         while (!ended) {
                             let r = await inTx(parent, async (ctx) => {
-                                let settings = await FDB.ConferenceRoom.findById(ctx, cid);
-                                let watch = FDB.ConferenceRoom.watch(ctx, cid);
+                                let settings = await Store.ConferenceRoom.findById(ctx, cid);
+                                let watch = Store.ConferenceRoom.watch(ctx, cid);
                                 return { settings, watch };
                             });
                             yield r.settings;
@@ -273,7 +273,7 @@ export default {
                         while (!ended) {
                             // let settings = await FDB.ConferenceRoom.findById(ctx, cid);
                             yield { id: cid, peerId: pid };
-                            let w = await inTx(ctx, async (ctx2) => FDB.ConferenceRoom.watch(ctx2, cid));
+                            let w = await inTx(ctx, async (ctx2) => Store.ConferenceRoom.watch(ctx2, cid));
                             await w.promise;
                         }
                     })(),

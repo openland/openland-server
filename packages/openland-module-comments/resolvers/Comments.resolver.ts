@@ -1,14 +1,14 @@
+import { Store } from './../../openland-module-db/FDB';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
-import { FDB } from '../../openland-module-db/FDB';
 import {
     MessageAttachmentFileInput, MessageAttachmentInput,
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../repositories/CommentsRepository';
-import { Message } from '../../openland-module-db/schema';
+import { Message } from '../../openland-module-db/store';
 
 export default {
     CommentsPeer: {
@@ -20,20 +20,20 @@ export default {
             }
         },
         state: async (src, args, ctx) => {
-            let tail = await FDB.CommentEvent.createUserStream(src.peerType, src.peerId, 1).tail(ctx);
-            return {state: tail};
+            let tail = await Store.CommentEvent.user.stream(src.peerType, src.peerId).tail(ctx);
+            return { state: tail };
         },
         count: src => src.comments.length,
         comments: src => src.comments,
         peerRoot: async (src, args, ctx) => {
             if (src.peerType === 'message') {
-                return await FDB.Message.findById(ctx, src.peerId);
+                return await Store.Message.findById(ctx, src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
         },
         subscription: async (src, args, ctx) => {
-            let subscription = await FDB.CommentsSubscription.findById(ctx, src.peerType, src.peerId, ctx.auth.uid!);
+            let subscription = await Store.CommentsSubscription.findById(ctx, src.peerType, src.peerId, ctx.auth.uid!);
             if (subscription && subscription.status === 'active') {
                 return subscription;
             }
@@ -44,8 +44,8 @@ export default {
         id: src => IDs.CommentEntry.serialize(src.id),
         deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
-        parentComment: (src, args, ctx) => src.parentCommentId && FDB.Comment.findById(ctx, src.parentCommentId!),
-        childComments: async (src, args, ctx) => (await FDB.Comment.allFromChild(ctx, src.id)).filter(c => c.visible)
+        parentComment: (src, args, ctx) => src.parentCommentId && Store.Comment.findById(ctx, src.parentCommentId!),
+        childComments: async (src, args, ctx) => (await Store.Comment.child.findAll(ctx, src.id)).filter(c => c.visible)
     },
     CommentPeerRoot: {
         __resolveType(obj: any) {
@@ -139,21 +139,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -240,21 +240,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -338,21 +338,21 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     }
                 }
             }
@@ -372,7 +372,7 @@ export default {
         deleteCommentAugmentation: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.id);
 
-            let comment = await FDB.Comment.findById(ctx, commentId);
+            let comment = await Store.Comment.findById(ctx, commentId);
             if (!comment || comment.deleted) {
                 throw new NotFoundError();
             }
@@ -419,7 +419,7 @@ export default {
     Query: {
         messageComments: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            let comments = await FDB.Comment.allFromPeer(ctx, 'message', messageId);
+            let comments = await Store.Comment.peer.findAll(ctx, 'message', messageId);
 
             return {
                 comments: comments.filter(c => c.visible),

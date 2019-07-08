@@ -125,6 +125,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         session.stopOperation(message.id);
                         return;
                     }
+
                     for await (let event of iterator) {
                         if (!working) {
                             session.sendComplete(message.id);

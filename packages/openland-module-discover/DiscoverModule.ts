@@ -1,7 +1,7 @@
+import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { DiscoverData } from './DiscoverData';
-import { FDB } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 
@@ -16,17 +16,17 @@ export class DiscoverModule {
             if (page.chats) {
                 // save picked tags if chats resolved
                 // mark old as deleted
-                let oldTags = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+                let oldTags = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
                 for (let old of oldTags) {
                     old.deleted = true;
                 }
                 // save new
                 for (let tagId of selectedTags) {
-                    let existing = await FDB.DiscoverUserPickedTags.findById(ctx, uid, tagId);
+                    let existing = await Store.DiscoverUserPickedTags.findById(ctx, uid, tagId);
                     if (existing) {
                         existing.deleted = false;
                     } else {
-                        await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
+                        await Store.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
                     }
                 }
             }
@@ -44,17 +44,17 @@ export class DiscoverModule {
         return inTx(parent, async (ctx) => {
             // save picked tags if chats resolved
             // mark old as deleted
-            let oldTags = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            let oldTags = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
             for (let old of oldTags) {
                 old.deleted = true;
             }
             // save new
             for (let tagId of selectedTags) {
-                let existing = await FDB.DiscoverUserPickedTags.findById(ctx, uid, tagId);
+                let existing = await Store.DiscoverUserPickedTags.findById(ctx, uid, tagId);
                 if (existing) {
                     existing.deleted = false;
                 } else {
-                    await FDB.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
+                    await Store.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
                 }
             }
         });
@@ -72,21 +72,21 @@ export class DiscoverModule {
 
     suggestedChats = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
-            let selected = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            let selected = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
             return this.data.resolveSuggestedChats(selected.map(s => s.id));
         });
     }
 
     isDiscoverDone = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
-            let selected = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            let selected = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
             return !!selected.length;
         });
 
     }
     reset = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
-            let oldTags = await FDB.DiscoverUserPickedTags.allFromUser(ctx, uid);
+            let oldTags = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
             for (let old of oldTags) {
                 old.deleted = true;
             }

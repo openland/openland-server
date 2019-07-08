@@ -1,24 +1,21 @@
 import { inTx } from '@openland/foundationdb';
-import { injectable, inject } from 'inversify';
-import { AllEntities } from 'openland-module-db/schema';
+import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { Store } from 'openland-module-db/FDB';
 
 let log = createLogger('call-repo');
 
 @injectable()
 export class CallRepository {
 
-    @inject('FDB')
-    entities!: AllEntities;
-
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
-            let conv = (await this.entities.Conversation.findById(ctx, cid))!;
+            let conv = (await Store.Conversation.findById(ctx, cid))!;
             let strategy: 'direct' | 'bridged' = (!conv || conv.kind === 'private') ? 'direct' : 'bridged';
-            let res = await this.entities.ConferenceRoom.findById(ctx, cid);
+            let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
-                res = await this.entities.ConferenceRoom.create(ctx, cid, { strategy });
+                res = await Store.ConferenceRoom.create(ctx, cid, { strategy, startTime: null });
             }
             return res;
         });
@@ -33,7 +30,7 @@ export class CallRepository {
             // }
 
             // bump startTime if its initiator of call
-            let confPeers = await this.entities.ConferencePeer.allFromConference(ctx, cid);
+            let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
             if (confPeers.length === 0) {
                 let conf = await this.getOrCreateConference(ctx, cid);
                 conf.startTime = Date.now();
@@ -41,19 +38,19 @@ export class CallRepository {
             }
 
             // Disable existing for this auth
-            let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
+            let existing = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
             if (existing) {
                 await this.removePeer(ctx, existing.id);
             }
 
             // Create new peer
-            let seq = (await this.entities.Sequence.findById(ctx, 'conference-peer-id'));
+            let seq = (await Store.Sequence.findById(ctx, 'conference-peer-id'));
             if (!seq) {
-                seq = await this.entities.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
+                seq = await Store.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
             }
             let id = ++seq.value;
             await seq.flush(ctx);
-            let res = await this.entities.ConferencePeer.create(ctx, id, {
+            let res = await Store.ConferencePeer.create(ctx, id, {
                 cid, uid, tid,
                 keepAliveTimeout: Date.now() + timeout,
                 enabled: true
@@ -64,11 +61,13 @@ export class CallRepository {
                 if (cp.id === id) {
                     continue;
                 }
-                await this.entities.ConferenceConnection.create(ctx, Math.min(cp.id, id), Math.max(cp.id, id), {
+                await Store.ConferenceConnection.create(ctx, Math.min(cp.id, id), Math.max(cp.id, id), {
                     cid: cid,
                     state: 'wait-offer',
                     ice1: [],
-                    ice2: []
+                    ice2: [],
+                    offer: null,
+                    answer: null
                 });
             }
 
@@ -79,14 +78,16 @@ export class CallRepository {
                 }
 
                 // if (room.strategy === 'direct') {
-                await this.entities.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
+                await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
                     kind: 'direct',
                     peer1: Math.min(cp.id, id),
                     peer2: Math.max(cp.id, id),
                     cid: cid,
                     state: 'wait-offer',
                     ice1: [],
-                    ice2: []
+                    ice2: [],
+                    offer: null,
+                    answer: null
                 });
                 // }
             }
@@ -109,7 +110,7 @@ export class CallRepository {
         await inTx(parent, async (ctx) => {
 
             // Disable peer itself
-            let existing = await this.entities.ConferencePeer.findById(ctx, pid);
+            let existing = await Store.ConferencePeer.findById(ctx, pid);
             if (!existing) {
                 throw Error('Unable to find peer: ' + pid);
             }
@@ -117,7 +118,7 @@ export class CallRepository {
             await existing.flush(ctx);
 
             // Kill all connections
-            let connections = await this.entities.ConferenceConnection.allFromConference(ctx, existing.cid);
+            let connections = await Store.ConferenceConnection.conference.findAll(ctx, existing.cid);
             for (let c of connections) {
                 if (c.peer1 === pid || c.peer2 === pid) {
                     c.state = 'completed';
@@ -125,7 +126,7 @@ export class CallRepository {
             }
 
             // Kill all streams
-            let streams = await this.entities.ConferenceMediaStream.allFromConference(ctx, existing.cid);
+            let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, existing.cid);
             for (let c of streams) {
                 if (c.kind === 'bridged' && c.peer1 === pid) {
                     c.state = 'completed';
@@ -140,7 +141,7 @@ export class CallRepository {
 
     peerKeepAlive = async (parent: Context, cid: number, pid: number, timeout: number) => {
         return await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, pid);
+            let peer = await Store.ConferencePeer.findById(ctx, pid);
             if (!peer) {
                 return false;
             }
@@ -157,7 +158,7 @@ export class CallRepository {
 
     checkTimeouts = async (parent: Context) => {
         await inTx(parent, async (ctx) => {
-            let active = await this.entities.ConferencePeer.allFromActive(ctx);
+            let active = await Store.ConferencePeer.active.findAll(ctx);
             let now = Date.now();
             for (let a of active) {
                 if (a.keepAliveTimeout < now) {
@@ -173,12 +174,12 @@ export class CallRepository {
 
     streamOffer = async (parent: Context, id: number, peerId: number, offer: string) => {
         await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
                 return;
             }
 
-            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
             }
@@ -203,11 +204,11 @@ export class CallRepository {
 
     streamAnswer = async (parent: Context, id: number, peerId: number, answer: string) => {
         await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
                 return;
             }
-            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
             }
@@ -238,11 +239,11 @@ export class CallRepository {
 
     streamNegotiationNeeded = async (parent: Context, id: number, peerId: number) => {
         await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
                 return;
             }
-            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
             }
@@ -259,11 +260,11 @@ export class CallRepository {
 
     streamFailed = async (parent: Context, id: number, peerId: number) => {
         await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
                 return;
             }
-            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
             }
@@ -271,14 +272,16 @@ export class CallRepository {
             if (stream.state !== 'completed') {
                 stream.state = 'completed';
 
-                await this.entities.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
+                await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
                     kind: 'direct',
                     peer1: stream.peer1,
                     peer2: stream.peer2,
                     cid: stream.cid,
                     state: 'wait-offer',
                     ice1: [],
-                    ice2: []
+                    ice2: [],
+                    offer: null,
+                    answer: null
                 });
             }
 
@@ -288,11 +291,11 @@ export class CallRepository {
 
     streamCandidate = async (parent: Context, id: number, peerId: number, candidate: string) => {
         await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
                 return;
             }
-            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
             }
@@ -315,8 +318,8 @@ export class CallRepository {
 
     connectionOffer = async (parent: Context, cid: number, sourcePeerId: number, destPeerId: number, offer: string) => {
         await inTx(parent, async (ctx) => {
-            let sourcePeer = await this.entities.ConferencePeer.findById(ctx, sourcePeerId);
-            let destPeer = await this.entities.ConferencePeer.findById(ctx, destPeerId);
+            let sourcePeer = await Store.ConferencePeer.findById(ctx, sourcePeerId);
+            let destPeer = await Store.ConferencePeer.findById(ctx, destPeerId);
             if (!sourcePeer || !destPeer || !sourcePeer.enabled || !destPeer.enabled) {
                 return;
             }
@@ -326,7 +329,7 @@ export class CallRepository {
             }
 
             // Update connection
-            let connection = await this.entities.ConferenceConnection.findById(ctx, sourcePeerId, destPeerId);
+            let connection = await Store.ConferenceConnection.findById(ctx, sourcePeerId, destPeerId);
             if (!connection) {
                 return;
             }
@@ -342,8 +345,8 @@ export class CallRepository {
 
     connectionAnswer = async (parent: Context, cid: number, sourcePeerId: number, destPeerId: number, answer: string) => {
         await inTx(parent, async (ctx) => {
-            let sourcePeer = await this.entities.ConferencePeer.findById(ctx, sourcePeerId);
-            let destPeer = await this.entities.ConferencePeer.findById(ctx, destPeerId);
+            let sourcePeer = await Store.ConferencePeer.findById(ctx, sourcePeerId);
+            let destPeer = await Store.ConferencePeer.findById(ctx, destPeerId);
             if (!sourcePeer || !destPeer || !sourcePeer.enabled || !destPeer.enabled) {
                 return;
             }
@@ -353,7 +356,7 @@ export class CallRepository {
             }
 
             // Update connection
-            let connection = await this.entities.ConferenceConnection.findById(ctx, destPeerId, sourcePeerId);
+            let connection = await Store.ConferenceConnection.findById(ctx, destPeerId, sourcePeerId);
             if (!connection) {
                 return;
             }
@@ -369,14 +372,14 @@ export class CallRepository {
 
     connectionCandidate = async (parent: Context, cid: number, sourcePeerId: number, destPeerId: number, candidate: string) => {
         await inTx(parent, async (ctx) => {
-            let sourcePeer = await this.entities.ConferencePeer.findById(ctx, sourcePeerId);
-            let destPeer = await this.entities.ConferencePeer.findById(ctx, destPeerId);
+            let sourcePeer = await Store.ConferencePeer.findById(ctx, sourcePeerId);
+            let destPeer = await Store.ConferencePeer.findById(ctx, destPeerId);
             if (!sourcePeer || !destPeer || !sourcePeer.enabled || !destPeer.enabled) {
                 return;
             }
 
             // Update connection
-            let connection = await this.entities.ConferenceConnection.findById(ctx, Math.min(sourcePeerId, destPeerId), Math.max(sourcePeerId, destPeerId));
+            let connection = await Store.ConferenceConnection.findById(ctx, Math.min(sourcePeerId, destPeerId), Math.max(sourcePeerId, destPeerId));
             if (!connection) {
                 return;
             }
@@ -396,26 +399,26 @@ export class CallRepository {
     //
 
     findActiveMembers = async (parent: Context, cid: number) => {
-        return await this.entities.ConferencePeer.allFromConference(parent, cid);
+        return await Store.ConferencePeer.conference.findAll(parent, cid);
     }
 
     private bumpVersion = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
-            conf.markDirty();
+            conf.invalidate();
         });
     }
 
     private nextStreamId = async (parent: Context) => {
         return await inTx(parent, async (ctx) => {
-            let ex = await this.entities.Sequence.findById(ctx, 'media-stream-id');
+            let ex = await Store.Sequence.findById(ctx, 'media-stream-id');
             if (ex) {
                 ex.value++;
                 let res = ex.value;
                 await ex.flush(ctx);
                 return res;
             } else {
-                await this.entities.Sequence.create(ctx, 'media-stream-id', { value: 1 });
+                await Store.Sequence.create(ctx, 'media-stream-id', { value: 1 });
                 return 1;
             }
         });

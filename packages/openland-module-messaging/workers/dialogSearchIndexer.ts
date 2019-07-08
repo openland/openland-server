@@ -1,9 +1,9 @@
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { FDB } from 'openland-module-db/FDB';
+import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 
 export function dialogSearchIndexer() {
-    declareSearchIndexer('dialog-index', 8, 'dialog', FDB.UserDialog.createUpdatedStream(50))
+    declareSearchIndexer('dialog-index', 8, 'dialog', Store.UserDialog.updated.stream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -44,8 +44,8 @@ export function dialogSearchIndexer() {
                     cid: item.cid,
                     uid: item.uid,
                     visible: !!item.date,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
+                    createdAt: item.metadata.createdAt,
+                    updatedAt: item.metadata.updatedAt,
                 }
             };
         });
