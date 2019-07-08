@@ -157,6 +157,7 @@ export class DeliveryMediator {
         // Send new counter
         await inTx(parent, async (ctx) => {
             await this.repo.deliverGlobalCounterToUser(ctx, uid);
+            await this.needNotification.setNeedNotificationDelivery(ctx, uid);
         });
     }
 

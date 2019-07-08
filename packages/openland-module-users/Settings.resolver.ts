@@ -100,6 +100,7 @@ export default {
                 } else {
                     settings.globalCounterType = excludeMutedChats ? 'unread_messages_no_muted' : 'unread_messages';
                 }
+                await Modules.Messaging.onGlobalCounterTypeChanged(ctx, uid);
 
                 return settings;
             });
