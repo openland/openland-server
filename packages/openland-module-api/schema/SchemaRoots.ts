@@ -20,7 +20,7 @@ import {
     CommentsSubscription,
     CommentEventGlobal,
     Message,
-    Comment
+    Comment, ConferencePeer, ConferenceRoom
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -39,6 +39,7 @@ import {
 } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem } from '@openland/foundationdb-entity';
+import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 
 //
 //  Root types
@@ -51,35 +52,40 @@ export namespace GQLRoots {
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
 
-    export type DialogUpdateStateRoot = any;
     export type FeedItemRoot = FeedEvent;
-    export type ICEServerRoot = any;
-    export type ConversationUpdateStateRoot = any;
-    export type MediaSessionRoot = any;
-    export type MediaStreamRoot = any;
-    export type ConferencePeerConnectionRoot = any;
-    export type ConferencePeerRoot = any;
-    export type ConferenceJoinResultRoot = any;
-    export type ConferenceUpdateRoot = any;
-    export type ConferenceMemberLeftRoot = any;
-    export type ConferenceMemberJoinedRoot = any;
-    export type ConferenceRoot = any;
+
+    //
+    // Calls
+    //
+    export type ICEServerRoot = GQL.ICEServer;
+    export type MediaStreamRoot = GQL.MediaStream;
+    export type ConversationUpdateStateRoot = GQL.ConversationUpdateState;
+    export type ConferencePeerConnectionRoot = GQL.ConferencePeerConnection;
+    export type ConferencePeerRoot = ConferencePeer;
+    export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
+    export type ConferenceRoot = ConferenceRoom;
     export type ConferenceMediaRoot = { id: number, peerId: number };
-    export type DialogDeletedRoot = any;
+
+    //
+    // Dialogs Updates
+    //
+    export type DialogUpdateStateRoot = GQL.DialogUpdateState;
+    export type DialogDeletedRoot = UserDialogEvent;
+
     export type ConversationSettingsRoot = UserDialogSettings;
     export type ConversationRoot = Conversation;
     export type AnonymousConversationRoot = Conversation;
     export type SharedConversationRoot = Conversation;
     export type PrivateConversationRoot = Conversation;
     export type GroupConversationRoot = Conversation;
+    export type ServiceMetadataRoot = any;
     export type InviteServiceMetadataRoot = any;
     export type KickServiceMetadataRoot = any;
     export type TitleChangeServiceMetadataRoot = any;
     export type PhotoChangeServiceMetadataRoot = any;
-    export type UrlAugmentationExtraRoot = any;
-    export type UrlAugmentationRoot = any;
-    export type ServiceMetadataRoot = any;
-    export type MessageReactionRoot = any;
+    export type UrlAugmentationExtraRoot = User | Organization | Conversation;
+    export type UrlAugmentationRoot = URLAugmentation;
+    export type MessageReactionRoot = { userId: number, reaction: string };
     export type ConversationMessageRoot = Message;
     export type FileMetadataRoot = any;
     export type StickerPackRoot = any;
@@ -181,10 +187,8 @@ export namespace GQLRoots {
     export type RoomMemberRoot = any;
     export type RoomMessageRoot = any;
     export type RoomUserNotificaionSettingsRoot = any;
-    export type RoomInviteEmailRequest = any;
     export type RoomInviteRoot = any;
     export type OrganizationRequestedMemberRoot = any;
-    export type ConferenceParticipantRoot = any;
 
     export type RoomConnectionRoot = any;
     export type RoomConnectionEdgeRoot = any;

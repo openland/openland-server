@@ -147,7 +147,7 @@ export default {
             }
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),
-                conference: Modules.Calls.repo.getOrCreateConference(ctx, cid)
+                conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
             };
         }),
         conferenceLeave: withUser(async (ctx, args, uid) => {

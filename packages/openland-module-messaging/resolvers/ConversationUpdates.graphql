@@ -1,3 +1,7 @@
+#
+# DEPRECATED
+#
+
 type ConversationUpdateSingle {
     seq: Int!
     state: String!

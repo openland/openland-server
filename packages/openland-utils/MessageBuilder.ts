@@ -1,10 +1,11 @@
-import { MessageInput, MessageSpan, MessageAttachmentInput, MessageRichAttachmentInput } from '../openland-module-messaging/MessageInput';
+import { MessageInput, MessageSpan, MessageAttachmentInput, MessageRichAttachmentInput, MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
 
 export type MessagePart = string
     | { type: 'bold_text', text: string }
     | { type: 'user_mention', text: string, uid: number }
     | { type: 'users_mention', text: string, uids: number[] }
     | ({ type: 'rich_attach', attach: Partial<MessageRichAttachmentInput> })
+    | ({ type: 'file_attach', attach: MessageAttachmentFileInput })
     | ({ type: 'loud_text', parts: MessagePart[] });
 
 export const boldString = (str: string) => ({ type: 'bold_text', text: str }) as MessagePart;
@@ -51,6 +52,8 @@ export function buildMessage(...parts: MessagePart[]): MessageInput {
             };
             richAttach = { ...richAttach, ...part.attach };
             attachments.push(richAttach);
+        } else if (part.type === 'file_attach') {
+            attachments.push(part.attach);
         }
     }
 
