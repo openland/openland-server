@@ -11,12 +11,14 @@ import {
     getGlobalStatisticsForReport,
     getGrowthReportsChatId,
     getSuperNotificationsBotId,
-    getUserReportsChatId, getWeeklyReportsChatId,
+    getUserReportsChatId,
+    getWeeklyReportsChatId,
     resolveUsername,
 } from './utils';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { formatNumberWithSign, plural } from '../openland-utils/string';
+import { createWeeklyEngagementReportWorker } from './workers/WeeklyEngagementReportWorker';
 
 const log = createLogger('stats');
 
@@ -28,6 +30,7 @@ export class StatsModule {
     start = () => {
         createDailyReportWorker();
         createWeeklyReportWorker();
+        createWeeklyEngagementReportWorker();
     }
 
     onNewMobileUser = (ctx: Context) => {
@@ -62,7 +65,7 @@ export class StatsModule {
     }
 
     queueSilentUserReport = (ctx: Context, uid: number, dbgDelay?: number) => {
-        let delay = dbgDelay ? dbgDelay :  1000 * 60 * 60 * 24 * 2; // 2 days
+        let delay = dbgDelay ? dbgDelay : 1000 * 60 * 60 * 24 * 2; // 2 days
 
         return this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
     }
@@ -246,6 +249,8 @@ export class StatsModule {
                     default:
                         if (mobileOnline) {
                             report.push('●');
+                        } else {
+                            report.push('○');
                         }
                         break;
                 }
@@ -292,8 +297,7 @@ export class StatsModule {
         report.push(`🙌🏽 ${newInvites} successful ${plural(newInvites, ['invite', 'invites'])}\n`);
 
         await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
-            ...buildMessage(...report),
-            ignoreAugmentation: true,
+            ...buildMessage(...report), ignoreAugmentation: true,
         });
     }
 
@@ -343,8 +347,108 @@ export class StatsModule {
         report.push(`➡️ `, boldString(`${newMessages}`), ` ${plural(newMessages, ['message', 'messages'])} sent (${formatNumberWithSign(newMessagesDiff)})\n`);
 
         await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
-            ...buildMessage(...report),
-            ignoreAugmentation: true,
+            ...buildMessage(...report), ignoreAugmentation: true,
+        });
+    }
+
+    generateWeeklyEngagementReport = async (ctx: Context) => {
+        const chatId = await getGrowthReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        const allTimeStats = getGlobalStatisticsForReport();
+
+        let emailPushes = 0;
+        let mobilePushes = 0;
+        let browserPushes = 0;
+        let experiencedUsers = 0;
+        let online = 0;
+        let atLeastOneMessageSent = 0;
+        let emailAllowed = 0;
+        let mobileAllowed = 0;
+        let browserAllowed = 0;
+
+        let allUsers = await Store.User.findAllKeys(ctx);
+        let weekAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+        for (let key of allUsers) {
+            key = key.splice(0, 2);
+            let uid: number = key[0] as number;
+            await inTx(ctx, async (c) => {
+                const emailSent = await Store.UserEmailSentCounter.byId(uid).get(ctx);
+                const browserPushSent = await Store.UserBrowserPushSentCounter.byId(uid).get(ctx);
+                const mobilePushSent = await Store.UserMobilePushSentCounter.byId(uid).get(ctx);
+
+                const prevWeekEmailSent = await Store.UserEmailSentWeeklyCounter.byId(uid).get(ctx);
+                const prevWeekBrowserSent = await Store.UserBrowserPushSentCounter.byId(uid).get(ctx);
+                const prevWeekMobilleSent = await Store.UserMobilePushSentWeeklyCounter.byId(uid).get(ctx);
+
+                Store.UserEmailSentWeeklyCounter.byId(uid).set(ctx, emailSent);
+                Store.UserBrowserPushSentWeeklyCounter.byId(uid).set(ctx, browserPushSent);
+                Store.UserMobilePushSentWeeklyCounter.byId(uid).set(ctx, mobilePushSent);
+
+                if (emailSent - prevWeekEmailSent > 0) {
+                    emailPushes++;
+                }
+                if (browserPushSent - prevWeekBrowserSent > 0) {
+                    browserPushes++;
+                }
+                if (mobilePushSent - prevWeekMobilleSent > 0) {
+                    mobilePushes++;
+                }
+
+                const onlines = await Store.Presence.user.findAll(ctx, uid);
+                const wasOnline = !!onlines
+                    .find((e) => e.lastSeen >= weekAgo);
+                if (wasOnline) {
+                    online++;
+                }
+
+                const mobileOnline = !!onlines
+                    .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
+                const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
+                const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
+                const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
+                const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
+                if (score >= 10) {
+                    experiencedUsers++;
+                }
+
+                const settings = await Store.UserSettings.findById(ctx, uid);
+                if (settings) {
+                    if (settings!.desktopNotifications !== 'none') {
+                        browserAllowed++;
+                    }
+                    if (settings!.mobileNotifications !== 'none' && mobileOnline) {
+                        mobileAllowed++;
+                    }
+                    if (settings!.emailFrequency !== 'never') {
+                        emailAllowed++;
+                    }
+                }
+
+                const prevWeekMessages = await Store.UserMessagesSentWeeklyCounter.get(ctx, uid);
+                Store.UserMessagesSentWeeklyCounter.byId(uid).set(ctx, allMessages);
+                if (allMessages - prevWeekMessages > 0) {
+                    atLeastOneMessageSent++;
+                }
+            });
+        }
+
+        const userEntrances = await allTimeStats.userEntrances.get(ctx);
+
+        const report = [heading('Weekly Engagement'), '\n'];
+        report.push(`👋  `, boldString(`${userEntrances}`), ` activated accounts`, `\n`);
+        report.push(`🏅  `, boldString(`${experiencedUsers}`), ` 10+ XP`, `\n`);
+        report.push(`⚡️  `, boldString(`${emailAllowed} · ${browserAllowed} · ${mobileAllowed}`), ` privileges (email, browser, mobile push)`, `\n`);
+        report.push(`🚨  `, boldString(`${emailPushes} · ${browserPushes} · ${mobilePushes}`), ` at least one push sent`, `\n`);
+        report.push(`🌐  `, boldString(`${online}`), ` online`, `\n`);
+        report.push(`➡️  `, boldString(`${atLeastOneMessageSent}`), ` at least one message sent`, `\n`);
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...report), ignoreAugmentation: true,
         });
     }
 }
