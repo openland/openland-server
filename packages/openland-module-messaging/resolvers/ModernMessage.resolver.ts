@@ -41,6 +41,12 @@ export const REACTIONS_LEGACY = new Map([
 ]);
 
 const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
+const DELETED_TEXT = {
+    MESSAGE: 'This message has been deleted',
+    COMMENT: 'This comment has been deleted'
+};
+
+const getDeletedText = (src: Message | Comment) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
 
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
 
@@ -409,10 +415,7 @@ export default {
         //
         message: src => {
             if (src.deleted) {
-                if (src instanceof Comment) {
-                    return 'This comment was deleted';
-                }
-                return null;
+                return getDeletedText(src);
             }
             if (src instanceof Message && src.type && src.type === 'POST') {
                 return null;
@@ -421,7 +424,11 @@ export default {
         },
         spans: async (src, args, ctx) => {
             if (src.deleted) {
-                return [];
+                return [{
+                    type: 'italic_text',
+                    offset: 0,
+                    length: getDeletedText(src).length,
+                }];
             }
             //
             //  Modern spans
