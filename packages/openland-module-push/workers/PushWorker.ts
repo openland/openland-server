@@ -6,7 +6,6 @@ import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
 import { withReadOnlyTransaction } from '@openland/foundationdb';
-import { Store } from '../../openland-module-db/FDB';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -45,7 +44,8 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         // Web Push
                         //
-                        Store.UserBrowserPushSentCounter.byId(args.uid).increment(ctx);
+                        await Modules.Hooks.onDesktopPushSent(ctx, args.uid);
+
                         let webTokens = await repo.getUserWebPushTokens(ctx, args.uid);
                         for (let wp of webTokens) {
                             await Modules.Push.webWorker.pushWork(ctx, {
@@ -71,12 +71,12 @@ export function createPushWorker(repo: PushRepository) {
                                     conversationId,
                                     ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
-                                }
+                                },
                             });
                         }
                     }
                     if (args.mobile) {
-                        Store.UserMobilePushSentCounter.byId(args.uid).increment(ctx);
+                        await Modules.Hooks.onMobilePushSent(ctx, args.uid);
 
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
                         //
@@ -94,8 +94,8 @@ export function createPushWorker(repo: PushRepository) {
                                     badge: unread,
                                     payload: {
                                         conversationId,
-                                        ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined
-                                    }
+                                        ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
+                                    },
                                 });
                             } else {
                                 await Modules.Push.appleWorker.pushWork(ctx, {
@@ -106,7 +106,7 @@ export function createPushWorker(repo: PushRepository) {
                                     badge: unread,
                                     alert: {
                                         title: args.title,
-                                        body: mobileBody
+                                        body: mobileBody,
                                     },
                                     payload: {
                                         conversationId,
@@ -114,7 +114,7 @@ export function createPushWorker(repo: PushRepository) {
                                         ['message']: mobileBody,
                                         ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                         ...(args.picture ? { ['picture']: args.picture! } : {}),
-                                    }
+                                    },
                                 });
                             }
                         }
@@ -137,7 +137,7 @@ export function createPushWorker(repo: PushRepository) {
                                     title: args.title,
                                     body: mobileBody,
                                     sound: args.mobileAlert ? 'default' : 'silence.mp3',
-                                    tag: conversationId
+                                    tag: conversationId,
                                 },
                                 data: {
                                     ['title']: args.title,
@@ -146,14 +146,14 @@ export function createPushWorker(repo: PushRepository) {
                                     // ['color']: '#4747EC',
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                     ...(args.conversationId ? { conversationId } as any : {}),
-                                    ...(args.conversationId ? { ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() } : {})
-                                }
+                                    ...(args.conversationId ? { ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() } : {}),
+                                },
                             });
                         }
                     }
 
                     return {
-                        result: 'ok'
+                        result: 'ok',
                     };
                 });
             });

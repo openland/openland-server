@@ -6,6 +6,7 @@ import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/store';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { inTx } from '@openland/foundationdb';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -195,5 +196,17 @@ export class HooksModule {
 
     onEmailSent = (ctx: Context, uid: number) => {
         Modules.Stats.onEmailSent(ctx, uid);
+    }
+
+    onDesktopPushSent = async (ctx: Context, uid: number) => {
+        await inTx(ctx, async c => {
+            Store.UserBrowserPushSentCounter.byId(uid).increment(c);
+        });
+    }
+
+    onMobilePushSent = async (ctx: Context, uid: number) => {
+        await inTx(ctx, async c => {
+            Store.UserMobilePushSentCounter.byId(uid).increment(c);
+        });
     }
 }
