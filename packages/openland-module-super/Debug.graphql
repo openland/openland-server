@@ -114,6 +114,7 @@ extend type Mutation {
     debugEnableNotificationCenterForAll: Boolean!
     debugResetGlobalCounters: Boolean!
     debugCalcGlobalCountersForAll: Boolean!
+    debugCreateBigChat(membersCount: Int!): Boolean!
 }
 
 extend type Subscription {

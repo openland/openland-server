@@ -25,7 +25,7 @@ const logger = createLogger('debug');
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await Store.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await Store.DebugEventState.create(ctx, uid!, { seq: 1 });
+        await Store.DebugEventState.create(ctx, uid!, {seq: 1});
         return 1;
     } else {
         state.seq++;
@@ -37,7 +37,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await Store.DebugEvent.create(ctx, uid!, seq, { key });
+        await Store.DebugEvent.create(ctx, uid!, seq, {key});
     });
 };
 
@@ -155,8 +155,8 @@ export default {
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
-            return { state: tail };
+            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, {batchSize: 1}).tail(ctx);
+            return {state: tail};
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -256,17 +256,17 @@ export default {
             } else if (type === 'SIGIN_CODE') {
                 await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
             } else if (type === 'UNREAD_MESSAGE') {
-                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
+                let dialogs = await Store.UserDialog.user.query(ctx, uid, {limit: 10, reverse: true});
                 let dialog = dialogs.items[0];
-                let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+                let messages = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
 
                 await Emails.sendUnreadMessages(ctx, uid, messages.items);
             } else if (type === 'UNREAD_MESSAGES') {
-                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
+                let dialogs = await Store.UserDialog.user.query(ctx, uid, {limit: 10, reverse: true});
                 let messages: Message[] = [];
 
                 for (let dialog of dialogs.items) {
-                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
                     messages.push(msgs.items[0]);
                 }
 
@@ -274,11 +274,11 @@ export default {
             } else if (type === 'PUBLIC_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'PRIVATE_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'ROOM_INVITE_ACCEPTED') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
@@ -314,7 +314,7 @@ export default {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
                 await Modules.Hooks.onOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
@@ -322,7 +322,7 @@ export default {
                     inviteOwner: uid,
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             }
             return true;
         }),
@@ -360,7 +360,7 @@ export default {
                         }
                     }
 
-                    return { totalSent, totalReceived, totalSentDirect };
+                    return {totalSent, totalReceived, totalSentDirect};
                 };
 
                 let users = await Store.User.findAll(parent);
@@ -373,7 +373,7 @@ export default {
                     }
                     await inTx(rootCtx, async (ctx) => {
                         try {
-                            let { totalSent, totalReceived, totalSentDirect } = await calculateForUser(ctx, user.id);
+                            let {totalSent, totalReceived, totalSentDirect} = await calculateForUser(ctx, user.id);
 
                             let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
                             messagesSent.set(ctx, totalSent);
@@ -711,7 +711,7 @@ export default {
                 return false;
             }
             await inTx(root, async ctx => {
-                await Modules.Orgs.createOrganization(ctx, uid, { name: 'Openland' });
+                await Modules.Orgs.createOrganization(ctx, uid, {name: 'Openland'});
                 await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
                 await Modules.Users.activateUser(ctx, uid, false);
             });
@@ -880,6 +880,20 @@ export default {
             });
             return true;
         }),
+        debugCreateBigChat: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
+                let users: number[] = [];
+                for (let i = 0; i <= args.membersCount; i++) {
+                    let key = randKey();
+                    let user = await Modules.Users.createUser(ctx, key, key + '@openland.com');
+                    await Modules.Users.createUserProfile(ctx, user.id, {firstName: 'Test', lastName: '#' + key});
+                    users.push(user.id);
+                }
+                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, {title: 'Test #' + randKey()});
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {
@@ -906,7 +920,10 @@ export default {
                     }
                 })();
 
-                let generator = Store.DebugEvent.user.liveStream(ctx, uid, { batchSize: 20, after: args.fromState || undefined });
+                let generator = Store.DebugEvent.user.liveStream(ctx, uid, {
+                    batchSize: 20,
+                    after: args.fromState || undefined
+                });
 
                 for await (let event of generator) {
                     for (let item of event.items) {
