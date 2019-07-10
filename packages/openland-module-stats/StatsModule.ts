@@ -286,15 +286,12 @@ export class StatsModule {
         const newMobileUsers = mobileUsers - yesterdayMobileUsers;
         yesterdayStats.mobileUsers.set(ctx, mobileUsers);
 
-        const successfulInvites = await currentStats.successfulInvites.get(ctx);
-        const yesterdaySuccessfulInvites = await yesterdayStats.successfulInvites.get(ctx);
-        const newInvites = successfulInvites - yesterdaySuccessfulInvites;
-        yesterdayStats.successfulInvites.set(ctx, successfulInvites);
+        const messages =  await currentStats.messages.get(ctx);
+        const yesterdayMessages = await yesterdayStats.messages.get(ctx);
+        const newMessages = messages - yesterdayMessages;
+        yesterdayStats.messages.set(ctx, newMessages);
 
-        const report = [heading('Daily'), '\n'];
-        report.push(`🐥 ${newUserEntrances} new user ${plural(newUserEntrances, ['entrance', 'entrances'])}\n`);
-        report.push(`📱 ${newMobileUsers} new mobile ${plural(newMobileUsers, ['user', 'users'])}\n`);
-        report.push(`🙌🏽 ${newInvites} successful ${plural(newInvites, ['invite', 'invites'])}\n`);
+        const report = [heading(`Daily   🐥 ${newUserEntrances}   📱 ${newMobileUsers}    ➡️ ${newMessages}`)];
 
         await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
             ...buildMessage(...report), ignoreAugmentation: true,
