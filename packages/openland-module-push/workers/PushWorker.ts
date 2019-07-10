@@ -44,8 +44,6 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         // Web Push
                         //
-                        await Modules.Hooks.onDesktopPushSent(ctx, args.uid);
-
                         let webTokens = await repo.getUserWebPushTokens(ctx, args.uid);
                         for (let wp of webTokens) {
                             await Modules.Push.webWorker.pushWork(ctx, {
@@ -76,8 +74,6 @@ export function createPushWorker(repo: PushRepository) {
                         }
                     }
                     if (args.mobile) {
-                        await Modules.Hooks.onMobilePushSent(ctx, args.uid);
-
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
                         //
                         // iOS

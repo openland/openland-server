@@ -71,41 +71,45 @@ export class StatsModule {
     }
 
     generateNewInviterReport = async (ctx: Context, newUserId: number, inviterId: number) => {
-        const botId = await getSuperNotificationsBotId(ctx);
-        const chatId = await getUserReportsChatId(ctx);
+        return;
 
-        if (!botId || !chatId) {
-            log.warn(ctx, 'botId or chatId not specified');
-            return;
-        }
-
-        const inviter = await Modules.Users.profileById(ctx, inviterId);
-        const newUser = await Modules.Users.profileById(ctx, newUserId);
-
-        let inviterOrgName = '';
-        if (inviter!.primaryOrganization) {
-            const organization = await Store.OrganizationProfile.findById(ctx, inviter!.primaryOrganization);
-            inviterOrgName = ` @ ${(organization!).name}`;
-        }
-
-        let newUserOrgName = '';
-        if (newUser!.primaryOrganization) {
-            const organization = await Store.OrganizationProfile.findById(ctx, newUser!.primaryOrganization);
-            newUserOrgName = ` @ ${(organization!).name}`;
-        }
-
-        let report = [heading('New inviter ', userMention(resolveUsername(inviter!.firstName, inviter!.lastName), inviterId), inviterOrgName), '\n'];
-
-        report.push('Invited ');
-        report.push(userMention(resolveUsername(newUser!.firstName, newUser!.lastName), newUserId));
-        report.push(newUserOrgName);
-
-        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
-            ...buildMessage(...report), ignoreAugmentation: true,
-        });
+        // const botId = await getSuperNotificationsBotId(ctx);
+        // const chatId = await getUserReportsChatId(ctx);
+        //
+        // if (!botId || !chatId) {
+        //     log.warn(ctx, 'botId or chatId not specified');
+        //     return;
+        // }
+        //
+        // const inviter = await Modules.Users.profileById(ctx, inviterId);
+        // const newUser = await Modules.Users.profileById(ctx, newUserId);
+        //
+        // let inviterOrgName = '';
+        // if (inviter!.primaryOrganization) {
+        //     const organization = await Store.OrganizationProfile.findById(ctx, inviter!.primaryOrganization);
+        //     inviterOrgName = ` @ ${(organization!).name}`;
+        // }
+        //
+        // let newUserOrgName = '';
+        // if (newUser!.primaryOrganization) {
+        //     const organization = await Store.OrganizationProfile.findById(ctx, newUser!.primaryOrganization);
+        //     newUserOrgName = ` @ ${(organization!).name}`;
+        // }
+        //
+        // let report = [heading('New inviter ', userMention(resolveUsername(inviter!.firstName, inviter!.lastName), inviterId), inviterOrgName), '\n'];
+        //
+        // report.push('Invited ');
+        // report.push(userMention(resolveUsername(newUser!.firstName, newUser!.lastName), newUserId));
+        // report.push(newUserOrgName);
+        //
+        // await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+        //     ...buildMessage(...report), ignoreAugmentation: true,
+        // });
     }
 
     generateSilentUserReport = (rootCtx: Context, uid: number) => {
+        return { result: 'completed' };
+        
         return inTx(rootCtx, async (ctx) => {
             const botId = await getSuperNotificationsBotId(ctx);
             const chatId = await getUserReportsChatId(ctx);
@@ -205,57 +209,60 @@ export class StatsModule {
                 orgName = ` @ ${(organization!).name}`;
             }
 
-            let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
-            if (score > 0) {
-                report.push(`👥 `);
-                report.push(boldString(`${groupsJoined} `));
-                report.push(`${plural(groupsJoined, ['group', 'groups'])}  `);
-                report.push(`➡️ `);
-                report.push(boldString(`${allMessages}·${directMessages}·${groupMessages} `));
-                report.push(`${plural(directMessages, ['message', 'messages'])} sent: all, dm, gm  `);
-                if (mobileOnline) {
-                    report.push('● mobile  ');
-                } else {
-                    report.push('○ mobile  ');
-                }
-                report.push(`👋 `);
-                report.push(boldString(`${successfulInvites}`));
-                report.push(` ${plural(successfulInvites, ['user', 'users'])} invited\n`);
-
-                report.push('🚨 ');
-                report.push(boldString(`${browserPushSent}·${emailSent}·${mobilePushSent} `));
-                report.push(`pushes: broswer, email, mobile  `);
-
-                // privileges
-                switch (userSettings.desktopNotifications) {
-                    case 'none':
-                        report.push('○');
-                        break;
-                    default:
-                        report.push('●');
-                }
-                switch (userSettings.emailFrequency) {
-                    case 'never':
-                        report.push('○');
-                        break;
-                    default:
-                        report.push('●');
-                        break;
-                }
-                switch (userSettings.mobileNotifications) {
-                    case 'none':
-                        report.push('○');
-                        break;
-                    default:
-                        if (mobileOnline) {
-                            report.push('●');
-                        } else {
-                            report.push('○');
-                        }
-                        break;
-                }
-                report.push(' privileges: browser, email, mobile');
+            if (score <= 1) {
+                return;
             }
+
+            let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
+
+            report.push(`👥 `);
+            report.push(boldString(`${groupsJoined} `));
+            report.push(`${plural(groupsJoined, ['group', 'groups'])}  `);
+            report.push(`➡️ `);
+            report.push(boldString(`${allMessages}·${directMessages}·${groupMessages} `));
+            report.push(`${plural(directMessages, ['message', 'messages'])} sent: all, dm, gm  `);
+            if (mobileOnline) {
+                report.push('● mobile  ');
+            } else {
+                report.push('○ mobile  ');
+            }
+            report.push(`👋 `);
+            report.push(boldString(`${successfulInvites}`));
+            report.push(` ${plural(successfulInvites, ['user', 'users'])} invited\n`);
+
+            report.push('🚨 ');
+            report.push(boldString(`${browserPushSent}·${emailSent}·${mobilePushSent} `));
+            report.push(`pushes: broswer, email, mobile  `);
+
+            // privileges
+            switch (userSettings.desktopNotifications) {
+                case 'none':
+                    report.push('○');
+                    break;
+                default:
+                    report.push('●');
+            }
+            switch (userSettings.emailFrequency) {
+                case 'never':
+                    report.push('○');
+                    break;
+                default:
+                    report.push('●');
+                    break;
+            }
+            switch (userSettings.mobileNotifications) {
+                case 'none':
+                    report.push('○');
+                    break;
+                default:
+                    if (mobileOnline) {
+                        report.push('●');
+                    } else {
+                        report.push('○');
+                    }
+                    break;
+            }
+            report.push(' privileges: browser, email, mobile');
 
             await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,
