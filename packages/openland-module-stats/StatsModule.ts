@@ -191,7 +191,6 @@ export class StatsModule {
             const mobileOnline = !!onlines
                 .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
             const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
-            const directMessages = await Store.UserMessagesSentInDirectChatTotalCounter.byId(uid).get(ctx);
             const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
             const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
             const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
