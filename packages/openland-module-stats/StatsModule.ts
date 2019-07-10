@@ -109,7 +109,7 @@ export class StatsModule {
 
     generateSilentUserReport = (rootCtx: Context, uid: number) => {
         return { result: 'completed' };
-        
+
         return inTx(rootCtx, async (ctx) => {
             const botId = await getSuperNotificationsBotId(ctx);
             const chatId = await getUserReportsChatId(ctx);
@@ -193,7 +193,6 @@ export class StatsModule {
             const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
             const directMessages = await Store.UserMessagesSentInDirectChatTotalCounter.byId(uid).get(ctx);
             const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
-            const groupMessages = allMessages - directMessages;
             const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
             const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
 
@@ -219,8 +218,8 @@ export class StatsModule {
             report.push(boldString(`${groupsJoined} `));
             report.push(`${plural(groupsJoined, ['group', 'groups'])}  `);
             report.push(`➡️ `);
-            report.push(boldString(`${allMessages}·${directMessages}·${groupMessages} `));
-            report.push(`${plural(directMessages, ['message', 'messages'])} sent: all, dm, gm  `);
+            report.push(boldString(`${allMessages} `));
+            report.push(`${plural(allMessages, ['message', 'messages'])} sent  `);
             if (mobileOnline) {
                 report.push('● mobile  ');
             } else {
