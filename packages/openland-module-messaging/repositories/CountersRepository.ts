@@ -59,6 +59,14 @@ export class CountersRepository {
             let localCounter = Store.UserDialogCounter.byId(uid, message.cid);
             let globalCounter = Store.UserCounter.byId(uid);
 
+            // update readMessageId pointer
+            if (message.id === local.readMessageId) {
+                let prevMessage = (await Store.Message.chat.query(ctx, message.cid, { after: message.id, reverse: true, limit: 1 })).items[0];
+                if (prevMessage) {
+                    local.readMessageId = prevMessage.id;
+                }
+            }
+
             if (message.uid !== uid && (!local.readMessageId || message.id > local.readMessageId)) {
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
