@@ -75,10 +75,7 @@ export default {
         topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
         betaTopMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
         alphaTopMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
-        isMuted: async (src: UserDialog, _, ctx) => {
-            let settings = await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.cid);
-            return settings.mute;
-        },
+        isMuted: async (src: UserDialog, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
         haveMention: async (src: UserDialog, _, ctx) => {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
