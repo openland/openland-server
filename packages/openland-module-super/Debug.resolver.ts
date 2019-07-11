@@ -880,6 +880,27 @@ export default {
             });
             return true;
         }),
+        debugCreateDailyReport: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.generateDailyReport(ctx);
+            });
+
+            return true;
+        }),
+        debugCreateWeeklyReport: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.generateWeeklyReport(ctx);
+            });
+
+            return true;
+        }),
+        debugCreateWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.generateWeeklyEngagementReport(ctx);
+            });
+
+            return true;
+        }),
         debugCreateBigChat: withPermission('super-admin', async (parent, args) => {
             return inTx(parent, async ctx => {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);

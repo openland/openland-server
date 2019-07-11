@@ -14,7 +14,7 @@ import { RoomSearch } from './search/RoomSearch';
 import { Context } from '@openland/context';
 import { messagesIndexer } from './workers/messagesIndexer';
 import { FixerRepository } from './repositories/Fixer';
-import { roomsSearchIndexer } from './workers/roomsSerachIndexer';
+import { roomsSearchIndexer } from './workers/roomsSearchIndexer';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 
 @injectable()

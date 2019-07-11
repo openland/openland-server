@@ -18,22 +18,98 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     }),
     gotoDiscover: (user: UserProfile) => ({
         type: 'gotoDiscover',
-        message: [{ type: 'loud_text', parts: ['Find chats for you'] }, '\nAre you ready to explore Openland?\nLet\'s find the most useful chats based on your interests and needs'],
+        message: [
+            '\nAre you ready to explore Openland?\nLet\'s find the most useful chats based on your interests and needs',
+            {
+                type: 'file_attach', attach: {
+                    type: 'file_attachment',
+                    fileId: '7f85f7c4-2eef-4ee2-a627-234675f3c0fd',
+                    filePreview: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABUOEBIQDRUSERIYFhUZHzQiHx0dH0AuMCY0TENQT0tDSUhUXnlmVFlyWkhJaY9qcnyAh4iHUWWUn5ODnXmEh4L/2wBDARYYGB8cHz4iIj6CVklWgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoL/wAARCAAFABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDqirE5EjD2wKZcKRayguT8tFFD2JlszE2gsSMgE9M0UUVynnXZ/9k=',
+                    fileMetadata: {
+                        isImage: true,
+                        imageWidth: 480,
+                        imageHeight: 108,
+                        imageFormat: 'PNG',
+                        mimeType: 'image/png',
+                        name: 'img_bot_discover.png',
+                        size: 48905,
+                        isStored: true,
+                    }
+                }
+            }
+        ],
         keyboard: { buttons: [[{ title: 'Discover chats', url: '/onboarding_discover', style: 'DEFAULT' }]] }
     }),
     sendFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
-        message: [{ type: 'loud_text', parts: ['Get help from Openland community'] }, '\nDo you need any expert advice or new connections for your projects? Simply ask for help in one of our chats '],
+        message: [
+            '\nDo you need any expert advice or new connections for your projects? Simply ask for help in one of our chats ',
+            {
+                type: 'file_attach', attach: {
+                    type: 'file_attachment',
+                    fileId: '8683ed16-fbad-495c-9995-2160db60d73a',
+                    filePreview: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABUOEBIQDRUSERIYFhUZHzQiHx0dH0AuMCY0TENQT0tDSUhUXnlmVFlyWkhJaY9qcnyAh4iHUWWUn5ODnXmEh4L/2wBDARYYGB8cHz4iIj6CVklWgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoL/wAARCAAFABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDp2jcsSJCB6c/40sm9YZCWBwhxgY7UUUwRhSXb2xCKCQQG+8R1ooormludCirH/9k=',
+                    fileMetadata: {
+                        isImage: true,
+                        imageWidth: 480,
+                        imageHeight: 108,
+                        imageFormat: 'PNG',
+                        mimeType: 'image/png',
+                        name: 'img_bot_message.png',
+                        size: 49352,
+                        isStored: true,
+                    }
+                }
+            }
+        ],
         keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] }
     }),
     invite: (user: UserProfile) => ({
         type: 'invite',
-        message: [{ type: 'loud_text', parts: ['Invite friends'] }, '\nHow do you like Openland community so far?\nIf you love being here, share the invitation with your teammates and friends'],
+        message: [
+            '\nHow do you like Openland community so far?\nIf you love being here, share the invitation with your teammates and friends',
+            {
+                type: 'file_attach', attach: {
+                    type: 'file_attachment',
+                    fileId: '40050c00-2ace-4cd0-a1a7-4c3e8cb51bab',
+                    filePreview: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABUOEBIQDRUSERIYFhUZHzQiHx0dH0AuMCY0TENQT0tDSUhUXnlmVFlyWkhJaY9qcnyAh4iHUWWUn5ODnXmEh4L/2wBDARYYGB8cHz4iIj6CVklWgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoL/wAARCAAFABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDqirEnEjD8BRKSsLHPIFFFTN2iwW5nNJInyhye/NFFFePKtU5nqdSirH//2Q==',
+                    fileMetadata: {
+                        isImage: true,
+                        imageWidth: 480,
+                        imageHeight: 108,
+                        imageFormat: 'PNG',
+                        mimeType: 'image/png',
+                        name: 'img_bot_invites.png',
+                        size: 41177,
+                        isStored: true,
+                    }
+                }
+            }
+        ],
         keyboard: { buttons: [[{ title: 'Invite friends', url: '/onboarding_invite', style: 'DEFAULT' }]] }
     }),
     installApps: (user: UserProfile) => ({
         type: 'installApps',
-        message: [{ type: 'loud_text', parts: ['Stay in the loop'] }, '\nDo you want to get our fastest experience and never miss a message?\nOpenland has desktop and mobile apps for all your devices'],
+        message: [
+            '\nDo you want to get our fastest experience and never miss a message?\nOpenland has desktop and mobile apps for all your devices',
+            {
+                type: 'file_attach', attach: {
+                    type: 'file_attachment',
+                    fileId: 'f94a935b-492b-413e-8572-e2d7a8970382',
+                    filePreview: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABUOEBIQDRUSERIYFhUZHzQiHx0dH0AuMCY0TENQT0tDSUhUXnlmVFlyWkhJaY9qcnyAh4iHUWWUn5ODnXmEh4L/2wBDARYYGB8cHz4iIj6CVklWgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoL/wAARCAAFABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDqirZJ8xh7YFKVJjZN5yQRu7iiimBgS2qxyFEKgD/YBooorqg24ps4pSak0j//2Q==',
+                    fileMetadata: {
+                        isImage: true,
+                        imageWidth: 480,
+                        imageHeight: 108,
+                        imageFormat: 'PNG',
+                        mimeType: 'image/png',
+                        name: 'img_bot_apps.png',
+                        size: 41982,
+                        isStored: true,
+                    }
+                }
+            }
+        ],
         keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT' }]] }
     }),
 };

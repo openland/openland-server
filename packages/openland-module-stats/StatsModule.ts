@@ -7,10 +7,18 @@ import { createDailyReportWorker } from './workers/DailyReportWorker';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { boldString, buildMessage, heading, userMention } from '../openland-utils/MessageBuilder';
-import { getSuperNotificationsBotId, getUserReportsChatId, resolveUsername } from './workers/utils';
+import {
+    getGlobalStatisticsForReport,
+    getGrowthReportsChatId,
+    getSuperNotificationsBotId,
+    getUserReportsChatId,
+    getWeeklyReportsChatId,
+    resolveUsername,
+} from './utils';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
-import { plural } from '../openland-utils/string';
+import { formatNumberWithSign, plural } from '../openland-utils/string';
+import { createWeeklyEngagementReportWorker } from './workers/WeeklyEngagementReportWorker';
 
 const log = createLogger('stats');
 
@@ -22,22 +30,15 @@ export class StatsModule {
     start = () => {
         createDailyReportWorker();
         createWeeklyReportWorker();
-    }
-
-    queueFirstWeekReport = (ctx: Context, uid: number, dbgDelay?: number) => {
-        let delay = dbgDelay ? dbgDelay : 1000 * 60 * 60 * 24 * 7; // 7 days
-
-        return this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
-    }
-
-    queueSilentUserReport = (ctx: Context, uid: number, dbgDelay?: number) => {
-        let delay = dbgDelay ? dbgDelay :  1000 * 60 * 60 * 24 * 2; // 2 days
-
-        return this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
+        createWeeklyEngagementReportWorker();
     }
 
     onNewMobileUser = (ctx: Context) => {
         Store.GlobalStatisticsCounters.byId('mobile-users').increment(ctx);
+    }
+
+    onMessageSent = (ctx: Context) => {
+        Store.GlobalStatisticsCounters.byId('messages').increment(ctx);
     }
 
     onNewEntrance = (ctx: Context) => {
@@ -57,42 +58,58 @@ export class StatsModule {
         }
     }
 
+    queueFirstWeekReport = (ctx: Context, uid: number, dbgDelay?: number) => {
+        let delay = dbgDelay ? dbgDelay : 1000 * 60 * 60 * 24 * 7; // 7 days
+
+        return this.firstWeekReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
+    }
+
+    queueSilentUserReport = (ctx: Context, uid: number, dbgDelay?: number) => {
+        let delay = dbgDelay ? dbgDelay : 1000 * 60 * 60 * 24 * 2; // 2 days
+
+        return this.silentUserReportQueue.pushWork(ctx, { uid }, Date.now() + delay);
+    }
+
     generateNewInviterReport = async (ctx: Context, newUserId: number, inviterId: number) => {
-        const botId = await getSuperNotificationsBotId(ctx);
-        const chatId = await getUserReportsChatId(ctx);
+        return;
 
-        if (!botId || !chatId) {
-            log.warn(ctx, 'botId or chatId not specified');
-            return;
-        }
-
-        const inviter = await Modules.Users.profileById(ctx, inviterId);
-        const newUser = await Modules.Users.profileById(ctx, newUserId);
-
-        let inviterOrgName = '';
-        if (inviter!.primaryOrganization) {
-            const organization = await Store.OrganizationProfile.findById(ctx, inviter!.primaryOrganization);
-            inviterOrgName = ` @ ${(organization!).name}`;
-        }
-
-        let newUserOrgName = '';
-        if (newUser!.primaryOrganization) {
-            const organization = await Store.OrganizationProfile.findById(ctx, newUser!.primaryOrganization);
-            newUserOrgName = ` @ ${(organization!).name}`;
-        }
-
-        let report = [heading('New inviter ', userMention(resolveUsername(inviter!.firstName, inviter!.lastName), inviterId), inviterOrgName), '\n'];
-
-        report.push('Invited ');
-        report.push(userMention(resolveUsername(newUser!.firstName, newUser!.lastName), newUserId));
-        report.push(newUserOrgName);
-
-        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
-            ...buildMessage(...report), ignoreAugmentation: true,
-        });
+        // const botId = await getSuperNotificationsBotId(ctx);
+        // const chatId = await getUserReportsChatId(ctx);
+        //
+        // if (!botId || !chatId) {
+        //     log.warn(ctx, 'botId or chatId not specified');
+        //     return;
+        // }
+        //
+        // const inviter = await Modules.Users.profileById(ctx, inviterId);
+        // const newUser = await Modules.Users.profileById(ctx, newUserId);
+        //
+        // let inviterOrgName = '';
+        // if (inviter!.primaryOrganization) {
+        //     const organization = await Store.OrganizationProfile.findById(ctx, inviter!.primaryOrganization);
+        //     inviterOrgName = ` @ ${(organization!).name}`;
+        // }
+        //
+        // let newUserOrgName = '';
+        // if (newUser!.primaryOrganization) {
+        //     const organization = await Store.OrganizationProfile.findById(ctx, newUser!.primaryOrganization);
+        //     newUserOrgName = ` @ ${(organization!).name}`;
+        // }
+        //
+        // let report = [heading('New inviter ', userMention(resolveUsername(inviter!.firstName, inviter!.lastName), inviterId), inviterOrgName), '\n'];
+        //
+        // report.push('Invited ');
+        // report.push(userMention(resolveUsername(newUser!.firstName, newUser!.lastName), newUserId));
+        // report.push(newUserOrgName);
+        //
+        // await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+        //     ...buildMessage(...report), ignoreAugmentation: true,
+        // });
     }
 
     generateSilentUserReport = (rootCtx: Context, uid: number) => {
+        return { result: 'completed' };
+
         return inTx(rootCtx, async (ctx) => {
             const botId = await getSuperNotificationsBotId(ctx);
             const chatId = await getUserReportsChatId(ctx);
@@ -174,9 +191,7 @@ export class StatsModule {
             const mobileOnline = !!onlines
                 .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
             const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
-            const directMessages = await Store.UserMessagesSentInDirectChatTotalCounter.byId(uid).get(ctx);
             const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
-            const groupMessages = allMessages - directMessages;
             const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
             const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
 
@@ -192,58 +207,250 @@ export class StatsModule {
                 orgName = ` @ ${(organization!).name}`;
             }
 
-            let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
-            if (score > 0) {
-                report.push(`👥 `);
-                report.push(boldString(`${groupsJoined} `));
-                report.push(`${plural(groupsJoined, ['group', 'groups'])}  `);
-                report.push(`➡️ `);
-                report.push(boldString(`${allMessages}·${directMessages}·${groupMessages} `));
-                report.push(`${plural(directMessages, ['message', 'messages'])} sent: all, dm, gm  `);
-                if (mobileOnline) {
-                    report.push('● mobile  ');
-                } else {
-                    report.push('○ mobile  ');
-                }
-                report.push(`👋 `);
-                report.push(boldString(`${successfulInvites}`));
-                report.push(` ${plural(successfulInvites, ['user', 'users'])} invited\n`);
-
-                report.push('🚨 ');
-                report.push(boldString(`${browserPushSent}·${emailSent}·${mobilePushSent} `));
-                report.push(`pushes: broswer, email, mobile  `);
-
-                // privileges
-                switch (userSettings.desktopNotifications) {
-                    case 'none':
-                        report.push('○');
-                        break;
-                    default:
-                        report.push('●');
-                }
-                switch (userSettings.emailFrequency) {
-                    case 'never':
-                        report.push('○');
-                        break;
-                    default:
-                        report.push('●');
-                        break;
-                }
-                switch (userSettings.mobileNotifications) {
-                    case 'none':
-                        report.push('○');
-                        break;
-                    default:
-                        report.push('●');
-                }
-                report.push(' privileges: browser, email, mobile');
+            if (score <= 1) {
+                return;
             }
+
+            let report = [heading('First week report ', userMention(resolveUsername(profile!.firstName, profile!.lastName), uid), orgName, ` ⚡️ ${score}`), '\n'];
+
+            report.push(`👥 `);
+            report.push(boldString(`${groupsJoined} `));
+            report.push(`${plural(groupsJoined, ['group', 'groups'])}  `);
+            report.push(`➡️ `);
+            report.push(boldString(`${allMessages} `));
+            report.push(`${plural(allMessages, ['message', 'messages'])} sent  `);
+            if (mobileOnline) {
+                report.push('● mobile  ');
+            } else {
+                report.push('○ mobile  ');
+            }
+            report.push(`👋 `);
+            report.push(boldString(`${successfulInvites}`));
+            report.push(` ${plural(successfulInvites, ['user', 'users'])} invited\n`);
+
+            report.push('🚨 ');
+            report.push(boldString(`${browserPushSent}·${emailSent}·${mobilePushSent} `));
+            report.push(`pushes: broswer, email, mobile  `);
+
+            // privileges
+            switch (userSettings.desktopNotifications) {
+                case 'none':
+                    report.push('○');
+                    break;
+                default:
+                    report.push('●');
+            }
+            switch (userSettings.emailFrequency) {
+                case 'never':
+                    report.push('○');
+                    break;
+                default:
+                    report.push('●');
+                    break;
+            }
+            switch (userSettings.mobileNotifications) {
+                case 'none':
+                    report.push('○');
+                    break;
+                default:
+                    if (mobileOnline) {
+                        report.push('●');
+                    } else {
+                        report.push('○');
+                    }
+                    break;
+            }
+            report.push(' privileges: browser, email, mobile');
 
             await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,
             });
 
             return { result: 'completed' };
+        });
+    }
+
+    generateDailyReport = async (ctx: Context) => {
+        const chatId = await getGrowthReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        const currentStats = getGlobalStatisticsForReport();
+        const yesterdayStats = getGlobalStatisticsForReport('yesterday');
+
+        const userEntrances = await currentStats.userEntrances.get(ctx);
+        const yesterdayUserEntrances = await yesterdayStats.userEntrances.get(ctx);
+        const newUserEntrances = userEntrances - yesterdayUserEntrances;
+        yesterdayStats.userEntrances.set(ctx, userEntrances);
+
+        const mobileUsers = await currentStats.mobileUsers.get(ctx);
+        const yesterdayMobileUsers = await yesterdayStats.mobileUsers.get(ctx);
+        const newMobileUsers = mobileUsers - yesterdayMobileUsers;
+        yesterdayStats.mobileUsers.set(ctx, mobileUsers);
+
+        const messages =  await currentStats.messages.get(ctx);
+        const yesterdayMessages = await yesterdayStats.messages.get(ctx);
+        const newMessages = messages - yesterdayMessages;
+        yesterdayStats.messages.set(ctx, newMessages);
+
+        const report = [heading(`Daily   🐥 ${newUserEntrances}   📱 ${newMobileUsers}    ➡️ ${newMessages}`)];
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...report), ignoreAugmentation: true,
+        });
+    }
+
+    generateWeeklyReport = async (ctx: Context) => {
+        const chatId = await getWeeklyReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        const allTimeStats = getGlobalStatisticsForReport();
+        const prevWeekStats = getGlobalStatisticsForReport('prev-week');
+        const prevWeekStatsSnapshot = getGlobalStatisticsForReport('prev-week-snapshot');
+
+        const userEntrances = await allTimeStats.userEntrances.get(ctx);
+        const prevWeekUserEntrances = await prevWeekStats.userEntrances.get(ctx);
+        const newUserEntrances = userEntrances - prevWeekUserEntrances;
+        const newUserEntrancesDiff = newUserEntrances - (await prevWeekStatsSnapshot.userEntrances.get(ctx));
+        prevWeekStats.userEntrances.set(ctx, userEntrances);
+        prevWeekStatsSnapshot.userEntrances.set(ctx, newUserEntrances);
+
+        const mobileUsers = await allTimeStats.mobileUsers.get(ctx);
+        const prevWeekMobileUsers = await prevWeekStats.mobileUsers.get(ctx);
+        const newMobileUsers = mobileUsers - prevWeekMobileUsers;
+        const newMobileUsersDiff = newMobileUsers - (await prevWeekStatsSnapshot.mobileUsers.get(ctx));
+        prevWeekStats.mobileUsers.set(ctx, mobileUsers);
+        prevWeekStatsSnapshot.mobileUsers.set(ctx, newMobileUsers);
+
+        // const successfulInvites = await allTimeStats.successfulInvites.get(ctx);
+        // const prevWeekSuccessfulInvites = await prevWeekStats.successfulInvites.get(ctx);
+        // const newInvites = successfulInvites - prevWeekSuccessfulInvites;
+        // const newInvitesDiff = newInvites - (await prevWeekStatsSnapshot.successfulInvites.get(ctx));
+        // prevWeekStats.successfulInvites.set(ctx, successfulInvites);
+        // prevWeekStatsSnapshot.successfulInvites.set(ctx, newInvites);
+
+        const messagesSent = await allTimeStats.messages.get(ctx);
+        const prvWeekMessagesSent = await prevWeekStats.messages.get(ctx);
+        const newMessages = messagesSent - prvWeekMessagesSent;
+        const newMessagesDiff = newMessages - (await prevWeekStatsSnapshot.messages.get(ctx));
+        prevWeekStats.messages.set(ctx, messagesSent);
+        prevWeekStatsSnapshot.messages.set(ctx, newMessages);
+
+        const report = [heading('Weekly'), '\n'];
+        report.push(`🐥 `, boldString(`${newUserEntrances}`), ` new user ${plural(newUserEntrances, ['entrance', 'entrances'])} (${formatNumberWithSign(newUserEntrancesDiff)})\n`);
+        report.push(`📱 `, boldString(`${newMobileUsers}`), ` new mobile ${plural(newMobileUsers, ['user', 'users'])} (${formatNumberWithSign(newMobileUsersDiff)})\n`);
+        report.push(`➡️ `, boldString(`${newMessages}`), ` ${plural(newMessages, ['message', 'messages'])} sent (${formatNumberWithSign(newMessagesDiff)})\n`);
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...report), ignoreAugmentation: true,
+        });
+    }
+
+    generateWeeklyEngagementReport = async (ctx: Context) => {
+        const chatId = await getGrowthReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        const allTimeStats = getGlobalStatisticsForReport();
+
+        let emailPushes = 0;
+        let mobilePushes = 0;
+        let browserPushes = 0;
+        let experiencedUsers = 0;
+        let online = 0;
+        let atLeastOneMessageSent = 0;
+        let emailAllowed = 0;
+        let mobileAllowed = 0;
+        let browserAllowed = 0;
+
+        let allUsers = await Store.User.findAllKeys(ctx);
+        let weekAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+        for (let key of allUsers) {
+            key = key.splice(0, 2);
+            let uid: number = key[0] as number;
+            await inTx(ctx, async (c) => {
+                const emailSent = await Store.UserEmailSentCounter.byId(uid).get(ctx);
+                const browserPushSent = await Store.UserBrowserPushSentCounter.byId(uid).get(ctx);
+                const mobilePushSent = await Store.UserMobilePushSentCounter.byId(uid).get(ctx);
+
+                const prevWeekEmailSent = await Store.UserEmailSentWeeklyCounter.byId(uid).get(ctx);
+                const prevWeekBrowserSent = await Store.UserBrowserPushSentCounter.byId(uid).get(ctx);
+                const prevWeekMobilleSent = await Store.UserMobilePushSentWeeklyCounter.byId(uid).get(ctx);
+
+                Store.UserEmailSentWeeklyCounter.byId(uid).set(ctx, emailSent);
+                Store.UserBrowserPushSentWeeklyCounter.byId(uid).set(ctx, browserPushSent);
+                Store.UserMobilePushSentWeeklyCounter.byId(uid).set(ctx, mobilePushSent);
+
+                if (emailSent - prevWeekEmailSent > 0) {
+                    emailPushes++;
+                }
+                if (browserPushSent - prevWeekBrowserSent > 0) {
+                    browserPushes++;
+                }
+                if (mobilePushSent - prevWeekMobilleSent > 0) {
+                    mobilePushes++;
+                }
+
+                const onlines = await Store.Presence.user.findAll(ctx, uid);
+                const wasOnline = !!onlines
+                    .find((e) => e.lastSeen >= weekAgo);
+                if (wasOnline) {
+                    online++;
+                }
+
+                const mobileOnline = !!onlines
+                    .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
+                const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
+                const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
+                const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
+                const score = this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites);
+                if (score >= 10) {
+                    experiencedUsers++;
+                }
+
+                const settings = await Store.UserSettings.findById(ctx, uid);
+                if (settings) {
+                    if (settings!.desktopNotifications !== 'none') {
+                        browserAllowed++;
+                    }
+                    if (settings!.mobileNotifications !== 'none' && mobileOnline) {
+                        mobileAllowed++;
+                    }
+                    if (settings!.emailFrequency !== 'never') {
+                        emailAllowed++;
+                    }
+                }
+
+                const prevWeekMessages = await Store.UserMessagesSentWeeklyCounter.get(ctx, uid);
+                Store.UserMessagesSentWeeklyCounter.byId(uid).set(ctx, allMessages);
+                if (allMessages - prevWeekMessages > 0) {
+                    atLeastOneMessageSent++;
+                }
+            });
+        }
+
+        const userEntrances = await allTimeStats.userEntrances.get(ctx);
+
+        const report = [heading('Weekly Engagement'), '\n'];
+        report.push(`👋  `, boldString(`${userEntrances}`), ` activated accounts`, `\n`);
+        report.push(`🏅  `, boldString(`${experiencedUsers}`), ` 10+ XP`, `\n`);
+        report.push(`⚡️  `, boldString(`${emailAllowed} · ${browserAllowed} · ${mobileAllowed}`), ` privileges (email, browser, mobile push)`, `\n`);
+        report.push(`🚨  `, boldString(`${emailPushes} · ${browserPushes} · ${mobilePushes}`), ` at least one push sent`, `\n`);
+        report.push(`🌐  `, boldString(`${online}`), ` online`, `\n`);
+        report.push(`➡️  `, boldString(`${atLeastOneMessageSent}`), ` at least one message sent`, `\n`);
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...report), ignoreAugmentation: true,
         });
     }
 }

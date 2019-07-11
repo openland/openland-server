@@ -775,6 +775,9 @@ export default declareSchema(() => {
     atomicInt('UserMessagesSentCounter', () => {
         primaryKey('uid', integer());
     });
+    atomicInt('UserMessagesSentWeeklyCounter', () => {
+        primaryKey('uid', integer());
+    });
     atomicInt('UserMessagesSentInDirectChatTotalCounter', () => {
         primaryKey('uid', integer());
     });
@@ -797,6 +800,15 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
     });
     atomicInt('UserMobilePushSentCounter', () => {
+        primaryKey('uid', integer());
+    });
+    atomicInt('UserEmailSentWeeklyCounter', () => {
+        primaryKey('uid', integer());
+    });
+    atomicInt('UserBrowserPushSentWeeklyCounter', () => {
+        primaryKey('uid', integer());
+    });
+    atomicInt('UserMobilePushSentWeeklyCounter', () => {
         primaryKey('uid', integer());
     });
 

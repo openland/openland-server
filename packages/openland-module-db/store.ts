@@ -82,6 +82,42 @@ export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserMessagesSentWeeklyCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesSentWeeklyCounter');
+        return new UserMessagesSentWeeklyCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserMessagesSentInDirectChatTotalCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -339,6 +375,114 @@ export class UserMobilePushSentCounterFactory extends AtomicIntegerFactory {
     static async open(storage: EntityStorage) {
         let directory = await storage.resolveAtomicDirectory('userMobilePushSentCounter');
         return new UserMobilePushSentCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserEmailSentWeeklyCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userEmailSentWeeklyCounter');
+        return new UserEmailSentWeeklyCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserBrowserPushSentWeeklyCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userBrowserPushSentWeeklyCounter');
+        return new UserBrowserPushSentWeeklyCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
+export class UserMobilePushSentWeeklyCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMobilePushSentWeeklyCounter');
+        return new UserMobilePushSentWeeklyCounterFactory(storage, directory);
     }
 
     private constructor(storage: EntityStorage, subspace: Subspace) {
@@ -11031,6 +11175,7 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
+    readonly UserMessagesSentWeeklyCounter: UserMessagesSentWeeklyCounterFactory;
     readonly UserMessagesSentInDirectChatTotalCounter: UserMessagesSentInDirectChatTotalCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
@@ -11039,6 +11184,9 @@ export interface Store extends BaseStore {
     readonly UserEmailSentCounter: UserEmailSentCounterFactory;
     readonly UserBrowserPushSentCounter: UserBrowserPushSentCounterFactory;
     readonly UserMobilePushSentCounter: UserMobilePushSentCounterFactory;
+    readonly UserEmailSentWeeklyCounter: UserEmailSentWeeklyCounterFactory;
+    readonly UserBrowserPushSentWeeklyCounter: UserBrowserPushSentWeeklyCounterFactory;
+    readonly UserMobilePushSentWeeklyCounter: UserMobilePushSentWeeklyCounterFactory;
     readonly UserDialogCounter: UserDialogCounterFactory;
     readonly UserDialogHaveMention: UserDialogHaveMentionFactory;
     readonly NotificationCenterCounter: NotificationCenterCounterFactory;
@@ -11140,6 +11288,7 @@ export interface Store extends BaseStore {
 export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
+    let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
     let UserMessagesSentInDirectChatTotalCounterPromise = UserMessagesSentInDirectChatTotalCounterFactory.open(storage);
     let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.open(storage);
     let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
@@ -11148,6 +11297,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserEmailSentCounterPromise = UserEmailSentCounterFactory.open(storage);
     let UserBrowserPushSentCounterPromise = UserBrowserPushSentCounterFactory.open(storage);
     let UserMobilePushSentCounterPromise = UserMobilePushSentCounterFactory.open(storage);
+    let UserEmailSentWeeklyCounterPromise = UserEmailSentWeeklyCounterFactory.open(storage);
+    let UserBrowserPushSentWeeklyCounterPromise = UserBrowserPushSentWeeklyCounterFactory.open(storage);
+    let UserMobilePushSentWeeklyCounterPromise = UserMobilePushSentWeeklyCounterFactory.open(storage);
     let UserDialogCounterPromise = UserDialogCounterFactory.open(storage);
     let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.open(storage);
     let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(storage);
@@ -11248,6 +11400,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         UserCounter: await UserCounterPromise,
         UserMessagesSentCounter: await UserMessagesSentCounterPromise,
+        UserMessagesSentWeeklyCounter: await UserMessagesSentWeeklyCounterPromise,
         UserMessagesSentInDirectChatTotalCounter: await UserMessagesSentInDirectChatTotalCounterPromise,
         UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
         UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
@@ -11256,6 +11409,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserEmailSentCounter: await UserEmailSentCounterPromise,
         UserBrowserPushSentCounter: await UserBrowserPushSentCounterPromise,
         UserMobilePushSentCounter: await UserMobilePushSentCounterPromise,
+        UserEmailSentWeeklyCounter: await UserEmailSentWeeklyCounterPromise,
+        UserBrowserPushSentWeeklyCounter: await UserBrowserPushSentWeeklyCounterPromise,
+        UserMobilePushSentWeeklyCounter: await UserMobilePushSentWeeklyCounterPromise,
         UserDialogCounter: await UserDialogCounterPromise,
         UserDialogHaveMention: await UserDialogHaveMentionPromise,
         NotificationCenterCounter: await NotificationCenterCounterPromise,

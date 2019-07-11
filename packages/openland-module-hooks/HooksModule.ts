@@ -182,6 +182,7 @@ export class HooksModule {
 
     onMessageSent = async (ctx: Context, uid: number) => {
         await Modules.UserOnboarding.onMessageSent(ctx, uid);
+        await Modules.Stats.onMessageSent(ctx);
     }
 
     onChatMembersCountChange = async (ctx: Context, cid: number, delta: number) => {
@@ -194,5 +195,13 @@ export class HooksModule {
 
     onEmailSent = (ctx: Context, uid: number) => {
         Modules.Stats.onEmailSent(ctx, uid);
+    }
+
+    onDesktopPushSent = (ctx: Context, uid: number) => {
+        Store.UserBrowserPushSentCounter.byId(uid).increment(ctx);
+    }
+
+    onMobilePushSent = (ctx: Context, uid: number) => {
+        Store.UserMobilePushSentCounter.byId(uid).increment(ctx);
     }
 }

@@ -281,6 +281,13 @@ export function startPushNotificationWorker() {
                             silent: null,
                         };
 
+                        if (sendMobile) {
+                            Modules.Hooks.onMobilePushSent(ctx, uid);
+                        }
+                        if (sendDesktop) {
+                            Modules.Hooks.onDesktopPushSent(ctx, uid);
+                        }
+
                         log.debug(ctx, 'new_push', JSON.stringify(push));
                         await Modules.Push.pushWork(ctx, push);
                         // workDone = true;
