@@ -116,7 +116,7 @@ extend type Mutation {
     debugCalcGlobalCountersForAll: Boolean!
     debugCreateDailyReport: Boolean!
     debugCreateWeeklyReport: Boolean!
-    debugCreateWeeklyEngagementReport: Boolean!
+    debugQueueWeeklyEngagementReport: Boolean!
 }
 
 extend type Subscription {

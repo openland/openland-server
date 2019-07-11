@@ -3,6 +3,7 @@ import { createNamedContext, Context } from '@openland/context';
 import { Store } from '../openland-module-db/FDB';
 import { JsonMap } from '../openland-utils/json';
 import { WorkQueue } from './WorkQueue';
+import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 
 export enum WeekDay {
     Sunday = 0,
@@ -22,7 +23,7 @@ type Config =
 const rootCtx = createNamedContext('timed-worker');
 export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, handler: (ctx: Context) => Promise<Res>) => {
     const taskType = 'timed_' + type;
-    const queue = new WorkQueue<{}, Res>(taskType);
+    const queue = new WorkQueue<{ timed: boolean }, Res>(taskType);
 
     const getNext = () => {
         const now = new Date();
@@ -62,21 +63,27 @@ export const timedWorker = <Res extends JsonMap>(type: string, conf: Config, han
         }
     };
 
-    const pushNext = (ctx: Context) => queue.pushWork(ctx, {}, getNext());
+    const pushNext = (ctx: Context, timed: boolean = false) => queue.pushWork(ctx, { timed }, timed ? getNext() : Date.now());
 
-    // tslint:disable-next-line:no-floating-promises
-    (async () => {
-        await inTx(rootCtx, async (ctx) => {
-            let pending = await Store.Task.delayedPending.findAll(ctx, taskType);
-            if (pending.length === 0) {
-                await pushNext(ctx);
-            }
-        });
+    if (serverRoleEnabled('workers')) {
+        // tslint:disable-next-line:no-floating-promises
+        (async () => {
+            await inTx(rootCtx, async (ctx) => {
+                let pending = await Store.Task.delayedPending.findAll(ctx, taskType);
+                if (pending.length === 0) {
+                    await pushNext(ctx, true);
+                }
+            });
 
-        queue.addWorker( async (_, parent) => {
-            let res = await handler(parent);
-            await pushNext(parent);
-            return res;
-        });
-    })();
+            queue.addWorker( async (args, parent) => {
+                let res = await handler(parent);
+                if (args.timed) {
+                    await pushNext(parent, true);
+                }
+                return res;
+            });
+        })();
+    }
+
+    return (ctx: Context) => pushNext(ctx);
 };

@@ -894,9 +894,9 @@ export default {
 
             return true;
         }),
-        debugCreateWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
+        debugQueueWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.generateWeeklyEngagementReport(ctx);
+                await Modules.Stats.queueWeeklyEngagementReport(ctx);
             });
 
             return true;

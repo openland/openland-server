@@ -147,13 +147,31 @@ export async function createGraphQLAdminSchema() {
                 type: new GraphQLList(entitiesMap[val.descriptor.name]),
                 resolve(_: any, a: any) {
                     log.log(rootCtx, name + 'All');
-                    let ids: any[] = [];
-                    for (let key of val.descriptor.primaryKeys) {
-                        ids.push(a[key.name]);
-                    }
                     return (store as any)[val.descriptor.name].findAll(rootCtx);
                 }
             };
+
+            for (let index of val.descriptor.secondaryIndexes) {
+                let indexArgs: any = {};
+                for (let key of index.type.fields.slice(0, -1)) {
+                    indexArgs[key.name] = {
+                        type: indexType(key.type)
+                    };
+                }
+
+                queries[index.name + Case.upperCaseFirst(name) + 'All'] = {
+                    type: new GraphQLList(entitiesMap[val.descriptor.name]),
+                    args: indexArgs,
+                    resolve(_: any, a: any) {
+                        log.log(rootCtx, index.name + Case.upperCaseFirst(name));
+                        let input: any[] = [];
+                        for (let key of index.type.fields.slice(0, -1)) {
+                            input.push(a[key.name]);
+                        }
+                        return (store as any)[val.descriptor.name][index.name].findAll(rootCtx, ...input);
+                    }
+                };
+            }
         }
     }
 

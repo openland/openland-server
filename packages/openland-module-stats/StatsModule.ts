@@ -26,11 +26,11 @@ const log = createLogger('stats');
 export class StatsModule {
     private readonly firstWeekReportQueue = createFirstWeekReportWorker();
     private readonly silentUserReportQueue = createSilentUserReportWorker();
+    public readonly queueWeeklyEngagementReport = createWeeklyEngagementReportWorker();
 
     start = () => {
         createDailyReportWorker();
         createWeeklyReportWorker();
-        createWeeklyEngagementReportWorker();
     }
 
     onNewMobileUser = (ctx: Context) => {
