@@ -588,7 +588,8 @@ export default {
                 return 0;
             }
 
-            return await Modules.Comments.getMessageCommentsCount(ctx, src.id);
+            let state = await Store.CommentState.findById(ctx, 'message', src.id);
+            return (state && state.commentsCount) || 0;
         },
         fallback: src => fetchMessageFallback(src)
     },
