@@ -32,7 +32,7 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        let batches = batch(unreadUsers, 100);
+        let batches = batch(unreadUsers, 10);
 
         for (let b of batches) {
             await inTx(parent, async (ctx) => {
