@@ -258,15 +258,12 @@ export class UserOnboardingModule {
         let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
         await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
 
-        if (user.email && user.email.includes('+test@maildu.de')) {
-            let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
-            let message = buildMessage(...messageParts);
-            if (t.isSevice) {
-                message.isService = true;
-            }
-            await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
+        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
+        let message = buildMessage(...messageParts);
+        if (t.isSevice) {
+            message.isService = true;
         }
-
+        await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
     }
 
     private isDiscoverCompletedWithJoin = async (ctx: Context, uid: number) => {
