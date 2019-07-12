@@ -26,11 +26,11 @@ const log = createLogger('stats');
 export class StatsModule {
     private readonly firstWeekReportQueue = createFirstWeekReportWorker();
     private readonly silentUserReportQueue = createSilentUserReportWorker();
+    public readonly queueWeeklyEngagementReport = createWeeklyEngagementReportWorker();
 
     start = () => {
         createDailyReportWorker();
         createWeeklyReportWorker();
-        createWeeklyEngagementReportWorker();
     }
 
     onNewMobileUser = (ctx: Context) => {
@@ -353,11 +353,11 @@ export class StatsModule {
         });
     }
 
-    generateWeeklyEngagementReport = async (ctx: Context) => {
-        const chatId = await getGrowthReportsChatId(ctx);
-        const botId = await getSuperNotificationsBotId(ctx);
+    generateWeeklyEngagementReport = async (parent: Context) => {
+        const chatId = await getGrowthReportsChatId(parent);
+        const botId = await getSuperNotificationsBotId(parent);
         if (!chatId || !botId) {
-            log.warn(ctx, 'botId or chatId not specified');
+            log.warn(parent, 'botId or chatId not specified');
             return;
         }
 
@@ -373,12 +373,12 @@ export class StatsModule {
         let mobileAllowed = 0;
         let browserAllowed = 0;
 
-        let allUsers = await Store.User.findAllKeys(ctx);
+        let [allUsers, userEntrances] = await inTx(parent, async ctx => [await Store.User.findAllKeys(ctx), await allTimeStats.userEntrances.get(ctx)]);
         let weekAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
         for (let key of allUsers) {
             key = key.splice(0, 2);
             let uid: number = key[0] as number;
-            await inTx(ctx, async (c) => {
+            await inTx(parent, async (ctx) => {
                 const emailSent = await Store.UserEmailSentCounter.byId(uid).get(ctx);
                 const browserPushSent = await Store.UserBrowserPushSentCounter.byId(uid).get(ctx);
                 const mobilePushSent = await Store.UserMobilePushSentCounter.byId(uid).get(ctx);
@@ -439,8 +439,6 @@ export class StatsModule {
             });
         }
 
-        const userEntrances = await allTimeStats.userEntrances.get(ctx);
-
         const report = [heading('Weekly Engagement'), '\n'];
         report.push(`👋  `, boldString(`${userEntrances}`), ` activated accounts`, `\n`);
         report.push(`🏅  `, boldString(`${experiencedUsers}`), ` 10+ XP`, `\n`);
@@ -449,7 +447,7 @@ export class StatsModule {
         report.push(`🌐  `, boldString(`${online}`), ` online`, `\n`);
         report.push(`➡️  `, boldString(`${atLeastOneMessageSent}`), ` at least one message sent`, `\n`);
 
-        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+        await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
             ...buildMessage(...report), ignoreAugmentation: true,
         });
     }
