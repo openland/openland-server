@@ -134,25 +134,23 @@ export class UserStateRepository {
         return;
     }
 
-    async fetchUserGlobalCounter(parent: Context, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let settings = await Store.UserSettings.findById(ctx, uid);
-            if (!settings) {
-                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
-            }
+    async fetchUserGlobalCounter(ctx: Context, uid: number) {
+        let settings = await Store.UserSettings.findById(ctx, uid);
+        if (!settings) {
+            return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+        }
 
-            if (settings.globalCounterType === 'unread_messages') {
-                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
-            } else if (settings.globalCounterType === 'unread_chats') {
-                return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
-            } else if (settings.globalCounterType === 'unread_messages_no_muted') {
-                return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
-            } else if (settings.globalCounterType === 'unread_chats_no_muted') {
-                return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
-            } else {
-                return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
-            }
-        });
+        if (settings.globalCounterType === 'unread_messages') {
+            return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+        } else if (settings.globalCounterType === 'unread_chats') {
+            return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
+        } else if (settings.globalCounterType === 'unread_messages_no_muted') {
+            return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
+        } else if (settings.globalCounterType === 'unread_chats_no_muted') {
+            return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
+        } else {
+            return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+        }
     }
 
 }
