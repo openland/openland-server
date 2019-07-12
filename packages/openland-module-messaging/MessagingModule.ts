@@ -139,6 +139,10 @@ export class MessagingModule {
         return await this.userState.getRoomSettings(ctx, uid, cid);
     }
 
+    async isChatMuted(ctx: Context, uid: number, cid: number) {
+        return await this.userState.isChatMuted(ctx, uid, cid);
+    }
+
     onGlobalCounterTypeChanged = async (parent: Context, uid: number) => {
         return await this.delivery.onGlobalCounterTypeChanged(parent, uid);
     }

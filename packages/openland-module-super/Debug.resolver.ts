@@ -915,6 +915,17 @@ export default {
                 return true;
             });
         }),
+        debugFlood: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
+                let start = Date.now();
+                for (let i = 0; i <= args.messagesCount; i++) {
+                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, { message: randKey() });
+                }
+                logger.log(ctx, 'debugFlood took', Date.now() - start);
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {

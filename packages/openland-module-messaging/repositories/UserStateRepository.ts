@@ -23,6 +23,14 @@ export class UserStateRepository {
         });
     }
 
+    async isChatMuted(ctx: Context, uid: number, cid: number) {
+        let res = await Store.UserDialogSettings.findById(ctx, uid, cid);
+        if (!res) {
+            return false;
+        }
+        return res.mute;
+    }
+
     async markAsSeqRead(parent: Context, uid: number, toSeq: number) {
         await inTx(parent, async (ctx) => {
             let state = await this.getUserNotificationState(ctx, uid);
