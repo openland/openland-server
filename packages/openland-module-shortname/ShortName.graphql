@@ -1,7 +1,7 @@
 union ShortNameDestination = User | Organization
 
 extend type Query {
-    alphaResolveShortName(shortname: String!): ShortNameDestination
+    alphaResolveShortName(shortname: String, id: ID): ShortNameDestination
 }
 
 extend type Mutation {

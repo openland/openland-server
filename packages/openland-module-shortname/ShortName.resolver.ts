@@ -4,7 +4,7 @@ import { ErrorText } from '../openland-errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { IDs } from '../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { withUser } from '../openland-module-users/User.resolver';
 import { AppContext } from '../openland-modules/AppContext';
 import { User, Organization } from 'openland-module-db/store';
@@ -24,16 +24,38 @@ export default {
 
     Query: {
         alphaResolveShortName: withAccount(async (ctx, args, uid, orgId) => {
-            let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
+            if (!args.shortname && !args.id) {
+                throw new Error('Neither shortname nor id specified');
+            }
 
-            if (!shortname) {
+            let ownerId;
+            let ownerType;
+            if (args.shortname) {
+                let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
+                if (shortname) {
+                    ownerId =  shortname.ownerId;
+                    ownerType = shortname.ownerType;
+                }
+            } else {
+                let idInfo = IdsFactory.resolve(args.id!);
+                if (idInfo.type.typeId === IDs.User.typeId) {
+                    ownerType = 'user';
+                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
+                    ownerType = 'org';
+                } else {
+                    throw new Error('Invalid id');
+                }
+                ownerId = idInfo.id as number;
+            }
+
+            if (!ownerId || !ownerType) {
                 return null;
             }
 
-            if (shortname.ownerType === 'user') {
-                return await Store.User.findById(ctx, shortname.ownerId);
-            } else if (shortname.ownerType === 'org') {
-                return await Store.Organization.findById(ctx, shortname.ownerId);
+            if (ownerType === 'user') {
+                return await Store.User.findById(ctx, ownerId);
+            } else if (ownerType === 'org') {
+                return await Store.Organization.findById(ctx, ownerId);
             }
 
             return null;
