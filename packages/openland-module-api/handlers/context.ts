@@ -9,6 +9,7 @@ import { createNamedContext } from '@openland/context';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { createLogger, withLogMeta } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
+import { withGqlTrace } from '../../openland-graphql/gqlTracer';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
@@ -57,6 +58,7 @@ async function context(src: express.Request): Promise<AppContext> {
         res = CacheContext.set(res, new Map());
         res = withReadOnlyTransaction(res);
         res = withLogMeta(res, { connection: randomGlobalInviteKey(8) });
+        res = withGqlTrace(res);
 
         return new AppContext(res);
     });
