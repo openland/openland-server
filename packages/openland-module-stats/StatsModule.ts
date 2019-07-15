@@ -481,7 +481,7 @@ export class StatsModule {
 
         let rooms = items
             .filter(a => a.activeMembersCount && a.activeMembersCount >= 10)
-            .sort((a, b) => a.activeMembersCount! - b.activeMembersCount!)
+            .sort((a, b) => b.activeMembersCount! - a.activeMembersCount!)
             .slice(0, 10);
 
         let message = [heading('New groups with 10 plus members'), '\n'];
@@ -531,7 +531,7 @@ export class StatsModule {
         }
 
         let users = items
-            .sort((a, b) => scores.get(a.id)! - scores.get(b.id)!)
+            .sort((a, b) => scores.get(b.id)! - scores.get(a.id)!)
             .slice(0, 10);
 
         let message = [heading('New users by rating'), '\n'];
