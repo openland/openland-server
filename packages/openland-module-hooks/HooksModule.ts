@@ -5,7 +5,7 @@ import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/store';
-import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { boldString, buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -73,7 +73,7 @@ export class HooksModule {
         if (conditions.type === 'BY_SUPER_ADMIN') {
             let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(adminName, conditions.uid)),
+                ...buildMessage(boldString(`Organization ${orgProfile!.name} was activated by `), userMention(adminName, conditions.uid)),
                 ignoreAugmentation: true,
             });
         } else if (conditions.type === 'BY_INVITE' || conditions.type === 'OWNER_ADDED_TO_ORG') {
@@ -81,7 +81,7 @@ export class HooksModule {
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), ` via invite.`),
+                ...buildMessage(boldString(`Organization ${orgProfile!.name} was activated by `), userMention(invitorName, invitorId), boldString(` via invite.`)),
                 ignoreAugmentation: true,
             });
         }
@@ -105,20 +105,7 @@ export class HooksModule {
     }
 
     onSignUp = async (ctx: Context, uid: number) => {
-        let botId = await getSuperNotificationsBotId(ctx);
-        let chatId = await getSuperNotificationsChatId(ctx);
-
-        if (!botId || !chatId) {
-            return;
-        }
-
-        let user = await Store.User.findById(ctx, uid);
-        if (!user) {
-            return;
-        }
-        let message = `New user signing up: ${user.email}`;
-
-        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true });
+        // no op
     }
 
     onUserProfileCreated = async (ctx: Context, uid: number) => {
@@ -129,6 +116,7 @@ export class HooksModule {
             return;
         }
 
+        let user = await Store.User.findById(ctx, uid);
         let userName = await Modules.Users.getUserFullName(ctx, uid);
         let orgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
 
@@ -140,7 +128,7 @@ export class HooksModule {
         } else {
             let org = await Store.OrganizationProfile.findById(ctx, orgs[0]);
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(`New user in waitlist: `, userMention(userName, uid), ` at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`),
+                ...buildMessage(`New user in waitlist: `, userMention(userName, uid), ` (${user!.email}) at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`),
                 ignoreAugmentation: true,
             });
         }
