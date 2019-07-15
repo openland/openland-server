@@ -24,30 +24,25 @@ export default {
 
     Query: {
         alphaResolveShortName: withAccount(async (ctx, args, uid, orgId) => {
-            if (!args.shortname && !args.id) {
-                throw new Error('Neither shortname nor id specified');
-            }
 
             let ownerId;
             let ownerType;
-            if (args.shortname) {
+            try {
+                let idInfo = IdsFactory.resolve(args.shortname);
+                if (idInfo.type.typeId === IDs.User.typeId) {
+                    ownerType = 'user';
+                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
+                    ownerType = 'org';
+                }
+                ownerId = idInfo.id as number;
+            } catch {
                 let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
                 if (shortname) {
                     ownerId =  shortname.ownerId;
                     ownerType = shortname.ownerType;
                 }
-            } else {
-                let idInfo = IdsFactory.resolve(args.id!);
-                if (idInfo.type.typeId === IDs.User.typeId) {
-                    ownerType = 'user';
-                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
-                    ownerType = 'org';
-                } else {
-                    throw new Error('Invalid id');
-                }
-                ownerId = idInfo.id as number;
             }
-
+            
             if (!ownerId || !ownerType) {
                 return null;
             }

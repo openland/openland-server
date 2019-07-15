@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '69499f9c91d60e5e4eac35f2667a905d';
+export const GQL_SPEC_VERSION = '8f994cf3c43bcb756e622a2cf84dc413';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2678,8 +2678,7 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QueryAlphaResolveShortNameArgs {
-        shortname: OptionalNullable<string>;
-        id: OptionalNullable<string>;
+        shortname: string;
     }
     export interface SessionState {
         isLoggedIn: boolean;
