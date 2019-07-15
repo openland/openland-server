@@ -1131,7 +1131,7 @@ export default declareSchema(() => {
 
         field('arguments', json());
         field('result', json());
-        field('startAt', integer());
+        field('startAt', optional(integer()));
         field('taskStatus', enumString('pending', 'executing', 'failing', 'failed', 'completed'));
 
         field('taskFailureCount', optional(integer()));

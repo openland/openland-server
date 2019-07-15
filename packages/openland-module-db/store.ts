@@ -10680,7 +10680,7 @@ export interface TaskShape {
     uid: string;
     arguments: any;
     result: any;
-    startAt: number;
+    startAt: number | null;
     taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
     taskFailureCount: number | null;
     taskFailureTime: number | null;
@@ -10692,7 +10692,7 @@ export interface TaskShape {
 export interface TaskCreateShape {
     arguments: any;
     result: any;
-    startAt: number;
+    startAt?: number | null | undefined;
     taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
     taskFailureCount?: number | null | undefined;
     taskFailureTime?: number | null | undefined;
@@ -10722,8 +10722,8 @@ export class Task extends Entity<TaskShape> {
             this.invalidate();
         }
     }
-    get startAt(): number { return this._rawValue.startAt; }
-    set startAt(value: number) {
+    get startAt(): number | null { return this._rawValue.startAt; }
+    set startAt(value: number | null) {
         let normalized = this.descriptor.codec.fields.startAt.normalize(value);
         if (this._rawValue.startAt !== normalized) {
             this._rawValue.startAt = normalized;
@@ -10793,7 +10793,7 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         let subspace = await storage.resolveEntityDirectory('task');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'pending'), condition: (src) => src.taskStatus === 'pending' && !src.startAt });
-        secondaryIndexes.push({ name: 'delayedPending', storageKey: 'delayedPending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'startAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'delayedPending'), condition: (src) => src.taskStatus === 'pending' && !!src.startAt });
+        secondaryIndexes.push({ name: 'delayedPending', storageKey: 'delayedPending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'startAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'delayedPending'), condition: (src) => src.taskStatus === 'pending' && !!src.startAt });
         secondaryIndexes.push({ name: 'executing', storageKey: 'executing', type: { type: 'range', fields: [{ name: 'taskLockTimeout', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'executing'), condition: (src) => src.taskStatus === 'executing' });
         secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'failing'), condition: (src) => src.taskStatus === 'failing' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
@@ -10802,7 +10802,7 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'arguments', type: { type: 'json' }, secure: false });
         fields.push({ name: 'result', type: { type: 'json' }, secure: false });
-        fields.push({ name: 'startAt', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'startAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'taskStatus', type: { type: 'enum', values: ['pending', 'executing', 'failing', 'failed', 'completed'] }, secure: false });
         fields.push({ name: 'taskFailureCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'taskFailureTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -10814,7 +10814,7 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
             uid: c.string,
             arguments: c.any,
             result: c.any,
-            startAt: c.integer,
+            startAt: c.optional(c.integer),
             taskStatus: c.enum('pending', 'executing', 'failing', 'failed', 'completed'),
             taskFailureCount: c.optional(c.integer),
             taskFailureTime: c.optional(c.integer),
@@ -10853,7 +10853,7 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         findAll: async (ctx: Context, taskType: string) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType])).items;
         },
-        query: (ctx: Context, taskType: string, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, taskType: string, opts?: RangeQueryOptions<number | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[1], [taskType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (taskType: string, opts?: StreamProps) => {
