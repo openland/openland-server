@@ -58,7 +58,7 @@ async function context(src: express.Request): Promise<AppContext> {
         res = CacheContext.set(res, new Map());
         res = withReadOnlyTransaction(res);
         res = withLogMeta(res, { connection: randomGlobalInviteKey(8) });
-        res = withGqlTrace(res);
+        res = withGqlTrace(res, 'http');
 
         return new AppContext(res);
     });

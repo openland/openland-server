@@ -25,13 +25,15 @@ import { parseCookies } from '../openland-utils/parseCookies';
 import { decode } from 'openland-utils/base64';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { createFuckApolloWSServer } from '../openland-mtproto3';
-import { randomKey } from '../openland-utils/random';
 import * as url from 'url';
 import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
-import { createLogger } from '@openland/log';
+import { createLogger, withLogPath } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
+import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-graphql/gqlTracer';
+import { AuthContext } from '../openland-module-auth/AuthContext';
+import { uuid } from '../openland-utils/uuid';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -281,6 +283,7 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({ app, path: '/api' });
 
         createWebSocketServer(httpServer);
+        const wsCtx = createNamedContext('ws-gql');
         let fuckApolloWS = await createFuckApolloWSServer({
             server: undefined, // httpServer ,
             path: '/api',
@@ -292,8 +295,36 @@ export async function initApi(isTest: boolean) {
                 }
                 return await fetchWebSocketParameters(params, null);
             },
-            context: async params => new AppContext(withReadOnlyTransaction(buildWebSocketContext(params || {}))),
-            genSessionId: async authParams => randomKey(),
+            context: async (params, operation) => {
+                let opId = uuid();
+                let ctx = buildWebSocketContext(params || {}).ctx;
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
+
+                return new AppContext(ctx);
+            },
+            subscriptionContext: async (params, operation, firstCtx) => {
+                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
+                let ctx = buildWebSocketContext(params || {}).ctx;
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+
+                return new AppContext(ctx);
+            },
+            onOperation: async (ctx, operation) => {
+                if (!isTest) {
+                    let opId = GqlQueryIdNamespace.get(ctx) || 'unknown query';
+                    if (AuthContext.get(ctx).uid) {
+                        logger.log(wsCtx, `GraphQL ${opId} [#${AuthContext.get(ctx).uid}]: ${JSON.stringify(operation)}`);
+                    } else {
+                        logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
+                    }
+                }
+            },
             formatResponse: async value => {
                 let errors: any[] | undefined;
                 if (value.errors) {

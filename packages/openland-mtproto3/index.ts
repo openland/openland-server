@@ -10,10 +10,15 @@ import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
 import { Context, createNamedContext } from '@openland/context';
-import { AppContext } from 'openland-modules/AppContext';
-import { withLogPath, createLogger } from '@openland/log';
+import { createLogger } from '@openland/log';
 
 const logger = createLogger('apollo');
+
+interface GQlServerOperation {
+    operationName: string|null|undefined;
+    variables: any;
+    query: string;
+}
 
 interface FuckApolloServerParams {
     server?: http.Server | https.Server;
@@ -22,11 +27,13 @@ interface FuckApolloServerParams {
 
     onAuth(payload: any, req: http.IncomingMessage): Promise<any>;
 
-    context(params: any): Promise<Context>;
+    context(params: any, operation: GQlServerOperation): Promise<Context>;
 
-    genSessionId(authParams: any): Promise<string>;
+    subscriptionContext(params: any, operation: GQlServerOperation, firstCtx?: Context): Promise<Context>;
 
     formatResponse(response: any): Promise<any>;
+
+    onOperation(ctx: Context, operation: GQlServerOperation): Promise<any>;
 }
 
 class FuckApolloSession {
@@ -110,12 +117,15 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             if (isSubscription) {
                 let working = true;
                 asyncRun(async () => {
+                    let ctx = await params.subscriptionContext(session.authParams, message.payload);
+                    await params.onOperation(ctx, message.payload);
+
                     let iterator = await gqlSubscribe({
                         schema: params.executableSchema,
                         document: query,
                         operationName: message.payload.operationName,
                         variableValues: message.payload.variables,
-                        contextValue: async () => new AppContext(withLogPath(await params.context(session.authParams), 'subscription ' + message.payload.operationName))
+                        contextValue: async () => await params.subscriptionContext(session.authParams, message.payload, ctx)
                     });
 
                     if (!isAsyncIterator(iterator)) {
@@ -136,12 +146,15 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 });
                 session.addOperation(message.id, () => working = false);
             } else {
+                let ctx = await params.context(session.authParams, message.payload);
+                await params.onOperation(ctx, message.payload);
+
                 let result = await execute({
                     schema: params.executableSchema,
                     document: query,
                     operationName: message.payload.operationName,
                     variableValues: message.payload.variables,
-                    contextValue: await params.context(session.authParams)
+                    contextValue: ctx
                 });
                 session.sendData(message.id, await params.formatResponse(result));
                 session.sendComplete(message.id);

@@ -1,6 +1,7 @@
 import { createTracer } from 'openland-log/createTracer';
 import { Context, createContextNamespace } from '@openland/context';
 import { SSpan } from '../openland-log/SSpan';
+import { STracer } from '../openland-log/STracer';
 
 class ResolveTracePart {
     public finished = false;
@@ -18,10 +19,15 @@ class ResolveTracePart {
 }
 
 class GQLTracer {
-    private tracer = createTracer('gql');
+    private tracer: STracer;
+    private rootPart: ResolveTracePart;
     private parts = new Map<string, ResolveTracePart>();
     private children = new Map<string, ResolveTracePart[]>();
-    private rootPart = new ResolveTracePart(this.tracer.startSpan('root'));
+
+    constructor(name: string) {
+        this.tracer = createTracer('gql');
+        this.rootPart = new ResolveTracePart(this.tracer.startSpan(name));
+    }
 
     onResolveStart(path: (string|number)[]) {
         let parentPath = path.slice(0, -1).join('.');
@@ -86,6 +92,12 @@ class GQLTracer {
 
 export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
 
-export function withGqlTrace(parent: Context): Context {
-    return gqlTraceNamespace.set(parent, new GQLTracer());
+export function withGqlTrace(parent: Context, name: string): Context {
+    return gqlTraceNamespace.set(parent, new GQLTracer(name));
+}
+
+export const GqlQueryIdNamespace = createContextNamespace<string | null>('gql-query-id', null);
+
+export function withGqlQueryId(parent: Context, id: string): Context {
+    return GqlQueryIdNamespace.set(parent, id);
 }

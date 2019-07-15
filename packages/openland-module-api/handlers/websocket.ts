@@ -7,7 +7,6 @@ import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { withLogMeta, createLogger } from '@openland/log';
-import { withGqlTrace } from '../../openland-graphql/gqlTracer';
 
 let rootContext = createNamedContext('ws');
 let rootContextResolve = createNamedContext('resolve');
@@ -68,7 +67,6 @@ export function buildWebSocketContext(args: any) {
     }
     res = CacheContext.set(res, new Map());
     res = withLogMeta(res, { connection: randomGlobalInviteKey(8) });
-    res = withGqlTrace(res);
 
     return new AppContext(res);
 }
