@@ -292,9 +292,7 @@ export async function initApi(isTest: boolean) {
                 }
                 return await fetchWebSocketParameters(params, null);
             },
-            context: async params => {
-                return new AppContext(withReadOnlyTransaction(buildWebSocketContext(params || {}).ctx));
-            },
+            context: async params => new AppContext(withReadOnlyTransaction(buildWebSocketContext(params || {}))),
             genSessionId: async authParams => randomKey(),
             formatResponse: async value => {
                 let errors: any[] | undefined;
