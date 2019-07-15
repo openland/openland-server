@@ -96,7 +96,7 @@ export const CounterStrategyAll = {
             onMessageReceived: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageReceived())),
             onMessageDeleted: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageDeleted())),
             onMessageRead: async (readCount: number) => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageRead(readCount))),
-            onChatDeleted: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageDeleted())),
+            onChatDeleted: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onChatDeleted())),
             onMuteChange: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMuteChange())),
             calcForChat: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).calcForChat())),
         };
