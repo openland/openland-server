@@ -12,6 +12,7 @@ import { openTestDatabase } from 'openland-server/foundationdb';
 import { createLogger } from '@openland/log';
 
 import { Shutdown } from '../openland-utils/Shutdown';
+import { StatsModule } from '../openland-module-stats/StatsModule';
 
 const logger = createLogger('environment');
 
@@ -26,6 +27,7 @@ export async function testEnvironmentStart(name: string) {
     // Set Mock Email
     container.bind('EmailModule').toConstantValue(new EmailModuleMock());
     container.bind('HooksModule').toConstantValue(new HooksModuleMock());
+    container.bind(StatsModule).toSelf().inSingletonScope();
 
     // Prepare test DB connection
     let start = currentTime();
