@@ -39,6 +39,7 @@ export default declareSchema(() => {
         field('primaryBadge', optional(integer()));
         field('role', optional(string()));
         rangeIndex('byUpdatedAt', ['updatedAt']);
+        rangeIndex('created', ['createdAt']);
     });
 
     entity('UserProfilePrefil', () => {
@@ -200,6 +201,7 @@ export default declareSchema(() => {
         field('activeMembersCount', optional(integer()));
 
         rangeIndex('updated', ['updatedAt']);
+        rangeIndex('created', ['createdAt']);
     });
 
     entity('RoomParticipant', () => {
@@ -857,6 +859,10 @@ export default declareSchema(() => {
 
     atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
         primaryKey('uid', integer());
+    });
+
+    atomicInt('RoomMessagesCounter', () => {
+        primaryKey('rid', integer());
     });
     // Global counters END
 

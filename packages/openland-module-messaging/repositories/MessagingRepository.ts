@@ -69,12 +69,16 @@ export class MessagingRepository {
             //
             if (!message.isService) {
                 this.chatMetrics.onMessageSent(ctx, uid);
+                Modules.Stats.onMessageSent(ctx);
             }
             let conv = (await Store.Conversation.findById(ctx, cid));
             let direct = conv && conv.kind === 'private';
             if (direct) {
                 await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
+            } else {
+                Modules.Stats.onRoomMessageSent(ctx, cid);
             }
+
             //
             // Notify hooks
             //

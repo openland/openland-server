@@ -19,6 +19,7 @@ import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { formatNumberWithSign, plural } from '../openland-utils/string';
 import { createWeeklyEngagementReportWorker } from './workers/WeeklyEngagementReportWorker';
+import { createWeeklyLeaderboardsWorker } from './workers/WeeklyLeaderboardsWorker';
 
 const log = createLogger('stats');
 
@@ -27,6 +28,7 @@ export class StatsModule {
     private readonly firstWeekReportQueue = createFirstWeekReportWorker();
     private readonly silentUserReportQueue = createSilentUserReportWorker();
     public readonly queueWeeklyEngagementReport = createWeeklyEngagementReportWorker();
+    public readonly queueWeeklyLeaderboardsReport = createWeeklyLeaderboardsWorker();
 
     start = () => {
         createDailyReportWorker();
@@ -39,6 +41,10 @@ export class StatsModule {
 
     onMessageSent = (ctx: Context) => {
         Store.GlobalStatisticsCounters.byId('messages').increment(ctx);
+    }
+
+    onRoomMessageSent = (ctx: Context, rid: number) => {
+        Store.RoomMessagesCounter.byId(rid).increment(ctx);
     }
 
     onNewEntrance = (ctx: Context) => {
@@ -449,6 +455,93 @@ export class StatsModule {
 
         await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
             ...buildMessage(...report), ignoreAugmentation: true,
+        });
+    }
+
+    generateWeeklyRoomLeaderboards = async (ctx: Context) => {
+        const chatId = await getGrowthReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        let roomsQuery = await Store.RoomProfile.created.query(ctx, {
+            after: Date.now() - 1000 * 60 * 60 * 24 * 14,
+            limit: 1000
+        });
+        let items = roomsQuery.items;
+        while (roomsQuery.haveMore) {
+            roomsQuery = await Store.RoomProfile.created.query(ctx, {
+                afterCursor: roomsQuery.cursor,
+                limit: 1000
+            });
+            items = items.concat(roomsQuery.items);
+        }
+
+        let rooms = items
+            .filter(a => a.activeMembersCount && a.activeMembersCount >= 10)
+            .sort((a, b) => a.activeMembersCount! - b.activeMembersCount!)
+            .slice(0, 10);
+
+        let message = [heading('New groups with 10 plus members'), '\n'];
+        for (let i = 0; i < rooms.length; i++) {
+            let room = rooms[i];
+            let messagesCount = await Store.RoomMessagesCounter.byId(room.id).get(ctx);
+            message.push(`${i + 1}. ${room.title} (👥 ${room.activeMembersCount}, ➡️ ${messagesCount})\n`);
+        }
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...message), ignoreAugmentation: true,
+        });
+    }
+
+    generateWeeklyUserLeaderboards = async (ctx: Context) => {
+        const chatId = await getGrowthReportsChatId(ctx);
+        const botId = await getSuperNotificationsBotId(ctx);
+        if (!chatId || !botId) {
+            log.warn(ctx, 'botId or chatId not specified');
+            return;
+        }
+
+        let usersQuery = await Store.UserProfile.created.query(ctx, {
+            after: Date.now() - 1000 * 60 * 60 * 24 * 14,
+            limit: 1000
+        });
+        let items = usersQuery.items;
+        while (usersQuery.haveMore) {
+            usersQuery = await Store.UserProfile.created.query(ctx, {
+                afterCursor: usersQuery.cursor,
+                limit: 1000
+            });
+            items = items.concat(usersQuery.items);
+        }
+
+        let scores = new Map<number, number>();
+        for (let user of items) {
+            const uid = user.id;
+            const onlines = await Store.Presence.user.findAll(ctx, uid);
+
+            const mobileOnline = !!onlines
+                .find((e) => e.platform.startsWith('ios') || e.platform.startsWith('android'));
+            const groupsJoined = await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx);
+            const allMessages = await Store.UserMessagesSentCounter.byId(uid).get(ctx);
+            const successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(uid).get(ctx);
+            scores.set(uid, this.calculateUserScore(mobileOnline, groupsJoined, allMessages, successfulInvites));
+        }
+
+        let users = items
+            .sort((a, b) => scores.get(a.id)! - scores.get(b.id)!)
+            .slice(0, 10);
+
+        let message = [heading('New users by rating'), '\n'];
+        for (let i = 0; i < users.length; i++) {
+            let user = users[i];
+            message.push(`${i + 1}. `, userMention([user.firstName, user.lastName].join(' '), user.id), `   ⚡️${scores.get(user.id)}\n`);
+        }
+
+        await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+            ...buildMessage(...message), ignoreAugmentation: true,
         });
     }
 }
