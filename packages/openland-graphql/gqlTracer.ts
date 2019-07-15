@@ -2,12 +2,6 @@ import { createTracer } from 'openland-log/createTracer';
 import { Context, createContextNamespace } from '@openland/context';
 import { SSpan } from '../openland-log/SSpan';
 
-export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
-
-export function withGqlTrace(parent: Context): Context {
-    return gqlTraceNamespace.set(parent, new GQLTracer());
-}
-
 class ResolveTracePart {
     public finished = false;
 
@@ -88,4 +82,10 @@ class GQLTracer {
             this.rootPart.finish();
         }
     }
+}
+
+export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
+
+export function withGqlTrace(parent: Context): Context {
+    return gqlTraceNamespace.set(parent, new GQLTracer());
 }
