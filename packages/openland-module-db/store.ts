@@ -902,6 +902,42 @@ export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicInteg
     }
 }
 
+export class RoomMessagesCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('roomMessagesCounter');
+        return new RoomMessagesCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(rid: number) {
+        return this._findById([rid]);
+    }
+
+    get(ctx: Context, rid: number) {
+        return this._get(ctx, [rid]);
+    }
+
+    set(ctx: Context, rid: number, value: number) {
+        return this._set(ctx, [rid], value);
+    }
+
+    add(ctx: Context, rid: number, value: number) {
+        return this._add(ctx, [rid], value);
+    }
+
+    increment(ctx: Context, rid: number) {
+        return this._increment(ctx, [rid]);
+    }
+
+    decrement(ctx: Context, rid: number) {
+        return this._decrement(ctx, [rid]);
+    }
+}
+
 export interface UserShape {
     id: number;
     authId: string;
@@ -1274,6 +1310,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         let subspace = await storage.resolveEntityDirectory('userProfile');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'byUpdatedAt', storageKey: 'byUpdatedAt', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userProfile', 'byUpdatedAt'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userProfile', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -1332,6 +1369,21 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -3074,6 +3126,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         let subspace = await storage.resolveEntityDirectory('roomProfile');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomProfile', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomProfile', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -3122,6 +3175,21 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -11198,6 +11266,7 @@ export interface Store extends BaseStore {
     readonly UserGlobalCounterUnreadMessagesWithoutMuted: UserGlobalCounterUnreadMessagesWithoutMutedFactory;
     readonly UserGlobalCounterAllUnreadChats: UserGlobalCounterAllUnreadChatsFactory;
     readonly UserGlobalCounterUnreadChatsWithoutMuted: UserGlobalCounterUnreadChatsWithoutMutedFactory;
+    readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -11311,6 +11380,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserGlobalCounterUnreadMessagesWithoutMutedPromise = UserGlobalCounterUnreadMessagesWithoutMutedFactory.open(storage);
     let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(storage);
     let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(storage);
+    let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -11423,6 +11493,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserGlobalCounterUnreadMessagesWithoutMuted: await UserGlobalCounterUnreadMessagesWithoutMutedPromise,
         UserGlobalCounterAllUnreadChats: await UserGlobalCounterAllUnreadChatsPromise,
         UserGlobalCounterUnreadChatsWithoutMuted: await UserGlobalCounterUnreadChatsWithoutMutedPromise,
+        RoomMessagesCounter: await RoomMessagesCounterPromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,

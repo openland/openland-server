@@ -119,6 +119,9 @@ extend type Mutation {
     debugCreateDailyReport: Boolean!
     debugCreateWeeklyReport: Boolean!
     debugQueueWeeklyEngagementReport: Boolean!
+    debugQueueWeeklyLeaderboards: Boolean!
+    debugReindexUserProfiles: Boolean!
+    debugReindexRoomProfiles: Boolean!
 }
 
 extend type Subscription {

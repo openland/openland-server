@@ -19,7 +19,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     gotoDiscover: (user: UserProfile) => ({
         type: 'gotoDiscover',
         message: [
-            '\nAre you ready to explore Openland?\nLet\'s find the most useful chats based on your interests and needs',
+            'Are you ready to explore Openland? Let\'s find the most useful chats based on your interests and needs',
             {
                 type: 'file_attach', attach: {
                     type: 'file_attachment',
@@ -43,7 +43,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     sendFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
         message: [
-            '\nDo you need any expert advice or new connections for your projects? Simply ask for help in one of our chats ',
+            'Do you need any expert advice or new connections for your projects? Simply ask for help in one of our chats',
             {
                 type: 'file_attach', attach: {
                     type: 'file_attachment',
@@ -67,7 +67,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     invite: (user: UserProfile) => ({
         type: 'invite',
         message: [
-            '\nHow do you like Openland community so far?\nIf you love being here, share the invitation with your teammates and friends',
+            'How do you like Openland community so far? If you love being here, share the invitation with your teammates and friends',
             {
                 type: 'file_attach', attach: {
                     type: 'file_attachment',
@@ -91,7 +91,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
     installApps: (user: UserProfile) => ({
         type: 'installApps',
         message: [
-            '\nDo you want to get our fastest experience and never miss a message?\nOpenland has desktop and mobile apps for all your devices',
+            'Do you want to get our fastest experience and never miss a message? Openland has desktop and mobile apps for all your devices',
             {
                 type: 'file_attach', attach: {
                     type: 'file_attachment',

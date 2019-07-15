@@ -926,6 +926,57 @@ export default {
                 return true;
             });
         }),
+        debugReindexUserProfiles: withPermission('super-admin', async (parent) => {
+            debugTask(parent.auth.uid!, 'debugReindexUsers', async (log) => {
+                let users = await Store.UserProfile.findAll(parent);
+                let i = 0;
+                for (let u of users) {
+                    try {
+                        await inTx(parent, async ctx => {
+                            await u.flush(ctx);
+                        });
+
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                    i++;
+                }
+                return 'done';
+            });
+            return true;
+        }),
+        debugReindexRoomProfiles: withPermission('super-admin', async (parent) => {
+            debugTask(parent.auth.uid!, 'debugReindexRooms', async (log) => {
+                let rooms = await Store.RoomProfile.findAll(parent);
+                let i = 0;
+                for (let r of rooms) {
+                    try {
+                        await inTx(parent, async ctx => {
+                            await r.flush(ctx);
+                        });
+
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                    i++;
+                }
+                return 'done';
+            });
+            return true;
+        }),
+        debugQueueWeeklyLeaderboards: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.queueWeeklyLeaderboardsReport(ctx);
+            });
+
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {
