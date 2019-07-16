@@ -1,4 +1,3 @@
-import { Modules } from '../../openland-modules/Modules';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 
