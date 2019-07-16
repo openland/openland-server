@@ -1,7 +1,7 @@
 import { Store } from './../openland-module-db/FDB';
 import { JsonMap } from 'openland-utils/json';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
-import { delayBreakable, foreverBreakable, currentTime, delay } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -90,13 +90,22 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             if (task && locked) {
                 log.log(root, 'Task ' + task.uid + ' found');
                 let start = currentTime();
+                let breakDelay: (() => void) | undefined;
                 let lockLoop = foreverBreakable(root, async () => {
+                    let d = await delayBreakable(10000);
+                    breakDelay = d.resolver;
+                    await d.promise;
                     await inTx(root, async ctx => {
                         let tsk = (await Store.Task.findById(ctx, task!.taskType, task!.uid))!;
                         tsk.taskLockTimeout = Date.now() + 15000;
                     });
-                    await delay(10000);
                 });
+                const stopLocking = async () => {
+                    if (breakDelay) {
+                        breakDelay();
+                    }
+                    await lockLoop.stop();
+                };
                 let res: RES;
                 try {
                     res = await handler(task.arguments, root);
@@ -129,7 +138,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     await awaitTask();
                     return;
                 } finally {
-                    await lockLoop.stop();
+                    await stopLocking();
                 }
 
                 log.log(root, 'Task ' + task.uid + ' completed in ' + (currentTime() - start) + ' ms');
