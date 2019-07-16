@@ -124,10 +124,10 @@ export function startPushNotificationWorker() {
         let batches = batch(unreadUsers, 10);
         // let workDone = false;
         for (let b of batches) {
-            await inTx(parent, async (ctx) => {
+            await inTx(parent, async (c) => {
                 for (let uid of b) {
 
-                    ctx = withLogPath(ctx, 'user ' + uid);
+                    let ctx = withLogPath(c, 'user ' + uid);
 
                     // Loading user's settings and state
 
