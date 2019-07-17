@@ -122,6 +122,7 @@ extend type Mutation {
     debugQueueWeeklyRoomLeaderboards: Boolean!
     debugReindexUserProfiles: Boolean!
     debugReindexRoomProfiles: Boolean!
+    debugSendPush(id: ID!, message: String!): Boolean!
 }
 
 extend type Subscription {
