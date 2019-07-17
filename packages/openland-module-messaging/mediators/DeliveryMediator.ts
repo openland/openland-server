@@ -40,7 +40,7 @@ export class DeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    return { result: 'ok' };
+                    return {result: 'ok'};
                 });
             }
             for (let i = 0; i < 10; i++) {
@@ -59,7 +59,7 @@ export class DeliveryMediator {
                             }
                         });
                     });
-                    return { result: 'ok' };
+                    return {result: 'ok'};
                 });
             }
         }
@@ -70,15 +70,15 @@ export class DeliveryMediator {
     //
 
     onNewMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id, action: 'new' });
+        await this.queue.pushWork(ctx, {messageId: message.id, action: 'new'});
     }
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id, action: 'update' });
+        await this.queue.pushWork(ctx, {messageId: message.id, action: 'update'});
     }
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id, action: 'delete' });
+        await this.queue.pushWork(ctx, {messageId: message.id, action: 'delete'});
     }
 
     onRoomRead = async (parent: Context, uid: number, mid: number) => {
@@ -173,10 +173,13 @@ export class DeliveryMediator {
 
                 // Deliver messages
                 if (members.length > 0) {
-                    let batches = batch(members, 10);
-                    for (let b of batches) {
-                        await this.queueUserMultiple.pushWork(ctx, { messageId: mid, uids: b, action });
-                    }
+                    let batches = batch(members, 50);
+                    let tasks = batches.map(b => this.queueUserMultiple.pushWork(ctx, {
+                        messageId: mid,
+                        uids: b,
+                        action
+                    }));
+                    await Promise.all(tasks);
                 }
             });
         });
