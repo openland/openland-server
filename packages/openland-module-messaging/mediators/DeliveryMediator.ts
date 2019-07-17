@@ -14,6 +14,7 @@ import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
+import { perf } from '../../openland-utils/perf';
 
 const tracer = createTracer('message-delivery');
 
@@ -40,26 +41,28 @@ export class DeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    return { result: 'ok' };
+                    return {result: 'ok'};
                 });
             }
             for (let i = 0; i < 10; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
-                    await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
-                        await inTx(ctx2, async (ctx) => {
-                            let message = (await Store.Message.findById(ctx, item.messageId))!;
-                            if (item.action === 'new' || item.action === undefined) {
-                                await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
-                            } else if (item.action === 'delete') {
-                                await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
-                            } else if (item.action === 'update') {
-                                await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
-                            } else {
-                                throw Error('Unknown action: ' + item.action);
-                            }
+                    await perf('deliver-multiple-perf', async () => {
+                        await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
+                            await inTx(ctx2, async (ctx) => {
+                                let message = (await Store.Message.findById(ctx, item.messageId))!;
+                                if (item.action === 'new' || item.action === undefined) {
+                                    await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                                } else if (item.action === 'delete') {
+                                    await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
+                                } else if (item.action === 'update') {
+                                    await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                                } else {
+                                    throw Error('Unknown action: ' + item.action);
+                                }
+                            });
                         });
                     });
-                    return { result: 'ok' };
+                    return {result: 'ok'};
                 });
             }
         }
@@ -70,15 +73,15 @@ export class DeliveryMediator {
     //
 
     onNewMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id, action: 'new' });
+        await this.queue.pushWork(ctx, {messageId: message.id, action: 'new'});
     }
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id, action: 'update' });
+        await this.queue.pushWork(ctx, {messageId: message.id, action: 'update'});
     }
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, { messageId: message.id, action: 'delete' });
+        await this.queue.pushWork(ctx, {messageId: message.id, action: 'delete'});
     }
 
     onRoomRead = async (parent: Context, uid: number, mid: number) => {
@@ -173,10 +176,13 @@ export class DeliveryMediator {
 
                 // Deliver messages
                 if (members.length > 0) {
-                    let batches = batch(members, 10);
-                    for (let b of batches) {
-                        await this.queueUserMultiple.pushWork(ctx, { messageId: mid, uids: b, action });
-                    }
+                    let batches = batch(members, 50);
+                    let tasks = batches.map(b => this.queueUserMultiple.pushWork(ctx, {
+                        messageId: mid,
+                        uids: b,
+                        action
+                    }));
+                    await Promise.all(tasks);
                 }
             });
         });
