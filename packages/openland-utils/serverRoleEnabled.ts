@@ -1,13 +1,18 @@
 type ServerRole = 'api' | 'workers' | 'admin' | 'delivery';
 
-const SUPPORTED_ROLES = [
+export const SUPPORTED_ROLES = [
     'api',
     'workers',
     'admin',
     'delivery'
 ];
 
-const DEFAULT_SERVER_ROLES = SUPPORTED_ROLES;
+const DEFAULT_SERVER_ROLES = [
+    'api',
+    // 'workers',
+    'admin',
+    'delivery'
+];
 
 const ENABLED_SERVER_ROLES = (process.env.SERVER_ROLES && process.env.SERVER_ROLES.length > 0) ? process.env.SERVER_ROLES.split(',') : DEFAULT_SERVER_ROLES;
 

@@ -1,6 +1,9 @@
 import { createSourceEventStream, DocumentNode, execute, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 import Maybe from 'graphql/tsutils/Maybe';
 import { isAsyncIterator } from './utils';
+import { createLogger } from '@openland/log';
+
+const log = createLogger('gqlSubscribe');
 
 export async function* gqlSubscribe(
     {
@@ -48,6 +51,7 @@ export async function* gqlSubscribe(
     if (isAsyncIterator(res)) {
         try {
             for await (let data of res) {
+                log.log(await contextValue(), 'event', data);
                 yield await mapSourceToResponse(data);
             }
         } catch (e) {
