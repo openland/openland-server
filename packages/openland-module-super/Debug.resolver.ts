@@ -982,6 +982,25 @@ export default {
             });
 
             return true;
+        }),
+        debugSendPush: withPermission('super-admin', async (parent, args) => {
+            await inTx(parent, async (ctx) => {
+                let uid = IDs.User.parse(args.id);
+                await Modules.Push.pushWork(ctx, {
+                    uid,
+                    body: args.message,
+                    title: 'test',
+                    conversationId: 2,
+                    counter: 0,
+                    desktop: true,
+                    mobile: true,
+                    mobileAlert: true,
+                    mobileIncludeText: true,
+                    picture: null,
+                    silent: null
+                });
+            });
+            return true;
         })
     },
     Subscription: {
