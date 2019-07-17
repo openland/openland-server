@@ -90,7 +90,8 @@ export default {
                     query: {
                         bool: {
                             must: [
-                                { match_phrase_prefix: { title: args.query } }, { term: { orgKind: 'organization' } },
+                                { match_phrase_prefix: { title: args.query } },
+                                { term: { listed: false } },
                                 {
                                     bool: {
                                         should: orgChatFilters
