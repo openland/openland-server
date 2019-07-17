@@ -14,7 +14,6 @@ import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
-import { perf } from '../../openland-utils/perf';
 
 const tracer = createTracer('message-delivery');
 
@@ -46,20 +45,18 @@ export class DeliveryMediator {
             }
             for (let i = 0; i < 10; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
-                    await perf('deliver-multiple-perf', async () => {
-                        await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
-                            await inTx(ctx2, async (ctx) => {
-                                let message = (await Store.Message.findById(ctx, item.messageId))!;
-                                if (item.action === 'new' || item.action === undefined) {
-                                    await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
-                                } else if (item.action === 'delete') {
-                                    await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
-                                } else if (item.action === 'update') {
-                                    await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
-                                } else {
-                                    throw Error('Unknown action: ' + item.action);
-                                }
-                            });
+                    await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
+                        await inTx(ctx2, async (ctx) => {
+                            let message = (await Store.Message.findById(ctx, item.messageId))!;
+                            if (item.action === 'new' || item.action === undefined) {
+                                await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                            } else if (item.action === 'delete') {
+                                await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
+                            } else if (item.action === 'update') {
+                                await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                            } else {
+                                throw Error('Unknown action: ' + item.action);
+                            }
                         });
                     });
                     return {result: 'ok'};
