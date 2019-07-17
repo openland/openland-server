@@ -275,10 +275,16 @@ export class RoomMediator {
                 // Send message
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
 
-                let conv = await Store.ConversationRoom.findById(ctx, cid);
+                let conv = (await Store.ConversationRoom.findById(ctx, cid))!;
                 let isChannel = !!(conv && conv.isChannel);
 
                 if (!isChannel) {
+                    if (conv.kind === 'public') {
+                        let org = await await Store.Organization.findById(ctx, conv.oid!);
+                        if (org!.kind === 'community') {
+                            return;
+                        }
+                    }
                     await this.messaging.sendMessage(ctx, uid, cid, {
                         ...buildMessage(userMention(userName, uid), ` left the group`),
                         isService: true,
