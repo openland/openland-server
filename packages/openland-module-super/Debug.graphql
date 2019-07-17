@@ -109,17 +109,17 @@ extend type Mutation {
     debugCalcUsersAudienceCounter: Boolean!
     debugCalcUsers2WayDirectChatsCounter: Boolean!
     debugFixMessage(id: Int!): Boolean!
-    debugQueueSilentUserReport(delay: Int!): Boolean!
-    debugQueueFirstWeekUserReport(delay: Int!): Boolean!
     debugEnableNotificationCenterForAll: Boolean!
     debugResetGlobalCounters: Boolean!
     debugCalcGlobalCountersForAll: Boolean!
     debugCreateBigChat(membersCount: Int!): Boolean!
     debugFlood(chat: ID!, messagesCount: Int!): Boolean!
-    debugCreateDailyReport: Boolean!
-    debugCreateWeeklyReport: Boolean!
+    debugQueueDailyEngagementReport: Boolean!
+    debugQueueDailyOnboardingReport: Boolean!
     debugQueueWeeklyEngagementReport: Boolean!
-    debugQueueWeeklyLeaderboards: Boolean!
+    debugQueueWeeklyOnboardingReport: Boolean!
+    debugQueueWeeklyUserLeaderboards: Boolean!
+    debugQueueWeeklyRoomLeaderboards: Boolean!
     debugReindexUserProfiles: Boolean!
     debugReindexRoomProfiles: Boolean!
 }

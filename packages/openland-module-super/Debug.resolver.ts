@@ -836,14 +836,6 @@ export default {
 
             return true;
         }),
-        debugQueueFirstWeekUserReport: withPermission('super-admin', async (parent, args) => {
-            await Modules.Stats.queueFirstWeekReport(parent, parent.auth.uid!, args.delay);
-            return true;
-        }),
-        debugQueueSilentUserReport: withPermission('super-admin', async (parent, args) => {
-            await Modules.Stats.queueSilentUserReport(parent, parent.auth.uid!, args.delay);
-            return true;
-        }),
         debugEnableNotificationCenterForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugEnableNotificationCenterForAll', async (ctx, uid, log) => {
                 let settings = await Store.UserSettings.findById(ctx, uid);
@@ -880,23 +872,30 @@ export default {
             });
             return true;
         }),
-        debugCreateDailyReport: withPermission('super-admin', async (parent) => {
+        debugQueueDailyEngagementReport: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.generateDailyReport(ctx);
+                await Modules.Stats.dailyEngagementQueue.pushImmediateWork(ctx);
             });
 
             return true;
         }),
-        debugCreateWeeklyReport: withPermission('super-admin', async (parent) => {
+        debugQueueDailyOnboardingReport: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.generateWeeklyReport(ctx);
+                await Modules.Stats.dailyOnboardingQueue.pushImmediateWork(ctx);
+            });
+
+            return true;
+        }),
+        debugQueueWeeklyOnboardingReport: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.weeklyOnboardingQueue.pushImmediateWork(ctx);
             });
 
             return true;
         }),
         debugQueueWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.queueWeeklyEngagementReport(ctx);
+                await Modules.Stats.weeklyEngagementQueue.pushImmediateWork(ctx);
             });
 
             return true;
@@ -970,9 +969,16 @@ export default {
             });
             return true;
         }),
-        debugQueueWeeklyLeaderboards: withPermission('super-admin', async (parent) => {
+        debugQueueWeeklyUserLeaderboards: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.queueWeeklyLeaderboardsReport(ctx);
+                await Modules.Stats.weeklyUserLeaderboardsQueue.pushImmediateWork(ctx);
+            });
+
+            return true;
+        }),
+        debugQueueWeeklyRoomLeaderboards: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.weeklyRoomLeaderboardsQueue.pushImmediateWork(ctx);
             });
 
             return true;
