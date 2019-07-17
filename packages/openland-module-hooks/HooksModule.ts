@@ -156,8 +156,6 @@ export class HooksModule {
         }
 
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
-        await Modules.Stats.queueFirstWeekReport(ctx, uid);
-        await Modules.Stats.queueSilentUserReport(ctx, uid);
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {

@@ -42,7 +42,7 @@ export default {
                     ownerType = shortname.ownerType;
                 }
             }
-            
+
             if (!ownerId || !ownerType) {
                 return null;
             }
