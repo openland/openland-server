@@ -19,6 +19,7 @@ union CommentUpdate = CommentReceived | CommentUpdated
 
 type CommentReceived {
     comment: CommentEntry!
+    repeatKey: String
 }
 
 type CommentUpdated {

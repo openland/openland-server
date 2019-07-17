@@ -17,6 +17,7 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import * as Chrono from 'chrono-node';
 import { RandomLayer } from '@openland/foundationdb-random';
 import { Store } from 'openland-module-db/FDB';
+import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -37,6 +38,7 @@ export type CommentSpan =
     AllMentionSpan;
 
 export interface CommentInput {
+    repeatKey?: string | null;
     message?: string | null;
     replyToComment?: number | null;
     spans?: CommentSpan[] | null;
@@ -54,6 +56,14 @@ export class CommentsRepository {
 
     async createComment(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
+
+            //
+            // Check for duplicates
+            //
+            if (commentInput.repeatKey && await Store.Comment.repeat.find(ctx, peerType, peerId, commentInput.repeatKey)) {
+                throw new DoubleInvokeError();
+            }
+
             //
             // Check reply comment exists
             //
@@ -97,7 +107,8 @@ export class CommentsRepository {
                 text: commentInput.message || null,
                 spans,
                 attachments,
-                visible: true
+                visible: true,
+                repeatKey: commentInput.repeatKey
             });
 
             //

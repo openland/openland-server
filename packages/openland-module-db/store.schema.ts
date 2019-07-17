@@ -361,6 +361,7 @@ export default declareSchema(() => {
         field('peerType', enumString('message'));
         field('parentCommentId', optional(integer()));
         field('uid', integer());
+        field('repeatKey', optional(string()));
 
         field('text', optional(string())).secure();
         field('reactions', optional(array(struct({
@@ -437,6 +438,7 @@ export default declareSchema(() => {
 
         rangeIndex('peer', ['peerType', 'peerId', 'id']);
         rangeIndex('child', ['parentCommentId', 'id']);
+        uniqueIndex('repeat', ['peerType', 'peerId', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
 
     //

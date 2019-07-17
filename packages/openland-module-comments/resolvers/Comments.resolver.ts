@@ -263,7 +263,8 @@ export default {
                 message: args.message,
                 replyToComment,
                 attachments,
-                spans
+                spans,
+                repeatKey: args.repeatKey
             });
         }),
         editComment: withUser(async (ctx, args, uid) => {

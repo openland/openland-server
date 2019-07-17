@@ -40,7 +40,8 @@ export default {
         }
     },
     CommentReceived: {
-        comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!)
+        comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!),
+        repeatKey: async (src, args, ctx) => (await Store.Comment.findById(ctx, src.commentId!))!.repeatKey,
     },
     CommentUpdated: {
         comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!)

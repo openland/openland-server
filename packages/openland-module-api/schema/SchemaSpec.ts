@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8f994cf3c43bcb756e622a2cf84dc413';
+export const GQL_SPEC_VERSION = '36643863935e19f430cd51cb9af3e8ae';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -941,6 +941,7 @@ export namespace GQL {
     export type CommentUpdate = CommentReceived | CommentUpdated;
     export interface CommentReceived {
         comment: CommentEntry;
+        repeatKey: Nullable<string>;
     }
     export interface CommentUpdated {
         comment: CommentEntry;
@@ -1758,6 +1759,7 @@ export namespace GQL {
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
+        repeatKey: OptionalNullable<string>;
     }
     export interface MutationEditCommentArgs {
         id: string;
