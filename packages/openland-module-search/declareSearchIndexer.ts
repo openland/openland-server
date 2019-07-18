@@ -36,8 +36,9 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     }
 
     withProperties<Pr extends SearchIndexerProperties>(properties: Pr) {
-        this.properties = properties;
-        return new SearchIndexer<T, Pr>(this.name, this.version, this.index, this.stream);
+        let indexer = new SearchIndexer<T, Pr>(this.name, this.version, this.index, this.stream);
+        indexer.properties = properties;
+        return indexer;
     }
 
     start(handler: (item: T, ctx: Context) => Promise<{ id: string | number, doc: HandlerReturnType<P> } | null>) {
