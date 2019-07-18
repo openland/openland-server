@@ -4,7 +4,7 @@ import { Store } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 6, 'message', Store.Message.updated.stream({ batchSize: 200 }))
+    declareSearchIndexer('message-index', 7, 'message', Store.Message.updated.stream({ batchSize: 400 }))
         .withProperties({
             id: {
                 type: 'integer'
