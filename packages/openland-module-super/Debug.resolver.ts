@@ -17,6 +17,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { CounterStrategies, CounterStrategyAll } from '../openland-module-messaging/repositories/CounterStrategies';
+import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1068,7 +1069,7 @@ export default {
 
                 while (true) {
                     state = await inTx(rootCtx, async ctx2 => await Store.ReaderState.findById(ctx2, args.reader));
-                    let data = state!.cursor;
+                    let data = cursorToTuple(state!.cursor);
                     let str = isDateBased ? `createdAt: ${ddMMYYYYFormat(new Date(data[0] as any as number))}, id: ${data[1]}` : JSON.stringify(data);
                     if (str !== prev) {
                         yield str;
