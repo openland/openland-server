@@ -298,6 +298,42 @@ export class UserSuccessfulInvitesCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserSuccessfulInvitesPrevWeekCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userSuccessfulInvitesPrevWeekCounter');
+        return new UserSuccessfulInvitesPrevWeekCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserEmailSentCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -907,6 +943,42 @@ export class RoomMessagesCounterFactory extends AtomicIntegerFactory {
     static async open(storage: EntityStorage) {
         let directory = await storage.resolveAtomicDirectory('roomMessagesCounter');
         return new RoomMessagesCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(rid: number) {
+        return this._findById([rid]);
+    }
+
+    get(ctx: Context, rid: number) {
+        return this._get(ctx, [rid]);
+    }
+
+    set(ctx: Context, rid: number, value: number) {
+        return this._set(ctx, [rid], value);
+    }
+
+    add(ctx: Context, rid: number, value: number) {
+        return this._add(ctx, [rid], value);
+    }
+
+    increment(ctx: Context, rid: number) {
+        return this._increment(ctx, [rid]);
+    }
+
+    decrement(ctx: Context, rid: number) {
+        return this._decrement(ctx, [rid]);
+    }
+}
+
+export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('roomActiveMembersPrevWeekCounter');
+        return new RoomActiveMembersPrevWeekCounterFactory(storage, directory);
     }
 
     private constructor(storage: EntityStorage, subspace: Subspace) {
@@ -11275,6 +11347,7 @@ export interface Store extends BaseStore {
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserSuccessfulInvitesCounter: UserSuccessfulInvitesCounterFactory;
+    readonly UserSuccessfulInvitesPrevWeekCounter: UserSuccessfulInvitesPrevWeekCounterFactory;
     readonly UserEmailSentCounter: UserEmailSentCounterFactory;
     readonly UserBrowserPushSentCounter: UserBrowserPushSentCounterFactory;
     readonly UserMobilePushSentCounter: UserMobilePushSentCounterFactory;
@@ -11293,6 +11366,7 @@ export interface Store extends BaseStore {
     readonly UserGlobalCounterAllUnreadChats: UserGlobalCounterAllUnreadChatsFactory;
     readonly UserGlobalCounterUnreadChatsWithoutMuted: UserGlobalCounterUnreadChatsWithoutMutedFactory;
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
+    readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -11389,6 +11463,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
     let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
     let UserSuccessfulInvitesCounterPromise = UserSuccessfulInvitesCounterFactory.open(storage);
+    let UserSuccessfulInvitesPrevWeekCounterPromise = UserSuccessfulInvitesPrevWeekCounterFactory.open(storage);
     let UserEmailSentCounterPromise = UserEmailSentCounterFactory.open(storage);
     let UserBrowserPushSentCounterPromise = UserBrowserPushSentCounterFactory.open(storage);
     let UserMobilePushSentCounterPromise = UserMobilePushSentCounterFactory.open(storage);
@@ -11407,6 +11482,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(storage);
     let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(storage);
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
+    let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -11502,6 +11578,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
         UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
         UserSuccessfulInvitesCounter: await UserSuccessfulInvitesCounterPromise,
+        UserSuccessfulInvitesPrevWeekCounter: await UserSuccessfulInvitesPrevWeekCounterPromise,
         UserEmailSentCounter: await UserEmailSentCounterPromise,
         UserBrowserPushSentCounter: await UserBrowserPushSentCounterPromise,
         UserMobilePushSentCounter: await UserMobilePushSentCounterPromise,
@@ -11520,6 +11597,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserGlobalCounterAllUnreadChats: await UserGlobalCounterAllUnreadChatsPromise,
         UserGlobalCounterUnreadChatsWithoutMuted: await UserGlobalCounterUnreadChatsWithoutMutedPromise,
         RoomMessagesCounter: await RoomMessagesCounterPromise,
+        RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,

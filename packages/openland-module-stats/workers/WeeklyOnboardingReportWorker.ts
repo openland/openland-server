@@ -3,7 +3,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
-import { getOnboardingReportsChatId, getSuperNotificationsBotId, getGlobalStatisticsForReport } from './utils';
+import { getOnboardingReportsChatId, getSuperNotificationsBotId, getOnboardingCounters } from './utils';
 
 const log = createLogger('weekly-onboarding-report');
 
@@ -21,8 +21,8 @@ export function createWeeklyOnboardingReportWorker() {
                 return { result: 'rejected' };
             }
 
-            const currentStats = getGlobalStatisticsForReport();
-            const prevWeekStats = getGlobalStatisticsForReport('prev-week');
+            const currentStats = getOnboardingCounters();
+            const prevWeekStats = getOnboardingCounters('prev-week-onboarding');
 
             const userEntrances = await currentStats.userEntrances.get(ctx);
             const yesterdayUserEntrances = await prevWeekStats.userEntrances.get(ctx);

@@ -797,6 +797,9 @@ export default declareSchema(() => {
     atomicInt('UserSuccessfulInvitesCounter', () => {
         primaryKey('uid', integer());
     });
+    atomicInt('UserSuccessfulInvitesPrevWeekCounter', () => {
+        primaryKey('uid', integer());
+    });
     atomicInt('UserEmailSentCounter', () => {
         primaryKey('uid', integer());
     });
@@ -864,6 +867,9 @@ export default declareSchema(() => {
     });
 
     atomicInt('RoomMessagesCounter', () => {
+        primaryKey('rid', integer());
+    });
+    atomicInt('RoomActiveMembersPrevWeekCounter', () => {
         primaryKey('rid', integer());
     });
     // Global counters END
