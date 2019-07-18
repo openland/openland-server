@@ -49,11 +49,18 @@ export class PresenceModule {
             let expires = Date.now() + timeout;
             let userPresences = await Store.Presence.user.findAll(ctx, uid);
 
-            let hasMobilePresence = userPresences
+            let hasMobilePresence = !!userPresences
                 .find((e) => isMobile(e.platform));
             if (!hasMobilePresence && isMobile(platform)) {
                 Modules.Hooks.onNewMobileUser(ctx);
             }
+
+            // let today = new Date();
+            // let hasTodayPresence = !!userPresences
+            //     .find((e) => e.lastSeen > today.setHours(-11, 0, 0) && e.lastSeen < today.setHours(13, 0, 0));
+            //
+            // let hasWeekPresence = !!userPresences
+            //     .find((e) => e.lastSeen > today.setHours(-11 + 24 * (2 - today.getDay()), 0, 0) && e.lastSeen < today.setHours(13 + 24 * (6 + 2 - today.getDay()), 0, 0));
 
             let ex = await Store.Presence.findById(ctx, uid, tid);
             if (ex) {

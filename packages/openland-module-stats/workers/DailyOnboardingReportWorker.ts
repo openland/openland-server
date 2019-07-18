@@ -2,7 +2,7 @@ import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Modules } from '../../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 import { ScheduledQueue } from '../../openland-module-workers/ScheduledQueue';
-import { getGlobalStatisticsForReport, getOnboardingReportsChatId, getSuperNotificationsBotId } from './utils';
+import { getOnboardingCounters, getOnboardingReportsChatId, getSuperNotificationsBotId } from './utils';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
 
@@ -23,8 +23,8 @@ export function createDailyOnboardingReportWorker() {
                     return { result: 'rejected' };
                 }
 
-                const currentStats = getGlobalStatisticsForReport();
-                const yesterdayStats = getGlobalStatisticsForReport('yesterday');
+                const currentStats = getOnboardingCounters();
+                const yesterdayStats = getOnboardingCounters('yesterday-onboarding');
 
                 const userEntrances = await currentStats.userEntrances.get(ctx);
                 const yesterdayUserEntrances = await yesterdayStats.userEntrances.get(ctx);
