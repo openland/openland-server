@@ -14,6 +14,20 @@ import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlog
 
 const onGqlQuery = createHyperlogger<{ type: string, field: string }>('gql_query');
 
+export function fetchResolvePath(info: GraphQLResolveInfo) {
+    let path: (string|number)[] = [];
+    try {
+        let current = info.path;
+        path.unshift(current.key);
+        while (current.prev) {
+            current = current.prev;
+            path.unshift(current.key);
+        }
+    } catch {
+        //
+    }
+    return path;
+}
 export const Schema = (forTest: boolean = false) => {
     let schema = buildSchema(__dirname + '/../../');
     let resolvers = buildResolvers(__dirname + '/../../', forTest);
@@ -51,17 +65,7 @@ export const Schema = (forTest: boolean = false) => {
 
             let ctx = (context as AppContext).ctx;
             let trace = gqlTraceNamespace.get(ctx);
-            let path: (string|number)[] = [];
-            try {
-                let current = info.path;
-                path.unshift(current.key);
-                while (current.prev) {
-                    current = current.prev;
-                    path.unshift(current.key);
-                }
-            } catch {
-                //
-            }
+            let path = fetchResolvePath(info);
 
             let ctx3 = withLogPath(ctx, path.join('->'));
             if (trace) {
