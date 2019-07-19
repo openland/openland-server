@@ -48,10 +48,17 @@ export function createWeeklyRoomLeaderboardsWorker() {
                                     sum: {
                                         field: 'body.delta'
                                     }
+                                },
+                                totalDeltaFilter: {
+                                    bucket_selector: {
+                                        buckets_path: {
+                                            totalDelta: 'totalDelta'
+                                        },
+                                        script: 'params.totalDelta >= 10'
+                                    }
                                 }
-
                             }
-                        }
+                        },
                     },
                 },
                 size: 0,
@@ -62,7 +69,7 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 let rid = bucket.key;
                 let delta = bucket.totalDelta.value;
                 let room =  await Store.RoomProfile.findById(parent, rid);
-                if (!room || delta < 10) {
+                if (!room) {
                     continue;
                 }
 
@@ -72,12 +79,10 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 });
             }
             roomsWithDelta = roomsWithDelta
-                .sort((a, b) => (b.delta / b.room.activeMembersCount!) - (a.delta / a.room.activeMembersCount!))
-                .slice(0, 20);
+                .sort((a, b) => (b.delta / b.room.activeMembersCount!) - (a.delta / a.room.activeMembersCount!));
 
             let message = [heading('👥  Weekly trending groups'), '\n'];
-            for (let i = 0; i < roomsWithDelta.length; i++) {
-                let { room, delta } = roomsWithDelta[i];
+            for (let { room, delta } of roomsWithDelta) {
                 message.push(boldString(`${formatNumberWithSign(delta)} · ${room.activeMembersCount}`), `  ${room.title}\n`);
             }
 
