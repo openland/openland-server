@@ -92,8 +92,10 @@ class GQLTracer {
 
 export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
 
+const isProd = process.env.APP_ENVIRONMENT === 'production';
+
 export function withGqlTrace(parent: Context, name: string): Context {
-    if (process.env.TRACING) {
+    if (!isProd) {
         return gqlTraceNamespace.set(parent, new GQLTracer(name));
     } else {
         return parent;
