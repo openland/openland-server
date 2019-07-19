@@ -16,6 +16,7 @@ import { boldString, buildMessage, userMention } from '../../openland-utils/Mess
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -33,6 +34,8 @@ export type WelcomeMessageT = {
     sender: User | null,
     message: string
 };
+
+let membersLog = createHyperlogger('room-members-change');
 
 @injectable()
 export class RoomRepository {
@@ -1122,6 +1125,8 @@ export class RoomRepository {
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
             await EventBus.publish(`chat_join_${cid}`, { uid, cid });
+            await membersLog.event(ctx, { rid: cid, delta: 1 });
+
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (!room || !roomProfile) {
@@ -1157,6 +1162,7 @@ export class RoomRepository {
 
     private async onRoomLeave(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
+            await membersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.isPublicCommunityChat(ctx, cid)) {
                 await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);

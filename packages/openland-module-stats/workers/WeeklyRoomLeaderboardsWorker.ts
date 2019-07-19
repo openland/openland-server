@@ -3,17 +3,16 @@ import { ScheduledQueue, WeekDay } from '../../openland-module-workers/Scheduled
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './utils';
 import { Store } from '../../openland-module-db/FDB';
-import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
+import { boldString, buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
 import { RoomProfile } from '../../openland-module-db/store';
-import { inTx } from '@openland/foundationdb';
+import { formatNumberWithSign } from '../../openland-utils/string';
 
 const log = createLogger('weekly-room-leaderboards');
 
 export function createWeeklyRoomLeaderboardsWorker() {
-    let queue = new ScheduledQueue('weekly-room-leaderboards',  {
-        interval: 'every-week',
-        time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
+    let queue = new ScheduledQueue('weekly-room-leaderboards', {
+        interval: 'every-week', time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
     });
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (parent) => {
@@ -24,30 +23,44 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 return { result: 'rejected' };
             }
 
-            let rooms = await inTx(parent, async ctx => await Store.RoomProfile.findAll(ctx));
+            let data = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog', body: {
+                    query: {
+                        bool: {
+                            must: [{ term: { type: 'room-members-change' } }, {
+                                range: {
+                                    date: {
+                                        gte: new Date().setHours(-24 * 7),
+                                    },
+                                },
+                            }],
+                        },
+                    },
+                },
+            });
 
-            let roomsWithNewUsers: { users: number, room: RoomProfile }[] = [];
-            for (let room of rooms) {
-                await inTx(parent, async ctx => {
-                    let prevWeekUsers = await Store.RoomActiveMembersPrevWeekCounter.byId(room.id).get(ctx);
-                    let newUsers = room.activeMembersCount! - prevWeekUsers;
-                    Store.RoomActiveMembersPrevWeekCounter.byId(room.id).set(ctx, room.activeMembersCount!);
-
-                    roomsWithNewUsers.push({
-                        users: newUsers,
-                        room
-                    });
-                });
+            let membersDelta = new Map<number, number>();
+            for (let hit of data.hits.hits) {
+                let { rid, delta } = hit.fields.body;
+                membersDelta.set(hit.fields.body.rid, (membersDelta.get(rid) || 0) + delta);
             }
 
-            roomsWithNewUsers = roomsWithNewUsers
-                .sort((a, b) => b.users! - a.users!)
+            let roomsWithDelta: { room: RoomProfile, delta: number }[] = [];
+            for (let roomEntry of  membersDelta.entries()) {
+                let [rid, delta] = roomEntry;
+                let room = await Store.RoomProfile.findById(parent, rid);
+                roomsWithDelta.push({
+                    room: room!, delta,
+                });
+            }
+            roomsWithDelta = roomsWithDelta
+                .sort((a, b) => (b.delta / b.room.activeMembersCount!) - (a.delta / a.room.activeMembersCount!))
                 .slice(0, 20);
 
-            let message = [heading('Top 20 groups by new members'), '\n'];
-            for (let i = 0; i < rooms.length; i++) {
-                let { room, users } = roomsWithNewUsers[i];
-                message.push(`${i + 1}. ${room.title} (👥 ${users})\n`);
+            let message = [heading('👥  Weekly trending groups'), '\n'];
+            for (let i = 0; i < roomsWithDelta.length; i++) {
+                let { room, delta } = roomsWithDelta[i];
+                message.push(boldString(`${formatNumberWithSign(delta)} · ${room.activeMembersCount}`), `  ${room.title}\n`);
             }
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
