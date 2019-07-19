@@ -25,7 +25,7 @@ export function createWeeklyRoomLeaderboardsWorker() {
 
             let searchReq = await Modules.Search.elastic.client.search({
                 index: 'hyperlog', type: 'hyperlog',
-                scroll: '1m',
+                // scroll: '1m',
                 body: {
                     query: {
                         bool: {
@@ -38,32 +38,37 @@ export function createWeeklyRoomLeaderboardsWorker() {
                             }],
                         },
                     },
-                },
-                size: 1000,
-            });
-            let data: any[] = searchReq.hits.hits;
-            let req;
-            while (!req || req.hits.hits.length !== 0) {
-                req = await Modules.Search.elastic.client.scroll({
-                    scroll: '1m',
-                    scrollId: searchReq._scroll_id!,
-                });
-                data = data.concat(req.hits.hits);
-            }
-            await Modules.Search.elastic.client.clearScroll({ scrollId: searchReq._scroll_id! });
+                    aggs: {
+                        byRid: {
+                            terms: {
+                                field: 'body.rid',
+                            },
+                            aggs: {
+                                totalDelta: {
+                                    sum: {
+                                        field: 'body.delta'
+                                    }
+                                }
 
-            let membersDelta = new Map<number, number>();
-            for (let hit of data) {
-                let { rid, delta } = (hit._source as any).body;
-                membersDelta.set(rid, (membersDelta.get(rid) || 0) + delta);
-            }
+                            }
+                        }
+                    },
+                },
+                size: 0,
+            });
 
             let roomsWithDelta: { room: RoomProfile, delta: number }[] = [];
-            for (let roomEntry of  membersDelta.entries()) {
-                let [rid, delta] = roomEntry;
-                let room = await Store.RoomProfile.findById(parent, rid);
+            for (let bucket of searchReq.aggregations.byRid.buckets) {
+                let rid = bucket.key;
+                let delta = bucket.totalDelta.value;
+                let room =  await Store.RoomProfile.findById(parent, rid);
+                if (!room) {
+                    continue;
+                }
+                
                 roomsWithDelta.push({
-                    room: room!, delta,
+                    room: room,
+                    delta: delta,
                 });
             }
             roomsWithDelta = roomsWithDelta
