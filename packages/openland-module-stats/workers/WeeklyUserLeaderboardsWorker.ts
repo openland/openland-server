@@ -59,7 +59,7 @@ export function createWeeklyUserLeaderboardsWorker() {
                 }
 
                 usersWithInvites.push({
-                    invites: bucket.count,
+                    invites: bucket.doc_count,
                     user: user,
                 });
             }
