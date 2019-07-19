@@ -41,8 +41,8 @@ export function createWeeklyRoomLeaderboardsWorker() {
 
             let membersDelta = new Map<number, number>();
             for (let hit of data.hits.hits) {
-                let { rid, delta } = hit.fields.body;
-                membersDelta.set(hit.fields.body.rid, (membersDelta.get(rid) || 0) + delta);
+                let { rid, delta } = (hit._source as any).body;
+                membersDelta.set(rid, (membersDelta.get(rid) || 0) + delta);
             }
 
             let roomsWithDelta: { room: RoomProfile, delta: number }[] = [];
