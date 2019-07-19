@@ -240,6 +240,9 @@ export namespace GQLRoots {
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
     export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number } };
+    export type MessageSourceRoot = Message | Comment;
+    export type MessageSourceChatRoot = Message;
+    export type MessageSourceCommentRoot = Comment;
 
     //
     //  Chat updates

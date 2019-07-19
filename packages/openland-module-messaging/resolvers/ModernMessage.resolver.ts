@@ -17,6 +17,7 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import { MessageMention } from '../MessageInput';
 import { AppContext } from 'openland-modules/AppContext';
 import { Store } from 'openland-module-db/FDB';
+import MessageSourceRoot = GQLRoots.MessageSourceRoot;
 
 export function hasMention(message: Message, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -343,6 +344,7 @@ export default {
             }
             return false;
         },
+        source: (src, args, ctx) => src,
 
         //
         //  Content
@@ -409,6 +411,7 @@ export default {
             }
             return false;
         },
+        source: (src, args, ctx) => src,
 
         //
         //  Content
@@ -592,6 +595,32 @@ export default {
             return (state && state.commentsCount) || 0;
         },
         fallback: src => fetchMessageFallback(src)
+    },
+
+    //
+    // Message source
+    //
+    MessageSource: {
+        __resolveType(src: MessageSourceRoot) {
+            if (src instanceof Message) {
+                return 'MessageSourceChat';
+            } else if (src instanceof Comment) {
+                return 'MessageSourceComment';
+            }
+            throw new Error('Unknown message source: ' + src);
+        }
+    },
+    MessageSourceChat: {
+        chat: src => src.cid
+    },
+    MessageSourceComment: {
+        peer: async (src, args, ctx) => {
+            return {
+                comments: (await Store.Comment.peer.findAll(ctx, src.peerType, src.peerId)).filter(c => c.visible),
+                peerType: src.peerType,
+                peerId: src.peerId,
+            };
+        }
     },
 
     ModernMessageReaction: {
