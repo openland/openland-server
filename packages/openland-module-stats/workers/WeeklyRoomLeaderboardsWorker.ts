@@ -23,8 +23,10 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 return { result: 'rejected' };
             }
 
-            let data = await Modules.Search.elastic.client.search({
-                index: 'hyperlog', type: 'hyperlog', body: {
+            let searchReq = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog',
+                // scroll: '1m',
+                body: {
                     query: {
                         bool: {
                             must: [{ term: { type: 'room-members-change' } }, {
@@ -36,21 +38,37 @@ export function createWeeklyRoomLeaderboardsWorker() {
                             }],
                         },
                     },
+                    aggs: {
+                        byRid: {
+                            terms: {
+                                field: 'body.rid',
+                            },
+                            aggs: {
+                                totalDelta: {
+                                    sum: {
+                                        field: 'body.delta'
+                                    }
+                                }
+
+                            }
+                        }
+                    },
                 },
+                size: 0,
             });
 
-            let membersDelta = new Map<number, number>();
-            for (let hit of data.hits.hits) {
-                let { rid, delta } = hit.fields.body;
-                membersDelta.set(hit.fields.body.rid, (membersDelta.get(rid) || 0) + delta);
-            }
-
             let roomsWithDelta: { room: RoomProfile, delta: number }[] = [];
-            for (let roomEntry of  membersDelta.entries()) {
-                let [rid, delta] = roomEntry;
-                let room = await Store.RoomProfile.findById(parent, rid);
+            for (let bucket of searchReq.aggregations.byRid.buckets) {
+                let rid = bucket.key;
+                let delta = bucket.totalDelta.value;
+                let room =  await Store.RoomProfile.findById(parent, rid);
+                if (!room || delta < 10) {
+                    continue;
+                }
+
                 roomsWithDelta.push({
-                    room: room!, delta,
+                    room: room,
+                    delta: delta,
                 });
             }
             roomsWithDelta = roomsWithDelta
