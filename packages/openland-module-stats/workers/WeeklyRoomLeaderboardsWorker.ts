@@ -62,10 +62,10 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 let rid = bucket.key;
                 let delta = bucket.totalDelta.value;
                 let room =  await Store.RoomProfile.findById(parent, rid);
-                if (!room) {
+                if (!room || delta < 10) {
                     continue;
                 }
-                
+
                 roomsWithDelta.push({
                     room: room,
                     delta: delta,
