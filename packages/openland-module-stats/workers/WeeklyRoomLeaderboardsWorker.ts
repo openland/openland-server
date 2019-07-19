@@ -23,8 +23,10 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 return { result: 'rejected' };
             }
 
-            let data = await Modules.Search.elastic.client.search({
-                index: 'hyperlog', type: 'hyperlog', body: {
+            let searchReq = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog',
+                scroll: '1m',
+                body: {
                     query: {
                         bool: {
                             must: [{ term: { type: 'room-members-change' } }, {
@@ -37,10 +39,21 @@ export function createWeeklyRoomLeaderboardsWorker() {
                         },
                     },
                 },
+                size: 1000,
             });
+            let data: any[] = searchReq.hits.hits;
+            let req;
+            while (!req || req.hits.hits.length !== 0) {
+                req = await Modules.Search.elastic.client.scroll({
+                    scroll: '1m',
+                    scrollId: searchReq._scroll_id!,
+                });
+                data = data.concat(req.hits.hits);
+            }
+            await Modules.Search.elastic.client.clearScroll({ scrollId: searchReq._scroll_id! });
 
             let membersDelta = new Map<number, number>();
-            for (let hit of data.hits.hits) {
+            for (let hit of data) {
                 let { rid, delta } = (hit._source as any).body;
                 membersDelta.set(rid, (membersDelta.get(rid) || 0) + delta);
             }
