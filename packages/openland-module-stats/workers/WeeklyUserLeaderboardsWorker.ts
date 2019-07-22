@@ -3,9 +3,8 @@ import { ScheduledQueue, WeekDay } from '../../openland-module-workers/Scheduled
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './utils';
 import { Store } from '../../openland-module-db/FDB';
-import { buildMessage, heading, userMention } from '../../openland-utils/MessageBuilder';
+import { boldString, buildMessage, heading, userMention } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
-import { inTx } from '@openland/foundationdb';
 import { UserProfile } from '../../openland-module-db/store';
 
 const log = createLogger('weekly-user-leaderboards');
@@ -24,34 +23,50 @@ export function createWeeklyUserLeaderboardsWorker() {
                 return { result: 'rejected' };
             }
 
-            let allUsers = await inTx(parent, async ctx => await Store.UserProfile.findAll(ctx));
-
+            let searchReq = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog',
+                // scroll: '1m',
+                body: {
+                    query: {
+                        bool: {
+                            must: [{ term: { type: 'successful-invite' } }, {
+                                range: {
+                                    date: {
+                                        gte: new Date().setHours(-24 * 7),
+                                    },
+                                },
+                            }],
+                        },
+                    },
+                    aggs: {
+                        byInviter: {
+                            terms: {
+                                field: 'body.invitedBy',
+                                order: { ['_count'] : 'desc' },
+                                size: 20,
+                            },
+                        },
+                    },
+                },
+                size: 0,
+            });
+            
             let usersWithInvites: { invites: number, user: UserProfile }[] = [];
-            for (let user of allUsers) {
-                await inTx(parent, async ctx => {
-                    let successfulInvites = await Store.UserSuccessfulInvitesCounter.byId(user.id).get(ctx);
-                    let prevWeekInvites = await Store.UserSuccessfulInvitesPrevWeekCounter.byId(user.id).get(ctx);
-                    let newInvites = successfulInvites - prevWeekInvites;
-                    Store.UserSuccessfulInvitesPrevWeekCounter.byId(user.id).set(ctx, successfulInvites);
-                    if (newInvites === 0) {
-                        return;
-                    }
+            for (let bucket of searchReq.aggregations.byInviter.buckets) {
+                let user = await Store.UserProfile.findById(parent, bucket.key);
+                if (!user) {
+                    continue;
+                }
 
-                    usersWithInvites.push({
-                        invites: newInvites,
-                        user,
-                    });
+                usersWithInvites.push({
+                    invites: bucket.doc_count,
+                    user: user,
                 });
             }
 
-            let users = usersWithInvites
-                .sort((a, b) => b.invites - a.invites)
-                .slice(0, 20);
-
-            let message = [heading('Top 20 users by invites this week'), '\n'];
-            for (let i = 0; i < users.length; i++) {
-                let { user, invites } = users[i];
-                message.push(`${i + 1}. `, userMention([user.firstName, user.lastName].join(' '), user.id), `  -  ${invites} invites\n`);
+            let message = [heading('👋  Weekly top inviters'), '\n'];
+            for (let { user, invites } of usersWithInvites) {
+                message.push(boldString(`${invites}`), ` `, userMention([user.firstName, user.lastName].join(' '), user.id), `\n`);
             }
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {

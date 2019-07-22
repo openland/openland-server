@@ -35,7 +35,7 @@ export type WelcomeMessageT = {
     message: string
 };
 
-let membersLog = createHyperlogger('room-members-change');
+let membersLog = createHyperlogger<{ rid: number, delta: number }>('room-members-change');
 
 @injectable()
 export class RoomRepository {

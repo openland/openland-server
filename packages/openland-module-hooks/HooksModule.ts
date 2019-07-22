@@ -10,6 +10,7 @@ import { boldString, buildMessage, userMention } from '../openland-utils/Message
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
 const organizationCreated = createHyperlogger<{ oid: number, uid: number }>('organization-created');
+const successfulInvite = createHyperlogger<{ uid: number, invitedBy: number }>('successful-invite');
 
 const getSuperNotificationsBotId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
 const getSuperNotificationsChatId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-chat-id');
@@ -152,7 +153,8 @@ export class HooksModule {
         const user = await Store.User.findById(ctx, uid);
         if (user!.invitedBy) {
             Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
-            await Modules.Stats.onSuccessfulInvite(ctx, uid, user!.invitedBy);
+            await successfulInvite.event(ctx, { uid: uid, invitedBy: user!.invitedBy });
+            await Modules.Stats.onSuccessfulInvite(ctx, uid, user!.invitedBy!);
         }
 
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
