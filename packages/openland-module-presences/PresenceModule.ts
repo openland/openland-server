@@ -13,7 +13,6 @@ import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
-// const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
 const log = createLogger('presences');
 
 export interface OnlineEvent {
@@ -54,13 +53,6 @@ export class PresenceModule {
             if (!hasMobilePresence && isMobile(platform)) {
                 Modules.Hooks.onNewMobileUser(ctx);
             }
-
-            // let today = new Date();
-            // let hasTodayPresence = !!userPresences
-            //     .find((e) => e.lastSeen > today.setHours(-11, 0, 0) && e.lastSeen < today.setHours(13, 0, 0));
-            //
-            // let hasWeekPresence = !!userPresences
-            //     .find((e) => e.lastSeen > today.setHours(-11 + 24 * (2 - today.getDay()), 0, 0) && e.lastSeen < today.setHours(13 + 24 * (6 + 2 - today.getDay()), 0, 0));
 
             let ex = await Store.Presence.findById(ctx, uid, tid);
             if (ex) {

@@ -865,6 +865,7 @@ export default declareSchema(() => {
     atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
         primaryKey('uid', integer());
     });
+    // Global counters END
 
     atomicInt('RoomMessagesCounter', () => {
         primaryKey('rid', integer());
@@ -872,7 +873,6 @@ export default declareSchema(() => {
     atomicInt('RoomActiveMembersPrevWeekCounter', () => {
         primaryKey('rid', integer());
     });
-    // Global counters END
 
     entity('ChatAudienceCalculatingQueue', () => {
         primaryKey('id', integer());

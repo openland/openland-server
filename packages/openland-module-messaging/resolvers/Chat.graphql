@@ -25,6 +25,17 @@ interface Conversation {
     settings: ConversationSettings!
 }
 
+type ChannelConversation implements Conversation {
+    id: ID!
+    flexibleId: ID!
+    title: String!
+    photos: [String!]!
+    members: [User!]!
+    unreadCount: Int!
+    topMessage: ConversationMessage
+    settings: ConversationSettings!
+}
+
 type AnonymousConversation implements Conversation {
     id: ID!
     flexibleId: ID!
@@ -125,7 +136,7 @@ type UrlAugmentation {
     iconInfo: FileMetadata
     hostname: String
     type: String
-    extra: UrlAugmentationExtra
+    extra: UrlAugmentationExtra @disabled
 }
 
 union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata
