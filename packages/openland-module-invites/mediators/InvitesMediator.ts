@@ -59,6 +59,11 @@ export class InvitesMediator {
             if (!inviteData) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
+            // Do nothing if user already activated
+            let user = (await Store.User.findById(ctx, uid))!;
+            if (user.status === 'activated') {
+                return 'ok';
+            }
             await Modules.Metrics.onOpenlandInviteJoin(ctx, uid, inviteData.uid);
             await Modules.Users.activateUser(ctx, uid, isNewUser, inviteData.uid);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
@@ -117,6 +122,10 @@ export class InvitesMediator {
             if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
+
+            let user = (await Store.User.findById(ctx, uid))!;
+            let isActivatedAlready = user.status === 'activated';
+
             let ex = await Store.OrganizationMember.findById(ctx, invite.oid, uid);
             let org = (await Store.Organization.findById(ctx, invite.oid))!;
             let profile = (await Store.OrganizationProfile.findById(ctx, invite.oid))!;
@@ -139,7 +148,7 @@ export class InvitesMediator {
 
             let supportUserId = await Modules.Users.getSupportUserId(ctx);
 
-            if (supportUserId) {
+            if (supportUserId && !isActivatedAlready) {
                 await Modules.Messaging.sendMessage(
                     ctx,
                     chat.id,
