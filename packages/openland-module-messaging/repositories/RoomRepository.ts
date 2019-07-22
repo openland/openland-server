@@ -1165,7 +1165,7 @@ export class RoomRepository {
             await membersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.isPublicCommunityChat(ctx, cid)) {
-                await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount + 1) : 0) * -1);
+                await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
             }
             await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
 
