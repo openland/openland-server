@@ -12,7 +12,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
 
-const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
+const presenceEvent = createHyperlogger<{ uid: number, online: boolean, platform: string | null }>('presence');
 const log = createLogger('presences');
 
 export interface OnlineEvent {
@@ -84,7 +84,7 @@ export class PresenceModule {
                 await online.flush(ctx);
             }
 
-            await presenceEvent.event(ctx, { uid, online: true });
+            await presenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
                 userId: uid,
@@ -107,7 +107,7 @@ export class PresenceModule {
                 online.lastSeen = Date.now();
                 online.active = false;
             }
-            await presenceEvent.event(ctx, { uid, online: false });
+            await presenceEvent.event(ctx, { uid, platform: null, online: false });
             // this.onlines.set(uid, { lastSeen: Date.now(), active: false });
             let event = {
                 userId: uid,

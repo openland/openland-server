@@ -42,6 +42,7 @@ export function createWeeklyRoomLeaderboardsWorker() {
                         byRid: {
                             terms: {
                                 field: 'body.rid',
+                                size: 20,
                             },
                             aggs: {
                                 totalDelta: {
@@ -79,7 +80,8 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 });
             }
             roomsWithDelta = roomsWithDelta
-                .sort((a, b) => (b.delta / b.room.activeMembersCount!) - (a.delta / a.room.activeMembersCount!));
+                .sort((a, b) => (b.delta / b.room.activeMembersCount!) - (a.delta / a.room.activeMembersCount!))
+                .slice(0, 20);
 
             let message = [heading('👥  Weekly trending groups'), '\n'];
             for (let { room, delta } of roomsWithDelta) {
