@@ -26,10 +26,30 @@ export function createDailyOnboardingReportWorker() {
                 const currentStats = getOnboardingCounters();
                 const yesterdayStats = getOnboardingCounters('yesterday-onboarding');
 
-                const userEntrances = await currentStats.userEntrances.get(ctx);
-                const yesterdayUserEntrances = await yesterdayStats.userEntrances.get(ctx);
-                const newUserEntrances = userEntrances - yesterdayUserEntrances;
-                yesterdayStats.userEntrances.set(ctx, userEntrances);
+                let activationsData = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'user_activated' } }, {
+                                    range: {
+                                        date: {
+                                            gte: new Date().setHours(-24),
+                                        },
+                                    },
+                                }],
+                            },
+                        }, aggs: {
+                            activations: {
+                                cardinality: {
+                                    field: 'body.uid',
+                                },
+                            },
+                        },
+                    }, size: 0,
+                });
+
+                let newUserEntrances = activationsData.aggregations.activations.value;
 
                 const mobileUsers = await currentStats.mobileUsers.get(ctx);
                 const yesterdayMobileUsers = await yesterdayStats.mobileUsers.get(ctx);

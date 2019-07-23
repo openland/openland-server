@@ -401,7 +401,17 @@ export default {
         //
         id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
         date: src => src.metadata.createdAt,
-        sender: async (src, args, ctx) => src.deleted ? await Modules.Users.getDeletedUserId(ctx) : src.uid,
+        sender: async (src, args, ctx) => {
+            // message can be deleted, while sender can be alive or deleted 
+
+            if (src.deleted) {
+                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                if (deletedUserId) {
+                    return deletedUserId;
+                }
+            }
+            return src.uid;
+        },
         senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
