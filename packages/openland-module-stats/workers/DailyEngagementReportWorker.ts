@@ -27,7 +27,7 @@ export function createDailyEngagementReportWorker() {
                             must: [{ term: { type: 'presence' } }, { term: { ['body.online']: true } }, {
                                 range: {
                                     date: {
-                                        gte: new Date().setHours(-24),
+                                        gte: Date.now() - 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
@@ -52,7 +52,7 @@ export function createDailyEngagementReportWorker() {
                             must: [{ term: { isService: false } }, {
                                 range: {
                                     createdAt: {
-                                        gte: new Date().setHours(-24),
+                                        gte: Date.now() - 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],

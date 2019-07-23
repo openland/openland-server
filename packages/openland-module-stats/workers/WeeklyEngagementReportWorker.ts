@@ -31,7 +31,7 @@ export function createWeeklyEngagementReportWorker() {
                             must: [{ term: { type: 'presence' } }, { term: { ['body.online']: true } }, {
                                 range: {
                                     date: {
-                                        gte: new Date().setHours(-24 * 7),
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
@@ -56,7 +56,7 @@ export function createWeeklyEngagementReportWorker() {
                             must: [{ term: { isService: false } }, {
                                 range: {
                                     createdAt: {
-                                        gte: new Date().setHours(-24 * 7),
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
