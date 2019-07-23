@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7e53477c778add7ab55f15a363dc1fbc';
+export const GQL_SPEC_VERSION = '2c377a735952e563e3896fcfbe23a9bf';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -994,6 +994,7 @@ export namespace GQL {
         alphaAlterPublished: Organization;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
+        deliverCountersForAll: boolean;
         conversationDraftUpdate: string;
         alphaSaveDraftMessage: string;
         track: string;
