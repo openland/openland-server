@@ -21,10 +21,10 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
                 await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId, { message: `Task #${key}: ${str}` }, true);
             }
         };
-        await sendLog(`started`);
+        await sendLog(`${name} started`);
         try {
             let res = await handler(sendLog);
-            await sendLog(`ended with response: ${res}`);
+            await sendLog(`${name} ended with response: ${res}`);
         } catch (e) {
             logger.error(rootCtx, name, e);
         }
