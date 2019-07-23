@@ -65,11 +65,6 @@ export default {
                 }
                 if (args.settings.desktopNotifications) {
                     settings.desktopNotifications = args.settings.desktopNotifications as any;
-                    if (args.settings.desktopNotifications === 'NONE') {
-                        settings.emailFrequency = 'never';
-                    } else if (!args.settings.emailFrequency) {
-                        settings.emailFrequency = '1hour';
-                    }
                 }
                 if (args.settings.mobileNotifications) {
                     settings.mobileNotifications = args.settings.mobileNotifications as any;
@@ -121,11 +116,6 @@ export default {
                 }
                 if (args.settings.desktopNotifications) {
                     settings.desktopNotifications = args.settings.desktopNotifications as any;
-                    if (args.settings.desktopNotifications === 'NONE') {
-                        settings.emailFrequency = 'never';
-                    } else if (!args.settings.emailFrequency) {
-                        settings.emailFrequency = '1hour';
-                    }
                 }
                 if (args.settings.mobileNotifications) {
                     settings.mobileNotifications = args.settings.mobileNotifications as any;
