@@ -50,7 +50,7 @@ export const UnreadChatsWithoutMutedCalculator: GlobalCounterCalculator = {
     onMessageDeleted: (chatUnread, isMuted) => isMuted ? 0 : (chatUnread === 0 ? -1 : 0),
     onMessageRead: (chatUnread, isMuted, readCount) => isMuted ? 0 : (chatUnread === 0 ? -1 : 0),
     onChatDeleted: (chatUnread, isMuted) => isMuted ? 0 : (chatUnread > 0 ? -1 : 0),
-    onMuteChange: (chatUnread, isMuted) => isMuted ? -1 : 1,
+    onMuteChange: (chatUnread, isMuted) => chatUnread > 0 ? (isMuted ? -1 : 1) : 0,
     calcForChat: (chatUnread, isMuted) => isMuted ? 0 : (chatUnread > 0 ? 1 : 0)
 };
 
