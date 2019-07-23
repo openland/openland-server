@@ -13,7 +13,7 @@ export default {
         betaFixCountersForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'betaFixCountersForAll', async (ctx, uid, log) => {
                 try {
-                    await Modules.Messaging.fixer.fixForUser(ctx, uid);
+                    await Modules.Messaging.fixer.fixForUserModern(uid);
                 } catch (e) {
                     await log('error: ' + e);
                 }
