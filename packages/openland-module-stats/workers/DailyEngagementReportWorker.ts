@@ -27,7 +27,7 @@ export function createDailyEngagementReportWorker() {
                             must: [{ term: { type: 'presence' } }, { term: { ['body.online']: true } }, {
                                 range: {
                                     date: {
-                                        gte: new Date().setHours(-24),
+                                        gte: Date.now() - 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
@@ -49,10 +49,10 @@ export function createDailyEngagementReportWorker() {
                 body: {
                     query: {
                         bool: {
-                            must: [{
+                            must: [{ term: { isService: false } }, {
                                 range: {
                                     createdAt: {
-                                        gte: new Date().setHours(-24),
+                                        gte: Date.now() - 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
@@ -62,19 +62,14 @@ export function createDailyEngagementReportWorker() {
                             cardinality: {
                                 field: 'uid',
                             },
-                        },
-                        messagesSent: {
-                            value_count: {
-                                field: 'id'
-                            }
                         }
                     },
                 }, size: 0,
             });
 
             let senders = sendersData.aggregations.senders.value;
-            let messagesSent = sendersData.aggregations.messagesSent.value;
-            const report = [heading(`Daily   ✅ ${actives}    ➡️ ${senders}    📭 ${messagesSent}`)];
+            let messagesSent = sendersData.hits.total;
+            const report = [heading(`Daily   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}`)];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,

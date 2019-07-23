@@ -31,7 +31,7 @@ export function createWeeklyEngagementReportWorker() {
                             must: [{ term: { type: 'presence' } }, { term: { ['body.online']: true } }, {
                                 range: {
                                     date: {
-                                        gte: new Date().setHours(-24 * 7),
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
@@ -53,10 +53,10 @@ export function createWeeklyEngagementReportWorker() {
                 body: {
                     query: {
                         bool: {
-                            must: [{
+                            must: [{ term: { isService: false } }, {
                                 range: {
                                     createdAt: {
-                                        gte: new Date().setHours(-24 * 7),
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
@@ -66,20 +66,15 @@ export function createWeeklyEngagementReportWorker() {
                             cardinality: {
                                 field: 'uid',
                             },
-                        },
-                        messagesSent: {
-                            value_count: {
-                                field: 'id',
-                            },
-                        },
+                        }
                     },
                 }, size: 0,
             });
 
             let senders = sendersData.aggregations.senders.value;
-            let messagesSent = sendersData.aggregations.messagesSent.value;
+            let messagesSent = sendersData.hits.total;
             let totalPeople = await inTx(parent, ctx => Store.Sequence.findById(ctx, 'user-id'));
-            const report = [heading(`Weekly   👪 ${totalPeople ? totalPeople.value : 0}   ✅ ${actives}    ➡️ ${senders}    📭 ${messagesSent}`)];
+            const report = [heading(`Weekly   👪 ${totalPeople ? totalPeople.value : 0}   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}`)];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,

@@ -32,7 +32,7 @@ export function createWeeklyUserLeaderboardsWorker() {
                             must: [{ term: { type: 'successful-invite' } }, {
                                 range: {
                                     date: {
-                                        gte: new Date().setHours(-24 * 7),
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                     },
                                 },
                             }],
