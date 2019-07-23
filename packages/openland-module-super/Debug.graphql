@@ -112,6 +112,7 @@ extend type Mutation {
     debugEnableNotificationCenterForAll: Boolean!
     debugResetGlobalCounters: Boolean!
     debugCalcGlobalCountersForAll: Boolean!
+    debugValidateGlobalCountersForAll: Boolean!
     debugCreateBigChat(membersCount: Int!): Boolean!
     debugFlood(chat: ID!, messagesCount: Int!): Boolean!
     debugQueueDailyEngagementReport: Boolean!

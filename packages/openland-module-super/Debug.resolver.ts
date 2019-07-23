@@ -16,7 +16,12 @@ import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import { CounterStrategies, CounterStrategyAll } from '../openland-module-messaging/repositories/CounterStrategies';
+import {
+    AllUnreadChatsCalculator,
+    AllUnreadMessagesCalculator,
+    CounterStrategies,
+    CounterStrategyAll, UnreadChatsWithoutMutedCalculator, UnreadMessagesWithoutMutedCalculator
+} from '../openland-module-messaging/repositories/CounterStrategies';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 
 const URLInfoService = createUrlInfoService();
@@ -869,6 +874,46 @@ export default {
                 }
                 for (let dialog of dialogs) {
                     await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                }
+            });
+            return true;
+        }),
+        debugValidateGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
+            const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
+                let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
+                if (settings && settings.mute) {
+                    return true;
+                }
+                return false;
+            };
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugValidateGlobalCountersForAll', async (ctx, uid, log) => {
+                let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+                let UserGlobalCounterAllUnreadMessages = 0;
+                let UserGlobalCounterUnreadMessagesWithoutMuted = 0;
+                let UserGlobalCounterAllUnreadChats = 0;
+                let UserGlobalCounterUnreadChatsWithoutMuted = 0;
+
+                for (let dialog of dialogs) {
+                    let chatUnread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
+                    let isMuted = await isChatMuted(ctx, uid, dialog.cid);
+
+                    UserGlobalCounterAllUnreadMessages += AllUnreadMessagesCalculator.calcForChat(chatUnread, isMuted);
+                    UserGlobalCounterUnreadMessagesWithoutMuted += UnreadMessagesWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
+                    UserGlobalCounterAllUnreadChats += AllUnreadChatsCalculator.calcForChat(chatUnread, isMuted);
+                    UserGlobalCounterUnreadChatsWithoutMuted += UnreadChatsWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
+                }
+
+                if (UserGlobalCounterAllUnreadMessages !== await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid)) {
+                    await log(`[${uid}] UserGlobalCounterAllUnreadMessages mismatch ${await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid)} vs ${UserGlobalCounterAllUnreadMessages} `);
+                }
+                if (UserGlobalCounterUnreadMessagesWithoutMuted !== await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid)) {
+                    await log(`[${uid}] UserGlobalCounterUnreadMessagesWithoutMuted mismatch ${await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid)} vs ${UserGlobalCounterUnreadMessagesWithoutMuted} `);
+                }
+                if (UserGlobalCounterAllUnreadChats !== await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid)) {
+                    await log(`[${uid}] UserGlobalCounterAllUnreadChats mismatch ${await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid)} vs ${UserGlobalCounterAllUnreadChats} `);
+                }
+                if (UserGlobalCounterUnreadChatsWithoutMuted !== await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid)) {
+                    await log(`[${uid}] UserGlobalCounterUnreadChatsWithoutMuted mismatch ${await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid)} vs ${UserGlobalCounterUnreadChatsWithoutMuted} `);
                 }
             });
             return true;

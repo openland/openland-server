@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'de60d5766c3ed6069cfb7e0b474478a9';
+export const GQL_SPEC_VERSION = '7e53477c778add7ab55f15a363dc1fbc';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -954,6 +954,7 @@ export namespace GQL {
         debugEnableNotificationCenterForAll: boolean;
         debugResetGlobalCounters: boolean;
         debugCalcGlobalCountersForAll: boolean;
+        debugValidateGlobalCountersForAll: boolean;
         debugCreateBigChat: boolean;
         debugFlood: boolean;
         debugQueueDailyEngagementReport: boolean;
