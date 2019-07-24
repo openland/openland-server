@@ -32,7 +32,7 @@ async function initServer() {
         logger.error(ctx, 'unhandledRejection', reason, promise);
     });
     // WTF with typings?
-    process.on('uncaughtException' as any, async (err: any, origin: any) => {
+    process.on('uncaughtException' as any, (err: any, origin: any) => {
         logger.error(ctx, 'uncaughtException', err, origin);
         process.exit(1);
     });
