@@ -49,18 +49,19 @@ export class GQLTracer {
             let parentPart = this.parts.get(parentPath)!;
             let parentChild = this.children.get(parentPath) || [];
             if (this.isPartsFinished(parentChild)) {
-                setImmediate(() => {
+                // setImmediate(() => {
                     if (this.isPartsFinished(parentChild) && !parentPart.finished) {
                         parentPart.finish();
                         this.tryFinishRoot();
                     }
-                });
+                // });
             }
         }
         if (!this.isAllFinished()) {
             return;
         }
-        setImmediate(() => this.tryFinishRoot());
+        this.tryFinishRoot();
+        // setImmediate(() => this.tryFinishRoot());
     }
 
     private isAllFinished() {
