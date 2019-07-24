@@ -13,6 +13,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { RandomLayer } from '@openland/foundationdb-random';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
+import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver';
 
 @injectable()
 export class MessagingRepository {
@@ -169,6 +170,7 @@ export class MessagingRepository {
 
     async setReaction(parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) {
         return await inTx(parent, async (ctx) => {
+            reaction = this.toModernReaction(reaction);
             let message = await Store.Message.findById(ctx, mid);
 
             if (!message) {
@@ -180,6 +182,8 @@ export class MessagingRepository {
             //
 
             let reactions: { reaction: string, userId: number }[] = message.reactions ? [...message.reactions] as any : [];
+            reactions = [...this.prepareReactions(reactions)];
+
             if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
                 if (reset) {
                     reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
@@ -275,5 +279,19 @@ export class MessagingRepository {
 
             return res;
         });
+    }
+
+    private prepareReactions(reactions: ({ userId: number, reaction: string })[]): ({ userId: number, reaction: string })[] {
+        return reactions.map(reaction => ({ userId: reaction.userId, reaction: this.toModernReaction(reaction.reaction) }));
+    }
+
+    private toModernReaction(reaction: string): string {
+        if (REACTIONS.indexOf(reaction) > -1) {
+            return reaction;
+        }
+        if (REACTIONS_LEGACY.has(reaction)) {
+            return REACTIONS_LEGACY.get(reaction)!;
+        }
+        return 'LIKE';
     }
 }
