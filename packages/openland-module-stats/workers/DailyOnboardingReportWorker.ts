@@ -39,17 +39,11 @@ export function createDailyOnboardingReportWorker() {
                                     },
                                 }],
                             },
-                        }, aggs: {
-                            activations: {
-                                cardinality: {
-                                    field: 'body.uid',
-                                },
-                            },
-                        },
+                        }
                     }, size: 0,
                 });
 
-                let newUserEntrances = activationsData.aggregations.activations.value;
+                let newUserEntrances = activationsData.hits.total;
 
                 const mobileUsers = await currentStats.mobileUsers.get(ctx);
                 const yesterdayMobileUsers = await yesterdayStats.mobileUsers.get(ctx);
