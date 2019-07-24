@@ -92,14 +92,15 @@ class GQLTracer {
 
 export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
 
-const isProd = process.env.APP_ENVIRONMENT === 'production';
+// const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 export function withGqlTrace(parent: Context, name: string): Context {
-    if (!isProd) {
-        return gqlTraceNamespace.set(parent, new GQLTracer(name));
-    } else {
-        return parent;
-    }
+    return gqlTraceNamespace.set(parent, new GQLTracer(name));
+    // if (!isProd) {
+    //     return gqlTraceNamespace.set(parent, new GQLTracer(name));
+    // } else {
+    //     return parent;
+    // }
 }
 
 export const GqlQueryIdNamespace = createContextNamespace<string | null>('gql-query-id', null);
