@@ -41,7 +41,7 @@ export const REACTIONS_LEGACY = new Map([
     ['🤬', 'ANGRY'],
 ]);
 
-const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
+export const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
 const DELETED_TEXT = {
     MESSAGE: 'This message has been deleted',
     COMMENT: 'This comment has been deleted'
