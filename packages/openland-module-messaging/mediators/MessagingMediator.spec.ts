@@ -62,13 +62,13 @@ describe('MessagingMediator', () => {
         let text = 'boom';
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!;
 
-        await mediator.setReaction(ctx, MSG_ID, USER_ID, '❤️');
+        await mediator.setReaction(ctx, MSG_ID, USER_ID, 'LIKE');
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
 
         let reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message, {}, {} as any);
-        expect(reactionsResolved[0].reaction).toEqual('❤️');
+        expect(reactionsResolved[0].reaction).toEqual('LIKE');
 
-        await mediator.setReaction(ctx, MSG_ID, USER_ID, '❤️', true);
+        await mediator.setReaction(ctx, MSG_ID, USER_ID, 'LIKE', true);
         message = (await Store.Message.findById(ctx, MSG_ID))!;
 
         reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message, {}, {} as any);
