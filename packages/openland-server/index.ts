@@ -25,8 +25,18 @@ import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 const logger = createLogger('startup');
+
 async function initServer() {
     let ctx = createNamedContext('launcher');
+    process.on('unhandledRejection', (reason, promise) => {
+        logger.error(ctx, 'unhandledRejection', reason, promise);
+    });
+    // WTF with typings?
+    process.on('uncaughtException' as any, async (err: any, origin: any) => {
+        logger.error(ctx, 'uncaughtException', err, origin);
+        process.exit(1);
+    });
+
     try {
         await loadAllModules(ctx);
         await startAllModules();
