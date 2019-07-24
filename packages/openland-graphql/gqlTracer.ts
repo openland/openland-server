@@ -49,19 +49,18 @@ export class GQLTracer {
             let parentPart = this.parts.get(parentPath)!;
             let parentChild = this.children.get(parentPath) || [];
             if (this.isPartsFinished(parentChild)) {
-                // setImmediate(() => {
+                setImmediate(() => {
                     if (this.isPartsFinished(parentChild) && !parentPart.finished) {
                         parentPart.finish();
                         this.tryFinishRoot();
                     }
-                // });
+                });
             }
         }
         if (!this.isAllFinished()) {
             return;
         }
-        this.tryFinishRoot();
-        // setImmediate(() => this.tryFinishRoot());
+        setImmediate(() => this.tryFinishRoot());
     }
 
     private isAllFinished() {
@@ -94,8 +93,14 @@ export class GQLTracer {
 
 export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
 
+const isProd = process.env.APP_ENVIRONMENT === 'production';
+
 export function withGqlTrace(parent: Context, name: string): Context {
-    return gqlTraceNamespace.set(parent, new GQLTracer(name));
+    if (!isProd) {
+        return gqlTraceNamespace.set(parent, new GQLTracer(name));
+    } else {
+        return parent;
+    }
 }
 
 export const GqlQueryIdNamespace = createContextNamespace<string | null>('gql-query-id', null);
