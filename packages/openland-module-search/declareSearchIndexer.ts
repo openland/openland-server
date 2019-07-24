@@ -88,6 +88,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                     });
                     if (res.errors) {
                         log.warn(ctx, res);
+                        log.warn(ctx, res.items && res.items[0] && res.items[0].index);
                         throw new Error('Error during indexing (' + this.name + ')');
                     }
                 } catch (e) {
