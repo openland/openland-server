@@ -16,15 +16,15 @@ class ResolveTracePart {
         this.finished = true;
     }
 }
+
 const GQLTrace = createTracer('gql');
+
 export class GQLTracer {
-    // private tracer: STracer;
     private rootPart: ResolveTracePart;
     private parts = new Map<string, ResolveTracePart>();
     private children = new Map<string, ResolveTracePart[]>();
 
     constructor(name: string) {
-        // this.tracer = createTracer('gql');
         this.rootPart = new ResolveTracePart(GQLTrace.startSpan(name));
     }
 
@@ -37,11 +37,9 @@ export class GQLTracer {
 
         let parent = this.parts.has(parentPath) ? this.parts.get(parentPath)! : this.rootPart;
         let part = new ResolveTracePart(GQLTrace.startSpan(path[path.length - 1].toString(), parent.span));
-        // let part = new ResolveTracePart(null as any);
 
         this.parts.set(path.join('.'), part);
         this.children.set(parentPath, [...(this.children.get(parentPath) || []), part]);
-
     }
 
     onResolveEnd(path: (string|number)[]) {
@@ -95,14 +93,8 @@ export class GQLTracer {
 
 export const gqlTraceNamespace = createContextNamespace<GQLTracer | null>('gql-trace', null);
 
-const isProd = process.env.APP_ENVIRONMENT === 'production';
-
 export function withGqlTrace(parent: Context, name: string): Context {
-    if (!isProd) {
-        return gqlTraceNamespace.set(parent, new GQLTracer(name));
-    } else {
-        return parent;
-    }
+    return gqlTraceNamespace.set(parent, new GQLTracer(name));
 }
 
 export const GqlQueryIdNamespace = createContextNamespace<string | null>('gql-query-id', null);
