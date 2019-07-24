@@ -1,7 +1,6 @@
 import { createTracer } from 'openland-log/createTracer';
 import { Context, createContextNamespace } from '@openland/context';
 import { SSpan } from '../openland-log/SSpan';
-import { STracer } from '../openland-log/STracer';
 
 class ResolveTracePart {
     public finished = false;
@@ -17,16 +16,16 @@ class ResolveTracePart {
         this.finished = true;
     }
 }
-
-class GQLTracer {
-    private tracer: STracer;
+const GQLTrace = createTracer('gql');
+export class GQLTracer {
+    // private tracer: STracer;
     private rootPart: ResolveTracePart;
     private parts = new Map<string, ResolveTracePart>();
     private children = new Map<string, ResolveTracePart[]>();
 
     constructor(name: string) {
-        this.tracer = createTracer('gql');
-        this.rootPart = new ResolveTracePart(this.tracer.startSpan(name));
+        // this.tracer = createTracer('gql');
+        this.rootPart = new ResolveTracePart(GQLTrace.startSpan(name));
     }
 
     onResolveStart(path: (string|number)[]) {
@@ -37,10 +36,12 @@ class GQLTracer {
         }
 
         let parent = this.parts.has(parentPath) ? this.parts.get(parentPath)! : this.rootPart;
-        let part = new ResolveTracePart(this.tracer.startSpan(path[path.length - 1].toString(), parent.span));
+        let part = new ResolveTracePart(GQLTrace.startSpan(path[path.length - 1].toString(), parent.span));
+        // let part = new ResolveTracePart(null as any);
 
         this.parts.set(path.join('.'), part);
         this.children.set(parentPath, [...(this.children.get(parentPath) || []), part]);
+
     }
 
     onResolveEnd(path: (string|number)[]) {
@@ -86,6 +87,8 @@ class GQLTracer {
     private tryFinishRoot() {
         if (this.isAllFinished() && !this.rootPart.finished) {
             this.rootPart.finish();
+            this.parts.clear();
+            this.children.clear();
         }
     }
 }
