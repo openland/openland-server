@@ -24,6 +24,7 @@ import '../openland-utils/Shutdown';
 import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { setupFdbTracing } from './fdbTracing';
 const logger = createLogger('startup');
 
 async function initServer() {
@@ -40,6 +41,7 @@ async function initServer() {
     try {
         await loadAllModules(ctx);
         await startAllModules();
+        setupFdbTracing();
     } catch (e) {
         logger.error(ctx, e, 'Unable to init server');
         process.abort();
