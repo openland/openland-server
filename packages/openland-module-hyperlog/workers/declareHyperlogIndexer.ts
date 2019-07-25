@@ -2,7 +2,7 @@ import { Store } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 
 export function declareHyperlogIndexer() {
-    declareSearchIndexer('hyperlog', 1, 'hyperlog', Store.HyperLog.created.stream({ batchSize: 2000 }))
+    declareSearchIndexer('hyperlog', 1, 'hyperlog', Store.HyperLog.created.stream({ batchSize: 750 }))
         .withProperties({
             type: {
                 type: 'keyword'
