@@ -897,6 +897,10 @@ export default {
                     let chatUnread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
                     let isMuted = await isChatMuted(ctx, uid, dialog.cid);
 
+                    if (chatUnread < 0) {
+                        await log(`[${uid}] negative dialog counter`);
+                    }
+
                     UserGlobalCounterAllUnreadMessages += AllUnreadMessagesCalculator.calcForChat(chatUnread, isMuted);
                     UserGlobalCounterUnreadMessagesWithoutMuted += UnreadMessagesWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
                     UserGlobalCounterAllUnreadChats += AllUnreadChatsCalculator.calcForChat(chatUnread, isMuted);
