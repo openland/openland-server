@@ -69,7 +69,7 @@ export default {
                 }
                 if (args.input.firstName !== undefined) {
                     await validate(
-                        stringNotEmpty('First name can\'t be empty!'),
+                        stringNotEmpty('Please enter your first name'),
                         args.input.firstName,
                         'input.firstName'
                     );
@@ -156,7 +156,7 @@ export default {
                 }
                 if (args.input.firstName !== undefined) {
                     await validate(
-                        stringNotEmpty('First name can\'t be empty!'),
+                        stringNotEmpty('Please enter your first name'),
                         args.input.firstName,
                         'input.firstName'
                     );

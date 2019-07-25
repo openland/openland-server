@@ -111,7 +111,7 @@ export class UserRepository {
             }
 
             await validate(
-                stringNotEmpty('First name can\'t be empty!'),
+                stringNotEmpty('Please enter your first name'),
                 input.firstName,
                 'input.firstName'
             );

@@ -15,7 +15,7 @@ export const ErrorText = {
 
     titleRequired: 'Title is required',
     nameEmpty: 'Name can\'t be empty',
-    firstNameEmpty: 'First Name can\'t be empty',
+    firstNameEmpty: 'Please enter your first name',
     permissionDenied: 'Access denied',
     permissionOnlyOwner: 'Only organization owners can edit this profile',
     permissionAuthenticatoinRequired: 'Authentication is required',
