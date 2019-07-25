@@ -84,12 +84,12 @@ export class MessagingMediator {
                 await this.augmentation.onNewMessage(ctx, res.message);
             }
 
-            // Cancel typings
-            // TODO: Remove
-            let members = await this.room.findConversationMembers(ctx, cid);
-            if (!message.isService && !message.isMuted) {
-                await Modules.Typings.cancelTyping(uid, cid, members);
-            }
+            // // Cancel typings
+            // // TODO: Remove
+            // let members = await this.room.findConversationMembers(ctx, cid);
+            // if (!message.isService && !message.isMuted) {
+            //     await Modules.Typings.cancelTyping(uid, cid, members);
+            // }
 
             // Clear draft
             // TODO: Move
