@@ -7,6 +7,8 @@ import { initTracer } from 'jaeger-client';
 
 export function createTracer(name: string): STracer {
     var tracer: STracer;
+    return new OpenTracer(initTracer({serviceName: name, sampler: {type: 'const', param: 1}}, {}));
+
     if (process.env.TRACING) {
         tracer = new OpenTracer(initTracer({ serviceName: name, sampler: { type: 'probabilistic', param: 0.1 } }, {}));
     } else {
