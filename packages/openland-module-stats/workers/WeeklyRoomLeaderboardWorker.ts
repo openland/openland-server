@@ -42,7 +42,7 @@ export function createWeeklyRoomLeaderboardWorker() {
                         byRid: {
                             terms: {
                                 field: 'body.rid',
-                                size: 0
+                                size: 10000
                             },
                             aggs: {
                                 totalDelta: {
