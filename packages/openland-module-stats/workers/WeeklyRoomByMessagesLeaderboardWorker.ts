@@ -39,7 +39,7 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
                     }, aggs: {
                         byCid: {
                             terms: {
-                                field: 'cid', order: { _count: 'desc' }, size: 20,
+                                field: 'cid', order: { _count: 'desc' }
                             },
                         },
                     },
@@ -58,16 +58,17 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
 
                 let org = await Store.Organization.findById(parent, conv.oid);
                 let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private;
-                if (!isListed) {
+                if (!isListed || conv.isChannel) {
                     continue;
                 }
 
                 roomsWithDelta.push({
                     room: room, messages: bucket.doc_count,
                 });
+                if (roomsWithDelta.length === 20) {
+                    break;
+                }
             }
-
-            roomsWithDelta = roomsWithDelta.slice(0, 20);
 
             let message = [heading('👥  Weekly groups by messages'), '\n'];
             for (let { room, messages } of roomsWithDelta) {
