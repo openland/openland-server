@@ -39,7 +39,7 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
                     }, aggs: {
                         byCid: {
                             terms: {
-                                field: 'cid', order: { _count: 'desc' }
+                                field: 'cid', order: { _count: 'desc' }, size: 0
                             },
                         },
                     },

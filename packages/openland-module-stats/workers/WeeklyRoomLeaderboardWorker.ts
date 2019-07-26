@@ -70,7 +70,15 @@ export function createWeeklyRoomLeaderboardWorker() {
                 let rid = bucket.key;
                 let delta = bucket.totalDelta.value;
                 let room =  await Store.RoomProfile.findById(parent, rid);
-                if (!room) {
+                let conv = await Store.ConversationRoom.findById(parent, rid);
+
+                if (!room || !conv || !conv.oid) {
+                    continue;
+                }
+
+                let org = await Store.Organization.findById(parent, conv.oid);
+                let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private;
+                if (!isListed || conv.isChannel) {
                     continue;
                 }
 
