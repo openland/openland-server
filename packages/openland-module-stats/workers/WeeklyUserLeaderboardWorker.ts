@@ -42,6 +42,7 @@ export function createWeeklyUserLeaderboardWorker() {
                         byInviter: {
                             terms: {
                                 field: 'body.invitedBy',
+                                size: 30,
                                 order: { ['_count'] : 'desc' },
                             },
                         },
