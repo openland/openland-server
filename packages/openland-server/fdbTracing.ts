@@ -28,12 +28,12 @@ export function setupFdbTracing() {
     // });
 
     setEntityFactoryTracer({
-        findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => await tracer.trace(ctx, 'Entity.findFromUniqueIndex', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        query: async (entityDescriptor, ctx, descriptor, id, opts, handler) => await tracer.trace(ctx, 'Entity.query', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        findAll: async (entityDescriptor, ctx, handler) => await tracer.trace(ctx, 'Entity.findAll', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        findById: async (entityDescriptor, ctx, id, handler) => await tracer.trace(ctx, 'Entity.findById', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        create: async (entityDescriptor, ctx, id, value, handler) => await tracer.trace(ctx, 'Entity.create', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        flush: async (entityDescriptor, ctx, id, oldValue, newValue, handler) => await tracer.trace(ctx, 'Entity.flush', () => handler(), { tags: { contextPath: getContextPath(ctx) } })
+        findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => await tracer.trace(ctx, 'Entity.findFromUniqueIndex', () => handler(), { tags: { contextPath: getContextPath(ctx), entity: entityDescriptor.name } }),
+        query: async (entityDescriptor, ctx, descriptor, id, opts, handler) => await tracer.trace(ctx, 'Entity.query', () => handler(), { tags: { contextPath: getContextPath(ctx), entity: entityDescriptor.name } }),
+        findAll: async (entityDescriptor, ctx, handler) => await tracer.trace(ctx, 'Entity.findAll', () => handler(), { tags: { contextPath: getContextPath(ctx), entity: entityDescriptor.name } }),
+        findById: async (entityDescriptor, ctx, id, handler) => await tracer.trace(ctx, 'Entity.findById', () => handler(), { tags: { contextPath: getContextPath(ctx), entity: entityDescriptor.name } }),
+        create: async (entityDescriptor, ctx, id, value, handler) => await tracer.trace(ctx, 'Entity.create', () => handler(), { tags: { contextPath: getContextPath(ctx), entity: entityDescriptor.name } }),
+        flush: async (entityDescriptor, ctx, id, oldValue, newValue, handler) => await tracer.trace(ctx, 'Entity.flush', () => handler(), { tags: { contextPath: getContextPath(ctx), entity: entityDescriptor.name } })
     });
 
     seAtomicBooleanFactoryTracer({
