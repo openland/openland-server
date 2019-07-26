@@ -10,15 +10,15 @@ const getContextPath = (ctx: Context) =>  ContextName.get(ctx) + ' ' + LogPathCo
 
 export function setupFdbTracing() {
     setTransactionTracer({
-        tx: async (ctx, handler) => await tracer.trace(ctx, 'transaction ' + getContextPath(ctx), () => handler()),
-        commit: async (ctx, handler) => await tracer.trace(ctx, 'transaction commit ' + getContextPath(ctx), () => handler()),
+        tx: async (ctx, handler) => await tracer.trace(ctx, 'transaction', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
+        commit: async (ctx, handler) => await tracer.trace(ctx, 'transaction commit', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
         onNewReadWriteTx: (ctx) => logger.log(ctx, 'new tx'),
         onRetry: (ctx) => logger.log(ctx, 'tx retry'),
     });
 
     setSubspaceTracer({
-        get: async (ctx, key, handler) => await tracer.trace(ctx, 'GET ' + getContextPath(ctx), () => handler()),
-        set: (ctx, key, value, handler) => tracer.traceSync(ctx, 'SET ' + getContextPath(ctx), () => handler()),
-        range: async (ctx, key, opts, handler) => await tracer.trace(ctx, 'RANGE ' + getContextPath(ctx), () => handler())
+        get: async (ctx, key, handler) => await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
+        set: (ctx, key, value, handler) => tracer.traceSync(ctx, 'setKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
+        range: async (ctx, key, opts, handler) => await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } })
     });
 }
