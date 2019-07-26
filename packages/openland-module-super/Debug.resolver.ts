@@ -1019,16 +1019,23 @@ export default {
             });
             return true;
         }),
-        debugQueueWeeklyUserLeaderboards: withPermission('super-admin', async (parent) => {
+        debugQueueWeeklyUserLeaderboard: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyUserLeaderboardsQueue.pushImmediateWork(ctx);
+                await Modules.Stats.weeklyUserLeaderboardQueue.pushImmediateWork(ctx);
             });
 
             return true;
         }),
-        debugQueueWeeklyRoomLeaderboards: withPermission('super-admin', async (parent) => {
+        debugQueueWeeklyRoomLeaderboard: withPermission('super-admin', async (parent) => {
             await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyRoomLeaderboardsQueue.pushImmediateWork(ctx);
+                await Modules.Stats.weeklyRoomLeaderboardQueue.pushImmediateWork(ctx);
+            });
+
+            return true;
+        }),
+        debugQueueWeeklyRoomByMessagesLeaderboard: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.weeklyRoomByMessagesLeaderboardQueue.pushImmediateWork(ctx);
             });
 
             return true;

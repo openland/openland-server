@@ -10,7 +10,7 @@ import { formatNumberWithSign } from '../../openland-utils/string';
 
 const log = createLogger('weekly-room-leaderboards');
 
-export function createWeeklyRoomLeaderboardsWorker() {
+export function createWeeklyRoomLeaderboardWorker() {
     let queue = new ScheduledQueue('weekly-room-leaderboards', {
         interval: 'every-week', time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
     });
@@ -42,7 +42,7 @@ export function createWeeklyRoomLeaderboardsWorker() {
                         byRid: {
                             terms: {
                                 field: 'body.rid',
-                                size: 20,
+                                size: 0
                             },
                             aggs: {
                                 totalDelta: {
@@ -70,7 +70,15 @@ export function createWeeklyRoomLeaderboardsWorker() {
                 let rid = bucket.key;
                 let delta = bucket.totalDelta.value;
                 let room =  await Store.RoomProfile.findById(parent, rid);
-                if (!room) {
+                let conv = await Store.ConversationRoom.findById(parent, rid);
+
+                if (!room || !conv || !conv.oid) {
+                    continue;
+                }
+
+                let org = await Store.Organization.findById(parent, conv.oid);
+                let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private;
+                if (!isListed || conv.isChannel) {
                     continue;
                 }
 

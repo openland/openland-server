@@ -119,8 +119,9 @@ extend type Mutation {
     debugQueueDailyOnboardingReport: Boolean!
     debugQueueWeeklyEngagementReport: Boolean!
     debugQueueWeeklyOnboardingReport: Boolean!
-    debugQueueWeeklyUserLeaderboards: Boolean!
-    debugQueueWeeklyRoomLeaderboards: Boolean!
+    debugQueueWeeklyUserLeaderboard: Boolean!
+    debugQueueWeeklyRoomLeaderboard: Boolean!
+    debugQueueWeeklyRoomByMessagesLeaderboard: Boolean!
     debugReindexUserProfiles: Boolean!
     debugReindexRoomProfiles: Boolean!
     debugSendPush(id: ID!, message: String!): Boolean!

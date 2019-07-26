@@ -9,7 +9,7 @@ export const SUPPORTED_ROLES = [
 
 const DEFAULT_SERVER_ROLES = [
     'api',
-    // 'workers',
+    'workers',
     'admin',
     'delivery'
 ];
