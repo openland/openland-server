@@ -5,8 +5,9 @@ import { createWeeklyEngagementReportWorker } from './workers/WeeklyEngagementRe
 import { createWeeklyOnboardingReportWorker } from './workers/WeeklyOnboardingReportWorker';
 import { createDailyOnboardingReportWorker } from './workers/DailyOnboardingReportWorker';
 import { createDailyEngagementReportWorker } from './workers/DailyEngagementReportWorker';
-import { createWeeklyUserLeaderboardsWorker } from './workers/WeeklyUserLeaderboardsWorker';
-import { createWeeklyRoomLeaderboardsWorker } from './workers/WeeklyRoomLeaderboardsWorker';
+import { createWeeklyUserLeaderboardWorker } from './workers/WeeklyUserLeaderboardWorker';
+import { createWeeklyRoomLeaderboardWorker } from './workers/WeeklyRoomLeaderboardWorker';
+import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoomByMessagesLeaderboardWorker';
 
 @injectable()
 export class StatsModule {
@@ -14,8 +15,9 @@ export class StatsModule {
     public readonly weeklyOnboardingQueue = createWeeklyOnboardingReportWorker();
     public readonly dailyOnboardingQueue = createDailyOnboardingReportWorker();
     public readonly dailyEngagementQueue = createDailyEngagementReportWorker();
-    public readonly weeklyUserLeaderboardsQueue = createWeeklyUserLeaderboardsWorker();
-    public readonly weeklyRoomLeaderboardsQueue = createWeeklyRoomLeaderboardsWorker();
+    public readonly weeklyUserLeaderboardQueue = createWeeklyUserLeaderboardWorker();
+    public readonly weeklyRoomLeaderboardQueue = createWeeklyRoomLeaderboardWorker();
+    public readonly weeklyRoomByMessagesLeaderboardQueue = createWeeklyRoomByMessagesLeaderboardWorker();
 
     start = () => {
         // no op

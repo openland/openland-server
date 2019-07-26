@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2c377a735952e563e3896fcfbe23a9bf';
+export const GQL_SPEC_VERSION = '2e18b2b8df60d668d9a21e93a4cbdf42';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -961,8 +961,9 @@ export namespace GQL {
         debugQueueDailyOnboardingReport: boolean;
         debugQueueWeeklyEngagementReport: boolean;
         debugQueueWeeklyOnboardingReport: boolean;
-        debugQueueWeeklyUserLeaderboards: boolean;
-        debugQueueWeeklyRoomLeaderboards: boolean;
+        debugQueueWeeklyUserLeaderboard: boolean;
+        debugQueueWeeklyRoomLeaderboard: boolean;
+        debugQueueWeeklyRoomByMessagesLeaderboard: boolean;
         debugReindexUserProfiles: boolean;
         debugReindexRoomProfiles: boolean;
         debugSendPush: boolean;

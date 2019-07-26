@@ -9,7 +9,7 @@ import { UserProfile } from '../../openland-module-db/store';
 
 const log = createLogger('weekly-user-leaderboards');
 
-export function createWeeklyUserLeaderboardsWorker() {
+export function createWeeklyUserLeaderboardWorker() {
     let queue = new ScheduledQueue('weekly-user-leaderboards',  {
         interval: 'every-week',
         time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
@@ -43,7 +43,6 @@ export function createWeeklyUserLeaderboardsWorker() {
                             terms: {
                                 field: 'body.invitedBy',
                                 order: { ['_count'] : 'desc' },
-                                size: 20,
                             },
                         },
                     },

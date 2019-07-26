@@ -10,7 +10,7 @@ import { formatNumberWithSign } from '../../openland-utils/string';
 
 const log = createLogger('weekly-room-leaderboards');
 
-export function createWeeklyRoomLeaderboardsWorker() {
+export function createWeeklyRoomLeaderboardWorker() {
     let queue = new ScheduledQueue('weekly-room-leaderboards', {
         interval: 'every-week', time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
     });
@@ -42,7 +42,7 @@ export function createWeeklyRoomLeaderboardsWorker() {
                         byRid: {
                             terms: {
                                 field: 'body.rid',
-                                size: 20,
+                                size: 100,
                             },
                             aggs: {
                                 totalDelta: {

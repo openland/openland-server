@@ -49,7 +49,6 @@ export class MessagingRepository {
                 replyMessages: message.replyMessages,
                 repeatKey: message.repeatKey,
                 deleted: false,
-
                 spans: (message.spans && message.spans.length > 0) ? message.spans : null,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
             });
