@@ -7,6 +7,9 @@ import { hasMention } from '../resolvers/ModernMessage.resolver';
 import { CounterStrategyAll } from './CounterStrategies';
 import { Store } from 'openland-module-db/FDB';
 import { Message } from 'openland-module-db/store';
+import { createLogger } from '@openland/log';
+
+const logger = createLogger('counters');
 
 @injectable()
 export class CountersRepository {
@@ -113,6 +116,9 @@ export class CountersRepository {
 
                 // Update counters
                 if (delta !== 0) {
+                    if (delta > 0) {
+                        logger.log(ctx, 'onMessageRead positive delta', delta, uid);
+                    }
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
                     await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageRead(-delta);
