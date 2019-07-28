@@ -40,12 +40,13 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
                         byCid: {
                             terms: {
                                 field: 'cid',
-                                size: 0,
+                                size: 10000,
                                 order: { _count: 'desc' },
                             },
                         },
                     },
-                }, size: 0,
+                },
+                size: 0,
             });
 
             let roomsWithDelta: { room: RoomProfile, messages: number }[] = [];
