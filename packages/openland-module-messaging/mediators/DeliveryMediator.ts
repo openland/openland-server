@@ -29,7 +29,7 @@ export class DeliveryMediator {
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 126; i++) {
                 this.queue.addWorker(async (item, parent) => {
                     if (item.action === 'new' || item.action === undefined) {
                         await this.fanOutDelivery(parent, item.messageId, 'new');
@@ -43,7 +43,7 @@ export class DeliveryMediator {
                     return {result: 'ok'};
                 });
             }
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 126; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
