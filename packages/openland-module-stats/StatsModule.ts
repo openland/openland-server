@@ -8,6 +8,8 @@ import { createDailyEngagementReportWorker } from './workers/DailyEngagementRepo
 import { createWeeklyUserLeaderboardWorker } from './workers/WeeklyUserLeaderboardWorker';
 import { createWeeklyRoomLeaderboardWorker } from './workers/WeeklyRoomLeaderboardWorker';
 import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoomByMessagesLeaderboardWorker';
+import { Modules } from '../openland-modules/Modules';
+import { RoomProfile } from '../openland-module-db/store';
 
 @injectable()
 export class StatsModule {
@@ -53,5 +55,60 @@ export class StatsModule {
         if (invitesCnt === 1) {
             Store.GlobalStatisticsCounters.byId('inviters').increment(ctx);
         }
+    }
+
+    getTrendingRoomsByMessages = async (ctx: Context, from: number, to: number, size?: number) => {
+        let searchReq = await Modules.Search.elastic.client.search({
+            index: 'message', type: 'message', // scroll: '1m',
+            body: {
+                query: {
+                    bool: {
+                        must: [{ term: { roomKind: 'room' } }, { term: { isService: false } }, {
+                            range: {
+                                createdAt: {
+                                    gte: from,
+                                    lte: to
+                                },
+                            },
+                        }],
+                    },
+                }, aggs: {
+                    byCid: {
+                        terms: {
+                            field: 'cid',
+                            size: Math.pow(10, 9),
+                            order: { _count: 'desc' },
+                        },
+                    },
+                },
+            },
+            size: 0,
+        });
+
+        let roomsWithDelta: { room: RoomProfile, messagesDelta: number }[] = [];
+        for (let bucket of searchReq.aggregations.byCid.buckets) {
+            let rid = bucket.key;
+            let room = await Store.RoomProfile.findById(ctx, rid);
+            let conv = await Store.ConversationRoom.findById(ctx, rid);
+
+            if (!room || !conv || !conv.oid) {
+                continue;
+            }
+
+            let org = await Store.Organization.findById(ctx, conv.oid);
+            let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private;
+            if (!isListed || conv.isChannel) {
+                continue;
+            }
+
+            roomsWithDelta.push({
+                room: room, messagesDelta: bucket.doc_count,
+            });
+            if (roomsWithDelta.length === size) {
+                break;
+            }
+        }
+
+        return roomsWithDelta;
     }
 }
