@@ -64,6 +64,8 @@ export function createWeeklyUserLeaderboardWorker() {
                 });
             }
 
+            usersWithInvites = usersWithInvites.slice(0, 20);
+
             let message = [heading('👋  Weekly top inviters'), '\n'];
             for (let { user, invites } of usersWithInvites) {
                 message.push(boldString(`${invites}`), ` `, userMention([user.firstName, user.lastName].join(' '), user.id), `\n`);
