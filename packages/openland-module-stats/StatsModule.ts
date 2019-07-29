@@ -31,7 +31,7 @@ export class StatsModule {
 
     onMessageSent = async (ctx: Context, uid: number) => {
         Store.GlobalStatisticsCounters.byId('messages').increment(ctx);
-        if (await Store.UserMessagesSentCounter.get(ctx, uid) === 1) {
+        if ((await Store.UserMessagesSentCounter.get(ctx, uid)) === 1) {
             Store.GlobalStatisticsCounters.byId('senders').increment(ctx);
         }
     }
@@ -57,35 +57,48 @@ export class StatsModule {
         }
     }
 
+    getUnreadRoomByUserId = async (ctx: Context, uid: number) => {
+        // const dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
+
+        const allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
+        return allDialogs;
+    }
+
     getTrendingRoomsByMessages = async (ctx: Context, from: number, to: number, size?: number) => {
         let searchReq = await Modules.Search.elastic.client.search({
-            index: 'message', type: 'message', // scroll: '1m',
+            index: 'message',
+            type: 'message', // scroll: '1m',
             body: {
                 query: {
                     bool: {
-                        must: [{ term: { roomKind: 'room' } }, { term: { isService: false } }, {
-                            range: {
-                                createdAt: {
-                                    gte: from,
-                                    lte: to
-                                },
-                            },
-                        }],
-                    },
-                }, aggs: {
+                        must: [
+                            { term: { roomKind: 'room' } },
+                            { term: { isService: false } },
+                            {
+                                range: {
+                                    createdAt: {
+                                        gte: from,
+                                        lte: to
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                aggs: {
                     byCid: {
                         terms: {
                             field: 'cid',
                             size: Math.pow(10, 9),
-                            order: { _count: 'desc' },
-                        },
-                    },
-                },
+                            order: { _count: 'desc' }
+                        }
+                    }
+                }
             },
-            size: 0,
+            size: 0
         });
 
-        let roomsWithDelta: { room: RoomProfile, messagesDelta: number }[] = [];
+        let roomsWithDelta: { room: RoomProfile; messagesDelta: number }[] = [];
         for (let bucket of searchReq.aggregations.byCid.buckets) {
             let rid = bucket.key;
             let room = await Store.RoomProfile.findById(ctx, rid);
@@ -102,7 +115,8 @@ export class StatsModule {
             }
 
             roomsWithDelta.push({
-                room: room, messagesDelta: bucket.doc_count,
+                room: room,
+                messagesDelta: bucket.doc_count
             });
             if (roomsWithDelta.length === size) {
                 break;
