@@ -136,6 +136,11 @@ export class UsersModule {
         }
     }
 
+    async isTest(ctx: Context, uid: number) {
+        let user = await this.repo.findUser(ctx, uid);
+        return user ? user.email.endsWith('maildu.de') : false;
+    }
+
     async markForUndexing(ctx: Context, uid: number) {
         return this.repo.markForUndexing(ctx, uid);
     }

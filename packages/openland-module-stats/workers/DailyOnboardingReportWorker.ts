@@ -2,7 +2,7 @@ import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Modules } from '../../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 import { ScheduledQueue } from '../../openland-module-workers/ScheduledQueue';
-import { getOnboardingCounters, getOnboardingReportsChatId, getSuperNotificationsBotId } from './utils';
+import { getOnboardingReportsChatId, getSuperNotificationsBotId } from './utils';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
 
@@ -23,9 +23,7 @@ export function createDailyOnboardingReportWorker() {
                     return { result: 'rejected' };
                 }
 
-                const currentStats = getOnboardingCounters();
-                const yesterdayStats = getOnboardingCounters('yesterday-onboarding');
-
+                let startDate =  Date.now() - 24 * 60 * 60 * 1000;
                 let activationsData = await Modules.Search.elastic.client.search({
                     index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
                     body: {
@@ -34,7 +32,7 @@ export function createDailyOnboardingReportWorker() {
                                 must: [{ term: { type: 'user_activated' } }, {
                                     range: {
                                         date: {
-                                            gte: Date.now() - 24 * 60 * 60 * 1000,
+                                            gte: startDate,
                                         },
                                     },
                                 }],
@@ -42,23 +40,64 @@ export function createDailyOnboardingReportWorker() {
                         }
                     }, size: 0,
                 });
-
                 let newUserEntrances = activationsData.hits.total;
 
-                const mobileUsers = await currentStats.mobileUsers.get(ctx);
-                const yesterdayMobileUsers = await yesterdayStats.mobileUsers.get(ctx);
-                const newMobileUsers = mobileUsers - yesterdayMobileUsers;
-                yesterdayStats.mobileUsers.set(ctx, mobileUsers);
+                const newMobileUsersQuery = await Modules.Search.elastic.client.search({
+                   index: 'hyperlog', type: 'hyperlog',
+                   body: {
+                       query: {
+                           bool: {
+                               must: [{ term: { type: 'new-mobile-user' } }, {
+                                   range: {
+                                       date: {
+                                           gte: startDate
+                                       }
+                                   }
+                               }]
+                           }
+                       }
+                   },
+                    size: 0
+                });
+                const newMobileUsers = newMobileUsersQuery.hits.total;
 
-                const senders =  await currentStats.senders.get(ctx);
-                const yesterdaySenders = await yesterdayStats.senders.get(ctx);
-                const newSenders = senders - yesterdaySenders;
-                yesterdayStats.senders.set(ctx, senders);
+                const newSendersQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-sender' } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    },
+                    size: 0
+                });
+                const newSenders = newSendersQuery.hits.total;
 
-                const inviters = await currentStats.inviters.get(ctx);
-                const yesterdayInviters = await yesterdayStats.inviters.get(ctx);
-                const newInviters = inviters - yesterdayInviters;
-                yesterdayStats.inviters.set(ctx, inviters);
+                const newInvitersQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-inviter' } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    },
+                    size: 0
+                });
+                const newInviters = newInvitersQuery.hits.total;
 
                 const report = [heading(`Daily   🐥 ${newUserEntrances}   📱 ${newMobileUsers}    ➡️ ${newSenders}    🙌 ${newInviters}`)];
 

@@ -148,13 +148,12 @@ export class HooksModule {
 
     onUserActivated = async (ctx: Context, uid: number) => {
         await Modules.Metrics.onUserActivated(ctx, uid);
-        Modules.Stats.onNewEntrance(ctx);
 
         const user = await Store.User.findById(ctx, uid);
         if (user!.invitedBy) {
             Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
             await successfulInvite.event(ctx, { uid: uid, invitedBy: user!.invitedBy });
-            await Modules.Stats.onSuccessfulInvite(ctx, uid, user!.invitedBy!);
+            await Modules.Stats.onSuccessfulInvite(ctx, user!);
         }
 
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
@@ -176,8 +175,8 @@ export class HooksModule {
         await Modules.Users.onChatMembersCountChange(ctx, cid, delta);
     }
 
-    onNewMobileUser = (ctx: Context) => {
-        Modules.Stats.onNewMobileUser(ctx);
+    onNewMobileUser = async (ctx: Context, uid: number) => {
+        await Modules.Stats.onNewMobileUser(ctx, uid);
     }
 
     onEmailSent = (ctx: Context, uid: number) => {

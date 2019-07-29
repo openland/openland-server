@@ -8,6 +8,8 @@ import { DeliveryRepository } from './DeliveryRepository';
 import { Context, createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { UserDialogEvent } from 'openland-module-db/store';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
+import { UsersModule } from '../../openland-module-users/UsersModule';
 
 describe('UserStateRepository', () => {
     let ctx: Context;
@@ -21,6 +23,8 @@ describe('UserStateRepository', () => {
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind('DeliveryRepository').to(DeliveryRepository).inSingletonScope();
         container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
+        container.bind(UsersModule).toSelf().inSingletonScope();
+        loadUsersModule();
 
         ctx = createNamedContext('test');
         userStateRepo = container.get<UserStateRepository>('UserStateRepository');

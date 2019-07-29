@@ -94,6 +94,10 @@ export class UserRepository {
         });
     }
 
+    async findUser(ctx: Context, uid: number) {
+        return Store.User.findById(ctx, uid);
+    }
+
     /*
      * Profile
      */
