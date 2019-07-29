@@ -51,7 +51,7 @@ export class PresenceModule {
             let hasMobilePresence = !!userPresences
                 .find((e) => isMobile(e.platform));
             if (!hasMobilePresence && isMobile(platform)) {
-                Modules.Hooks.onNewMobileUser(ctx);
+                await Modules.Hooks.onNewMobileUser(ctx, uid);
             }
 
             let ex = await Store.Presence.findById(ctx, uid, tid);

@@ -7,6 +7,7 @@ import { MessagingRepository } from './MessagingRepository';
 import { loadMessagingTestModule } from '../Messaging.container.test';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
+import { UsersModule } from '../../openland-module-users/UsersModule';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
@@ -15,6 +16,7 @@ describe('CountersRepository', () => {
         // container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
         // container.bind('CountersRepository').to(CountersRepository).inSingletonScope();
         // container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+        container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
     });
     afterAll( async () => {
