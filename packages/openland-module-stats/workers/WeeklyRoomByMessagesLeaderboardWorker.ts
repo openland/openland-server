@@ -73,9 +73,49 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
                 }
             }
 
+            let roomMembersDelta = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog',
+                // scroll: '1m',
+                body: {
+                    query: {
+                        bool: {
+                            must: [{ term: { type: 'room-members-change' } }, {
+                                range: {
+                                    date: {
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
+                                    },
+                                },
+                            }, {
+                                bool: {
+                                    should: roomsWithDelta.map(e => ({ term: { ['body.rid']: e.room.id } }))
+                                }
+                            }],
+                        },
+                    },
+                    aggs: {
+                        byRid: {
+                            terms: {
+                                field: 'body.rid',
+                                size: 10000
+                            },
+                            aggs: {
+                                totalDelta: {
+                                    sum: {
+                                        field: 'body.delta'
+                                    }
+                                }
+                            }
+                        },
+                    },
+                },
+                size: 0,
+            });
+
+            let members = roomMembersDelta.aggregations.byRid.buckets.reduce((acc: Map<number, number>, a: any) => acc.set(a.key, a.totalDelta.value), new Map<number, number>());
+
             let message = [heading('👥  Weekly groups by messages'), '\n'];
             for (let { room, messages } of roomsWithDelta) {
-                message.push(boldString(`${formatNumberWithSign(messages)} · ${room.activeMembersCount}`), `  ${room.title}\n`);
+                message.push(boldString(`${formatNumberWithSign(messages)} · ${formatNumberWithSign(members.get(room.id) || 0)} · ${room.activeMembersCount}`), `  ${room.title}\n`);
             }
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
