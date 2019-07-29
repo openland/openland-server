@@ -59,7 +59,7 @@ export class StatsModule {
 
     getUnreadRoomByUserId = async (ctx: Context, uid: number) => {
         // const dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
-
+        const all = await Store.UserDialog.user.findAll(ctx, uid);
         const allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
         return allDialogs;
     }
