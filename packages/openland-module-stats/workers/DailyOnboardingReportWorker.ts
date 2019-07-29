@@ -10,8 +10,7 @@ const log = createLogger('daily-onboarding-report');
 
 export function createDailyOnboardingReportWorker() {
     let queue = new ScheduledQueue('daily-onboarding', {
-        interval: 'every-day',
-        time: { hours: 10, minutes: 0 },
+        interval: 'every-day', time: { hours: 10, minutes: 0 },
     });
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (parent) => {
@@ -23,13 +22,13 @@ export function createDailyOnboardingReportWorker() {
                     return { result: 'rejected' };
                 }
 
-                let startDate =  Date.now() - 24 * 60 * 60 * 1000;
+                let startDate = Date.now() - 24 * 60 * 60 * 1000;
                 let activationsData = await Modules.Search.elastic.client.search({
                     index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
                     body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'user_activated' } }, {
+                                must: [{ term: { type: 'user_activated' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
                                             gte: startDate,
@@ -37,65 +36,59 @@ export function createDailyOnboardingReportWorker() {
                                     },
                                 }],
                             },
-                        }
+                        },
                     }, size: 0,
                 });
                 let newUserEntrances = activationsData.hits.total;
 
                 const newMobileUsersQuery = await Modules.Search.elastic.client.search({
-                   index: 'hyperlog', type: 'hyperlog',
-                   body: {
-                       query: {
-                           bool: {
-                               must: [{ term: { type: 'new-mobile-user' } }, {
-                                   range: {
-                                       date: {
-                                           gte: startDate
-                                       }
-                                   }
-                               }]
-                           }
-                       }
-                   },
-                    size: 0
+                    index: 'hyperlog', type: 'hyperlog', body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-mobile-user' } }, { term: { ['body.isTest']: false } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate,
+                                        },
+                                    },
+                                }],
+                            },
+                        },
+                    }, size: 0,
                 });
                 const newMobileUsers = newMobileUsersQuery.hits.total;
 
                 const newSendersQuery = await Modules.Search.elastic.client.search({
-                    index: 'hyperlog', type: 'hyperlog',
-                    body: {
+                    index: 'hyperlog', type: 'hyperlog', body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'new-sender' } }, {
+                                must: [{ term: { type: 'new-sender' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
-                                            gte: startDate
-                                        }
-                                    }
-                                }]
-                            }
-                        }
-                    },
-                    size: 0
+                                            gte: startDate,
+                                        },
+                                    },
+                                }],
+                            },
+                        },
+                    }, size: 0,
                 });
                 const newSenders = newSendersQuery.hits.total;
 
                 const newInvitersQuery = await Modules.Search.elastic.client.search({
-                    index: 'hyperlog', type: 'hyperlog',
-                    body: {
+                    index: 'hyperlog', type: 'hyperlog', body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'new-inviter' } }, {
+                                must: [{ term: { type: 'new-inviter' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
-                                            gte: startDate
-                                        }
-                                    }
-                                }]
-                            }
-                        }
-                    },
-                    size: 0
+                                            gte: startDate,
+                                        },
+                                    },
+                                }],
+                            },
+                        },
+                    }, size: 0,
                 });
                 const newInviters = newInvitersQuery.hits.total;
 

@@ -29,7 +29,7 @@ export function createWeeklyOnboardingReportWorker() {
                     body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'user_activated' } }, {
+                                must: [{ term: { type: 'user_activated' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
                                             gte: startDate,
@@ -48,7 +48,7 @@ export function createWeeklyOnboardingReportWorker() {
                     body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'new-mobile-user' } }, {
+                                must: [{ term: { type: 'new-mobile-user' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
                                             gte: startDate
@@ -67,7 +67,7 @@ export function createWeeklyOnboardingReportWorker() {
                     body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'new-sender' } }, {
+                                must: [{ term: { type: 'new-sender' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
                                             gte: startDate
@@ -86,7 +86,7 @@ export function createWeeklyOnboardingReportWorker() {
                     body: {
                         query: {
                             bool: {
-                                must: [{ term: { type: 'new-inviter' } }, {
+                                must: [{ term: { type: 'new-inviter' } }, { term: { ['body.isTest']: false } }, {
                                     range: {
                                         date: {
                                             gte: startDate
