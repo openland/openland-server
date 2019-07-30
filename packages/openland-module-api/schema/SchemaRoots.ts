@@ -311,6 +311,11 @@ export namespace GQLRoots {
     export type ChatOnlineEventRoot = any;
 
     //
+    // Stats
+    //
+    export type TrendingRoomRoot = any;
+
+    //
     //  Debug
     //
     export type DebugEventRoot = DebugEvent;
