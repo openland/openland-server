@@ -12,6 +12,12 @@ import { Modules } from '../openland-modules/Modules';
 import { RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { resizeUcarecdnImage } from './utils';
+import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
+import { User } from '../openland-module-db/store';
+
+const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
+const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
+const newInvitersLog = createHyperlogger<{ uid: number, inviteeId: number, isTest: boolean }>('new-inviter');
 
 export interface UnreadGroups {
     unreadMessagesCount: number;
@@ -39,35 +45,30 @@ export class StatsModule {
         // no op
     }
 
-    onNewMobileUser = (ctx: Context) => {
-        Store.GlobalStatisticsCounters.byId('mobile-users').increment(ctx);
+    onNewMobileUser = async (ctx: Context, uid: number) => {
+        await newMobileUserLog.event(ctx,  { uid, isTest: await Modules.Users.isTest(ctx, uid) });
     }
 
     onMessageSent = async (ctx: Context, uid: number) => {
-        Store.GlobalStatisticsCounters.byId('messages').increment(ctx);
-        if ((await Store.UserMessagesSentCounter.get(ctx, uid)) === 1) {
-            Store.GlobalStatisticsCounters.byId('senders').increment(ctx);
+        if (await Store.UserMessagesSentCounter.get(ctx, uid) === 1) {
+            await newSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
         }
     }
 
     onRoomMessageSent = (ctx: Context, rid: number) => {
         Store.RoomMessagesCounter.byId(rid).increment(ctx);
     }
-
-    onNewEntrance = (ctx: Context) => {
-        Store.GlobalStatisticsCounters.byId('user-entrances').increment(ctx);
-    }
-
+    
     onEmailSent = (ctx: Context, uid: number) => {
         Store.UserEmailSentCounter.byId(uid).increment(ctx);
     }
 
-    onSuccessfulInvite = async (ctx: Context, newUserId: number, inviterId: number) => {
+    onSuccessfulInvite = async (ctx: Context, user: User) => {
         Store.GlobalStatisticsCounters.byId('successful-invites').increment(ctx);
 
-        let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(inviterId).get(ctx);
+        let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(user.invitedBy!).get(ctx);
         if (invitesCnt === 1) {
-            Store.GlobalStatisticsCounters.byId('inviters').increment(ctx);
+            await newInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
         }
     }
 

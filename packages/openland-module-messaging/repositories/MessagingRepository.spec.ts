@@ -5,6 +5,8 @@ import { UserStateRepository } from './UserStateRepository';
 import { createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { Store } from 'openland-module-db/FDB';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
+import { UsersModule } from '../../openland-module-users/UsersModule';
 
 describe('MessagingRepository', () => {
     beforeAll(async () => {
@@ -12,6 +14,8 @@ describe('MessagingRepository', () => {
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
         container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
+        container.bind(UsersModule).toSelf().inSingletonScope();
+        loadUsersModule();
     });
     afterAll( async () => {
       await  testEnvironmentEnd();

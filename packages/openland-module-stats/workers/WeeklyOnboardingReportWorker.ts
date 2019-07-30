@@ -3,7 +3,8 @@ import { Modules } from '../../openland-modules/Modules';
 import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
-import { getOnboardingReportsChatId, getSuperNotificationsBotId, getOnboardingCounters } from './utils';
+import { getOnboardingReportsChatId, getSuperNotificationsBotId } from './utils';
+import { inTx } from '@openland/foundationdb';
 
 const log = createLogger('weekly-onboarding-report');
 
@@ -13,57 +14,99 @@ export function createWeeklyOnboardingReportWorker() {
         time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
     });
     if (serverRoleEnabled('workers')) {
-        queue.addWorker(async (ctx) => {
-            const chatId = await getOnboardingReportsChatId(ctx);
-            const botId = await getSuperNotificationsBotId(ctx);
-            if (!chatId || !botId) {
-                log.warn(ctx, 'botId or chatId not specified');
-                return { result: 'rejected' };
-            }
+        queue.addWorker((parent) => {
+            return inTx(parent, async ctx => {
+                const chatId = await getOnboardingReportsChatId(ctx);
+                const botId = await getSuperNotificationsBotId(ctx);
+                if (!chatId || !botId) {
+                    log.warn(ctx, 'botId or chatId not specified');
+                    return { result: 'rejected' };
+                }
 
-            const currentStats = getOnboardingCounters();
-            const prevWeekStats = getOnboardingCounters('prev-week-onboarding');
-
-            let activationsData = await Modules.Search.elastic.client.search({
-                index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
-                body: {
-                    query: {
-                        bool: {
-                            must: [{ term: { type: 'user_activated' } }, {
-                                range: {
-                                    date: {
-                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
+                let startDate = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                let activationsData = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'user_activated' } }, { term: { ['body.isTest']: false } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate,
+                                        },
                                     },
-                                },
-                            }],
+                                }],
+                            },
                         },
+                    }, size: 0,
+                });
+
+                let newUserEntrances = activationsData.hits.total;
+
+                const newMobileUsersQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-mobile-user' } }, { term: { ['body.isTest']: false } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate
+                                        }
+                                    }
+                                }]
+                            }
+                        }
                     },
-                }, size: 0,
+                    size: 0
+                });
+                const newMobileUsers = newMobileUsersQuery.hits.total;
+
+                const newSendersQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-sender' } }, { term: { ['body.isTest']: false } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    },
+                    size: 0
+                });
+                const newSenders = newSendersQuery.hits.total;
+
+                const newInvitersQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog',
+                    body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-inviter' } }, { term: { ['body.isTest']: false } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    },
+                    size: 0
+                });
+                const newInviters = newInvitersQuery.hits.total;
+
+                const report = [heading(`Weekly   🐥 ${newUserEntrances}   📱 ${newMobileUsers}    ➡️ ${newSenders}    🙌 ${newInviters}`)];
+
+                await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
+                    ...buildMessage(...report), ignoreAugmentation: true,
+                });
+                return { result: 'completed' };
             });
-
-            let newUserEntrances = activationsData.hits.total;
-
-            const mobileUsers = await currentStats.mobileUsers.get(ctx);
-            const yesterdayMobileUsers = await prevWeekStats.mobileUsers.get(ctx);
-            const newMobileUsers = mobileUsers - yesterdayMobileUsers;
-            prevWeekStats.mobileUsers.set(ctx, mobileUsers);
-
-            const senders =  await currentStats.senders.get(ctx);
-            const yesterdaySenders = await prevWeekStats.senders.get(ctx);
-            const newSenders = senders - yesterdaySenders;
-            prevWeekStats.senders.set(ctx, senders);
-
-            const inviters = await currentStats.inviters.get(ctx);
-            const yesterdayInviters = await prevWeekStats.inviters.get(ctx);
-            const newInviters = inviters - yesterdayInviters;
-            prevWeekStats.inviters.set(ctx, inviters);
-
-            const report = [heading(`Weekly   🐥 ${newUserEntrances}   📱 ${newMobileUsers}    ➡️ ${newSenders}    🙌 ${newInviters}`)];
-
-            await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
-                ...buildMessage(...report), ignoreAugmentation: true,
-            });
-            return { result: 'completed' };
         });
     }
     return queue;

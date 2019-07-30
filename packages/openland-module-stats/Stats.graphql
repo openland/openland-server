@@ -1,0 +1,8 @@
+type TrendingRoom {
+    room: Room!
+    messagesDelta: Int!
+}
+
+extend type Query {
+    trendingRoomsByMessages(from: Date!, to: Date!, size: Int): [TrendingRoom!]!
+}

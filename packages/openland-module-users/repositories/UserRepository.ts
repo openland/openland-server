@@ -11,9 +11,10 @@ import { fetchNextDBSeq } from 'openland-utils/dbSeq';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { Store } from 'openland-module-db/FDB';
 import { UserBadge } from 'openland-module-db/store';
+import { Modules } from 'openland-modules/Modules';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
-const userActivated = createHyperlogger<{ uid: number }>('user_activated');
+const userActivated = createHyperlogger<{ uid: number, isTest: boolean }>('user_activated');
 const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_created');
 
 @injectable()
@@ -41,7 +42,7 @@ export class UserRepository {
                 status: 'pending',
                 invitedBy: null,
                 isSuperBot: null,
-                botOwner: null
+                botOwner: null,
             }));
             await res.flush(ctx);
             await userCreated.event(ctx, { uid: id });
@@ -60,7 +61,7 @@ export class UserRepository {
                 user.invitedBy = invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
-                await userActivated.event(ctx, { uid });
+                await userActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
                 return true;
             } else {
                 return false;
@@ -94,6 +95,10 @@ export class UserRepository {
         });
     }
 
+    async findUser(ctx: Context, uid: number) {
+        return Store.User.findById(ctx, uid);
+    }
+
     /*
      * Profile
      */
@@ -113,7 +118,7 @@ export class UserRepository {
             await validate(
                 stringNotEmpty('Please enter your first name'),
                 input.firstName,
-                'input.firstName'
+                'input.firstName',
             );
 
             // Create pfofile
@@ -131,7 +136,7 @@ export class UserRepository {
                 locations: null,
                 primaryOrganization: null,
                 primaryBadge: null,
-                role: null
+                role: null,
             });
             await profile.flush(ctx);
             await this.markForUndexing(ctx, uid);
@@ -149,7 +154,7 @@ export class UserRepository {
         await this.createUserProfile(ctx, user.id, {
             firstName: name,
             photoRef: photoRef,
-            email: 'hello@openland.com'
+            email: 'hello@openland.com',
         });
         await this.activateUser(ctx, user.id);
         return user.id;
@@ -182,7 +187,7 @@ export class UserRepository {
                     notificationsDelay: 'none',
                     commentNotifications: null,
                     commentNotificationsDelivery: null,
-                    globalCounterType: null
+                    globalCounterType: null,
                 });
             }
             return settings;
@@ -209,7 +214,7 @@ export class UserRepository {
                 await Store.UserProfilePrefil.create(ctx, uid, {
                     firstName: prefill.firstName ? prefill.firstName : null,
                     lastName: prefill.lastName ? prefill.lastName : null,
-                    picture: prefill.picture ? prefill.picture : null
+                    picture: prefill.picture ? prefill.picture : null,
                 });
             }
         });
@@ -363,7 +368,7 @@ export class UserRepository {
                 }
             } else {
                 await Store.UserRoomBadge.create(ctx, uid, cid, {
-                    bid: bid
+                    bid: bid,
                 });
             }
             return bid ? await Store.UserBadge.findById(ctx, bid) : null;

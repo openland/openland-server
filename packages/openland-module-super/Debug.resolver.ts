@@ -868,12 +868,17 @@ export default {
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
-                let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
-                for (let strategy of CounterStrategies) {
-                    strategy.counter().set(ctx, uid, 0);
-                }
-                for (let dialog of dialogs) {
-                    await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                try {
+                    let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+                    for (let strategy of CounterStrategies) {
+                        strategy.counter().set(ctx, uid, 0);
+                    }
+                    for (let dialog of dialogs) {
+                        await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                    }
+                } catch (e) {
+                    await log(e);
+                    logger.error(parent, 'debugCalcGlobalCountersForAllError', e);
                 }
             });
             return true;
@@ -969,7 +974,7 @@ export default {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
                 let start = Date.now();
                 for (let i = 0; i <= args.messagesCount; i++) {
-                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, { message: randKey() });
+                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, { message: i + ' ' + randKey() });
                 }
                 logger.log(ctx, 'debugFlood took', Date.now() - start);
                 return true;
