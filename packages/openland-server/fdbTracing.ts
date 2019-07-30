@@ -26,15 +26,15 @@ export function setupFdbTracing() {
 
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
-            logger.log(ctx, 'read');
+            logger.log(ctx, 'fdb_read');
             return handler();
         },
         set: (ctx, key, value, handler) => {
-            logger.log(ctx, 'write');
+            logger.log(ctx, 'fdb_write');
             return handler();
         },
         range: async (ctx, key, opts, handler) => {
-            logger.log(ctx, 'read');
+            logger.log(ctx, 'fdb_read');
             return handler();
         }
     });
