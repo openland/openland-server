@@ -117,7 +117,7 @@ export class CountersRepository {
                 // Update counters
                 if (delta !== 0) {
                     if (delta > 0) {
-                        logger.log(ctx, 'onMessageRead positive delta', delta, uid);
+                        logger.log(ctx, `onMessageRead positive delta, uid: ${uid}, delta: ${delta}, localUnread: ${localUnread}, remainingCount: ${remainingCount}, messageId: ${message.id}, readMessageId: ${prevReadMessageId}`);
                     }
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
