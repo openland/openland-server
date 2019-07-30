@@ -1,7 +1,7 @@
 import { testEnvironmentEnd, testEnvironmentStart, randomTestUser } from 'openland-modules/testEnvironment';
 import { StatsModule, UnreadGroups } from './StatsModule';
 import { container } from 'openland-modules/Modules.container';
-import { createNamedContext, Context } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { loadUsersModule } from 'openland-module-users/UsersModule.container';
 import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
