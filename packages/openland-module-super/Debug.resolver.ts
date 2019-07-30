@@ -868,12 +868,17 @@ export default {
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
-                let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
-                for (let strategy of CounterStrategies) {
-                    strategy.counter().set(ctx, uid, 0);
-                }
-                for (let dialog of dialogs) {
-                    await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                try {
+                    let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+                    for (let strategy of CounterStrategies) {
+                        strategy.counter().set(ctx, uid, 0);
+                    }
+                    for (let dialog of dialogs) {
+                        await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                    }
+                } catch (e) {
+                    await log(e);
+                    logger.error(parent, 'debugCalcGlobalCountersForAllError', e);
                 }
             });
             return true;
