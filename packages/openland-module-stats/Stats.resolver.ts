@@ -6,6 +6,7 @@ import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './workers/utils';
 import { boldString, buildMessage, heading, insaneString, MessagePart } from '../openland-utils/MessageBuilder';
+import { Organization } from '../openland-module-db/store';
 
 export default {
     Query: {
@@ -31,6 +32,7 @@ export default {
                 let haveMore = true;
                 let afterCursor: string | undefined = undefined;
                 let totalCount = 0;
+                let listedChatsCache = new Map<number, boolean>();
                 while (haveMore) {
                     await inTx(parent, async ctx => {
                         let batchResult = await Store.Message.updated.query(ctx, {
@@ -39,6 +41,23 @@ export default {
                         });
 
                         for (let message of batchResult.items) {
+                            if (!listedChatsCache.has(message.cid)) {
+                                let room = await Store.ConversationRoom.findById(ctx, message.cid);
+                                if (!room) {
+                                    continue;
+                                }
+
+                                let org: Organization | null = null;
+                                if (room.oid) {
+                                    org = (await Store.Organization.findById(ctx, room.oid!))!;
+                                }
+
+                                let isListed = room.kind === 'public' && org && org.kind === 'community' && !org.private;
+                                listedChatsCache.set(message.cid, !!isListed);
+                            }
+                            if (!listedChatsCache.get(message.cid)) {
+                                continue;
+                            }
                             if (message.reactions) {
                                 for (let reaction of message.reactions) {
                                     likesGivenByUsers.set(reaction.userId, (likesGivenByUsers.get(reaction.userId) || 0) + 1);
