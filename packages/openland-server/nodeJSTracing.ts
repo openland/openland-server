@@ -8,14 +8,14 @@ const log = createLogger('event_loop_lag');
 
 function hrTime() {
     let t = process.hrtime();
-    return (t[0] * 1e3) + (t[1] / 1e6);
+    return (t[0] * 1e9) + t[1];
 }
 
 function measureEventLoopLag(): Promise<number> {
     return new Promise(resolve => {
         let start = hrTime();
         setTimeout(() => {
-            resolve((hrTime() - start) * 1000000);
+            resolve(hrTime() - start);
         }, 0);
     });
 }
