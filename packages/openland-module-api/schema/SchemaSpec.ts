@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f58762c71ff89a33e27a16c1800f7c3f';
+export const GQL_SPEC_VERSION = '43a95044a92d123903ecf43ef5c5abf2';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1057,6 +1057,7 @@ export namespace GQL {
         betaNextDiscoverPageOrChats: Nullable<DiscoverPage>;
         betaSaveSelectedTags: Nullable<DiscoverPage>;
         betaSubmitNextDiscover: Nullable<DiscoverPage>;
+        createHistoricUserMetricsReport: boolean;
         typingSend: string;
         typingCancel: string;
         alphaSetTyping: string;

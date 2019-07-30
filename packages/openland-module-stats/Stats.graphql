@@ -6,3 +6,7 @@ type TrendingRoom {
 extend type Query {
     trendingRoomsByMessages(from: Date!, to: Date!, size: Int): [TrendingRoom!]!
 }
+
+extend type Mutation {
+    createHistoricUserMetricsReport: Boolean!
+}

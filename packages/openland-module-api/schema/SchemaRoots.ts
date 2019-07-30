@@ -1,5 +1,10 @@
 import {
-    EnvironmentVariable, Presence, AuthToken, FeatureFlag, User, UserProfile,
+    EnvironmentVariable,
+    Presence,
+    AuthToken,
+    FeatureFlag,
+    User,
+    UserProfile,
     Organization,
     FeedEvent,
     UserStorageRecord,
@@ -20,7 +25,9 @@ import {
     CommentsSubscription,
     CommentEventGlobal,
     Message,
-    Comment, ConferencePeer, ConferenceRoom
+    Comment,
+    ConferencePeer,
+    ConferenceRoom, RoomProfile,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -313,7 +320,7 @@ export namespace GQLRoots {
     //
     // Stats
     //
-    export type TrendingRoomRoot = any;
+    export type TrendingRoomRoot = { room: RoomProfile, messagesDelta: number };
 
     //
     //  Debug
