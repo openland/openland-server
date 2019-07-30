@@ -20,7 +20,7 @@ describe('CountersRepository', () => {
     afterAll( async () => {
       await  testEnvironmentEnd();
     });
-    fit('should increment counter and decrement', async () => {
+    it('should increment counter and decrement', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');

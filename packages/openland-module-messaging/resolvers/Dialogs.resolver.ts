@@ -78,7 +78,7 @@ export default {
         isMuted: async (src: UserDialog, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
         haveMention: async (src: UserDialog, _, ctx) => {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
-        }
+        },
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {
@@ -87,13 +87,13 @@ export default {
             }
 
             let allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
-            allDialogs = allDialogs.filter(a => !!a.date);
+            allDialogs = allDialogs.filter((a) => !!a.date);
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
 
             if (args.after) {
                 let dc = encoders.tuple.unpack(Buffer.from(args.after, 'hex'));
                 let aft = dc[0] as number;
-                allDialogs = allDialogs.filter(v => v.date! <= aft);
+                allDialogs = allDialogs.filter((v) => v.date! <= aft);
             }
 
             if (allDialogs.length <= args.first) {
@@ -114,12 +114,9 @@ export default {
         alphaChats: withUser(async (ctx, args, uid) => {
             let global = await Store.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
-            let conversations = await Store.UserDialog.user.query(ctx, uid, {
-                limit: args.first,
-                afterCursor: args.after ? args.after : undefined,
-                reverse: true
-            });
-            let res = await Promise.all(conversations.items.map(v => Store.Conversation.findById(ctx, v.cid)));
+            let conversations = await Store.UserDialog
+                .user.query(ctx, uid, { limit: args.first, afterCursor: args.after ? args.after : undefined, reverse: true });
+            let res = await Promise.all(conversations.items.map((v) => Store.Conversation.findById(ctx, v.cid)));
             let index = 0;
             for (let r of res) {
                 if (!r) {
@@ -127,14 +124,12 @@ export default {
                 }
                 index++;
             }
-
-            // res!.map(a =>)
             return {
                 conversations: res,
                 seq: seq,
                 next: conversations.haveMore ? conversations.cursor : undefined,
                 counter: uid
             };
-        })
+        }),
     }
 } as GQLResolver;

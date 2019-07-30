@@ -10,6 +10,20 @@ import { createWeeklyRoomLeaderboardWorker } from './workers/WeeklyRoomLeaderboa
 import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoomByMessagesLeaderboardWorker';
 import { Modules } from '../openland-modules/Modules';
 import { RoomProfile } from '../openland-module-db/store';
+import { IDs } from 'openland-module-api/IDs';
+import { resizeUcarecdnImage } from './utils';
+
+export interface UnreadGroups {
+    unreadMessagesCount: number;
+    unreadMoreGroupsCount: number;
+    groups: {
+        previewLink: string;
+        previewImage: string;
+        firstTitleChar: string;
+        title: string;
+        unreadCount: number;
+    }[];
+}
 
 @injectable()
 export class StatsModule {
@@ -57,11 +71,50 @@ export class StatsModule {
         }
     }
 
-    getUnreadRoomByUserId = async (ctx: Context, uid: number) => {
-        // const dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
-        const all = await Store.UserDialog.user.findAll(ctx, uid);
-        const allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
-        return allDialogs;
+    getUnreadGroupsByUserId = async (ctx: Context, uid: number, first: number): Promise<UnreadGroups> => {
+        const dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+        const unreadMessagesCount = await Store.UserCounter.byId(uid).get(ctx);
+        const withUnreadCount = await Promise.all(
+            dialogs.map(async dialog => {
+                const unreadCount = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
+                const roomProfile = await Store.RoomProfile.findById(ctx, dialog.cid);
+
+                if (!roomProfile) {
+                    return null;
+                }
+
+                const serializedId = IDs.Conversation.serialize(dialog.cid);
+
+                const croppedX2PreviewImage =
+                    roomProfile.socialImage && resizeUcarecdnImage(roomProfile.socialImage, { height: 80, width: 80 });
+
+                // TODO: map photo to absent photo by hash (likewise on client)
+
+                return {
+                    previewLink: `https://openland.com/mail/${serializedId}`,
+                    previewImage: croppedX2PreviewImage ? croppedX2PreviewImage : 'https://i.imgur.com/Y1SwoOJ.png',
+                    // if no preview image, used as indicator of group by first char of title
+                    firstTitleChar: roomProfile.title ? roomProfile.title[0].toUpperCase() : '',
+                    title: roomProfile.title,
+                    unreadCount,
+                };
+            }),
+        );
+
+        // DESC
+        const sortedByUnreadCount = withUnreadCount
+            .filter(u => u && u.unreadCount > 0)
+            .sort((a, b) => b!.unreadCount - a!.unreadCount) as NonNullable<typeof withUnreadCount[0]>[];
+
+        const firstN = sortedByUnreadCount.slice(0, first);
+
+        const unreadMoreGroupsCount = Math.max(sortedByUnreadCount.length - firstN.length, 0);
+
+        return {
+            unreadMessagesCount,
+            unreadMoreGroupsCount,
+            groups: firstN,
+        };
     }
 
     getTrendingRoomsByMessages = async (ctx: Context, from: number, to: number, size?: number) => {
@@ -78,30 +131,31 @@ export class StatsModule {
                                 range: {
                                     createdAt: {
                                         gte: from,
-                                        lte: to
-                                    }
-                                }
-                            }
-                        ]
-                    }
+                                        lte: to,
+                                    },
+                                },
+                            },
+                        ],
+                    },
                 },
                 aggs: {
                     byCid: {
                         terms: {
                             field: 'cid',
                             size: Math.pow(10, 9),
-                            order: { _count: 'desc' }
-                        }
-                    }
-                }
+                            order: { _count: 'desc' },
+                        },
+                    },
+                },
             },
-            size: 0
+            size: 0,
         });
 
         let roomsWithDelta: { room: RoomProfile; messagesDelta: number }[] = [];
         for (let bucket of searchReq.aggregations.byCid.buckets) {
             let rid = bucket.key;
             let room = await Store.RoomProfile.findById(ctx, rid);
+
             let conv = await Store.ConversationRoom.findById(ctx, rid);
 
             if (!room || !conv || !conv.oid) {
@@ -116,7 +170,7 @@ export class StatsModule {
 
             roomsWithDelta.push({
                 room: room,
-                messagesDelta: bucket.doc_count
+                messagesDelta: bucket.doc_count,
             });
             if (roomsWithDelta.length === size) {
                 break;

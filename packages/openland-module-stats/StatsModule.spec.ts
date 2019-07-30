@@ -1,23 +1,17 @@
 import { testEnvironmentEnd, testEnvironmentStart, randomTestUser } from 'openland-modules/testEnvironment';
-import { StatsModule } from './StatsModule';
+import { StatsModule, UnreadGroups } from './StatsModule';
 import { container } from 'openland-modules/Modules.container';
-import { createNamedContext } from '@openland/context';
+import { createNamedContext, Context } from '@openland/context';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { loadUsersModule } from 'openland-module-users/UsersModule.container';
-import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
 import { Modules } from 'openland-modules/Modules';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
-import { Message } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
-import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { MessagingMediator } from 'openland-module-messaging/mediators/MessagingMediator';
-import { inTx } from '@openland/foundationdb';
-import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
-import { DeliveryMediator } from 'openland-module-messaging/mediators/DeliveryMediator';
 import { DeliveryRepository } from 'openland-module-messaging/repositories/DeliveryRepository';
 import { CountersMediator } from 'openland-module-messaging/mediators/CountersMediator';
 
@@ -58,58 +52,72 @@ afterAll(async () => {
 });
 
 describe('StatsModule', () => {
-    it('should return list of unread rooms', async () => {
+    fit('should return list of unread dialogs', async () => {
         const ctx = createNamedContext('test');
 
         const statsModule = container.get<StatsModule>(StatsModule);
-        const urepo = container.get<UserStateRepository>('UserStateRepository');
-        const ustate = container.get<UserStateRepository>('UserStateRepository');
+        // const ustate = container.get<UserStateRepository>('UserStateRepository');
 
         const deliveryRepo = container.get<DeliveryRepository>('DeliveryRepository');
         const countersMediator = container.get<CountersMediator>('CountersMediator');
 
-        const roomMediator = container.get<RoomMediator>('RoomMediator');
+        // const roomMediator = container.get<RoomMediator>('RoomMediator');
+        const roomRepo = container.get<RoomRepository>('RoomRepository');
         const messagingMediator = container.get<MessagingMediator>('MessagingMediator');
-        const users = container.get<UsersModule>(UsersModule);
+        // const users = container.get<UsersModule>(UsersModule);
+
         const USER1_ID = (await randomTestUser(ctx)).uid;
         const USER2_ID = (await randomTestUser(ctx)).uid;
-        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
+
         const oid = (await Modules.Orgs.createOrganization(ctx, USER1_ID, { name: '1' })).id;
 
-        const CHAT1_ID = (await roomMediator.createRoom(ctx, 'group', oid, USER1_ID, [], { title: 'Room' })).id;
-        await roomMediator.inviteToRoom(ctx, CHAT1_ID, USER1_ID, [USER2_ID]);
+        const CHAT1_ID = (await roomRepo.createRoom(ctx, 'public', oid, USER1_ID, [], { title: 'Room 321' })).id;
+        const CHAT2_ID = (await roomRepo.createRoom(ctx, 'public', oid, USER1_ID, [], { title: 'Room ff' })).id;
 
-        const members = await Store.RoomParticipant.active.findAll(ctx, CHAT1_ID);
+        await roomRepo.addToRoom(ctx, CHAT1_ID, USER2_ID, USER1_ID);
+        await roomRepo.addToRoom(ctx, CHAT2_ID, USER2_ID, USER1_ID);
 
-        expect(members.length).toBe(2);
+        const membersChat1 = await Store.RoomParticipant.active.findAll(ctx, CHAT1_ID);
+        expect(membersChat1.length).toBe(2);
 
-        const local1 = await ustate.getUserDialogState(ctx, USER1_ID, CHAT1_ID);
-        const local2 = await ustate.getUserDialogState(ctx, USER2_ID, CHAT1_ID);
+        const membersChat2 = await Store.RoomParticipant.active.findAll(ctx, CHAT2_ID);
+        expect(membersChat2.length).toBe(2);
 
-        const dialogs1 = await Store.UserDialog.user.findAll(ctx, USER2_ID);
+        const msgsByUser1ToChat1 = Array(3)
+            .fill(0)
+            .map((_, msg) => ({ message: `${msg}`, uid: USER1_ID, cid: CHAT1_ID }));
 
-        const mid1 = await messagingMediator.sendMessage(ctx, USER1_ID, CHAT1_ID, { message: 'test' });
-        const mid2 = await messagingMediator.sendMessage(ctx, USER1_ID, CHAT1_ID, { message: 'test 2' });
+        const msgsByUser2ToChat1 = Array(2)
+            .fill(0)
+            .map((_, msg) => ({ message: `${msg}`, uid: USER2_ID, cid: CHAT1_ID }));
 
-        const mid3 = await messagingMediator.sendMessage(ctx, USER2_ID, CHAT1_ID, { message: 'test 3' });
-        const mid4 = await messagingMediator.sendMessage(ctx, USER2_ID, CHAT1_ID, { message: 'test 4' });
+        const msgsByUser1ToChat2 = Array(5)
+            .fill(0)
+            .map((_, msg) => ({ message: `${msg}`, uid: USER1_ID, cid: CHAT2_ID }));
 
-        const ctx2 = createNamedContext('test-2');
+        const msgsByUser2ToChat2 = Array(7)
+            .fill(0)
+            .map((_, msg) => ({ message: `${msg}`, uid: USER2_ID, cid: CHAT2_ID }));
 
-        const messages = await Promise.all([mid1, mid2, mid3, mid4].map(mid => Store.Message.findById(ctx2, mid.mid!)));
+        const mids = await Promise.all(
+            [...msgsByUser1ToChat1, ...msgsByUser2ToChat1, ...msgsByUser1ToChat2, ...msgsByUser2ToChat2].map(msg =>
+                messagingMediator.sendMessage(ctx, msg.uid, msg.cid, { message: msg.message })
+            )
+        );
 
-        const __delivered = await Promise.all(
-            messages.map(async m => {
-                const message = (await Store.Message.findById(ctx2, m!.id))!;
-                const members = await roomMediator.findConversationMembers(ctx2, message.cid);
+        const messagesIds = mids.map(a => a.mid!);
 
-                console.log({ message: message.text });
-                console.log({ members });
+        // delivery
+        await Promise.all(
+            messagesIds.map(async mid => {
+                const message = (await Store.Message.findById(ctx, mid))!;
+                const members = await roomRepo.findConversationMembers(ctx, message.cid);
 
                 return Promise.all(
                     members.map(async uid => {
-                        await countersMediator.onMessageReceived(ctx2, uid, m!);
-                        await deliveryRepo.deliverMessageToUser(ctx2, uid, m!);
+                        await countersMediator.onMessageReceived(ctx, uid, message);
+                        await deliveryRepo.deliverMessageToUser(ctx, uid, message);
+                        await Modules.Metrics.onMessageReceived(ctx, message, uid);
 
                         return;
                     })
@@ -117,24 +125,44 @@ describe('StatsModule', () => {
             })
         );
 
-        const ctx3 = createNamedContext('test-3');
+        const unreadByUser1 = await statsModule.getUnreadGroupsByUserId(ctx, USER1_ID, 4);
+        const unreadByUser2 = await statsModule.getUnreadGroupsByUserId(ctx, USER2_ID, 1);
 
-        const local3 = await ustate.getUserDialogState(ctx3, USER1_ID, CHAT1_ID);
-        const local4 = await ustate.getUserDialogState(ctx3, USER2_ID, CHAT1_ID);
+        console.dir(JSON.stringify({ unreadByUser1, unreadByUser2 }, null, 2));
 
-        const dialogs2 = await Store.UserDialog.user.findAll(ctx3, USER2_ID);
-        const dialogs3 = await Store.UserDialog.user.findAll(ctx3, USER1_ID);
+        expect(unreadByUser1).toEqual({
+            unreadMessagesCount: 9,
+            unreadMoreGroupsCount: 0,
+            groups: [
+                {
+                    previewLink: expect.stringContaining('openland'),
+                    previewImage: expect.stringContaining('https'),
+                    firstTitleChar: 'R',
+                    title: 'Room ff',
+                    unreadCount: 7
+                },
+                {
+                    previewLink: expect.stringContaining('openland'),
+                    previewImage: expect.stringContaining('https'),
+                    firstTitleChar: 'R',
+                    title: 'Room 321',
+                    unreadCount: 2
+                }
+            ]
+        } as UnreadGroups);
 
-        // why dialog3 and dialogs2 are empty?
-
-        console.log({ dialogs2: dialogs2.map(a => a.unread), dialogs3: dialogs3.map(a => a.unread) });
-
-        // why unread: 0 ?
-        // @ts-ignore
-        console.log({ local4: local4._rawValue });
-
-        // why unread: 0 ?
-        // @ts-ignore
-        console.log({ local3: local3._rawValue });
+        expect(unreadByUser2).toEqual({
+            unreadMessagesCount: 8,
+            unreadMoreGroupsCount: 1,
+            groups: [
+                {
+                    previewLink: expect.stringContaining('openland'),
+                    previewImage: expect.stringContaining('https'),
+                    firstTitleChar: 'R',
+                    title: 'Room ff',
+                    unreadCount: 5
+                }
+            ]
+        } as UnreadGroups);
     });
 });
