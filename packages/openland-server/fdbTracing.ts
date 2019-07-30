@@ -1,4 +1,4 @@
-import { setSubspaceTracer, setTransactionTracer } from '@openland/foundationdb/lib/tracing';
+import { setTransactionTracer } from '@openland/foundationdb/lib/tracing';
 import { createLogger, LogPathContext } from '@openland/log';
 import { createTracer } from '../openland-log/createTracer';
 import { Context, ContextName } from '@openland/context';
@@ -24,20 +24,11 @@ export function setupFdbTracing() {
         onRetry: (ctx) => logger.log(ctx, 'retry tx'),
     });
 
-    setSubspaceTracer({
-        get: async (ctx, key, handler) => {
-            logger.log(ctx, 'fdb_read');
-            return handler();
-        },
-        set: (ctx, key, value, handler) => {
-            logger.log(ctx, 'fdb_write');
-            return handler();
-        },
-        range: async (ctx, key, opts, handler) => {
-            logger.log(ctx, 'fdb_read');
-            return handler();
-        }
-    });
+    // setSubspaceTracer({
+    //     get: async (ctx, key, handler) => await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
+    //     set: (ctx, key, value, handler) => tracer.traceSync(ctx, 'setKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
+    //     range: async (ctx, key, opts, handler) => await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } })
+    // });
 
     setEntityFactoryTracer({
         findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => await tracer.trace(ctx,  entityDescriptor.name + '.findFromUniqueIndex', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
