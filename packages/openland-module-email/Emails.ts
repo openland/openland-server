@@ -444,15 +444,29 @@ export const Emails = {
     },
 
     async sendWeeklyDigestEmail(ctx: Context, uid: number) {
-        const user = await loadUserState(ctx, uid);
+        // const user = await loadUserState(ctx, uid);
         const unreadGroups = await Modules.Stats.getUnreadGroupsByUserId(ctx, uid, DIGEST_FIRST_UNREAD_GROUPS);
 
-        const unreadGroupsSplitedByRows = splitEvery(2, unreadGroups.groups);
+        const moreChats = unreadGroups.unreadMoreGroupsCount > 0 ? [{
+            color: '',
+            firstTitleChar: '',
+            previewImage: 'https://cdn.openland.com/shared/email/discovery_new_messages@2x.png',
+            previewLink: 'http://openland.com/mail/',
+            serializedId: '',
+            subTitle: '',
+            title: `+${unreadGroups.unreadMoreGroupsCount} chats`
+        } as FormatedUnreadGroup] : [];
+
+        const unreadGroupsSplitedByRows = splitEvery(2, [...unreadGroups.groups, ...moreChats]);
         const unreadMessages: FormatedUnreadGroups = {
             unreadMessagesCount: unreadGroups.unreadMessagesCount,
             unreadMoreGroupsCount: unreadGroups.unreadMoreGroupsCount,
             rows: unreadGroupsSplitedByRows.map(row => ({
                 items: row.map(item => {
+                    if (item.previewImage.includes('discovery_new_messages')) {
+                        return item as FormatedUnreadGroup;
+                    }
+
                     const previewImage = item.previewImage ? resizeUcarecdnImage(item.previewImage, { height: 80, width: 80 }) : '';
                     const color = getAvatarColorById(item.serializedId);
                     const formated: FormatedUnreadGroup = {
@@ -501,15 +515,17 @@ export const Emails = {
             trendingGroups
         };
 
-        await Modules.Email.enqueueEmail(ctx, {
-            subject: 'Weekly digest',
-            templateId: TEMPLATE_WEEKLY_DIGEST,
-            to: user.email,
+        // console.dir(JSON.stringify({ args }, null, 2));
 
-            // @ts-ignore
-            // TODO: allow nested properties
-            args
-        });
+        // await Modules.Email.enqueueEmail(ctx, {
+        //     subject: 'Weekly digest',
+        //     templateId: TEMPLATE_WEEKLY_DIGEST,
+        //     to: user.email,
+
+        //     // @ts-ignore
+        //     // TODO: allow nested properties
+        //     args
+        // });
 
     }
 };

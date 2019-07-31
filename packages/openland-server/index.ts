@@ -26,7 +26,7 @@ import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { setupFdbTracing } from './fdbTracing';
 import { setupNodeJSTracing } from './nodeJSTracing';
-import { smartSlice } from '../openland-utils/string';
+
 const logger = createLogger('startup');
 
 async function initServer() {
