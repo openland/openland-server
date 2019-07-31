@@ -5,6 +5,9 @@ import { Comment, Message } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
+import { splitEvery } from 'openland-utils/splitEvery';
+import { FormatedUnreadGroups, FormatedUnreadGroup, FormatedTrendGroups, FormatedTrendGroup } from 'openland-module-stats/StatsModule.types';
+import { WeeklyDigestEmailArgs, DIGEST_FIRST_UNREAD_GROUPS, DIGEST_FIRST_TREND_GROUPS } from './Emails.types';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 export const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -22,6 +25,7 @@ export const TEMPLATE_PRIVATE_ROOM_INVITE = 'e988e7dd-ad37-4adc-9de9-cd55e012720
 export const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c213b';
 export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
 export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
+export const TEMPLATE_WEEKLT_DIGEST = '1-2-3-4';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await Store.User.findById(ctx, uid);
@@ -289,7 +293,7 @@ export const Emails = {
             if (uid) {
                 members = [uid];
             } else {
-                members  = (await Modules.Orgs.findOrganizationMembers(ctx, oid)).map(m => m.id);
+                members = (await Modules.Orgs.findOrganizationMembers(ctx, oid)).map(m => m.id);
             }
 
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
@@ -438,6 +442,76 @@ export const Emails = {
             });
         }
     },
+
+    async sendWeeklyDigestEmail(ctx: Context, uid: number) {
+        const user = await loadUserState(ctx, uid);
+        const unreadGroups = await Modules.Stats.getUnreadGroupsByUserId(ctx, uid, DIGEST_FIRST_UNREAD_GROUPS);
+
+        const unreadGroupsSplitedByRows = splitEvery(2, unreadGroups.groups);
+        const unreadMessages: FormatedUnreadGroups = {
+            unreadMessagesCount: unreadGroups.unreadMessagesCount,
+            unreadMoreGroupsCount: unreadGroups.unreadMoreGroupsCount,
+            rows: unreadGroupsSplitedByRows.map(row => ({
+                items: row.map(item => {
+                    const previewImage = item.previewImage ? resizeUcarecdnImage(item.previewImage, { height: 80, width: 80 }) : '';
+                    const color = getAvatarColorById(item.serializedId);
+                    const formated: FormatedUnreadGroup = {
+                        ...item,
+                        subTitle: `${item.unreadCount} new messages`,
+                        firstTitleChar: item.title ? item.title[0].toUpperCase() : '',
+                        // if image is empty, color is used
+                        previewImage,
+                        color,
+                        previewLink: `https://openland.com/mail/${item.serializedId}`,
+                    };
+                    return formated;
+                })
+            })),
+        };
+        // TODO: is allowed to count once a day, not only week?
+        const ONE_WEEK_BEFORE = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        const trendingGroupsFlat = await Modules.Stats.getTrendingGroupsByMessages(ctx, ONE_WEEK_BEFORE, now, DIGEST_FIRST_TREND_GROUPS);
+        const trendingGroupsSplitedByRows = splitEvery(2, trendingGroupsFlat.groups);
+
+        const trendingGroups: FormatedTrendGroups = {
+            rows: trendingGroupsSplitedByRows.map(row => ({
+                items: row.map(item => {
+                    const previewImage = item.previewImage ? resizeUcarecdnImage(item.previewImage, { height: 80, width: 80 }) : '';
+                    const color = getAvatarColorById(item.serializedId);
+                    const formated: FormatedTrendGroup = {
+                        ...item,
+                        subTitle: `${item.membersCount} members`,
+                        firstTitleChar: item.title ? item.title[0].toUpperCase() : '',
+                        // if image is empty, color is used
+                        previewImage,
+                        color,
+                        previewLink: `https://openland.com/mail/${item.serializedId}`,
+                    };
+                    return formated;
+                })
+            })),
+        };
+
+        // there's can't be unread messages, but trending groups always should be presented
+
+        const args: WeeklyDigestEmailArgs = {
+            unreadMessages,
+            trendingGroups
+        };
+
+        await Modules.Email.enqueueEmail(ctx, {
+            subject: 'Weekly digest',
+            templateId: TEMPLATE_WEEKLT_DIGEST,
+            to: user.email,
+
+            // @ts-ignore
+            // TODO: allow nested properties
+            args
+        });
+
+    }
 };
 
 const AvatarColorsArr = [
@@ -459,6 +533,10 @@ function doSimpleHash(key: string): number {
     return Math.abs(h);
 }
 
+function getAvatarColorById(id: string) {
+    return AvatarColorsArr[Math.abs(doSimpleHash(id) % AvatarColorsArr.length)];
+}
+
 async function genAvatar(ctx: Context, uid: number) {
     let profile = await Modules.Users.profileById(ctx, uid);
     if (profile!.picture) {
@@ -466,7 +544,14 @@ async function genAvatar(ctx: Context, uid: number) {
         return `<img style="display: inline-block; vertical-align: top; width: 26px; height: 26px; margin-top: 6px; border-radius: 13px; margin-right: 6px;" src="${url}" />`;
     } else {
         let name = profile!.firstName[0] + (profile!.lastName ? profile!.lastName![0] : '');
-        let color = AvatarColorsArr[Math.abs(doSimpleHash(IDs.User.serialize(uid))) % AvatarColorsArr.length];
+        let serializedId = IDs.User.serialize(uid);
+        let color = getAvatarColorById(serializedId);
         return `<span style="display: inline-block; vertical-align: top; width: 26px; height: 26px; margin-top: 6px; border-radius: 13px; margin-right: 6px; background-image: ${color}; color: #ffffff; text-align: center; font-size: 11px; font-weight: 600; line-height: 26px;">${name}</span>`;
     }
+}
+
+function resizeUcarecdnImage(imageStr: string, newSize: { width: number; height: number }) {
+    // ["https:", "", "ucarecdn.com", "25629a3c-1ebe-4d49-8560-9df3b92ade3a", "-", "resize", "80x80", ""]
+    const [, , , ucareImageID] = imageStr.split('/');
+    return `https://ucarecdn.com/${ucareImageID}/-/resize/${newSize.width}x${newSize.height}/`;
 }
