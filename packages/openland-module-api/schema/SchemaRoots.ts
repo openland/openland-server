@@ -27,7 +27,7 @@ import {
     Message,
     Comment,
     ConferencePeer,
-    ConferenceRoom, RoomProfile,
+    ConferenceRoom, RoomProfile, RichMessage,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -60,6 +60,8 @@ export namespace GQLRoots {
     export type SubscriptionRoot = any;
 
     export type FeedItemRoot = FeedEvent;
+    export type FeedItemContentRoot = RichMessage;
+    export type FeedPostRoot = RichMessage;
 
     //
     // Calls
@@ -221,8 +223,8 @@ export namespace GQLRoots {
     //
 
     export type MessageRoot = Message | number;
-    export type ModernMessageRoot = Message | Comment;
-    export type GeneralMessageRoot = Message | Comment;
+    export type ModernMessageRoot = Message | Comment | RichMessage;
+    export type GeneralMessageRoot = Message | Comment | RichMessage;
     export type ServiceMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
     export type MessageKeyboardRoot = { buttons: MessageButton & { id: string } };

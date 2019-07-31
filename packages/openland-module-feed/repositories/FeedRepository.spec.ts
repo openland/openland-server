@@ -47,7 +47,7 @@ describe('FeedRepository', () => {
         for (let s of subs) {
             expect(s).not.toBe(t.id);
         }
-        await repo.subsctibe(createNamedContext('test'), 'sub-key-1', 'test-topic-8');
+        await repo.subscribe(createNamedContext('test'), 'sub-key-1', 'test-topic-8');
         subs = await repo.findSubscriptions(createNamedContext('test'), 'sub-key-1');
         let exists = false;
         for (let s of subs) {

@@ -1,7 +1,15 @@
+union FeedItemContent = FeedPost
+
+type FeedPost {
+    message: GeneralMessage
+}
+
 type FeedItem {
     id: ID!
-    text: String!
     date: Date!
+    content: FeedItemContent
+    # deprecated
+    text: String!
     alphaBy: User!
 }
 
@@ -11,4 +19,5 @@ extend type Query {
 
 extend type Mutation {
     alphaCreateFeedPost(message: String!): FeedItem!
+    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
 }

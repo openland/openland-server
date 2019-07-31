@@ -1,12 +1,23 @@
-import { inTx } from '@openland/foundationdb';
+import { getTransaction, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { JsonMap } from 'openland-utils/json';
 import { Store } from 'openland-module-db/FDB';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import {
+    RichMessageInput,
+    RichMessageRepository
+} from '../../openland-module-rich-message/repositories/RichMessageRepository';
+import { EventBus } from '../../openland-module-pubsub/EventBus';
 
 @injectable()
 export class FeedRepository {
+    @lazyInject('RichMessageRepository')
+    private readonly richMessageRepo!: RichMessageRepository;
 
+    //
+    // Topics
+    //
     async resolveSubscriber(parent: Context, key: string) {
         return await inTx(parent, async (ctx) => {
             let res = await Store.FeedSubscriber.key.find(ctx, key);
@@ -21,7 +32,7 @@ export class FeedRepository {
             res = await Store.FeedSubscriber.create(ctx, id, { key });
 
             // Subscribe for own topic
-            await this.subsctibe(parent, key, key);
+            await this.subscribe(parent, key, key);
             
             return res;
         });
@@ -56,7 +67,7 @@ export class FeedRepository {
         });
     }
 
-    async subsctibe(parent: Context, subscriber: string, topic: string) {
+    async subscribe(parent: Context, subscriber: string, topic: string) {
         await inTx(parent, async (ctx) => {
             let t = await this.resolveTopic(ctx, topic);
             let s = await this.resolveSubscriber(ctx, subscriber);
@@ -84,6 +95,27 @@ export class FeedRepository {
         return await inTx(parent, async (ctx) => {
             let s = await this.resolveSubscriber(ctx, subscriber);
             return (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
+        });
+    }
+
+    //
+    //  Posts
+    //
+    async createPost(parent: Context, uid: number, topic: string, input: RichMessageInput) {
+        return inTx(parent, async ctx => {
+            //
+            // Create message
+            //
+            let message = await this.richMessageRepo.createRichMessage(ctx, uid, input);
+
+            //
+            // Create feed item
+            //
+            let event = await this.createEvent(ctx, topic, 'post', { richMessageId: message.id });
+
+            getTransaction(ctx).afterCommit(() => {
+                EventBus.publish('new_post', { id: event.id, tid: event.tid });
+            });
         });
     }
 }
