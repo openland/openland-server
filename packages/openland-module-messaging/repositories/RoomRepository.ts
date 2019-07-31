@@ -17,6 +17,7 @@ import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+import { smartSlice } from '../../openland-utils/string';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -311,7 +312,7 @@ export class RoomRepository {
                         text = parts[0];
                     }
                     if (text.length > 20) {
-                        messageContent = [...text].slice(0, 20).join('') + '...';
+                        messageContent = smartSlice(text, 0, 20) + '...';
                     } else {
                         messageContent = text + (isMultiline ? '...' : '');
                     }
