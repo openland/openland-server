@@ -13,6 +13,7 @@ enum DebugEmailType {
     PUBLIC_ROOM_INVITE
     PRIVATE_ROOM_INVITE
     ROOM_INVITE_ACCEPTED
+    WEEKLY_DIGEST
 }
 
 type DebugID {
