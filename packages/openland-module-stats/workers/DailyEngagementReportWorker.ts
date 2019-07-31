@@ -68,8 +68,34 @@ export function createDailyEngagementReportWorker() {
             });
 
             let senders = sendersData.aggregations.senders.value;
+
+            let newAboutFillersData = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
+                body: {
+                    query: {
+                        bool: {
+                            must: [{ term: { type: 'new-about-filler' } }, {
+                                range: {
+                                    date: {
+                                        gte: Date.now() - 24 * 60 * 60 * 1000,
+                                    },
+                                },
+                            }],
+                        },
+                    }, aggs: {
+                        usersCount: {
+                            cardinality: {
+                                field: 'body.uid',
+                            },
+                        },
+                    },
+                }, size: 0,
+            });
+
+            let newAboutFillers = newAboutFillersData.aggregations.usersCount.value;
+
             let messagesSent = sendersData.hits.total;
-            const report = [heading(`Daily   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}`)];
+            const report = [heading(`Daily   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}    🗣 ${newAboutFillers}`)];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,

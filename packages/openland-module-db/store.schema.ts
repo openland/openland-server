@@ -948,6 +948,10 @@ export default declareSchema(() => {
     atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
         primaryKey('uid', integer());
     });
+
+    atomicBool('UserHasFilledAbout', () => {
+        primaryKey('uid', integer());
+    });
     // Global counters END
 
     atomicInt('RoomMessagesCounter', () => {
