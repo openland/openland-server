@@ -14,6 +14,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { UnreadGroups, TrendGroup, TrendGroups } from './StatsModule.types';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { User } from '../openland-module-db/store';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -76,7 +77,7 @@ export class StatsModule {
 
                 return {
                     serializedId,
-                    previewImage: roomProfile.socialImage || '',
+                    previewImage: buildBaseImageUrl(roomProfile.image) || '',
                     title: roomProfile.title,
                     unreadCount,
                 };
@@ -105,9 +106,10 @@ export class StatsModule {
             const { room } = trend;
             const membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
             const serializedId = IDs.Conversation.serialize(room.id);
+
             return {
                 serializedId,
-                previewImage: room.socialImage || '',
+                previewImage: buildBaseImageUrl(room.image) || '',
                 title: room.title,
                 membersCount
             } as TrendGroup;
