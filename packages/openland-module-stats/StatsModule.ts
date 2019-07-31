@@ -18,6 +18,7 @@ import { User } from '../openland-module-db/store';
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
 const newInvitersLog = createHyperlogger<{ uid: number, inviteeId: number, isTest: boolean }>('new-inviter');
+const newAboutFillerLog = createHyperlogger<{ uid: number }>('new-about-filler');
 
 export interface UnreadGroups {
     unreadMessagesCount: number;
@@ -69,6 +70,13 @@ export class StatsModule {
         let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(user.invitedBy!).get(ctx);
         if (invitesCnt === 1) {
             await newInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
+        }
+    }
+
+    onAboutChange = async (ctx: Context, uid: number) => {
+        if (!await Store.UserHasFilledAbout.byId(uid).get(ctx)) {
+            Store.UserHasFilledAbout.byId(uid).set(ctx, true);
+            await newAboutFillerLog.event(ctx, { uid });
         }
     }
 

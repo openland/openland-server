@@ -86,6 +86,7 @@ export default {
                 }
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
+                    await Modules.Stats.onAboutChange(ctx, uid);
                 }
                 if (args.input.photoRef !== undefined) {
                     if (args.input.photoRef !== null) {
@@ -173,6 +174,7 @@ export default {
                 }
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
+                    await Modules.Stats.onAboutChange(ctx, uid);
                 }
                 if (args.input.photoRef !== undefined) {
                     if (args.input.photoRef !== null) {

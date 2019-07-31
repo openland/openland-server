@@ -73,8 +73,34 @@ export function createWeeklyEngagementReportWorker() {
 
             let senders = sendersData.aggregations.senders.value;
             let messagesSent = sendersData.hits.total;
+
+            let newAboutFillersData = await Modules.Search.elastic.client.search({
+                index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
+                body: {
+                    query: {
+                        bool: {
+                            must: [{ term: { type: 'new-about-filler' } }, {
+                                range: {
+                                    date: {
+                                        gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
+                                    },
+                                },
+                            }],
+                        },
+                    }, aggs: {
+                        usersCount: {
+                            cardinality: {
+                                field: 'body.uid',
+                            },
+                        },
+                    },
+                }, size: 0,
+            });
+
+            let newAboutFillers = newAboutFillersData.aggregations.usersCount.value;
+
             let totalPeople = await inTx(parent, ctx => Store.Sequence.findById(ctx, 'user-id'));
-            const report = [heading(`Weekly   👪 ${totalPeople ? totalPeople.value : 0}   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}`)];
+            const report = [heading(`Weekly   👪 ${totalPeople ? totalPeople.value : 0}   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}    🗣 ${newAboutFillers}`)];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,
