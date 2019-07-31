@@ -334,7 +334,14 @@ export default {
         //
         //  State
         //
-        id: src => IDs.ConversationMessage.serialize(src.id),
+        id: src => {
+            if (src instanceof Comment) {
+                return IDs.Comment.serialize(src.id);
+            } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            }
+            throw new Error('unknown message ' + src);
+        },
         date: src => src.metadata.createdAt,
         sender: src => src.uid,
         senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
@@ -399,7 +406,16 @@ export default {
         //
         //  State
         //
-        id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
+        id: src => {
+            if (src instanceof Comment) {
+                return IDs.Comment.serialize(src.id);
+            } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            } else if (src instanceof RichMessage) {
+                return IDs.RichMessage.serialize(src.id);
+            }
+            throw new Error('unknown message ' + src);
+        },
         date: src => src.metadata.createdAt,
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted 
