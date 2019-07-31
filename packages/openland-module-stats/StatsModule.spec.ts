@@ -15,11 +15,6 @@ import { Store } from 'openland-module-db/FDB';
 import { MessagingMediator } from 'openland-module-messaging/mediators/MessagingMediator';
 import { DeliveryRepository } from 'openland-module-messaging/repositories/DeliveryRepository';
 import { CountersMediator } from 'openland-module-messaging/mediators/CountersMediator';
-import { messagesIndexer } from 'openland-module-messaging/workers/messagesIndexer';
-
-const ALLOW_INDEXER_DEV = process.env.ALLOW_INDEXER_DEV;
-
-const testWithIndexer = ALLOW_INDEXER_DEV ? it : xit;
 
 beforeAll(async () => {
     await testEnvironmentStart('Stats');
@@ -52,9 +47,6 @@ beforeAll(async () => {
         .toSelf()
         .inSingletonScope();
 
-    if (ALLOW_INDEXER_DEV) {
-        messagesIndexer();
-    }
 });
 
 afterAll(async () => {
@@ -171,35 +163,5 @@ describe('StatsModule', () => {
                 }
             ]
         } as UnreadGroups);
-    });
-
-    testWithIndexer('should return trend groups', async () => {
-        const ctx = createNamedContext('test');
-
-        const ONE_WEEK_BEFORE = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-
-        const statsModule = container.get<StatsModule>(StatsModule);
-
-        const trends = await statsModule.getTrendingGroupsByMessages(ctx, ONE_WEEK_BEFORE, now, 10);
-
-        // console.dir(JSON.stringify({ trends }, null, 2));
-
-        expect(trends).toEqual({
-            'groups': [
-                {
-                    serializedId: expect.any(String),
-                    previewImage: expect.any(String),
-                    'title': 'Room ff',
-                    'membersCount': 2
-                },
-                {
-                    serializedId: expect.any(String),
-                    previewImage: expect.any(String),
-                    'title': 'Room 321',
-                    'membersCount': 2
-                }
-            ]
-        });
     });
 });
