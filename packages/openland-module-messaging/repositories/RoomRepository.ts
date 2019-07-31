@@ -311,7 +311,7 @@ export class RoomRepository {
                         text = parts[0];
                     }
                     if (text.length > 20) {
-                        messageContent = text.slice(0, 20) + '...';
+                        messageContent = [...text].slice(0, 20).join('') + '...';
                     } else {
                         messageContent = text + (isMultiline ? '...' : '');
                     }

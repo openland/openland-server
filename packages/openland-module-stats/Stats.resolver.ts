@@ -44,6 +44,7 @@ export default {
                             if (!listedChatsCache.has(message.cid)) {
                                 let room = await Store.ConversationRoom.findById(ctx, message.cid);
                                 if (!room) {
+                                    listedChatsCache.set(message.cid, false);
                                     continue;
                                 }
 
