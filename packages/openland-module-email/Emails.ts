@@ -7,7 +7,7 @@ import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { splitEvery } from 'openland-utils/splitEvery';
 import { FormatedUnreadGroups, FormatedUnreadGroup, FormatedTrendGroups, FormatedTrendGroup } from 'openland-module-stats/StatsModule.types';
-import { WeeklyDigestEmailArgs, DIGEST_FIRST_UNREAD_GROUPS, DIGEST_FIRST_TREND_GROUPS } from './Emails.types';
+import { WeeklyDigestTemplateData, DIGEST_FIRST_UNREAD_GROUPS, DIGEST_FIRST_TREND_GROUPS } from './Emails.types';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 export const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -25,7 +25,7 @@ export const TEMPLATE_PRIVATE_ROOM_INVITE = 'e988e7dd-ad37-4adc-9de9-cd55e012720
 export const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c213b';
 export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
 export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
-export const TEMPLATE_WEEKLY_DIGEST = '1-2-3-4';
+export const TEMPLATE_WEEKLY_DIGEST = 'd-43e37b53d7ed4ef4afaf758b4a36ca24';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await Store.User.findById(ctx, uid);
@@ -444,7 +444,8 @@ export const Emails = {
     },
 
     async sendWeeklyDigestEmail(ctx: Context, uid: number) {
-        // const user = await loadUserState(ctx, uid);
+        const user = await loadUserState(ctx, uid);
+
         const unreadGroups = await Modules.Stats.getUnreadGroupsByUserId(ctx, uid, DIGEST_FIRST_UNREAD_GROUPS);
 
         const moreChats = unreadGroups.unreadMoreGroupsCount > 0 ? [{
@@ -510,22 +511,23 @@ export const Emails = {
 
         // there's can't be unread messages, but trending groups always should be presented
 
-        const args: WeeklyDigestEmailArgs = {
+        const weeklyDigestTemplateData: WeeklyDigestTemplateData = {
             unreadMessages,
             trendingGroups
         };
 
         // console.dir(JSON.stringify({ args }, null, 2));
 
-        // await Modules.Email.enqueueEmail(ctx, {
-        //     subject: 'Weekly digest',
-        //     templateId: TEMPLATE_WEEKLY_DIGEST,
-        //     to: user.email,
-
-        //     // @ts-ignore
-        //     // TODO: allow nested properties
-        //     args
-        // });
+        const subject = 'Weekly digest';
+        await Modules.Email.enqueueEmail(ctx, {
+            subject,
+            templateId: TEMPLATE_WEEKLY_DIGEST,
+            to: user.email,
+            dynamicTemplateData: {
+                subject,
+                ...weeklyDigestTemplateData
+            }
+        });
 
     }
 };
