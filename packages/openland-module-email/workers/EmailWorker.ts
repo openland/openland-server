@@ -17,7 +17,8 @@ let devTeamEmails = [
     'xeroxaltox@gmail.com',
     'nabovyan@bk.ru',
     'steve+kite@openland.com',
-    'steve+k@openland.com'
+    'steve+k@openland.com',
+    'egoarka@openland.com'
 ];
 
 const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
@@ -46,7 +47,8 @@ export function createEmailWorker() {
                         from: { name: 'Openland', email: 'support@openland.com' },
                         templateId: args.templateId,
                         substitutions: args.args,
-                        subject: args.subject
+                        subject: args.subject,
+                        dynamicTemplateData: args.dynamicTemplateData
                     });
                     let statusCode = res[0].statusCode;
                     log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
