@@ -8,6 +8,7 @@ import { LockLayer } from '@openland/foundationdb-locks';
 import { SingletonWorkerLayer } from '@openland/foundationdb-singleton';
 import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
 import { RedisBusProvider } from '@openland/foundationdb-bus-redis';
+import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 
 function createLayers(test: boolean) {
     let layers: Layer[] = [
@@ -22,7 +23,7 @@ function createLayers(test: boolean) {
                     process.env.REDIS_HOST
                 ))
     ];
-    if (!test) {
+    if (serverRoleEnabled('admin')) {
         layers.push(new MigrationsLayer(migrations));
     }
     return layers;
