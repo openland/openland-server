@@ -1,7 +1,7 @@
 import { Store } from './../openland-module-db/FDB';
 import { JsonMap } from 'openland-utils/json';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
-import { delayBreakable, foreverBreakable, currentTime } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -73,7 +73,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 }
                 let index = Math.floor(Math.random() * (pend.length));
                 let res = pend[index];
-                log.log(ctx, 'found ' + pend.length + ', selecting ' + index);
+                // log.log(ctx, 'found ' + pend.length + ', selecting ' + index);
                 return res;
             });
             let locked = task && await inTx(root, async (ctx) => {
@@ -88,8 +88,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 return true;
             });
             if (task && locked) {
-                log.log(root, 'Task ' + task.uid + ' found');
-                let start = currentTime();
+                // log.log(root, 'Task ' + task.uid + ' found');
+                // let start = currentTime();
                 let breakDelay: (() => void) | undefined;
                 let lockLoop = foreverBreakable(root, async () => {
                     let d = await delayBreakable(10000);
@@ -110,7 +110,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 try {
                     res = await handler(task.arguments, root);
                 } catch (e) {
-                    log.warn(root, e);
+                    // log.warn(root, e);
                     await inTx(root, async (ctx) => {
                         let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
                         if (res2) {
@@ -141,7 +141,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     await stopLocking();
                 }
 
-                log.log(root, 'Task ' + task.uid + ' completed in ' + (currentTime() - start) + ' ms');
+                // log.log(root, 'Task ' + task.uid + ' completed in ' + (currentTime() - start) + ' ms');
 
                 // Commiting
                 let commited = await inTx(root, async (ctx) => {
@@ -157,7 +157,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return false;
                 });
                 if (commited) {
-                    log.log(root, 'Commited');
+                    // log.log(root, 'Commited');
                 } else {
                     log.log(root, 'Not commited');
                     await awaitTask();
