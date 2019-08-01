@@ -1,13 +1,15 @@
 import { createLogger, Logger, LogPathContext } from '@openland/log';
 import { LogConfig } from '@openland/log/lib/impl/LogConfig';
 import { AnyFighter } from '@openland/log/lib/utils/AnyFighter';
-import { Context, ContextName } from '@openland/context';
+import { Context, ContextName, createContextNamespace } from '@openland/context';
 import { format } from 'util';
 
 function formatMessage(ctx: Context, name: string, message: string) {
     let v = LogPathContext.get(ctx);
     return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
 }
+
+export const ZippedLoggerTimes = createContextNamespace<number>('zipped-logger-time', 0);
 
 export class ZippedLogger implements Logger {
     readonly service: string;
@@ -25,14 +27,15 @@ export class ZippedLogger implements Logger {
         setInterval(() => {
             for (let msg of this.logs.keys()) {
                 let d = this.logs.get(msg)!;
+                let ctx = ZippedLoggerTimes.set(d.lastCtx, d.times);
                 if (d.level === 'info' ) {
-                    logger.log(d.lastCtx, msg, d.times);
+                    logger.log(ctx, msg, d.times);
                 } else if (d.level === 'debug') {
-                    logger.debug(d.lastCtx, msg, d.times);
+                    logger.debug(ctx, msg, d.times);
                 } else if (d.level === 'warn') {
-                    logger.warn(d.lastCtx, msg, d.times);
+                    logger.warn(ctx, msg, d.times);
                 } else if (d.level === 'error') {
-                    logger.error(d.lastCtx, msg, d.times);
+                    logger.error(ctx, msg, d.times);
                 }
             }
             this.logs.clear();

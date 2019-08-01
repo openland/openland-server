@@ -2,6 +2,7 @@ import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
 import winston from 'winston';
 import pino from 'pino';
+import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -46,7 +47,8 @@ setLogProvider({
                     parent: LogPathContext.get(ctx),
                     context: ContextName.get(ctx),
                     service,
-                    text: message
+                    text: message,
+                    times: ZippedLoggerTimes.get(ctx)
                 },
                 message: formatMessage(ctx, service, message)
             };
