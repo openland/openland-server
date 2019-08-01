@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'efb1d7906c9920cb73d5299d3e2c5591';
+export const GQL_SPEC_VERSION = '1ffdbc2ec9087b1de84a17de9ab77690';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -422,7 +422,7 @@ export namespace GQL {
         quoted: Message[];
         alphaReactions: Reaction[];
     }
-    export type DebugEmailType = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED';
+    export type DebugEmailType = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST';
     export interface DebugID {
         numberID: Nullable<number>;
         stringID: Nullable<string>;
