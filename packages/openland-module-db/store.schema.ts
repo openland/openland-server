@@ -952,6 +952,14 @@ export default declareSchema(() => {
     atomicBool('UserHasFilledAbout', () => {
         primaryKey('uid', integer());
     });
+
+    atomicInt('UserReactionsGot', () => {
+        primaryKey('uid', integer());
+    });
+
+    atomicInt('UserReactionsGiven', () => {
+        primaryKey('uid', integer());
+    });
     // Global counters END
 
     atomicInt('RoomMessagesCounter', () => {

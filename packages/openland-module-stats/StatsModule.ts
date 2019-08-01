@@ -9,7 +9,7 @@ import { createWeeklyUserLeaderboardWorker } from './workers/WeeklyUserLeaderboa
 import { createWeeklyRoomLeaderboardWorker } from './workers/WeeklyRoomLeaderboardWorker';
 import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoomByMessagesLeaderboardWorker';
 import { Modules } from '../openland-modules/Modules';
-import { RoomProfile } from '../openland-module-db/store';
+import { Message, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { resizeUcarecdnImage } from './utils';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
@@ -19,6 +19,9 @@ const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('ne
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
 const newInvitersLog = createHyperlogger<{ uid: number, inviteeId: number, isTest: boolean }>('new-inviter');
 const newAboutFillerLog = createHyperlogger<{ uid: number }>('new-about-filler');
+const newThreeLikeGiverLog = createHyperlogger<{ uid: number }>('new-three-like-giver');
+const newThreeLikeGetterLog = createHyperlogger<{ uid: number }>('new-three-like-getter');
+const newReactionLog = createHyperlogger<{ mid: number, messageAuthorId: number, uid: number }>('new-reaction');
 
 export interface UnreadGroups {
     unreadMessagesCount: number;
@@ -77,6 +80,20 @@ export class StatsModule {
         if (!await Store.UserHasFilledAbout.byId(uid).get(ctx)) {
             Store.UserHasFilledAbout.byId(uid).set(ctx, true);
             await newAboutFillerLog.event(ctx, { uid });
+        }
+    }
+
+    onReactionSet = async (ctx: Context, message: Message, uid: number) => {
+        Store.UserReactionsGot.byId(message.uid).increment(ctx);
+        Store.UserReactionsGiven.byId(uid).increment(ctx);
+
+        await newReactionLog.event(ctx, { uid, messageAuthorId: message.uid, mid: message.id });
+
+        if (await Store.UserReactionsGiven.byId(uid).get(ctx) === 3) {
+            await newThreeLikeGiverLog.event(ctx, { uid });
+        }
+        if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
+            await newThreeLikeGetterLog.event(ctx, { uid: message.uid });
         }
     }
 
