@@ -23,7 +23,7 @@ function createLayers(test: boolean) {
                     process.env.REDIS_HOST
                 ))
     ];
-    if (serverRoleEnabled('admin')) {
+    if (serverRoleEnabled('admin') && !test) {
         layers.push(new MigrationsLayer(migrations));
     }
     return layers;
