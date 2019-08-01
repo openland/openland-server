@@ -1,8 +1,15 @@
 import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
 import winston from 'winston';
+import pino from 'pino';
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+const getPino = () => {
+    let log = pino(pino.extreme());
+    log.level = 'debug';
+    return log;
+};
 
 const format = isProduction ?
     winston.format.combine(
@@ -16,7 +23,7 @@ const format = isProduction ?
         })
     );
 
-const logger = winston.createLogger({
+const logger = isProduction ? getPino() : winston.createLogger({
     level: 'debug',
     format: format,
     transports: [

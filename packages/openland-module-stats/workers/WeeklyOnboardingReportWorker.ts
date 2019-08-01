@@ -100,8 +100,49 @@ export function createWeeklyOnboardingReportWorker() {
                 });
                 const newInviters = newInvitersQuery.hits.total;
 
-                const report = [heading(`Weekly   🐥 ${newUserEntrances}   📱 ${newMobileUsers}    ➡️ ${newSenders}    🙌 ${newInviters}`)];
+                const newThreeLikeGiversQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog', body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-three-like-giver' } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate,
+                                        },
+                                    },
+                                }],
+                            },
+                        },
+                    }, size: 0,
+                });
+                const newThreeLikeGivers = newThreeLikeGiversQuery.hits.total;
 
+                const newThreeLikeGettersQuery = await Modules.Search.elastic.client.search({
+                    index: 'hyperlog', type: 'hyperlog', body: {
+                        query: {
+                            bool: {
+                                must: [{ term: { type: 'new-three-like-getter' } }, {
+                                    range: {
+                                        date: {
+                                            gte: startDate,
+                                        },
+                                    },
+                                }],
+                            },
+                        },
+                    }, size: 0,
+                });
+                const newThreeLikeGetters = newThreeLikeGettersQuery.hits.total;
+
+                const report = [heading([
+                    `Weekly`,
+                    `🐥 ${newUserEntrances}`,
+                    `📱 ${newMobileUsers}`,
+                    `➡️ ${newSenders}`,
+                    `🙌 ${newInviters}`,
+                    `❤️ ${newThreeLikeGivers}`,
+                    `🙃 ${newThreeLikeGetters}`
+                ].join('   '))];
                 await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
                     ...buildMessage(...report), ignoreAugmentation: true,
                 });

@@ -9,11 +9,9 @@ import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
 import { Context, createNamedContext } from '@openland/context';
-import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean, platform: string | null }>('presence');
-const log = createLogger('presences');
 
 export interface OnlineEvent {
     userId: number;
@@ -127,9 +125,7 @@ export class PresenceModule {
         let value: { lastSeen: number, active: boolean | null } | null | undefined;
         if (this.onlines.has(uid)) {
             value = this.onlines.get(uid);
-            log.debug(ctx, 'get last seen from cache');
         } else {
-            log.debug(ctx, 'get last seen from db');
             value = await Store.Online.findById(ctx, uid);
             if (value) {
                 this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });

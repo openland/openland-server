@@ -48,4 +48,4 @@ export const smartSlice = (str: string, start: number, end: number) => {
     }
 
     return resultString;
-}
+};

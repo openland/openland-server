@@ -51,6 +51,7 @@ export const IDs = {
     MediaStream: IdsFactory.createId('MediaStream'),
     MessageAttachment: IdsFactory.createStringId('MessageAttachment'),
     Comment: IdsFactory.createId('Comment'),
+    RichMessage: IdsFactory.createId('RichMessage'),
     KeyboardButton: IdsFactory.createStringId('KeyboardButton'),
     UserStorageRecord: IdsFactory.createId('UserStorageRecord'),
     NotificationCenter: IdsFactory.createId('NotificationCenter'),

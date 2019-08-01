@@ -194,6 +194,10 @@ export class MessagingRepository {
             }
             message.reactions = reactions;
 
+            if (!reset) {
+                await Modules.Stats.onReactionSet(ctx, message, uid);
+            }
+
             //
             // Write Event
             //
