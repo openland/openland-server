@@ -4191,6 +4191,168 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     }
 }
 
+export interface RichMessageShape {
+    id: number;
+    uid: number;
+    text: string | null;
+    reactions: ({ userId: number, reaction: string })[] | null;
+    spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null;
+    attachments: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null })[])[] } | null })[] | null;
+    edited: boolean | null;
+    deleted: boolean | null;
+}
+
+export interface RichMessageCreateShape {
+    uid: number;
+    text?: string | null | undefined;
+    reactions?: ({ userId: number, reaction: string })[] | null | undefined;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined;
+    attachments?: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null | undefined, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined } | { type: 'rich_attachment', id: string, title: string | null | undefined, subTitle: string | null | undefined, titleLink: string | null | undefined, text: string | null | undefined, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, titleLinkHostname: string | null | undefined, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null | undefined })[])[] } | null | undefined })[] | null | undefined;
+    edited?: boolean | null | undefined;
+    deleted?: boolean | null | undefined;
+}
+
+export class RichMessage extends Entity<RichMessageShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get text(): string | null { return this._rawValue.text; }
+    set text(value: string | null) {
+        let normalized = this.descriptor.codec.fields.text.normalize(value);
+        if (this._rawValue.text !== normalized) {
+            this._rawValue.text = normalized;
+            this._updatedValues.text = normalized;
+            this.invalidate();
+        }
+    }
+    get reactions(): ({ userId: number, reaction: string })[] | null { return this._rawValue.reactions; }
+    set reactions(value: ({ userId: number, reaction: string })[] | null) {
+        let normalized = this.descriptor.codec.fields.reactions.normalize(value);
+        if (this._rawValue.reactions !== normalized) {
+            this._rawValue.reactions = normalized;
+            this._updatedValues.reactions = normalized;
+            this.invalidate();
+        }
+    }
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null { return this._rawValue.spans; }
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null) {
+        let normalized = this.descriptor.codec.fields.spans.normalize(value);
+        if (this._rawValue.spans !== normalized) {
+            this._rawValue.spans = normalized;
+            this._updatedValues.spans = normalized;
+            this.invalidate();
+        }
+    }
+    get attachments(): ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null })[])[] } | null })[] | null { return this._rawValue.attachments; }
+    set attachments(value: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null })[])[] } | null })[] | null) {
+        let normalized = this.descriptor.codec.fields.attachments.normalize(value);
+        if (this._rawValue.attachments !== normalized) {
+            this._rawValue.attachments = normalized;
+            this._updatedValues.attachments = normalized;
+            this.invalidate();
+        }
+    }
+    get edited(): boolean | null { return this._rawValue.edited; }
+    set edited(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.edited.normalize(value);
+        if (this._rawValue.edited !== normalized) {
+            this._rawValue.edited = normalized;
+            this._updatedValues.edited = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMessage> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('richMessage');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('richMessage', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
+        fields.push({ name: 'reactions', type: { type: 'optional', inner: { type: 'array', inner: { type: 'struct', fields: { userId: { type: 'integer' }, reaction: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, secure: false });
+        fields.push({ name: 'attachments', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { file_attachment: { id: { type: 'string' }, fileId: { type: 'string' }, filePreview: { type: 'optional', inner: { type: 'string' } }, fileMetadata: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } }, rich_attachment: { id: { type: 'string' }, title: { type: 'optional', inner: { type: 'string' } }, subTitle: { type: 'optional', inner: { type: 'string' } }, titleLink: { type: 'optional', inner: { type: 'string' } }, text: { type: 'optional', inner: { type: 'string' } }, icon: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, image: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, iconInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, titleLinkHostname: { type: 'optional', inner: { type: 'string' } }, keyboard: { type: 'optional', inner: { type: 'struct', fields: { buttons: { type: 'array', inner: { type: 'array', inner: { type: 'struct', fields: { title: { type: 'string' }, style: { type: 'enum', values: ['DEFAULT', 'LIGHT'] }, url: { type: 'optional', inner: { type: 'string' } } } } } } } } } } } } } }, secure: false });
+        fields.push({ name: 'edited', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+            text: c.optional(c.string),
+            reactions: c.optional(c.array(c.struct({ userId: c.integer, reaction: c.string }))),
+            spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) }))),
+            attachments: c.optional(c.array(c.union({ file_attachment: c.struct({ id: c.string, fileId: c.string, filePreview: c.optional(c.string), fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })) }), rich_attachment: c.struct({ id: c.string, title: c.optional(c.string), subTitle: c.optional(c.string), titleLink: c.optional(c.string), text: c.optional(c.string), icon: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), iconInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), titleLinkHostname: c.optional(c.string), keyboard: c.optional(c.struct({ buttons: c.array(c.array(c.struct({ title: c.string, style: c.enum('DEFAULT', 'LIGHT'), url: c.optional(c.string) }))) })) }) }))),
+            edited: c.optional(c.boolean),
+            deleted: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<RichMessageShape> = {
+            name: 'RichMessage',
+            storageKey: 'richMessage',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new RichMessageFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<RichMessageShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: RichMessageCreateShape): Promise<RichMessage> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: RichMessageCreateShape): RichMessage {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<RichMessage | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<RichMessageShape>): RichMessage {
+        return new RichMessage([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface MessageDraftShape {
     uid: number;
     cid: number;
@@ -11490,6 +11652,7 @@ export interface Store extends BaseStore {
     readonly RoomParticipant: RoomParticipantFactory;
     readonly Message: MessageFactory;
     readonly Comment: CommentFactory;
+    readonly RichMessage: RichMessageFactory;
     readonly MessageDraft: MessageDraftFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
@@ -11609,6 +11772,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
     let CommentPromise = CommentFactory.open(storage);
+    let RichMessagePromise = RichMessageFactory.open(storage);
     let MessageDraftPromise = MessageDraftFactory.open(storage);
     let ConversationSeqPromise = ConversationSeqFactory.open(storage);
     let ConversationEventPromise = ConversationEventFactory.open(storage);
@@ -11727,6 +11891,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomParticipant: await RoomParticipantPromise,
         Message: await MessagePromise,
         Comment: await CommentPromise,
+        RichMessage: await RichMessagePromise,
         MessageDraft: await MessageDraftPromise,
         ConversationSeq: await ConversationSeqPromise,
         ConversationEvent: await ConversationEventPromise,

@@ -1,4 +1,4 @@
-import { UserBadge } from 'openland-module-db/store';
+import { RichMessage, UserBadge } from 'openland-module-db/store';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
@@ -47,7 +47,7 @@ const DELETED_TEXT = {
     COMMENT: 'This comment has been deleted'
 };
 
-const getDeletedText = (src: Message | Comment) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
+const getDeletedText = (src: Message | Comment | RichMessage) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
 
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
 
@@ -250,7 +250,7 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
-export async function fetchMessageFallback(message: Message | Comment): Promise<string> {
+export async function fetchMessageFallback(message: Message | Comment | RichMessage): Promise<string> {
     const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
         if (!mime) {
             return Texts.Notifications.DOCUMENT_ATTACH;
@@ -334,7 +334,14 @@ export default {
         //
         //  State
         //
-        id: src => IDs.ConversationMessage.serialize(src.id),
+        id: src => {
+            if (src instanceof Comment) {
+                return IDs.Comment.serialize(src.id);
+            } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            }
+            throw new Error('unknown message ' + src);
+        },
         date: src => src.metadata.createdAt,
         sender: src => src.uid,
         senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
@@ -399,7 +406,16 @@ export default {
         //
         //  State
         //
-        id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
+        id: src => {
+            if (src instanceof Comment) {
+                return IDs.Comment.serialize(src.id);
+            } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            } else if (src instanceof RichMessage) {
+                return IDs.RichMessage.serialize(src.id);
+            }
+            throw new Error('unknown message ' + src);
+        },
         date: src => src.metadata.createdAt,
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted 
@@ -412,7 +428,7 @@ export default {
             }
             return src.uid;
         },
-        senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
+        senderBadge: (src, args, ctx) => src instanceof RichMessage ? null : src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
         isMentioned: async (src, args, ctx) => {
@@ -461,7 +477,7 @@ export default {
                         }
                     })
                     .filter(span => span.type !== 'date_text');
-            } else if (src instanceof Comment) {
+            } else if (src instanceof Comment || src instanceof RichMessage) {
                 return [];
             }
 
@@ -484,7 +500,7 @@ export default {
             if (src.deleted) {
                 return [];
             }
-            if (src instanceof Comment) {
+            if (src instanceof Comment || src instanceof RichMessage) {
                 return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
             }
 
@@ -583,7 +599,7 @@ export default {
             if (src.deleted) {
                 return [];
             }
-            if (src instanceof Comment) {
+            if (src instanceof Comment || src instanceof RichMessage) {
                 return [];
             }
             if (src.replyMessages) {

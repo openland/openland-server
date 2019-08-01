@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import { FeedRepository } from './repositories/FeedRepository';
 import { Context } from '@openland/context';
 import { JsonMap } from 'openland-utils/json';
+import { RichMessageInput } from '../openland-module-rich-message/repositories/RichMessageRepository';
 
 @injectable()
 export class FeedModule {
@@ -27,7 +28,7 @@ export class FeedModule {
     }
 
     async subsctibe(parent: Context, subscriber: string, topic: string) {
-        return this.repo.subsctibe(parent, subscriber, topic);
+        return this.repo.subscribe(parent, subscriber, topic);
     }
 
     async unsubscribe(parent: Context, subscriber: string, topic: string) {
@@ -36,6 +37,10 @@ export class FeedModule {
 
     async findSubscriptions(parent: Context, subscriber: string) {
         return this.repo.findSubscriptions(parent, subscriber);
+    }
+
+    async createPost(parent: Context, uid: number, topic: string, input: RichMessageInput) {
+        return this.repo.createPost(parent, uid, topic, input);
     }
 
     start = () => {

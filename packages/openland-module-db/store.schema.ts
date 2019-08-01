@@ -442,6 +442,89 @@ export default declareSchema(() => {
     });
 
     //
+    // Rich message
+    //
+
+    entity('RichMessage', () => {
+        primaryKey('id', integer());
+        field('uid', integer());
+
+        field('text', optional(string())).secure();
+        field('reactions', optional(array(struct({
+            userId: integer(),
+            reaction: string()
+        }))));
+        field('spans', optional(array(union({
+            user_mention: struct({
+                offset: integer(),
+                length: integer(),
+                user: integer()
+            }),
+            multi_user_mention: struct({
+                offset: integer(),
+                length: integer(),
+                users: array(integer())
+            }),
+            room_mention: struct({
+                offset: integer(),
+                length: integer(),
+                room: integer()
+            }),
+            link: struct({
+                offset: integer(),
+                length: integer(),
+                url: string()
+            }),
+            date_text: struct({
+                offset: integer(),
+                length: integer(),
+                date: integer()
+            }),
+            bold_text: basicSpan,
+            italic_text: basicSpan,
+            irony_text: basicSpan,
+            inline_code_text: basicSpan,
+            code_block_text: basicSpan,
+            insane_text: basicSpan,
+            loud_text: basicSpan,
+            rotating_text: basicSpan,
+            all_mention: basicSpan
+        }))));
+        field('attachments', optional(array(union({
+            file_attachment: struct({
+                id: string(),
+                fileId: string(),
+                filePreview: optional(string()),
+                fileMetadata: optional(FileInfo),
+            }),
+            rich_attachment: struct({
+                id: string(),
+                title: optional(string()),
+                subTitle: optional(string()),
+                titleLink: optional(string()),
+                text: optional(string()),
+                icon: optional(ImageRef),
+                image: optional(ImageRef),
+                iconInfo: optional(FileInfo),
+                imageInfo: optional(FileInfo),
+                titleLinkHostname: optional(string()),
+                keyboard: optional(struct({
+                    buttons: array(array(struct({
+                        title: string(),
+                        style: enumString('DEFAULT', 'LIGHT'),
+                        url: optional(string())
+                    })))
+                }))
+            })
+        }))));
+
+        field('edited', optional(boolean()));
+        field('deleted', optional(boolean()));
+
+        rangeIndex('user', ['uid', 'createdAt']);
+    });
+
+    //
     // Messaging
     //
 
