@@ -1,7 +1,7 @@
 import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
-import morgan from 'morgan';
+// import morgan from 'morgan';
 import * as Auth2 from '../openland-module-auth/authV2';
 import * as Auth from '../openland-module-auth/providers/email';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
