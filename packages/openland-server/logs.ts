@@ -24,7 +24,7 @@ const format = isProduction ?
         })
     );
 
-const logger = isProduction ? getPino() : winston.createLogger({
+export const logger = isProduction ? getPino() : winston.createLogger({
     level: 'debug',
     format: format,
     transports: [
