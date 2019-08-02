@@ -1,3 +1,4 @@
+import { MonitoringModule } from './../openland-module-monitoring/MonitoringModule';
 import { Store } from './../openland-module-db/store';
 import 'reflect-metadata';
 import { container } from './Modules.container';
@@ -52,6 +53,7 @@ import { EntityStorage } from '@openland/foundationdb-entity';
 import { openStore } from 'openland-module-db/store';
 import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 import { StatsModule } from '../openland-module-stats/StatsModule';
+import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringModule';
 
 const logger = createLogger('starting');
 
@@ -70,6 +72,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             .inSingletonScope();
     }
 
+    loadMonitoringModule();
     loadMessagingModule();
     loadAuthModule();
     loadUsersModule();
@@ -143,4 +146,5 @@ export async function startAllModules() {
     await container.get(MetricsModule).start();
     await container.get(UserOnboardingModule).start();
     await container.get(StatsModule).start();
+    await container.get(MonitoringModule).start();
 }

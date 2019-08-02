@@ -44,6 +44,7 @@ async function initServer() {
         await startAllModules();
         setupFdbTracing();
         setupNodeJSTracing();
+        logger.log(ctx, 'Started');
     } catch (e) {
         logger.error(ctx, e, 'Unable to init server');
         process.abort();
