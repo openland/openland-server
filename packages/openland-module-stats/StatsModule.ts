@@ -11,9 +11,10 @@ import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoo
 import { Modules } from '../openland-modules/Modules';
 import { Message, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { resizeUcarecdnImage } from './utils';
+import { UnreadGroups, TrendGroup, TrendGroups } from './StatsModule.types';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { User } from '../openland-module-db/store';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -22,18 +23,6 @@ const newAboutFillerLog = createHyperlogger<{ uid: number }>('new-about-filler')
 const newThreeLikeGiverLog = createHyperlogger<{ uid: number }>('new-three-like-giver');
 const newThreeLikeGetterLog = createHyperlogger<{ uid: number }>('new-three-like-getter');
 const newReactionLog = createHyperlogger<{ mid: number, messageAuthorId: number, uid: number }>('new-reaction');
-
-export interface UnreadGroups {
-    unreadMessagesCount: number;
-    unreadMoreGroupsCount: number;
-    groups: {
-        previewLink: string;
-        previewImage: string;
-        firstTitleChar: string;
-        title: string;
-        unreadCount: number;
-    }[];
-}
 
 @injectable()
 export class StatsModule {
@@ -50,7 +39,7 @@ export class StatsModule {
     }
 
     onNewMobileUser = async (ctx: Context, uid: number) => {
-        await newMobileUserLog.event(ctx,  { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+        await newMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
     }
 
     onMessageSent = async (ctx: Context, uid: number) => {
@@ -62,7 +51,7 @@ export class StatsModule {
     onRoomMessageSent = (ctx: Context, rid: number) => {
         Store.RoomMessagesCounter.byId(rid).increment(ctx);
     }
-    
+
     onEmailSent = (ctx: Context, uid: number) => {
         Store.UserEmailSentCounter.byId(uid).increment(ctx);
     }
@@ -111,16 +100,9 @@ export class StatsModule {
 
                 const serializedId = IDs.Conversation.serialize(dialog.cid);
 
-                const croppedX2PreviewImage =
-                    roomProfile.socialImage && resizeUcarecdnImage(roomProfile.socialImage, { height: 80, width: 80 });
-
-                // TODO: map photo to absent photo by hash (likewise on client)
-
                 return {
-                    previewLink: `https://openland.com/mail/${serializedId}`,
-                    previewImage: croppedX2PreviewImage ? croppedX2PreviewImage : 'https://i.imgur.com/Y1SwoOJ.png',
-                    // if no preview image, used as indicator of group by first char of title
-                    firstTitleChar: roomProfile.title ? roomProfile.title[0].toUpperCase() : '',
+                    serializedId,
+                    previewImage: buildBaseImageUrl(roomProfile.image) || '',
                     title: roomProfile.title,
                     unreadCount,
                 };
@@ -140,6 +122,26 @@ export class StatsModule {
             unreadMessagesCount,
             unreadMoreGroupsCount,
             groups: firstN,
+        };
+    }
+
+    getTrendingGroupsByMessages = async (ctx: Context, from: number, to: number, first: number): Promise<TrendGroups> => {
+        const tredings = await this.getTrendingRoomsByMessages(ctx, from, to, first);
+        const withMembersCount = await Promise.all(tredings.map(async trend => {
+            const { room } = trend;
+            const membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
+            const serializedId = IDs.Conversation.serialize(room.id);
+
+            return {
+                serializedId,
+                previewImage: buildBaseImageUrl(room.image) || '',
+                title: room.title,
+                membersCount
+            } as TrendGroup;
+        }));
+
+        return {
+            groups: withMembersCount
         };
     }
 
@@ -189,6 +191,7 @@ export class StatsModule {
             }
 
             let org = await Store.Organization.findById(ctx, conv.oid);
+
             let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private;
             if (!isListed || conv.isChannel) {
                 continue;

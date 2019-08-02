@@ -1,5 +1,5 @@
 import { setTransactionTracer } from '@openland/foundationdb/lib/tracing';
-import { LogPathContext } from '@openland/log';
+import { createLogger, LogPathContext } from '@openland/log';
 import { createTracer } from '../openland-log/createTracer';
 import { Context, ContextName } from '@openland/context';
 import {
@@ -9,7 +9,8 @@ import {
 } from '@openland/foundationdb-entity/lib/tracing';
 import { createZippedLogger } from '../openland-utils/ZippedLogger';
 
-const logger = createZippedLogger('FDB');
+const isProduction = process.env.NODE_ENV === 'production';
+const logger = (isProduction ? createZippedLogger : createLogger)('FDB');
 const tracer = createTracer('FDB');
 
 const getContextPath = (ctx: Context) =>  ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');

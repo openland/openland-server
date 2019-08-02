@@ -325,27 +325,30 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@sendgrid/client@^6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@sendgrid/client/-/client-6.3.0.tgz#25c34b11bec392ab43ca7e52fb35e4105fb00901"
+"@sendgrid/client@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@sendgrid/client/-/client-6.4.0.tgz#d58df30adea5d7d09e747e2b61f9f859deeda798"
+  integrity sha512-GcO+hKXMQiwN0xMGfPITArlj4Nab1vZsrsRLmsJlcXGZV1V1zQC6XuAWJv6MGDd0hr/jKaXmCJ1XMYkxIRQHFw==
   dependencies:
-    "@sendgrid/helpers" "^6.3.0"
+    "@sendgrid/helpers" "^6.4.0"
     "@types/request" "^2.0.3"
-    request "^2.81.0"
+    request "^2.88.0"
 
-"@sendgrid/helpers@^6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@sendgrid/helpers/-/helpers-6.3.0.tgz#1b1798af22aa7a4c98257fab3dd2a6a6afd8b467"
+"@sendgrid/helpers@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@sendgrid/helpers/-/helpers-6.4.0.tgz#f9001cbe2f34e2c264d30fcf71aa5b9c3cde49aa"
+  integrity sha512-1dDDXauArHyxwTKFFfWvQpsijmwalyLgwoQJ3FRCssFq1RfqYDgFhRg0Xs3v/IXS2jkKWePSWiPORSR4Sysdpw==
   dependencies:
     chalk "^2.0.1"
     deepmerge "^2.1.1"
 
-"@sendgrid/mail@^6.3.1":
-  version "6.3.1"
-  resolved "https://registry.yarnpkg.com/@sendgrid/mail/-/mail-6.3.1.tgz#e5003af167ca4dd358f04075aad4cfc30cef6c34"
+"@sendgrid/mail@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@sendgrid/mail/-/mail-6.4.0.tgz#21d022f7fae57dcdc5910eeca5ed318df21e5f51"
+  integrity sha512-pVzbqbxhZ4FUN6iSIksRLtyXRPurrcee1i0noPDStDCLlHVwUR+TofeeKIFWGpIvbbk5UR6S6iV/U5ie8Kdblw==
   dependencies:
-    "@sendgrid/client" "^6.3.0"
-    "@sendgrid/helpers" "^6.3.0"
+    "@sendgrid/client" "^6.4.0"
+    "@sendgrid/helpers" "^6.4.0"
 
 "@types/accepts@^1.3.5":
   version "1.3.5"
@@ -5769,7 +5772,7 @@ request@2.81.0:
     tunnel-agent "^0.6.0"
     uuid "^3.0.0"
 
-request@^2.73.0, request@^2.79.0, request@^2.81.0, request@^2.85.0, request@^2.87.0:
+request@^2.73.0, request@^2.79.0, request@^2.81.0, request@^2.85.0, request@^2.87.0, request@^2.88.0:
   version "2.88.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.0.tgz#9c2fca4f7d35b592efe57c7f0a55e81052124fef"
   dependencies:

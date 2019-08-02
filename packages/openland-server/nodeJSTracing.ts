@@ -1,10 +1,8 @@
-import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
-import { createNamedContext } from '@openland/context';
-import { createLogger } from '@openland/log';
+import { logger } from './logs';
 
-const lagLogger = createHyperlogger<{ lag_ns: number, lag_ms: number }>('event_loop_lag');
-const ctx = createNamedContext('nodejs-tracing');
-const log = createLogger('event_loop_lag');
+// const lagLogger = createHyperlogger<{ lag_ns: number, lag_ms: number }>('event_loop_lag');
+// const ctx = createNamedContext('nodejs-tracing');
+const isProduction = process.env.NODE_ENV === 'production';
 
 function hrTime() {
     let t = process.hrtime();
@@ -23,7 +21,18 @@ function measureEventLoopLag(): Promise<number> {
 export function setupNodeJSTracing() {
     setInterval(async () => {
         let lag = await measureEventLoopLag();
-        await lagLogger.event(ctx, { lag_ns: lag, lag_ms: lag / 1000000 });
-        log.log(ctx, 'lag in ms:', lag / 1000000, 'lag in ns:', lag);
+        let message = `event loop lag: ${lag} ns, ${lag / 1000000} ms `;
+        if (isProduction) {
+            logger.info({
+                app: {
+                    service: 'event_loop_lag',
+                    text: message,
+                    lag_ns: lag
+                },
+                message
+            });
+        } else {
+            logger.info(message);
+        }
     }, 1000);
 }

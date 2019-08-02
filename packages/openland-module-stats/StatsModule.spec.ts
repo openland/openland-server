@@ -1,5 +1,6 @@
 import { testEnvironmentEnd, testEnvironmentStart, randomTestUser } from 'openland-modules/testEnvironment';
-import { StatsModule, UnreadGroups } from './StatsModule';
+import { StatsModule } from './StatsModule';
+import { UnreadGroups } from './StatsModule.types';
 import { container } from 'openland-modules/Modules.container';
 import { createNamedContext } from '@openland/context';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
@@ -45,6 +46,7 @@ beforeAll(async () => {
         .bind(CountersMediator)
         .toSelf()
         .inSingletonScope();
+
 });
 
 afterAll(async () => {
@@ -52,7 +54,7 @@ afterAll(async () => {
 });
 
 describe('StatsModule', () => {
-    fit('should return list of unread dialogs', async () => {
+    it('should return list of unread dialogs', async () => {
         const ctx = createNamedContext('test');
 
         const statsModule = container.get<StatsModule>(StatsModule);
@@ -69,7 +71,7 @@ describe('StatsModule', () => {
         const USER1_ID = (await randomTestUser(ctx)).uid;
         const USER2_ID = (await randomTestUser(ctx)).uid;
 
-        const oid = (await Modules.Orgs.createOrganization(ctx, USER1_ID, { name: '1' })).id;
+        const oid = (await Modules.Orgs.createOrganization(ctx, USER1_ID, { name: '1', isCommunity: true })).id;
 
         const CHAT1_ID = (await roomRepo.createRoom(ctx, 'public', oid, USER1_ID, [], { title: 'Room 321' })).id;
         const CHAT2_ID = (await roomRepo.createRoom(ctx, 'public', oid, USER1_ID, [], { title: 'Room ff' })).id;
@@ -128,23 +130,21 @@ describe('StatsModule', () => {
         const unreadByUser1 = await statsModule.getUnreadGroupsByUserId(ctx, USER1_ID, 4);
         const unreadByUser2 = await statsModule.getUnreadGroupsByUserId(ctx, USER2_ID, 1);
 
-        console.dir(JSON.stringify({ unreadByUser1, unreadByUser2 }, null, 2));
+        // console.dir(JSON.stringify({ unreadByUser1, unreadByUser2 }, null, 2));
 
         expect(unreadByUser1).toEqual({
             unreadMessagesCount: 9,
             unreadMoreGroupsCount: 0,
             groups: [
                 {
-                    previewLink: expect.stringContaining('openland'),
-                    previewImage: expect.stringContaining('https'),
-                    firstTitleChar: 'R',
+                    serializedId: expect.any(String),
+                    previewImage: expect.any(String),
                     title: 'Room ff',
                     unreadCount: 7
                 },
                 {
-                    previewLink: expect.stringContaining('openland'),
-                    previewImage: expect.stringContaining('https'),
-                    firstTitleChar: 'R',
+                    serializedId: expect.any(String),
+                    previewImage: expect.any(String),
                     title: 'Room 321',
                     unreadCount: 2
                 }
@@ -156,9 +156,8 @@ describe('StatsModule', () => {
             unreadMoreGroupsCount: 1,
             groups: [
                 {
-                    previewLink: expect.stringContaining('openland'),
-                    previewImage: expect.stringContaining('https'),
-                    firstTitleChar: 'R',
+                    serializedId: expect.any(String),
+                    previewImage: expect.any(String),
                     title: 'Room ff',
                     unreadCount: 5
                 }
