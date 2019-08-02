@@ -14,6 +14,7 @@ export class UserSearch {
                 bool: {
                     should: normalized.length > 0 ? [
                         { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
+                        { match_phrase_prefix: { shortName: query } }
                     ] : [],
                     must_not: options && options.uid ? [
                         // { match: { _id: options.uid } },
