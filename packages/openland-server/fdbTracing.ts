@@ -18,13 +18,11 @@ const getContextPath = (ctx: Context) =>  ContextName.get(ctx) + ' ' + LogPathCo
 export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
-            // logger.log(ctx, 'start tx');
+            logger.log(ctx, 'start tx');
             return await tracer.trace(ctx, 'transaction', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
         commit: async (ctx, handler) => await tracer.trace(ctx, 'transaction commit', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        onNewReadWriteTx: (ctx) => {
-            // logger.log(ctx, 'new tx')
-        },
+        onNewReadWriteTx: (ctx) => logger.log(ctx, 'new tx'),
         onRetry: (ctx) => logger.log(ctx, 'retry tx'),
     });
 
