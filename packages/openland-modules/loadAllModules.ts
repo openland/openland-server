@@ -68,8 +68,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let storage = new EntityStorage(db);
         let store = await openStore(storage);
         container.bind<Store>('Store')
-            .toDynamicValue(() => store)
-            .inSingletonScope();
+            .toConstantValue(store);
     }
 
     loadMonitoringModule();
@@ -146,5 +145,5 @@ export async function startAllModules() {
     await container.get(MetricsModule).start();
     await container.get(UserOnboardingModule).start();
     await container.get(StatsModule).start();
-    await container.get(MonitoringModule).start();
+    await container.get<MonitoringModule>('MonitoringModule').start();
 }

@@ -1,8 +1,4 @@
-import { logger } from './logs';
-
-// const lagLogger = createHyperlogger<{ lag_ns: number, lag_ms: number }>('event_loop_lag');
-// const ctx = createNamedContext('nodejs-tracing');
-const isProduction = process.env.NODE_ENV === 'production';
+import { createMetric } from 'openland-module-monitoring/Metric';
 
 function hrTime() {
     let t = process.hrtime();
@@ -18,21 +14,10 @@ function measureEventLoopLag(): Promise<number> {
     });
 }
 
+const metric = createMetric('event-loop-lag', 'average');
 export function setupNodeJSTracing() {
     setInterval(async () => {
         let lag = await measureEventLoopLag();
-        let message = `event loop lag: ${lag} ns`;
-        if (isProduction) {
-            logger.info({
-                app: {
-                    service: 'event_loop_lag',
-                    text: message,
-                    event_loop_lag_ns: lag
-                },
-                message
-            });
-        } else {
-            logger.info(message);
-        }
+        metric.add(lag / 1000000);
     }, 1000);
 }

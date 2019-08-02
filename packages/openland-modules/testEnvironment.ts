@@ -40,8 +40,7 @@ export async function testEnvironmentStart(name: string) {
     let storage = new EntityStorage(db);
     let store = await openStore(storage);
     container.bind<Store>('Store')
-        .toDynamicValue(() => store)
-        .inSingletonScope();
+        .toConstantValue(store);
 
     loadMonitoringModule();
 }
