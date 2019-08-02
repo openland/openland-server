@@ -2,7 +2,7 @@ import { ScheduledQueue } from '../../openland-module-workers/ScheduledQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Modules } from '../../openland-modules/Modules';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
-import { getEngagementReportsChatId, getSuperNotificationsBotId } from './utils';
+import { getEngagementCounters, getEngagementReportsChatId, getSuperNotificationsBotId } from './utils';
 import { createLogger } from '@openland/log';
 
 const log = createLogger('weekly-engagement-report');
@@ -19,83 +19,17 @@ export function createDailyEngagementReportWorker() {
                 return { result: 'rejected' };
             }
 
-            let activesData = await Modules.Search.elastic.client.search({
-                index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
-                body: {
-                    query: {
-                        bool: {
-                            must: [{ term: { type: 'presence' } }, { term: { ['body.online']: true } }, {
-                                range: {
-                                    date: {
-                                        gte: Date.now() - 24 * 60 * 60 * 1000,
-                                    },
-                                },
-                            }],
-                        },
-                    }, aggs: {
-                        actives: {
-                            cardinality: {
-                                field: 'body.uid',
-                            },
-                        },
-                    },
-                }, size: 0,
-            });
+            let counters = await getEngagementCounters(Date.now() - 24 * 60 * 60 * 1000);
 
-            let actives = activesData.aggregations.actives.value;
-
-            let sendersData = await Modules.Search.elastic.client.search({
-                index: 'message', type: 'message',
-                body: {
-                    query: {
-                        bool: {
-                            must: [{ term: { isService: false } }, {
-                                range: {
-                                    createdAt: {
-                                        gte: Date.now() - 24 * 60 * 60 * 1000,
-                                    },
-                                },
-                            }],
-                        },
-                    }, aggs: {
-                        senders: {
-                            cardinality: {
-                                field: 'uid',
-                            },
-                        }
-                    },
-                }, size: 0,
-            });
-
-            let senders = sendersData.aggregations.senders.value;
-
-            let newAboutFillersData = await Modules.Search.elastic.client.search({
-                index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
-                body: {
-                    query: {
-                        bool: {
-                            must: [{ term: { type: 'new-about-filler' } }, {
-                                range: {
-                                    date: {
-                                        gte: Date.now() - 24 * 60 * 60 * 1000,
-                                    },
-                                },
-                            }],
-                        },
-                    }, aggs: {
-                        usersCount: {
-                            cardinality: {
-                                field: 'body.uid',
-                            },
-                        },
-                    },
-                }, size: 0,
-            });
-
-            let newAboutFillers = newAboutFillersData.aggregations.usersCount.value;
-
-            let messagesSent = sendersData.hits.total;
-            const report = [heading(`Daily   👩‍💻 ${actives}    ➡️ ${senders}    ✉️ ${messagesSent}    🗣 ${newAboutFillers}`)];
+            const report = [heading([
+                `Daily`,
+                `👩‍💻 ${counters.actives}`,
+                `➡️ ${counters.senders}`,
+                `✉️ ${counters.messagesSent}`,
+                `🗣 ${counters.newAboutFillers}`,
+                `❤️ ${counters.todayLikeGivers}`,
+                `🙃 ${counters.todayLikeGetters}`
+            ].join('   '))];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,
