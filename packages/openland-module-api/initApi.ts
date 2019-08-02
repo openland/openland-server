@@ -32,12 +32,12 @@ import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
 import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-graphql/gqlTracer';
-import { AuthContext } from '../openland-module-auth/AuthContext';
+// import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
-const loggerWs = createLogger('ws');
+// const loggerWs = createLogger('ws');
 const ws = createTracer('ws');
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
@@ -69,7 +69,7 @@ export async function initApi(isTest: boolean) {
     // Basic Configuration
     if (!isTest) {
         app.use(cors());
-        app.use(morgan('tiny'));
+        // app.use(morgan('tiny'));
         // app.use(compression());
     }
 
@@ -216,13 +216,13 @@ export async function initApi(isTest: boolean) {
                 },
                 onOperation: async (message: any, params: any, webSocket: any) => {
                     let ctx = buildWebSocketContext(webSocket.__params);
-                    if (!isTest) {
-                        if (webSocket.__params.uid) {
-                            loggerWs.log(ctx, 'GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
-                        } else {
-                            loggerWs.log(ctx, 'WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
-                        }
-                    }
+                    // if (!isTest) {
+                    //     if (webSocket.__params.uid) {
+                    //         loggerWs.log(ctx, 'GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
+                    //     } else {
+                    //         loggerWs.log(ctx, 'WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+                    //     }
+                    // }
 
                     // let clientId = '';
 
@@ -283,7 +283,7 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({ app, path: '/api' });
 
         createWebSocketServer(httpServer);
-        const wsCtx = createNamedContext('ws-gql');
+        // const wsCtx = createNamedContext('ws-gql');
         let fuckApolloWS = await createFuckApolloWSServer({
             server: undefined, // httpServer ,
             path: '/api',
@@ -316,14 +316,14 @@ export async function initApi(isTest: boolean) {
                 return new AppContext(ctx);
             },
             onOperation: async (ctx, operation) => {
-                if (!isTest) {
-                    let opId = GqlQueryIdNamespace.get(ctx) || 'unknown query';
-                    if (AuthContext.get(ctx).uid) {
-                        logger.log(wsCtx, `GraphQL ${opId} [#${AuthContext.get(ctx).uid}]: ${JSON.stringify(operation)}`);
-                    } else {
-                        logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
-                    }
-                }
+                // if (!isTest) {
+                //     let opId = GqlQueryIdNamespace.get(ctx) || 'unknown query';
+                //     if (AuthContext.get(ctx).uid) {
+                //         logger.log(wsCtx, `GraphQL ${opId} [#${AuthContext.get(ctx).uid}]: ${JSON.stringify(operation)}`);
+                //     } else {
+                //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
+                //     }
+                // }
             },
             formatResponse: async value => {
                 let errors: any[] | undefined;
