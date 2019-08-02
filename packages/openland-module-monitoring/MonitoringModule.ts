@@ -15,11 +15,12 @@ export class MonitoringModule {
         if (isProduction) {
             forever(createNamedContext('monitoring'), async () => {
                 while (true) {
-                    await delay(1000);
+                    await delay(15000);
 
                     let metrics = getAllMetrics();
                     log.info({
                         report: 'metric',
+                        metric: 'all',
                         metrics
                     });
                 }
