@@ -7,7 +7,7 @@ import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 const isProduction = process.env.NODE_ENV === 'production';
 
 const getPino = () => {
-    let log = pino(pino.extreme());
+    let log = pino();
     log.level = 'debug';
     return log;
 };
