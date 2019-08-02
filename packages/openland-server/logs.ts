@@ -49,7 +49,6 @@ setLogProvider({
                     service,
                     text: message,
                     times: ZippedLoggerTimes.get(ctx),
-                    event_loop_lag_ns: 0
                 },
                 message: formatMessage(ctx, service, message)
             };
