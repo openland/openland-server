@@ -1,7 +1,10 @@
 import { logger } from './logs';
+import { LogMetaContext, LogPathContext } from '@openland/log';
+import { ContextName, createNamedContext } from '@openland/context';
+import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
 // const lagLogger = createHyperlogger<{ lag_ns: number, lag_ms: number }>('event_loop_lag');
-// const ctx = createNamedContext('nodejs-tracing');
+const ctx = createNamedContext('nodejs-tracing');
 const isProduction = process.env.NODE_ENV === 'production';
 
 function hrTime() {
@@ -25,9 +28,13 @@ export function setupNodeJSTracing() {
         if (isProduction) {
             logger.info({
                 app: {
+                    ...LogMetaContext.get(ctx),
+                    parent: LogPathContext.get(ctx),
+                    context: ContextName.get(ctx),
                     service: 'event_loop_lag',
                     text: message,
-                    lag_ns: lag
+                    times: ZippedLoggerTimes.get(ctx),
+                    event_loop_lag_ns: lag
                 },
                 message
             });

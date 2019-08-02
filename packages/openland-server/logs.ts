@@ -48,7 +48,8 @@ setLogProvider({
                     context: ContextName.get(ctx),
                     service,
                     text: message,
-                    times: ZippedLoggerTimes.get(ctx)
+                    times: ZippedLoggerTimes.get(ctx),
+                    lag_ns: 0
                 },
                 message: formatMessage(ctx, service, message)
             };
