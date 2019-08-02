@@ -27,7 +27,6 @@ export function setupNodeJSTracing() {
                 app: {
                     service: 'event_loop_lag',
                     text: message,
-                    lag_ns: lag,
                     lag_ms: lag / 1000000
                 },
                 message
