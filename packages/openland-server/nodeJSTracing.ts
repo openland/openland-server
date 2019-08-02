@@ -34,7 +34,7 @@ export function setupNodeJSTracing() {
                     service: 'event_loop_lag',
                     text: message,
                     times: ZippedLoggerTimes.get(ctx),
-                    lag_ns: lag
+                    event_loop_lag_ns: lag
                 },
                 message
             });
