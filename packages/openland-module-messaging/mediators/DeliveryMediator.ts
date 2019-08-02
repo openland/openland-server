@@ -14,8 +14,12 @@ import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
+import { currentRunningTime } from 'openland-utils/timer';
+import { createMetric } from 'openland-module-monitoring/Metric';
 
 const tracer = createTracer('message-delivery');
+const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
+const deliveryMetric = createMetric('delivery-user-multiple', 'average');
 
 @injectable()
 export class DeliveryMediator {
@@ -31,6 +35,7 @@ export class DeliveryMediator {
         if (serverRoleEnabled('delivery')) {
             for (let i = 0; i < 25; i++) {
                 this.queue.addWorker(async (item, parent) => {
+                    const start = currentRunningTime();
                     if (item.action === 'new' || item.action === undefined) {
                         await this.fanOutDelivery(parent, item.messageId, 'new');
                     } else if (item.action === 'delete') {
@@ -40,11 +45,13 @@ export class DeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    return {result: 'ok'};
+                    deliveryInitialMetric.add(currentRunningTime() - start);
+                    return { result: 'ok' };
                 });
             }
             for (let i = 0; i < 25; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
+                    const start = currentRunningTime();
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
                             let message = (await Store.Message.findById(ctx, item.messageId))!;
@@ -59,7 +66,8 @@ export class DeliveryMediator {
                             }
                         });
                     });
-                    return {result: 'ok'};
+                    deliveryMetric.add(currentRunningTime() - start);
+                    return { result: 'ok' };
                 });
             }
         }
@@ -70,15 +78,15 @@ export class DeliveryMediator {
     //
 
     onNewMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, {messageId: message.id, action: 'new'});
+        await this.queue.pushWork(ctx, { messageId: message.id, action: 'new' });
     }
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, {messageId: message.id, action: 'update'});
+        await this.queue.pushWork(ctx, { messageId: message.id, action: 'update' });
     }
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
-        await this.queue.pushWork(ctx, {messageId: message.id, action: 'delete'});
+        await this.queue.pushWork(ctx, { messageId: message.id, action: 'delete' });
     }
 
     onRoomRead = async (parent: Context, uid: number, mid: number) => {
