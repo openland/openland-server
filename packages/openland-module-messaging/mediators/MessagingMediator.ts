@@ -53,11 +53,24 @@ export class MessagingMediator {
                 }
             }
 
-            let spans = message.spans ? [...message.spans] : [];
+            let msg = message;
+
+            if (message.message && message.message.startsWith('/me ')) {
+                let user = (await Store.UserProfile.findById(ctx, uid))!;
+                let userMentionStr = `@${user.firstName} ${user.lastName}`;
+                let lengthDiff = userMentionStr.length - 3;
+                msg = {
+                    message: userMentionStr + message.message.substring(3, message.message.length - 1),
+                    isService: true,
+                    spans: [{ type: 'user_mention', offset: 0, length: userMentionStr.length, user: uid }, ...(msg.spans || []).map(s => ({ ...s, offset: s.offset + lengthDiff }))],
+                };
+            }
+
+            let spans = msg.spans ? [...msg.spans] : [];
             //
             // Parse links
             //
-            let links = this.parseLinks(message.message || '');
+            let links = this.parseLinks(msg.message || '');
             if (links.length > 0) {
                 spans.push(...links);
             }
@@ -65,13 +78,13 @@ export class MessagingMediator {
             //
             // Parse dates
             //
-            let dates = this.parseDates(message.message || '');
+            let dates = this.parseDates(msg.message || '');
             if (dates.length > 0) {
                 spans.push(...dates);
             }
 
             // Create
-            let res = await this.repo.createMessage(ctx, cid, uid, { ...message, spans });
+            let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
@@ -79,7 +92,7 @@ export class MessagingMediator {
             // Subscribe to comments
             await Modules.Comments.notificationsMediator.onNewMessage(ctx, res.message);
 
-            if (!message.ignoreAugmentation) {
+            if (!msg.ignoreAugmentation) {
                 // Augment
                 await this.augmentation.onNewMessage(ctx, res.message);
             }
