@@ -60,9 +60,10 @@ export class MessagingMediator {
                 let userMentionStr = `@${user.firstName} ${user.lastName}`;
                 let lengthDiff = userMentionStr.length - 3;
                 msg = {
-                    message: userMentionStr + message.message.substring(3, message.message.length - 1),
+                    message: userMentionStr + message.message.substring(3, message.message.length),
                     isService: true,
                     spans: [{ type: 'user_mention', offset: 0, length: userMentionStr.length, user: uid }, ...(msg.spans || []).map(s => ({ ...s, offset: s.offset + lengthDiff }))],
+                    repeatKey: msg.repeatKey
                 };
             }
 
