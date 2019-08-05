@@ -13,6 +13,7 @@ import { createLogger } from '@openland/log';
 
 import { Shutdown } from '../openland-utils/Shutdown';
 import { StatsModule } from '../openland-module-stats/StatsModule';
+import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringModule';
 
 const logger = createLogger('environment');
 
@@ -39,8 +40,9 @@ export async function testEnvironmentStart(name: string) {
     let storage = new EntityStorage(db);
     let store = await openStore(storage);
     container.bind<Store>('Store')
-        .toDynamicValue(() => store)
-        .inSingletonScope();
+        .toConstantValue(store);
+
+    loadMonitoringModule();
 }
 
 export async function testEnvironmentEnd() {

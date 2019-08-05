@@ -40,10 +40,14 @@ async function initServer() {
     });
 
     try {
+        logger.log(ctx, 'Loading modules');
         await loadAllModules(ctx);
+        logger.log(ctx, 'Starting modules');
         await startAllModules();
+        logger.log(ctx, 'Starting tracing');
         setupFdbTracing();
         setupNodeJSTracing();
+        logger.log(ctx, 'Started');
     } catch (e) {
         logger.error(ctx, e, 'Unable to init server');
         process.abort();

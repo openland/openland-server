@@ -127,6 +127,11 @@ export function foreverBreakable(ctx: Context, callback: () => Promise<void>) {
     };
 }
 
+export function currentRunningTime() {
+    let t = process.hrtime();
+    return ((t[0] * 1e9) + t[1]) / 1000000;
+}
+
 export function currentTime(): number {
     return new Date().getTime();
 }
