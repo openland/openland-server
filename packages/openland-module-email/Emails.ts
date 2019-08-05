@@ -497,7 +497,7 @@ export const Emails = {
                     const color = getAvatarColorById(item.serializedId);
                     const formated: FormatedTrendGroup = {
                         ...item,
-                        subTitle: `${item.membersCount} members`,
+                        subTitle: `+${item.messagesDelta} messages`,
                         firstTitleChar: item.title ? item.title[0].toUpperCase() : '',
                         // if image is empty, color is used
                         previewImage,
