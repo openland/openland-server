@@ -1,4 +1,4 @@
-FROM node:10.16.0
+FROM node:12.7.0
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
