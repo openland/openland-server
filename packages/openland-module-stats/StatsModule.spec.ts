@@ -76,6 +76,11 @@ describe('StatsModule', () => {
         const CHAT1_ID = (await roomRepo.createRoom(ctx, 'public', oid, USER1_ID, [], { title: 'Room 321' })).id;
         const CHAT2_ID = (await roomRepo.createRoom(ctx, 'public', oid, USER1_ID, [], { title: 'Room ff' })).id;
 
+        const CHAT3_ID = 777;
+
+        await (await Store.Conversation.create(ctx, CHAT3_ID, { kind: 'private' })).flush(ctx);
+        await Store.ConversationPrivate.create(ctx, CHAT3_ID, { uid1: Math.min(USER1_ID, USER2_ID), uid2: Math.max(USER1_ID, USER2_ID) });
+
         await roomRepo.addToRoom(ctx, CHAT1_ID, USER2_ID, USER1_ID);
         await roomRepo.addToRoom(ctx, CHAT2_ID, USER2_ID, USER1_ID);
 
@@ -101,8 +106,12 @@ describe('StatsModule', () => {
             .fill(0)
             .map((_, msg) => ({ message: `${msg}`, uid: USER2_ID, cid: CHAT2_ID }));
 
+        const msgsByUser2ToUser1 = Array(6)
+            .fill(0)
+            .map((_, msg) => ({ message: `${msg}`, uid: USER2_ID, cid: 777 }));
+
         const mids = await Promise.all(
-            [...msgsByUser1ToChat1, ...msgsByUser2ToChat1, ...msgsByUser1ToChat2, ...msgsByUser2ToChat2].map(msg =>
+            [...msgsByUser1ToChat1, ...msgsByUser2ToChat1, ...msgsByUser1ToChat2, ...msgsByUser2ToChat2, ...msgsByUser2ToUser1].map(msg =>
                 messagingMediator.sendMessage(ctx, msg.uid, msg.cid, { message: msg.message })
             )
         );
@@ -133,20 +142,30 @@ describe('StatsModule', () => {
         // console.dir(JSON.stringify({ unreadByUser1, unreadByUser2 }, null, 2));
 
         expect(unreadByUser1).toEqual({
-            unreadMessagesCount: 9,
+            unreadMessagesCount: 15,
             unreadMoreGroupsCount: 0,
             groups: [
                 {
                     serializedId: expect.any(String),
                     previewImage: expect.any(String),
+                    title: expect.stringContaining('User Name'),
+                    unreadCount: 6,
+                    convKind: 'private'
+                },
+                //
+                {
+                    serializedId: expect.any(String),
+                    previewImage: expect.any(String),
                     title: 'Room ff',
-                    unreadCount: 7
+                    unreadCount: 7,
+                    convKind: 'room'
                 },
                 {
                     serializedId: expect.any(String),
                     previewImage: expect.any(String),
                     title: 'Room 321',
-                    unreadCount: 2
+                    unreadCount: 2,
+                    convKind: 'room'
                 }
             ]
         } as UnreadGroups);
@@ -159,7 +178,15 @@ describe('StatsModule', () => {
                     serializedId: expect.any(String),
                     previewImage: expect.any(String),
                     title: 'Room ff',
-                    unreadCount: 5
+                    unreadCount: 5,
+                    convKind: 'room'
+                },
+                {
+                    serializedId: expect.any(String),
+                    previewImage: expect.any(String),
+                    title: 'Room 321',
+                    unreadCount: 3,
+                    convKind: 'room'
                 }
             ]
         } as UnreadGroups);

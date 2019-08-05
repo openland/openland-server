@@ -11,10 +11,10 @@ import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoo
 import { Modules } from '../openland-modules/Modules';
 import { Message, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { UnreadGroups, TrendGroup, TrendGroups } from './StatsModule.types';
+import { UnreadGroups, TrendGroup, TrendGroups, UnreadGroup, GroupedByConvKind } from './StatsModule.types';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { User } from '../openland-module-db/store';
-import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { groupBy } from 'openland-utils/groupBy';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -88,23 +88,37 @@ export class StatsModule {
 
     getUnreadGroupsByUserId = async (ctx: Context, uid: number, first: number): Promise<UnreadGroups> => {
         const dialogs = await Store.UserDialog.user.findAll(ctx, uid);
-        const unreadMessagesCount = await Store.UserCounter.byId(uid).get(ctx);
+        const unreadMessagesCount = Math.max(await Store.UserCounter.byId(uid).get(ctx), 0);
         const withUnreadCount = await Promise.all(
             dialogs.map(async dialog => {
                 const unreadCount = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
-                const roomProfile = await Store.RoomProfile.findById(ctx, dialog.cid);
+                const conv = (await Store.Conversation.findById(ctx, dialog.cid));
 
-                if (!roomProfile) {
+                if (!conv) {
                     return null;
+                }
+
+                let previewImage = '';
+                let title = '';
+                try {
+                    previewImage = await Modules.Messaging.room.resolveConversationPhoto(ctx, dialog.cid, uid) || '';
+                } catch (e) {
+                    // ignore
+                }
+                try {
+                    title = await Modules.Messaging.room.resolveConversationTitle(ctx, dialog.cid, uid) || '';
+                } catch (e) {
+                    // ignore
                 }
 
                 const serializedId = IDs.Conversation.serialize(dialog.cid);
 
                 return {
                     serializedId,
-                    previewImage: buildBaseImageUrl(roomProfile.image) || '',
-                    title: roomProfile.title,
+                    previewImage: previewImage.includes('https') ? previewImage : '',
+                    title,
                     unreadCount,
+                    convKind: conv.kind
                 };
             }),
         );
@@ -112,36 +126,54 @@ export class StatsModule {
         // DESC
         const sortedByUnreadCount = withUnreadCount
             .filter(u => u && u.unreadCount > 0)
-            .sort((a, b) => b!.unreadCount - a!.unreadCount) as NonNullable<typeof withUnreadCount[0]>[];
+            .sort((a, b) => b!.unreadCount - a!.unreadCount) as NonNullable<UnreadGroup>[];
 
         const firstN = sortedByUnreadCount.slice(0, first);
 
         const unreadMoreGroupsCount = Math.max(sortedByUnreadCount.length - firstN.length, 0);
 
+        const groupedByConvKind = groupBy(sortedByUnreadCount, group => group.convKind) as GroupedByConvKind;
+
+        // add at least 2 personal chats at beginning of groups (by spec)
+        const firstTwoPersonalChats = (groupedByConvKind.private || []).slice(0, 2);
+        const orgAndRoomChats = [
+            ...(groupedByConvKind.organization || []),
+            ...(groupedByConvKind.room || [])
+        ].sort((a, b) => b!.unreadCount - a!.unreadCount);
+
         return {
             unreadMessagesCount,
             unreadMoreGroupsCount,
-            groups: firstN,
+            groups: [...firstTwoPersonalChats, ...orgAndRoomChats],
         };
     }
 
     getTrendingGroupsByMessages = async (ctx: Context, from: number, to: number, first: number): Promise<TrendGroups> => {
         const tredings = await this.getTrendingRoomsByMessages(ctx, from, to, first);
-        const withMembersCount = await Promise.all(tredings.map(async trend => {
+        const withMessagesDelta = await Promise.all(tredings.map(async trend => {
             const { room } = trend;
-            const membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
+
+            let previewImage = '';
+            try {
+                previewImage = await Modules.Messaging.room.resolveConversationPhoto(ctx, room.id, 0) || '';
+            } catch (e) {
+                // ignore
+            }
+
+            // const membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
             const serializedId = IDs.Conversation.serialize(room.id);
 
             return {
                 serializedId,
-                previewImage: buildBaseImageUrl(room.image) || '',
+                previewImage: previewImage.includes('https') ? previewImage : '',
                 title: room.title,
-                membersCount
+                messagesDelta: trend.messagesDelta
+                // membersCount
             } as TrendGroup;
         }));
 
         return {
-            groups: withMembersCount
+            groups: withMessagesDelta
         };
     }
 

@@ -7,9 +7,13 @@ interface StatsGroup {
 
 type FormatProps = { subTitle: string, color: string, previewLink: string, firstTitleChar: string; };
 
+export type ConvKind = 'organization' | 'room' | 'private';
+
 // ----
 
-export type UnreadGroup = StatsGroup & { unreadCount: number; };
+export type UnreadGroup = StatsGroup & { unreadCount: number; convKind: ConvKind };
+
+export type GroupedByConvKind = { [key in ConvKind]: UnreadGroup[] | undefined };
 
 export interface UnreadGroups {
   unreadMessagesCount: number;
@@ -29,7 +33,10 @@ export interface FormatedUnreadGroups {
 
 // ----
 
-export type TrendGroup = StatsGroup & { membersCount: number; };
+export type TrendGroup = StatsGroup & {
+  messagesDelta: number
+  //  membersCount: number;
+};
 
 export interface TrendGroups {
   groups: TrendGroup[];
