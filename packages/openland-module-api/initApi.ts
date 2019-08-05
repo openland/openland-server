@@ -74,10 +74,10 @@ export async function initApi(isTest: boolean) {
     }
 
     // To avoid logging on this route
-    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/favicon.ico', (req, res) => res.send(404));
-    app.get('/robots.txt', (req, res) => res.send(404));
+    app.get('/', (req, res) => res.status(200).send('Welcome to Openland API!'));
+    app.get('/status', (req, res) => res.status(200).send('Welcome to Openland API!'));
+    app.get('/favicon.ico', (req, res) => res.sendStatus(404));
+    app.get('/robots.txt', (req, res) => res.sendStatus(404));
 
     //
     // Authenticaton
