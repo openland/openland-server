@@ -15,8 +15,8 @@ export async function initHealthcheck() {
     app.enable('trust proxy');
 
     // To avoid logging on this route
-    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/', (req, res) => res.status(200).send('Welcome to Openland API!'));
+    app.get('/status', (req, res) => res.status(200).send('Welcome to Openland API!'));
 
     if (dport > 0) {
         logger.log(createNamedContext('api-module'), 'Binding to port ' + dport);

@@ -43,6 +43,7 @@ export class InvitesRoomRepository {
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);
             if (ex) {
                 ex.enabled = false;
+                await ex.flush(ctx);
             }
             let res = await Store.ChannelLink.create(ctx, randomInviteKey(), {
                 channelId,

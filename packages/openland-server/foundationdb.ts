@@ -10,6 +10,8 @@ import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
 import { RedisBusProvider } from '@openland/foundationdb-bus-redis';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 
+let cachedDB: Database|null = null;
+
 function createLayers(test: boolean) {
     let layers: Layer[] = [
         new RandomLayer(),
@@ -30,6 +32,9 @@ function createLayers(test: boolean) {
 }
 
 export async function openDatabase() {
+    if (cachedDB) {
+        return cachedDB;
+    }
     let db: Database;
     if (process.env.FOUNDATION_DB) {
         fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
@@ -43,6 +48,7 @@ export async function openDatabase() {
             await db.close(ctx);
         }
     });
+    cachedDB = db;
     return db;
 }
 
