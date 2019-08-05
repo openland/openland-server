@@ -49,7 +49,7 @@ export function createEmailWorker() {
                         substitutions: args.args,
                         subject: args.subject,
                         dynamicTemplateData: args.dynamicTemplateData
-                    });
+                    } as any);
                     let statusCode = res[0].statusCode;
                     log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
                 } catch (e) {
