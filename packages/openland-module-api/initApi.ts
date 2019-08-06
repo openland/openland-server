@@ -34,6 +34,8 @@ import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
 import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-graphql/gqlTracer';
 // import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
+import { currentRunningTime } from 'openland-utils/timer';
+import { createMetric } from 'openland-module-monitoring/Metric';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -41,6 +43,8 @@ import { uuid } from '../openland-utils/uuid';
 const ws = createTracer('ws');
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
+const authMetric = createMetric('auth-metric', 'average');
+const authMetricCtx = createNamedContext('ws');
 
 export async function initApi(isTest: boolean) {
     const rootCtx = createNamedContext('init');
@@ -206,6 +210,7 @@ export async function initApi(isTest: boolean) {
                 subscribe,
                 keepAlive: 10000,
                 onConnect: async (args: any, webSocket: any) => {
+                    const start = currentRunningTime();
                     let wsParams = await fetchWebSocketParameters(args || {}, webSocket);
 
                     if (Object.keys(wsParams).length === 0 && webSocket.upgradeReq.headers.cookie && webSocket.upgradeReq.headers.cookie.length > 0) {
@@ -213,6 +218,8 @@ export async function initApi(isTest: boolean) {
                         wsParams = await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, webSocket);
                     }
                     webSocket.__params = wsParams;
+                    const delta = currentRunningTime() - start;
+                    authMetric.add(authMetricCtx, delta);
                 },
                 onOperation: async (message: any, params: any, webSocket: any) => {
                     let ctx = buildWebSocketContext(webSocket.__params);
