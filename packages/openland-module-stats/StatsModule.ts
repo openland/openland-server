@@ -11,10 +11,11 @@ import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoo
 import { Modules } from '../openland-modules/Modules';
 import { Message, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { UnreadGroups, TrendGroup, TrendGroups, UnreadGroup, GroupedByConvKind } from './StatsModule.types';
+import { UnreadGroups, TrendGroup, TrendGroups, UnreadGroup, GroupedByConvKind, TopPost } from './StatsModule.types';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { User } from '../openland-module-db/store';
 import { groupBy } from 'openland-utils/groupBy';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -84,6 +85,42 @@ export class StatsModule {
         if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
             await newThreeLikeGetterLog.event(ctx, { uid: message.uid });
         }
+    }
+
+    getTopPosts = async (ctx: Context, cid: number) => {
+        const top = await Modules.Messaging.findTopMessage(ctx, cid);
+
+        if (!top) {
+            return [];
+        }
+
+        const userId = top.uid;
+        const userProfile = (await (Store.UserProfile.findById(ctx, userId)))!;
+
+        const org = userProfile.primaryOrganization
+            ? await Store.OrganizationProfile.findById(ctx, userProfile.primaryOrganization)
+            : null;
+
+        if (!org) {
+            return [];
+        }
+
+        const topPost = {
+            message: top.text,
+            sender: {
+                id: IDs.User.serialize(userProfile.id),
+                avatar: userProfile.picture ? buildBaseImageUrl(userProfile.picture) : '',
+                name: [userProfile.firstName, userProfile.lastName].filter((v) => !!v).join(' '),
+
+                orgId: IDs.Organization.serialize(org.id),
+                orgName: org.name,
+            },
+            chatId: IDs.Conversation.serialize(cid),
+            likesCount: (top.reactions || []).length,
+            commentsCount: (top.replyMessages || []).length
+        } as TopPost;
+
+        return [topPost];
     }
 
     getUnreadGroupsByUserId = async (ctx: Context, uid: number, first: number): Promise<UnreadGroups> => {
