@@ -16,6 +16,7 @@ const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
 const metricStart = createMetric('worker-started', 'sum');
+const metricFailed = createMetric('worker-failed', 'sum');
 const metricEnd = createMetric('worker-commited', 'sum');
 
 export class WorkQueue<ARGS, RES extends JsonMap> {
@@ -115,7 +116,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     metricStart.increment(root);
                     res = await handler(task.arguments, rootExec);
                 } catch (e) {
-                    // log.warn(root, e);
+                    metricFailed.increment(rootExec);
+                    log.warn(root, e);
                     await inTx(root, async (ctx) => {
                         let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
                         if (res2) {
