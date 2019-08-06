@@ -45,7 +45,7 @@ export class DeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    deliveryInitialMetric.add(currentRunningTime() - start);
+                    deliveryInitialMetric.add(parent, currentRunningTime() - start);
                     return { result: 'ok' };
                 });
             }
@@ -66,7 +66,7 @@ export class DeliveryMediator {
                             }
                         });
                     });
-                    deliveryMetric.add(currentRunningTime() - start);
+                    deliveryMetric.add(parent, currentRunningTime() - start);
                     return { result: 'ok' };
                 });
             }
@@ -197,23 +197,19 @@ export class DeliveryMediator {
     // User Scoped Delivery
     //
 
-    private deliverMessageToUser = async (parent: Context, uid: number, message: Message) => {
-        await tracer.trace(parent, 'deliverMessageToUser', async (tctx) => {
-            await inTx(tctx, async (ctx) => {
+    private deliverMessageToUser = async (ctx: Context, uid: number, message: Message) => {
 
-                // Update counters
-                await this.counters.onMessageReceived(ctx, uid, message);
+        // Update counters
+        await this.counters.onMessageReceived(ctx, uid, message);
 
-                // Update dialogs
-                await this.repo.deliverMessageToUser(ctx, uid, message);
+        // Update dialogs
+        await this.repo.deliverMessageToUser(ctx, uid, message);
 
-                // Mark user as needed notification delivery
-                this.needNotification.setNeedNotificationDelivery(ctx, uid);
+        // Mark user as needed notification delivery
+        this.needNotification.setNeedNotificationDelivery(ctx, uid);
 
-                // Track message received
-                await Modules.Metrics.onMessageReceived(ctx, message, uid);
-            });
-        });
+        // Track message received
+        Modules.Metrics.onMessageReceived(ctx, message, uid);
     }
 
     private deliverMessageUpdateToUser = async (parent: Context, uid: number, message: Message) => {

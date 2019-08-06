@@ -47,7 +47,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
         if (accessToken) {
             let uid = await inTx(rootContext, async (ctx) => await Modules.Auth.findToken(ctx, accessToken as string));
             if (uid !== null) {
-                req.user = { uid: uid.uid, tid: uid.uuid };
+                (req as any).user = { uid: uid.uid, tid: uid.uuid };
             }
         }
     } catch (e) {
@@ -90,7 +90,7 @@ export const Authenticator = async function (req: express.Request, response: exp
         // Get Or Create User
         //
         let uid = await inTx(rootContext, async (ctx) => {
-            let userKey = req.user.sub;
+            let userKey = (req as any).user.sub;
 
             // Account
             let user = await Store.User.email.find(ctx, profile.email.toLowerCase());

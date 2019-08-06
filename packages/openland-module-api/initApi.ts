@@ -4,17 +4,13 @@ import cors from 'cors';
 // import morgan from 'morgan';
 import * as Auth2 from '../openland-module-auth/authV2';
 import * as Auth from '../openland-module-auth/providers/email';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from './schema/Schema';
-import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver, OperationDefinitionNode } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from './handlers/websocket';
 import { errorHandler, QueryInfo } from '../openland-errors';
-import { Server as HttpServer } from 'http';
 import { withAudit } from '../openland-module-auth/providers/email';
 import { IDs } from './IDs';
 import { Modules } from 'openland-modules/Modules';
 import { AppContext } from 'openland-modules/AppContext';
-import { createTracer } from 'openland-log/createTracer';
 import { initSafariPush } from '../openland-module-push/safari/handlers';
 import { initAppHandlers } from '../openland-module-apps/Apps.handler';
 import { ApolloServer } from 'apollo-server-express';
@@ -34,13 +30,16 @@ import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
 import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-graphql/gqlTracer';
 // import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
+import { createMetric } from '../openland-module-monitoring/Metric';
+import { currentRunningTime } from '../openland-utils/timer';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
 // const loggerWs = createLogger('ws');
-const ws = createTracer('ws');
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
+const authMetric = createMetric('auth-metric', 'average');
+const authMetricCtx = createNamedContext('ws');
 
 export async function initApi(isTest: boolean) {
     const rootCtx = createNamedContext('init');
@@ -185,115 +184,29 @@ export async function initApi(isTest: boolean) {
             };
         };
 
-        function createWebSocketServer(server: HttpServer) {
-            return new SubscriptionServer({
-                schema: Schema(),
-                execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
-                    [key: string]: any;
-                }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
-                    let ex = document.definitions.find((v) => v.kind === 'OperationDefinition');
-                    let srcCtx = (contextValue as AppContext).ctx;
-                    if (ex && (ex as OperationDefinitionNode).operation !== 'subscription') {
-                        srcCtx = withReadOnlyTransaction(srcCtx);
-                    }
-
-                    srcCtx = withConcurrentcyPool(srcCtx, buildConcurrencyPool((contextValue as AppContext)));
-
-                    return await ws.trace(srcCtx, operationName || 'op', async (ctx) => {
-                        return await execute(schema, document, rootValue, new AppContext(ctx), variableValues, operationName, fieldResolver);
-                    });
-                },
-                subscribe,
-                keepAlive: 10000,
-                onConnect: async (args: any, webSocket: any) => {
-                    let wsParams = await fetchWebSocketParameters(args || {}, webSocket);
-
-                    if (Object.keys(wsParams).length === 0 && webSocket.upgradeReq.headers.cookie && webSocket.upgradeReq.headers.cookie.length > 0) {
-                        let cookies = parseCookies(webSocket.upgradeReq.headers.cookie);
-                        wsParams = await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, webSocket);
-                    }
-                    webSocket.__params = wsParams;
-                },
-                onOperation: async (message: any, params: any, webSocket: any) => {
-                    let ctx = buildWebSocketContext(webSocket.__params);
-                    // if (!isTest) {
-                    //     if (webSocket.__params.uid) {
-                    //         loggerWs.log(ctx, 'GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
-                    //     } else {
-                    //         loggerWs.log(ctx, 'WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
-                    //     }
-                    // }
-
-                    // let clientId = '';
-
-                    // if (webSocket.__params.uid) {
-                    //     clientId = 'user_' + webSocket.__params.uid;
-                    // } else {
-                    //     clientId = 'ip_' + webSocket._socket.remoteAddress;
-                    // }
-
-                    // let handleStatus = Rate.WS.canHandle(clientId);
-
-                    // if (!handleStatus.canHandle) {
-                    //     if (handleStatus.delay) {
-                    //         Rate.WS.hit(clientId);
-                    //         await delay(handleStatus.delay);
-                    //     } else {
-                    //         throw new Error('Rate limit!');
-                    //     }
-                    // } else {
-                    //     Rate.WS.hit(clientId);
-                    // }
-
-                    return {
-                        ...params,
-                        context: ctx,
-                        formatResponse: (value: any) => {
-                            let errors: any[] | undefined;
-                            if (value.errors) {
-                                let info: QueryInfo = {
-                                    uid: ctx && ctx.auth && ctx.auth.uid,
-                                    oid: ctx && ctx.auth && ctx.auth.oid,
-                                    query: JSON.stringify(message.payload),
-                                    transport: 'ws'
-                                };
-                                errors = value.errors && value.errors.map((e: any) => formatError(e, info));
-                            }
-                            return ({
-                                ...value,
-                                errors: errors,
-                            });
-                        }
-                    };
-                },
-                validationRules: [
-                    // disableIntrospection(undefined) // any introspection over WS is disabled
-                ]
-            }, {
-                    // server: server,
-                    // path: '/api'
-                    noServer: true,
-                });
-        }
-
         // Starting server
         const httpServer = http.createServer(app);
 
         Server.applyMiddleware({ app, path: '/graphql' });
         Server.applyMiddleware({ app, path: '/api' });
 
-        createWebSocketServer(httpServer);
         // const wsCtx = createNamedContext('ws-gql');
         let fuckApolloWS = await createFuckApolloWSServer({
             server: undefined, // httpServer ,
             path: '/api',
             executableSchema: Schema(),
             onAuth: async (params, req) => {
-                if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
-                    let cookies = parseCookies(req.headers.cookie || '');
-                    return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
-                }
-                return await fetchWebSocketParameters(params, null);
+                const start = currentRunningTime();
+                try {
+                     if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
+                         let cookies = parseCookies(req.headers.cookie || '');
+                         return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
+                     }
+                     return await fetchWebSocketParameters(params, null);
+                 } finally {
+                     const delta = currentRunningTime() - start;
+                     authMetric.add(authMetricCtx, delta);
+                 }
             },
             context: async (params, operation) => {
                 let opId = uuid();

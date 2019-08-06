@@ -1,7 +1,7 @@
 import { Store } from './../openland-module-db/FDB';
 import { JsonMap } from 'openland-utils/json';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
-import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable, currentRunningTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -10,10 +10,16 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
+import { createMetric } from 'openland-module-monitoring/Metric';
 
 const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
+const metricStart = createMetric('worker-started', 'sum');
+const metricFailed = createMetric('worker-failed', 'sum');
+const metricEnd = createMetric('worker-commited', 'sum');
+const workerFetch = createMetric('worker-fetch', 'average');
+const workerPick = createMetric('worker-pick', 'average');
 
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
@@ -62,32 +68,44 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             await w.promise;
         };
         let root = createNamedContext('worker-' + this.taskType);
+        let rootExec = createNamedContext('task-' + this.taskType);
         let workLoop = foreverBreakable(root, async () => {
+            let start = currentRunningTime();
             let task = await inTx(root, async (ctx) => {
+                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
+
                 let pend = [
-                    ...(await Store.Task.pending.findAll(ctx, this.taskType)),
-                    ...(await Store.Task.delayedPending.query(ctx, this.taskType, { after: Date.now(), reverse: true })).items
+                    ...(await Store.Task.pending.query(ctx, this.taskType, { limit: 100 })).items,
+                    ...(await Store.Task.delayedPending.query(ctx, this.taskType, { after: Date.now(), reverse: true, limit: 100 })).items
                 ];
                 if (pend.length === 0) {
                     return null;
                 }
                 let index = Math.floor(Math.random() * (pend.length));
                 let res = pend[index];
-                // log.log(ctx, 'found ' + pend.length + ', selecting ' + index);
-                return res;
+                let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
+                return { res , readVersion: raw };
             });
+            if (task) {
+                workerFetch.add(root, currentRunningTime() - start);
+            }
+            start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
-                let tsk = (await Store.Task.findById(ctx, task!.taskType, task!.uid))!;
+                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
+                // let raw = getTransaction(ctx).rawTransaction(Store.storage.db).getrea;
+                // raw.setReadVersion(task!.readVersion);
+                let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                 if (tsk.taskStatus !== 'pending') {
                     return false;
                 }
                 tsk.taskLockSeed = lockSeed;
                 tsk.taskLockTimeout = Date.now() + 15000;
                 tsk.taskStatus = 'executing';
-                await workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.metadata.createdAt });
+                workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.metadata.createdAt });
                 return true;
             });
             if (task && locked) {
+                workerPick.add(root, currentRunningTime() - start);
                 // log.log(root, 'Task ' + task.uid + ' found');
                 // let start = currentTime();
                 let breakDelay: (() => void) | undefined;
@@ -96,7 +114,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     breakDelay = d.resolver;
                     await d.promise;
                     await inTx(root, async ctx => {
-                        let tsk = (await Store.Task.findById(ctx, task!.taskType, task!.uid))!;
+                        let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                         tsk.taskLockTimeout = Date.now() + 15000;
                     });
                 });
@@ -108,11 +126,13 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 };
                 let res: RES;
                 try {
-                    res = await handler(task.arguments, root);
+                    metricStart.increment(root);
+                    res = await handler(task.res.arguments, rootExec);
                 } catch (e) {
-                    // log.warn(root, e);
+                    metricFailed.increment(rootExec);
+                    log.warn(root, e);
                     await inTx(root, async (ctx) => {
-                        let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
+                        let res2 = await Store.Task.findById(ctx, task!!.res.taskType, task!!.res.uid);
                         if (res2) {
                             if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                                 res2.taskStatus = 'failing';
@@ -145,18 +165,19 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
                 // Commiting
                 let commited = await inTx(root, async (ctx) => {
-                    let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
+                    let res2 = await Store.Task.findById(ctx, task!!.res.taskType, task!!.res.uid);
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                             res2.taskStatus = 'completed';
                             res2.result = res;
-                            await workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
+                            workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
                             return true;
                         }
                     }
                     return false;
                 });
                 if (commited) {
+                    metricEnd.increment(root);
                     // log.log(root, 'Commited');
                 } else {
                     log.log(root, 'Not commited');

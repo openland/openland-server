@@ -23,8 +23,8 @@ export const trackEvent = createHyperlogger<InternalTrackEvent>('track');
 
 const isProd = process.env.APP_ENVIRONMENT === 'production';
 
-export async function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
-    await trackEvent.event(ctx, {
+export function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
+    trackEvent.event(ctx, {
         id: uuid(),
         platform: 'WEB',
         did: 'server',
@@ -39,7 +39,7 @@ export default {
         track: withAny(async (ctx, args) => {
             await inTx(ctx, async (ctx2) => {
                 for (let i of args.events) {
-                    await trackEvent.event(ctx2, {
+                    trackEvent.event(ctx2, {
                         did: args.did,
                         id: i.id,
                         name: i.event,

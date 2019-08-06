@@ -40,12 +40,12 @@ export class StatsModule {
     }
 
     onNewMobileUser = async (ctx: Context, uid: number) => {
-        await newMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+        newMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
     }
 
     onMessageSent = async (ctx: Context, uid: number) => {
         if (await Store.UserMessagesSentCounter.get(ctx, uid) === 1) {
-            await newSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+            newSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
         }
     }
 
@@ -62,14 +62,14 @@ export class StatsModule {
 
         let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(user.invitedBy!).get(ctx);
         if (invitesCnt === 1) {
-            await newInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
+            newInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
         }
     }
 
     onAboutChange = async (ctx: Context, uid: number) => {
         if (!await Store.UserHasFilledAbout.byId(uid).get(ctx)) {
             Store.UserHasFilledAbout.byId(uid).set(ctx, true);
-            await newAboutFillerLog.event(ctx, { uid });
+            newAboutFillerLog.event(ctx, { uid });
         }
     }
 
@@ -77,13 +77,13 @@ export class StatsModule {
         Store.UserReactionsGot.byId(message.uid).increment(ctx);
         Store.UserReactionsGiven.byId(uid).increment(ctx);
 
-        await newReactionLog.event(ctx, { uid, messageAuthorId: message.uid, mid: message.id });
+        newReactionLog.event(ctx, { uid, messageAuthorId: message.uid, mid: message.id });
 
         if (await Store.UserReactionsGiven.byId(uid).get(ctx) === 3) {
-            await newThreeLikeGiverLog.event(ctx, { uid });
+            newThreeLikeGiverLog.event(ctx, { uid });
         }
         if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
-            await newThreeLikeGetterLog.event(ctx, { uid: message.uid });
+            newThreeLikeGetterLog.event(ctx, { uid: message.uid });
         }
     }
 
