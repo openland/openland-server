@@ -81,16 +81,16 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 }
                 let index = Math.floor(Math.random() * (pend.length));
                 let res = pend[index];
-                let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
-                return { res, readVersion: raw };
+                // let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
+                return { res /*, readVersion: raw*/ };
             });
             if (task) {
                 workerFetch.add(root, currentRunningTime() - start);
             }
             start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
-                let raw = getTransaction(ctx).rawTransaction(Store.storage.db);
-                raw.setReadVersion(task!.readVersion);
+                // let raw = getTransaction(ctx).rawTransaction(Store.storage.db);
+                // raw.setReadVersion(task!.readVersion);
                 let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                 if (tsk.taskStatus !== 'pending') {
                     return false;
