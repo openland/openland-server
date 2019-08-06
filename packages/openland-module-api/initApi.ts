@@ -30,12 +30,16 @@ import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
 import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-graphql/gqlTracer';
 // import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
+import { createMetric } from '../openland-module-monitoring/Metric';
+import { currentRunningTime } from '../openland-utils/timer';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
 // const loggerWs = createLogger('ws');
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
+const authMetric = createMetric('auth-metric', 'average');
+const authMetricCtx = createNamedContext('ws');
 
 export async function initApi(isTest: boolean) {
     const rootCtx = createNamedContext('init');
@@ -192,11 +196,17 @@ export async function initApi(isTest: boolean) {
             path: '/api',
             executableSchema: Schema(),
             onAuth: async (params, req) => {
-                if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
-                    let cookies = parseCookies(req.headers.cookie || '');
-                    return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
-                }
-                return await fetchWebSocketParameters(params, null);
+                const start = currentRunningTime();
+                try {
+                     if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
+                         let cookies = parseCookies(req.headers.cookie || '');
+                         return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
+                     }
+                     return await fetchWebSocketParameters(params, null);
+                 } finally {
+                     const delta = currentRunningTime() - start;
+                     authMetric.add(authMetricCtx, delta);
+                 }
             },
             context: async (params, operation) => {
                 let opId = uuid();
