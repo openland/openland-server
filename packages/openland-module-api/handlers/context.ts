@@ -25,15 +25,16 @@ async function context(src: express.Request): Promise<AppContext> {
         let oid: number | undefined;
 
         // User
-        if (src.user !== null && src.user !== undefined) {
-            if (typeof src.user.sub === 'string') {
-                uid = await Modules.Users.findUserByAuthId(ctx, src.user.sub);
-                tid = src.user.sub;
-            } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'string') {
-                uid = src.user.uid;
-                tid = src.user.tid;
+        if ((src as any).user !== null && (src as any).user !== undefined) {
+            if (typeof (src as any).user.sub === 'string') {
+                uid = await Modules.Users.findUserByAuthId(ctx, (src as any).user.sub);
+                tid = (src as any).user.sub;
+            } else if (typeof (src as any).user.uid === 'number' && typeof (src as any).user.tid === 'string') {
+                uid = (src as any).user.uid;
+                tid = (src as any).user.tid;
             }
         }
+
         // Organization
         if (uid) {
             let accounts = await Modules.Orgs.findUserOrganizations(ctx, uid);
