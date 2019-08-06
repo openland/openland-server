@@ -10,10 +10,13 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
+import { createMetric } from 'openland-module-monitoring/Metric';
 
 const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
+const metricStart = createMetric('worker-started', 'sum');
+const metricEnd = createMetric('worker-commited', 'sum');
 
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
@@ -108,6 +111,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 };
                 let res: RES;
                 try {
+                    metricStart.increment(root);
                     res = await handler(task.arguments, root);
                 } catch (e) {
                     // log.warn(root, e);
@@ -157,6 +161,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return false;
                 });
                 if (commited) {
+                    metricEnd.increment(root);
                     // log.log(root, 'Commited');
                 } else {
                     log.log(root, 'Not commited');

@@ -2,7 +2,7 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { singletonWorker } from '@openland/foundationdb-singleton';
-import { Stream } from '@openland/foundationdb-entity/lib/Stream';
+import { Stream } from '@openland/foundationdb-entity';
 
 export function updateReader<T>(name: string, version: number, stream: Stream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
     singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
