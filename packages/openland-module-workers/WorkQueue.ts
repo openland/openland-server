@@ -1,7 +1,7 @@
 import { Store } from './../openland-module-db/FDB';
 import { JsonMap } from 'openland-utils/json';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
-import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable, currentRunningTime } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -18,6 +18,8 @@ const workScheduled = createHyperlogger<{ taskId: string, taskType: string, dura
 const metricStart = createMetric('worker-started', 'sum');
 const metricFailed = createMetric('worker-failed', 'sum');
 const metricEnd = createMetric('worker-commited', 'sum');
+const workerFetch = createMetric('worker-fetch', 'average');
+const workerPick = createMetric('worker-pick', 'average');
 
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
@@ -68,6 +70,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         let root = createNamedContext('worker-' + this.taskType);
         let rootExec = createNamedContext('task-' + this.taskType);
         let workLoop = foreverBreakable(root, async () => {
+            let start = currentRunningTime();
             let task = await inTx(root, async (ctx) => {
                 let pend = [
                     ...(await Store.Task.pending.findAll(ctx, this.taskType)),
@@ -81,6 +84,10 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
                 return { res, readVersion: raw };
             });
+            if (task) {
+                workerFetch.add(root, currentRunningTime() - start);
+            }
+            start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
                 let raw = getTransaction(ctx).rawTransaction(Store.storage.db);
                 raw.setReadVersion(task!.readVersion);
@@ -95,6 +102,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 return true;
             });
             if (task && locked) {
+                workerPick.add(root, currentRunningTime() - start);
                 // log.log(root, 'Task ' + task.uid + ' found');
                 // let start = currentTime();
                 let breakDelay: (() => void) | undefined;
