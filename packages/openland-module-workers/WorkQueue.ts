@@ -78,11 +78,13 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 }
                 let index = Math.floor(Math.random() * (pend.length));
                 let res = pend[index];
-                // log.log(ctx, 'found ' + pend.length + ', selecting ' + index);
-                return res;
+                let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
+                return { res, readVersion: raw };
             });
             let locked = task && await inTx(root, async (ctx) => {
-                let tsk = (await Store.Task.findById(ctx, task!.taskType, task!.uid))!;
+                let raw = getTransaction(ctx).rawTransaction(Store.storage.db);
+                raw.setReadVersion(task!.readVersion);
+                let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                 if (tsk.taskStatus !== 'pending') {
                     return false;
                 }
@@ -101,7 +103,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     breakDelay = d.resolver;
                     await d.promise;
                     await inTx(root, async ctx => {
-                        let tsk = (await Store.Task.findById(ctx, task!.taskType, task!.uid))!;
+                        let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                         tsk.taskLockTimeout = Date.now() + 15000;
                     });
                 });
@@ -114,12 +116,12 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 let res: RES;
                 try {
                     metricStart.increment(root);
-                    res = await handler(task.arguments, rootExec);
+                    res = await handler(task.res.arguments, rootExec);
                 } catch (e) {
                     metricFailed.increment(rootExec);
                     log.warn(root, e);
                     await inTx(root, async (ctx) => {
-                        let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
+                        let res2 = await Store.Task.findById(ctx, task!!.res.taskType, task!!.res.uid);
                         if (res2) {
                             if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                                 res2.taskStatus = 'failing';
@@ -152,7 +154,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
                 // Commiting
                 let commited = await inTx(root, async (ctx) => {
-                    let res2 = await Store.Task.findById(ctx, task!!.taskType, task!!.uid);
+                    let res2 = await Store.Task.findById(ctx, task!!.res.taskType, task!!.res.uid);
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                             res2.taskStatus = 'completed';
