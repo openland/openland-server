@@ -10,7 +10,10 @@ export function getAllMetrics() {
         if (r !== null) {
             global[e[0]] = r.global;
             for (let k in r.context) {
-                context[k] = r.context[k];
+                if (!context[k]) {
+                    context[k] = {};
+                }
+                context[k][e[0]] = r.context[k];
             }
         }
     }
