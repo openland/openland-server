@@ -49,3 +49,32 @@ export interface FormatedTrendGroups {
     items: FormatedTrendGroup[]
   }[];
 }
+
+// ----
+
+export interface TopPost {
+  message: string;
+  sender: {
+    id: string;
+    name: string
+    avatar: string;
+
+    orgId: string;
+    orgName: string;
+  };
+  chatId: string;
+  likesCount: number;
+  commentsCount: number;
+}
+
+export type FormatedTopPost = TopPost & {
+  sender: {
+    orgLink: string,
+    profileLink: string;
+  }
+  chatLink: string;
+};
+
+export interface FormatedTopPosts {
+  items: FormatedTopPost[];
+}
