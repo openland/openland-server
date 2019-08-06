@@ -73,8 +73,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             let start = currentRunningTime();
             let task = await inTx(root, async (ctx) => {
                 let pend = [
-                    ...(await Store.Task.pending.findAll(ctx, this.taskType)),
-                    ...(await Store.Task.delayedPending.query(ctx, this.taskType, { after: Date.now(), reverse: true })).items
+                    ...(await Store.Task.pending.query(ctx, this.taskType, { limit: 100 })).items,
+                    ...(await Store.Task.delayedPending.query(ctx, this.taskType, { after: Date.now(), reverse: true, limit: 100 })).items
                 ];
                 if (pend.length === 0) {
                     return null;
