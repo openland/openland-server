@@ -9,12 +9,14 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 // } from '@openland/foundationdb-entity/lib/tracing';
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 import { createMetric } from 'openland-module-monitoring/Metric';
+import { Context, ContextName } from '@openland/context';
+import { LogPathContext } from '@openland/log';
 
 // const isProduction = process.env.NODE_ENV === 'production';
 // const logger = (isProduction ? createZippedLogger : createLogger)('FDB');
 // const tracer = createTracer('FDB');
 
-// const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
+const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
 
 const ephemeralTx = createMetric('tx-ephemeral', 'sum');
 const newTx = createMetric('tx-start', 'sum');
@@ -37,11 +39,15 @@ export function setupFdbTracing() {
         },
         onNewReadWriteTx: (ctx) => newTx.increment(ctx),
         onRetry: (ctx) => retryTx.increment(ctx),
-        onNewEphemeralTx: (ctx) => ephemeralTx.increment(ctx),
+        onNewEphemeralTx: (ctx) => {
+            console.log('EPHMERAL', getContextPath(ctx));
+            ephemeralTx.increment(ctx);
+        }
     });
 
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
+            // console.log('GET', getContextPath(ctx));
             opRead.increment(ctx);
             return handler();
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
@@ -52,6 +58,7 @@ export function setupFdbTracing() {
             return handler();
         },
         range: async (ctx, key, opts, handler) => {
+            // console.log('RANGE', getContextPath(ctx));
             // return await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             opRead.increment(ctx);
             let res = await handler();
