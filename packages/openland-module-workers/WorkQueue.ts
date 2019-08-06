@@ -72,6 +72,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         let workLoop = foreverBreakable(root, async () => {
             let start = currentRunningTime();
             let task = await inTx(root, async (ctx) => {
+                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
+
                 let pend = [
                     ...(await Store.Task.pending.query(ctx, this.taskType, { limit: 100 })).items,
                     ...(await Store.Task.delayedPending.query(ctx, this.taskType, { after: Date.now(), reverse: true, limit: 100 })).items
@@ -89,6 +91,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             }
             start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
+                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
                 // let raw = getTransaction(ctx).rawTransaction(Store.storage.db);
                 // raw.setReadVersion(task!.readVersion);
                 let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
