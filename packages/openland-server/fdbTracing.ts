@@ -22,12 +22,12 @@ const retryTx = createMetric('tx-retry', 'sum');
 export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
-            newTx.increment();
+            newTx.increment(ctx);
             return await tracer.trace(ctx, 'transaction', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
         commit: async (ctx, handler) => await tracer.trace(ctx, 'transaction commit', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-        onNewReadWriteTx: (ctx) => newTx.increment(),
-        onRetry: (ctx) => retryTx.increment(),
+        onNewReadWriteTx: (ctx) => newTx.increment(ctx),
+        onRetry: (ctx) => retryTx.increment(ctx),
     });
 
     // setSubspaceTracer({

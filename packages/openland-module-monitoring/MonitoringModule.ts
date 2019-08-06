@@ -20,9 +20,16 @@ export class MonitoringModule {
                 let metrics = getAllMetrics();
                 logger.info({
                     report: 'metric',
-                    metric: 'all',
-                    metrics
+                    context: 'all',
+                    metrics: metrics.global
                 });
+                for (let c in metrics.context) {
+                    logger.info({
+                        report: 'metric',
+                        context: c,
+                        metrics: metrics.context[c]
+                    });
+                }
             }
         });
     }

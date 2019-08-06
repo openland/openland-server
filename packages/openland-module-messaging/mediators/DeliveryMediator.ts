@@ -45,7 +45,7 @@ export class DeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    deliveryInitialMetric.add(currentRunningTime() - start);
+                    deliveryInitialMetric.add(parent, currentRunningTime() - start);
                     return { result: 'ok' };
                 });
             }
@@ -66,7 +66,7 @@ export class DeliveryMediator {
                             }
                         });
                     });
-                    deliveryMetric.add(currentRunningTime() - start);
+                    deliveryMetric.add(parent, currentRunningTime() - start);
                     return { result: 'ok' };
                 });
             }
