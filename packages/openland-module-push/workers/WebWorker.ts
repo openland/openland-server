@@ -31,15 +31,16 @@ export function createWebWorker(repo: PushRepository) {
                             picture: task.picture,
                             ...task.extras
                         }));
-                        await pushSent.event(root, { uid: token.uid, tokenId: token.id });
+                        await inTx(root, async (ctx) => {
+                            pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
+                        });
                         log.log(root, 'web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                     } catch (e) {
                         if (e.statusCode === 410) {
                             await inTx(root, async (ctx) => {
                                 let t = (await repo.getWebToken(ctx, task.tokenId))!;
                                 await handleFail(t);
-                                await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });
-
+                                pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });
                             });
                         }
                         log.log(root, 'web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));

@@ -9,10 +9,10 @@ import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { merge } from '../../openland-utils/merge';
 import { withLogPath } from '@openland/log';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+// import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { createTracer } from '../../openland-log/createTracer';
 
-const onGqlQuery = createHyperlogger<{ type: string, field: string }>('gql_query');
+// const onGqlQuery = createHyperlogger<{ type: string, field: string }>('gql_query');
 
 const gqlTracer = createTracer('gql');
 
@@ -57,13 +57,13 @@ export const Schema = (forTest: boolean = false) => {
             context: any,
             info: GraphQLResolveInfo
         ) => {
-            if (type.name === 'Query') {
-                await onGqlQuery.event(context, { type: 'Query', field: field.name });
-            } else if (type.name === 'Mutation') {
-                await onGqlQuery.event(context, { type: 'Mutation', field: field.name });
-            } else if (type.name === 'Subscription') {
-                await onGqlQuery.event(context, { type: 'Subscription', field: field.name });
-            }
+            // if (type.name === 'Query') {
+            //     onGqlQuery.event(context, { type: 'Query', field: field.name });
+            // } else if (type.name === 'Mutation') {
+            //     onGqlQuery.event(context, { type: 'Mutation', field: field.name });
+            // } else if (type.name === 'Subscription') {
+            //     onGqlQuery.event(context, { type: 'Subscription', field: field.name });
+            // }
 
             // let ctx = (context as AppContext).ctx;
             // let trace = gqlTraceNamespace.get(ctx);

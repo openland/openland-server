@@ -4,6 +4,7 @@ import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent'
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createLogger } from '@openland/log';
+import { inTx } from '@openland/foundationdb';
 
 export const SENDGRID_KEY = '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';
 
@@ -53,10 +54,14 @@ export function createEmailWorker() {
                     let statusCode = res[0].statusCode;
                     log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
                 } catch (e) {
-                    await emailFailed.event(ctx, { templateId: args.templateId, to: args.to });
+                    await inTx(ctx, async (ctx2) => {
+                        emailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
+                    });
                     throw e;
                 }
-                await emailSent.event(ctx, { templateId: args.templateId, to: args.to });
+                await inTx(ctx, async (ctx2) => {
+                    emailSent.event(ctx2, { templateId: args.templateId, to: args.to });
+                });
             }
             return {
                 result: 'ok'

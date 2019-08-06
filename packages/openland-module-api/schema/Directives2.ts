@@ -19,8 +19,8 @@ import { withPermission } from 'openland-module-api/Resolvers';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { UserError } from '../../openland-errors/UserError';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
-import { fetchResolvePath } from './Schema';
+// import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+// import { fetchResolvePath } from './Schema';
 
 function createFieldDirective(
     resolver: (root: any, args: any, context: AppContext, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any
@@ -135,7 +135,7 @@ export function injectIDScalars(schema: string): string {
     return schema;
 }
 
-const onDeprecatedGqlQuery = createHyperlogger<{ path: string }>('gql_query_deprecated');
+// const onDeprecatedGqlQuery = createHyperlogger<{ path: string }>('gql_query_deprecated');
 
 export const Directives = {
     withAuth: createFieldDirective(async (root, args, ctx, info, resolve) => {
@@ -165,7 +165,7 @@ export const Directives = {
     }),
 
     disabled: createFieldDirective(async (root, args, ctx, info, resolve, dArgs) => {
-        await onDeprecatedGqlQuery.event(ctx, { path: fetchResolvePath(info).join('->') });
+        // await onDeprecatedGqlQuery.event(ctx, { path: fetchResolvePath(info).join('->') });
         throw new UserError('This API is deprecated');
     }),
 

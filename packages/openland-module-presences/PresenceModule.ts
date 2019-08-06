@@ -82,7 +82,7 @@ export class PresenceModule {
                 await online.flush(ctx);
             }
 
-            await presenceEvent.event(ctx, { uid, platform, online: true });
+            presenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
                 userId: uid,
@@ -105,7 +105,7 @@ export class PresenceModule {
                 online.lastSeen = Date.now();
                 online.active = false;
             }
-            await presenceEvent.event(ctx, { uid, platform: null, online: false });
+            presenceEvent.event(ctx, { uid, platform: null, online: false });
             // this.onlines.set(uid, { lastSeen: Date.now(), active: false });
             let event = {
                 userId: uid,

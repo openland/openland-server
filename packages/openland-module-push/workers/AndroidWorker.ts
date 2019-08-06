@@ -53,10 +53,12 @@ export function createAndroidWorker(repo: PushRepository) {
                                 await inTx(root, async (ctx) => {
                                     let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                                     await handleFail(t);
-                                    await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
+                                    pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
                                 });
                             } else {
-                                await pushSent.event(root, { uid: token.uid, tokenId: token.id });
+                                await inTx(root, async (ctx) => {
+                                    pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
+                                });
                             }
                             return { result: 'ok' };
                         } catch (e) {
@@ -67,7 +69,7 @@ export function createAndroidWorker(repo: PushRepository) {
                         await inTx(root, async (ctx) => {
                             let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                             await handleFail(t);
-                            await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
+                            pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
                         });
                         return { result: 'failed' };
                     }
