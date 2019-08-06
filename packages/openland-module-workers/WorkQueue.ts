@@ -65,6 +65,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             await w.promise;
         };
         let root = createNamedContext('worker-' + this.taskType);
+        let rootExec = createNamedContext('task-' + this.taskType);
         let workLoop = foreverBreakable(root, async () => {
             let task = await inTx(root, async (ctx) => {
                 let pend = [
@@ -112,7 +113,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 let res: RES;
                 try {
                     metricStart.increment(root);
-                    res = await handler(task.arguments, root);
+                    res = await handler(task.arguments, rootExec);
                 } catch (e) {
                     // log.warn(root, e);
                     await inTx(root, async (ctx) => {
