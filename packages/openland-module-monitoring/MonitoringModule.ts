@@ -19,12 +19,14 @@ export class MonitoringModule {
 
                 let metrics = getAllMetrics();
                 logger.info({
+                    message: 'Metrics report',
                     report: 'metric',
                     context: 'all',
                     metrics: metrics.global
                 });
                 for (let c in metrics.context) {
                     logger.info({
+                        message: 'Metrics report',
                         report: 'metric',
                         context: c,
                         metrics: metrics.context[c]
