@@ -16,6 +16,7 @@ import { createMetric } from 'openland-module-monitoring/Metric';
 
 // const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
 
+const ephemeralTx = createMetric('tx-ephemeral', 'sum');
 const newTx = createMetric('tx-start', 'sum');
 const commitTx = createMetric('tx-commit', 'sum');
 const retryTx = createMetric('tx-retry', 'sum');
@@ -27,7 +28,7 @@ export function setupFdbTracing() {
         tx: async (ctx, handler) => {
             newTx.increment(ctx);
             // return await tracer.trace(ctx, 'transaction', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-            return handler();
+            return handler(ctx);
         },
         commit: async (ctx, handler) => {
             commitTx.increment(ctx);
@@ -36,6 +37,7 @@ export function setupFdbTracing() {
         },
         onNewReadWriteTx: (ctx) => newTx.increment(ctx),
         onRetry: (ctx) => retryTx.increment(ctx),
+        onNewEphemeralTx: (ctx) => ephemeralTx.increment(ctx),
     });
 
     setSubspaceTracer({
@@ -44,7 +46,7 @@ export function setupFdbTracing() {
             return handler();
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
-        set: (ctx, key, value, handler) => { 
+        set: (ctx, key, value, handler) => {
             opWrite.increment(ctx);
             // return tracer.traceSync(ctx, 'setKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             return handler();
@@ -52,7 +54,13 @@ export function setupFdbTracing() {
         range: async (ctx, key, opts, handler) => {
             // return await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             opRead.increment(ctx);
-            return handler();
+            let res = await handler();
+            if (res.length > 0) {
+                opRead.add(ctx, res.length);
+            } else {
+                opRead.add(ctx, 1);
+            }
+            return res;
         }
     });
 
