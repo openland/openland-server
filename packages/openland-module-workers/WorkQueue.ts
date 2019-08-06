@@ -83,8 +83,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 }
                 let index = Math.floor(Math.random() * (pend.length));
                 let res = pend[index];
-                // let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
-                return { res /*, readVersion: raw*/ };
+                let raw = await getTransaction(ctx).rawTransaction(Store.storage.db).getReadVersion();
+                return { res , readVersion: raw };
             });
             if (task) {
                 workerFetch.add(root, currentRunningTime() - start);
@@ -92,7 +92,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
-                // let raw = getTransaction(ctx).rawTransaction(Store.storage.db);
+                // let raw = getTransaction(ctx).rawTransaction(Store.storage.db).getrea;
                 // raw.setReadVersion(task!.readVersion);
                 let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                 if (tsk.taskStatus !== 'pending') {
