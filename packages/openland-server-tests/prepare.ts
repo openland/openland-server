@@ -42,9 +42,9 @@ export async function prepare() {
         let db = await openDatabase();
 
         // Clear DB
-        await inTx(rootCtx, async (ctx2) => {
-            db.allKeys.clearRange(ctx2, Buffer.from([0x00]), Buffer.from([0xff]));
-        });
+        // await inTx(rootCtx, async (ctx2) => {
+        //     db.allKeys.clearRange(ctx2, Buffer.from([0x00]), Buffer.from([0xff]));
+        // });
 
         // New Entity
         let storage = new EntityStorage(db);
