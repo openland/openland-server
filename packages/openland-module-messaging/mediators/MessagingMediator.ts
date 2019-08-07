@@ -121,6 +121,10 @@ export class MessagingMediator {
 
     editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
         return await inTx(parent, async (ctx) => {
+            if (newMessage.message && newMessage.message.trim().length === 0) {
+                throw new UserError('Can\'t edit empty message');
+            }
+
             // Permissions
             let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
