@@ -869,6 +869,14 @@ export default {
             return true;
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
+            const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
+                let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
+                if (settings && settings.mute) {
+                    return true;
+                }
+                return false;
+            };
+
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
                     let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
@@ -876,7 +884,9 @@ export default {
                         strategy.counter().set(ctx, uid, 0);
                     }
                     for (let dialog of dialogs) {
-                        await CounterStrategyAll.inContext(ctx, uid, dialog.cid).calcForChat();
+                        let unread = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
+                        let isMuted = await isChatMuted(ctx, uid, dialog.cid);
+                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, unread, isMuted).calcForChat();
                     }
                 } catch (e) {
                     await log(e);

@@ -46,7 +46,9 @@ export class CountersRepository {
                 localCounter.increment(ctx);
                 globalCounter.increment(ctx);
 
-                await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageReceived();
+                let unread = await localCounter.get(ctx);
+                let isMuted = await this.isChatMuted(ctx, uid, message.cid);
+                CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageReceived();
 
                 return { delta: 1 };
             }
@@ -65,7 +67,11 @@ export class CountersRepository {
             if (message.uid !== uid && (!local.readMessageId || message.id > local.readMessageId)) {
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
-                await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageDeleted();
+
+                let unread = await localCounter.get(ctx);
+                let isMuted = await this.isChatMuted(ctx, uid, message.cid);
+                CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageDeleted();
+
                 // Reset mention flag if needed
                 // TODO: Replace with counters
                 let haveMention = Store.UserDialogHaveMention.byId(uid, message.cid);
@@ -122,7 +128,10 @@ export class CountersRepository {
                     }
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
-                    await CounterStrategyAll.inContext(ctx, uid, message.cid).onMessageRead(-delta);
+
+                    let unread = await localCounter.get(ctx);
+                    let isMuted = await this.isChatMuted(ctx, uid, message.cid);
+                    CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageRead(-delta);
                 }
 
                 let mentionReset = false;
@@ -154,7 +163,9 @@ export class CountersRepository {
             let localUnread = (await localCounter.get(ctx) || 0);
             if (localUnread > 0) {
                 globalCounter.add(ctx, -localUnread);
-                await CounterStrategyAll.inContext(ctx, uid, cid).onChatDeleted();
+                let unread = await localCounter.get(ctx);
+                let isMuted = await this.isChatMuted(ctx, uid, cid);
+                CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onChatDeleted();
                 localCounter.set(ctx, 0);
                 haveMention.set(ctx, false);
                 return -localUnread;
@@ -165,8 +176,18 @@ export class CountersRepository {
 
     onDialogMuteChange = async (parent: Context, uid: number, cid: number) => {
         return await inTx(parent, async (ctx) => {
-            await CounterStrategyAll.inContext(ctx, uid, cid).onMuteChange();
+            let unread = await Store.UserDialogCounter.byId(uid, cid).get(ctx);
+            let isMuted = await this.isChatMuted(ctx, uid, cid);
+            CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onMuteChange();
             return 0;
         });
+    }
+
+    private isChatMuted = async (ctx: Context, uid: number, cid: number) => {
+        let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
+        if (settings && settings.mute) {
+            return true;
+        }
+        return false;
     }
 }
