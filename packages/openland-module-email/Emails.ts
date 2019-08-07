@@ -8,6 +8,7 @@ import { Context } from '@openland/context';
 import { splitEvery } from 'openland-utils/splitEvery';
 import { FormatedUnreadGroups, FormatedUnreadGroup, FormatedTrendGroups, FormatedTrendGroup, FormatedTopPost, FormatedTopPosts } from 'openland-module-stats/StatsModule.types';
 import { WeeklyDigestTemplateData, DIGEST_FIRST_UNREAD_GROUPS, DIGEST_FIRST_TREND_GROUPS } from './Emails.types';
+import { getFilledSpans } from './EmailSpans';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 export const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -450,17 +451,20 @@ export const Emails = {
 
         const cid = isProd
             // openland news
-            ? IDs.Organization.parse('EQvPJ1LamRtJJ9ppVxDDs30Jzw')
-            : IDs.Organization.parse('Wr8D66l5plu52AmgYoBWuznRLX');
+            ? IDs.Conversation.parse('EQvPJ1LamRtJJ9ppVxDDs30Jzw')
+            : IDs.Conversation.parse('Wr8D66l5plu52AmgYoBWuznRLX');
 
-        const topPosts = await Modules.Stats.getTopPosts(ctx, cid);
+        const topPosts = await Modules.Stats.getTopPosts(ctx, uid, cid);
 
         const formatedTopPosts: FormatedTopPosts = {
             items: topPosts.map(post => {
                 const avatar = post.sender.avatar ? resizeUcarecdnImage(post.sender.avatar, { height: 48, width: 48 }) : '';
                 const formated: FormatedTopPost = {
                     ...post,
-                    chatLink: `http://openland.com/mail/${post.chatId}`,
+                    // @ts-ignore
+                    // TODO: extend types
+                    spans: getFilledSpans(post.message, post.spans),
+                    chatLink: `https://openland.com/mail/${post.chatId}`,
                     sender: {
                         ...post.sender,
                         avatar,
@@ -480,7 +484,7 @@ export const Emails = {
             color: '',
             firstTitleChar: '',
             previewImage: 'https://cdn.openland.com/shared/email/discovery_new_messages@2x.png',
-            previewLink: 'http://openland.com/mail/',
+            previewLink: 'https://openland.com/mail/',
             serializedId: '',
             subTitle: '',
             title: `+${unreadGroups.unreadMoreGroupsCount} chats`
