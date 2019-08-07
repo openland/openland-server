@@ -106,8 +106,8 @@ describe('Emails', () => {
         let {uid, email} = await randomUser(ctx);
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
-        let event = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
-        let message = (await Store.Message.findById(ctx, event.mid!))!;
+        let msg = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
+        let message = (await Store.Message.findById(ctx, msg.id))!;
 
         await Emails.sendUnreadMessages(ctx, uid, [message]);
 
@@ -125,10 +125,10 @@ describe('Emails', () => {
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let messages: Message[] = [];
-        let event = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
-        messages.push((await Store.Message.findById(ctx, event.mid!))!);
-        let event2 = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
-        messages.push((await Store.Message.findById(ctx, event2.mid!))!);
+        let msg = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
+        messages.push((await Store.Message.findById(ctx, msg.id))!);
+        let msg2 = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
+        messages.push((await Store.Message.findById(ctx, msg2.id))!);
 
         await Emails.sendUnreadMessages(ctx, uid, messages);
 

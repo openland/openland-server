@@ -109,7 +109,7 @@ export class MessagingMediator {
             // TODO: Move
             await Modules.Drafts.clearDraft(ctx, uid, cid);
 
-            return res.event;
+            return res.message;
         }));
     }
 
@@ -189,7 +189,7 @@ export class MessagingMediator {
             }
 
             // Delivery
-            let message = (await Store.Message.findById(ctx, res!.mid!))!;
+            let message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onUpdateMessage(ctx, message);
             if (!reset) {
                 await Modules.Metrics.onReactionAdded(ctx, message, reaction);
@@ -200,7 +200,7 @@ export class MessagingMediator {
     }
 
     deleteMessage = async (parent: Context, mid: number, uid: number) => {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
 
             let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
@@ -210,10 +210,10 @@ export class MessagingMediator {
             }
 
             // Delete
-            let res = await this.repo.deleteMessage(ctx, mid);
+            await this.repo.deleteMessage(ctx, mid);
 
             // Delivery
-            message = (await Store.Message.findById(ctx, res!.mid!))!;
+            message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
             let chatProfile = await Store.RoomProfile.findById(ctx, message.cid);
@@ -223,13 +223,11 @@ export class MessagingMediator {
 
             // Send notification center updates
             await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);
-
-            return res;
         });
     }
 
     deleteMessages = async (parent: Context, mids: number[], uid: number) => {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             for (let mid of mids) {
                 await this.deleteMessage(ctx, mid, uid);
             }
@@ -237,7 +235,7 @@ export class MessagingMediator {
     }
 
     readRoom = async (parent: Context, uid: number, cid: number, mid: number) => {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let msg = await Store.Message.findById(ctx, mid);
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');

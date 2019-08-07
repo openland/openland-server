@@ -1,4 +1,4 @@
-import { RoomParticipantCreateShape, Message } from './../../openland-module-db/store';
+import { RoomParticipantCreateShape, Message, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
@@ -11,7 +11,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
-import { MessagingRepository } from './MessagingRepository';
+// import { MessagingRepository } from './MessagingRepository';
 import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -40,7 +40,7 @@ let membersLog = createHyperlogger<{ rid: number, delta: number }>('room-members
 
 @injectable()
 export class RoomRepository {
-    @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
+    // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
@@ -293,11 +293,10 @@ export class RoomRepository {
                 await profile.flush(ctx);
             }
 
-            let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await Store.ConversationEvent.create(ctx, cid, seq, {
-                kind: 'chat_updated',
+            Store.ConversationEventStore.post(ctx, message!.cid, ChatUpdatedEvent.create({
+                cid,
                 uid
-            });
+            }));
             let userName = await Modules.Users.getUserFullName(ctx, uid);
 
             const getMessageContent: (msg: Message) => Promise<string> = async (msg: Message) => {
@@ -374,11 +373,10 @@ export class RoomRepository {
                 await privateConv.flush(ctx);
             }
 
-            let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await Store.ConversationEvent.create(ctx, cid, seq, {
-                kind: 'chat_updated',
+            Store.ConversationEventStore.post(ctx, cid, ChatUpdatedEvent.create({
+                cid,
                 uid
-            });
+            }));
             return true;
         });
     }
@@ -450,11 +448,10 @@ export class RoomRepository {
             conv!.archived = true;
             await conv!.flush(ctx);
 
-            let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
-            await Store.ConversationEvent.create(ctx, cid, seq, {
-                kind: 'chat_updated',
+            Store.ConversationEventStore.post(ctx, cid, ChatUpdatedEvent.create({
+                cid,
                 uid
-            });
+            }));
 
             return true;
         });

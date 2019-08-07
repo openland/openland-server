@@ -1,4 +1,3 @@
-import { ConversationEvent } from './../openland-module-db/store';
 import { injectable, inject } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
@@ -77,12 +76,12 @@ export class MessagingModule {
         return await this.messaging.findTopMessage(ctx, cid);
     }
 
-    async sendMessage(ctx: Context, cid: number, uid: number, message: MessageInput, skipAccessCheck?: boolean): Promise<ConversationEvent> {
+    async sendMessage(ctx: Context, cid: number, uid: number, message: MessageInput, skipAccessCheck?: boolean) {
         return await this.messaging.sendMessage(ctx, uid, cid, message, skipAccessCheck);
     }
 
-    async editMessage(ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
-        return await this.messaging.editMessage(ctx, mid, uid, newMessage, markAsEdited);
+    async editMessage(ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) {
+        await this.messaging.editMessage(ctx, mid, uid, newMessage, markAsEdited);
     }
 
     //
@@ -96,8 +95,8 @@ export class MessagingModule {
         return await this.messaging.setReaction(ctx, mid, uid, reaction, reset);
     }
 
-    async deleteMessage(ctx: Context, mid: number, uid: number): Promise<ConversationEvent> {
-        return await this.messaging.deleteMessage(ctx, mid, uid);
+    async deleteMessage(ctx: Context, mid: number, uid: number): Promise<void> {
+        await this.messaging.deleteMessage(ctx, mid, uid);
     }
 
     async deleteMessages(ctx: Context, mids: number[], uid: number) {
