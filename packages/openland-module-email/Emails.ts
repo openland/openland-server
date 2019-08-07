@@ -551,9 +551,8 @@ export const Emails = {
 
         const today = new Date();
         // TODO: today, monthly
-        
-        const formatedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
+        const formatedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
         const subject = `Openland Digest · ${formatedDate}`;
         const title = `Weekly Digest · ${formatedDate}`;
