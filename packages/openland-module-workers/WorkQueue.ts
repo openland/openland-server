@@ -91,8 +91,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             }
             start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
-                getTransaction(ctx).setReadVersion(task!.readVersion);
-                
+                // getTransaction(ctx).setReadVersion(task!.readVersion);
+
                 let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                 if (tsk.taskStatus !== 'pending') {
                     return false;
