@@ -16,6 +16,7 @@ import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEve
 import { User } from '../openland-module-db/store';
 import { groupBy } from 'openland-utils/groupBy';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { EmailSpan } from 'openland-module-email/EmailSpans';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -87,7 +88,7 @@ export class StatsModule {
         }
     }
 
-    getTopPosts = async (ctx: Context, cid: number) => {
+    getTopPosts = async (ctx: Context, uid: number, cid: number) => {
         const top = await Modules.Messaging.findTopMessage(ctx, cid);
 
         if (!top) {
@@ -105,12 +106,33 @@ export class StatsModule {
             return [];
         }
 
+        const spans = await Promise.all((top.spans || []).map(async span => {
+            if (span.type === 'all_mention' || span.type === 'user_mention') {
+                const actualId = span.type === 'all_mention' ? uid : span.user;
+                const user = (await (Store.UserProfile.findById(ctx, actualId)))!;
+                return {
+                    type: 'user_mention',
+                    length: span.length,
+                    offset: span.offset,
+                    user: {
+                        id: IDs.User.serialize(user.id),
+                        name: [user.firstName, user.lastName].filter((v) => v).join(' ')
+                    }
+                } as EmailSpan;
+            } else {
+                return {
+                    ...span
+                } as EmailSpan;
+            }
+        }));
+
         const topPost = {
             message: top.text,
+            spans,
             sender: {
                 id: IDs.User.serialize(userProfile.id),
                 avatar: userProfile.picture ? buildBaseImageUrl(userProfile.picture) : '',
-                name: [userProfile.firstName, userProfile.lastName].filter((v) => !!v).join(' '),
+                name: [userProfile.firstName, userProfile.lastName].filter((v) => v).join(' '),
 
                 orgId: IDs.Organization.serialize(org.id),
                 orgName: org.name,
