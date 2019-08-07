@@ -457,6 +457,7 @@ export const Emails = {
         const topPosts = await Modules.Stats.getTopPosts(ctx, uid, cid);
 
         const formatedTopPosts: FormatedTopPosts = {
+            count: topPosts.length,
             items: topPosts.map(post => {
                 const avatar = post.sender.avatar ? resizeUcarecdnImage(post.sender.avatar, { height: 48, width: 48 }) : '';
                 const formated: FormatedTopPost = {
@@ -560,7 +561,7 @@ export const Emails = {
             trendingGroups,
         };
 
-        // console.dir(JSON.stringify({ args }, null, 2));
+        // console.dir(JSON.stringify({ weeklyDigestTemplateData }, null, 2));
 
         await Modules.Email.enqueueEmail(ctx, {
             subject,

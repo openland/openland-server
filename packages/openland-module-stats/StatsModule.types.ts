@@ -82,5 +82,6 @@ export type FormatedTopPost = TopPost & {
 };
 
 export interface FormatedTopPosts {
+  count: number;
   items: FormatedTopPost[];
 }
