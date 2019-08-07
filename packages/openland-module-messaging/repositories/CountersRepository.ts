@@ -118,6 +118,7 @@ export class CountersRepository {
                 if (delta !== 0) {
                     if (delta > 0) {
                         logger.log(ctx, `onMessageRead positive delta, uid: ${uid}, delta: ${delta}, localUnread: ${localUnread}, remainingCount: ${remainingCount}, messageId: ${message.id}, readMessageId: ${prevReadMessageId}`);
+                        return { delta: 0, mentionReset: false };
                     }
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
