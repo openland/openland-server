@@ -54,30 +54,17 @@ export const UnreadChatsWithoutMutedCalculator: GlobalCounterCalculator = {
     calcForChat: (chatUnread, isMuted) => isMuted ? 0 : (chatUnread > 0 ? 1 : 0)
 };
 
-const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
-    let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
-    if (settings && settings.mute) {
-        return true;
-    }
-    return false;
-};
-
 function buildStrategy(getCounter: () => UserGlobalCounter, calculator: GlobalCounterCalculator) {
     return {
         counter: () => getCounter(),
-        inContext: (ctx: Context, uid: number, cid: number) => {
-            let chatUnread = Store.UserDialogCounter.get(ctx, uid, cid);
-            let isMuted = isChatMuted(ctx, uid, cid);
-
+        inContext: (ctx: Context, uid: number, cid: number, chatUnread: number, isMuted: boolean) => {
             return {
-                onMessageReceived: async () => await getCounter().add(ctx, uid, calculator.onMessageReceived(await chatUnread, await isMuted)),
-                onMessageDeleted: async () => await getCounter().add(ctx, uid, calculator.onMessageDeleted(await chatUnread, await isMuted)),
-                onMessageRead: async (readCount: number) => await getCounter().add(ctx, uid, calculator.onMessageRead(await chatUnread, await isMuted, readCount)),
-                onChatDeleted: async () => await getCounter().add(ctx, uid, calculator.onChatDeleted(await chatUnread, await isMuted)),
-                onMuteChange: async () => {
-                    return await getCounter().add(ctx, uid, calculator.onMuteChange(await chatUnread, await isMuted));
-                },
-                calcForChat: async () => await getCounter().add(ctx, uid, calculator.calcForChat(await chatUnread, await isMuted)),
+                onMessageReceived: () => getCounter().add(ctx, uid, calculator.onMessageReceived(chatUnread, isMuted)),
+                onMessageDeleted: () => getCounter().add(ctx, uid, calculator.onMessageDeleted(chatUnread, isMuted)),
+                onMessageRead: (readCount: number) => getCounter().add(ctx, uid, calculator.onMessageRead(chatUnread, isMuted, readCount)),
+                onChatDeleted: () => getCounter().add(ctx, uid, calculator.onChatDeleted(chatUnread, isMuted)),
+                onMuteChange: () => getCounter().add(ctx, uid, calculator.onMuteChange(chatUnread, isMuted)),
+                calcForChat: () => getCounter().add(ctx, uid, calculator.calcForChat(chatUnread, isMuted)),
             };
         }
     };
@@ -91,14 +78,14 @@ export const CounterStrategies = [
 ];
 
 export const CounterStrategyAll = {
-    inContext: (ctx: Context, uid: number, cid: number) => {
+    inContext: (ctx: Context, uid: number, cid: number, chatUnread: number, isMuted: boolean) => {
         return {
-            onMessageReceived: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageReceived())),
-            onMessageDeleted: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageDeleted())),
-            onMessageRead: async (readCount: number) => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMessageRead(readCount))),
-            onChatDeleted: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onChatDeleted())),
-            onMuteChange: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).onMuteChange())),
-            calcForChat: async () => await Promise.all(CounterStrategies.map(s => s.inContext(ctx, uid, cid).calcForChat())),
+            onMessageReceived: () => CounterStrategies.map(s => s.inContext(ctx, uid, cid, chatUnread, isMuted).onMessageReceived()),
+            onMessageDeleted: () => CounterStrategies.map(s => s.inContext(ctx, uid, cid, chatUnread, isMuted).onMessageDeleted()),
+            onMessageRead: (readCount: number) => CounterStrategies.map(s => s.inContext(ctx, uid, cid, chatUnread, isMuted).onMessageRead(readCount)),
+            onChatDeleted: () => CounterStrategies.map(s => s.inContext(ctx, uid, cid, chatUnread, isMuted).onChatDeleted()),
+            onMuteChange: () => CounterStrategies.map(s => s.inContext(ctx, uid, cid, chatUnread, isMuted).onMuteChange()),
+            calcForChat: () => CounterStrategies.map(s => s.inContext(ctx, uid, cid, chatUnread, isMuted).calcForChat()),
         };
     }
 };
