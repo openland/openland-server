@@ -181,37 +181,37 @@
   resolved "https://registry.yarnpkg.com/@openland/context/-/context-0.4.0.tgz#3d12934d9726b5743f9f40521e3d62e81a1f8d0c"
   integrity sha512-U6mwT5IhpA/o4lDi12KBDPm1bGdo9H1eZcQyVHghb6MYRLzeOmPDHlyaS3lMuwTorT6dYbPt2vzZBK3F++TY7g==
 
-"@openland/foundationdb-bus-redis@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-bus-redis/-/foundationdb-bus-redis-4.4.1.tgz#3040bb9a42ef93a4ebf349b4b04cf005b60f21d0"
-  integrity sha512-6EFaXZf8H2ncjmfgiaBql7P+kXVNjXrxT3Pg9IUTeY9aAc9VR7uB5qEyZp1HUNj5TFznt/TSBHQowfCjClipng==
+"@openland/foundationdb-bus-redis@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-bus-redis/-/foundationdb-bus-redis-4.4.2.tgz#8959a24218567a882c2ad55121b03f2a45c1817a"
+  integrity sha512-C+Z3mVZuSVui0586253LwES28nZJgSSDshsPR+fBKbXwrI7OgvkvGVjuKZV6RlMjkcL3n0OKB+FFXgnUVal/Zg==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-bus" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-bus" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
     handy-redis "^1.5.5"
 
-"@openland/foundationdb-bus@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-bus/-/foundationdb-bus-4.4.1.tgz#ed1d72031a3eedecf62f50c6246b705e01f78ec9"
-  integrity sha512-KlZDvacqxyrkeY8o2uZjFBBZYThmNQgNcLnBS7xImyLooEOls9JUxM9N2kM1WCI8IQ4fGytZ5yPvTR1KO+0Psw==
+"@openland/foundationdb-bus@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-bus/-/foundationdb-bus-4.4.2.tgz#a8cb27ba29e829e6a28248a1538a5775fd141fe7"
+  integrity sha512-9e4DQgEXfi25KY9TewHonDWvW42fAvhwJfI74BicjoVTJLBqlMFlAAZsFL8abqsubll2zJQyWG+y9J7YhK/GEQ==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
 
-"@openland/foundationdb-compiler@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-compiler/-/foundationdb-compiler-4.4.1.tgz#01071909d208938484e4433c116aa2ea4347b8a2"
-  integrity sha512-iiN0Srbyxdg9g+Li94Gd0SXRXQM6pj4QN9t+WmPeefqwJ6Za8/Q4b7eoNbmuR8pFLrGz8OOvm6jR5QDRLbTRnQ==
+"@openland/foundationdb-compiler@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-compiler/-/foundationdb-compiler-4.4.2.tgz#77a9d01439a506a4ac9eb299f360c6bca96c4153"
+  integrity sha512-BjLwu+5mEJuEJtvnyiGCg6HIiEaG206LmZ5xXhJEtFBEsxq2bgKO2EbdSb2ZlQM9rynOCyH27mqGoPN43/Z5VQ==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-entity" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-entity" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
     "@types/change-case" "^2.3.1"
     "@types/meow" "^5.0.0"
@@ -221,81 +221,81 @@
     ts-node "^8.3.0"
     uuid "^3.2.1"
 
-"@openland/foundationdb-entity@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-entity/-/foundationdb-entity-4.4.1.tgz#edd704145f26cefa894184bfdd7bae1b99389477"
-  integrity sha512-uio3uq72hG3uah5EQ05gCUqt9kdlbQW2FYouvjzhVI7Be7InWT32Uns0xuK8NEKSj0yCfgcbcS7W/J7n+zAxNA==
+"@openland/foundationdb-entity@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-entity/-/foundationdb-entity-4.4.2.tgz#40e7e8bc491ba69032d7e46bec8cc69c060e65f4"
+  integrity sha512-p4/ZK3fwav/6MZ5K9eNQvl5AWUpKk6sZhGKTVjjbJslPVNThrOhYRtzqMVcBUdBqKAVUYU1Cf0UN/Bjr8kuisQ==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-bus" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-bus" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
 
-"@openland/foundationdb-locks@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-locks/-/foundationdb-locks-4.4.1.tgz#5442a6c2ff8052365e1489bbee7e0850a79262d2"
-  integrity sha512-ST0C2gZKmh6dkw/lJeSoIetG6jSQcsQk/id5BaHuLPGM+J3GwRTCh8RHr4cm9m2JfYJIOsru5jiJAuKx7AIVng==
+"@openland/foundationdb-locks@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-locks/-/foundationdb-locks-4.4.2.tgz#c5c91f2429314663064f78bccc7f86b9d18c54c0"
+  integrity sha512-76u76LE5f0v2MfXbB2lxSaQDG88NskWKJsfjnNxanP8zOlbgAj6BxLt4FBAh4BOTbx3kf0qnTzdRUe48sk+73w==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
 
-"@openland/foundationdb-migrations@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-migrations/-/foundationdb-migrations-4.4.1.tgz#b9ac63e5d19ce19e2eb40509fd70c35ae691ec2e"
-  integrity sha512-xvHr9q814vdCPVgnLtvGp9k9b70Sx4qO8mNJLvnWBR3Ga5ah3b1pisH2GMSz63VN+JFXcSxC7LyngUl+yS15Uw==
+"@openland/foundationdb-migrations@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-migrations/-/foundationdb-migrations-4.4.2.tgz#04c6d8f33168320a9613e37ee9238c185de7f2c5"
+  integrity sha512-k20Lvg5ir62Z5l2eYIDpAtVqKcrKIV+9Yw3HL264jj0ZkaWxIlkyt2YKhmk0O+c/fEktmylh3Zf0/DPc232lQQ==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-singleton" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-singleton" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
 
-"@openland/foundationdb-random@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-random/-/foundationdb-random-4.4.1.tgz#68fa43eba57718708571baadadd7d9fb0b319581"
-  integrity sha512-jsCLp/mcqx3sxGKCW5CfKTtQNCOBC23xqTm+ZnbFJCOdJ5MNxQMEJKQCkrMR0mWKOI0gh0zLIVhdSCVs09AQGQ==
+"@openland/foundationdb-random@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-random/-/foundationdb-random-4.4.2.tgz#9d21b85f5965aea451025d327d0293e91144c541"
+  integrity sha512-vIWqZM8DytYwUlLjnVFYSam7mrBd7wr0nLlheNEudlJaK3B5t18RfTnlMo7Pji1eTOTGRLOgBSjYod8ZNfUA9Q==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
 
-"@openland/foundationdb-singleton@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-singleton/-/foundationdb-singleton-4.4.1.tgz#82101bed644800e295a3f7b091b9a66a78253893"
-  integrity sha512-NV9nbXvLCYmNQPdXUZlhfHw4uZF+VxTmKoy1oE5XS4sw87z2Gj3vHqvdsRW1XCFvrdk7eBr5CTwrATJ20694xw==
+"@openland/foundationdb-singleton@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-singleton/-/foundationdb-singleton-4.4.2.tgz#8cdca2da299551eaa5617ec31e0f093eea153cdf"
+  integrity sha512-xRr3U/ltmYFR8sfeHe0cIsi1TzMbi4ViEtkHWm7A0rNmBWn3Y3iBxQD/Q7cpl4ZlSP7Ak7YTfc4BgP1hr+E49A==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
-    "@openland/foundationdb-utils" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
+    "@openland/foundationdb-utils" "^4.4.2"
     "@openland/log" "*"
 
-"@openland/foundationdb-tuple@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-tuple/-/foundationdb-tuple-4.4.1.tgz#bc8cb618786b8c1f6a7ca42b3b4ef22731898e3f"
-  integrity sha512-bFb+cd9j8IU2IEgUpqWGvIUHcWtaz/yUbpm9kh2qX0bfoqG68+017QklXQfNYI26+SWanbH7CCfzW1P4Az8B3Q==
+"@openland/foundationdb-tuple@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-tuple/-/foundationdb-tuple-4.4.2.tgz#0254a2310fa4ca1c953b0278b127977e9a6cec39"
+  integrity sha512-nol8SPU83575iB6vQ7QaydmyxvFX46pFgqXOjNfZhw5b+vs0pCI2kt9Q1VHO4joeklZXcd3SXSX8IgM2RuV7tg==
 
-"@openland/foundationdb-utils@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb-utils/-/foundationdb-utils-4.4.1.tgz#fea924f93284d2f2f9135f43537540640f35d2bd"
-  integrity sha512-DDCuCqGAyTAATth5wVfx5y97VGeHLnRFfz91K1d63qhCLaVkVRUwAFmLj6zOu35t3+xTQDggDueyNcaCJ7SK8A==
+"@openland/foundationdb-utils@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb-utils/-/foundationdb-utils-4.4.2.tgz#f264048a950ffe6b060e3397eb008a9d34ac15c8"
+  integrity sha512-eV3Dd5WaK6Rx+PzbcQYwEtmddAHykPR+YMzu5vXVi3M/wU3N1et29dHm7MJwVIbP/YpPa62s433nZcHMKH56Wg==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb" "^4.4.1"
+    "@openland/foundationdb" "^4.4.2"
     "@openland/log" "*"
     "@types/uuid" "^3.4.3"
     uuid "^3.2.1"
 
-"@openland/foundationdb@^4.4.1":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-4.4.1.tgz#b76a45108b53892233dc08f0b9ef1d0a655e1c3b"
-  integrity sha512-vnu8EbJrKZ6Jfryrkn3KCtKB4OuRSPK0sMR//NjtC2CVFcnKDD/aKlK9q8YIjnqy71EpAaspFKXhgxBAXTNEuw==
+"@openland/foundationdb@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@openland/foundationdb/-/foundationdb-4.4.2.tgz#3f8cad3c53f6dbdb4307380831fa449e1c6de2e1"
+  integrity sha512-MIh0JgU9sDzWqIMh3bdCpYPebd2penWxeVoLujXa8zrzToTVgKZiAzTCrpM6V9Uh050chfBQWBzq53K/0mYCBw==
   dependencies:
     "@openland/context" "*"
-    "@openland/foundationdb-tuple" "^4.4.1"
+    "@openland/foundationdb-tuple" "^4.4.2"
     "@openland/log" "*"
     foundationdb "0.10.3"
 

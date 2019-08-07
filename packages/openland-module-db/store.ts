@@ -11886,10 +11886,10 @@ export interface Store extends BaseStore {
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
     const eventFactory = new EventFactory();
-    eventFactory.registerEventType('chatUpdatedEvent', ChatUpdatedEvent.encode, ChatUpdatedEvent.decode);
-    eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode, MessageReceivedEvent.decode);
-    eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode, MessageUpdatedEvent.decode);
-    eventFactory.registerEventType('messageDeletedEvent', MessageDeletedEvent.encode, MessageDeletedEvent.decode);
+    eventFactory.registerEventType('chatUpdatedEvent', ChatUpdatedEvent.encode as any, ChatUpdatedEvent.decode);
+    eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode as any, MessageReceivedEvent.decode);
+    eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);
+    eventFactory.registerEventType('messageDeletedEvent', MessageDeletedEvent.encode as any, MessageDeletedEvent.decode);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
     let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
