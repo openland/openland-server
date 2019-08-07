@@ -29,6 +29,5 @@ type DialogsConnection {
 }
 
 extend type Query {
-    alphaChats(first: Int!, after: String): ConversationConnection!
     dialogs(first: Int!, after: String): DialogsConnection!
 }

@@ -6,10 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { createLogger } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
-
-const logger = createLogger('dialogs');
 
 export default {
     Dialog: {
@@ -110,26 +107,6 @@ export default {
                     hasMore: true
                 };
             }
-        }),
-        alphaChats: withUser(async (ctx, args, uid) => {
-            let global = await Store.UserMessagingState.findById(ctx, uid);
-            let seq = global ? global.seq : 0;
-            let conversations = await Store.UserDialog
-                .user.query(ctx, uid, { limit: args.first, afterCursor: args.after ? args.after : undefined, reverse: true });
-            let res = await Promise.all(conversations.items.map((v) => Store.Conversation.findById(ctx, v.cid)));
-            let index = 0;
-            for (let r of res) {
-                if (!r) {
-                    logger.warn(ctx, 'Unable to find conversation: ' + conversations.items[index].cid);
-                }
-                index++;
-            }
-            return {
-                conversations: res,
-                seq: seq,
-                next: conversations.haveMore ? conversations.cursor : undefined,
-                counter: uid
-            };
-        }),
+        })
     }
 } as GQLResolver;
