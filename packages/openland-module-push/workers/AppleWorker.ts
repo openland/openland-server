@@ -75,11 +75,13 @@ export function createAppleWorker(repo: PushRepository) {
                                     await inTx(root, async (ctx) => {
                                         let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                                         await handleFail(t);
-                                        await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
+                                        pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
                                     });
                                 }
                             } else {
-                                await pushSent.event(root, { uid: token.uid, tokenId: token.id });
+                                await inTx(root, async (ctx) => {
+                                    pushSent.event(ctx, { uid: token!.uid, tokenId: token!.id });
+                                });
                             }
 
                             return { result: 'ok' };
@@ -93,7 +95,7 @@ export function createAppleWorker(repo: PushRepository) {
                         await inTx(root, async (ctx) => {
                             let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                             await handleFail(t);
-                            await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token!.bundleId, disabled: !t.enabled });
+                            pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token!.bundleId, disabled: !t.enabled });
                         });
                         return { result: 'failed' };
                     }

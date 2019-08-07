@@ -1,0 +1,1 @@
+export const flatMap = <T>(arr: T[][]): T[] => Array.prototype.concat.apply([], arr);

@@ -45,7 +45,7 @@ export class UserRepository {
                 botOwner: null,
             }));
             await res.flush(ctx);
-            await userCreated.event(ctx, { uid: id });
+            userCreated.event(ctx, { uid: id });
             return res;
         });
     }
@@ -61,7 +61,7 @@ export class UserRepository {
                 user.invitedBy = invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
-                await userActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
+                userActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
                 return true;
             } else {
                 return false;
@@ -140,7 +140,7 @@ export class UserRepository {
             });
             await profile.flush(ctx);
             await this.markForUndexing(ctx, uid);
-            await userProfileCreated.event(ctx, { uid: uid });
+            userProfileCreated.event(ctx, { uid: uid });
             return profile;
         });
     }

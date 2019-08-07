@@ -1128,7 +1128,7 @@ export class RoomRepository {
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
             await EventBus.publish(`chat_join_${cid}`, { uid, cid });
-            await membersLog.event(ctx, { rid: cid, delta: 1 });
+            membersLog.event(ctx, { rid: cid, delta: 1 });
 
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
@@ -1165,7 +1165,7 @@ export class RoomRepository {
 
     private async onRoomLeave(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
-            await membersLog.event(ctx, { rid: cid, delta: -1 });
+            membersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.isPublicCommunityChat(ctx, cid)) {
                 await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);

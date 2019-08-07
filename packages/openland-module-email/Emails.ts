@@ -6,8 +6,9 @@ import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { splitEvery } from 'openland-utils/splitEvery';
-import { FormatedUnreadGroups, FormatedUnreadGroup, FormatedTrendGroups, FormatedTrendGroup } from 'openland-module-stats/StatsModule.types';
+import { FormatedUnreadGroups, FormatedUnreadGroup, FormatedTrendGroups, FormatedTrendGroup, FormatedTopPost, FormatedTopPosts } from 'openland-module-stats/StatsModule.types';
 import { WeeklyDigestTemplateData, DIGEST_FIRST_UNREAD_GROUPS, DIGEST_FIRST_TREND_GROUPS } from './Emails.types';
+import { getFilledSpans } from './EmailSpans';
 
 export const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 export const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -26,6 +27,8 @@ export const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c21
 export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
 export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
 export const TEMPLATE_WEEKLY_DIGEST = 'd-43e37b53d7ed4ef4afaf758b4a36ca24';
+
+const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await Store.User.findById(ctx, uid);
@@ -446,13 +449,42 @@ export const Emails = {
     async sendWeeklyDigestEmail(ctx: Context, uid: number) {
         const user = await loadUserState(ctx, uid);
 
+        const cid = isProd
+            // openland news
+            ? IDs.Conversation.parse('EQvPJ1LamRtJJ9ppVxDDs30Jzw')
+            : IDs.Conversation.parse('Wr8D66l5plu52AmgYoBWuznRLX');
+
+        const topPosts = await Modules.Stats.getTopPosts(ctx, uid, cid);
+
+        const formatedTopPosts: FormatedTopPosts = {
+            items: topPosts.map(post => {
+                const avatar = post.sender.avatar ? resizeUcarecdnImage(post.sender.avatar, { height: 48, width: 48 }) : '';
+                const formated: FormatedTopPost = {
+                    ...post,
+                    // @ts-ignore
+                    // TODO: extend types
+                    spans: getFilledSpans(post.message, post.spans),
+                    chatLink: `https://openland.com/mail/${post.chatId}`,
+                    sender: {
+                        ...post.sender,
+                        avatar,
+                        orgLink: `https://openland.com/${post.sender.orgId}`,
+                        profileLink: `https://openland.com/${post.sender.id}`,
+                    },
+                };
+                return formated;
+            })
+        };
+
+        // ---
+
         const unreadGroups = await Modules.Stats.getUnreadGroupsByUserId(ctx, uid, DIGEST_FIRST_UNREAD_GROUPS);
 
         const moreChats = unreadGroups.unreadMoreGroupsCount > 0 ? [{
             color: '',
             firstTitleChar: '',
             previewImage: 'https://cdn.openland.com/shared/email/discovery_new_messages@2x.png',
-            previewLink: 'http://openland.com/mail/',
+            previewLink: 'https://openland.com/mail/',
             serializedId: '',
             subTitle: '',
             title: `+${unreadGroups.unreadMoreGroupsCount} chats`
@@ -483,6 +515,9 @@ export const Emails = {
                 })
             })),
         };
+
+        // ---
+
         // TODO: is allowed to count once a day, not only week?
         const ONE_WEEK_BEFORE = Date.now() - 7 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -497,7 +532,7 @@ export const Emails = {
                     const color = getAvatarColorById(item.serializedId);
                     const formated: FormatedTrendGroup = {
                         ...item,
-                        subTitle: `${item.membersCount} members`,
+                        subTitle: `+${item.messagesDelta} messages`,
                         firstTitleChar: item.title ? item.title[0].toUpperCase() : '',
                         // if image is empty, color is used
                         previewImage,
@@ -509,24 +544,29 @@ export const Emails = {
             })),
         };
 
+        // ---
+
         // there's can't be unread messages, but trending groups always should be presented
 
+        const subject = 'Weekly digest';
+        const title = 'Weekly digest';
+
         const weeklyDigestTemplateData: WeeklyDigestTemplateData = {
+            subject,
+            title,
+            topPosts: formatedTopPosts,
+
             unreadMessages,
-            trendingGroups
+            trendingGroups,
         };
 
         // console.dir(JSON.stringify({ args }, null, 2));
 
-        const subject = 'Weekly digest';
         await Modules.Email.enqueueEmail(ctx, {
             subject,
             templateId: TEMPLATE_WEEKLY_DIGEST,
             to: user.email,
-            dynamicTemplateData: {
-                subject,
-                ...weeklyDigestTemplateData
-            }
+            dynamicTemplateData: weeklyDigestTemplateData
         });
 
     }

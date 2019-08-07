@@ -11,10 +11,12 @@ import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoo
 import { Modules } from '../openland-modules/Modules';
 import { Message, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
-import { UnreadGroups, TrendGroup, TrendGroups } from './StatsModule.types';
+import { UnreadGroups, TrendGroup, TrendGroups, UnreadGroup, GroupedByConvKind, TopPost } from './StatsModule.types';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { User } from '../openland-module-db/store';
+import { groupBy } from 'openland-utils/groupBy';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { EmailSpan } from 'openland-module-email/EmailSpans';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -39,12 +41,12 @@ export class StatsModule {
     }
 
     onNewMobileUser = async (ctx: Context, uid: number) => {
-        await newMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+        newMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
     }
 
     onMessageSent = async (ctx: Context, uid: number) => {
         if (await Store.UserMessagesSentCounter.get(ctx, uid) === 1) {
-            await newSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+            newSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
         }
     }
 
@@ -61,14 +63,14 @@ export class StatsModule {
 
         let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(user.invitedBy!).get(ctx);
         if (invitesCnt === 1) {
-            await newInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
+            newInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
         }
     }
 
     onAboutChange = async (ctx: Context, uid: number) => {
         if (!await Store.UserHasFilledAbout.byId(uid).get(ctx)) {
             Store.UserHasFilledAbout.byId(uid).set(ctx, true);
-            await newAboutFillerLog.event(ctx, { uid });
+            newAboutFillerLog.event(ctx, { uid });
         }
     }
 
@@ -76,35 +78,106 @@ export class StatsModule {
         Store.UserReactionsGot.byId(message.uid).increment(ctx);
         Store.UserReactionsGiven.byId(uid).increment(ctx);
 
-        await newReactionLog.event(ctx, { uid, messageAuthorId: message.uid, mid: message.id });
+        newReactionLog.event(ctx, { uid, messageAuthorId: message.uid, mid: message.id });
 
         if (await Store.UserReactionsGiven.byId(uid).get(ctx) === 3) {
-            await newThreeLikeGiverLog.event(ctx, { uid });
+            newThreeLikeGiverLog.event(ctx, { uid });
         }
         if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
-            await newThreeLikeGetterLog.event(ctx, { uid: message.uid });
+            newThreeLikeGetterLog.event(ctx, { uid: message.uid });
         }
+    }
+
+    getTopPosts = async (ctx: Context, uid: number, cid: number) => {
+        const top = await Modules.Messaging.findTopMessage(ctx, cid);
+
+        if (!top) {
+            return [];
+        }
+
+        const userId = top.uid;
+        const userProfile = (await (Store.UserProfile.findById(ctx, userId)))!;
+
+        const org = userProfile.primaryOrganization
+            ? await Store.OrganizationProfile.findById(ctx, userProfile.primaryOrganization)
+            : null;
+
+        if (!org) {
+            return [];
+        }
+
+        const spans = await Promise.all((top.spans || []).map(async span => {
+            if (span.type === 'all_mention' || span.type === 'user_mention') {
+                const actualId = span.type === 'all_mention' ? uid : span.user;
+                const user = (await (Store.UserProfile.findById(ctx, actualId)))!;
+                return {
+                    type: 'user_mention',
+                    length: span.length,
+                    offset: span.offset,
+                    user: {
+                        id: IDs.User.serialize(user.id),
+                        name: [user.firstName, user.lastName].filter((v) => v).join(' ')
+                    }
+                } as EmailSpan;
+            } else {
+                return {
+                    ...span
+                } as EmailSpan;
+            }
+        }));
+
+        const topPost = {
+            message: top.text,
+            spans,
+            sender: {
+                id: IDs.User.serialize(userProfile.id),
+                avatar: userProfile.picture ? buildBaseImageUrl(userProfile.picture) : '',
+                name: [userProfile.firstName, userProfile.lastName].filter((v) => v).join(' '),
+
+                orgId: IDs.Organization.serialize(org.id),
+                orgName: org.name,
+            },
+            chatId: IDs.Conversation.serialize(cid),
+            likesCount: (top.reactions || []).length,
+            commentsCount: (top.replyMessages || []).length
+        } as TopPost;
+
+        return [topPost];
     }
 
     getUnreadGroupsByUserId = async (ctx: Context, uid: number, first: number): Promise<UnreadGroups> => {
         const dialogs = await Store.UserDialog.user.findAll(ctx, uid);
-        const unreadMessagesCount = await Store.UserCounter.byId(uid).get(ctx);
+        const unreadMessagesCount = Math.max(await Store.UserCounter.byId(uid).get(ctx), 0);
         const withUnreadCount = await Promise.all(
             dialogs.map(async dialog => {
                 const unreadCount = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
-                const roomProfile = await Store.RoomProfile.findById(ctx, dialog.cid);
+                const conv = (await Store.Conversation.findById(ctx, dialog.cid));
 
-                if (!roomProfile) {
+                if (!conv) {
                     return null;
+                }
+
+                let previewImage = '';
+                let title = '';
+                try {
+                    previewImage = await Modules.Messaging.room.resolveConversationPhoto(ctx, dialog.cid, uid) || '';
+                } catch (e) {
+                    // ignore
+                }
+                try {
+                    title = await Modules.Messaging.room.resolveConversationTitle(ctx, dialog.cid, uid) || '';
+                } catch (e) {
+                    // ignore
                 }
 
                 const serializedId = IDs.Conversation.serialize(dialog.cid);
 
                 return {
                     serializedId,
-                    previewImage: buildBaseImageUrl(roomProfile.image) || '',
-                    title: roomProfile.title,
+                    previewImage: previewImage.includes('https') ? previewImage : '',
+                    title,
                     unreadCount,
+                    convKind: conv.kind
                 };
             }),
         );
@@ -112,36 +185,54 @@ export class StatsModule {
         // DESC
         const sortedByUnreadCount = withUnreadCount
             .filter(u => u && u.unreadCount > 0)
-            .sort((a, b) => b!.unreadCount - a!.unreadCount) as NonNullable<typeof withUnreadCount[0]>[];
+            .sort((a, b) => b!.unreadCount - a!.unreadCount) as NonNullable<UnreadGroup>[];
 
         const firstN = sortedByUnreadCount.slice(0, first);
 
         const unreadMoreGroupsCount = Math.max(sortedByUnreadCount.length - firstN.length, 0);
 
+        const groupedByConvKind = groupBy(sortedByUnreadCount, group => group.convKind) as GroupedByConvKind;
+
+        // add at least 2 personal chats at beginning of groups (by spec)
+        const firstTwoPersonalChats = (groupedByConvKind.private || []).slice(0, 2);
+        const orgAndRoomChats = [
+            ...(groupedByConvKind.organization || []),
+            ...(groupedByConvKind.room || [])
+        ].sort((a, b) => b!.unreadCount - a!.unreadCount);
+
         return {
             unreadMessagesCount,
             unreadMoreGroupsCount,
-            groups: firstN,
+            groups: [...firstTwoPersonalChats, ...orgAndRoomChats],
         };
     }
 
     getTrendingGroupsByMessages = async (ctx: Context, from: number, to: number, first: number): Promise<TrendGroups> => {
         const tredings = await this.getTrendingRoomsByMessages(ctx, from, to, first);
-        const withMembersCount = await Promise.all(tredings.map(async trend => {
+        const withMessagesDelta = await Promise.all(tredings.map(async trend => {
             const { room } = trend;
-            const membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
+
+            let previewImage = '';
+            try {
+                previewImage = await Modules.Messaging.room.resolveConversationPhoto(ctx, room.id, 0) || '';
+            } catch (e) {
+                // ignore
+            }
+
+            // const membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
             const serializedId = IDs.Conversation.serialize(room.id);
 
             return {
                 serializedId,
-                previewImage: buildBaseImageUrl(room.image) || '',
+                previewImage: previewImage.includes('https') ? previewImage : '',
                 title: room.title,
-                membersCount
+                messagesDelta: trend.messagesDelta
+                // membersCount
             } as TrendGroup;
         }));
 
         return {
-            groups: withMembersCount
+            groups: withMessagesDelta
         };
     }
 
