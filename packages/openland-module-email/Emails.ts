@@ -549,8 +549,14 @@ export const Emails = {
 
         // there's can't be unread messages, but trending groups always should be presented
 
-        const subject = 'Weekly digest';
-        const title = 'Weekly digest';
+        const today = new Date();
+        // TODO: today, monthly
+        
+        const formatedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+
+        const subject = `Openland Digest · ${formatedDate}`;
+        const title = `Weekly Digest · ${formatedDate}`;
 
         const weeklyDigestTemplateData: WeeklyDigestTemplateData = {
             subject,
