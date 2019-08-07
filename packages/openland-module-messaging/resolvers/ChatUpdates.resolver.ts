@@ -25,14 +25,14 @@ export default {
     },
     ChatUpdateSingle: {
         seq: src => 1,
-        state: src => src.cursor ? IDs.ChatUpdatesCursor.serialize(src.cursor) : null,
+        state: src => IDs.ChatUpdatesCursor.serialize(src.cursor || ''),
         update: src => src.items[0],
     },
     ChatUpdateBatch: {
         updates: src => src.items,
         fromSeq: src => 1,
         seq: src => 1,
-        state: src => src.cursor ? IDs.ChatUpdatesCursor.serialize(src.cursor) : null
+        state: src => IDs.ChatUpdatesCursor.serialize(src.cursor || '')
     },
 
     ChatUpdate: {
