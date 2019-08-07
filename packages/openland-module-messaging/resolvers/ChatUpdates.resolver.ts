@@ -56,9 +56,9 @@ export default {
         by: src => (src as ChatUpdatedEvent).uid
     },
     ChatMessageReceived: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, (src as MessageReceivedEvent).mid),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
         repeatKey: async (src, args, ctx) => {
-            let msg = await Store.Message.findById(ctx, (src as MessageReceivedEvent).mid);
+            let msg = await Store.Message.findById(ctx, src.mid);
             if (msg) {
                 return msg.repeatKey;
             }
@@ -66,10 +66,10 @@ export default {
         }
     },
     ChatMessageUpdated: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, (src as MessageUpdatedEvent).mid),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
     },
     ChatMessageDeleted: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, (src as MessageDeletedEvent).mid!),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
     },
     ChatLostAccess: {
         lostAccess: () => true

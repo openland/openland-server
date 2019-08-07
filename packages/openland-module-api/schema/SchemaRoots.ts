@@ -26,7 +26,7 @@ import {
     Message,
     Comment,
     ConferencePeer,
-    ConferenceRoom, RoomProfile, RichMessage,
+    ConferenceRoom, RoomProfile, RichMessage, MessageReceivedEvent, MessageUpdatedEvent, MessageDeletedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -259,9 +259,9 @@ export namespace GQLRoots {
     export type ChatUpdateBatchRoot = LiveStreamItem<BaseEvent>;
     export type ChatUpdateSingleRoot = LiveStreamItem<BaseEvent>;
     export type ChatUpdatedRoot = BaseEvent;
-    export type ChatMessageReceivedRoot = BaseEvent;
-    export type ChatMessageUpdatedRoot = BaseEvent;
-    export type ChatMessageDeletedRoot = BaseEvent;
+    export type ChatMessageReceivedRoot = MessageReceivedEvent;
+    export type ChatMessageUpdatedRoot = MessageUpdatedEvent;
+    export type ChatMessageDeletedRoot = MessageDeletedEvent;
     export type ChatLostAccessRoot = BaseEvent;
     export type ChatUpdateStateRoot = any;
     export type ChatUpdateContainerRoot = LiveStreamItem<BaseEvent>;
