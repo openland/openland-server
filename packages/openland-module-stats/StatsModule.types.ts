@@ -1,4 +1,6 @@
 
+import { HandlebarsMessageSpan, EmailSpan } from 'openland-module-email/EmailSpans';
+
 interface StatsGroup {
   serializedId: string;
   previewImage: string;
@@ -52,8 +54,11 @@ export interface FormatedTrendGroups {
 
 // ----
 
+// type A = typeof Message
+
 export interface TopPost {
   message: string;
+  spans: EmailSpan[];
   sender: {
     id: string;
     name: string
@@ -68,6 +73,7 @@ export interface TopPost {
 }
 
 export type FormatedTopPost = TopPost & {
+  spans: HandlebarsMessageSpan[]
   sender: {
     orgLink: string,
     profileLink: string;
