@@ -1,3 +1,4 @@
+// import { MessageReceivedEvent } from './../../openland-module-db/store';
 import { ConversationEvent, Message } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
@@ -57,6 +58,11 @@ export class MessagingRepository {
             // Write Event
             //
 
+            // Store.ConversationEventStore.post(ctx, cid, 
+            //     MessageReceivedEvent.create({
+            //     cid,
+            //     mid
+            // }));
             let seq = await this.fetchConversationNextSeq(ctx, cid);
             let res = await Store.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'message_received',

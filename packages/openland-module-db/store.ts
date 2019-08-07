@@ -4,7 +4,7 @@ import { Context } from '@openland/context';
 // @ts-ignore
 import { Subspace, Watch } from '@openland/foundationdb';
 // @ts-ignore
-import { EntityStorage, BaseStore, RangeQueryOptions, codecs as c } from '@openland/foundationdb-entity';
+import { EntityStorage, EventStore, EventStoreDescriptor, EventFactory, BaseStore, RangeQueryOptions, BaseEvent, codecs as c } from '@openland/foundationdb-entity';
 // @ts-ignore
 import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundationdb-entity';
 // @ts-ignore
@@ -11600,6 +11600,169 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+const chatUpdatedEventCodec = c.struct({
+    cid: c.integer,
+    uid: c.integer,
+});
+
+interface ChatUpdatedEventShape {
+    cid: number;
+    uid: number;
+}
+
+export class ChatUpdatedEvent extends BaseEvent {
+
+    static create(data: ChatUpdatedEventShape) {
+        return new ChatUpdatedEvent(chatUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new ChatUpdatedEvent(chatUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: ChatUpdatedEvent) {
+        return chatUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('chatUpdatedEvent', data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+    get uid(): number { return this.raw.uid; }
+}
+
+const messageReceivedEventCodec = c.struct({
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface MessageReceivedEventShape {
+    cid: number;
+    mid: number;
+}
+
+export class MessageReceivedEvent extends BaseEvent {
+
+    static create(data: MessageReceivedEventShape) {
+        return new MessageReceivedEvent(messageReceivedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new MessageReceivedEvent(messageReceivedEventCodec.decode(data));
+    }
+
+    static encode(event: MessageReceivedEvent) {
+        return messageReceivedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('messageReceivedEvent', data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const messageUpdatedEventCodec = c.struct({
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface MessageUpdatedEventShape {
+    cid: number;
+    mid: number;
+}
+
+export class MessageUpdatedEvent extends BaseEvent {
+
+    static create(data: MessageUpdatedEventShape) {
+        return new MessageUpdatedEvent(messageUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new MessageUpdatedEvent(messageUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: MessageUpdatedEvent) {
+        return messageUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('messageUpdatedEvent', data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const messageDeletedEventCodec = c.struct({
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface MessageDeletedEventShape {
+    cid: number;
+    mid: number;
+}
+
+export class MessageDeletedEvent extends BaseEvent {
+
+    static create(data: MessageDeletedEventShape) {
+        return new MessageDeletedEvent(messageDeletedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new MessageDeletedEvent(messageDeletedEventCodec.decode(data));
+    }
+
+    static encode(event: MessageDeletedEvent) {
+        return messageDeletedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('messageDeletedEvent', data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+export class ConversationEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('conversationEventStore');
+        const descriptor = {
+            name: 'ConversationEventStore',
+            storageKey: 'conversationEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new ConversationEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, cid: number, event: BaseEvent) {
+        this._post(ctx, [cid], event);
+    }
+
+    async findAll(ctx: Context, cid: number) {
+        return this._findAll(ctx, [cid]);
+    }
+
+    createStream(cid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([cid], opts);
+    }
+
+    createLiveStream(ctx: Context, cid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [cid], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
@@ -11716,11 +11879,17 @@ export interface Store extends BaseStore {
     readonly DelayedTask: DelayedTaskFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly ConversationEventStore: ConversationEventStore;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
+    const eventFactory = new EventFactory();
+    eventFactory.registerEventType('chatUpdatedEvent', ChatUpdatedEvent.encode, ChatUpdatedEvent.decode);
+    eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode, MessageReceivedEvent.decode);
+    eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode, MessageUpdatedEvent.decode);
+    eventFactory.registerEventType('messageDeletedEvent', MessageDeletedEvent.encode, MessageDeletedEvent.decode);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
     let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
@@ -11838,8 +12007,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
+    let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     return {
         storage,
+        eventFactory,
         UserCounter: await UserCounterPromise,
         UserMessagesSentCounter: await UserMessagesSentCounterPromise,
         UserMessagesSentWeeklyCounter: await UserMessagesSentWeeklyCounterPromise,
@@ -11957,5 +12128,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DebugEventState: await DebugEventStatePromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
+        ConversationEventStore: await ConversationEventStorePromise,
     };
 }

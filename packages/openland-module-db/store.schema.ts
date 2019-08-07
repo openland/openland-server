@@ -1,4 +1,5 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct, customDirectory, array, union } from '@openland/foundationdb-compiler';
+import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct, customDirectory, array, union, event } from '@openland/foundationdb-compiler';
+import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 
 export default declareSchema(() => {
 
@@ -534,11 +535,38 @@ export default declareSchema(() => {
         field('contents', optional(string()));
     });
 
+    //
+    // Conversation Event
+    //
+
+    event('ChatUpdatedEvent', () => {
+        field('cid', integer());
+        field('uid', integer());
+    });
+    event('MessageReceivedEvent', () => {
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('MessageUpdatedEvent', () => {
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('MessageDeletedEvent', () => {
+        field('cid', integer());
+        field('mid', integer());
+    });
+    eventStore('ConversationEventStore', () => {
+        primaryKey('cid', integer());
+    });
+
+    //
+    // Deprecated Events
+    //
+
     entity('ConversationSeq', () => {
         primaryKey('cid', integer());
         field('seq', integer());
     });
-
     entity('ConversationEvent', () => {
         primaryKey('cid', integer());
         primaryKey('seq', integer());
