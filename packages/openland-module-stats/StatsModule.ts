@@ -9,7 +9,7 @@ import { createWeeklyUserLeaderboardWorker } from './workers/WeeklyUserLeaderboa
 import { createWeeklyRoomLeaderboardWorker } from './workers/WeeklyRoomLeaderboardWorker';
 import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoomByMessagesLeaderboardWorker';
 import { Modules } from '../openland-modules/Modules';
-import { Message, RoomProfile } from '../openland-module-db/store';
+import { Message, RoomProfile, Comment } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { UnreadGroups, TrendGroup, TrendGroups, UnreadGroup, GroupedByConvKind, TopPost } from './StatsModule.types';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
@@ -89,7 +89,8 @@ export class StatsModule {
     }
 
     getTopPosts = async (ctx: Context, uid: number, cid: number) => {
-        const top = await Modules.Messaging.findTopMessage(ctx, cid);
+        const firstThree = (await Store.Message.chat.query(ctx, cid, { limit: 3, reverse: true })).items;
+        const top = firstThree.find(message => !message.isService);
 
         if (!top) {
             return [];
