@@ -10,22 +10,14 @@ export class UserDialogsRepository {
 
     @lazyInject('UserStateRepository') userState!: UserStateRepository;
 
-    bumpDialog = async (ctx: Context, uid: number, cid: number, date: number) => {
-        let local = await this.userState.getUserDialogState(ctx, uid, cid);
-        local.date = date;
-
-        // Set in new index
+    bumpDialog = (ctx: Context, uid: number, cid: number, date: number) => {
         Store.UserDialogIndexDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .set(ctx, [uid, cid], { date });
     }
 
-    removeDialog = async (ctx: Context, uid: number, cid: number) => {
-        let local = await this.userState.getUserDialogState(ctx, uid, cid);
-        local.date = null;
-
-        // Clear in new index
+    removeDialog = (ctx: Context, uid: number, cid: number) => {
         Store.UserDialogIndexDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
@@ -39,10 +31,20 @@ export class UserDialogsRepository {
             .range(ctx, [uid])).map((v) => ({ cid: v.key[1] as number, date: v.value.date }));
     }
 
+    hasActiveDialog = async (ctx: Context, uid: number, cid: number) => {
+        return !!(await Store.UserDialogIndexDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .get(ctx, [uid, cid]));
+    }
+
     findAnyUserDialog = async (ctx: Context, uid: number): Promise<number | null> => {
-        let r = await Store.UserDialog.user.query(ctx, uid, { limit: 1 });
-        if (r.items.length > 0) {
-            return r.items[0].cid;
+        let r = (await Store.UserDialogIndexDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .range(ctx, [uid], { limit: 1 }));
+        if (r.length > 0) {
+            return r[0].key[1] as number;
         } else {
             return null;
         }

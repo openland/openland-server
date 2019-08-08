@@ -34,7 +34,7 @@ export class DeliveryRepository {
             }
 
             // Update dialog and deliver update
-            await this.userDialogs.bumpDialog(ctx, uid, message.cid, message.metadata.createdAt);
+            this.userDialogs.bumpDialog(ctx, uid, message.cid, message.metadata.createdAt);
 
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
@@ -54,7 +54,7 @@ export class DeliveryRepository {
         await inTx(parent, async (ctx) => {
 
             // Update dialog and deliver update
-            await this.userDialogs.bumpDialog(ctx, uid, cid, date);
+            this.userDialogs.bumpDialog(ctx, uid, cid, date);
 
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
@@ -159,7 +159,7 @@ export class DeliveryRepository {
             }
 
             // Remove dialog
-            await this.userDialogs.removeDialog(ctx, uid, cid);
+            this.userDialogs.removeDialog(ctx, uid, cid);
 
             // Write event
             let global = await this.userState.getUserMessagingState(ctx, uid);

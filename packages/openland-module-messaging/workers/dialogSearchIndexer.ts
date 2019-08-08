@@ -44,7 +44,7 @@ export function dialogSearchIndexer() {
                     title: title || '',
                     cid: item.cid,
                     uid: item.uid,
-                    visible: !!item.date,
+                    visible: await Modules.Messaging.hasActiveDialog(parent, item.uid, item.cid),
                     createdAt: item.metadata.createdAt,
                     updatedAt: item.metadata.updatedAt,
                 }

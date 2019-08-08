@@ -49,7 +49,6 @@ describe('UserStateRepository', () => {
         let state = await repo.getUserDialogState(ctx, 1, 2);
         expect(state.uid).toBe(1);
         expect(state.cid).toBe(2);
-        expect(state.date).toBeNull();
         expect(state.readMessageId).toBeNull();
     });
 
