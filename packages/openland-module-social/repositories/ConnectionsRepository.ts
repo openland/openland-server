@@ -10,14 +10,21 @@ import { Store } from 'openland-module-db/FDB';
 export class ConnectionsRepository {
     onMessageSent = async (parent: Context, fromUid: number, toUid: number) => {
         await inTx(parent, async (ctx) => {
-            if (!await Store.UserEdge.findById(ctx, fromUid, toUid)) {
-                await Store.UserEdge.create(ctx, fromUid, toUid, {});
+            let edge = await Store.UserEdge.findById(ctx, fromUid, toUid);
+            if (!edge) {
+                await Store.UserEdge.create(ctx, fromUid, toUid, {
+                    weight: 1
+                });
+
                 let infind = await Store.UserInfluencerUserIndex.findById(ctx, toUid);
                 if (infind) {
                     infind.value++;
                 } else {
                     await Store.UserInfluencerUserIndex.create(ctx, toUid, { value: 1 });
                 }
+            } else {
+                edge.weight = (edge.weight || 0) + 1;
+                await edge.flush(ctx);
             }
         });
     }

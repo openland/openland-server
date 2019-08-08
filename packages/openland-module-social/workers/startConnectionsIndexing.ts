@@ -4,7 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 
 export function startConnectionsIndexer() {
-    updateReader('user_connections', 3, Store.Message.updated.stream({ batchSize: 50 }), async (items, first, parent) => {
+    updateReader('user_connections', 4, Store.Message.updated.stream({ batchSize: 50 }), async (items, first, parent) => {
         await inTx(parent, async (ctx) => {
             for (let i of items) {
                 let pr = await Store.ConversationPrivate.findById(ctx, i.cid);

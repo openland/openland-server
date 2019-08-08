@@ -6174,14 +6174,25 @@ export class ConferenceConnectionFactory extends EntityFactory<ConferenceConnect
 export interface UserEdgeShape {
     uid1: number;
     uid2: number;
+    weight: number | null;
 }
 
 export interface UserEdgeCreateShape {
+    weight?: number | null | undefined;
 }
 
 export class UserEdge extends Entity<UserEdgeShape> {
     get uid1(): number { return this._rawValue.uid1; }
     get uid2(): number { return this._rawValue.uid2; }
+    get weight(): number | null { return this._rawValue.weight; }
+    set weight(value: number | null) {
+        let normalized = this.descriptor.codec.fields.weight.normalize(value);
+        if (this._rawValue.weight !== normalized) {
+            this._rawValue.weight = normalized;
+            this._updatedValues.weight = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
@@ -6191,13 +6202,17 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'forward', storageKey: 'forward', type: { type: 'range', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'forward'), condition: undefined });
         secondaryIndexes.push({ name: 'reverse', storageKey: 'reverse', type: { type: 'range', fields: [{ name: 'uid2', type: 'integer' }, { name: 'uid1', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'reverse'), condition: undefined });
+        secondaryIndexes.push({ name: 'forwardWeight', storageKey: 'forwardWeight', type: { type: 'range', fields: [{ name: 'uid1', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'forwardWeight'), condition: undefined });
+        secondaryIndexes.push({ name: 'reverseWeight', storageKey: 'reverseWeight', type: { type: 'range', fields: [{ name: 'uid2', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'reverseWeight'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid1', type: 'integer' });
         primaryKeys.push({ name: 'uid2', type: 'integer' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'weight', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             uid1: c.integer,
             uid2: c.integer,
+            weight: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<UserEdgeShape> = {
             name: 'UserEdge',
@@ -6238,6 +6253,36 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         },
         liveStream: (ctx: Context, uid2: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid2], opts);
+        },
+    });
+
+    readonly forwardWeight = Object.freeze({
+        findAll: async (ctx: Context, uid1: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [uid1])).items;
+        },
+        query: (ctx: Context, uid1: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [uid1], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid1: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [uid1], opts);
+        },
+        liveStream: (ctx: Context, uid1: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [uid1], opts);
+        },
+    });
+
+    readonly reverseWeight = Object.freeze({
+        findAll: async (ctx: Context, uid2: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [uid2])).items;
+        },
+        query: (ctx: Context, uid2: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [uid2], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid2: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[3], [uid2], opts);
+        },
+        liveStream: (ctx: Context, uid2: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [uid2], opts);
         },
     });
 
