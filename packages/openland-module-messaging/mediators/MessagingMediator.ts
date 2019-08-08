@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
@@ -98,12 +98,18 @@ export class MessagingMediator {
                 await this.augmentation.onNewMessage(ctx, res.message);
             }
 
-            // // Cancel typings
-            // // TODO: Remove
-            // let members = await this.room.findConversationMembers(ctx, cid);
-            // if (!message.isService && !message.isMuted) {
-            //     await Modules.Typings.cancelTyping(uid, cid, members);
-            // }
+            // Cancel typings
+            // TODO: Remove
+            if (!message.isService && !message.isMuted) {
+                // tslint:disable
+                (async () => {
+                    await inTx(withoutTransaction(ctx), async ctx2 => {
+                        let members = await this.room.findConversationMembers(ctx, cid);
+                        await Modules.Typings.cancelTyping(uid, cid, members);
+                    })
+                })();
+                // tslint:enable
+            }
 
             // Clear draft
             // TODO: Move
