@@ -41,8 +41,13 @@ type ChatLostAccess {
     lostAccess: Boolean!
 }
 
+type ConversationUpdateState {
+    state: String
+}
+
 extend type Query {
     chatState(chatId: ID!): ChatUpdateState!
+    conversationState(id: ID!): ConversationUpdateState!
 }
 
 extend type Subscription {

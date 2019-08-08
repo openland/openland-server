@@ -587,14 +587,12 @@ export default declareSchema(() => {
         field('title', optional(string()));
         field('photo', optional(json()));
 
-        field('hidden', optional(boolean()));
-        field('disableGlobalCounter', optional(boolean()));
-
         rangeIndex('user', ['uid', 'date'])
-            .withCondition((src) => !!src.date && !src.hidden);
-        uniqueIndex('conversation', ['cid', 'uid']);
+            .withCondition((src) => !!src.date);
         rangeIndex('updated', ['updatedAt']);
     });
+
+    customDirectory('UserDialogIndex');
 
     entity('UserDialogHandledMessage', () => {
         primaryKey('uid', integer());
@@ -722,8 +720,11 @@ export default declareSchema(() => {
     entity('UserEdge', () => {
         primaryKey('uid1', integer());
         primaryKey('uid2', integer());
+        field('weight', optional(integer()));
         rangeIndex('forward', ['uid1', 'uid2']);
         rangeIndex('reverse', ['uid2', 'uid1']);
+        rangeIndex('forwardWeight', ['uid1', 'weight']);
+        rangeIndex('reverseWeight', ['uid2', 'weight']);
     });
 
     entity('UserInfluencerUserIndex', () => {

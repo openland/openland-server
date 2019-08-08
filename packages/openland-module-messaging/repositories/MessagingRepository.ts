@@ -1,5 +1,5 @@
-// import { MessageReceivedEvent } from './../../openland-module-db/store';
-import { ConversationEvent, Message } from 'openland-module-db/store';
+import { MessageUpdatedEvent, MessageDeletedEvent } from './../../openland-module-db/store';
+import { Message, MessageReceivedEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     MessageAttachment,
@@ -21,7 +21,7 @@ export class MessagingRepository {
     @lazyInject('ChatMetricsRepository')
     private readonly chatMetrics!: ChatMetricsRepository;
 
-    async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
+    async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ message: Message }> {
         return await inTx(parent, async (ctx) => {
 
             //
@@ -58,17 +58,10 @@ export class MessagingRepository {
             // Write Event
             //
 
-            // Store.ConversationEventStore.post(ctx, cid, 
-            //     MessageReceivedEvent.create({
-            //     cid,
-            //     mid
-            // }));
-            let seq = await this.fetchConversationNextSeq(ctx, cid);
-            let res = await Store.ConversationEvent.create(ctx, cid, seq, {
-                kind: 'message_received',
-                uid: uid,
-                mid: mid
-            });
+            Store.ConversationEventStore.post(ctx, cid, MessageReceivedEvent.create({
+                cid,
+                mid
+            }));
 
             //
             // Update user counter
@@ -91,14 +84,13 @@ export class MessagingRepository {
             await Modules.Hooks.onMessageSent(ctx, uid);
 
             return {
-                event: res,
                 message: msg
             };
         });
     }
 
-    async editMessage(parent: Context, mid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
-        return await inTx(parent, async (ctx) => {
+    async editMessage(parent: Context, mid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<void> {
+        await inTx(parent, async (ctx) => {
             let message = await Store.Message.findById(ctx, mid);
             if (!message) {
                 throw new Error('Message not found');
@@ -135,18 +127,15 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
-            let res = await Store.ConversationEvent.create(ctx, message!.cid, seq, {
-                kind: 'message_updated',
-                mid: message!.id
-            });
-
-            return res;
+            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
+                cid: message!.cid,
+                mid
+            }));
         });
     }
 
-    async deleteMessage(parent: Context, mid: number): Promise<ConversationEvent> {
-        return await inTx(parent, async (ctx) => {
+    async deleteMessage(parent: Context, mid: number): Promise<void> {
+        await inTx(parent, async (ctx) => {
             let message = (await Store.Message.findById(ctx, mid));
 
             if (!message || message.deleted) {
@@ -163,13 +152,10 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(ctx, message.cid);
-            let res = await Store.ConversationEvent.create(ctx, message.cid, seq, {
-                kind: 'message_deleted',
-                mid: message!.id
-            });
-
-            return res;
+            Store.ConversationEventStore.post(ctx, message!.cid, MessageDeletedEvent.create({
+                cid: message!.cid,
+                mid
+            }));
         });
     }
 
@@ -193,7 +179,7 @@ export class MessagingRepository {
                 if (reset) {
                     reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
                 } else {
-                    return;
+                    return false;
                 }
             } else {
                 reactions.push({ userId: uid, reaction });
@@ -208,29 +194,26 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
-            let res = await Store.ConversationEvent.create(ctx, message!.cid, seq, {
-                kind: 'message_updated',
-                mid: message!.id
-            });
-
-            return res;
+            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
+                cid: message!.cid,
+                mid
+            }));
+            return true;
         });
     }
 
     async markMessageUpdated(parent: Context, mid: number) {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let message = await Store.Message.findById(ctx, mid);
 
             if (!message) {
                 throw new Error('Message not found');
             }
 
-            let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
-            return await Store.ConversationEvent.create(ctx, message!.cid, seq, {
-                kind: 'message_updated',
-                mid: message!.id
-            });
+            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
+                cid: message!.cid,
+                mid
+            }));
         });
     }
 

@@ -13,6 +13,7 @@ import { RoomMediator } from './mediators/RoomMediator';
 import { FixerRepository } from './repositories/Fixer';
 import { ChatMetricsRepository } from './repositories/ChatMetricsRepository';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
+import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -29,4 +30,5 @@ export function loadMessagingModule() {
     container.bind('FixerRepository').to(FixerRepository).inSingletonScope();
     container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
     container.bind('NeedNotificationDeliveryRepository').to(NeedNotificationDeliveryRepository).inSingletonScope();
+    container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
 }

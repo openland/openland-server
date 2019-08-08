@@ -16,7 +16,6 @@ import {
     NotificationCenter,
     UserNotificationCenter,
     NotificationCenterEvent,
-    ConversationEvent,
     UserDialogEvent,
     UserDialogSettings,
     Conversation,
@@ -27,7 +26,7 @@ import {
     Message,
     Comment,
     ConferencePeer,
-    ConferenceRoom, RoomProfile, RichMessage,
+    ConferenceRoom, RoomProfile, RichMessage, MessageReceivedEvent, MessageUpdatedEvent, MessageDeletedEvent, UserDialog,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -45,7 +44,7 @@ import {
     NotificationContent
 } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
-import { LiveStreamItem } from '@openland/foundationdb-entity';
+import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 
 //
@@ -68,7 +67,7 @@ export namespace GQLRoots {
     //
     export type ICEServerRoot = GQL.ICEServer;
     export type MediaStreamRoot = GQL.MediaStream;
-    export type ConversationUpdateStateRoot = GQL.ConversationUpdateState;
+    export type ConversationUpdateStateRoot = any;
     export type ConferencePeerConnectionRoot = GQL.ConferencePeerConnection;
     export type ConferencePeerRoot = ConferencePeer;
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
@@ -127,7 +126,7 @@ export namespace GQLRoots {
     export type AppInviteInfoRoot = any;
     export type InviteHistotyInfoRoot = any;
     export type ReactionRoot = any;
-    export type DialogRoot = any;
+    export type DialogRoot = UserDialog;
     export type DialogsConnectionRoot = any;
     export type SettingsRoot = UserSettings;
     export type OrganizationMemberRoot = any;
@@ -256,16 +255,16 @@ export namespace GQLRoots {
     //
     //  Chat updates
     //
-    export type ChatUpdateRoot = ConversationEvent;
-    export type ChatUpdateBatchRoot = LiveStreamItem<ConversationEvent>;
-    export type ChatUpdateSingleRoot = LiveStreamItem<ConversationEvent>;
-    export type ChatUpdatedRoot = ConversationEvent;
-    export type ChatMessageReceivedRoot = ConversationEvent;
-    export type ChatMessageUpdatedRoot = ConversationEvent;
-    export type ChatMessageDeletedRoot = ConversationEvent;
-    export type ChatLostAccessRoot = ConversationEvent;
+    export type ChatUpdateRoot = BaseEvent;
+    export type ChatUpdateBatchRoot = LiveStreamItem<BaseEvent>;
+    export type ChatUpdateSingleRoot = LiveStreamItem<BaseEvent>;
+    export type ChatUpdatedRoot = BaseEvent;
+    export type ChatMessageReceivedRoot = MessageReceivedEvent;
+    export type ChatMessageUpdatedRoot = MessageUpdatedEvent;
+    export type ChatMessageDeletedRoot = MessageDeletedEvent;
+    export type ChatLostAccessRoot = BaseEvent;
     export type ChatUpdateStateRoot = any;
-    export type ChatUpdateContainerRoot = LiveStreamItem<ConversationEvent>;
+    export type ChatUpdateContainerRoot = LiveStreamItem<BaseEvent>;
 
     //
     //  Search

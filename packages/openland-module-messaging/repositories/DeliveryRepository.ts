@@ -1,3 +1,4 @@
+import { UserDialogsRepository } from './UserDialogsRepository';
 import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
@@ -12,13 +13,16 @@ export class DeliveryRepository {
 
     private readonly userState: UserStateRepository;
     private readonly metrics: ChatMetricsRepository;
+    private readonly userDialogs: UserDialogsRepository;
 
     constructor(
         @inject('UserStateRepository') userState: UserStateRepository,
-        @inject('ChatMetricsRepository') metrics: ChatMetricsRepository
+        @inject('ChatMetricsRepository') metrics: ChatMetricsRepository,
+        @inject('UserDialogsRepository') userDialogs: UserDialogsRepository
     ) {
         this.userState = userState;
         this.metrics = metrics;
+        this.userDialogs = userDialogs;
     }
 
     async deliverMessageToUser(parent: Context, uid: number, message: Message) {
@@ -30,13 +34,12 @@ export class DeliveryRepository {
             }
 
             // Update dialog and deliver update
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
-            local.date = message.metadata.createdAt;
+            this.userDialogs.bumpDialog(ctx, uid, message.cid, message.metadata.createdAt);
 
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,
                 mid: message.id,
@@ -51,13 +54,12 @@ export class DeliveryRepository {
         await inTx(parent, async (ctx) => {
 
             // Update dialog and deliver update
-            let local = await this.userState.getUserDialogState(ctx, uid, cid);
-            local.date = date;
+            this.userDialogs.bumpDialog(ctx, uid, cid, date);
 
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'dialog_bump',
                 cid: cid,
                 allUnread: 0,
@@ -72,7 +74,7 @@ export class DeliveryRepository {
             // Persist Event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_updated',
                 cid: message.cid,
                 mid: message.id,
@@ -86,7 +88,7 @@ export class DeliveryRepository {
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_deleted',
                 cid: message.cid,
                 mid: message.id,
@@ -102,7 +104,7 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'title_updated',
                 cid: cid,
                 title: title,
@@ -115,7 +117,7 @@ export class DeliveryRepository {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'photo_updated',
                 cid: cid,
                 photo: photo,
@@ -127,7 +129,7 @@ export class DeliveryRepository {
         await inTx(parent, async (ctx) => {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'dialog_mute_changed',
                 cid,
                 mute,
@@ -136,7 +138,7 @@ export class DeliveryRepository {
 
             // TODO: remove this update, clients should respect global counter in dialog_mute_changed event
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_read',
                 cid: cid,
                 unread: 0,
@@ -156,12 +158,13 @@ export class DeliveryRepository {
                 this.metrics.onDirectChatDeleted(ctx, uid);
             }
 
-            let local = await this.userState.getUserDialogState(ctx, uid, cid);
-            local.date = null;
+            // Remove dialog
+            this.userDialogs.removeDialog(ctx, uid, cid);
 
+            // Write event
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'dialog_deleted',
                 cid: cid,
                 unread: 0,
@@ -180,7 +183,7 @@ export class DeliveryRepository {
             // Deliver update
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_read',
                 cid: msg.cid,
                 unread: 0,
@@ -193,16 +196,17 @@ export class DeliveryRepository {
     async deliverGlobalCounterToUser(parent: Context, uid: number) {
         // TODO: create new event type for this
         await inTx(parent, async (ctx) => {
+            let cid = await this.userDialogs.findAnyUserDialog(ctx, uid);
+            if (cid !== null) {
+                return;
+            }
+
             // Deliver update
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
-            let dialogs = (await Store.UserDialog.user.query(ctx, uid, { limit: 1 })).items;
-            if (dialogs.length === 0) {
-                return;
-            }
-            await Store.UserDialogEvent.create(ctx, uid, global.seq, {
+            Store.UserDialogEvent.create_UNSAFE(ctx, uid, global.seq, {
                 kind: 'message_read',
-                cid: dialogs[0].cid,
+                cid: cid,
                 unread: 0,
                 allUnread: 0,
                 haveMention: false,

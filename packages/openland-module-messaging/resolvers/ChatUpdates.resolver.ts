@@ -1,3 +1,4 @@
+import { MessageDeletedEvent, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ChatUpdateContainerRoot = GQLRoots.ChatUpdateContainerRoot;
@@ -9,7 +10,8 @@ import { Modules } from '../../openland-modules/Modules';
 import { delay } from '../../openland-utils/timer';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { AppContext } from '../../openland-modules/AppContext';
-import { ConversationEvent } from 'openland-module-db/store';
+import { BaseEvent } from '@openland/foundationdb-entity';
+import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
 
 export default {
     ChatUpdateContainer: {
@@ -22,42 +24,41 @@ export default {
         }
     },
     ChatUpdateSingle: {
-        seq: src => src.items[0].seq,
-        state: src => src.cursor,
+        seq: src => 1,
+        state: src => IDs.ChatUpdatesCursor.serialize(src.cursor || ''),
         update: src => src.items[0],
     },
     ChatUpdateBatch: {
         updates: src => src.items,
-        fromSeq: src => src.items[0].seq,
-        seq: src => src.items[src.items.length - 1].seq,
-        state: src => src.cursor
+        fromSeq: src => 1,
+        seq: src => 1,
+        state: src => IDs.ChatUpdatesCursor.serialize(src.cursor || '')
     },
 
     ChatUpdate: {
-        __resolveType(obj: ConversationEvent) {
-            if (obj.kind === 'message_received') {
+        __resolveType(obj: BaseEvent) {
+            if (obj instanceof MessageReceivedEvent) {
                 return 'ChatMessageReceived';
-            } else if (obj.kind === 'message_updated') {
+            } else if (obj instanceof MessageUpdatedEvent) {
                 return 'ChatMessageUpdated';
-            } else if (obj.kind === 'message_deleted') {
+            } else if (obj instanceof MessageDeletedEvent) {
                 return 'ChatMessageDeleted';
-            } else if (obj.kind === 'chat_updated') {
+            } else if (obj instanceof ChatUpdatedEvent) {
                 return 'ChatUpdated';
-            } else if (obj.kind === 'lost_access') {
+            } else {
                 return 'ChatLostAccess';
             }
-            throw Error('Unknown chat update type: ' + obj.kind);
         }
     },
 
     ChatUpdated: {
-        chat: src => src.cid,
-        by: src => src.uid
+        chat: src => (src as ChatUpdatedEvent).cid,
+        by: src => (src as ChatUpdatedEvent).uid
     },
     ChatMessageReceived: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
         repeatKey: async (src, args, ctx) => {
-            let msg = await Store.Message.findById(ctx, src.mid!);
+            let msg = await Store.Message.findById(ctx, src.mid);
             if (msg) {
                 return msg.repeatKey;
             }
@@ -65,7 +66,7 @@ export default {
         }
     },
     ChatMessageUpdated: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
+        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
     },
     ChatMessageDeleted: {
         message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
@@ -77,9 +78,16 @@ export default {
     Query: {
         chatState: withUser(async (ctx, args, uid) => {
             let id = IDs.Conversation.parse(args.chatId);
-            let tail = await Store.ConversationEvent.user.stream(id, { batchSize: 1 }).tail(ctx);
+            let tail = await Store.ConversationEventStore.createStream(id, { batchSize: 1 }).tail(ctx) || '';
             return {
-                state: tail
+                state: IDs.ChatUpdatesCursor.serialize(tail)
+            };
+        }),
+        conversationState: withUser(async (ctx, args, uid) => {
+            let id = IDs.Conversation.parse(args.id);
+            let tail = await Store.ConversationEventStore.createStream(id, { batchSize: 1 }).tail(ctx) || '';
+            return {
+                state: IDs.ChatUpdatesCursor.serialize(tail)
             };
         })
     },
@@ -107,7 +115,50 @@ export default {
                     }
                 }
 
-                let generator = Store.ConversationEvent.user.liveStream(ctx, chatId, { batchSize: 20, after: args.fromState || undefined });
+                // Fallback cursor
+                let after: string | null = null;
+                if (args.fromState) {
+                    try {
+                        after = IDs.ChatUpdatesCursor.parse(args.fromState);
+                    } catch (e) {
+                        let oldEvents = await Store.ConversationEvent.user.query(ctx, chatId, {
+                            afterCursor: args.fromState
+                        });
+                        if (oldEvents.items.length > 0) {
+                            let events: BaseEvent[] = [];
+                            for (let e of oldEvents.items) {
+                                if (e.kind === 'chat_updated') {
+                                    events.push(ChatUpdatedEvent.create({
+                                        cid: e.cid,
+                                        uid: e.uid!
+                                    }));
+                                } else if (e.kind === 'message_received') {
+                                    events.push(MessageReceivedEvent.create({
+                                        cid: e.cid,
+                                        mid: e.mid!
+                                    }));
+                                } else if (e.kind === 'message_updated') {
+                                    events.push(MessageUpdatedEvent.create({
+                                        cid: e.cid,
+                                        mid: e.mid!
+                                    }));
+                                } else if (e.kind === 'message_deleted') {
+                                    events.push(MessageDeletedEvent.create({
+                                        cid: e.cid,
+                                        mid: e.mid!
+                                    }));
+                                }
+                            }
+                            yield {
+                                items: events,
+                                cursor: '' /* Start of stream */
+                            };
+                        }
+                    }
+                }
+
+                // New event source
+                let generator = Store.ConversationEventStore.createLiveStream(ctx, chatId, { batchSize: 20, after: after || undefined });
                 let haveAccess = true;
                 let subscription = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
                     if (ev.uid === uid) {

@@ -3,7 +3,6 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
-import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
@@ -128,26 +127,5 @@ export default {
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.mid), uid, args.reaction, true);
             return true;
         }),
-
-        betaIntroSend: withUser(async (ctx, args, uid) => {
-            throw new UserError('Deprecated API');
-        }),
-        betaIntroEdit: withUser(async (ctx, args, uid) => {
-            throw new UserError('Deprecated API');
-        }),
-
-        //
-        // Message Posts
-        //
-
-        alphaSendPostMessage: withUser(async (parent, args, uid) => {
-            throw new UserError('Deprecated api');
-        }),
-        alphaEditPostMessage: withUser(async (parent, args, uid) => {
-            throw new UserError('Deprecated api');
-        }),
-        alphaRespondPostMessage: withUser(async (parent, args, uid) => {
-            throw new UserError('Deprecated api');
-        })
     }
 } as GQLResolver;

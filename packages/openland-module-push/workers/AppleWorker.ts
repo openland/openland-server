@@ -20,7 +20,7 @@ export function createAppleWorker(repo: PushRepository) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task, root) => {
-                    let token = (await repo.getAppleToken(root, task.tokenId));
+                    let token = await inTx(root, async (ctx) => await repo.getAppleToken(ctx, task.tokenId));
                     if (!token || !token.enabled) {
                         return { result: 'skipped' };
                     }

@@ -11,14 +11,15 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         let key = (Math.random() * Math.pow(2, 55)).toString(16);
-        let superNotificationsAppId = await Modules.Super.getEnvVar<number>(rootCtx, 'super-notifications-app-id');
+        let superNotificationsAppId = await inTx(rootCtx, async ctx => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id'));
 
         const sendLog = async (str: string) => {
             logger.log(rootCtx, str);
             if (superNotificationsAppId) {
-                let ctx = rootCtx;
-                let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, superNotificationsAppId);
-                await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId, { message: `Task #${key}: ${str}` }, true);
+                await inTx(rootCtx, async ctx => {
+                    let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, superNotificationsAppId!);
+                    await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId!, { message: `Task #${key}: ${str}` }, true);
+                });
             }
         };
         await sendLog(`${name} started`);
@@ -33,7 +34,7 @@ export function debugTask(uid: number, name: string, handler: (log: (str: string
 
 export function debugTaskForAll(entity: EntityFactory<any, any>, uid: number, name: string, handler: (ctx: Context, uid: number, log: (str: string) => Promise<void>) => Promise<void>) {
     debugTask(uid, name, async (log) => {
-        let allRecords = await entity.findAll(rootCtx);
+        let allRecords = await inTx(rootCtx, async ctx => await entity.findAll(ctx));
         let i = 0;
 
         for (let record of allRecords) {

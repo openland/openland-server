@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
 import { IDs } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
@@ -90,7 +90,7 @@ export class UrlInfoService {
 }
 
 const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
-    let org = user!.primaryOrganization && await Store.OrganizationProfile.findById(rootCtx, user!.primaryOrganization!);
+    let org = user!.primaryOrganization && await Store.OrganizationProfile.findById(withReadOnlyTransaction(rootCtx), user!.primaryOrganization!);
 
     return {
         url,
@@ -130,7 +130,7 @@ export function createUrlInfoService() {
 
             let orgId = IDs.Organization.parse(_orgId);
 
-            let ctx = rootCtx;
+            let ctx = withReadOnlyTransaction(rootCtx);
             let org = await Store.OrganizationProfile.findById(ctx, orgId);
             let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
@@ -149,16 +149,16 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
-            let ctx = rootCtx;
+            let ctx = withReadOnlyTransaction(rootCtx);
             let channelId = IDs.Conversation.parse(_channelId);
 
-            let channel = await Store.ConversationRoom.findById(rootCtx, channelId);
+            let channel = await Store.ConversationRoom.findById(ctx, channelId);
 
             if (!channel || channel!.kind !== 'public' || (channel.oid && (await Store.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
                 return null;
             }
 
-            let profile = await Store.RoomProfile.findById(rootCtx, channelId);
+            let profile = await Store.RoomProfile.findById(ctx, channelId);
             if (!profile) {
                 return null;
             }
@@ -177,7 +177,7 @@ export function createUrlInfoService() {
             };
         })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(joinChannel|invite)\/(.*)/, false, async (url, data) => {
-            let ctx = rootCtx;
+            let ctx = withReadOnlyTransaction(rootCtx);
             let [, , , , _invite] = data;
 
             let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
@@ -199,7 +199,7 @@ export function createUrlInfoService() {
                 title: profile!.title || null,
                 subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
                 description: profile!.description || null,
-                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(rootCtx, profile!.image.uuid) : null,
+                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(ctx, profile!.image.uuid) : null,
                 photo: profile!.image,
                 hostname: null,
                 iconRef: null,
@@ -232,7 +232,7 @@ export function createUrlInfoService() {
             } else if (shortname.ownerType === 'org') {
                 let orgId = shortname.ownerId;
 
-                let ctx = rootCtx;
+                let ctx = withReadOnlyTransaction(rootCtx);
                 let org = await Store.OrganizationProfile.findById(ctx, orgId);
                 let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
@@ -241,7 +241,7 @@ export function createUrlInfoService() {
                     title: org!.name || null,
                     subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                     description: org!.about || null,
-                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(rootCtx, org!.photo!.uuid) : null,
+                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(ctx, org!.photo!.uuid) : null,
                     photo: org!.photo || null,
                     hostname: null,
                     iconRef: null,

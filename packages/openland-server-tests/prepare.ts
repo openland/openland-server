@@ -41,6 +41,11 @@ export async function prepare() {
         // Init DB
         let db = await openDatabase();
 
+        // Clear DB
+        // await inTx(rootCtx, async (ctx2) => {
+        //     db.allKeys.clearRange(ctx2, Buffer.from([0x00]), Buffer.from([0xff]));
+        // });
+
         // New Entity
         let storage = new EntityStorage(db);
         let store = await openStore(storage);
@@ -52,11 +57,6 @@ export async function prepare() {
         if (await Store.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');
         }
-
-        // Clear DB
-        await inTx(ctx, async (ctx2) => {
-            db.allKeys.clearRange(ctx2, Buffer.from([0x00]), Buffer.from([0xff]));
-        });
 
         // Load other modules
         await loadAllModules(rootCtx, false);

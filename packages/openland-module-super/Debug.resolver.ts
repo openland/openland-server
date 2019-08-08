@@ -47,17 +47,6 @@ const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     });
 };
 
-export async function fetchAllUids(ctx: Context) {
-    let allUsers = await Store.User.findAllKeys(ctx);
-    let allUids: number[] = [];
-    for (let key of allUsers) {
-        key.splice(0, 2);
-        allUids.push(key[0] as number);
-    }
-
-    return allUids;
-}
-
 export default {
     DebugUserPresence: {
         user: src => src.uid,
@@ -884,9 +873,9 @@ export default {
                         strategy.counter().set(ctx, uid, 0);
                     }
                     for (let dialog of dialogs) {
-                        let unread = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
-                        let isMuted = await isChatMuted(ctx, uid, dialog.cid);
-                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, unread, isMuted).calcForChat();
+                        let unread = Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
+                        let isMuted = isChatMuted(ctx, uid, dialog.cid);
+                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, await unread, await isMuted).calcForChat();
                     }
                 } catch (e) {
                     await log(e);

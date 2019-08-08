@@ -26,7 +26,6 @@ export function createDailyEngagementReportWorker() {
                 `👩‍💻 ${counters.actives}`,
                 `➡️ ${counters.senders}`,
                 `✉️ ${counters.messagesSent}`,
-                `🗣 ${counters.newAboutFillers}`,
                 `❤️ ${counters.todayLikeGivers}`,
                 `🙃 ${counters.todayLikeGetters}`
             ].join('   '))];

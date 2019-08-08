@@ -57,4 +57,6 @@ export const IDs = {
     NotificationCenter: IdsFactory.createId('NotificationCenter'),
     Notification: IdsFactory.createId('Notification'),
     UserBadge: IdsFactory.createId('UserBadge'),
+
+    ChatUpdatesCursor: IdsFactory.createStringId('ChatUpdatesCursor')
 };

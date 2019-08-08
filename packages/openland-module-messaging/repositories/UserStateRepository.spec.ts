@@ -1,3 +1,4 @@
+import { UserDialogsRepository } from './UserDialogsRepository';
 import 'reflect-metadata';
 import { Store } from './../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
@@ -23,6 +24,7 @@ describe('UserStateRepository', () => {
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind('DeliveryRepository').to(DeliveryRepository).inSingletonScope();
         container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
+        container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
 
@@ -47,7 +49,6 @@ describe('UserStateRepository', () => {
         let state = await repo.getUserDialogState(ctx, 1, 2);
         expect(state.uid).toBe(1);
         expect(state.cid).toBe(2);
-        expect(state.date).toBeNull();
         expect(state.readMessageId).toBeNull();
     });
 

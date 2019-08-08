@@ -9,6 +9,7 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { Message } from 'openland-module-db/store';
+import { inTx } from '@openland/foundationdb';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -28,8 +29,8 @@ export class AugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorker(async (item, ctx) => {
-                let message = await Store.Message.findById(ctx, item.messageId);
+            this.queue.addWorker(async (item, root) => {
+                let message = await inTx(root, async ctx => await Store.Message.findById(ctx, item.messageId));
 
                 if (!message || !message.text) {
                     return { result: 'ok' };
@@ -54,42 +55,47 @@ export class AugmentationMediator {
                 let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
                 let isImage = !urlInfo.title && !urlInfo.description && urlInfo.imageInfo;
 
-                if (haveContent || urlInfo.internal) {
-                    let richAttachment: MessageRichAttachmentInput = {
-                        type: 'rich_attachment',
-                        title: urlInfo.title || null,
-                        titleLink: urlInfo.url,
-                        titleLinkHostname: urlInfo.hostname || null,
-                        subTitle: urlInfo.subtitle || null,
-                        text: urlInfo.description || null,
-                        icon: urlInfo.iconRef || null,
-                        iconInfo: urlInfo.iconInfo || null,
-                        image: urlInfo.photo || null,
-                        imageInfo: urlInfo.imageInfo || null,
-                        keyboard: urlInfo.keyboard || null,
-                    };
+                await inTx(root, async ctx => {
+                    if (!urlInfo) {
+                        return;
+                    }
+                    if (haveContent || urlInfo.internal) {
+                        let richAttachment: MessageRichAttachmentInput = {
+                            type: 'rich_attachment',
+                            title: urlInfo.title || null,
+                            titleLink: urlInfo.url,
+                            titleLinkHostname: urlInfo.hostname || null,
+                            subTitle: urlInfo.subtitle || null,
+                            text: urlInfo.description || null,
+                            icon: urlInfo.iconRef || null,
+                            iconInfo: urlInfo.iconInfo || null,
+                            image: urlInfo.photo || null,
+                            imageInfo: urlInfo.imageInfo || null,
+                            keyboard: urlInfo.keyboard || null,
+                        };
 
-                    await this.messaging.editMessage(
-                        ctx,
-                        item.messageId,
-                        { attachments: [richAttachment], appendAttachments: true },
-                        false
-                    );
-                } else if (isImage) {
-                    let fileAttachment: MessageAttachmentFileInput = {
-                        type: 'file_attachment',
-                        fileId: urlInfo.photo!.uuid,
-                        fileMetadata: urlInfo.imageInfo!,
-                        filePreview: null
-                    };
+                        await this.messaging.editMessage(
+                            ctx,
+                            item.messageId,
+                            { attachments: [richAttachment], appendAttachments: true },
+                            false
+                        );
+                    } else if (isImage) {
+                        let fileAttachment: MessageAttachmentFileInput = {
+                            type: 'file_attachment',
+                            fileId: urlInfo.photo!.uuid,
+                            fileMetadata: urlInfo.imageInfo!,
+                            filePreview: null
+                        };
 
-                    await this.messaging.editMessage(
-                        ctx,
-                        item.messageId,
-                        { attachments: [fileAttachment], appendAttachments: true },
-                        false
-                    );
-                }
+                        await this.messaging.editMessage(
+                            ctx,
+                            item.messageId,
+                            { attachments: [fileAttachment], appendAttachments: true },
+                            false
+                        );
+                    }
+                });
                 return { result: 'ok' };
             });
         }

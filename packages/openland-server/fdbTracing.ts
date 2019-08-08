@@ -38,7 +38,9 @@ export function setupFdbTracing() {
             return handler();
         },
         onNewReadWriteTx: (ctx) => newTx.increment(ctx),
-        onRetry: (ctx) => retryTx.increment(ctx),
+        onRetry: (ctx) => {
+            retryTx.increment(ctx);
+        },
         onNewEphemeralTx: (ctx) => {
             ephemeralTx.increment(ctx);
         }

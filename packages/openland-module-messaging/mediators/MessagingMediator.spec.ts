@@ -43,7 +43,7 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
-        let message = (await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!))!;
+        let message = (await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).id))!;
 
         let textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
 
@@ -60,7 +60,7 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
-        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!;
+        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).id;
 
         await mediator.setReaction(ctx, MSG_ID, USER_ID, 'LIKE');
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
@@ -83,7 +83,7 @@ describe('MessagingMediator', () => {
         let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
-        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).mid!;
+        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).id;
 
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
         let textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
@@ -121,7 +121,7 @@ describe('MessagingMediator', () => {
             keyboard: urlInfo.keyboard || null,
         };
 
-        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', attachments: [richAttachment] })).mid!;
+        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', attachments: [richAttachment] })).id;
 
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
         let augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
@@ -153,7 +153,7 @@ describe('MessagingMediator', () => {
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 
         for (let i = 0; i < 4; i++) {
-            await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: i.toString() })).mid!);
+            await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: i.toString() })).id);
         }
 
         // load history first pack

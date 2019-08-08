@@ -4,7 +4,6 @@ import { MessagingRepository } from './MessagingRepository';
 import { UserStateRepository } from './UserStateRepository';
 import { createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
-import { Store } from 'openland-module-db/FDB';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { UsersModule } from '../../openland-module-users/UsersModule';
 
@@ -27,18 +26,18 @@ describe('MessagingRepository', () => {
         let res = (await repo.createMessage(ctx, 1, 2, { message: 'text' }));
         expect(res).not.toBeNull();
         expect(res).not.toBeUndefined();
-        expect(res.event.cid).toBe(1);
-        expect(res.event.uid).toBe(2);
-        expect(res.event.kind).toBe('message_received');
-        expect(res.event.seq).toBe(1);
-        expect(res.event.mid).toBe(res.message.id);
+        expect(res.message.cid).toBe(1);
+        expect(res.message.uid).toBe(2);
+        // expect(res.event.kind).toBe('message_received');
+        // expect(res.event.seq).toBe(1);
+        // expect(res.event.mid).toBe(res.message.id);
         expect(res.message.uid).toBe(2);
         expect(res.message.text).toBe('text');
 
-        let events = await Store.ConversationEvent.user.findAll(ctx, 1);
-        expect(events.length).toBe(1);
-        expect(events[0].seq).toBe(res.event.seq);
-        expect(events[0].mid).toBe(res.message.id);
-        expect(events[0].kind).toBe('message_received');
+        // let events = await Store.ConversationEvent.user.findAll(ctx, 1);
+        // expect(events.length).toBe(1);
+        // // expect(events[0].seq).toBe(res.event.seq);
+        // expect(events[0].mid).toBe(res.message.id);
+        // expect(events[0].kind).toBe('message_received');
     });
 });

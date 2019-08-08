@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
@@ -98,18 +98,24 @@ export class MessagingMediator {
                 await this.augmentation.onNewMessage(ctx, res.message);
             }
 
-            // // Cancel typings
-            // // TODO: Remove
-            // let members = await this.room.findConversationMembers(ctx, cid);
-            // if (!message.isService && !message.isMuted) {
-            //     await Modules.Typings.cancelTyping(uid, cid, members);
-            // }
+            // Cancel typings
+            // TODO: Remove
+            if (!message.isService && !message.isMuted) {
+                // tslint:disable
+                (async () => {
+                    await inTx(withoutTransaction(ctx), async ctx2 => {
+                        let members = await this.room.findConversationMembers(ctx2, cid);
+                        await Modules.Typings.cancelTyping(uid, cid, members);
+                    })
+                })();
+                // tslint:enable
+            }
 
             // Clear draft
             // TODO: Move
             await Modules.Drafts.clearDraft(ctx, uid, cid);
 
-            return res.event;
+            return res.message;
         }));
     }
 
@@ -189,7 +195,7 @@ export class MessagingMediator {
             }
 
             // Delivery
-            let message = (await Store.Message.findById(ctx, res!.mid!))!;
+            let message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onUpdateMessage(ctx, message);
             if (!reset) {
                 await Modules.Metrics.onReactionAdded(ctx, message, reaction);
@@ -200,7 +206,7 @@ export class MessagingMediator {
     }
 
     deleteMessage = async (parent: Context, mid: number, uid: number) => {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
 
             let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
@@ -210,10 +216,10 @@ export class MessagingMediator {
             }
 
             // Delete
-            let res = await this.repo.deleteMessage(ctx, mid);
+            await this.repo.deleteMessage(ctx, mid);
 
             // Delivery
-            message = (await Store.Message.findById(ctx, res!.mid!))!;
+            message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
             let chatProfile = await Store.RoomProfile.findById(ctx, message.cid);
@@ -223,13 +229,11 @@ export class MessagingMediator {
 
             // Send notification center updates
             await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);
-
-            return res;
         });
     }
 
     deleteMessages = async (parent: Context, mids: number[], uid: number) => {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             for (let mid of mids) {
                 await this.deleteMessage(ctx, mid, uid);
             }
@@ -237,7 +241,7 @@ export class MessagingMediator {
     }
 
     readRoom = async (parent: Context, uid: number, cid: number, mid: number) => {
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let msg = await Store.Message.findById(ctx, mid);
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');

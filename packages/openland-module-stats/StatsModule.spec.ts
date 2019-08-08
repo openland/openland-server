@@ -116,7 +116,7 @@ describe('StatsModule', () => {
             )
         );
 
-        const messagesIds = mids.map(a => a.mid!);
+        const messagesIds = mids.map(a => a.id);
 
         // delivery
         await Promise.all(

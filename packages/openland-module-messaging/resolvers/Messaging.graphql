@@ -50,12 +50,4 @@ extend type Mutation {
 
     betaIntroSend(room: ID!, uid: ID!, about: String, message: String, file: String, repeatKey: String): Boolean!
     betaIntroEdit(mid: ID!, uid: ID!, about: String, message: String, file: String): Boolean!
-
-    #
-    # Message Posts
-    #
-
-    alphaSendPostMessage(conversationId: ID!, title: String!, text: String!, attachments: [String!], postType: PostMessageType!, repeatKey: String): ConversationEventMessage!
-    alphaEditPostMessage(messageId: ID!, title: String!, text: String!, attachments: [String!], postType: PostMessageType!): ConversationEventMessage!
-    alphaRespondPostMessage(messageId: ID!, buttonId: ID!): Boolean
 }
