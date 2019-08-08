@@ -873,9 +873,9 @@ export default {
                         strategy.counter().set(ctx, uid, 0);
                     }
                     for (let dialog of dialogs) {
-                        let unread = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
-                        let isMuted = await isChatMuted(ctx, uid, dialog.cid);
-                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, unread, isMuted).calcForChat();
+                        let unread = Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
+                        let isMuted = isChatMuted(ctx, uid, dialog.cid);
+                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, await unread, await isMuted).calcForChat();
                     }
                 } catch (e) {
                     await log(e);
