@@ -4616,8 +4616,6 @@ export interface UserDialogShape {
     haveMention: boolean | null;
     title: string | null;
     photo: any | null;
-    hidden: boolean | null;
-    disableGlobalCounter: boolean | null;
 }
 
 export interface UserDialogCreateShape {
@@ -4627,8 +4625,6 @@ export interface UserDialogCreateShape {
     haveMention?: boolean | null | undefined;
     title?: string | null | undefined;
     photo?: any | null | undefined;
-    hidden?: boolean | null | undefined;
-    disableGlobalCounter?: boolean | null | undefined;
 }
 
 export class UserDialog extends Entity<UserDialogShape> {
@@ -4688,24 +4684,6 @@ export class UserDialog extends Entity<UserDialogShape> {
             this.invalidate();
         }
     }
-    get hidden(): boolean | null { return this._rawValue.hidden; }
-    set hidden(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.hidden.normalize(value);
-        if (this._rawValue.hidden !== normalized) {
-            this._rawValue.hidden = normalized;
-            this._updatedValues.hidden = normalized;
-            this.invalidate();
-        }
-    }
-    get disableGlobalCounter(): boolean | null { return this._rawValue.disableGlobalCounter; }
-    set disableGlobalCounter(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.disableGlobalCounter.normalize(value);
-        if (this._rawValue.disableGlobalCounter !== normalized) {
-            this._rawValue.disableGlobalCounter = normalized;
-            this._updatedValues.disableGlobalCounter = normalized;
-            this.invalidate();
-        }
-    }
 }
 
 export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog> {
@@ -4713,8 +4691,7 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('userDialog');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'date', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'user'), condition: (src) => !!src.date && !src.hidden });
-        secondaryIndexes.push({ name: 'conversation', storageKey: 'conversation', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'conversation'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'date', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'user'), condition: (src) => !!src.date });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -4726,8 +4703,6 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
         fields.push({ name: 'haveMention', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
-        fields.push({ name: 'hidden', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'disableGlobalCounter', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             cid: c.integer,
@@ -4737,8 +4712,6 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
             haveMention: c.optional(c.boolean),
             title: c.optional(c.string),
             photo: c.optional(c.any),
-            hidden: c.optional(c.boolean),
-            disableGlobalCounter: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<UserDialogShape> = {
             name: 'UserDialog',
@@ -4767,30 +4740,18 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
         },
     });
 
-    readonly conversation = Object.freeze({
-        find: async (ctx: Context, cid: number, uid: number) => {
-            return this._findFromUniqueIndex(ctx, [cid, uid], this.descriptor.secondaryIndexes[1]);
-        },
-        findAll: async (ctx: Context, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
-        },
-        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
-
     readonly updated = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -11880,6 +11841,7 @@ export interface Store extends BaseStore {
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly ConversationEventStore: ConversationEventStore;
+    readonly UserDialogIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
 }
@@ -12005,6 +11967,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
@@ -12126,6 +12089,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DelayedTask: await DelayedTaskPromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,
