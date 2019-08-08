@@ -83,7 +83,7 @@ export default {
                 return [];
             }
 
-            let allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
+            let allDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
             allDialogs = allDialogs.filter((a) => !!a.date);
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
 

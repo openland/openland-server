@@ -80,7 +80,7 @@ export default {
                     },
                     [] as any[]
                 );
-                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await Store.UserDialog.conversation.find(parent, c.id, uid)))).filter(d => !!d).map(d => d!);
+                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await Store.UserDialog.findById(parent, uid, c.id)))).filter(d => !!d).map(d => d!);
                 return dialogs;
             });
         }),

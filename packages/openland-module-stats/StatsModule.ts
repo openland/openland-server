@@ -147,7 +147,7 @@ export class StatsModule {
     }
 
     getUnreadGroupsByUserId = async (ctx: Context, uid: number, first: number): Promise<UnreadGroups> => {
-        const dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+        const dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
         const unreadMessagesCount = Math.max(await Store.UserCounter.byId(uid).get(ctx), 0);
         const withUnreadCount = await Promise.all(
             dialogs.map(async dialog => {
