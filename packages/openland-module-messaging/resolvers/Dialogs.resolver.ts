@@ -6,10 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { createLogger } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
-
-const logger = createLogger('dialogs');
 
 export default {
     Dialog: {
@@ -86,7 +83,7 @@ export default {
                 return [];
             }
 
-            let allDialogs = [...(await Store.UserDialog.user.findAll(ctx, uid))];
+            let allDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
             allDialogs = allDialogs.filter((a) => !!a.date);
             allDialogs.sort((a, b) => -(a.date!! - b.date!!));
 
@@ -98,38 +95,18 @@ export default {
 
             if (allDialogs.length <= args.first) {
                 return {
-                    items: allDialogs,
+                    items: allDialogs.map((v) => Store.UserDialog.findById(ctx, uid, v.cid)),
                     cursor: undefined,
                     hasMore: false
                 };
             } else {
                 let cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
                 return {
-                    items: allDialogs.slice(0, args.first),
+                    items: allDialogs.slice(0, args.first).map((v) => Store.UserDialog.findById(ctx, uid, v.cid)),
                     cursor: cursor,
                     hasMore: true
                 };
             }
-        }),
-        alphaChats: withUser(async (ctx, args, uid) => {
-            let global = await Store.UserMessagingState.findById(ctx, uid);
-            let seq = global ? global.seq : 0;
-            let conversations = await Store.UserDialog
-                .user.query(ctx, uid, { limit: args.first, afterCursor: args.after ? args.after : undefined, reverse: true });
-            let res = await Promise.all(conversations.items.map((v) => Store.Conversation.findById(ctx, v.cid)));
-            let index = 0;
-            for (let r of res) {
-                if (!r) {
-                    logger.warn(ctx, 'Unable to find conversation: ' + conversations.items[index].cid);
-                }
-                index++;
-            }
-            return {
-                conversations: res,
-                seq: seq,
-                next: conversations.haveMore ? conversations.cursor : undefined,
-                counter: uid
-            };
-        }),
+        })
     }
 } as GQLResolver;

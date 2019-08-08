@@ -46,8 +46,10 @@ export class CountersRepository {
                 localCounter.increment(ctx);
                 globalCounter.increment(ctx);
 
-                let unread = await localCounter.get(ctx);
-                let isMuted = await this.isChatMuted(ctx, uid, message.cid);
+                let unreadPromise = localCounter.get(ctx);
+                let isMutedPromise = this.isChatMuted(ctx, uid, message.cid);
+                let unread = await unreadPromise;
+                let isMuted = await isMutedPromise;
                 CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageReceived();
 
                 return { delta: 1 };

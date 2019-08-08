@@ -587,14 +587,12 @@ export default declareSchema(() => {
         field('title', optional(string()));
         field('photo', optional(json()));
 
-        field('hidden', optional(boolean()));
-        field('disableGlobalCounter', optional(boolean()));
-
         rangeIndex('user', ['uid', 'date'])
-            .withCondition((src) => !!src.date && !src.hidden);
-        uniqueIndex('conversation', ['cid', 'uid']);
+            .withCondition((src) => !!src.date);
         rangeIndex('updated', ['updatedAt']);
     });
+
+    customDirectory('UserDialogIndex');
 
     entity('UserDialogHandledMessage', () => {
         primaryKey('uid', integer());

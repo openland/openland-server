@@ -527,7 +527,7 @@ export default {
             };
         }),
         alphaGlobalRead: withUser(async (ctx, args, uid) => {
-            await Modules.Messaging.markAsSeqRead(ctx, uid, args.toSeq);
+            // await Modules.Messaging.markAsSeqRead(ctx, uid, args.toSeq);
             return 'ok';
         }),
         alphaSendMessage: withUser(async (parent, args, uid) => {

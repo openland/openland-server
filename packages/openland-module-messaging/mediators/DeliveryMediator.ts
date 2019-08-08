@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, getTransaction } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -54,6 +54,9 @@ export class DeliveryMediator {
                     const start = currentRunningTime();
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
+                            // Speed up retry loop for lower latency
+                            getTransaction(ctx).setOptions({ max_retry_delay: 10 });
+
                             let message = (await Store.Message.findById(ctx, item.messageId))!;
                             if (item.action === 'new' || item.action === undefined) {
                                 await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));

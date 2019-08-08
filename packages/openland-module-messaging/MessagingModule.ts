@@ -15,6 +15,7 @@ import { messagesIndexer } from './workers/messagesIndexer';
 import { FixerRepository } from './repositories/Fixer';
 import { roomsSearchIndexer } from './workers/roomsSearchIndexer';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
+import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 
 @injectable()
 export class MessagingModule {
@@ -26,8 +27,18 @@ export class MessagingModule {
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
+    private readonly userDialogs: UserDialogsRepository;
 
-    constructor(@inject('MessagingMediator') messaging: MessagingMediator, @inject('UserStateRepository') userState: UserStateRepository, @inject('FixerRepository') fixer: FixerRepository, @inject('AugmentationMediator') augmentation: AugmentationMediator, @inject('DeliveryMediator') delivery: DeliveryMediator, @inject('RoomMediator') room: RoomMediator, @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository) {
+    constructor(
+        @inject('MessagingMediator') messaging: MessagingMediator,
+        @inject('UserStateRepository') userState: UserStateRepository,
+        @inject('FixerRepository') fixer: FixerRepository,
+        @inject('AugmentationMediator') augmentation: AugmentationMediator,
+        @inject('DeliveryMediator') delivery: DeliveryMediator,
+        @inject('RoomMediator') room: RoomMediator,
+        @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository,
+        @inject('UserDialogsRepository') userDialogs: UserDialogsRepository
+    ) {
         this.delivery = delivery;
         this.userState = userState;
         this.messaging = messaging;
@@ -35,11 +46,13 @@ export class MessagingModule {
         this.augmentation = augmentation;
         this.fixer = fixer;
         this.needNotificationDelivery = needNotificationDelivery;
+        this.userDialogs = userDialogs;
     }
 
     //
     // Start 
     //
+
     start = () => {
         this.augmentation.start();
         this.delivery.start();
@@ -69,6 +82,18 @@ export class MessagingModule {
     }
 
     //
+    // Dialogs
+    //
+
+    findUserDialogs(ctx: Context, uid: number) {
+        return this.userDialogs.findUserDialogs(ctx, uid);
+    }
+
+    hasActiveDialog(ctx: Context, uid: number, cid: number) {
+        return this.userDialogs.hasActiveDialog(ctx, uid, cid);
+    }
+
+    //
     // Messaging
     //
 
@@ -87,6 +112,7 @@ export class MessagingModule {
     //
     // Sends message updated event only to chat sequence
     //
+
     async markMessageUpdated(ctx: Context, mid: number) {
         return await this.messaging.markMessageUpdated(ctx, mid);
     }
@@ -126,6 +152,7 @@ export class MessagingModule {
     async fetchUserGlobalCounter(parent: Context, uid: number) {
         return await this.userState.fetchUserGlobalCounter(parent, uid);
     }
+
     //
     // Rooms
     //
