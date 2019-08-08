@@ -32,7 +32,6 @@ export function createWeeklyEngagementReportWorker() {
                 `👩‍💻 ${counters.actives}`,
                 `➡️ ${counters.senders}`,
                 `✉️ ${counters.messagesSent}`,
-                `🗣 ${counters.newAboutFillers}`,
                 `❤️ ${counters.todayLikeGivers}`,
                 `🙃 ${counters.todayLikeGetters}`
             ].join('   '))];

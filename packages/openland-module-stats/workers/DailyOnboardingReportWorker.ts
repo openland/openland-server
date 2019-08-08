@@ -30,6 +30,7 @@ export function createDailyOnboardingReportWorker() {
                     `📱 ${counters.newMobileUsers}`,
                     `➡️ ${counters.newSenders}`,
                     `🙌 ${counters.newInviters}`,
+                    `🗣 ${counters.newAboutFillers}`,
                     `❤️ ${counters.newThreeLikeGivers}`,
                     `🙃 ${counters.newThreeLikeGetters}`
                 ].join('   '))];
