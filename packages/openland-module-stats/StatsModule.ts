@@ -284,8 +284,8 @@ export class StatsModule {
 
             let org = await Store.Organization.findById(ctx, conv.oid);
 
-            let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private;
-            if (!isListed || conv.isChannel) {
+            let isListed = conv!.kind === 'public' && org && org.kind === 'community' && !org.private && conv.listed;
+            if (!(isListed) || conv.isChannel) {
                 continue;
             }
 
