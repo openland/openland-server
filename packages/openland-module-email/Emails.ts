@@ -555,11 +555,12 @@ export const Emails = {
         const formatedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
         const subject = `Openland Digest · ${formatedDate}`;
-        const title = `Weekly Digest · ${formatedDate}`;
+        const title = `Weekly Digest`;
 
         const weeklyDigestTemplateData: WeeklyDigestTemplateData = {
             subject,
             title,
+            date: formatedDate,
             topPosts: formatedTopPosts,
 
             unreadMessages,

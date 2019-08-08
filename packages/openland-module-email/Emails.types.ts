@@ -6,6 +6,7 @@ export const DIGEST_FIRST_TREND_GROUPS = 6;
 export type WeeklyDigestTemplateData = {
   subject: string;
   title: string;
+  date: string
   topPosts: FormatedTopPosts
   unreadMessages: FormatedUnreadGroups
   trendingGroups: FormatedTrendGroups
