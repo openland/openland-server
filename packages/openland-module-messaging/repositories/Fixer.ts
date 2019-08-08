@@ -94,7 +94,7 @@ export class FixerRepository {
         try {
             await inTx(rootCtx, async ctx => {
                 logger.debug(rootCtx, '[' + uid + '] fixing counters for #' + uid);
-                let all = await Store.UserDialog.user.findAll(rootCtx, uid);
+                let all = await Store.UserDialog.user.findAll(ctx, uid);
                 await Promise.all(all.map(c => fixForDialog(ctx, c)));
             });
             return true;
