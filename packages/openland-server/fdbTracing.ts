@@ -9,14 +9,14 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 // } from '@openland/foundationdb-entity/lib/tracing';
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 import { createMetric } from 'openland-module-monitoring/Metric';
-import { Context, ContextName } from '@openland/context';
-import { LogPathContext } from '@openland/log';
+// import { Context, ContextName } from '@openland/context';
+// import { LogPathContext } from '@openland/log';
 
 // const isProduction = process.env.NODE_ENV === 'production';
 // const logger = (isProduction ? createZippedLogger : createLogger)('FDB');
 // const tracer = createTracer('FDB');
 
-const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
+// const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
 
 const ephemeralTx = createMetric('tx-ephemeral', 'sum');
 const newTx = createMetric('tx-start', 'sum');
@@ -39,7 +39,6 @@ export function setupFdbTracing() {
         },
         onNewReadWriteTx: (ctx) => newTx.increment(ctx),
         onRetry: (ctx) => {
-            console.log('RETRY', getContextPath(ctx));
             retryTx.increment(ctx);
         },
         onNewEphemeralTx: (ctx) => {
