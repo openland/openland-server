@@ -192,7 +192,7 @@ export class StatsModule {
 
         const unreadMoreGroupsCount = Math.max(sortedByUnreadCount.length - firstN.length, 0);
 
-        const groupedByConvKind = groupBy(sortedByUnreadCount, group => group.convKind) as GroupedByConvKind;
+        const groupedByConvKind = groupBy(firstN, group => group.convKind) as GroupedByConvKind;
 
         // add at least 2 personal chats at beginning of groups (by spec)
         const firstTwoPersonalChats = (groupedByConvKind.private || []).slice(0, 2);
