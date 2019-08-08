@@ -95,7 +95,7 @@ export default {
 
             if (allDialogs.length <= args.first) {
                 return {
-                    items: allDialogs,
+                    items: allDialogs.map((v) => Store.UserDialog.findById(ctx, uid, v.cid)),
                     cursor: undefined,
                     hasMore: false
                 };
