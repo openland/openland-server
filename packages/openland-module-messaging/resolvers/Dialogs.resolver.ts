@@ -102,7 +102,7 @@ export default {
             } else {
                 let cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
                 return {
-                    items: allDialogs.slice(0, args.first),
+                    items: allDialogs.slice(0, args.first).map((v) => Store.UserDialog.findById(ctx, uid, v.cid)),
                     cursor: cursor,
                     hasMore: true
                 };
