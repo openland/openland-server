@@ -84,17 +84,24 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 let index = Math.floor(Math.random() * (pend.length));
                 let res = pend[index];
                 let raw = await getTransaction(ctx).getReadVersion();
-                return { res , readVersion: raw };
+                return { res, readVersion: raw };
             });
             if (task) {
                 workerFetch.add(root, currentRunningTime() - start);
             }
             start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
-                // getTransaction(ctx).setReadVersion(task!.readVersion);
+                getTransaction(ctx).setOptions({
+                    causal_read_risky: true,
+                    priority_system_immediate: true,
+                    retry_limit: 10
+                });
 
                 let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
                 if (tsk.taskStatus !== 'pending') {
+                    if (tsk.taskStatus === 'executing' && tsk.taskLockSeed === lockSeed) {
+                        return true;
+                    }
                     return false;
                 }
                 tsk.taskLockSeed = lockSeed;
