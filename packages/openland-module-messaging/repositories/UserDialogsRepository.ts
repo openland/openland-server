@@ -33,7 +33,10 @@ export class UserDialogsRepository {
     }
 
     findUserDialogs = async (ctx: Context, uid: number): Promise<{ cid: number, date: number }[]> => {
-        return (await Store.UserDialog.user.findAll(ctx, uid)).filter((a) => !!a.date).map((v) => ({ cid: v.cid, date: v.date! }));
+        return (await Store.UserDialogIndexDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .range(ctx, [uid])).map((v) => ({ cid: v.key[1] as number, date: v.value.date }));
     }
 
     findAnyUserDialog = async (ctx: Context, uid: number): Promise<number | null> => {
