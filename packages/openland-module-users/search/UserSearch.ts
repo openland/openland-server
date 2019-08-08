@@ -28,6 +28,7 @@ export class UserSearch {
             if (options && options.uid) {
                 let profilePromise = Store.UserProfile.findById(ctx, options.uid);
                 let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
+                let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, options.uid, { limit: 300, reverse: true });
                 let profile = await profilePromise;
                 let organizations = await organizationsPromise;
                 let functions: any[] = [];
@@ -48,6 +49,14 @@ export class UserSearch {
                             weight: 2
                         });
                     }
+                }
+
+                // Boost top dialogs
+                for (let dialog of topDialogs.items) {
+                    functions.push({
+                        filter: { match: { userId: dialog.uid2 } },
+                        weight: dialog.weight || 1 // temporary hack for not breaking search when reindexing user edges
+                    });
                 }
 
                 if (functions.length > 0) {

@@ -720,8 +720,11 @@ export default declareSchema(() => {
     entity('UserEdge', () => {
         primaryKey('uid1', integer());
         primaryKey('uid2', integer());
+        field('weight', optional(integer()));
         rangeIndex('forward', ['uid1', 'uid2']);
         rangeIndex('reverse', ['uid2', 'uid1']);
+        rangeIndex('forwardWeight', ['uid1', 'weight']);
+        rangeIndex('reverseWeight', ['uid2', 'weight']);
     });
 
     entity('UserInfluencerUserIndex', () => {

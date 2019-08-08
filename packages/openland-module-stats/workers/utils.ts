@@ -110,11 +110,36 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     const newThreeLikeGetters = newThreeLikeGettersQuery.hits.total;
 
+    let newAboutFillersData = await Modules.Search.elastic.client.search({
+        index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
+        body: {
+            query: {
+                bool: {
+                    must: [{ term: { type: 'new-about-filler' } }, {
+                        range: {
+                            date: {
+                                gte: startDate,
+                            },
+                        },
+                    }],
+                },
+            }, aggs: {
+                usersCount: {
+                    cardinality: {
+                        field: 'body.uid',
+                    },
+                },
+            },
+        }, size: 0,
+    });
+    let newAboutFillers = newAboutFillersData.aggregations.usersCount.value;
+
     return {
         newUserEntrances,
         newMobileUsers,
         newSenders,
         newInviters,
+        newAboutFillers,
         newThreeLikeGivers,
         newThreeLikeGetters,
     };
@@ -172,30 +197,6 @@ export const getEngagementCounters =  async (startDate: number) => {
     let senders = sendersData.aggregations.senders.value;
     let messagesSent = sendersData.hits.total;
 
-    let newAboutFillersData = await Modules.Search.elastic.client.search({
-        index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
-        body: {
-            query: {
-                bool: {
-                    must: [{ term: { type: 'new-about-filler' } }, {
-                        range: {
-                            date: {
-                                gte: startDate,
-                            },
-                        },
-                    }],
-                },
-            }, aggs: {
-                usersCount: {
-                    cardinality: {
-                        field: 'body.uid',
-                    },
-                },
-            },
-        }, size: 0,
-    });
-    let newAboutFillers = newAboutFillersData.aggregations.usersCount.value;
-
     let todayLikersData = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
         body: {
@@ -229,7 +230,6 @@ export const getEngagementCounters =  async (startDate: number) => {
     return {
         actives,
         senders,
-        newAboutFillers,
         todayLikeGivers,
         todayLikeGetters,
         messagesSent
