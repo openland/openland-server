@@ -47,17 +47,6 @@ const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     });
 };
 
-export async function fetchAllUids(ctx: Context) {
-    let allUsers = await Store.User.findAllKeys(ctx);
-    let allUids: number[] = [];
-    for (let key of allUsers) {
-        key.splice(0, 2);
-        allUids.push(key[0] as number);
-    }
-
-    return allUids;
-}
-
 export default {
     DebugUserPresence: {
         user: src => src.uid,

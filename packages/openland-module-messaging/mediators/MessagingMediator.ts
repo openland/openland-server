@@ -104,7 +104,7 @@ export class MessagingMediator {
                 // tslint:disable
                 (async () => {
                     await inTx(withoutTransaction(ctx), async ctx2 => {
-                        let members = await this.room.findConversationMembers(ctx, cid);
+                        let members = await this.room.findConversationMembers(ctx2, cid);
                         await Modules.Typings.cancelTyping(uid, cid, members);
                     })
                 })();
