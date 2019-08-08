@@ -84,9 +84,13 @@ export class MessagingModule {
     //
     // Dialogs
     //
-    
+
     findUserDialogs(ctx: Context, uid: number) {
         return this.userDialogs.findUserDialogs(ctx, uid);
+    }
+
+    hasActiveDialog(ctx: Context, uid: number, cid: number) {
+        return this.userDialogs.hasActiveDialog(ctx, uid, cid);
     }
 
     //

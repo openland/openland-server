@@ -32,7 +32,7 @@ export function createAndroidWorker(repo: PushRepository) {
             }
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task, root) => {
-                    let token = (await repo.getAndroidToken(root, task.tokenId))!;
+                    let token = (await inTx(root, async ctx => await repo.getAndroidToken(ctx, task.tokenId)))!;
                     if (!token.enabled) {
                         return { result: 'skipped' };
                     }
