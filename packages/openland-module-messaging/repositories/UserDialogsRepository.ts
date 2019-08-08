@@ -15,7 +15,8 @@ export class UserDialogsRepository {
         local.date = date;
 
         // Set in new index
-        Store.UserDialogIndexDirectory.withKeyEncoding(encoders.tuple)
+        Store.UserDialogIndexDirectory
+            .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .set(ctx, [uid, cid], { date });
     }
@@ -25,7 +26,8 @@ export class UserDialogsRepository {
         local.date = null;
 
         // Clear in new index
-        Store.UserDialogIndexDirectory.withKeyEncoding(encoders.tuple)
+        Store.UserDialogIndexDirectory
+            .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .clear(ctx, [uid, cid]);
     }

@@ -1,6 +1,6 @@
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
-import { inTx } from '@openland/foundationdb';
+import { inTx, encoders } from '@openland/foundationdb';
 
 let migrations: MigrationDefinition[] = [];
 
@@ -101,6 +101,26 @@ migrations.push({
                 }
             });
         }
+    }
+});
+
+migrations.push({
+    key: '105-migrate-dialog-index',
+    migration: async (parent) => {
+
+        await inTx(parent, async (ctx) => {
+            let dialogs = (await Store.UserDialog.findAll(ctx));
+            let dc = Store.UserDialogIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.json);
+            for (let d of dialogs) {
+                if (d.date) {
+                    dc.set(ctx, [d.uid, d.cid], { date: d.date! });
+                } else {
+                    dc.clear(ctx, [d.uid, d.cid]);
+                }
+            }
+        });
     }
 });
 
