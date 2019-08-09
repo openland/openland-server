@@ -197,7 +197,7 @@ export class DeliveryRepository {
         // TODO: create new event type for this
         await inTx(parent, async (ctx) => {
             let cid = await this.userDialogs.findAnyUserDialog(ctx, uid);
-            if (cid !== null) {
+            if (cid == null) {
                 return;
             }
 
