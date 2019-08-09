@@ -130,11 +130,6 @@ const handleUser = async (_ctx: Context, uid: number) => {
         desktopNotifications: settings.desktopNotifications,
     };
 
-    // Delay for 2secs
-    if (state.lastPushNotification && (Date.now() - state.lastPushNotification) <= 20000) {
-        return;
-    }
-
     if (shouldIgnoreUser(ctx, user)) {
         await Modules.Push.sendCounterPush(ctx, uid);
 
