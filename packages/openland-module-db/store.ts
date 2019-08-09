@@ -11734,6 +11734,38 @@ export class MessageDeletedEvent extends BaseEvent {
     get mid(): number { return this.raw.mid; }
 }
 
+const dialogNeedReindexEventCodec = c.struct({
+    cid: c.integer,
+    uid: c.integer,
+});
+
+interface DialogNeedReindexEventShape {
+    cid: number;
+    uid: number;
+}
+
+export class DialogNeedReindexEvent extends BaseEvent {
+
+    static create(data: DialogNeedReindexEventShape) {
+        return new DialogNeedReindexEvent(dialogNeedReindexEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new DialogNeedReindexEvent(dialogNeedReindexEventCodec.decode(data));
+    }
+
+    static encode(event: DialogNeedReindexEvent) {
+        return dialogNeedReindexEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('dialogNeedReindexEvent', data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+    get uid(): number { return this.raw.uid; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -11766,6 +11798,41 @@ export class ConversationEventStore extends EventStore {
 
     createLiveStream(ctx: Context, cid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [cid], opts);
+    }
+}
+
+export class DialogIndexEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('dialogIndexEventStore');
+        const descriptor = {
+            name: 'DialogIndexEventStore',
+            storageKey: 'dialogIndexEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new DialogIndexEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, event: BaseEvent) {
+        this._post(ctx, [], event);
+    }
+
+    async findAll(ctx: Context) {
+        return this._findAll(ctx, []);
+    }
+
+    createStream(opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([], opts);
+    }
+
+    createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [], opts);
     }
 }
 
@@ -11886,6 +11953,7 @@ export interface Store extends BaseStore {
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly ConversationEventStore: ConversationEventStore;
+    readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
@@ -11897,6 +11965,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode as any, MessageReceivedEvent.decode);
     eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);
     eventFactory.registerEventType('messageDeletedEvent', MessageDeletedEvent.encode as any, MessageDeletedEvent.decode);
+    eventFactory.registerEventType('dialogNeedReindexEvent', DialogNeedReindexEvent.encode as any, DialogNeedReindexEvent.decode);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
     let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
@@ -12016,6 +12085,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
+    let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -12138,5 +12208,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,
+        DialogIndexEventStore: await DialogIndexEventStorePromise,
     };
 }

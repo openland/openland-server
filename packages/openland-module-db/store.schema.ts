@@ -560,6 +560,18 @@ export default declareSchema(() => {
     });
 
     //
+    // Dialog Index events
+    //
+
+    event('DialogNeedReindexEvent', () => {
+       field('cid', integer());
+       field('uid', integer());
+    });
+    eventStore('DialogIndexEventStore', () => {
+        //
+    });
+
+    //
     // Deprecated Events
     //
 

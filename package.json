@@ -11,7 +11,7 @@
     "@openland/foundationdb": "^4.4.4",
     "@openland/foundationdb-bus": "^4.4.4",
     "@openland/foundationdb-bus-redis": "^4.4.4",
-    "@openland/foundationdb-compiler": "^4.4.4",
+    "@openland/foundationdb-compiler": "^4.4.5",
     "@openland/foundationdb-entity": "^4.4.4",
     "@openland/foundationdb-locks": "^4.4.4",
     "@openland/foundationdb-migrations": "^4.4.4",

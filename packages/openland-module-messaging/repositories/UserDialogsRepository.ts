@@ -4,6 +4,7 @@ import { Context } from '@openland/context';
 import { injectable } from 'inversify';
 import { Store } from 'openland-module-db/FDB';
 import { lazyInject } from 'openland-modules/Modules.container';
+import { DialogNeedReindexEvent } from '../../openland-module-db/store';
 
 @injectable()
 export class UserDialogsRepository {
@@ -15,6 +16,7 @@ export class UserDialogsRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .set(ctx, [uid, cid], { date });
+        Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid }));
     }
 
     removeDialog = (ctx: Context, uid: number, cid: number) => {
@@ -22,6 +24,7 @@ export class UserDialogsRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .clear(ctx, [uid, cid]);
+        Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid }));
     }
 
     findUserDialogs = async (ctx: Context, uid: number): Promise<{ cid: number, date: number }[]> => {

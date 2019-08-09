@@ -2,9 +2,10 @@ import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexe
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
+import { DialogNeedReindexEvent } from '../../openland-module-db/store';
 
 export function dialogSearchIndexer() {
-    declareSearchIndexer('dialog-index', 8, 'dialog', Store.UserDialog.updated.stream({ batchSize: 50 }))
+    declareSearchIndexer('dialog-index', 9, 'dialog', Store.DialogIndexEventStore.createStream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -15,17 +16,18 @@ export function dialogSearchIndexer() {
             title: {
                 type: 'text'
             },
-            createdAt: {
-                type: 'date'
-            },
-            updatedAt: {
-                type: 'date'
-            },
             visible: {
                 type: 'boolean'
             }
         })
-        .start(async (item, parent) => {
+        .start(async (event, parent) => {
+            if (event.type !== 'dialogNeedReindexEvent') {
+                return null;
+
+            }
+
+            let item = event.raw as DialogNeedReindexEvent;
+
             let title: string;
             try {
                 title = await inTx(parent, async (ctx) => await Modules.Messaging.room.resolveConversationTitle(ctx, item.cid, item.uid));
@@ -45,8 +47,6 @@ export function dialogSearchIndexer() {
                     cid: item.cid,
                     uid: item.uid,
                     visible: await Modules.Messaging.hasActiveDialog(parent, item.uid, item.cid),
-                    createdAt: item.metadata.createdAt,
-                    updatedAt: item.metadata.updatedAt,
                 }
             };
         });
