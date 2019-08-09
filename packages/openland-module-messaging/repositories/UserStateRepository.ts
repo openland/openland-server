@@ -1,5 +1,5 @@
 import { UserDialogEvent } from 'openland-module-db/store';
-import { inTx } from '@openland/foundationdb';
+import { encoders, inTx } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -140,14 +140,34 @@ export class UserStateRepository {
             return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
         }
 
+        let directory = Store.UserCountersIndexDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.int32LE);
+
         if (settings.globalCounterType === 'unread_messages') {
-            return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+
+            let all = await directory.range(ctx, [uid]);
+            return all.reduce((acc, val) => acc + val.value as number, 0);
+            // return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+
         } else if (settings.globalCounterType === 'unread_chats') {
-            return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
+
+            let unread = await directory.range(ctx, [uid]);
+            return unread.length;
+            // return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
+
         } else if (settings.globalCounterType === 'unread_messages_no_muted') {
-            return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
+
+            let unread = await directory.range(ctx, [uid, 'unmuted']);
+            return unread.reduce((acc, val) => acc + val.value as number, 0);
+            // return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
+
         } else if (settings.globalCounterType === 'unread_chats_no_muted') {
-            return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
+
+            let unread = await directory.range(ctx, [uid, 'unmuted']);
+            return unread.length;
+            // return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
+
         } else {
             return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
         }

@@ -11955,6 +11955,7 @@ export interface Store extends BaseStore {
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogIndexDirectory: Subspace;
+    readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
 }
@@ -12082,6 +12083,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
+    let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
@@ -12205,6 +12207,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
+        UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,

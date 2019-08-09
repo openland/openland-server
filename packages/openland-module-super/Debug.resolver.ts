@@ -205,7 +205,7 @@ export default {
                 allUnreadChats: await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid),
                 unreadChatsWithoutMuted: await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid),
             };
-        })
+        }),
     },
     Mutation: {
         lifecheck: () => `i'm still ok`,
@@ -865,6 +865,9 @@ export default {
                 }
                 return false;
             };
+            let directory = Store.UserCountersIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE);
 
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
@@ -876,6 +879,9 @@ export default {
                         let unread = Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
                         let isMuted = isChatMuted(ctx, uid, dialog.cid);
                         CounterStrategyAll.inContext(ctx, uid, dialog.cid, await unread, await isMuted).calcForChat();
+                        if (await unread > 0) {
+                            directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid], await unread);
+                        }
                     }
                 } catch (e) {
                     await log(e);

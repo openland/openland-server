@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { encoders, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -45,6 +45,7 @@ export class CountersRepository {
                 // Update Counters
                 localCounter.increment(ctx);
                 globalCounter.increment(ctx);
+                await this.incrementCounter(ctx, uid, message.cid);
 
                 let unreadPromise = localCounter.get(ctx);
                 let isMutedPromise = this.isChatMuted(ctx, uid, message.cid);
@@ -69,6 +70,7 @@ export class CountersRepository {
             if (message.uid !== uid && (!local.readMessageId || message.id > local.readMessageId)) {
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
+                await this.decrementCounter(ctx, uid, message.cid, -1);
 
                 let unread = await localCounter.get(ctx);
                 let isMuted = await this.isChatMuted(ctx, uid, message.cid);
@@ -130,6 +132,7 @@ export class CountersRepository {
                     }
                     localCounter.add(ctx, delta);
                     globalCounter.add(ctx, delta);
+                    await this.decrementCounter(ctx, uid, message.cid, delta);
 
                     let unread = await localCounter.get(ctx);
                     let isMuted = await this.isChatMuted(ctx, uid, message.cid);
@@ -170,6 +173,12 @@ export class CountersRepository {
                 CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onChatDeleted();
                 localCounter.set(ctx, 0);
                 haveMention.set(ctx, false);
+
+                let directory = Store.UserCountersIndexDirectory
+                    .withKeyEncoding(encoders.tuple)
+                    .withValueEncoding(encoders.int32LE);
+                directory.clear(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid]);
+
                 return -localUnread;
             }
             return 0;
@@ -181,7 +190,43 @@ export class CountersRepository {
             let unread = await Store.UserDialogCounter.byId(uid, cid).get(ctx);
             let isMuted = await this.isChatMuted(ctx, uid, cid);
             CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onMuteChange();
+
+            let directory = Store.UserCountersIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE);
+            let value = await directory.get(ctx, [uid, !isMuted ? 'muted' : 'unmuted', cid]);
+            if (value) {
+                directory.clear(ctx, [uid, !isMuted ? 'muted' : 'unmuted', cid]);
+                directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], value);
+            }
+
             return 0;
+        });
+    }
+
+    private incrementCounter = async (parent: Context, uid: number, cid: number) => {
+        return await inTx(parent, async (ctx) => {
+            let isMuted = await this.isChatMuted(ctx, uid, cid);
+
+            Store.UserCountersIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE)
+                .add(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], 1);
+        });
+    }
+
+    private decrementCounter = async (parent: Context, uid: number, cid: number, by: number) => {
+        return await inTx(parent, async (ctx) => {
+            let isMuted = await this.isChatMuted(ctx, uid, cid);
+            let directory = Store.UserCountersIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE);
+
+            directory.add(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], by);
+            let value = await directory.get(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid]);
+            if (value === 0) {
+                directory.clear(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid]);
+            }
         });
     }
 
