@@ -875,6 +875,8 @@ export default {
                     for (let strategy of CounterStrategies) {
                         strategy.counter().set(ctx, uid, 0);
                     }
+                    directory.clearPrefixed(ctx, [uid]);
+
                     for (let dialog of dialogs) {
                         let unread = Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
                         let isMuted = isChatMuted(ctx, uid, dialog.cid);
