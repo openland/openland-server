@@ -131,17 +131,17 @@ const handleUser = async (_ctx: Context, uid: number) => {
     if (shouldIgnoreUser(ctx, user)) {
         await Modules.Push.sendCounterPush(ctx, uid);
 
-        if (shouldResetNotificationDelivery(ctx, user)) {
+        // if (shouldResetNotificationDelivery(ctx, user)) {
             Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-        }
-        if (shouldUpdateUserSeq(ctx, user)) {
+        // }
+        // if (shouldUpdateUserSeq(ctx, user)) {
             state.lastPushSeq = ustate.seq;
-        }
+        // }
         return;
     }
 
     // Scanning updates
-    let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq!, state.lastPushSeq || 0);
+    let afterSec = Math.max((state.lastEmailSeq || 0), (state.readSeq || 0), (state.lastPushSeq || 0));
 
     let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, {after: afterSec})).items;
     let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
