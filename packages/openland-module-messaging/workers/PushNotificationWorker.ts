@@ -169,6 +169,12 @@ const handleUser = async (_ctx: Context, uid: number) => {
             continue;
         }
 
+        let localState = await Modules.Messaging.getUserDialogState(ctx, uid, message.cid);
+        // Ignore read messages
+        if (localState.readMessageId && localState.readMessageId >= message.id) {
+            continue;
+        }
+
         let sender = await Modules.Users.profileById(ctx, senderId);
         let receiver = await Modules.Users.profileById(ctx, uid);
         let conversation = await Store.Conversation.findById(ctx, message.cid);
