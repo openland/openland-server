@@ -23,7 +23,6 @@ export function dialogSearchIndexer() {
         .start(async (event, parent) => {
             if (event.type !== 'dialogNeedReindexEvent') {
                 return null;
-
             }
 
             let item = event.raw as DialogNeedReindexEvent;

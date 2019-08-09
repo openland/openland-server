@@ -16,6 +16,7 @@ import { FixerRepository } from './repositories/Fixer';
 import { roomsSearchIndexer } from './workers/roomsSearchIndexer';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 import { UserDialogsRepository } from './repositories/UserDialogsRepository';
+import { Store } from '../openland-module-db/FDB';
 
 @injectable()
 export class MessagingModule {
@@ -171,6 +172,22 @@ export class MessagingModule {
 
     onGlobalCounterTypeChanged = async (parent: Context, uid: number) => {
         return await this.delivery.onGlobalCounterTypeChanged(parent, uid);
+    }
+
+    //
+    // Util
+    //
+    async markUserDialogsForIndexing(ctx: Context, uid: number) {
+        let dialogs = await this.findUserDialogs(ctx, uid);
+        for (let dialog of dialogs) {
+            let conv = await Store.ConversationPrivate.findById(ctx, dialog.cid);
+            if (!conv) {
+                continue;
+            }
+
+            let secondUid = conv.uid1 === uid ? conv.uid2 : conv.uid1;
+            this.userDialogs.markForIndexing(ctx, secondUid, dialog.cid);
+        }
     }
 
     //

@@ -52,4 +52,8 @@ export class UserDialogsRepository {
             return null;
         }
     }
+
+    markForIndexing = (ctx: Context, uid: number, cid: number) => {
+        Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid }));
+    }
 }
