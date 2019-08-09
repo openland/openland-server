@@ -33,7 +33,7 @@ export class MessagingMediator {
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
-            if (message.message && message.message.trim().length === 0) {
+            if (message.message !== null && message.message !== undefined && message.message!.trim().length === 0) {
                 throw new UserError('Can\'t send empty message');
             }
             // Check for bad words. Useful for debug.
@@ -127,7 +127,7 @@ export class MessagingMediator {
 
     editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
         return await inTx(parent, async (ctx) => {
-            if (newMessage.message && newMessage.message.trim().length === 0) {
+            if (newMessage.message !== null && newMessage.message !== undefined && newMessage.message!.trim().length === 0) {
                 throw new UserError('Can\'t edit empty message');
             }
 
