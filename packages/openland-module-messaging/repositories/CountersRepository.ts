@@ -4,7 +4,7 @@ import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from '@openland/context';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
-import { CounterStrategyAll } from './CounterStrategies';
+// import { CounterStrategyAll } from './CounterStrategies';
 import { Store } from 'openland-module-db/FDB';
 import { Message } from 'openland-module-db/store';
 import { createLogger } from '@openland/log';
@@ -47,11 +47,11 @@ export class CountersRepository {
                 globalCounter.increment(ctx);
                 await this.incrementCounter(ctx, uid, message.cid);
 
-                let unreadPromise = localCounter.get(ctx);
-                let isMutedPromise = this.isChatMuted(ctx, uid, message.cid);
-                let unread = await unreadPromise;
-                let isMuted = await isMutedPromise;
-                CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageReceived();
+                // let unreadPromise = localCounter.get(ctx);
+                // let isMutedPromise = this.isChatMuted(ctx, uid, message.cid);
+                // let unread = await unreadPromise;
+                // let isMuted = await isMutedPromise;
+                // CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageReceived();
 
                 return { delta: 1 };
             }
@@ -72,9 +72,9 @@ export class CountersRepository {
                 globalCounter.decrement(ctx);
                 await this.decrementCounter(ctx, uid, message.cid, -1);
 
-                let unread = await localCounter.get(ctx);
-                let isMuted = await this.isChatMuted(ctx, uid, message.cid);
-                CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageDeleted();
+                // let unread = await localCounter.get(ctx);
+                // let isMuted = await this.isChatMuted(ctx, uid, message.cid);
+                // CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageDeleted();
 
                 // Reset mention flag if needed
                 // TODO: Replace with counters
@@ -134,9 +134,9 @@ export class CountersRepository {
                     globalCounter.add(ctx, delta);
                     await this.decrementCounter(ctx, uid, message.cid, delta);
 
-                    let unread = await localCounter.get(ctx);
-                    let isMuted = await this.isChatMuted(ctx, uid, message.cid);
-                    CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageRead(-delta);
+                    // let unread = await localCounter.get(ctx);
+                    // let isMuted = await this.isChatMuted(ctx, uid, message.cid);
+                    // CounterStrategyAll.inContext(ctx, uid, message.cid, unread, isMuted).onMessageRead(-delta);
                 }
 
                 let mentionReset = false;
@@ -168,9 +168,9 @@ export class CountersRepository {
             let localUnread = (await localCounter.get(ctx) || 0);
             if (localUnread > 0) {
                 globalCounter.add(ctx, -localUnread);
-                let unread = await localCounter.get(ctx);
+                // let unread = await localCounter.get(ctx);
                 let isMuted = await this.isChatMuted(ctx, uid, cid);
-                CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onChatDeleted();
+                // CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onChatDeleted();
                 localCounter.set(ctx, 0);
                 haveMention.set(ctx, false);
 
@@ -187,9 +187,9 @@ export class CountersRepository {
 
     onDialogMuteChange = async (parent: Context, uid: number, cid: number) => {
         return await inTx(parent, async (ctx) => {
-            let unread = await Store.UserDialogCounter.byId(uid, cid).get(ctx);
+            // let unread = await Store.UserDialogCounter.byId(uid, cid).get(ctx);
             let isMuted = await this.isChatMuted(ctx, uid, cid);
-            CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onMuteChange();
+            // CounterStrategyAll.inContext(ctx, uid, cid, unread, isMuted).onMuteChange();
 
             let directory = Store.UserCountersIndexDirectory
                 .withKeyEncoding(encoders.tuple)
