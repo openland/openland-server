@@ -3,19 +3,16 @@ import { Store } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/store';
 import { Context } from '@openland/context';
 
-export async function resolveRoleInOrganization(ctx: Context, oid: number, member: OrganizationMember): Promise<string[]> {
+export async function resolveRoleInOrganization(ctx: Context, oid: number, member: OrganizationMember): Promise<string> {
     let org = (await Store.Organization.findById(ctx, oid))!;
-    let roles: string[] = [];
 
     if (org.ownerId === member.uid) {
-        roles.push('OWNER');
+        return 'OWNER';
     } else if (member.role === 'admin') {
-        roles.push('ADMIN');
+        return 'ADMIN';
     } else {
-        roles.push('MEMBER');
+        return 'MEMBER';
     }
-
-    return roles;
 }
 
 async function resolveRolesInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
