@@ -28,7 +28,7 @@ export default {
 
             let result: any[] = [];
 
-            result.push(...await resolveOrganizationJoinedMembers(ctx, { first: args.first, afterMemberId: args. after ? IDs.User.parse(args.after) : null }, targetOrgId));
+            result.push(...await resolveOrganizationJoinedMembers(ctx, { first: args.first, afterMemberId: args.after ? IDs.User.parse(args.after) : null }, targetOrgId));
 
             let invites = await Modules.Invites.orgInvitesRepo.getOrganizationInvitesForOrganization(ctx, targetOrgId);
 
@@ -70,6 +70,26 @@ export default {
                     await Modules.Orgs.addUserToOrganization(c, IDs.User.parse(u), IDs.Organization.parse(args.organizationId), uid);
                 }
                 return await Store.Organization.findById(c, IDs.Organization.parse(args.organizationId));
+            });
+        }),
+        alphaOrganizationMemberAdd: withAccount(async (ctx, args, uid) => {
+            let oid = IDs.Organization.parse(args.organizationId);
+
+            return await inTx(ctx, async (c) => {
+                let toAdd = [...args.userIds || [], ...args.userId ? [args.userId] : []];
+                let res = [];
+                for (let u of toAdd) {
+                    let uidToAdd = IDs.User.parse(u);
+
+                    await Modules.Orgs.addUserToOrganization(c, uidToAdd, oid, uid);
+
+                    let addedMember = await Store.OrganizationMember.findById(c, oid, uidToAdd);
+
+                    if (addedMember) {
+                        res.push(addedMember);
+                    }
+                }
+                return res;
             });
         }),
         // depricated
