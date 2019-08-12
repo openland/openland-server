@@ -71,6 +71,7 @@ export class AugmentationMediator {
                             iconInfo: urlInfo.iconInfo || null,
                             image: urlInfo.photo || null,
                             imageInfo: urlInfo.imageInfo || null,
+                            imagePreview: urlInfo.photoPreview || null,
                             keyboard: urlInfo.keyboard || null,
                         };
 
@@ -85,7 +86,7 @@ export class AugmentationMediator {
                             type: 'file_attachment',
                             fileId: urlInfo.photo!.uuid,
                             fileMetadata: urlInfo.imageInfo!,
-                            filePreview: null
+                            filePreview: urlInfo.photoPreview
                         };
 
                         await this.messaging.editMessage(

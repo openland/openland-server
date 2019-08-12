@@ -19,6 +19,7 @@ export interface URLAugmentation {
     subtitle: string | null;
     description: string | null;
     photo: ImageRef | null;
+    photoPreview: string | null;
     imageInfo: FileInfo | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
@@ -100,6 +101,7 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
         imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(rootCtx, user!.picture.uuid) : null,
         photo: user!.picture,
         hostname: null,
+        photoPreview: user!.picture ? await Modules.Media.fetchLowResPreview(rootCtx, user!.picture.uuid) : null,
         iconRef: null,
         iconInfo: null,
         keyboard: {
@@ -141,6 +143,7 @@ export function createUrlInfoService() {
                 description: org!.about || null,
                 imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(rootCtx, org!.photo!.uuid) : null,
                 photo: org!.photo || null,
+                photoPreview: await Modules.Media.fetchLowResPreview(ctx, org!.photo!.uuid),
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
@@ -171,6 +174,7 @@ export function createUrlInfoService() {
                 description: profile!.description || null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(rootCtx, profile!.image.uuid) : null,
                 photo: profile!.image,
+                photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
@@ -201,6 +205,7 @@ export function createUrlInfoService() {
                 description: profile!.description || null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(ctx, profile!.image.uuid) : null,
                 photo: profile!.image,
+                photoPreview: await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid),
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
@@ -243,6 +248,7 @@ export function createUrlInfoService() {
                     description: org!.about || null,
                     imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(ctx, org!.photo!.uuid) : null,
                     photo: org!.photo || null,
+                    photoPreview: await Modules.Media.fetchLowResPreview(ctx, org!.photo!.uuid),
                     hostname: null,
                     iconRef: null,
                     iconInfo: null,
