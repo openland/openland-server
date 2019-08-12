@@ -6,7 +6,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { validate, defined, emailValidator } from 'openland-utils/NewInputValidator';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
+import { resolveOrganizationJoinedMembers, resolveRoleInOrganization } from './utils/resolveOrganizationJoinedMembers';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from 'openland-module-db/FDB';
 
@@ -83,10 +83,19 @@ export default {
 
                     await Modules.Orgs.addUserToOrganization(c, uidToAdd, oid, uid);
 
-                    let addedMember = await Store.OrganizationMember.findById(c, oid, uidToAdd);
+                    let member = await Store.OrganizationMember.findById(c, oid, uidToAdd);
 
-                    if (addedMember) {
-                        res.push(addedMember);
+                    if (member && member.status === 'joined') {
+                        let user = (await Store.User.findById(ctx, member.uid))!;
+
+                        res.push({
+                            _type: 'OrganizationJoinedMember',
+                            user: user,
+                            joinedAt: member.metadata.createdAt,
+                            email: user.email,
+                            showInContacts: false,
+                            role: await resolveRoleInOrganization(ctx, oid, member),
+                        });
                     }
                 }
                 return res;
