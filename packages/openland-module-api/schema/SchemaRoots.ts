@@ -26,7 +26,7 @@ import {
     Message,
     Comment,
     ConferencePeer,
-    ConferenceRoom, RoomProfile, RichMessage, MessageReceivedEvent, MessageUpdatedEvent, MessageDeletedEvent, UserDialog,
+    ConferenceRoom, RoomProfile, RichMessage, MessageReceivedEvent, MessageUpdatedEvent, MessageDeletedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -126,7 +126,7 @@ export namespace GQLRoots {
     export type AppInviteInfoRoot = any;
     export type InviteHistotyInfoRoot = any;
     export type ReactionRoot = any;
-    export type DialogRoot = UserDialog;
+    export type DialogRoot = { cid: number };
     export type DialogsConnectionRoot = any;
     export type SettingsRoot = UserSettings;
     export type OrganizationMemberRoot = any;

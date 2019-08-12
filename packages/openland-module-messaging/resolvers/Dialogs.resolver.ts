@@ -1,6 +1,5 @@
 import { withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
-import { UserDialog } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
@@ -10,9 +9,9 @@ import { encoders } from '@openland/foundationdb';
 
 export default {
     Dialog: {
-        id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
-        cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),
-        fid: async (src: UserDialog, args: {}, ctx: AppContext) => {
+        id: (src: { cid: number }) => IDs.Dialog.serialize(src.cid),
+        cid: (src: { cid: number }) => IDs.Conversation.serialize(src.cid),
+        fid: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             let conv = (await Store.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
                 return IDs.Organization.serialize((await Store.ConversationOrganization.findById(ctx, src.cid))!.oid);
@@ -32,7 +31,7 @@ export default {
                 throw Error('Unknwon conversation type');
             }
         },
-        kind: async (src: UserDialog, args: {}, ctx: AppContext) => {
+        kind: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             let conv = (await Store.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
                 return 'INTERNAL';
@@ -53,27 +52,27 @@ export default {
                 throw Error('Unknwon conversation type');
             }
         },
-        isChannel: async (src: UserDialog, args: {}, ctx: AppContext) => {
+        isChannel: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             let room = await Store.ConversationRoom.findById(ctx, src.cid);
             return !!(room && room.isChannel);
         },
 
-        title: async (src: UserDialog, args: {}, ctx: AppContext) => {
+        title: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             return Modules.Messaging.room.resolveConversationTitle(ctx, src.cid, ctx.auth.uid!);
         },
-        photo: async (src: UserDialog, args: {}, ctx: AppContext) => {
+        photo: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             return await Modules.Messaging.room.resolveConversationPhoto(ctx, src.cid, ctx.auth.uid!);
         },
 
-        unreadCount: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            return Store.UserDialogCounter.byId(src.uid, src.cid).get(ctx);
+        unreadCount: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+            return Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
 
-        topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
-        betaTopMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
-        alphaTopMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
-        isMuted: async (src: UserDialog, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
-        haveMention: async (src: UserDialog, _, ctx) => {
+        topMessage: (src: { cid: number }, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
+        betaTopMessage: (src: { cid: number }, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
+        alphaTopMessage: (src: { cid: number }, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
+        isMuted: async (src: { cid: number }, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
+        haveMention: async (src: { cid: number }, _, ctx) => {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
     },
@@ -95,14 +94,14 @@ export default {
 
             if (allDialogs.length <= args.first) {
                 return {
-                    items: allDialogs.map((v) => Store.UserDialog.findById(ctx, uid, v.cid)),
+                    items: allDialogs,
                     cursor: undefined,
                     hasMore: false
                 };
             } else {
                 let cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
                 return {
-                    items: allDialogs.slice(0, args.first).map((v) => Store.UserDialog.findById(ctx, uid, v.cid)),
+                    items: allDialogs.slice(0, args.first),
                     cursor: cursor,
                     hasMore: true
                 };

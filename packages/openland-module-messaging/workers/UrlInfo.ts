@@ -15,6 +15,7 @@ export interface URLInfo {
     subtitle: string | null;
     description: string | null;
     photo: ImageRef | null;
+    photoPreview: string | null;
     imageInfo: FileInfo | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
@@ -235,6 +236,7 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
         description: description || null,
         imageInfo: Modules.Media.sanitizeFileInfo(imageInfo),
         photo: imageRef,
+        photoPreview: await Modules.Media.fetchLowResPreview(rootCtx, imageRef!.uuid),
         hostname: hostname || null,
         iconRef,
         iconInfo: Modules.Media.sanitizeFileInfo(iconInfo),

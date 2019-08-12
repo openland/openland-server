@@ -118,6 +118,7 @@ describe('MessagingMediator', () => {
             iconInfo: urlInfo.iconInfo || null,
             image: urlInfo.photo || null,
             imageInfo: urlInfo.imageInfo || null,
+            imagePreview: urlInfo.photoPreview || null,
             keyboard: urlInfo.keyboard || null,
         };
 
