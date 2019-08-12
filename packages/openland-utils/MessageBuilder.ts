@@ -49,6 +49,7 @@ export function buildMessage(...parts: MessagePart[]): MessageInput {
                 image: null,
                 iconInfo: null,
                 imageInfo: null,
+                imagePreview: null,
                 titleLinkHostname: null,
                 keyboard: null,
             };

@@ -313,6 +313,7 @@ export default declareSchema(() => {
                 image: optional(ImageRef),
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
+                imagePreview: optional(string()),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
@@ -420,6 +421,7 @@ export default declareSchema(() => {
                 text: optional(string()),
                 icon: optional(ImageRef),
                 image: optional(ImageRef),
+                imagePreview: optional(string()),
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
                 titleLinkHostname: optional(string()),
@@ -508,6 +510,7 @@ export default declareSchema(() => {
                 image: optional(ImageRef),
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
+                imagePreview: optional(string()),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({

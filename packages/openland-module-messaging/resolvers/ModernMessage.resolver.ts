@@ -548,6 +548,7 @@ export default {
                         icon: augmentation.iconRef || null,
                         iconInfo: augmentation.iconInfo || null,
                         image: augmentation.photo || null,
+                        imagePreview: augmentation.photoPreview || null,
                         imageInfo: augmentation.imageInfo || null,
                         keyboard: augmentation.keyboard || null,
                         id: src.id + '_legacy_rich'
@@ -567,6 +568,7 @@ export default {
                         icon: null,
                         iconInfo: null,
                         image: null,
+                        imagePreview: null,
                         imageInfo: null,
                         keyboard: null,
                         id: src.id + '_legacy_post'
@@ -797,6 +799,7 @@ export default {
             metadata: src.attachment.imageInfo,
             crop: src.attachment.image.crop
         },
+        imagePreview: src => src.attachment.imagePreview,
         fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
         keyboard: src => {
             if (!src.attachment.keyboard) {
