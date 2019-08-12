@@ -1153,7 +1153,7 @@ export class RoomRepository {
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.id, uid);
-                if (conv) {
+                if (conv && welcomeMessage.message.trim().length !== 0) {
                     await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
                 }
             }
