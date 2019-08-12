@@ -145,31 +145,18 @@ export class UserStateRepository {
             .withValueEncoding(encoders.int32LE);
 
         if (settings.globalCounterType === 'unread_messages') {
-
             let all = await directory.range(ctx, [uid]);
             return all.reduce((acc, val) => acc + val.value as number, 0);
-            // return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
-
         } else if (settings.globalCounterType === 'unread_chats') {
-
-            let unread = await directory.range(ctx, [uid]);
-            return unread.length;
-            // return await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid);
-
+            return (await directory.range(ctx, [uid])).length;
         } else if (settings.globalCounterType === 'unread_messages_no_muted') {
-
             let unread = await directory.range(ctx, [uid, 'unmuted']);
             return unread.reduce((acc, val) => acc + val.value as number, 0);
-            // return await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid);
-
         } else if (settings.globalCounterType === 'unread_chats_no_muted') {
-
-            let unread = await directory.range(ctx, [uid, 'unmuted']);
-            return unread.length;
-            // return await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid);
-
+            return (await directory.range(ctx, [uid, 'unmuted'])).length;
         } else {
-            return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
+            let all = await directory.range(ctx, [uid]);
+            return all.reduce((acc, val) => acc + val.value as number, 0);
         }
     }
 
