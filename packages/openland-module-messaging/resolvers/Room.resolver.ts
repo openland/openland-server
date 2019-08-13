@@ -522,6 +522,30 @@ export default {
 
             return await Modules.Messaging.room.inviteToRoom(ctx, IDs.Conversation.parse(args.roomId), uid, members);
         }),
+        alphaRoomInvite: withUser(async (ctx, args, uid) => {
+            await validate({
+                invites: mustBeArray({
+                    userId: defined(stringNotEmpty()),
+                })
+            }, args);
+
+            const cid = IDs.Conversation.parse(args.roomId);
+            const members = args.invites.map((v) => IDs.User.parse(v.userId));
+
+            await Modules.Messaging.room.inviteToRoom(ctx, cid, uid, members);
+
+            const res = [];
+
+            for (let member of members) {
+                const addedMember = await Store.RoomParticipant.findById(ctx, cid, member);
+
+                if (addedMember && addedMember.status === 'joined') {
+                    res.push(addedMember);
+                }
+            }
+
+            return res;
+        }),
         betaRoomKick: withUser(async (parent, args, uid) => {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
