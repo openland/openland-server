@@ -32,6 +32,7 @@ import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-g
 import { uuid } from '../openland-utils/uuid';
 import { createMetric } from '../openland-module-monitoring/Metric';
 import { currentRunningTime } from '../openland-utils/timer';
+import { withLifetime } from '@openland/lifetime';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -225,6 +226,7 @@ export async function initApi(isTest: boolean) {
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
                 ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withLifetime(ctx);
 
                 return new AppContext(ctx);
             },

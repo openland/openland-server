@@ -11,6 +11,7 @@ import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { cancelContext } from '@openland/lifetime';
 
 const logger = createLogger('apollo');
 
@@ -116,8 +117,8 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
             if (isSubscription) {
                 let working = true;
+                let ctx = await params.subscriptionContext(session.authParams, message.payload);
                 asyncRun(async () => {
-                    let ctx = await params.subscriptionContext(session.authParams, message.payload);
                     await params.onOperation(ctx, message.payload);
 
                     let iterator = await gqlSubscribe({
@@ -125,7 +126,8 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         document: query,
                         operationName: message.payload.operationName,
                         variableValues: message.payload.variables,
-                        contextValue: async () => await params.subscriptionContext(session.authParams, message.payload, ctx)
+                        fetchContext: async () => await params.subscriptionContext(session.authParams, message.payload, ctx),
+                        ctx
                     });
 
                     if (!isAsyncIterator(iterator)) {
@@ -138,13 +140,16 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
                     for await (let event of iterator) {
                         if (!working) {
-                            session.sendComplete(message.id);
-                            return;
+                            break;
                         }
                         session.sendData(message.id, await params.formatResponse(event));
                     }
+                    session.sendComplete(message.id);
                 });
-                session.addOperation(message.id, () => working = false);
+                session.addOperation(message.id, () => {
+                    working = false;
+                    cancelContext(ctx);
+                });
             } else {
                 let ctx = await params.context(session.authParams, message.payload);
                 await params.onOperation(ctx, message.payload);

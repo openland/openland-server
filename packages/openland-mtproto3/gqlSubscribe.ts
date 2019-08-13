@@ -7,16 +7,18 @@ export async function* gqlSubscribe(
         schema,
         document,
         rootValue,
-        contextValue,
+        fetchContext,
         variableValues,
         operationName,
         fieldResolver,
         subscribeFieldResolver,
+        ctx
     }: {
         schema: GraphQLSchema;
         document: DocumentNode;
         rootValue?: any;
-        contextValue?: () => Promise<any>;
+        fetchContext?: () => Promise<any>;
+        ctx?: any;
         variableValues?: Maybe<{ [key: string]: any }>;
         operationName?: Maybe<string>;
         fieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
@@ -27,7 +29,7 @@ export async function* gqlSubscribe(
         schema,
         document,
         rootValue,
-        contextValue ? await contextValue() : undefined,
+        ctx,
         variableValues as any,
         operationName,
         subscribeFieldResolver,
@@ -37,7 +39,7 @@ export async function* gqlSubscribe(
         schema,
         document,
         payload,
-        contextValue ? await contextValue() : undefined,
+        fetchContext ? await fetchContext() : undefined,
         variableValues,
         operationName,
         fieldResolver,
