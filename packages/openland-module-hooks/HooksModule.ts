@@ -159,6 +159,10 @@ export class HooksModule {
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
     }
 
+    onUserActivatedByAdmin = async (ctx: Context, uid: number) => {
+        await Modules.UserOnboarding.onUserActivatedByAdmin(ctx, uid);
+    }
+
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
         await Modules.UserOnboarding.onDiscoverCompleted(ctx, uid);
     }
