@@ -51,6 +51,7 @@ extend type Mutation {
     betaOrganizationMemberRequestApprove(userId: ID!, organizationId: ID!): Organization!
     betaOrganizationMemberRemove(userId: ID!, organizationId: ID!): Organization!
     betaOrganizationMemberAdd(userId: ID, userIds: [ID!], organizationId: ID!): Organization!
+    alphaOrganizationMemberAdd(userId: ID, userIds: [ID!], organizationId: ID!): [OrganizationJoinedMember!]!
 
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, organizationId: ID!): String!
     

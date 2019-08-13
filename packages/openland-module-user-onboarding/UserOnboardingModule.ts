@@ -136,6 +136,12 @@ export class UserOnboardingModule {
         //
     }
 
+    onUserActivatedByAdmin = async (ctx: Context, uid: number) => {
+        await this.onFirstEntrance(ctx, uid);
+        await this.sendToDiscoverIfNeeded(ctx, uid);
+        await q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
+    }
+
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
         await this.onFirstEntrance(ctx, uid);
         await this.askSendFirstMessageAfterDiscover(ctx, uid);

@@ -6,7 +6,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { validate, defined, emailValidator } from 'openland-utils/NewInputValidator';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
+import { resolveOrganizationJoinedMembers, resolveRoleInOrganization } from './utils/resolveOrganizationJoinedMembers';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from 'openland-module-db/FDB';
 
@@ -28,7 +28,7 @@ export default {
 
             let result: any[] = [];
 
-            result.push(...await resolveOrganizationJoinedMembers(ctx, { first: args.first, afterMemberId: args. after ? IDs.User.parse(args.after) : null }, targetOrgId));
+            result.push(...await resolveOrganizationJoinedMembers(ctx, { first: args.first, afterMemberId: args.after ? IDs.User.parse(args.after) : null }, targetOrgId));
 
             let invites = await Modules.Invites.orgInvitesRepo.getOrganizationInvitesForOrganization(ctx, targetOrgId);
 
@@ -70,6 +70,35 @@ export default {
                     await Modules.Orgs.addUserToOrganization(c, IDs.User.parse(u), IDs.Organization.parse(args.organizationId), uid);
                 }
                 return await Store.Organization.findById(c, IDs.Organization.parse(args.organizationId));
+            });
+        }),
+        alphaOrganizationMemberAdd: withAccount(async (ctx, args, uid) => {
+            let oid = IDs.Organization.parse(args.organizationId);
+
+            return await inTx(ctx, async (c) => {
+                let toAdd = [...args.userIds || [], ...args.userId ? [args.userId] : []];
+                let res = [];
+                for (let u of toAdd) {
+                    let uidToAdd = IDs.User.parse(u);
+
+                    await Modules.Orgs.addUserToOrganization(c, uidToAdd, oid, uid);
+
+                    let member = await Store.OrganizationMember.findById(c, oid, uidToAdd);
+
+                    if (member && member.status === 'joined') {
+                        let user = (await Store.User.findById(ctx, member.uid))!;
+
+                        res.push({
+                            _type: 'OrganizationJoinedMember',
+                            user: user,
+                            joinedAt: member.metadata.createdAt,
+                            email: user.email,
+                            showInContacts: false,
+                            role: await resolveRoleInOrganization(ctx, oid, member),
+                        });
+                    }
+                }
+                return res;
             });
         }),
         // depricated

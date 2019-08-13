@@ -127,7 +127,7 @@ export class ShortnameRepository {
             let existing = await Store.ShortnameReservation.findById(ctx, normalized);
 
             if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
-                throw new UserError('Sorry, this shortname is already taken!');
+                throw new UserError('Sorry, this username is already taken!');
             } else if (existing) {
                 existing.ownerId = ownerId;
                 existing.ownerType = ownerType;
@@ -149,13 +149,13 @@ export class ShortnameRepository {
             // TODO: Implement correct shortname validation here
             let normalized = shortname.trim().toLowerCase();
             if (normalized.length > 16) {
-                throw new UserError('Shortname is too long');
+                throw new UserError('Username cannot be longer than 16 characters.');
             }
             if (shortname.length !== 0 && normalized.length < (isAdmin ? 3 : 5)) {
-                throw new UserError('Shortname is too short');
+                throw new UserError('Username must have at least 5 characters.');
             }
             if (!/^\w*$/.test(shortname)) {
-                throw new UserError('Invalid shortname');
+                throw new UserError('Username can only contain a-z, 0-9, and underscores.');
             }
             return normalized;
         });

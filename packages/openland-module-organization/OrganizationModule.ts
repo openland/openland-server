@@ -69,7 +69,7 @@ export class OrganizationModule {
         });
     }
 
-    async activateOrganization(parent: Context, id: number, sendEmail: boolean) {
+    async activateOrganization(parent: Context, id: number, sendEmail: boolean, byAdmin: boolean = false) {
         return await inTx(parent, async (ctx) => {
             if (await this.repo.activateOrganization(ctx, id)) {
                 if (sendEmail) {
@@ -81,6 +81,10 @@ export class OrganizationModule {
                     let org = await Store.Organization.findById(ctx, id);
                     if (profile && !profile.primaryOrganization && (org && org.kind === 'organization')) {
                         profile.primaryOrganization = id;
+                    }
+
+                    if (byAdmin) {
+                        await Modules.Hooks.onUserActivatedByAdmin(ctx, m.uid);
                     }
                 }
                 return true;
