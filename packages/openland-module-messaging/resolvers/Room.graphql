@@ -189,7 +189,7 @@ extend type Mutation {
     
     # Members mgmt
     betaRoomInvite(roomId: ID!, invites: [RoomInviteInput!]!): Room!
-    alphaRoomInvite(roomId: ID!, invites: [RoomInviteInput!]!): [RoomMember]!
+    alphaRoomInvite(roomId: ID!, invites: [RoomInviteInput!]!): [RoomMember!]!
     betaRoomKick(roomId: ID!, userId: ID!): Room!
     betaRoomLeave(roomId: ID!): Room!
     betaRoomChangeRole(roomId: ID!, userId: ID!, newRole: RoomMemberRole!): Room!
