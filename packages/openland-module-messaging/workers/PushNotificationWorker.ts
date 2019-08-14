@@ -178,6 +178,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
         let sender = await Modules.Users.profileById(ctx, senderId);
         let receiver = await Modules.Users.profileById(ctx, uid);
         let conversation = await Store.Conversation.findById(ctx, message.cid);
+        let convOrg = await Store.ConversationOrganization.findById(ctx, message.cid);
 
         if (!sender) {
             continue;
@@ -192,8 +193,10 @@ const handleUser = async (_ctx: Context, uid: number) => {
         }
 
         // Ignore service messages for big rooms
-        if (message.isService) {
-            if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
+        if (convOrg && message.isService) {
+            let org = await Store.Organization.findById(ctx, convOrg.oid);
+            let serviceType = message.serviceMetadata && message.serviceMetadata.type;
+            if (org!.kind === 'community' && serviceType === 'user_kick' || serviceType === 'user_invite') {
                 continue;
             }
         }
