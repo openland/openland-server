@@ -109,10 +109,9 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageReceived(ctx, 2, mid2)).delta).toBe(0);
         expect((await repo.onMessageReceived(ctx, 2, mid3)).delta).toBe(0);
 
-        let receiverState = await urepo.getUserDialogState(ctx, 2, 2);
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 2);
         expect(receiverLocalCounter).toBe(0);
-        expect(receiverState.readMessageId).toBe(mid3.id);
+        expect(await Store.UserDialogReadMessageId.get(ctx, 2, 2)).toBe(mid3.id);
     });
 
     // it('should be tolerant to double invoke', async () => {

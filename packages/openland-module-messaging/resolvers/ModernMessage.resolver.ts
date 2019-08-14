@@ -843,8 +843,8 @@ export default {
             return msg;
         }),
         lastReadedMessage: withUser(async (ctx, args, uid) => {
-            let state = await Modules.Messaging.getUserDialogState(ctx, uid, IDs.Conversation.parse(args.chatId));
-            let msg = state.readMessageId && await Store.Message.findById(ctx, state.readMessageId);
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, IDs.Conversation.parse(args.chatId));
+            let msg = (readMessageId !== 0) && await Store.Message.findById(ctx, readMessageId);
             if (!msg) {
                 return null;
             }

@@ -1,7 +1,5 @@
 import { encoders, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
-import { UserStateRepository } from './UserStateRepository';
-import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from '@openland/context';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
 import { Store } from 'openland-module-db/FDB';
@@ -12,10 +10,6 @@ const logger = createLogger('counters');
 
 @injectable()
 export class CountersRepository {
-
-    @lazyInject('UserStateRepository')
-    private readonly userState!: UserStateRepository;
-
     onMessageReceived = async (parent: Context, uid: number, message: Message) => {
         return await inTx(parent, async (ctx) => {
             // Ignore already deleted messages
@@ -29,12 +23,12 @@ export class CountersRepository {
             }
 
             // Updating counters if not read already
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let localHasMention = Store.UserDialogHaveMention.byId(uid, message.cid);
             let localCounter = Store.UserDialogCounter.byId(uid, message.cid);
             let globalCounter = Store.UserCounter.byId(uid);
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
 
-            if (!local.readMessageId || message.id > local.readMessageId) {
+            if (message.id > readMessageId) {
 
                 // Mark dialog as having mention
                 if (!message.isService && hasMention(message, uid)) {
@@ -56,11 +50,11 @@ export class CountersRepository {
     onMessageDeleted = async (parent: Context, uid: number, message: Message) => {
         return await inTx(parent, async (ctx) => {
             // Updating counters if not read already
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
             let localCounter = Store.UserDialogCounter.byId(uid, message.cid);
             let globalCounter = Store.UserCounter.byId(uid);
 
-            if (message.uid !== uid && (!local.readMessageId || message.id > local.readMessageId)) {
+            if (message.uid !== uid && (message.id > readMessageId)) {
                 localCounter.decrement(ctx);
                 globalCounter.decrement(ctx);
                 await this.decrementCounter(ctx, uid, message.cid, -1);
@@ -89,13 +83,12 @@ export class CountersRepository {
 
     onMessageRead = async (parent: Context, uid: number, message: Message) => {
         return await inTx(parent, async (ctx) => {
-            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
             let localCounter = Store.UserDialogCounter.byId(uid, message.cid);
             let haveMention = Store.UserDialogHaveMention.byId(uid, message.cid);
-            let prevReadMessageId = local.readMessageId;
+            let prevReadMessageId = readMessageId;
             let globalCounter = Store.UserCounter.byId(uid);
-            if (!local.readMessageId || local.readMessageId < message.id) {
-                local.readMessageId = message.id;
+            if (readMessageId < message.id) {
                 Store.UserDialogReadMessageId.set(ctx, uid, message.cid, message.id);
 
                 // Find all remaining messages
