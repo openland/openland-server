@@ -81,4 +81,15 @@ export class MetricsModule {
     async onReactionAdded(ctx: Context, message: Message, reaction: string) {
         trackServerEvent(ctx, { name: 'reaction_received', uid: message.uid, args: { reaction_type: REACTIONS_LEGACY.has(reaction) ? REACTIONS_LEGACY.get(reaction)!.toLowerCase() : reaction } });
     }
+
+    onBillyBotMuted(ctx: Context, uid: number) {
+        trackServerEvent(ctx, { name: 'billy_bot_muted', uid });
+    }
+
+    onBillyBotMessageRecieved(ctx: Context, uid: number, messageType: string) {
+        trackServerEvent(ctx, { name: 'billy_bot_message_received', uid, args: {
+                message_type: messageType
+            }
+        });
+    }
 }

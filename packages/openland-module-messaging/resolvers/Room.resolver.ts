@@ -628,6 +628,7 @@ export default {
                     if (settings.mute !== args.settings.mute) {
                         settings.mute = args.settings.mute;
                         await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
+                        await Modules.Hooks.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
                     }
                 }
                 return settings;

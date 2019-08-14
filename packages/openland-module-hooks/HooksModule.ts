@@ -194,4 +194,10 @@ export class HooksModule {
     onMobilePushSent = (ctx: Context, uid: number) => {
         Store.UserMobilePushSentCounter.byId(uid).increment(ctx);
     }
+
+    onDialogMuteChanged = async (ctx: Context, uid: number, cid: number, mute: boolean) => {
+        if (mute) {
+            await Modules.UserOnboarding.onMuted(ctx, uid, cid);
+        }
+    }
 }
