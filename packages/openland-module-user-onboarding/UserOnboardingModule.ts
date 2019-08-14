@@ -285,8 +285,9 @@ export class UserOnboardingModule {
     private isDiscoverCompletedWithJoin = async (ctx: Context, uid: number) => {
         let chatIds = await Modules.Discover.suggestedChats(ctx, uid);
         let completedDiscoverWithJoin = false;
+        let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
         for (let cid of chatIds) {
-            if (await Store.UserDialog.findById(ctx, uid, cid)) {
+            if (userDialogs.find(d => d.cid === cid)) {
                 completedDiscoverWithJoin = true;
                 break;
             }

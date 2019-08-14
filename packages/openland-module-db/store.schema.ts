@@ -607,6 +607,11 @@ export default declareSchema(() => {
         rangeIndex('updated', ['updatedAt']);
     });
 
+    atomicInt('UserDialogReadMessageId', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+    });
+
     customDirectory('UserDialogIndex');
 
     customDirectory('UserCountersIndex');

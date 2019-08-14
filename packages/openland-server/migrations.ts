@@ -124,4 +124,19 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '106-migrate-dialog-read-message-id',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            let dialogs = (await Store.UserDialog.findAll(ctx));
+
+            for (let d of dialogs) {
+                if (d.readMessageId) {
+                    Store.UserDialogReadMessageId.set(ctx, d.uid, d.cid, d.readMessageId);
+                }
+            }
+        });
+    }
+});
+
 export default migrations;
