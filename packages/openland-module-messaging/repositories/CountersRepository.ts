@@ -96,6 +96,7 @@ export class CountersRepository {
             let globalCounter = Store.UserCounter.byId(uid);
             if (!local.readMessageId || local.readMessageId < message.id) {
                 local.readMessageId = message.id;
+                Store.UserDialogReadMessageId.set(ctx, uid, message.cid, message.id);
 
                 // Find all remaining messages
                 // TODO: Optimize (remove query)

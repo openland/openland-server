@@ -10,6 +10,42 @@ import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundation
 // @ts-ignore
 import { Entity, EntityFactory, EntityDescriptor, SecondaryIndexDescriptor, ShapeWithMetadata, PrimaryKeyDescriptor, FieldDescriptor, StreamProps } from '@openland/foundationdb-entity';
 
+export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userDialogReadMessageId');
+        return new UserDialogReadMessageIdFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number, cid: number) {
+        return this._findById([uid, cid]);
+    }
+
+    get(ctx: Context, uid: number, cid: number) {
+        return this._get(ctx, [uid, cid]);
+    }
+
+    set(ctx: Context, uid: number, cid: number, value: number) {
+        return this._set(ctx, [uid, cid], value);
+    }
+
+    add(ctx: Context, uid: number, cid: number, value: number) {
+        return this._add(ctx, [uid, cid], value);
+    }
+
+    increment(ctx: Context, uid: number, cid: number) {
+        return this._increment(ctx, [uid, cid]);
+    }
+
+    decrement(ctx: Context, uid: number, cid: number) {
+        return this._decrement(ctx, [uid, cid]);
+    }
+}
+
 export class UserCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -11837,6 +11873,7 @@ export class DialogIndexEventStore extends EventStore {
 }
 
 export interface Store extends BaseStore {
+    readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesSentWeeklyCounter: UserMessagesSentWeeklyCounterFactory;
@@ -11967,6 +12004,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);
     eventFactory.registerEventType('messageDeletedEvent', MessageDeletedEvent.encode as any, MessageDeletedEvent.decode);
     eventFactory.registerEventType('dialogNeedReindexEvent', DialogNeedReindexEvent.encode as any, DialogNeedReindexEvent.decode);
+    let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
     let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
@@ -12091,6 +12129,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     return {
         storage,
         eventFactory,
+        UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         UserCounter: await UserCounterPromise,
         UserMessagesSentCounter: await UserMessagesSentCounterPromise,
         UserMessagesSentWeeklyCounter: await UserMessagesSentWeeklyCounterPromise,
