@@ -6,7 +6,6 @@ import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
-import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
 import { inTx, encoders } from '@openland/foundationdb';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
@@ -88,49 +87,7 @@ export default {
             return presence;
         }),
         debugValidateMessages: withPermission('super-admin', async (ctx, args) => {
-            let uid = ctx.auth.uid!;
-            let messages: Message[] = [];
-            let allDialogs = await Store.UserDialog.user.findAll(ctx, uid);
-            let res = '';
-            for (let dialog of allDialogs) {
-                let conv = (await Store.Conversation.findById(ctx, dialog.cid))!;
-                if (!conv) {
-                    continue;
-                }
-                if (conv.kind === 'room') {
-                    let pat = await Store.RoomParticipant.findById(ctx, dialog.cid, uid);
-                    if (!pat || pat.status !== 'joined') {
-                        continue;
-                    }
-                }
-
-                try {
-                    messages.push(...await Store.Message.chat.findAll(ctx, dialog.cid));
-                } catch (e) {
-                    res += e.toString() + '\n\n';
-                }
-            }
-            let fileMetadataSchema = json(() => {
-                jField('isStored', jBool()).undefinable();
-                jField('isImage', jBool()).nullable();
-                jField('imageWidth', jNumber()).nullable();
-                jField('imageHeight', jNumber()).nullable();
-                jField('imageFormat', jString()).nullable();
-                jField('mimeType', jString());
-                jField('name', jString());
-                jField('size', jNumber());
-            });
-
-            for (let message of messages) {
-                try {
-                    if (message.fileMetadata) {
-                        validateJson(fileMetadataSchema, message.fileMetadata);
-                    }
-                } catch (e) {
-                    res += e + '\n\n';
-                }
-            }
-            return res;
+           return 'ok';
         }),
         organizationChatsStats: withPermission('super-admin', async (ctx, args) => {
             let chats = await Store.ConversationOrganization.findAll(ctx);
@@ -251,16 +208,16 @@ export default {
             } else if (type === 'SIGIN_CODE') {
                 await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
             } else if (type === 'UNREAD_MESSAGE') {
-                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
-                let dialog = dialogs.items[0];
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                let dialog = dialogs[0];
                 let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
 
                 await Emails.sendUnreadMessages(ctx, uid, messages.items);
             } else if (type === 'UNREAD_MESSAGES') {
-                let dialogs = await Store.UserDialog.user.query(ctx, uid, { limit: 10, reverse: true });
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 let messages: Message[] = [];
 
-                for (let dialog of dialogs.items) {
+                for (let dialog of dialogs) {
                     let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
                     messages.push(msgs.items[0]);
                 }
@@ -326,7 +283,7 @@ export default {
         debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
                 const calculateForUser = async (ctx: Context, uid: number) => {
-                    let all = await Store.UserDialog.user.findAll(ctx, uid);
+                    let all = await Modules.Messaging.findUserDialogs(ctx, uid);
                     let totalSent = 0;
                     let totalSentDirect = 0;
                     let totalReceived = 0;
@@ -552,7 +509,7 @@ export default {
                 for (let user of users) {
                     try {
                         await inTx(rootCtx, async _ctx => {
-                            let all = await Store.UserDialog.user.findAll(_ctx, user.id);
+                            let all = await Modules.Messaging.findUserDialogs(_ctx, user.id);
                             for (let dialog of all) {
                                 let conv = (await Store.Conversation.findById(_ctx, dialog.cid))!;
                                 if (!conv || conv.deleted) {
@@ -727,7 +684,7 @@ export default {
 
                 const calculateForUser = async (ctx: Context, uid: number) => {
                     let audience = 0;
-                    let all = await Store.UserDialog.user.findAll(ctx, uid);
+                    let all = await Modules.Messaging.findUserDialogs(ctx, uid);
 
                     for (let a of all) {
                         let chat = await Store.Conversation.findById(ctx, a.cid);
@@ -763,7 +720,7 @@ export default {
         }),
         debugCalcUsers2WayDirectChatsCounter: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
-                let all = await Store.UserDialog.user.findAll(ctx, uid);
+                let all = await Modules.Messaging.findUserDialogs(ctx, uid);
                 let direct2wayChatsCount = 0;
 
                 for (let dialog of all) {
@@ -797,7 +754,7 @@ export default {
         }),
         debugCalcUsersChatsStats: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsersChatsStats', async (ctx, uid, log) => {
-                let all = await Store.UserDialog.user.findAll(ctx, uid);
+                let all = await Modules.Messaging.findUserDialogs(ctx, uid);
                 let chatsCount = 0;
                 let directChatsCount = 0;
 
@@ -871,7 +828,7 @@ export default {
 
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
-                    let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+                    let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                     for (let strategy of CounterStrategies) {
                         strategy.counter().set(ctx, uid, 0);
                     }
@@ -901,7 +858,7 @@ export default {
                 return false;
             };
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugValidateGlobalCountersForAll', async (ctx, uid, log) => {
-                let dialogs = await Store.UserDialog.user.findAll(ctx, uid);
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 let UserGlobalCounterAllUnreadMessages = 0;
                 let UserGlobalCounterUnreadMessagesWithoutMuted = 0;
                 let UserGlobalCounterAllUnreadChats = 0;
