@@ -101,9 +101,11 @@ export class ShortnameRepository {
 
     private async setShortName(parent: Context, shortname: string, ownerId: number, ownerType: 'user' | 'org', uid: number) {
         return await inTx(parent, async ctx => {
-            let normalized = await this.normalizeShortname(ctx, shortname, uid);
+            let normalized = await this.normalizeShortname(ctx, shortname, ownerType, uid);
 
             let oldShortname: ShortnameReservation | null;
+
+            let ownerName = ownerType === 'user' ? 'username' : 'shortname';
 
             if (ownerType === 'user') {
                 oldShortname = await Store.ShortnameReservation.user.find(ctx, ownerId);
@@ -127,7 +129,7 @@ export class ShortnameRepository {
             let existing = await Store.ShortnameReservation.findById(ctx, normalized);
 
             if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
-                throw new UserError('Sorry, this username is already taken!');
+                throw new UserError(`Sorry, this ${ownerName} is already taken!`);
             } else if (existing) {
                 existing.ownerId = ownerId;
                 existing.ownerType = ownerType;
@@ -141,21 +143,23 @@ export class ShortnameRepository {
         });
     }
 
-    private async normalizeShortname(parent: Context, shortname: string, uid: number) {
+    private async normalizeShortname(parent: Context, shortname: string, ownerType: 'user' | 'org', uid: number) {
         return await inTx(parent, async (ctx) => {
             let role = await Modules.Super.superRole(ctx, uid);
             let isAdmin = role === 'super-admin';
 
+            let ownerName = ownerType === 'user' ? 'Username' : 'Shortname';
+
             // TODO: Implement correct shortname validation here
             let normalized = shortname.trim().toLowerCase();
             if (normalized.length > 16) {
-                throw new UserError('Username cannot be longer than 16 characters.');
+                throw new UserError(`${ownerName} cannot be longer than 16 characters.`);
             }
             if (shortname.length !== 0 && normalized.length < (isAdmin ? 3 : 5)) {
-                throw new UserError('Username must have at least 5 characters.');
+                throw new UserError(`${ownerName} must have at least 5 characters.`);
             }
             if (!/^\w*$/.test(shortname)) {
-                throw new UserError('Username can only contain a-z, 0-9, and underscores.');
+                throw new UserError(`${ownerName} can only contain a-z, 0-9, and underscores.`);
             }
             return normalized;
         });

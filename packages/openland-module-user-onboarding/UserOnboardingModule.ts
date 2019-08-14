@@ -8,15 +8,16 @@ import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { UserProfile } from 'openland-module-db/store';
+import * as Case from 'change-case';
 
 type DelayedEvents = 'activated20h' | 'activated30m';
-type Template = (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean };
-const templates: { [templateName: string]: (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean } } = {
-    wellcome: (user: UserProfile) => ({
+type Template = 'welcome' | 'completeChatNavigator' | 'writeFirstMessage' | 'installApps' | 'inviteFriends';
+const templates: { [T in Template]: (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean } } = {
+    welcome: (user: UserProfile) => ({
         type: 'wellcome',
         message: ['A chat for Openland tips and announcements'], isSevice: true
     }),
-    gotoDiscover: (user: UserProfile) => ({
+    completeChatNavigator: (user: UserProfile) => ({
         type: 'gotoDiscover',
         message: [
             'Are you ready to explore Openland? Let\'s find the most useful chats based on your interests and needs',
@@ -40,7 +41,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
         ],
         keyboard: { buttons: [[{ title: 'Discover chats', url: '/onboarding_discover', style: 'DEFAULT' }]] }
     }),
-    sendFirstMessage: (user: UserProfile) => ({
+    writeFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
         message: [
             'Do you need any expert advice or new connections for your projects? Simply ask for help in one of our chats',
@@ -64,7 +65,7 @@ const templates: { [templateName: string]: (user: UserProfile) => { type: string
         ],
         keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] }
     }),
-    invite: (user: UserProfile) => ({
+    inviteFriends: (user: UserProfile) => ({
         type: 'invite',
         message: [
             'How do you like Openland community so far? If you love being here, share the invitation with your teammates and friends',
@@ -155,7 +156,7 @@ export class UserOnboardingModule {
     }
 
     onFirstEntrance = async (ctx: Context, uid: number) => {
-        await this.sendWellcome(ctx, uid);
+        await this.sendWelcome(ctx, uid);
         await q.pushWork(ctx, { uid, type: 'activated20h' }, Date.now() + 1000 * 60 * 60 * 20);
     }
 
@@ -177,15 +178,23 @@ export class UserOnboardingModule {
         }
     }
 
+    onMuted = async (ctx: Context, uid: number, cid: number) => {
+        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        let conv = await Store.ConversationPrivate.findById(ctx, cid);
+        if (conv && (conv.uid1 === billyId || conv.uid2 === billyId)) {
+            Modules.Metrics.onBillyBotMuted(ctx, uid);
+        }
+    }
+
     //
     // Actions
     //
 
-    // Wellcome
-    private sendWellcome = async (ctx: Context, uid: number) => {
+    // Welcome
+    private sendWelcome = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.wellcomeSent) {
-            await this.sendMessage(ctx, uid, templates.wellcome);
+            await this.sendMessage(ctx, uid, 'welcome');
             state.wellcomeSent = true;
         }
     }
@@ -195,7 +204,7 @@ export class UserOnboardingModule {
         if (!await this.isDiscoverCompletedWithJoin(ctx, uid)) {
             let state = await this.getOnboardingState(ctx, uid);
             if (!state.askCompleteDeiscoverSent) {
-                await this.sendMessage(ctx, uid, templates.gotoDiscover);
+                await this.sendMessage(ctx, uid, 'completeChatNavigator');
                 state.askCompleteDeiscoverSent = true;
             }
         }
@@ -218,7 +227,7 @@ export class UserOnboardingModule {
     private askInviteFriends = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askInviteSent) {
-            await this.sendMessage(ctx, uid, templates.invite);
+            await this.sendMessage(ctx, uid, 'inviteFriends');
             state.askInviteSent = true;
         }
     }
@@ -227,7 +236,7 @@ export class UserOnboardingModule {
     private askInstallApps = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askInstallAppsSent) {
-            await this.sendMessage(ctx, uid, templates.installApps);
+            await this.sendMessage(ctx, uid, 'installApps');
             state.askInstallAppsSent = true;
         }
     }
@@ -238,7 +247,7 @@ export class UserOnboardingModule {
     private askSendFirstMessage = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askSendFirstMessageSent) {
-            await this.sendMessage(ctx, uid, templates.sendFirstMessage);
+            await this.sendMessage(ctx, uid, 'writeFirstMessage');
             state.askSendFirstMessageSent = true;
         }
     }
@@ -254,7 +263,7 @@ export class UserOnboardingModule {
         if (!user) {
             return;
         }
-        let t = template(user);
+        let t = templates[template](user);
 
         let messageParts: MessagePart[] = [...t.message];
         if (t.keyboard) {
@@ -270,6 +279,7 @@ export class UserOnboardingModule {
             message.isService = true;
         }
         await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
+        await Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, Case.snakeCase(template));
     }
 
     private isDiscoverCompletedWithJoin = async (ctx: Context, uid: number) => {

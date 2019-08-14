@@ -34,7 +34,7 @@ export class UrlInfoService {
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
-    public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation|null> {
+    public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation | null> {
         let ctx = rootCtx;
         let existing = await this.cache.read(ctx, url);
         let creationTime = await this.cache.getCreationTime(ctx, url);
@@ -143,7 +143,7 @@ export function createUrlInfoService() {
                 description: org!.about || null,
                 imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(rootCtx, org!.photo!.uuid) : null,
                 photo: org!.photo || null,
-                photoPreview: await Modules.Media.fetchLowResPreview(ctx, org!.photo!.uuid),
+                photoPreview: org!.photo ? await Modules.Media.fetchLowResPreview(ctx, org!.photo.uuid) : null,
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
@@ -205,7 +205,7 @@ export function createUrlInfoService() {
                 description: profile!.description || null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(ctx, profile!.image.uuid) : null,
                 photo: profile!.image,
-                photoPreview: await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid),
+                photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
@@ -246,9 +246,9 @@ export function createUrlInfoService() {
                     title: org!.name || null,
                     subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                     description: org!.about || null,
-                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(ctx, org!.photo!.uuid) : null,
+                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(ctx, org!.photo.uuid) : null,
                     photo: org!.photo || null,
-                    photoPreview: await Modules.Media.fetchLowResPreview(ctx, org!.photo!.uuid),
+                    photoPreview: org!.photo ? await Modules.Media.fetchLowResPreview(ctx, org!.photo.uuid) : null,
                     hostname: null,
                     iconRef: null,
                     iconInfo: null,
