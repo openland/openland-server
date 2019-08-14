@@ -169,9 +169,9 @@ const handleUser = async (_ctx: Context, uid: number) => {
             continue;
         }
 
-        let localState = await Modules.Messaging.getUserDialogState(ctx, uid, message.cid);
+        let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
         // Ignore read messages
-        if (localState.readMessageId && localState.readMessageId >= message.id) {
+        if (readMessageId >= message.id) {
             continue;
         }
 
