@@ -1,5 +1,6 @@
 import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct, customDirectory, array, union, event } from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
+import { bool } from 'twilio/lib/base/serialize';
 
 export default declareSchema(() => {
 
@@ -1177,6 +1178,42 @@ export default declareSchema(() => {
         primaryKey('chatId', integer());
         field('key', string());
         uniqueIndex('key', ['key']);
+    });
+
+    //
+    // Stickers
+    //
+
+    entity('StickerPack', () => {
+       primaryKey('id', integer());
+       field('title', string());
+       field('authorId', integer());
+       field('usesCount', integer());
+       field('emojis', array(struct({
+           emoji: string(),
+           stickerId: string()
+       })));
+    });
+
+    entity('UserStickersState', () => {
+       primaryKey('uid', integer());
+       field('packIds', array(integer()));
+       field('favouriteIds', array(string()));
+    });
+
+    entity('UserStickerPack', () => {
+       primaryKey('uid', integer());
+       primaryKey('packId', integer());
+       rangeIndex('user', ['uid', 'createdAt']);
+       rangeIndex('pack', ['packId', 'createdAt']);
+    });
+
+    entity('Sticker', () => {
+       primaryKey('uuid', string());
+       field('animated', boolean());
+       field('emoji', string());
+       field('packId', integer());
+       rangeIndex('pack', ['packId', 'createdAt']);
     });
 
     //

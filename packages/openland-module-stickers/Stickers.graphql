@@ -1,0 +1,41 @@
+type Sticker {
+    uuid: String!
+    image: ImageRef!
+    pack: StickerPack!
+    animated: Boolean!
+    emoji: String!
+}
+
+type StickerPack {
+    id: ID!
+    title: String!
+    stickers: [Sticker!]!
+    author: User!
+    usesCount: Int!
+}
+
+type UserStickers {
+    packs: [StickerPacks!]!
+    favourites: [Sticker!]!
+}
+
+extend type Query {
+    myStickers: UserStickers!
+    stickersByEmoji(emoji: String!): [Sticker!]!
+}
+
+input StickerInput {
+    image: ImageRefInput!
+    emoji: String!
+}
+
+input StickerPackInput {
+    title: String!
+}
+
+extend type Mutation {
+    stickerPackCreate(input: StickerPackInput!, stickers: [StickerInput!]!): StickerPack!
+    stickerPackUpdate(id: ID!, input: StickerPackInput!): StickerPack!
+    stickerPackAddSticker(input: StickerInput!): Sticker!
+    stickerPackRemoveSticker(uuid: String!): Boolean!
+}
