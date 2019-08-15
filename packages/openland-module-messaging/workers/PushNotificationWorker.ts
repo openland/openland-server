@@ -196,7 +196,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
         if (convOrg && message.isService) {
             let org = await Store.Organization.findById(ctx, convOrg.oid);
             let serviceType = message.serviceMetadata && message.serviceMetadata.type;
-            if (org!.kind === 'community' && serviceType === 'user_kick' || serviceType === 'user_invite') {
+            if (org!.kind === 'community' && (serviceType === 'user_kick' || serviceType === 'user_invite')) {
                 continue;
             }
         }
