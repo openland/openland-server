@@ -23,12 +23,12 @@ export default {
     },
     DialogUpdateBatch: {
         updates: (src: LiveStreamItem<UserDialogEvent>) => src.items,
-        fromSeq: (src: LiveStreamItem<UserDialogEvent>) => (src as any).fromSeq || src.items[0].seq,
-        seq: (src: LiveStreamItem<UserDialogEvent>) => src.items[src.items.length - 1].seq,
+        fromSeq: (src: LiveStreamItem<UserDialogEvent>) => 1,
+        seq: (src: LiveStreamItem<UserDialogEvent>) => 1,
         state: (src: LiveStreamItem<UserDialogEvent>) => src.cursor
     },
     DialogUpdateSingle: {
-        seq: (src: LiveStreamItem<UserDialogEvent>) => src.items[0].seq,
+        seq: (src: LiveStreamItem<UserDialogEvent>) => 1,
         state: (src: LiveStreamItem<UserDialogEvent>) => src.cursor,
         update: (src: LiveStreamItem<UserDialogEvent>) => src.items[0],
     },
