@@ -206,7 +206,11 @@ export default {
                 }
 
                 if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                    profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId!);
+                    let oid = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId!);
+                    let org = await Store.Organization.findById(ctx, oid);
+                    if (org && org.kind === 'organization') {
+                        profile.primaryOrganization = oid;
+                    }
                 }
 
                 // Call hook
