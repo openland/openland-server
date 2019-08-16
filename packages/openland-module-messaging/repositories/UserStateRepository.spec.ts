@@ -8,9 +8,10 @@ import { MessagingRepository } from './MessagingRepository';
 import { DeliveryRepository } from './DeliveryRepository';
 import { Context, createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
-import { UserDialogEvent } from 'openland-module-db/store';
+import { UserDialogMessageReadEvent, UserDialogMessageReceivedEvent } from 'openland-module-db/store';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { UsersModule } from '../../openland-module-users/UsersModule';
+import { BaseEvent } from '@openland/foundationdb-entity';
 
 describe('UserStateRepository', () => {
     let ctx: Context;
@@ -37,7 +38,8 @@ describe('UserStateRepository', () => {
     const sendMessage = async (cid: number, text: string) => {
         let m1 = await messagingRepo.createMessage(ctx, cid, 2, { message: text });
         await deliveryRepo.deliverMessageToUser(ctx, 2, m1.message);
-        let state = await Store.UserDialogEvent.user.query(ctx, 2, { limit: 1, reverse: true });
+        // let state = await Store.UserDialogEvent.user.query(ctx, 2, { limit: 1, reverse: true });
+        let state = await Store.UserDialogEventStore.createStream(2, {batchSize: 1}).tail(ctx);
         return { message: m1.message, state };
     };
 
@@ -66,7 +68,7 @@ describe('UserStateRepository', () => {
     it('should handle old updates then return last state to subscribe for live updates', async () => {
         let { state } = await sendMessage(1, '2');
         let { state: state2 } = await sendMessage(1, '3');
-        let iterator = await userStateRepo.zipUpdatesInBatchesAfter(ctx, 2, state.cursor);
+        let iterator = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, state || undefined);
 
         let batch: any;
         for await (let b of iterator) {
@@ -74,7 +76,7 @@ describe('UserStateRepository', () => {
         }
         expect(batch).toBeDefined();
         expect(batch!.items.length).toBe(1);
-        expect(batch!.cursor).toBe(state2.cursor);
+        expect(batch!.cursor).toBe(state2!);
     });
 
     it('should zip updates currectly', async () => {
@@ -102,29 +104,29 @@ describe('UserStateRepository', () => {
         // one more message to chat 1
         let { message: mid9Cid1, state: stateTo } = await sendMessage(1, '9');
 
-        let iterator = await userStateRepo.zipUpdatesInBatchesAfter(ctx, 2, stateFrom.cursor);
+        let iterator = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, stateFrom || undefined);
 
-        let batch: { items: UserDialogEvent[], cursor: string } | undefined;
+        let batch: { items: BaseEvent[], cursor: string|null } | undefined;
         for await (let b of iterator) {
-            batch = b;
+            batch = b as any;
         }
         expect(batch).toBeDefined();
         expect(batch!.items.length).toBe(4);
 
-        expect(batch!.items[0].mid).toBe(message.id);
-        expect(batch!.items[0].cid).toBe(1);
-        expect(batch!.items[0].kind).toBe('message_updated');
+        expect((batch!.items[0] as UserDialogMessageReceivedEvent).mid).toBe(message.id);
+        expect((batch!.items[0] as UserDialogMessageReceivedEvent).cid).toBe(1);
+        expect(batch!.items[0].type).toBe('userDialogMessageUpdatedEvent');
 
-        expect(batch!.items[1].cid).toBe(1);
-        expect(batch!.items[1].kind).toBe('message_read');
+        expect((batch!.items[1] as UserDialogMessageReadEvent).cid).toBe(1);
+        expect(batch!.items[1].type).toBe('userDialogMessageReadEvent');
 
-        expect(batch!.items[2].mid).toBe(m2fromCid2.id);
-        expect(batch!.items[2].cid).toBe(2);
+        expect((batch!.items[2] as UserDialogMessageReceivedEvent).mid).toBe(m2fromCid2.id);
+        expect((batch!.items[2] as UserDialogMessageReceivedEvent).cid).toBe(2);
 
-        expect(batch!.items[3].mid).toBe(mid9Cid1.id);
-        expect(batch!.items[3].cid).toBe(1);
+        expect((batch!.items[3] as UserDialogMessageReceivedEvent).mid).toBe(mid9Cid1.id);
+        expect((batch!.items[3] as UserDialogMessageReceivedEvent).cid).toBe(1);
 
-        expect(batch!.cursor).toBe(stateTo.cursor);
+        expect(batch!.cursor).toBe(stateTo);
     });
 
 });
