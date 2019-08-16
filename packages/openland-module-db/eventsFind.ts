@@ -30,13 +30,13 @@ export async function eventsFind(ctx: Context, store: EventStore, key: PrimaryKe
             items.splice(items.length - 1, 1);
             return {
                 items,
-                cursor: res[res.length - 2].key.toString('base64'),
+                cursor: res[res.length - 2] && res[res.length - 2].key.toString('base64'),
                 haveMore: haveMore
             };
         } else {
             return {
                 items,
-                cursor: res[res.length - 1].key.toString('base64'),
+                cursor: res[res.length - 1] && res[res.length - 1].key.toString('base64'),
                 haveMore: haveMore
             };
         }
@@ -44,7 +44,7 @@ export async function eventsFind(ctx: Context, store: EventStore, key: PrimaryKe
 
     return {
         items,
-        cursor: res[res.length - 1].key.toString('base64'),
+        cursor: res[res.length - 1] && res[res.length - 1].key.toString('base64'),
         haveMore: false
     };
 }
