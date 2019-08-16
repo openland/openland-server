@@ -2,13 +2,14 @@ import { Store } from './../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Emails } from '../../openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
-import { Message } from '../../openland-module-db/store';
+import { Message, UserDialogMessageReceivedEvent } from '../../openland-module-db/store';
 import { hasMention } from '../resolvers/ModernMessage.resolver';
 import { createLogger } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
 import { Context } from '@openland/context';
 import { batch } from '../../openland-utils/batch';
+import { eventsFind } from '../../openland-module-db/eventsFind';
 
 const Delays = {
     '15min': 15 * 60 * 1000,
@@ -50,16 +51,24 @@ const handleUser = async (ctx: Context, uid: number) => {
         return;
     }
 
-    // Ignore read updates
-    if (state.readSeq === ustate.seq) {
-        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
-        return;
-    }
-
     // Ignore already processed updates
-    if (state.lastEmailSeq === ustate.seq) {
-        return;
+    let eventsTail = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+    if (eventsTail && state.lastEmailCursor) {
+        let comp = Buffer.compare(Buffer.from(state.lastEmailCursor, 'base64'), Buffer.from(eventsTail, 'base64'));
+        if (comp >= 0) {
+            log.debug(ctx, 'ignore already processed updates');
+            return;
+        }
     }
+    // if (state.readSeq === ustate.seq) {
+    //     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
+    //     return;
+    // }
+    //
+    // // Ignore already processed updates
+    // if (state.lastEmailSeq === ustate.seq) {
+    //     return;
+    // }
 
     let settings = await Modules.Users.getUserSettings(ctx, uid);
 
@@ -74,10 +83,15 @@ const handleUser = async (ctx: Context, uid: number) => {
     if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
         return;
     }
+    // Scanning updates
+    let cursors = [
+        Buffer.from(state.lastPushCursor || '', 'base64'),
+        Buffer.from(state.lastEmailCursor || '', 'base64')
+    ].sort(Buffer.compare);
+    let after = cursors[cursors.length - 1].toString('base64');
 
-    // Fetch pending updates
-    let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, { after: Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq) })).items;
-    let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+    let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+    let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
 
     let hasNonMuted = false;
     let msgs: Message[] = [];
@@ -98,6 +112,12 @@ const handleUser = async (ctx: Context, uid: number) => {
             if ((await Store.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
                 continue;
             }
+        }
+
+        let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
+        // Ignore read messages
+        if (readMessageId >= message.id) {
+            continue;
         }
 
         // Ignore service messages for big rooms
@@ -130,6 +150,7 @@ const handleUser = async (ctx: Context, uid: number) => {
 
     // Save state
     state.lastEmailSeq = ustate.seq;
+    state.lastEmailCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
 };
 
