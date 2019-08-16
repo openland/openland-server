@@ -27,6 +27,8 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     notificationsReadSeq: number | null,
     userStateSeq: number,
     lastPushSeq: number | null,
+    lastPushCursor: string | null,
+    eventsTail: string | null,
     mobileNotifications: 'all' | 'direct' | 'none',
     desktopNotifications: 'all' | 'direct' | 'none'
 }) => {
@@ -76,9 +78,16 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     }
 
     // Ignore already processed updates
-    if (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq) {
-        log.debug(ctx, 'ignore already processed updates');
-        return true;
+    // if (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq) {
+    //     log.debug(ctx, 'ignore already processed updates');
+    //     return true;
+    // }
+    if (user.lastPushCursor && user.eventsTail) {
+        let comp = Buffer.compare(Buffer.from(user.lastPushCursor, 'base64'), Buffer.from(user.eventsTail, 'base64'));
+        if (comp >= 0) {
+            log.debug(ctx, 'ignore already processed updates');
+            return true;
+        }
     }
     return false;
 };
@@ -127,7 +136,9 @@ const handleUser = async (_ctx: Context, uid: number) => {
         notificationsDelay: settings.notificationsDelay,
         notificationsReadSeq: state.readSeq,
         userStateSeq: ustate.seq,
+        lastPushCursor: state.lastPushCursor,
         lastPushSeq: state.lastPushSeq,
+        eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
         mobileNotifications: settings.mobileNotifications,
         desktopNotifications: settings.desktopNotifications,
     };
