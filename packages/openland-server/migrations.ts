@@ -139,4 +139,18 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '107-enable-notifications',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            let settings = (await Store.UserSettings.findAll(ctx));
+
+            for (let s of settings) {
+                s.mobileNotifications = 'all';
+                s.desktopNotifications = 'all';
+            }
+        });
+    }
+});
+
 export default migrations;

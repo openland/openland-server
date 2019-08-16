@@ -1,24 +1,16 @@
 import { inTx } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
-import { injectable, inject } from 'inversify';
-import { UserStateRepository } from './UserStateRepository';
+import { injectable } from 'inversify';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
+import { UserDialogMessageReadEvent } from '../../openland-module-db/store';
 
 const logger = createLogger('fixer');
 const rootCtx = createNamedContext('fixer');
 
 @injectable()
 export class FixerRepository {
-    private readonly userState: UserStateRepository;
-
-    constructor(
-        @inject('UserStateRepository') userState: UserStateRepository
-    ) {
-        this.userState = userState;
-    }
-
     async fixForUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             try {
@@ -124,15 +116,10 @@ export class FixerRepository {
             // Deliver new counters
             //
             for (let dialog of all) {
-                let global = await this.userState.getUserMessagingState(ctx, uid);
-                global.seq++;
-                await global.flush(ctx);
-                await Store.UserDialogEvent.create(ctx, uid, global.seq, {
-                    kind: 'message_read',
+                Store.UserDialogEventStore.post(ctx, uid, UserDialogMessageReadEvent.create({
+                    uid,
                     cid: dialog.cid,
-                    unread: 0,
-                    allUnread: 0
-                });
+                }));
             }
         });
     }
