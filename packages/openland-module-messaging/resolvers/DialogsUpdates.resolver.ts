@@ -151,19 +151,6 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
-                // zip previous updates in batches
-                // let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
-                // let subscribeAfter = args.fromState || null;
-                // for await (let event of zipedGenerator) {
-                //     subscribeAfter = event.cursor;
-                //     yield event;
-                // }
-                //
-                // start subscription from last known event
-                // let generator = Store.UserDialogEvent.user.liveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: subscribeAfter ? subscribeAfter : undefined });
-                // for await (let event of generator) {
-                //     yield event;
-                // }
                 let fromState: string | undefined = undefined;
                 let isOldCursor = false;
                 if (args.fromState) {
