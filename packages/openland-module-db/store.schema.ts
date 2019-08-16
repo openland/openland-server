@@ -910,6 +910,9 @@ export default declareSchema(() => {
         field('lastPushNotification', optional(integer()));
         field('lastEmailSeq', optional(integer()));
         field('lastPushSeq', optional(integer()));
+
+        field('lastEmailCursor', optional(string()));
+        field('lastPushCursor', optional(string()));
     });
 
     customDirectory('NeedNotificationFlag');

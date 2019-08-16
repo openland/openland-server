@@ -7449,6 +7449,8 @@ export interface UserNotificationsStateShape {
     lastPushNotification: number | null;
     lastEmailSeq: number | null;
     lastPushSeq: number | null;
+    lastEmailCursor: string | null;
+    lastPushCursor: string | null;
 }
 
 export interface UserNotificationsStateCreateShape {
@@ -7457,6 +7459,8 @@ export interface UserNotificationsStateCreateShape {
     lastPushNotification?: number | null | undefined;
     lastEmailSeq?: number | null | undefined;
     lastPushSeq?: number | null | undefined;
+    lastEmailCursor?: string | null | undefined;
+    lastPushCursor?: string | null | undefined;
 }
 
 export class UserNotificationsState extends Entity<UserNotificationsStateShape> {
@@ -7506,6 +7510,24 @@ export class UserNotificationsState extends Entity<UserNotificationsStateShape> 
             this.invalidate();
         }
     }
+    get lastEmailCursor(): string | null { return this._rawValue.lastEmailCursor; }
+    set lastEmailCursor(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastEmailCursor.normalize(value);
+        if (this._rawValue.lastEmailCursor !== normalized) {
+            this._rawValue.lastEmailCursor = normalized;
+            this._updatedValues.lastEmailCursor = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPushCursor(): string | null { return this._rawValue.lastPushCursor; }
+    set lastPushCursor(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastPushCursor.normalize(value);
+        if (this._rawValue.lastPushCursor !== normalized) {
+            this._rawValue.lastPushCursor = normalized;
+            this._updatedValues.lastPushCursor = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserNotificationsStateFactory extends EntityFactory<UserNotificationsStateShape, UserNotificationsState> {
@@ -7521,6 +7543,8 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
         fields.push({ name: 'lastPushNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastEmailSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastPushSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastEmailCursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'lastPushCursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             readSeq: c.optional(c.integer),
@@ -7528,6 +7552,8 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
             lastPushNotification: c.optional(c.integer),
             lastEmailSeq: c.optional(c.integer),
             lastPushSeq: c.optional(c.integer),
+            lastEmailCursor: c.optional(c.string),
+            lastPushCursor: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<UserNotificationsStateShape> = {
             name: 'UserNotificationsState',

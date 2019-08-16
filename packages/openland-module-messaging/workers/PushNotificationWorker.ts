@@ -9,6 +9,8 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
 import { Context } from '@openland/context';
 import { batch } from '../../openland-utils/batch';
+import { eventsFind } from '../../openland-module-db/eventsFind';
+import { UserDialogMessageReceivedEvent } from '../../openland-module-db/store';
 
 const Delays = {
     'none': 10 * 1000,
@@ -143,20 +145,20 @@ const handleUser = async (_ctx: Context, uid: number) => {
     }
 
     // Scanning updates
-    let afterSec = Math.max((state.lastEmailSeq || 0), (state.readSeq || 0), (state.lastPushSeq || 0));
+    let cursors = [
+        Buffer.from(state.lastPushCursor || '', 'base64'),
+        Buffer.from(state.lastEmailCursor || '', 'base64')
+    ].sort(Buffer.compare);
+    let after = cursors[cursors.length - 1].toString('base64');
 
-    let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, {after: afterSec})).items;
-    let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+    let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+    let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
 
     let unreadCounter: number | undefined = undefined;
 
     // Handling unread messages
     let hasMessage = false;
     for (let m of messages) {
-        if (m.seq <= afterSec) {
-            continue;
-        }
-
         let messageId = m.mid!;
         let message = await Store.Message.findById(ctx, messageId);
         if (!message) {
@@ -293,6 +295,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
     log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);
 
     state.lastPushSeq = ustate.seq;
+    state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
 };
 
