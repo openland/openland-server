@@ -58,5 +58,6 @@ export const IDs = {
     Notification: IdsFactory.createId('Notification'),
     UserBadge: IdsFactory.createId('UserBadge'),
 
-    ChatUpdatesCursor: IdsFactory.createStringId('ChatUpdatesCursor')
+    ChatUpdatesCursor: IdsFactory.createStringId('ChatUpdatesCursor'),
+    DialogsUpdatesCursor: IdsFactory.createStringId('DialogsUpdatesCursor'),
 };

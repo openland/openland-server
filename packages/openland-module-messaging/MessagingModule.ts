@@ -150,6 +150,10 @@ export class MessagingModule {
         return await this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
     }
 
+    async zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
+        return await this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
+    }
+
     async fetchUserGlobalCounter(parent: Context, uid: number) {
         return await this.userState.fetchUserGlobalCounter(parent, uid);
     }

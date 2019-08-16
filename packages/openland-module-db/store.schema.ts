@@ -643,6 +643,52 @@ export default declareSchema(() => {
         rangeIndex('user', ['uid', 'seq']);
     });
 
+    event('UserDialogMessageReceivedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UserDialogMessageUpdatedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UserDialogMessageDeletedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UserDialogMessageReadEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+    event('UserDialogTitleUpdatedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('title', string());
+    });
+    event('UserDialogDeletedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+    event('UserDialogBumpEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+    event('UserDialogPhotoUpdatedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('photo', optional(ImageRef));
+    });
+    event('UserDialogMuteChangedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mute', optional(boolean()));
+    });
+    eventStore('UserDialogEventStore', () => {
+        primaryKey('uid', integer());
+    });
+
     //
     // Comments
     //
