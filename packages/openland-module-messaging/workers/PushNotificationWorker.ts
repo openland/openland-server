@@ -84,7 +84,7 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     // }
     if (user.lastPushCursor && user.eventsTail) {
         let comp = Buffer.compare(Buffer.from(user.lastPushCursor, 'base64'), Buffer.from(user.eventsTail, 'base64'));
-        if (comp >= 0) {
+        if (comp === 0) {
             log.debug(ctx, 'ignore already processed updates');
             return true;
         }
@@ -147,11 +147,12 @@ const handleUser = async (_ctx: Context, uid: number) => {
         await Modules.Push.sendCounterPush(ctx, uid);
 
         // if (shouldResetNotificationDelivery(ctx, user)) {
-            Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
         // }
         // if (shouldUpdateUserSeq(ctx, user)) {
-            state.lastPushSeq = ustate.seq;
+        //     state.lastPushSeq = ustate.seq;
         // }
+        state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
         return;
     }
 
