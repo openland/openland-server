@@ -17,6 +17,8 @@ import { roomsSearchIndexer } from './workers/roomsSearchIndexer';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { Store } from '../openland-module-db/FDB';
+import { Modules } from '../openland-modules/Modules';
+import { hasMention } from './resolvers/ModernMessage.resolver';
 
 @injectable()
 export class MessagingModule {
@@ -150,6 +152,10 @@ export class MessagingModule {
         return await this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
     }
 
+    async zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
+        return await this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
+    }
+
     async fetchUserGlobalCounter(parent: Context, uid: number) {
         return await this.userState.fetchUserGlobalCounter(parent, uid);
     }
@@ -188,6 +194,90 @@ export class MessagingModule {
             let secondUid = conv.uid1 === uid ? conv.uid2 : conv.uid1;
             this.userDialogs.markForIndexing(ctx, secondUid, dialog.cid);
         }
+    }
+
+    async isSilent(ctx: Context, uid: number, mid: number) {
+        let message = await Store.Message.findById(ctx, mid);
+        if (!message) {
+            throw new Error('Invalid message id');
+        }
+        let senderId = message.uid!;
+
+        // Ignore current user
+        if (senderId === uid) {
+            return {
+                mobile: true,
+                desktop: true
+            };
+        }
+
+        let sender = await Modules.Users.profileById(ctx, senderId);
+        let receiver = await Modules.Users.profileById(ctx, uid);
+        let conversation = await Store.Conversation.findById(ctx, message.cid);
+        let convOrg = await Store.ConversationOrganization.findById(ctx, message.cid);
+
+        if (!sender || !receiver || !conversation) {
+            return {
+                mobile: true,
+                desktop: true
+            };
+        }
+
+        // Ignore service messages for big rooms
+        if (convOrg && message.isService) {
+            let org = await Store.Organization.findById(ctx, convOrg.oid);
+            let serviceType = message.serviceMetadata && message.serviceMetadata.type;
+            if (org!.kind === 'community' && (serviceType === 'user_kick' || serviceType === 'user_invite')) {
+                return {
+                    mobile: true,
+                    desktop: true
+                };
+            }
+        }
+
+        let userMentioned = hasMention(message, uid);
+
+        let settings = await Modules.Users.getUserSettings(ctx, uid);
+
+        let sendDesktop = settings.desktopNotifications !== 'none';
+        let sendMobile = settings.mobileNotifications !== 'none';
+
+        // Filter non-private if only direct messages enabled
+        if (settings.desktopNotifications === 'direct') {
+            if (conversation.kind !== 'private') {
+                sendDesktop = false;
+            }
+        }
+        if (settings.mobileNotifications === 'direct') {
+            if (conversation.kind !== 'private') {
+                sendMobile = false;
+            }
+        }
+
+        let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, uid, conversation.id);
+        if (conversationSettings.mute && !userMentioned) {
+            return {
+                mobile: true,
+                desktop: true
+            };
+        }
+
+        if (userMentioned) {
+            sendMobile = true;
+            sendDesktop = true;
+        }
+
+        if (!sendMobile && !sendDesktop) {
+            return {
+                mobile: true,
+                desktop: true
+            };
+        }
+
+        return {
+            mobile: !sendMobile,
+            desktop: !sendDesktop
+        };
     }
 
     //

@@ -178,7 +178,6 @@ export class CountersRepository {
     private incrementCounter = async (parent: Context, uid: number, cid: number) => {
         return await inTx(parent, async (ctx) => {
             let isMuted = await this.isChatMuted(ctx, uid, cid);
-
             this.getCountersDirectory().add(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], 1);
         });
     }

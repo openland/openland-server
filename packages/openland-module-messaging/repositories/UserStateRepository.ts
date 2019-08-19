@@ -134,6 +134,37 @@ export class UserStateRepository {
         return;
     }
 
+    zipUserDialogEventsModern = (events: { type: string, cid: number }[]) => {
+        let zipedEvents = [];
+        let latestChatsUpdatesByType = new Map<string, { type: string, cid: number }>();
+        let currentEvent: { type: string, cid: number };
+        let currentEventKey: string;
+        for (let i = events.length - 1; i >= 0; i--) {
+            currentEvent = events[i];
+            currentEventKey = currentEvent.cid + '_' + currentEvent.type;
+            if (!latestChatsUpdatesByType.get(currentEventKey)) {
+                zipedEvents.unshift(currentEvent);
+                latestChatsUpdatesByType.set(currentEventKey, currentEvent);
+            }
+        }
+        return zipedEvents;
+    }
+
+    async *zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
+        if (!state) {
+            return;
+        }
+        let stream = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1000, after: state });
+        while (true) {
+            let res = await stream.next(parent);
+            if (res.length > 0) {
+                yield  { items: this.zipUserDialogEventsModern(res as any), cursor: stream.cursor };
+            } else {
+                return;
+            }
+        }
+    }
+
     async fetchUserGlobalCounter(ctx: Context, uid: number) {
         let settings = await Store.UserSettings.findById(ctx, uid);
         if (!settings) {

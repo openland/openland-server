@@ -7449,6 +7449,8 @@ export interface UserNotificationsStateShape {
     lastPushNotification: number | null;
     lastEmailSeq: number | null;
     lastPushSeq: number | null;
+    lastEmailCursor: string | null;
+    lastPushCursor: string | null;
 }
 
 export interface UserNotificationsStateCreateShape {
@@ -7457,6 +7459,8 @@ export interface UserNotificationsStateCreateShape {
     lastPushNotification?: number | null | undefined;
     lastEmailSeq?: number | null | undefined;
     lastPushSeq?: number | null | undefined;
+    lastEmailCursor?: string | null | undefined;
+    lastPushCursor?: string | null | undefined;
 }
 
 export class UserNotificationsState extends Entity<UserNotificationsStateShape> {
@@ -7506,6 +7510,24 @@ export class UserNotificationsState extends Entity<UserNotificationsStateShape> 
             this.invalidate();
         }
     }
+    get lastEmailCursor(): string | null { return this._rawValue.lastEmailCursor; }
+    set lastEmailCursor(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastEmailCursor.normalize(value);
+        if (this._rawValue.lastEmailCursor !== normalized) {
+            this._rawValue.lastEmailCursor = normalized;
+            this._updatedValues.lastEmailCursor = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPushCursor(): string | null { return this._rawValue.lastPushCursor; }
+    set lastPushCursor(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastPushCursor.normalize(value);
+        if (this._rawValue.lastPushCursor !== normalized) {
+            this._rawValue.lastPushCursor = normalized;
+            this._updatedValues.lastPushCursor = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserNotificationsStateFactory extends EntityFactory<UserNotificationsStateShape, UserNotificationsState> {
@@ -7521,6 +7543,8 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
         fields.push({ name: 'lastPushNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastEmailSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastPushSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lastEmailCursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'lastPushCursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             readSeq: c.optional(c.integer),
@@ -7528,6 +7552,8 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
             lastPushNotification: c.optional(c.integer),
             lastEmailSeq: c.optional(c.integer),
             lastPushSeq: c.optional(c.integer),
+            lastEmailCursor: c.optional(c.string),
+            lastPushCursor: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<UserNotificationsStateShape> = {
             name: 'UserNotificationsState',
@@ -11802,6 +11828,312 @@ export class DialogNeedReindexEvent extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
+const userDialogMessageReceivedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UserDialogMessageReceivedEventShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UserDialogMessageReceivedEvent extends BaseEvent {
+
+    static create(data: UserDialogMessageReceivedEventShape) {
+        return new UserDialogMessageReceivedEvent(userDialogMessageReceivedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogMessageReceivedEvent(userDialogMessageReceivedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogMessageReceivedEvent) {
+        return userDialogMessageReceivedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogMessageReceivedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const userDialogMessageUpdatedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UserDialogMessageUpdatedEventShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UserDialogMessageUpdatedEvent extends BaseEvent {
+
+    static create(data: UserDialogMessageUpdatedEventShape) {
+        return new UserDialogMessageUpdatedEvent(userDialogMessageUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogMessageUpdatedEvent(userDialogMessageUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogMessageUpdatedEvent) {
+        return userDialogMessageUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogMessageUpdatedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const userDialogMessageDeletedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UserDialogMessageDeletedEventShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UserDialogMessageDeletedEvent extends BaseEvent {
+
+    static create(data: UserDialogMessageDeletedEventShape) {
+        return new UserDialogMessageDeletedEvent(userDialogMessageDeletedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogMessageDeletedEvent(userDialogMessageDeletedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogMessageDeletedEvent) {
+        return userDialogMessageDeletedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogMessageDeletedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const userDialogMessageReadEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UserDialogMessageReadEventShape {
+    uid: number;
+    cid: number;
+}
+
+export class UserDialogMessageReadEvent extends BaseEvent {
+
+    static create(data: UserDialogMessageReadEventShape) {
+        return new UserDialogMessageReadEvent(userDialogMessageReadEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogMessageReadEvent(userDialogMessageReadEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogMessageReadEvent) {
+        return userDialogMessageReadEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogMessageReadEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
+const userDialogTitleUpdatedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    title: c.string,
+});
+
+interface UserDialogTitleUpdatedEventShape {
+    uid: number;
+    cid: number;
+    title: string;
+}
+
+export class UserDialogTitleUpdatedEvent extends BaseEvent {
+
+    static create(data: UserDialogTitleUpdatedEventShape) {
+        return new UserDialogTitleUpdatedEvent(userDialogTitleUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogTitleUpdatedEvent(userDialogTitleUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogTitleUpdatedEvent) {
+        return userDialogTitleUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogTitleUpdatedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get title(): string { return this.raw.title; }
+}
+
+const userDialogDeletedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UserDialogDeletedEventShape {
+    uid: number;
+    cid: number;
+}
+
+export class UserDialogDeletedEvent extends BaseEvent {
+
+    static create(data: UserDialogDeletedEventShape) {
+        return new UserDialogDeletedEvent(userDialogDeletedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogDeletedEvent(userDialogDeletedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogDeletedEvent) {
+        return userDialogDeletedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogDeletedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
+const userDialogBumpEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UserDialogBumpEventShape {
+    uid: number;
+    cid: number;
+}
+
+export class UserDialogBumpEvent extends BaseEvent {
+
+    static create(data: UserDialogBumpEventShape) {
+        return new UserDialogBumpEvent(userDialogBumpEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogBumpEvent(userDialogBumpEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogBumpEvent) {
+        return userDialogBumpEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogBumpEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
+const userDialogPhotoUpdatedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    photo: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
+});
+
+interface UserDialogPhotoUpdatedEventShape {
+    uid: number;
+    cid: number;
+    photo?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
+}
+
+export class UserDialogPhotoUpdatedEvent extends BaseEvent {
+
+    static create(data: UserDialogPhotoUpdatedEventShape) {
+        return new UserDialogPhotoUpdatedEvent(userDialogPhotoUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogPhotoUpdatedEvent(userDialogPhotoUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogPhotoUpdatedEvent) {
+        return userDialogPhotoUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogPhotoUpdatedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this.raw.photo; }
+}
+
+const userDialogMuteChangedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mute: c.optional(c.boolean),
+});
+
+interface UserDialogMuteChangedEventShape {
+    uid: number;
+    cid: number;
+    mute?: boolean | null | undefined;
+}
+
+export class UserDialogMuteChangedEvent extends BaseEvent {
+
+    static create(data: UserDialogMuteChangedEventShape) {
+        return new UserDialogMuteChangedEvent(userDialogMuteChangedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogMuteChangedEvent(userDialogMuteChangedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogMuteChangedEvent) {
+        return userDialogMuteChangedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogMuteChangedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mute(): boolean | null { return this.raw.mute; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -11869,6 +12201,41 @@ export class DialogIndexEventStore extends EventStore {
 
     createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [], opts);
+    }
+}
+
+export class UserDialogEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('userDialogEventStore');
+        const descriptor = {
+            name: 'UserDialogEventStore',
+            storageKey: 'userDialogEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new UserDialogEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, uid: number, event: BaseEvent) {
+        this._post(ctx, [uid], event);
+    }
+
+    async findAll(ctx: Context, uid: number) {
+        return this._findAll(ctx, [uid]);
+    }
+
+    createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([uid], opts);
+    }
+
+    createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [uid], opts);
     }
 }
 
@@ -11991,6 +12358,7 @@ export interface Store extends BaseStore {
     readonly DebugEventState: DebugEventStateFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
+    readonly UserDialogEventStore: UserDialogEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -12004,6 +12372,15 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);
     eventFactory.registerEventType('messageDeletedEvent', MessageDeletedEvent.encode as any, MessageDeletedEvent.decode);
     eventFactory.registerEventType('dialogNeedReindexEvent', DialogNeedReindexEvent.encode as any, DialogNeedReindexEvent.decode);
+    eventFactory.registerEventType('userDialogMessageReceivedEvent', UserDialogMessageReceivedEvent.encode as any, UserDialogMessageReceivedEvent.decode);
+    eventFactory.registerEventType('userDialogMessageUpdatedEvent', UserDialogMessageUpdatedEvent.encode as any, UserDialogMessageUpdatedEvent.decode);
+    eventFactory.registerEventType('userDialogMessageDeletedEvent', UserDialogMessageDeletedEvent.encode as any, UserDialogMessageDeletedEvent.decode);
+    eventFactory.registerEventType('userDialogMessageReadEvent', UserDialogMessageReadEvent.encode as any, UserDialogMessageReadEvent.decode);
+    eventFactory.registerEventType('userDialogTitleUpdatedEvent', UserDialogTitleUpdatedEvent.encode as any, UserDialogTitleUpdatedEvent.decode);
+    eventFactory.registerEventType('userDialogDeletedEvent', UserDialogDeletedEvent.encode as any, UserDialogDeletedEvent.decode);
+    eventFactory.registerEventType('userDialogBumpEvent', UserDialogBumpEvent.encode as any, UserDialogBumpEvent.decode);
+    eventFactory.registerEventType('userDialogPhotoUpdatedEvent', UserDialogPhotoUpdatedEvent.encode as any, UserDialogPhotoUpdatedEvent.decode);
+    eventFactory.registerEventType('userDialogMuteChangedEvent', UserDialogMuteChangedEvent.encode as any, UserDialogMuteChangedEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
@@ -12126,6 +12503,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
+    let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -12251,5 +12629,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,
         DialogIndexEventStore: await DialogIndexEventStorePromise,
+        UserDialogEventStore: await UserDialogEventStorePromise,
     };
 }

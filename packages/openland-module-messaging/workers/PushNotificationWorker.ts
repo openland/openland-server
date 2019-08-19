@@ -9,6 +9,8 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
 import { Context } from '@openland/context';
 import { batch } from '../../openland-utils/batch';
+import { eventsFind } from '../../openland-module-db/eventsFind';
+import { UserDialogMessageReceivedEvent } from '../../openland-module-db/store';
 
 const Delays = {
     'none': 10 * 1000,
@@ -25,6 +27,8 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     notificationsReadSeq: number | null,
     userStateSeq: number,
     lastPushSeq: number | null,
+    lastPushCursor: string | null,
+    eventsTail: string | null,
     mobileNotifications: 'all' | 'direct' | 'none',
     desktopNotifications: 'all' | 'direct' | 'none'
 }) => {
@@ -74,9 +78,16 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     }
 
     // Ignore already processed updates
-    if (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq) {
-        log.debug(ctx, 'ignore already processed updates');
-        return true;
+    // if (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq) {
+    //     log.debug(ctx, 'ignore already processed updates');
+    //     return true;
+    // }
+    if (user.lastPushCursor && user.eventsTail) {
+        let comp = Buffer.compare(Buffer.from(user.lastPushCursor, 'base64'), Buffer.from(user.eventsTail, 'base64'));
+        if (comp === 0) {
+            log.debug(ctx, 'ignore already processed updates');
+            return true;
+        }
     }
     return false;
 };
@@ -125,7 +136,9 @@ const handleUser = async (_ctx: Context, uid: number) => {
         notificationsDelay: settings.notificationsDelay,
         notificationsReadSeq: state.readSeq,
         userStateSeq: ustate.seq,
+        lastPushCursor: state.lastPushCursor,
         lastPushSeq: state.lastPushSeq,
+        eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
         mobileNotifications: settings.mobileNotifications,
         desktopNotifications: settings.desktopNotifications,
     };
@@ -134,29 +147,30 @@ const handleUser = async (_ctx: Context, uid: number) => {
         await Modules.Push.sendCounterPush(ctx, uid);
 
         // if (shouldResetNotificationDelivery(ctx, user)) {
-            Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
         // }
         // if (shouldUpdateUserSeq(ctx, user)) {
-            state.lastPushSeq = ustate.seq;
+        //     state.lastPushSeq = ustate.seq;
         // }
+        state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
         return;
     }
 
     // Scanning updates
-    let afterSec = Math.max((state.lastEmailSeq || 0), (state.readSeq || 0), (state.lastPushSeq || 0));
+    let cursors = [
+        Buffer.from(state.lastPushCursor || '', 'base64'),
+        Buffer.from(state.lastEmailCursor || '', 'base64')
+    ].sort(Buffer.compare);
+    let after = cursors[cursors.length - 1].toString('base64');
 
-    let remainingUpdates = (await Store.UserDialogEvent.user.query(ctx, uid, {after: afterSec})).items;
-    let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
+    let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+    let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
 
     let unreadCounter: number | undefined = undefined;
 
     // Handling unread messages
     let hasMessage = false;
     for (let m of messages) {
-        if (m.seq <= afterSec) {
-            continue;
-        }
-
         let messageId = m.mid!;
         let message = await Store.Message.findById(ctx, messageId);
         if (!message) {
@@ -293,6 +307,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
     log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);
 
     state.lastPushSeq = ustate.seq;
+    state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
 };
 

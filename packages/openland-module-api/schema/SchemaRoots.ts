@@ -26,7 +26,16 @@ import {
     Message,
     Comment,
     ConferencePeer,
-    ConferenceRoom, RoomProfile, RichMessage, MessageReceivedEvent, MessageUpdatedEvent, MessageDeletedEvent,
+    ConferenceRoom,
+    RoomProfile,
+    RichMessage,
+    MessageReceivedEvent,
+    MessageUpdatedEvent,
+    MessageDeletedEvent,
+    UserDialogMessageReceivedEvent,
+    UserDialogMessageUpdatedEvent,
+    UserDialogMessageDeletedEvent,
+    UserDialogTitleUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogMuteChangedEvent, UserDialogBumpEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -156,19 +165,6 @@ export namespace GQLRoots {
     export type ConversationMessageUpdatedRoot = any;
     export type ConversationMessageDeletedRoot = any;
     export type ConversationLostAccessRoot = any;
-    export type DialogUpdateSingleRoot = any;
-    export type DialogUpdateBatchRoot = any;
-    export type DialogUpdateContainerRoot = any;
-    export type DialogUpdateRoot = any;
-    export type DialogMessageReceivedRoot = UserDialogEvent;
-    export type DialogMessageUpdatedRoot = UserDialogEvent;
-    export type DialogMessageDeletedRoot = UserDialogEvent;
-    export type DialogMessageReadRoot = UserDialogEvent;
-    export type DialogTitleUpdatedRoot = UserDialogEvent;
-    export type DialogPhotoUpdatedRoot = UserDialogEvent;
-    export type DialogMuteChangedRoot = UserDialogEvent;
-    export type DialogBumpRoot = UserDialogEvent;
-    export type DialogMentionedChangedRoot = UserDialogEvent;
     export type FeatureFlagRoot = FeatureFlag;
     export type OrganizationContactRoot = any;
     export type OrganizationRoot = Organization;
@@ -251,6 +247,7 @@ export namespace GQLRoots {
     export type MessageSourceRoot = Message | Comment;
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
+    export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
 
     //
     //  Chat updates
@@ -265,6 +262,23 @@ export namespace GQLRoots {
     export type ChatLostAccessRoot = BaseEvent;
     export type ChatUpdateStateRoot = any;
     export type ChatUpdateContainerRoot = LiveStreamItem<BaseEvent>;
+
+    //
+    //  Dialogs updates
+    //
+    export type DialogUpdateContainerRoot = LiveStreamItem<BaseEvent>;
+    export type DialogUpdateSingleRoot = LiveStreamItem<BaseEvent>;
+    export type DialogUpdateBatchRoot = LiveStreamItem<BaseEvent>;
+    export type DialogUpdateRoot = BaseEvent;
+    export type DialogMessageReceivedRoot = UserDialogMessageReceivedEvent;
+    export type DialogMessageUpdatedRoot = UserDialogMessageUpdatedEvent;
+    export type DialogMessageDeletedRoot = UserDialogMessageDeletedEvent;
+    export type DialogMessageReadRoot = UserDialogMessageReceivedEvent;
+    export type DialogTitleUpdatedRoot = UserDialogTitleUpdatedEvent;
+    export type DialogPhotoUpdatedRoot = UserDialogPhotoUpdatedEvent;
+    export type DialogMuteChangedRoot = UserDialogMuteChangedEvent;
+    export type DialogBumpRoot = UserDialogBumpEvent;
+    export type DialogMentionedChangedRoot = any;
 
     //
     //  Search
