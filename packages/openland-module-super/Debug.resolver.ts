@@ -15,9 +15,6 @@ import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import {
-    CounterStrategies
-} from '../openland-module-messaging/repositories/CounterStrategies';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 
 const URLInfoService = createUrlInfoService();
@@ -813,9 +810,10 @@ export default {
         }),
         debugResetGlobalCounters: withUser(async (parent, args, uid) => {
             await inTx(parent, async ctx => {
-                for (let strategy of CounterStrategies) {
-                    strategy.counter().set(ctx, uid, 0);
-                }
+                let directory = Store.UserCountersIndexDirectory
+                    .withKeyEncoding(encoders.tuple)
+                    .withValueEncoding(encoders.int32LE);
+                directory.clearPrefixed(ctx, [uid]);
             });
             return true;
         }),
