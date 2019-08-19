@@ -198,6 +198,10 @@ export default {
                     profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
                 }
 
+                if (args.input.linkedin !== undefined) {
+                    profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
+                }
+
                 if (args.input.alphaLinkedin !== undefined) {
                     profile.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
                 }
