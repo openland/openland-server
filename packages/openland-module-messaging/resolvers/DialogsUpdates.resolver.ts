@@ -71,7 +71,8 @@ export default {
         alphaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
         unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
+        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
+        silent: async (src, args, ctx) => Modules.Messaging.isSilent(ctx, ctx.auth.uid!, src.mid!),
     },
     DialogMessageUpdated: {
         cid: async (src, args, ctx) => IDs.Conversation.serialize(src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid),
@@ -170,7 +171,7 @@ export default {
                                 return UserDialogMessageReceivedEvent.create({
                                     uid: event.uid,
                                     cid: event.cid!,
-                                    mid: event.mid!
+                                    mid: event.mid!,
                                 });
                             } else if (event.kind === 'message_updated') {
                                 return UserDialogMessageUpdatedEvent.create({

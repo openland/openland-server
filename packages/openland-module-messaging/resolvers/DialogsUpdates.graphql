@@ -15,6 +15,11 @@ union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
 
 union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump
 
+type SilentMessageInfo {
+    mobile: Boolean!
+    desktop: Boolean!
+}
+
 type DialogMessageReceived {
     cid: ID!
     message: ConversationMessage!
@@ -23,6 +28,7 @@ type DialogMessageReceived {
     unread: Int!
     globalUnread: Int!
     haveMention: Boolean!
+    silent: SilentMessageInfo!
 }
 
 type DialogMessageUpdated {
