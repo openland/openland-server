@@ -9,6 +9,7 @@ type OrganizationProfile {
     twitter: String
     facebook: String
     linkedin: String
+    instagram: String
     contacts: [OrganizationContact!]!
     location: String
 
@@ -40,6 +41,7 @@ input UpdateOrganizationProfileInput {
     twitter: String
     facebook: String
     linkedin: String
+    instagram: String
     location: String
     contacts: [ContactPersonInput!]
 

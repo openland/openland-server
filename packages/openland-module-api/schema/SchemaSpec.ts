@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b5257e75e25e3e6d8259dfd33b4f6ae6';
+export const GQL_SPEC_VERSION = '6970899317f6772282a698725cc8bdec';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -261,6 +261,7 @@ export namespace GQL {
         about: Nullable<string>;
         location: Nullable<string>;
         linkedin: Nullable<string>;
+        instagram: Nullable<string>;
         twitter: Nullable<string>;
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
@@ -284,6 +285,7 @@ export namespace GQL {
         about: Nullable<string>;
         location: Nullable<string>;
         linkedin: Nullable<string>;
+        instagram: Nullable<string>;
         twitter: Nullable<string>;
         primaryOrganization: Nullable<string>;
     }
@@ -1893,6 +1895,7 @@ export namespace GQL {
         twitter: Nullable<string>;
         facebook: Nullable<string>;
         linkedin: Nullable<string>;
+        instagram: Nullable<string>;
         location: Nullable<string>;
         betaIsOwner: boolean;
         betaIsAdmin: boolean;
@@ -1929,6 +1932,7 @@ export namespace GQL {
         twitter: Nullable<string>;
         facebook: Nullable<string>;
         linkedin: Nullable<string>;
+        instagram: Nullable<string>;
         contacts: OrganizationContact[];
         location: Nullable<string>;
         alphaPublished: boolean;
@@ -1957,6 +1961,7 @@ export namespace GQL {
         twitter: Nullable<string>;
         facebook: Nullable<string>;
         linkedin: Nullable<string>;
+        instagram: Nullable<string>;
         location: Nullable<string>;
         contacts: Nullable<ContactPersonInput[]>;
         alphaPublished: Nullable<boolean>;
@@ -2466,6 +2471,7 @@ export namespace GQL {
         about: Nullable<string>;
         location: Nullable<string>;
         linkedin: Nullable<string>;
+        instagram: Nullable<string>;
         twitter: Nullable<string>;
         audienceSize: number;
         channelsJoined: ChannelConversation[];

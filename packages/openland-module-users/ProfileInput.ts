@@ -10,6 +10,7 @@ export interface ProfileInput {
     about?: string | undefined | null;
     location?: string | undefined | null;
     linkedin?: string | undefined | null;
+    instagram?: string | undefined | null;
     twitter?: string | undefined | null;
     primaryOrganization?: string | undefined | null;
 }
