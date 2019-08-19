@@ -16,10 +16,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import {
-    AllUnreadChatsCalculator,
-    AllUnreadMessagesCalculator,
-    CounterStrategies,
-    CounterStrategyAll, UnreadChatsWithoutMutedCalculator, UnreadMessagesWithoutMutedCalculator
+    CounterStrategies
 } from '../openland-module-messaging/repositories/CounterStrategies';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 
@@ -44,6 +41,14 @@ const createDebugEvent = async (parent: Context, uid: number, key: string) => {
         let seq = await nextDebugSeq(ctx, uid);
         await Store.DebugEvent.create(ctx, uid!, seq, { key });
     });
+};
+
+const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
+    let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
+    if (settings && settings.mute) {
+        return true;
+    }
+    return false;
 };
 
 export default {
@@ -815,13 +820,6 @@ export default {
             return true;
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
-            const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
-                let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
-                if (settings && settings.mute) {
-                    return true;
-                }
-                return false;
-            };
             let directory = Store.UserCountersIndexDirectory
                 .withKeyEncoding(encoders.tuple)
                 .withValueEncoding(encoders.int32LE);
@@ -829,17 +827,13 @@ export default {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
                     let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                    for (let strategy of CounterStrategies) {
-                        strategy.counter().set(ctx, uid, 0);
-                    }
                     directory.clearPrefixed(ctx, [uid]);
 
                     for (let dialog of dialogs) {
-                        let unread = Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
-                        let isMuted = isChatMuted(ctx, uid, dialog.cid);
-                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, await unread, await isMuted).calcForChat();
-                        if (await unread > 0) {
-                            directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid], await unread);
+                        let unread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
+                        let isMuted = await isChatMuted(ctx, uid, dialog.cid);
+                        if (unread > 0) {
+                            directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid], unread);
                         }
                     }
                 } catch (e) {
@@ -850,19 +844,12 @@ export default {
             return true;
         }),
         debugValidateGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
-            const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
-                let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
-                if (settings && settings.mute) {
-                    return true;
-                }
-                return false;
-            };
+            let directory = Store.UserCountersIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE);
+
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugValidateGlobalCountersForAll', async (ctx, uid, log) => {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                let UserGlobalCounterAllUnreadMessages = 0;
-                let UserGlobalCounterUnreadMessagesWithoutMuted = 0;
-                let UserGlobalCounterAllUnreadChats = 0;
-                let UserGlobalCounterUnreadChatsWithoutMuted = 0;
 
                 for (let dialog of dialogs) {
                     let chatUnread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
@@ -872,23 +859,17 @@ export default {
                         await log(`[${uid}] negative dialog counter`);
                     }
 
-                    UserGlobalCounterAllUnreadMessages += AllUnreadMessagesCalculator.calcForChat(chatUnread, isMuted);
-                    UserGlobalCounterUnreadMessagesWithoutMuted += UnreadMessagesWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
-                    UserGlobalCounterAllUnreadChats += AllUnreadChatsCalculator.calcForChat(chatUnread, isMuted);
-                    UserGlobalCounterUnreadChatsWithoutMuted += UnreadChatsWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
-                }
-
-                if (UserGlobalCounterAllUnreadMessages !== await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterAllUnreadMessages mismatch ${await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid)} vs ${UserGlobalCounterAllUnreadMessages} `);
-                }
-                if (UserGlobalCounterUnreadMessagesWithoutMuted !== await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterUnreadMessagesWithoutMuted mismatch ${await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid)} vs ${UserGlobalCounterUnreadMessagesWithoutMuted} `);
-                }
-                if (UserGlobalCounterAllUnreadChats !== await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterAllUnreadChats mismatch ${await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid)} vs ${UserGlobalCounterAllUnreadChats} `);
-                }
-                if (UserGlobalCounterUnreadChatsWithoutMuted !== await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterUnreadChatsWithoutMuted mismatch ${await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid)} vs ${UserGlobalCounterUnreadChatsWithoutMuted} `);
+                    if (chatUnread > 0) {
+                        let counter = await directory.get(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid]);
+                        if (counter !== chatUnread) {
+                            await log(`[${uid}], cid: ${dialog.cid}, value: ${counter} expected: ${chatUnread}, ${isMuted ? 'muted' : 'unmuted'}`);
+                        }
+                    } else {
+                        let counter = await directory.get(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid]);
+                        if (counter) {
+                            await log(`[${uid}] extra counter, cid: ${dialog.cid}, value: ${counter}`);
+                        }
+                    }
                 }
             });
             return true;
