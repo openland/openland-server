@@ -48,6 +48,7 @@ input UpdateProfileInput {
     about: String
     location: String
     linkedin: String
+    instagram: String
     twitter: String
     primaryOrganization: ID
 
