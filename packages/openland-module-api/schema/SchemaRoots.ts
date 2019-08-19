@@ -247,6 +247,7 @@ export namespace GQLRoots {
     export type MessageSourceRoot = Message | Comment;
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
+    export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
 
     //
     //  Chat updates
