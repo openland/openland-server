@@ -20,6 +20,7 @@ type Organization {
     twitter: String
     facebook: String
     linkedin: String
+    instagram: String
     location: String
 
     betaIsOwner: Boolean!

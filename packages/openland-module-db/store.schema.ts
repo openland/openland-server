@@ -34,6 +34,7 @@ export default declareSchema(() => {
         field('email', optional(string()));
         field('picture', optional(json()));
         field('linkedin', optional(string()));
+        field('instagram', optional(string()));
         field('twitter', optional(string()));
         field('locations', optional(json()));
         field('primaryOrganization', optional(integer()));
@@ -99,6 +100,7 @@ export default declareSchema(() => {
         field('twitter', optional(string()));
         field('facebook', optional(string()));
         field('linkedin', optional(string()));
+        field('instagram', optional(string()));
         field('website', optional(string()));
 
         field('joinedMembersCount', optional(integer()));
@@ -567,8 +569,8 @@ export default declareSchema(() => {
     //
 
     event('DialogNeedReindexEvent', () => {
-       field('cid', integer());
-       field('uid', integer());
+        field('cid', integer());
+        field('uid', integer());
     });
     eventStore('DialogIndexEventStore', () => {
         //

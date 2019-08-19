@@ -1358,6 +1358,7 @@ export interface UserProfileShape {
     email: string | null;
     picture: any | null;
     linkedin: string | null;
+    instagram: string | null;
     twitter: string | null;
     locations: any | null;
     primaryOrganization: number | null;
@@ -1375,6 +1376,7 @@ export interface UserProfileCreateShape {
     email?: string | null | undefined;
     picture?: any | null | undefined;
     linkedin?: string | null | undefined;
+    instagram?: string | null | undefined;
     twitter?: string | null | undefined;
     locations?: any | null | undefined;
     primaryOrganization?: number | null | undefined;
@@ -1465,6 +1467,15 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get instagram(): string | null { return this._rawValue.instagram; }
+    set instagram(value: string | null) {
+        let normalized = this.descriptor.codec.fields.instagram.normalize(value);
+        if (this._rawValue.instagram !== normalized) {
+            this._rawValue.instagram = normalized;
+            this._updatedValues.instagram = normalized;
+            this.invalidate();
+        }
+    }
     get twitter(): string | null { return this._rawValue.twitter; }
     set twitter(value: string | null) {
         let normalized = this.descriptor.codec.fields.twitter.normalize(value);
@@ -1531,6 +1542,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'email', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'locations', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'primaryOrganization', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -1547,6 +1559,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             email: c.optional(c.string),
             picture: c.optional(c.any),
             linkedin: c.optional(c.string),
+            instagram: c.optional(c.string),
             twitter: c.optional(c.string),
             locations: c.optional(c.any),
             primaryOrganization: c.optional(c.integer),
@@ -2107,6 +2120,7 @@ export interface OrganizationProfileShape {
     twitter: string | null;
     facebook: string | null;
     linkedin: string | null;
+    instagram: string | null;
     website: string | null;
     joinedMembersCount: number | null;
 }
@@ -2118,6 +2132,7 @@ export interface OrganizationProfileCreateShape {
     twitter?: string | null | undefined;
     facebook?: string | null | undefined;
     linkedin?: string | null | undefined;
+    instagram?: string | null | undefined;
     website?: string | null | undefined;
     joinedMembersCount?: number | null | undefined;
 }
@@ -2178,6 +2193,15 @@ export class OrganizationProfile extends Entity<OrganizationProfileShape> {
             this.invalidate();
         }
     }
+    get instagram(): string | null { return this._rawValue.instagram; }
+    set instagram(value: string | null) {
+        let normalized = this.descriptor.codec.fields.instagram.normalize(value);
+        if (this._rawValue.instagram !== normalized) {
+            this._rawValue.instagram = normalized;
+            this._updatedValues.instagram = normalized;
+            this.invalidate();
+        }
+    }
     get website(): string | null { return this._rawValue.website; }
     set website(value: string | null) {
         let normalized = this.descriptor.codec.fields.website.normalize(value);
@@ -2212,6 +2236,7 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
         fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'facebook', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'website', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'joinedMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
@@ -2222,6 +2247,7 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
             twitter: c.optional(c.string),
             facebook: c.optional(c.string),
             linkedin: c.optional(c.string),
+            instagram: c.optional(c.string),
             website: c.optional(c.string),
             joinedMembersCount: c.optional(c.integer),
         });
