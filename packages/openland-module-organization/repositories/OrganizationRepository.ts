@@ -67,6 +67,7 @@ export class OrganizationRepository {
                 twitter: null,
                 facebook: null,
                 linkedin: null,
+                instagram: null,
                 joinedMembersCount: null
             });
 

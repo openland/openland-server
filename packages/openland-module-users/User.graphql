@@ -12,6 +12,7 @@ type User {
     about: String
     location: String
     linkedin: String
+    instagram: String
     twitter: String
     audienceSize: Int!
 
