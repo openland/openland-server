@@ -107,7 +107,7 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
         keyboard: {
             buttons: [[
                 { title: 'Message', style: 'DEFAULT', url: `https://openland.com/mail/${IDs.User.serialize(userId)}` },
-                { title: 'View profile', style: 'DEFAULT', url },
+                // { title: 'View profile', style: 'DEFAULT', url },
             ]]
         }
     } as URLAugmentation;
