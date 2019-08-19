@@ -822,18 +822,20 @@ export default {
                 .withKeyEncoding(encoders.tuple)
                 .withValueEncoding(encoders.int32LE);
 
+            const calcForChat = async (ctx: Context, uid: number, cid: number) => {
+                let unread = await Store.UserDialogCounter.get(ctx, uid, cid);
+                let isMuted = await isChatMuted(ctx, uid, cid);
+                if (unread > 0) {
+                    directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], unread);
+                }
+            };
+
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
                     let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                     directory.clearPrefixed(ctx, [uid]);
 
-                    for (let dialog of dialogs) {
-                        let unread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
-                        let isMuted = await isChatMuted(ctx, uid, dialog.cid);
-                        if (unread > 0) {
-                            directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid], unread);
-                        }
-                    }
+                    await Promise.all(dialogs.map(d => calcForChat(ctx, uid, d.cid)));
                 } catch (e) {
                     await log(e);
                     logger.error(parent, 'debugCalcGlobalCountersForAllError', e);
