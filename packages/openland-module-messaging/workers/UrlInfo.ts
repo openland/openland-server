@@ -78,8 +78,8 @@ function createURLInfoFetcher() {
     let fetcher = new URLInfoFetcher();
 
     fetcher
-        .specialUrl((_, hostname) => hostname.endsWith('linkedin.com'), async () => null)
-        .specialUrl((_, hostname) => hostname.endsWith('notion.so'), async () => null)
+        .specialUrl((_, hostname) => hostname.endsWith('linkedin.com'), async () => false)
+        .specialUrl((_, hostname) => hostname.endsWith('notion.so'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('wikipedia.org'), async (url) => {
             let raw = await fetchRawURLInfo(url);
             if (raw && raw.doc) {
