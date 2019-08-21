@@ -105,8 +105,6 @@ export namespace GQLRoots {
     export type MessageReactionRoot = { userId: number, reaction: string };
     export type ConversationMessageRoot = Message;
     export type FileMetadataRoot = any;
-    export type StickerPackRoot = any;
-    export type StickerRoot = any;
     export type ConversationEventSimpleBatchRoot = any;
     export type ConversationEventRoot = any;
     export type ConversationEventMessageRoot = any;
@@ -248,6 +246,9 @@ export namespace GQLRoots {
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
+    export type StickerPackRoot = number | any;
+    export type StickerRoot = any;
+    export type UserStickersRoot = any;
 
     //
     //  Chat updates

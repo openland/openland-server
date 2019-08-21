@@ -9884,6 +9884,437 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
     }
 }
 
+export interface StickerPackShape {
+    id: number;
+    title: string;
+    authorId: number;
+    published: boolean;
+    usesCount: number;
+    emojis: ({ emoji: string, stickerId: string })[];
+}
+
+export interface StickerPackCreateShape {
+    title: string;
+    authorId: number;
+    published: boolean;
+    usesCount: number;
+    emojis: ({ emoji: string, stickerId: string })[];
+}
+
+export class StickerPack extends Entity<StickerPackShape> {
+    get id(): number { return this._rawValue.id; }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get authorId(): number { return this._rawValue.authorId; }
+    set authorId(value: number) {
+        let normalized = this.descriptor.codec.fields.authorId.normalize(value);
+        if (this._rawValue.authorId !== normalized) {
+            this._rawValue.authorId = normalized;
+            this._updatedValues.authorId = normalized;
+            this.invalidate();
+        }
+    }
+    get published(): boolean { return this._rawValue.published; }
+    set published(value: boolean) {
+        let normalized = this.descriptor.codec.fields.published.normalize(value);
+        if (this._rawValue.published !== normalized) {
+            this._rawValue.published = normalized;
+            this._updatedValues.published = normalized;
+            this.invalidate();
+        }
+    }
+    get usesCount(): number { return this._rawValue.usesCount; }
+    set usesCount(value: number) {
+        let normalized = this.descriptor.codec.fields.usesCount.normalize(value);
+        if (this._rawValue.usesCount !== normalized) {
+            this._rawValue.usesCount = normalized;
+            this._updatedValues.usesCount = normalized;
+            this.invalidate();
+        }
+    }
+    get emojis(): ({ emoji: string, stickerId: string })[] { return this._rawValue.emojis; }
+    set emojis(value: ({ emoji: string, stickerId: string })[]) {
+        let normalized = this.descriptor.codec.fields.emojis.normalize(value);
+        if (this._rawValue.emojis !== normalized) {
+            this._rawValue.emojis = normalized;
+            this._updatedValues.emojis = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerPack> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('stickerPack');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'authorId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'published', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'usesCount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'emojis', type: { type: 'array', inner: { type: 'struct', fields: { emoji: { type: 'string' }, stickerId: { type: 'string' } } } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            title: c.string,
+            authorId: c.integer,
+            published: c.boolean,
+            usesCount: c.integer,
+            emojis: c.array(c.struct({ emoji: c.string, stickerId: c.string })),
+        });
+        let descriptor: EntityDescriptor<StickerPackShape> = {
+            name: 'StickerPack',
+            storageKey: 'stickerPack',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StickerPackFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StickerPackShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: StickerPackCreateShape): Promise<StickerPack> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: StickerPackCreateShape): StickerPack {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<StickerPack | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StickerPackShape>): StickerPack {
+        return new StickerPack([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserStickersStateShape {
+    uid: number;
+    packIds: (number)[];
+    favouriteIds: (string)[];
+}
+
+export interface UserStickersStateCreateShape {
+    packIds: (number)[];
+    favouriteIds: (string)[];
+}
+
+export class UserStickersState extends Entity<UserStickersStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get packIds(): (number)[] { return this._rawValue.packIds; }
+    set packIds(value: (number)[]) {
+        let normalized = this.descriptor.codec.fields.packIds.normalize(value);
+        if (this._rawValue.packIds !== normalized) {
+            this._rawValue.packIds = normalized;
+            this._updatedValues.packIds = normalized;
+            this.invalidate();
+        }
+    }
+    get favouriteIds(): (string)[] { return this._rawValue.favouriteIds; }
+    set favouriteIds(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.favouriteIds.normalize(value);
+        if (this._rawValue.favouriteIds !== normalized) {
+            this._rawValue.favouriteIds = normalized;
+            this._updatedValues.favouriteIds = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserStickersStateFactory extends EntityFactory<UserStickersStateShape, UserStickersState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userStickersState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'packIds', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'favouriteIds', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            packIds: c.array(c.integer),
+            favouriteIds: c.array(c.string),
+        });
+        let descriptor: EntityDescriptor<UserStickersStateShape> = {
+            name: 'UserStickersState',
+            storageKey: 'userStickersState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserStickersStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserStickersStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: UserStickersStateCreateShape): Promise<UserStickersState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserStickersStateCreateShape): UserStickersState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserStickersState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStickersStateShape>): UserStickersState {
+        return new UserStickersState([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserStickerPackShape {
+    uid: number;
+    packId: number;
+}
+
+export interface UserStickerPackCreateShape {
+}
+
+export class UserStickerPack extends Entity<UserStickerPackShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get packId(): number { return this._rawValue.packId; }
+}
+
+export class UserStickerPackFactory extends EntityFactory<UserStickerPackShape, UserStickerPack> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userStickerPack');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userStickerPack', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'pack', storageKey: 'pack', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userStickerPack', 'pack'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'packId', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        let codec = c.struct({
+            uid: c.integer,
+            packId: c.integer,
+        });
+        let descriptor: EntityDescriptor<UserStickerPackShape> = {
+            name: 'UserStickerPack',
+            storageKey: 'userStickerPack',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserStickerPackFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserStickerPackShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly pack = Object.freeze({
+        findAll: async (ctx: Context, packId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [packId])).items;
+        },
+        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [packId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (packId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [packId], opts);
+        },
+        liveStream: (ctx: Context, packId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [packId], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, packId: number, src: UserStickerPackCreateShape): Promise<UserStickerPack> {
+        return this._create(ctx, [uid, packId], this.descriptor.codec.normalize({ uid, packId, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, packId: number, src: UserStickerPackCreateShape): UserStickerPack {
+        return this._create_UNSAFE(ctx, [uid, packId], this.descriptor.codec.normalize({ uid, packId, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, packId: number): Promise<UserStickerPack | null> {
+        return this._findById(ctx, [uid, packId]);
+    }
+
+    watch(ctx: Context, uid: number, packId: number): Watch {
+        return this._watch(ctx, [uid, packId]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStickerPackShape>): UserStickerPack {
+        return new UserStickerPack([value.uid, value.packId], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface StickerShape {
+    uuid: string;
+    animated: boolean;
+    deleted: boolean;
+    emoji: string;
+    packId: number;
+}
+
+export interface StickerCreateShape {
+    animated: boolean;
+    deleted: boolean;
+    emoji: string;
+    packId: number;
+}
+
+export class Sticker extends Entity<StickerShape> {
+    get uuid(): string { return this._rawValue.uuid; }
+    get animated(): boolean { return this._rawValue.animated; }
+    set animated(value: boolean) {
+        let normalized = this.descriptor.codec.fields.animated.normalize(value);
+        if (this._rawValue.animated !== normalized) {
+            this._rawValue.animated = normalized;
+            this._updatedValues.animated = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean { return this._rawValue.deleted; }
+    set deleted(value: boolean) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+    get emoji(): string { return this._rawValue.emoji; }
+    set emoji(value: string) {
+        let normalized = this.descriptor.codec.fields.emoji.normalize(value);
+        if (this._rawValue.emoji !== normalized) {
+            this._rawValue.emoji = normalized;
+            this._updatedValues.emoji = normalized;
+            this.invalidate();
+        }
+    }
+    get packId(): number { return this._rawValue.packId; }
+    set packId(value: number) {
+        let normalized = this.descriptor.codec.fields.packId.normalize(value);
+        if (this._rawValue.packId !== normalized) {
+            this._rawValue.packId = normalized;
+            this._updatedValues.packId = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('sticker');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'pack', storageKey: 'pack', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'pack'), condition: undefined });
+        secondaryIndexes.push({ name: 'packActive', storageKey: 'packActive', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'packActive'), condition: (src) => src.deleted === false });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uuid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'animated', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'emoji', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'packId', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            uuid: c.string,
+            animated: c.boolean,
+            deleted: c.boolean,
+            emoji: c.string,
+            packId: c.integer,
+        });
+        let descriptor: EntityDescriptor<StickerShape> = {
+            name: 'Sticker',
+            storageKey: 'sticker',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StickerFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StickerShape>) {
+        super(descriptor);
+    }
+
+    readonly pack = Object.freeze({
+        findAll: async (ctx: Context, packId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [packId])).items;
+        },
+        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [packId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (packId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [packId], opts);
+        },
+        liveStream: (ctx: Context, packId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [packId], opts);
+        },
+    });
+
+    readonly packActive = Object.freeze({
+        findAll: async (ctx: Context, packId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [packId])).items;
+        },
+        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [packId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (packId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [packId], opts);
+        },
+        liveStream: (ctx: Context, packId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [packId], opts);
+        },
+    });
+
+    create(ctx: Context, uuid: string, src: StickerCreateShape): Promise<Sticker> {
+        return this._create(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uuid: string, src: StickerCreateShape): Sticker {
+        return this._create_UNSAFE(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    findById(ctx: Context, uuid: string): Promise<Sticker | null> {
+        return this._findById(ctx, [uuid]);
+    }
+
+    watch(ctx: Context, uuid: string): Watch {
+        return this._watch(ctx, [uuid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StickerShape>): Sticker {
+        return new Sticker([value.uuid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserStorageNamespaceShape {
     id: number;
     ns: string;
@@ -12339,6 +12770,10 @@ export interface Store extends BaseStore {
     readonly PushWeb: PushWebFactory;
     readonly PushSafari: PushSafariFactory;
     readonly AppHook: AppHookFactory;
+    readonly StickerPack: StickerPackFactory;
+    readonly UserStickersState: UserStickersStateFactory;
+    readonly UserStickerPack: UserStickerPackFactory;
+    readonly Sticker: StickerFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly Sequence: SequenceFactory;
@@ -12480,6 +12915,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let PushWebPromise = PushWebFactory.open(storage);
     let PushSafariPromise = PushSafariFactory.open(storage);
     let AppHookPromise = AppHookFactory.open(storage);
+    let StickerPackPromise = StickerPackFactory.open(storage);
+    let UserStickersStatePromise = UserStickersStateFactory.open(storage);
+    let UserStickerPackPromise = UserStickerPackFactory.open(storage);
+    let StickerPromise = StickerFactory.open(storage);
     let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
@@ -12606,6 +13045,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         PushWeb: await PushWebPromise,
         PushSafari: await PushSafariPromise,
         AppHook: await AppHookPromise,
+        StickerPack: await StickerPackPromise,
+        UserStickersState: await UserStickersStatePromise,
+        UserStickerPack: await UserStickerPackPromise,
+        Sticker: await StickerPromise,
         UserStorageNamespace: await UserStorageNamespacePromise,
         UserStorageRecord: await UserStorageRecordPromise,
         Sequence: await SequencePromise,

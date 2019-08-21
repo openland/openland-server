@@ -15,13 +15,8 @@ type StickerPack {
 }
 
 type UserStickers {
-    packs: [StickerPacks!]!
+    packs: [StickerPack!]!
     favourites: [Sticker!]!
-}
-
-extend type Query {
-    myStickers: UserStickers!
-    stickersByEmoji(emoji: String!): [Sticker!]!
 }
 
 input StickerInput {
@@ -30,12 +25,21 @@ input StickerInput {
 }
 
 input StickerPackInput {
-    title: String!
+    title: String
+    published: Boolean
+}
+
+extend type Query {
+    myStickers: UserStickers!
+    stickersByEmoji(emoji: String!): [Sticker!]!
 }
 
 extend type Mutation {
-    stickerPackCreate(input: StickerPackInput!, stickers: [StickerInput!]!): StickerPack!
+    stickerPackCreate(title: String!, stickers: [StickerInput!]): StickerPack!
     stickerPackUpdate(id: ID!, input: StickerPackInput!): StickerPack!
-    stickerPackAddSticker(input: StickerInput!): Sticker!
+    stickerPackAddSticker(id: ID!, input: StickerInput!): Sticker!
     stickerPackRemoveSticker(uuid: String!): Boolean!
+
+    stickerPackAddToCollection(id: ID!): Boolean!
+    stickerPackRemoveFromCollection(id: ID!): Boolean!
 }
