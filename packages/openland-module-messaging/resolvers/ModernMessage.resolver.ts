@@ -831,6 +831,43 @@ export default {
             }
             return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
+
+        gammaMessages: withUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
+            if (!args.first || args.first <= 0) {
+                return [];
+            }
+
+            let aroundId = args.around ? IDs.ConversationMessage.parse(args.around) : null;
+
+            if (!aroundId && !args.before && !args.after) {
+                aroundId = await Store.UserDialogReadMessageId.get(ctx, uid, roomId);
+            }
+
+            let beforeId = aroundId || (args.before ? IDs.ConversationMessage.parse(args.before) : null);
+            let afterId = aroundId || (args.after ? IDs.ConversationMessage.parse(args.after) : null);
+
+            if (beforeId || afterId) {
+                let before: Message[] = [];
+                let after: Message[] = [];
+
+                if (beforeId && await Store.Message.findById(ctx, beforeId)) {
+                    before = (await Store.Message.chat.query(ctx, roomId, { after: beforeId, limit: args.first!, reverse: true })).items;
+                }
+                if (afterId && await Store.Message.findById(ctx, afterId)) {
+                    after = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! })).items.reverse();
+                }
+                let aroundMessage: Message | undefined | null;
+                if (aroundId) {
+                    aroundMessage = await Store.Message.findById(ctx, aroundId);
+                }
+                return [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
+            } else {
+                return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
+            }
+        }),
+
         message: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let msg = await Store.Message.findById(ctx, messageId);
@@ -843,10 +880,15 @@ export default {
             return msg;
         }),
         lastReadedMessage: withUser(async (ctx, args, uid) => {
-            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, IDs.Conversation.parse(args.chatId));
+            let chatId = IDs.Conversation.parse(args.chatId);
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, chatId);
             let msg = (readMessageId !== 0) && await Store.Message.findById(ctx, readMessageId);
             if (!msg) {
                 return null;
+            }
+            if (msg && msg.deleted) {
+                let msgs = (await Store.Message.chat.query(ctx, chatId, { after: readMessageId, limit: 1, reverse: true })).items;
+                msg = msgs[msgs.length - 1];
             }
             await Modules.Messaging.room.checkAccess(ctx, uid, msg.cid);
             return msg;

@@ -72,6 +72,7 @@ type GeneralMessage implements ModernMessage {
 
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
+    gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): [ModernMessage!]!
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
 }
