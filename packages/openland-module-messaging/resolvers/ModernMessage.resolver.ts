@@ -856,13 +856,13 @@ export default {
                     before = (await Store.Message.chat.query(ctx, roomId, { after: beforeId, limit: args.first!, reverse: true })).items;
                 }
                 if (afterId && await Store.Message.findById(ctx, afterId)) {
-                    after = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! })).items;
+                    after = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! })).items.reverse();
                 }
                 let aroundMessage: Message | undefined | null;
                 if (aroundId) {
                     aroundMessage = await Store.Message.findById(ctx, aroundId);
                 }
-                return [...before, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...after];
+                return [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
                 return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
             }
