@@ -426,7 +426,7 @@ export class RoomMediator {
             if (!!welcomeMessageSender) {
                 await this.checkCanEditChat(ctx, cid, welcomeMessageSender);
             }
-            if ((welcomeMessageText || '').trim().length === 0) {
+            if (welcomeMessageIsOn && (welcomeMessageText || '').trim().length === 0) {
                 throw new UserError('Welcome message can\'t be empty');
             }
             return await this.repo.updateWelcomeMessage(ctx, cid, welcomeMessageIsOn, welcomeMessageSender, welcomeMessageText);
