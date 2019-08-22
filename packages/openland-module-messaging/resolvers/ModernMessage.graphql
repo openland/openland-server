@@ -70,9 +70,15 @@ type GeneralMessage implements ModernMessage {
     fallback: String!
 }
 
+type GammaMessagesBatch {
+    messages: [ModernMessage!]!
+    haveMoreForward: Boolean
+    haveMoreBackward: Boolean
+}
+
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
-    gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): [ModernMessage!]!
+    gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
 }
