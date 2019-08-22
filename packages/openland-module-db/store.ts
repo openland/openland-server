@@ -2944,6 +2944,7 @@ export class ConversationPrivateFactory extends EntityFactory<ConversationPrivat
         let subspace = await storage.resolveEntityDirectory('conversationPrivate');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'unique', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationPrivate', 'users'), condition: undefined });
+        secondaryIndexes.push({ name: 'usersReverse', storageKey: 'usersReverse', type: { type: 'unique', fields: [{ name: 'uid2', type: 'integer' }, { name: 'uid1', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationPrivate', 'usersReverse'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -2977,6 +2978,18 @@ export class ConversationPrivateFactory extends EntityFactory<ConversationPrivat
         },
         query: (ctx: Context, uid1: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid1], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly usersReverse = Object.freeze({
+        find: async (ctx: Context, uid2: number, uid1: number) => {
+            return this._findFromUniqueIndex(ctx, [uid2, uid1], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, uid2: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid2])).items;
+        },
+        query: (ctx: Context, uid2: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid2], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -12160,6 +12173,38 @@ export class UserDialogMuteChangedEvent extends BaseEvent {
     get mute(): boolean | null { return this.raw.mute; }
 }
 
+const userDialogPeerUpdatedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UserDialogPeerUpdatedEventShape {
+    uid: number;
+    cid: number;
+}
+
+export class UserDialogPeerUpdatedEvent extends BaseEvent {
+
+    static create(data: UserDialogPeerUpdatedEventShape) {
+        return new UserDialogPeerUpdatedEvent(userDialogPeerUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogPeerUpdatedEvent(userDialogPeerUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogPeerUpdatedEvent) {
+        return userDialogPeerUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogPeerUpdatedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -12407,6 +12452,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('userDialogBumpEvent', UserDialogBumpEvent.encode as any, UserDialogBumpEvent.decode);
     eventFactory.registerEventType('userDialogPhotoUpdatedEvent', UserDialogPhotoUpdatedEvent.encode as any, UserDialogPhotoUpdatedEvent.decode);
     eventFactory.registerEventType('userDialogMuteChangedEvent', UserDialogMuteChangedEvent.encode as any, UserDialogMuteChangedEvent.decode);
+    eventFactory.registerEventType('userDialogPeerUpdatedEvent', UserDialogPeerUpdatedEvent.encode as any, UserDialogPeerUpdatedEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);

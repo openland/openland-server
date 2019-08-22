@@ -167,6 +167,7 @@ export default declareSchema(() => {
         field('uid2', integer());
         field('pinnedMessage', optional(integer()));
         uniqueIndex('users', ['uid1', 'uid2']);
+        uniqueIndex('usersReverse', ['uid2', 'uid1']);
     });
 
     entity('ConversationOrganization', () => {
@@ -686,6 +687,10 @@ export default declareSchema(() => {
         field('uid', integer());
         field('cid', integer());
         field('mute', optional(boolean()));
+    });
+    event('UserDialogPeerUpdatedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
     });
     eventStore('UserDialogEventStore', () => {
         primaryKey('uid', integer());

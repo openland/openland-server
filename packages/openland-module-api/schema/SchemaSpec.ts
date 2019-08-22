@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0dabe40aeec03d1eb85f657be03d59d2';
+export const GQL_SPEC_VERSION = '0aa6aaf4175c57d82d8948f4f776be14';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -728,7 +728,7 @@ export namespace GQL {
         state: string;
     }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated;
     export interface SilentMessageInfo {
         mobile: boolean;
         desktop: boolean;
@@ -790,6 +790,10 @@ export namespace GQL {
         cid: string;
         mute: boolean;
         globalUnread: number;
+    }
+    export interface DialogPeerUpdated {
+        cid: string;
+        peer: Room;
     }
     export interface DialogMentionedChanged {
         cid: string;
@@ -937,6 +941,7 @@ export namespace GQL {
         debugReindexUserProfiles: boolean;
         debugReindexRoomProfiles: boolean;
         debugSendPush: boolean;
+        debugReindexPrivateDialogs: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         betaOrganizationMemberRequestApprove: Organization;
@@ -2968,7 +2973,7 @@ export interface GQLResolver {
     DialogUpdateSingle?: ComplexTypedResolver<GQL.DialogUpdateSingle, GQLRoots.DialogUpdateSingleRoot, {update: GQLRoots.DialogUpdateRoot}, {}>;
     DialogUpdateBatch?: ComplexTypedResolver<GQL.DialogUpdateBatch, GQLRoots.DialogUpdateBatchRoot, {updates: GQLRoots.DialogUpdateRoot[]}, {}>;
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
-    DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump'>;
+    DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated'>;
     SilentMessageInfo?: ComplexTypedResolver<GQL.SilentMessageInfo, GQLRoots.SilentMessageInfoRoot, {}, {}>;
     DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot, silent: GQLRoots.SilentMessageInfoRoot}, {}>;
     DialogMessageUpdated?: ComplexTypedResolver<GQL.DialogMessageUpdated, GQLRoots.DialogMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
@@ -2979,6 +2984,7 @@ export interface GQLResolver {
     DialogDeleted?: ComplexTypedResolver<GQL.DialogDeleted, GQLRoots.DialogDeletedRoot, {}, {}>;
     DialogBump?: ComplexTypedResolver<GQL.DialogBump, GQLRoots.DialogBumpRoot, {topMessage: Nullable<GQLRoots.ModernMessageRoot>}, {}>;
     DialogMuteChanged?: ComplexTypedResolver<GQL.DialogMuteChanged, GQLRoots.DialogMuteChangedRoot, {}, {}>;
+    DialogPeerUpdated?: ComplexTypedResolver<GQL.DialogPeerUpdated, GQLRoots.DialogPeerUpdatedRoot, {peer: GQLRoots.RoomRoot}, {}>;
     DialogMentionedChanged?: ComplexTypedResolver<GQL.DialogMentionedChanged, GQLRoots.DialogMentionedChangedRoot, {}, {}>;
     DialogUpdateState?: ComplexTypedResolver<GQL.DialogUpdateState, GQLRoots.DialogUpdateStateRoot, {}, {}>;
     EnvVar?: ComplexTypedResolver<GQL.EnvVar, GQLRoots.EnvVarRoot, {}, {}>;

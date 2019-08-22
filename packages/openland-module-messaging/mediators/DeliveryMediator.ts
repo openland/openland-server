@@ -130,8 +130,25 @@ export class DeliveryMediator {
         });
     }
 
-    onUserProfileUpdated = async (ctx: Context, uid: number) => {
-        // TODO: Load all dialogs with user
+    onUserProfileUpdated = async (parent: Context, uid: number) => {
+        return inTx(parent, async ctx => {
+            let dialogs = [
+                ...(await Store.ConversationPrivate.users.findAll(ctx, uid)),
+                ...(await Store.ConversationPrivate.usersReverse.findAll(ctx, uid))
+            ];
+
+            for (let dialog of dialogs) {
+                let peerUid: number;
+
+                if (dialog.uid1 === uid) {
+                    peerUid = dialog.uid2;
+                } else {
+                    peerUid = dialog.uid1;
+                }
+
+                await this.repo.deliverDialogPeerUpdatedToUser(ctx, peerUid, dialog.id);
+            }
+        });
     }
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {

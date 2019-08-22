@@ -35,7 +35,11 @@ import {
     UserDialogMessageReceivedEvent,
     UserDialogMessageUpdatedEvent,
     UserDialogMessageDeletedEvent,
-    UserDialogTitleUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogMuteChangedEvent, UserDialogBumpEvent,
+    UserDialogTitleUpdatedEvent,
+    UserDialogPhotoUpdatedEvent,
+    UserDialogMuteChangedEvent,
+    UserDialogBumpEvent,
+    UserDialogPeerUpdatedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -279,6 +283,7 @@ export namespace GQLRoots {
     export type DialogMuteChangedRoot = UserDialogMuteChangedEvent;
     export type DialogBumpRoot = UserDialogBumpEvent;
     export type DialogMentionedChangedRoot = any;
+    export type DialogPeerUpdatedRoot = UserDialogPeerUpdatedEvent;
 
     //
     //  Search

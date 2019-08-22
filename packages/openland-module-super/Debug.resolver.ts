@@ -1014,7 +1014,15 @@ export default {
                 });
             });
             return true;
-        })
+        }),
+        debugReindexPrivateDialogs: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.ConversationPrivate, parent.auth.uid!, 'debugReindexPrivateDialogs', async (ctx, id, log) => {
+                let dialog = await Store.ConversationPrivate.findById(ctx, id);
+                dialog!.invalidate();
+                await dialog!.flush(ctx);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

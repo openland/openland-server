@@ -3,9 +3,16 @@ import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import {
     UserDialogBumpEvent,
-    UserDialogDeletedEvent, UserDialogEvent, UserDialogMessageDeletedEvent, UserDialogMessageReadEvent,
+    UserDialogDeletedEvent,
+    UserDialogEvent,
+    UserDialogMessageDeletedEvent,
+    UserDialogMessageReadEvent,
     UserDialogMessageReceivedEvent,
-    UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent
+    UserDialogMessageUpdatedEvent,
+    UserDialogMuteChangedEvent,
+    UserDialogPeerUpdatedEvent,
+    UserDialogPhotoUpdatedEvent,
+    UserDialogTitleUpdatedEvent
 } from 'openland-module-db/store';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
@@ -60,6 +67,8 @@ export default {
                 return 'DialogBump';
             } else if (obj instanceof UserDialogMuteChangedEvent) {
                 return 'DialogMuteChanged';
+            } else if (obj instanceof UserDialogPeerUpdatedEvent) {
+                return 'DialogPeerUpdated';
             }
             throw Error('Unknown dialog update type: ' + obj.type);
         }
@@ -127,6 +136,10 @@ export default {
         cid: src => IDs.Conversation.serialize(src.cid!),
         mute: src => src.mute,
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!)
+    },
+    DialogPeerUpdated: {
+        cid: src => IDs.Conversation.serialize(src.cid!),
+        peer: src => src.cid
     },
     // depricated
     DialogMentionedChanged: {
