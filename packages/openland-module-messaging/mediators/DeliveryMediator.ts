@@ -117,6 +117,7 @@ export class DeliveryMediator {
             let members = await this.room.findConversationMembers(ctx, cid);
             for (let m of members) {
                 await this.repo.deliverDialogTitleUpadtedToUser(ctx, m, cid, title);
+                await this.repo.deliverDialogPeerUpdatedToUser(ctx, m, cid);
             }
         });
     }
@@ -126,6 +127,7 @@ export class DeliveryMediator {
             let members = await this.room.findConversationMembers(ctx, cid);
             for (let m of members) {
                 await this.repo.deliverDialogPhotoUpadtedToUser(ctx, m, cid, photo);
+                await this.repo.deliverDialogPeerUpdatedToUser(ctx, m, cid);
             }
         });
     }
