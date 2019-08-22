@@ -3,7 +3,7 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
-import { fetchMessageFallback, hasMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
+import { fetchMessageFallback } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 import { createLogger, withLogPath } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
@@ -121,6 +121,7 @@ export const shouldUpdateUserSeq = (ctx: Context, user: {
 const handleUser = async (_ctx: Context, uid: number) => {
     let ctx = withLogPath(_ctx, 'user ' + uid);
 
+    log.debug(ctx, 'kek');
     // Loading user's settings and state
 
     let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);
@@ -176,71 +177,19 @@ const handleUser = async (_ctx: Context, uid: number) => {
         if (!message) {
             continue;
         }
-        let senderId = message.uid!;
 
-        // Ignore current user
-        if (senderId === uid) {
-            continue;
-        }
-
-        let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
-        // Ignore read messages
-        if (readMessageId >= message.id) {
-            continue;
-        }
-
+        let senderId = message.uid;
         let sender = await Modules.Users.profileById(ctx, senderId);
         let receiver = await Modules.Users.profileById(ctx, uid);
         let conversation = await Store.Conversation.findById(ctx, message.cid);
-        let convOrg = await Store.ConversationOrganization.findById(ctx, message.cid);
 
-        if (!sender) {
+        if (!sender || !receiver || !conversation) {
             continue;
         }
 
-        if (!receiver) {
-            continue;
-        }
-
-        if (!conversation) {
-            continue;
-        }
-
-        // Ignore service messages for big rooms
-        if (convOrg && message.isService) {
-            let org = await Store.Organization.findById(ctx, convOrg.oid);
-            let serviceType = message.serviceMetadata && message.serviceMetadata.type;
-            if (org!.kind === 'community' && (serviceType === 'user_kick' || serviceType === 'user_invite')) {
-                continue;
-            }
-        }
-
-        let userMentioned = hasMention(message, uid);
-
-        let sendDesktop = settings.desktopNotifications !== 'none';
-        let sendMobile = settings.mobileNotifications !== 'none';
-
-        // Filter non-private if only direct messages enabled
-        if (settings.desktopNotifications === 'direct') {
-            if (conversation.kind !== 'private') {
-                sendDesktop = false;
-            }
-        }
-        if (settings.mobileNotifications === 'direct') {
-            if (conversation.kind !== 'private') {
-                sendMobile = false;
-            }
-        }
-
-        let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, uid, conversation.id);
-        if (conversationSettings.mute && !userMentioned) {
-            continue;
-        }
-
-        if (userMentioned) {
-            sendMobile = true;
-            sendDesktop = true;
-        }
+        let silenceData = await Modules.Messaging.isSilent(ctx, uid, m.mid);
+        let sendMobile = !silenceData.mobile;
+        let sendDesktop = !silenceData.desktop;
 
         if (!sendMobile && !sendDesktop) {
             continue;

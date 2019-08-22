@@ -214,7 +214,7 @@ export class MessagingModule {
         let sender = await Modules.Users.profileById(ctx, senderId);
         let receiver = await Modules.Users.profileById(ctx, uid);
         let conversation = await Store.Conversation.findById(ctx, message.cid);
-        let convOrg = await Store.ConversationOrganization.findById(ctx, message.cid);
+        let convRoom = await Store.ConversationRoom.findById(ctx, message.cid);
 
         if (!sender || !receiver || !conversation) {
             return {
@@ -224,8 +224,8 @@ export class MessagingModule {
         }
 
         // Ignore service messages for big rooms
-        if (convOrg && message.isService) {
-            let org = await Store.Organization.findById(ctx, convOrg.oid);
+        if (convRoom && convRoom.oid && message.isService) {
+            let org = await Store.Organization.findById(ctx, convRoom.oid);
             let serviceType = message.serviceMetadata && message.serviceMetadata.type;
             if (org!.kind === 'community' && (serviceType === 'user_kick' || serviceType === 'user_invite')) {
                 return {
