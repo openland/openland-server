@@ -848,24 +848,42 @@ export default {
             let beforeId = aroundId || (args.before ? IDs.ConversationMessage.parse(args.before) : null);
             let afterId = aroundId || (args.after ? IDs.ConversationMessage.parse(args.after) : null);
 
+            let haveMoreForward: boolean | undefined;
+            let haveMoreBackward: boolean | undefined;
+            let messages: Message[] = [];
+
             if (beforeId || afterId) {
                 let before: Message[] = [];
                 let after: Message[] = [];
 
                 if (beforeId && await Store.Message.findById(ctx, beforeId)) {
-                    before = (await Store.Message.chat.query(ctx, roomId, { after: beforeId, limit: args.first!, reverse: true })).items;
+                    let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { after: beforeId, limit: args.first!, reverse: true }));
+                    before = beforeQuery.items;
+                    haveMoreBackward = beforeQuery.haveMore;
                 }
                 if (afterId && await Store.Message.findById(ctx, afterId)) {
-                    after = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! })).items.reverse();
+                    let afterQuery = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! }));
+                    after = afterQuery.items.reverse();
+                    haveMoreForward = afterQuery.haveMore;
                 }
                 let aroundMessage: Message | undefined | null;
                 if (aroundId) {
                     aroundMessage = await Store.Message.findById(ctx, aroundId);
                 }
-                return [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
+
+                messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
-                return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
+                haveMoreForward = false;
+                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true, }));
+                messages = beforeQuery.items;
+                haveMoreBackward = beforeQuery.haveMore;
             }
+
+            return {
+                haveMoreForward,
+                haveMoreBackward,
+                messages
+            };
         }),
 
         message: withUser(async (ctx, args, uid) => {

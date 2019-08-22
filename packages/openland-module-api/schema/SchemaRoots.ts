@@ -252,6 +252,7 @@ export namespace GQLRoots {
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
+    export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
 
     //
     //  Chat updates
