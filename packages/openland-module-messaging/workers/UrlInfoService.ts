@@ -12,6 +12,8 @@ import { Context, createNamedContext } from '@openland/context';
 import { UserProfile } from 'openland-module-db/store';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 
+const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
+
 const rootCtx = createNamedContext('url-info');
 
 export interface URLAugmentation {
@@ -115,8 +117,6 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
         photoFallback: makePhotoFallback(IDs.User.serialize(user!.id), user!.firstName + ' ' + user!.lastName),
     } as URLAugmentation;
 };
-
-const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
 
 export function createUrlInfoService() {
     let service = new UrlInfoService();
