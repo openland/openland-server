@@ -71,6 +71,7 @@ export class AugmentationMediator {
                             iconInfo: urlInfo.iconInfo || null,
                             image: urlInfo.photo || null,
                             imageInfo: urlInfo.imageInfo || null,
+                            imageFallback: urlInfo.photoFallback || null,
                             imagePreview: urlInfo.photoPreview || null,
                             keyboard: urlInfo.keyboard || null,
                         };

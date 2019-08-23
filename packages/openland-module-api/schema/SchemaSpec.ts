@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '44f5b86d5d20cefff38e77cae9a8dc0b';
+export const GQL_SPEC_VERSION = '6c3a712d3c80441ff9ec44ffc069aa38';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2608,6 +2608,10 @@ export namespace GQL {
         haveMoreForward: Nullable<boolean>;
         haveMoreBackward: Nullable<boolean>;
     }
+    export interface ImageFallback {
+        photo: string;
+        text: string;
+    }
     export interface Image {
         url: string;
         metadata: Nullable<FileMetadata>;
@@ -2626,6 +2630,7 @@ export namespace GQL {
         icon: Nullable<Image>;
         image: Nullable<Image>;
         imagePreview: Nullable<string>;
+        imageFallback: Nullable<ImageFallback>;
         keyboard: Nullable<MessageKeyboard>;
         fallback: string;
     }
@@ -3058,8 +3063,9 @@ export interface GQLResolver {
     ServiceMessage?: ComplexTypedResolver<GQL.ServiceMessage, GQLRoots.ServiceMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>}, {}>;
     GeneralMessage?: ComplexTypedResolver<GQL.GeneralMessage, GQLRoots.GeneralMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, reactions: GQLRoots.ModernMessageReactionRoot[], source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], quotedMessages: GQLRoots.ModernMessageRoot[]}, {}>;
     GammaMessagesBatch?: ComplexTypedResolver<GQL.GammaMessagesBatch, GQLRoots.GammaMessagesBatchRoot, {messages: GQLRoots.ModernMessageRoot[]}, {}>;
+    ImageFallback?: ComplexTypedResolver<GQL.ImageFallback, GQLRoots.ImageFallbackRoot, {}, {}>;
     Image?: ComplexTypedResolver<GQL.Image, GQLRoots.ImageRoot, {metadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
-    MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {icon: Nullable<GQLRoots.ImageRoot>, image: Nullable<GQLRoots.ImageRoot>, keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
+    MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {icon: Nullable<GQLRoots.ImageRoot>, image: Nullable<GQLRoots.ImageRoot>, imageFallback: Nullable<GQLRoots.ImageFallbackRoot>, keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
     MessageAttachmentFile?: ComplexTypedResolver<GQL.MessageAttachmentFile, GQLRoots.MessageAttachmentFileRoot, {fileMetadata: GQLRoots.FileMetadataRoot}, {}>;
     MessageAttachmentPost?: ComplexTypedResolver<GQL.MessageAttachmentPost, GQLRoots.MessageAttachmentPostRoot, {post: GQLRoots.FeedItemRoot}, {}>;
     MessageKeyboard?: ComplexTypedResolver<GQL.MessageKeyboard, GQLRoots.MessageKeyboardRoot, {buttons: Nullable<GQLRoots.ModernMessageButtonRoot[]>[]}, {}>;

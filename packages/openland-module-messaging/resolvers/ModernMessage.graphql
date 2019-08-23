@@ -107,6 +107,11 @@ extend type Mutation {
 #   Attachments
 #
 
+type ImageFallback {
+    photo: String!
+    text: String!
+}
+
 type Image {
     url: String!
     metadata: FileMetadata
@@ -127,6 +132,7 @@ type MessageRichAttachment implements ModernMessageAttachment {
     icon: Image
     image: Image
     imagePreview: String
+    imageFallback: ImageFallback
     keyboard: MessageKeyboard
     fallback: String!
 }

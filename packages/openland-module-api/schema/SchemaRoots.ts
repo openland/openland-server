@@ -247,7 +247,8 @@ export namespace GQLRoots {
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
-    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number } };
+    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number }  };
+    export type ImageFallbackRoot = { photo: string, text: string };
     export type MessageSourceRoot = Message | Comment;
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;

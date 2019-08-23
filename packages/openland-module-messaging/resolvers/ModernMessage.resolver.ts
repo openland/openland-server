@@ -551,6 +551,7 @@ export default {
                         imagePreview: augmentation.photoPreview || null,
                         imageInfo: augmentation.imageInfo || null,
                         keyboard: augmentation.keyboard || null,
+                        imageFallback: null,
                         id: src.id + '_legacy_rich'
                     }
                 });
@@ -571,6 +572,7 @@ export default {
                         imagePreview: null,
                         imageInfo: null,
                         keyboard: null,
+                        imageFallback: null,
                         id: src.id + '_legacy_post'
                     }
                 });
@@ -732,6 +734,10 @@ export default {
     //
     //  Attachments
     //
+    ImageFallback: {
+        photo: src => src.photo,
+        text: src => src.text
+    },
     Image: {
         url: src => buildBaseImageUrl({ uuid: src.uuid, crop: src.crop || null }),
         metadata: src => {
@@ -747,7 +753,7 @@ export default {
                 };
             }
             return null;
-        }
+        },
     },
     ModernMessageAttachment: {
         __resolveType(src: ModernMessageAttachmentRoot) {
@@ -797,8 +803,10 @@ export default {
         image: src => src.attachment.image && {
             uuid: src.attachment.image.uuid,
             metadata: src.attachment.imageInfo,
-            crop: src.attachment.image.crop
+            crop: src.attachment.image.crop,
+            fallback: src.attachment.imageFallback
         },
+        imageFallback: src => src.attachment.imageFallback,
         imagePreview: src => src.attachment.imagePreview,
         fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
         keyboard: src => {
