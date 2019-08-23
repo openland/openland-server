@@ -1,5 +1,5 @@
 import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
-import { IDs } from '../../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
@@ -222,20 +222,35 @@ export function createUrlInfoService() {
 
             let { hostname } = URL.parse(url);
 
-            let shortname = await Modules.Shortnames.findShortname(rootCtx, _shortname);
+            let ownerId;
+            let ownerType;
+            try {
+                let idInfo = IdsFactory.resolve(_shortname);
+                if (idInfo.type.typeId === IDs.User.typeId) {
+                    ownerType = 'user';
+                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
+                    ownerType = 'org';
+                }
+                ownerId = idInfo.id as number;
+            } catch {
+                let shortname = await Modules.Shortnames.findShortname(rootCtx, _shortname);
+                if (shortname) {
+                    ownerId = shortname.ownerId;
+                    ownerType = shortname.ownerType;
+                }
+            }
 
-            if (!shortname) {
+            if (!ownerId || !ownerType) {
                 return null;
             }
 
-            if (shortname.ownerType === 'user') {
-                const userId = shortname.ownerId;
-
-                let user = await Modules.Users.profileById(rootCtx, shortname.ownerId);
+            if (ownerType === 'user') {
+                let userId = ownerId;
+                let user = await Modules.Users.profileById(rootCtx, ownerId);
 
                 return await getURLAugmentationForUser({ hostname, url, userId, user });
-            } else if (shortname.ownerType === 'org') {
-                let orgId = shortname.ownerId;
+            } else if (ownerType === 'org') {
+                let orgId = ownerId;
 
                 let ctx = withReadOnlyTransaction(rootCtx);
                 let org = await Store.OrganizationProfile.findById(ctx, orgId);
