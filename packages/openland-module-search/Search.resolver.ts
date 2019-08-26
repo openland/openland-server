@@ -79,6 +79,7 @@ export default {
             //
             let globalRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
+                    sort: [{ membersCount: {'order' : 'desc'} }],
                     query: {
                         bool: {
                             should: query.length ? [{match_phrase_prefix: {title: query}}] : [],
