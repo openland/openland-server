@@ -101,7 +101,6 @@ extend type Mutation {
     debugSetCommentVisibility(commentId: ID!, visible: Boolean!): Boolean!
     debugRemoveDeletedDialogs: Boolean!
     debugReindexOrgs(marActivatedOrgsListed: Boolean!): Boolean!
-    debugFixUserDialogsIndex: Boolean!
     debugCalcRoomsActiveMembers: Boolean!
     debugCalcOrgsActiveMembers: Boolean!
     debugCreateCommentSubscriptions: Boolean!

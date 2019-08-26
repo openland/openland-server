@@ -226,7 +226,6 @@ export default {
                 await profile.flush(ctx);
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
-                await Modules.Messaging.markUserDialogsForIndexing(ctx, uid);
 
                 return Modules.Users.profileById(ctx, uid);
             });

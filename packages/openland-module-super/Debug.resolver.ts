@@ -572,28 +572,6 @@ export default {
             });
             return true;
         }),
-        debugFixUserDialogsIndex: withPermission('super-admin', async (parent, args) => {
-            // debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
-            //     let allUids = await fetchAllUids(parent);
-            //     for (let uid of allUids) {
-            //         await inTx(rootCtx, async (ctx) => {
-            //             let duplicatesCount = await fixIndexConsistency(
-            //                 ctx,
-            //                 Store.UserDialog,
-            //                 ['__indexes', 'user', uid],
-            //                 value => [value.uid, value.cid],
-            //                 _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
-            //             );
-            //             if (duplicatesCount > 0) {
-            //                 await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
-            //             }
-            //         });
-            //     }
-
-            //     return 'done';
-            // });
-            return true;
-        }),
         debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcRoomsActiveMembers', async (log) => {
                 let allRooms = await Store.RoomProfile.findAll(rootCtx);

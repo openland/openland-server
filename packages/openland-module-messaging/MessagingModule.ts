@@ -183,18 +183,6 @@ export class MessagingModule {
     //
     // Util
     //
-    async markUserDialogsForIndexing(ctx: Context, uid: number) {
-        let dialogs = await this.findUserDialogs(ctx, uid);
-        for (let dialog of dialogs) {
-            let conv = await Store.ConversationPrivate.findById(ctx, dialog.cid);
-            if (!conv) {
-                continue;
-            }
-
-            let secondUid = conv.uid1 === uid ? conv.uid2 : conv.uid1;
-            this.userDialogs.markForIndexing(ctx, secondUid, dialog.cid);
-        }
-    }
 
     async isSilent(ctx: Context, uid: number, mid: number) {
         let message = await Store.Message.findById(ctx, mid);
