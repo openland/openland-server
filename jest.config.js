@@ -42,6 +42,8 @@ module.exports = {
         // 'openland-server': '<rootDir>/packages/openland-server',
         'openland-modules/(.*)': '<rootDir>/packages/openland-modules/$1',
         'openland-modules': '<rootDir>/packages/openland-modules',
+        'openland-module-video/(.*)': '<rootDir>/packages/openland-module-video/$1',
+        'openland-module-video': '<rootDir>/packages/openland-module-video',
         'openland-module-monitoring/(.*)': '<rootDir>/packages/openland-module-monitoring/$1',
         'openland-module-monitoring': '<rootDir>/packages/openland-module-monitoring',
         'openland-module-email/(.*)': '<rootDir>/packages/openland-module-email/$1',
