@@ -15,12 +15,6 @@ import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
-import {
-    AllUnreadChatsCalculator,
-    AllUnreadMessagesCalculator,
-    CounterStrategies,
-    CounterStrategyAll, UnreadChatsWithoutMutedCalculator, UnreadMessagesWithoutMutedCalculator
-} from '../openland-module-messaging/repositories/CounterStrategies';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 
 const URLInfoService = createUrlInfoService();
@@ -30,7 +24,7 @@ const logger = createLogger('debug');
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await Store.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await Store.DebugEventState.create(ctx, uid!, { seq: 1 });
+        await Store.DebugEventState.create(ctx, uid!, {seq: 1});
         return 1;
     } else {
         state.seq++;
@@ -42,8 +36,16 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await Store.DebugEvent.create(ctx, uid!, seq, { key });
+        await Store.DebugEvent.create(ctx, uid!, seq, {key});
     });
+};
+
+const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
+    let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
+    if (settings && settings.mute) {
+        return true;
+    }
+    return false;
 };
 
 export default {
@@ -87,7 +89,7 @@ export default {
             return presence;
         }),
         debugValidateMessages: withPermission('super-admin', async (ctx, args) => {
-           return 'ok';
+            return 'ok';
         }),
         organizationChatsStats: withPermission('super-admin', async (ctx, args) => {
             let chats = await Store.ConversationOrganization.findAll(ctx);
@@ -107,8 +109,8 @@ export default {
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
-            return { state: tail };
+            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, {batchSize: 1}).tail(ctx);
+            return {state: tail};
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -210,7 +212,7 @@ export default {
             } else if (type === 'UNREAD_MESSAGE') {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 let dialog = dialogs[0];
-                let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+                let messages = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
 
                 await Emails.sendUnreadMessages(ctx, uid, messages.items);
             } else if (type === 'UNREAD_MESSAGES') {
@@ -218,7 +220,7 @@ export default {
                 let messages: Message[] = [];
 
                 for (let dialog of dialogs) {
-                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
                     messages.push(msgs.items[0]);
                 }
 
@@ -226,11 +228,11 @@ export default {
             } else if (type === 'PUBLIC_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'PRIVATE_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
             } else if (type === 'ROOM_INVITE_ACCEPTED') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
@@ -268,7 +270,7 @@ export default {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
                 await Modules.Hooks.onOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
@@ -276,7 +278,7 @@ export default {
                     inviteOwner: uid,
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             }
             return true;
         }),
@@ -314,7 +316,7 @@ export default {
                         }
                     }
 
-                    return { totalSent, totalReceived, totalSentDirect };
+                    return {totalSent, totalReceived, totalSentDirect};
                 };
 
                 let users = await Store.User.findAll(parent);
@@ -327,7 +329,7 @@ export default {
                     }
                     await inTx(rootCtx, async (ctx) => {
                         try {
-                            let { totalSent, totalReceived, totalSentDirect } = await calculateForUser(ctx, user.id);
+                            let {totalSent, totalReceived, totalSentDirect} = await calculateForUser(ctx, user.id);
 
                             let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
                             messagesSent.set(ctx, totalSent);
@@ -665,7 +667,7 @@ export default {
                 return false;
             }
             await inTx(root, async ctx => {
-                await Modules.Orgs.createOrganization(ctx, uid, { name: 'Openland' });
+                await Modules.Orgs.createOrganization(ctx, uid, {name: 'Openland'});
                 await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
                 await Modules.Users.activateUser(ctx, uid, false);
             });
@@ -808,40 +810,32 @@ export default {
         }),
         debugResetGlobalCounters: withUser(async (parent, args, uid) => {
             await inTx(parent, async ctx => {
-                for (let strategy of CounterStrategies) {
-                    strategy.counter().set(ctx, uid, 0);
-                }
+                let directory = Store.UserCountersIndexDirectory
+                    .withKeyEncoding(encoders.tuple)
+                    .withValueEncoding(encoders.int32LE);
+                directory.clearPrefixed(ctx, [uid]);
             });
             return true;
         }),
         debugCalcGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
-            const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
-                let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
-                if (settings && settings.mute) {
-                    return true;
-                }
-                return false;
-            };
             let directory = Store.UserCountersIndexDirectory
                 .withKeyEncoding(encoders.tuple)
                 .withValueEncoding(encoders.int32LE);
 
+            const calcForChat = async (ctx: Context, uid: number, cid: number) => {
+                let unread = await Store.UserDialogCounter.get(ctx, uid, cid);
+                let isMuted = await isChatMuted(ctx, uid, cid);
+                if (unread > 0) {
+                    directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], unread);
+                }
+            };
+
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
                     let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                    for (let strategy of CounterStrategies) {
-                        strategy.counter().set(ctx, uid, 0);
-                    }
                     directory.clearPrefixed(ctx, [uid]);
 
-                    for (let dialog of dialogs) {
-                        let unread = Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
-                        let isMuted = isChatMuted(ctx, uid, dialog.cid);
-                        CounterStrategyAll.inContext(ctx, uid, dialog.cid, await unread, await isMuted).calcForChat();
-                        if (await unread > 0) {
-                            directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid], await unread);
-                        }
-                    }
+                    await Promise.all(dialogs.map(d => calcForChat(ctx, uid, d.cid)));
                 } catch (e) {
                     await log(e);
                     logger.error(parent, 'debugCalcGlobalCountersForAllError', e);
@@ -850,45 +844,36 @@ export default {
             return true;
         }),
         debugValidateGlobalCountersForAll: withPermission('super-admin', async (parent, args) => {
-            const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
-                let settings = await Store.UserDialogSettings.findById(ctx, uid, cid);
-                if (settings && settings.mute) {
-                    return true;
-                }
-                return false;
-            };
+            let directory = Store.UserCountersIndexDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE);
+
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugValidateGlobalCountersForAll', async (ctx, uid, log) => {
-                let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                let UserGlobalCounterAllUnreadMessages = 0;
-                let UserGlobalCounterUnreadMessagesWithoutMuted = 0;
-                let UserGlobalCounterAllUnreadChats = 0;
-                let UserGlobalCounterUnreadChatsWithoutMuted = 0;
+                try {
+                    let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                    await Promise.all(dialogs.map(async dialog => {
+                        let chatUnread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
+                        let isMuted = await isChatMuted(ctx, uid, dialog.cid);
 
-                for (let dialog of dialogs) {
-                    let chatUnread = await Store.UserDialogCounter.get(ctx, uid, dialog.cid);
-                    let isMuted = await isChatMuted(ctx, uid, dialog.cid);
+                        if (chatUnread < 0) {
+                            await log(`[${uid}] negative dialog counter`);
+                        }
 
-                    if (chatUnread < 0) {
-                        await log(`[${uid}] negative dialog counter`);
-                    }
-
-                    UserGlobalCounterAllUnreadMessages += AllUnreadMessagesCalculator.calcForChat(chatUnread, isMuted);
-                    UserGlobalCounterUnreadMessagesWithoutMuted += UnreadMessagesWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
-                    UserGlobalCounterAllUnreadChats += AllUnreadChatsCalculator.calcForChat(chatUnread, isMuted);
-                    UserGlobalCounterUnreadChatsWithoutMuted += UnreadChatsWithoutMutedCalculator.calcForChat(chatUnread, isMuted);
-                }
-
-                if (UserGlobalCounterAllUnreadMessages !== await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterAllUnreadMessages mismatch ${await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid)} vs ${UserGlobalCounterAllUnreadMessages} `);
-                }
-                if (UserGlobalCounterUnreadMessagesWithoutMuted !== await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterUnreadMessagesWithoutMuted mismatch ${await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid)} vs ${UserGlobalCounterUnreadMessagesWithoutMuted} `);
-                }
-                if (UserGlobalCounterAllUnreadChats !== await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterAllUnreadChats mismatch ${await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid)} vs ${UserGlobalCounterAllUnreadChats} `);
-                }
-                if (UserGlobalCounterUnreadChatsWithoutMuted !== await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid)) {
-                    await log(`[${uid}] UserGlobalCounterUnreadChatsWithoutMuted mismatch ${await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid)} vs ${UserGlobalCounterUnreadChatsWithoutMuted} `);
+                        if (chatUnread > 0) {
+                            let counter = await directory.get(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid]);
+                            if (counter !== chatUnread) {
+                                await log(`[${uid}], cid: ${dialog.cid}, value: ${counter} expected: ${chatUnread}, ${isMuted ? 'muted' : 'unmuted'}`);
+                            }
+                        } else {
+                            let counter = await directory.get(ctx, [uid, isMuted ? 'muted' : 'unmuted', dialog.cid]);
+                            if (counter) {
+                                await log(`[${uid}] extra counter, cid: ${dialog.cid}, value: ${counter}`);
+                            }
+                        }
+                    }));
+                } catch (e) {
+                    await log(e);
+                    logger.error(parent, 'debugValidateGlobalCountersForAll', e);
                 }
             });
             return true;
@@ -928,10 +913,10 @@ export default {
                 for (let i = 0; i <= args.membersCount; i++) {
                     let key = randKey();
                     let user = await Modules.Users.createUser(ctx, key, key + '@openland.com');
-                    await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Test', lastName: '#' + key });
+                    await Modules.Users.createUserProfile(ctx, user.id, {firstName: 'Test', lastName: '#' + key});
                     users.push(user.id);
                 }
-                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, { title: 'Test #' + randKey() });
+                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, {title: 'Test #' + randKey()});
                 return true;
             });
         }),
@@ -940,7 +925,7 @@ export default {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
                 let start = Date.now();
                 for (let i = 0; i <= args.messagesCount; i++) {
-                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, { message: i + ' ' + randKey() });
+                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, {message: i + ' ' + randKey()});
                 }
                 logger.log(ctx, 'debugFlood took', Date.now() - start);
                 return true;
@@ -1029,7 +1014,15 @@ export default {
                 });
             });
             return true;
-        })
+        }),
+        debugReindexPrivateDialogs: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.ConversationPrivate, parent.auth.uid!, 'debugReindexPrivateDialogs', async (ctx, id, log) => {
+                let dialog = await Store.ConversationPrivate.findById(ctx, id);
+                dialog!.invalidate();
+                await dialog!.flush(ctx);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

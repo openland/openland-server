@@ -24,6 +24,7 @@ export default {
         twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
         facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
         linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
+        instagram: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
 
         alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.listed,
         alphaEditorial: (src: Organization) => src.editorial,
@@ -102,6 +103,9 @@ export default {
                 }
                 if (args.input.linkedin !== undefined) {
                     profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
+                }
+                if (args.input.instagram !== undefined) {
+                    profile.instagram = Sanitizer.sanitizeString(args.input.instagram);
                 }
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);

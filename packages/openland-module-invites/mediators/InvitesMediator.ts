@@ -14,6 +14,7 @@ import { Context } from '@openland/context';
 import { Emails } from '../../openland-module-email/Emails';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
+import { buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 
 @injectable()
 export class InvitesMediator {
@@ -81,7 +82,10 @@ export class InvitesMediator {
                 ctx,
                 chat.id,
                 supportUserId,
-                { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
+                {
+                    ...buildMessage(`🙌 `, userMention(name2, inviteData.uid), ' — ', userMention(name1, uid), ' has accepted your invite. Now you can chat!'),
+                    isService: true
+                },
                 true
             );
             return 'ok';
@@ -153,7 +157,10 @@ export class InvitesMediator {
                     ctx,
                     chat.id,
                     supportUserId,
-                    { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
+                    {
+                        ...buildMessage(`🙌 `, userMention(name2, invite.uid), ' — ', userMention(name1, uid), ' has accepted your invite. Now you can chat!'),
+                        isService: true
+                    },
                     true
                 );
             }

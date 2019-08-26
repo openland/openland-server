@@ -52,6 +52,7 @@ export function buildMessage(...parts: MessagePart[]): MessageInput {
                 imagePreview: null,
                 titleLinkHostname: null,
                 keyboard: null,
+                imageFallback: null,
             };
             richAttach = { ...richAttach, ...part.attach };
             attachments.push(richAttach);

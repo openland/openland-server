@@ -70,8 +70,15 @@ type GeneralMessage implements ModernMessage {
     fallback: String!
 }
 
+type GammaMessagesBatch {
+    messages: [ModernMessage!]!
+    haveMoreForward: Boolean
+    haveMoreBackward: Boolean
+}
+
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
+    gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
 }
@@ -100,6 +107,11 @@ extend type Mutation {
 #   Attachments
 #
 
+type ImageFallback {
+    photo: String!
+    text: String!
+}
+
 type Image {
     url: String!
     metadata: FileMetadata
@@ -120,6 +132,7 @@ type MessageRichAttachment implements ModernMessageAttachment {
     icon: Image
     image: Image
     imagePreview: String
+    imageFallback: ImageFallback
     keyboard: MessageKeyboard
     fallback: String!
 }

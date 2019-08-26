@@ -34,6 +34,7 @@ export default declareSchema(() => {
         field('email', optional(string()));
         field('picture', optional(json()));
         field('linkedin', optional(string()));
+        field('instagram', optional(string()));
         field('twitter', optional(string()));
         field('locations', optional(json()));
         field('primaryOrganization', optional(integer()));
@@ -99,6 +100,7 @@ export default declareSchema(() => {
         field('twitter', optional(string()));
         field('facebook', optional(string()));
         field('linkedin', optional(string()));
+        field('instagram', optional(string()));
         field('website', optional(string()));
 
         field('joinedMembersCount', optional(integer()));
@@ -165,6 +167,7 @@ export default declareSchema(() => {
         field('uid2', integer());
         field('pinnedMessage', optional(integer()));
         uniqueIndex('users', ['uid1', 'uid2']);
+        uniqueIndex('usersReverse', ['uid2', 'uid1']);
     });
 
     entity('ConversationOrganization', () => {
@@ -314,6 +317,10 @@ export default declareSchema(() => {
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
                 imagePreview: optional(string()),
+                imageFallback: optional(struct({
+                    photo: string(),
+                    text: string()
+                })),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
@@ -424,6 +431,10 @@ export default declareSchema(() => {
                 imagePreview: optional(string()),
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
+                imageFallback: optional(struct({
+                    photo: string(),
+                    text: string()
+                })),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
@@ -510,6 +521,10 @@ export default declareSchema(() => {
                 image: optional(ImageRef),
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
+                imageFallback: optional(struct({
+                    photo: string(),
+                    text: string()
+                })),
                 imagePreview: optional(string()),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
@@ -567,8 +582,8 @@ export default declareSchema(() => {
     //
 
     event('DialogNeedReindexEvent', () => {
-       field('cid', integer());
-       field('uid', integer());
+        field('cid', integer());
+        field('uid', integer());
     });
     eventStore('DialogIndexEventStore', () => {
         //
@@ -684,6 +699,10 @@ export default declareSchema(() => {
         field('uid', integer());
         field('cid', integer());
         field('mute', optional(boolean()));
+    });
+    event('UserDialogPeerUpdatedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
     });
     eventStore('UserDialogEventStore', () => {
         primaryKey('uid', integer());

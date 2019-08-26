@@ -62,6 +62,7 @@ export class CommentAugmentationMediator {
                         image: urlInfo.photo || null,
                         imagePreview: urlInfo.photoPreview || null,
                         imageInfo: urlInfo.imageInfo || null,
+                        imageFallback: urlInfo.photoFallback || null,
                         keyboard: urlInfo.keyboard || null,
                     };
 

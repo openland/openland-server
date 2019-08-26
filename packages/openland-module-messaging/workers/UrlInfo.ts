@@ -5,7 +5,6 @@ import { Modules } from 'openland-modules/Modules';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
-import { URLAugmentation } from './UrlInfoService';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 
@@ -66,7 +65,7 @@ class URLInfoFetcher {
         }
     }
 
-    public specialUrl(condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLAugmentation | null | boolean>) {
+    public specialUrl(condition: (url: string, hostname: string) => boolean, handler: (url: string) => Promise<URLInfo | null | boolean>) {
         this.specialUrls.push({ condition, handler });
         return this;
     }
@@ -78,7 +77,8 @@ function createURLInfoFetcher() {
     let fetcher = new URLInfoFetcher();
 
     fetcher
-        .specialUrl((_, hostname) => hostname.endsWith('linkedin.com'), async () => null)
+        .specialUrl((_, hostname) => hostname.endsWith('linkedin.com'), async () => false)
+        .specialUrl((_, hostname) => hostname.endsWith('notion.so'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('wikipedia.org'), async (url) => {
             let raw = await fetchRawURLInfo(url);
             if (raw && raw.doc) {

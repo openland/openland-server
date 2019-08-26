@@ -189,7 +189,7 @@ export class CountersRepository {
 
             directory.add(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], by);
             let value = await directory.get(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid]);
-            if (value === 0) {
+            if (value !== null && value <= 0) {
                 // Remove dialog from index if there is no unread messages
                 directory.clear(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid]);
             }

@@ -1,5 +1,5 @@
 import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
-import { IDs } from '../../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
@@ -10,6 +10,9 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { MessageKeyboard } from '../MessageInput';
 import { Context, createNamedContext } from '@openland/context';
 import { UserProfile } from 'openland-module-db/store';
+import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
+
+const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
 
 const rootCtx = createNamedContext('url-info');
 
@@ -21,6 +24,7 @@ export interface URLAugmentation {
     photo: ImageRef | null;
     photoPreview: string | null;
     imageInfo: FileInfo | null;
+    photoFallback?: { photo: string, text: string } | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
     hostname: string | null;
@@ -107,9 +111,10 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
         keyboard: {
             buttons: [[
                 { title: 'Message', style: 'DEFAULT', url: `https://openland.com/mail/${IDs.User.serialize(userId)}` },
-                { title: 'View profile', style: 'DEFAULT', url },
+                // { title: 'View profile', style: 'DEFAULT', url },
             ]]
-        }
+        },
+        photoFallback: makePhotoFallback(IDs.User.serialize(user!.id), user!.firstName + ' ' + user!.lastName),
     } as URLAugmentation;
 };
 
@@ -147,6 +152,7 @@ export function createUrlInfoService() {
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
+                photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
             };
         })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
@@ -178,6 +184,7 @@ export function createUrlInfoService() {
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
+                photoFallback: makePhotoFallback(IDs.Conversation.serialize(channelId), profile.title || 'deleted')
             };
         })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(joinChannel|invite)\/(.*)/, false, async (url, data) => {
@@ -214,6 +221,7 @@ export function createUrlInfoService() {
                         { title: 'Accept invite', style: 'DEFAULT', url }
                     ]]
                 },
+                photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
                 dynamic: true
             };
         })
@@ -222,20 +230,35 @@ export function createUrlInfoService() {
 
             let { hostname } = URL.parse(url);
 
-            let shortname = await Modules.Shortnames.findShortname(rootCtx, _shortname);
+            let ownerId;
+            let ownerType;
+            try {
+                let idInfo = IdsFactory.resolve(_shortname);
+                if (idInfo.type.typeId === IDs.User.typeId) {
+                    ownerType = 'user';
+                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
+                    ownerType = 'org';
+                }
+                ownerId = idInfo.id as number;
+            } catch {
+                let shortname = await Modules.Shortnames.findShortname(rootCtx, _shortname);
+                if (shortname) {
+                    ownerId = shortname.ownerId;
+                    ownerType = shortname.ownerType;
+                }
+            }
 
-            if (!shortname) {
+            if (!ownerId || !ownerType) {
                 return null;
             }
 
-            if (shortname.ownerType === 'user') {
-                const userId = shortname.ownerId;
-
-                let user = await Modules.Users.profileById(rootCtx, shortname.ownerId);
+            if (ownerType === 'user') {
+                let userId = ownerId;
+                let user = await Modules.Users.profileById(rootCtx, ownerId);
 
                 return await getURLAugmentationForUser({ hostname, url, userId, user });
-            } else if (shortname.ownerType === 'org') {
-                let orgId = shortname.ownerId;
+            } else if (ownerType === 'org') {
+                let orgId = ownerId;
 
                 let ctx = withReadOnlyTransaction(rootCtx);
                 let org = await Store.OrganizationProfile.findById(ctx, orgId);
@@ -252,6 +275,7 @@ export function createUrlInfoService() {
                     hostname: null,
                     iconRef: null,
                     iconInfo: null,
+                    photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
                 };
             } else {
                 return null;

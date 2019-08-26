@@ -7,9 +7,16 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import {
     Message,
-    UserDialogBumpEvent, UserDialogDeletedEvent, UserDialogMessageDeletedEvent, UserDialogMessageReadEvent,
+    UserDialogBumpEvent,
+    UserDialogDeletedEvent,
+    UserDialogMessageDeletedEvent,
+    UserDialogMessageReadEvent,
     UserDialogMessageReceivedEvent,
-    UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent
+    UserDialogMessageUpdatedEvent,
+    UserDialogMuteChangedEvent,
+    UserDialogPeerUpdatedEvent,
+    UserDialogPhotoUpdatedEvent,
+    UserDialogTitleUpdatedEvent
 } from 'openland-module-db/store';
 
 @injectable()
@@ -162,6 +169,16 @@ export class DeliveryRepository {
 
             // Deliver update
             Store.UserDialogEventStore.post(ctx, uid, UserDialogMessageReadEvent.create({
+                uid,
+                cid,
+            }));
+        });
+    }
+
+    async deliverDialogPeerUpdatedToUser(parent: Context, uid: number, cid: number) {
+        await inTx(parent, async (ctx) => {
+            // Persist Event
+            Store.UserDialogEventStore.post(ctx, uid, UserDialogPeerUpdatedEvent.create({
                 uid,
                 cid,
             }));

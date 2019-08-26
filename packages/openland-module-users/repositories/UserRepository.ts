@@ -132,6 +132,7 @@ export class UserRepository {
                 about: Sanitizer.sanitizeString(input.about),
                 location: Sanitizer.sanitizeString(input.location),
                 linkedin: null,
+                instagram: null,
                 twitter: null,
                 locations: null,
                 primaryOrganization: null,

@@ -35,7 +35,11 @@ import {
     UserDialogMessageReceivedEvent,
     UserDialogMessageUpdatedEvent,
     UserDialogMessageDeletedEvent,
-    UserDialogTitleUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogMuteChangedEvent, UserDialogBumpEvent,
+    UserDialogTitleUpdatedEvent,
+    UserDialogPhotoUpdatedEvent,
+    UserDialogMuteChangedEvent,
+    UserDialogBumpEvent,
+    UserDialogPeerUpdatedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -105,6 +109,8 @@ export namespace GQLRoots {
     export type MessageReactionRoot = { userId: number, reaction: string };
     export type ConversationMessageRoot = Message;
     export type FileMetadataRoot = any;
+    export type StickerPackRoot = any;
+    export type StickerRoot = any;
     export type ConversationEventSimpleBatchRoot = any;
     export type ConversationEventRoot = any;
     export type ConversationEventMessageRoot = any;
@@ -241,14 +247,13 @@ export namespace GQLRoots {
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
-    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number } };
+    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number }  };
+    export type ImageFallbackRoot = { photo: string, text: string };
     export type MessageSourceRoot = Message | Comment;
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
-    export type StickerPackRoot = number | any;
-    export type StickerRoot = any;
-    export type UserStickersRoot = any;
+    export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
 
     //
     //  Chat updates
@@ -280,6 +285,7 @@ export namespace GQLRoots {
     export type DialogMuteChangedRoot = UserDialogMuteChangedEvent;
     export type DialogBumpRoot = UserDialogBumpEvent;
     export type DialogMentionedChangedRoot = any;
+    export type DialogPeerUpdatedRoot = UserDialogPeerUpdatedEvent;
 
     //
     //  Search

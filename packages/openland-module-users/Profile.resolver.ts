@@ -22,6 +22,7 @@ export default {
         about: (src: UserProfile) => src.about,
         location: (src: UserProfile) => src.location,
         linkedin: (src: UserProfile) => src.linkedin,
+        instagram: (src: UserProfile) => src.instagram,
         twitter: (src: UserProfile) => src.twitter,
         primaryBadge: (src: UserProfile, args: {}, ctx: AppContext) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
 
@@ -103,6 +104,10 @@ export default {
 
                 if (args.input.linkedin !== undefined) {
                     profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
+                }
+
+                if (args.input.instagram !== undefined) {
+                    profile.instagram = Sanitizer.sanitizeString(args.input.instagram);
                 }
 
                 if (args.input.twitter !== undefined) {
@@ -191,6 +196,10 @@ export default {
 
                 if (args.input.alphaLocations !== undefined) {
                     profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
+                }
+
+                if (args.input.linkedin !== undefined) {
+                    profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
                 }
 
                 if (args.input.alphaLinkedin !== undefined) {

@@ -10,6 +10,7 @@ type Profile {
     about: String
     location: String
     linkedin: String
+    instagram: String
     twitter: String
 
     # Deprecated
@@ -31,6 +32,7 @@ input ProfileInput {
     about: String
     location: String
     linkedin: String
+    instagram: String
     twitter: String
     primaryOrganization: ID
 }
@@ -46,6 +48,7 @@ input UpdateProfileInput {
     about: String
     location: String
     linkedin: String
+    instagram: String
     twitter: String
     primaryOrganization: ID
 

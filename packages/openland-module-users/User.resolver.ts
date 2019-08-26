@@ -80,6 +80,7 @@ export default {
         about: withProfile((ctx, src, profile) => profile ? profile.about : null),
         website: withProfile((ctx, src, profile) => profile ? profile.website : null),
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
+        instagram: withProfile((ctx, src, profile) => profile && profile.instagram),
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
         badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),

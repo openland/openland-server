@@ -551,6 +551,7 @@ export default {
                         imagePreview: augmentation.photoPreview || null,
                         imageInfo: augmentation.imageInfo || null,
                         keyboard: augmentation.keyboard || null,
+                        imageFallback: null,
                         id: src.id + '_legacy_rich'
                     }
                 });
@@ -571,6 +572,7 @@ export default {
                         imagePreview: null,
                         imageInfo: null,
                         keyboard: null,
+                        imageFallback: null,
                         id: src.id + '_legacy_post'
                     }
                 });
@@ -732,6 +734,10 @@ export default {
     //
     //  Attachments
     //
+    ImageFallback: {
+        photo: src => src.photo,
+        text: src => src.text
+    },
     Image: {
         url: src => buildBaseImageUrl({ uuid: src.uuid, crop: src.crop || null }),
         metadata: src => {
@@ -747,7 +753,7 @@ export default {
                 };
             }
             return null;
-        }
+        },
     },
     ModernMessageAttachment: {
         __resolveType(src: ModernMessageAttachmentRoot) {
@@ -797,8 +803,10 @@ export default {
         image: src => src.attachment.image && {
             uuid: src.attachment.image.uuid,
             metadata: src.attachment.imageInfo,
-            crop: src.attachment.image.crop
+            crop: src.attachment.image.crop,
+            fallback: src.attachment.imageFallback
         },
+        imageFallback: src => src.attachment.imageFallback,
         imagePreview: src => src.attachment.imagePreview,
         fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
         keyboard: src => {
@@ -831,6 +839,61 @@ export default {
             }
             return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
+
+        gammaMessages: withUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
+            if (!args.first || args.first <= 0) {
+                return [];
+            }
+
+            let aroundId = args.around ? IDs.ConversationMessage.parse(args.around) : null;
+
+            if (!aroundId && !args.before && !args.after) {
+                aroundId = await Store.UserDialogReadMessageId.get(ctx, uid, roomId);
+            }
+
+            let beforeId = aroundId || (args.before ? IDs.ConversationMessage.parse(args.before) : null);
+            let afterId = aroundId || (args.after ? IDs.ConversationMessage.parse(args.after) : null);
+
+            let haveMoreForward: boolean | undefined;
+            let haveMoreBackward: boolean | undefined;
+            let messages: Message[] = [];
+
+            if (beforeId || afterId) {
+                let before: Message[] = [];
+                let after: Message[] = [];
+
+                if (beforeId && await Store.Message.findById(ctx, beforeId)) {
+                    let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { after: beforeId, limit: args.first!, reverse: true }));
+                    before = beforeQuery.items;
+                    haveMoreBackward = beforeQuery.haveMore;
+                }
+                if (afterId && await Store.Message.findById(ctx, afterId)) {
+                    let afterQuery = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! }));
+                    after = afterQuery.items.reverse();
+                    haveMoreForward = afterQuery.haveMore;
+                }
+                let aroundMessage: Message | undefined | null;
+                if (aroundId) {
+                    aroundMessage = await Store.Message.findById(ctx, aroundId);
+                }
+
+                messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
+            } else {
+                haveMoreForward = false;
+                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true, }));
+                messages = beforeQuery.items;
+                haveMoreBackward = beforeQuery.haveMore;
+            }
+
+            return {
+                haveMoreForward,
+                haveMoreBackward,
+                messages
+            };
+        }),
+
         message: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let msg = await Store.Message.findById(ctx, messageId);
@@ -843,10 +906,15 @@ export default {
             return msg;
         }),
         lastReadedMessage: withUser(async (ctx, args, uid) => {
-            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, IDs.Conversation.parse(args.chatId));
+            let chatId = IDs.Conversation.parse(args.chatId);
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, chatId);
             let msg = (readMessageId !== 0) && await Store.Message.findById(ctx, readMessageId);
             if (!msg) {
                 return null;
+            }
+            if (msg && msg.deleted) {
+                let msgs = (await Store.Message.chat.query(ctx, chatId, { after: readMessageId, limit: 1, reverse: true })).items;
+                msg = msgs[msgs.length - 1];
             }
             await Modules.Messaging.room.checkAccess(ctx, uid, msg.cid);
             return msg;
