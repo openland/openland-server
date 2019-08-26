@@ -39,6 +39,7 @@ export function dialogSearchIndexer() {
                     }
                 };
             }
+
             return {
                 id: item.cid + '_' + item.uid,
                 doc: {

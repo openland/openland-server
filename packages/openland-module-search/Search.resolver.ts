@@ -67,8 +67,7 @@ export default {
                 index: 'dialog', type: 'dialog', size: 10, body: {
                     query: {
                         bool: {
-                            should: query.length ? [{match_phrase_prefix: {title: query}}] : [],
-                            must: [{term: {uid: uid}}, {term: {visible: true}}],
+                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
                         },
                     },
                 },
@@ -82,8 +81,7 @@ export default {
                     sort: [{ membersCount: {'order' : 'desc'} }],
                     query: {
                         bool: {
-                            should: query.length ? [{match_phrase_prefix: {title: query}}] : [],
-                            must: [{term: {listed: true}}]
+                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
                         }
                     },
                 },
@@ -98,8 +96,8 @@ export default {
                 index: 'room', type: 'room', size: 10, body: {
                     query: {
                         bool: {
-                            should: query.length ? [{match_phrase_prefix: {title: query}}] : [],
                             must: [
+                                ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
                                 {term: {listed: false}},
                                 {
                                     bool: {

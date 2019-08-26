@@ -1,4 +1,4 @@
-import { Organization, Message, Comment } from './../openland-module-db/store';
+import { Organization, Message, Comment, DialogNeedReindexEvent } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
@@ -910,24 +910,8 @@ export default {
             });
         }),
         debugReindexUserProfiles: withPermission('super-admin', async (parent) => {
-            debugTask(parent.auth.uid!, 'debugReindexUsers', async (log) => {
-                let users = await Store.UserProfile.findAll(parent);
-                let i = 0;
-                for (let u of users) {
-                    try {
-                        await inTx(parent, async ctx => {
-                            await u.flush(ctx);
-                        });
-
-                        if ((i % 100) === 0) {
-                            await log('done: ' + i);
-                        }
-                    } catch (e) {
-                        await log('error: ' + e);
-                    }
-                    i++;
-                }
-                return 'done';
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUserProfiles', async (ctx, uid, log) => {
+                await Modules.Users.markForUndexing(ctx, uid);
             });
             return true;
         }),
@@ -998,6 +982,15 @@ export default {
                 let dialog = await Store.ConversationPrivate.findById(ctx, id);
                 dialog!.invalidate();
                 await dialog!.flush(ctx);
+            });
+            return true;
+        }),
+        debugReindexUsersDialogs: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUsersDialogs', async (ctx, uid, log) => {
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                for (let dialog of dialogs) {
+                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid: dialog.cid }));
+                }
             });
             return true;
         }),
