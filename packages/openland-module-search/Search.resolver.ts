@@ -149,6 +149,8 @@ export default {
                 return true;
             });
 
+            allHits = allHits.sort((a, b) => b._score = a._score);
+
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
                     return Store.User.findById(ctx, parseInt(hit._id, 10));
