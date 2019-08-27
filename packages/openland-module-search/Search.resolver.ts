@@ -64,21 +64,14 @@ export default {
             //
 
             let functions: any[] = [];
-            let topPrivateDialogs = await Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true });
-            let topGroupDialogs = await Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true });
+            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
+                Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true }),
+                Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true })
+            ]);
             // Boost top dialogs
-            for (let dialog of topPrivateDialogs.items) {
-                functions.push({
-                    filter: { match: { uid2: dialog.uid2 } },
-                    weight: dialog.weight || 1
-                });
-            }
-            for (let dialog of topGroupDialogs.items) {
-                functions.push({
-                    filter: { match: { cid: dialog.cid } },
-                    weight: dialog.weight || 1
-                });
-            }
+            topPrivateDialogs.items.forEach(dialog => functions.push({ filter: { match: { uid2: dialog.uid2 } }, weight: dialog.weight || 1 }));
+            topGroupDialogs.items.forEach(dialog => functions.push({ filter: { match: { cid: dialog.cid } }, weight: dialog.weight || 1 }));
+
             let localDialogsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'dialog', type: 'dialog', size: 10, body: {
                     query:  {
