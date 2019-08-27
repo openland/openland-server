@@ -147,7 +147,7 @@ export default {
                 return true;
             });
 
-            allHits = allHits.sort((a, b) => b._score = a._score);
+            // allHits = allHits.sort((a, b) => b._score = a._score);
 
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
