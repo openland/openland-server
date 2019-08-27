@@ -63,13 +63,28 @@ export default {
             // User dialog rooms
             //
 
+            let functions: any[] = [];
+            let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true });
+            // Boost top dialogs
+            for (let dialog of topDialogs.items) {
+                functions.push({
+                    filter: { match: { uid2: dialog.uid2 } },
+                    weight: dialog.weight || 1
+                });
+            }
             let localDialogsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'dialog', type: 'dialog', size: 10, body: {
-                    query: {
-                        bool: {
-                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
-                        },
-                    },
+                    query:  {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
+                                },
+                            },
+                            functions: functions,
+                            boost_mode: 'multiply'
+                        }
+                    }
                 },
             });
 
