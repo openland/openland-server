@@ -6408,6 +6408,94 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
     }
 }
 
+export interface UserGroupEdgeShape {
+    uid: number;
+    cid: number;
+    weight: number | null;
+}
+
+export interface UserGroupEdgeCreateShape {
+    weight?: number | null | undefined;
+}
+
+export class UserGroupEdge extends Entity<UserGroupEdgeShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get cid(): number { return this._rawValue.cid; }
+    get weight(): number | null { return this._rawValue.weight; }
+    set weight(value: number | null) {
+        let normalized = this.descriptor.codec.fields.weight.normalize(value);
+        if (this._rawValue.weight !== normalized) {
+            this._rawValue.weight = normalized;
+            this._updatedValues.weight = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserGroupEdgeFactory extends EntityFactory<UserGroupEdgeShape, UserGroupEdge> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userGroupEdge');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userGroupEdge', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'weight', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            cid: c.integer,
+            weight: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<UserGroupEdgeShape> = {
+            name: 'UserGroupEdge',
+            storageKey: 'userGroupEdge',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserGroupEdgeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserGroupEdgeShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, cid: number, src: UserGroupEdgeCreateShape): Promise<UserGroupEdge> {
+        return this._create(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, src: UserGroupEdgeCreateShape): UserGroupEdge {
+        return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, cid: number): Promise<UserGroupEdge | null> {
+        return this._findById(ctx, [uid, cid]);
+    }
+
+    watch(ctx: Context, uid: number, cid: number): Watch {
+        return this._watch(ctx, [uid, cid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserGroupEdgeShape>): UserGroupEdge {
+        return new UserGroupEdge([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserInfluencerUserIndexShape {
     uid: number;
     value: number;
@@ -12407,6 +12495,7 @@ export interface Store extends BaseStore {
     readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
     readonly ConferenceConnection: ConferenceConnectionFactory;
     readonly UserEdge: UserEdgeFactory;
+    readonly UserGroupEdge: UserGroupEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     readonly UserInfluencerIndex: UserInfluencerIndexFactory;
     readonly UserBadge: UserBadgeFactory;
@@ -12549,6 +12638,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
     let ConferenceConnectionPromise = ConferenceConnectionFactory.open(storage);
     let UserEdgePromise = UserEdgeFactory.open(storage);
+    let UserGroupEdgePromise = UserGroupEdgeFactory.open(storage);
     let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(storage);
     let UserInfluencerIndexPromise = UserInfluencerIndexFactory.open(storage);
     let UserBadgePromise = UserBadgeFactory.open(storage);
@@ -12675,6 +12765,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferenceMediaStream: await ConferenceMediaStreamPromise,
         ConferenceConnection: await ConferenceConnectionPromise,
         UserEdge: await UserEdgePromise,
+        UserGroupEdge: await UserGroupEdgePromise,
         UserInfluencerUserIndex: await UserInfluencerUserIndexPromise,
         UserInfluencerIndex: await UserInfluencerIndexPromise,
         UserBadge: await UserBadgePromise,
