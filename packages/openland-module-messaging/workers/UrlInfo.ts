@@ -216,7 +216,6 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
         }
     } else {
         let image = await fetch('https://screenshot.openland.io', {
-            timeout: 5000,
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
