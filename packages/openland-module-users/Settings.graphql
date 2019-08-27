@@ -77,12 +77,12 @@ input PlatformNotificationSettingsInput {
 
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
-    notificationsDelay: NotificationsDelay
     desktop: PlatformNotificationSettingsInput
     mobile: PlatformNotificationSettingsInput
 
 
-    #obsolete
+    # Deprecated
+    notificationsDelay: NotificationsDelay
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
     commentNotifications: NotificationComments
@@ -98,11 +98,11 @@ type Settings {
     id: ID!
     primaryEmail: String!
     emailFrequency: EmailFrequency!
-    notificationsDelay: NotificationsDelay!
     desktop: PlatformNotificationSettings!
     mobile: PlatformNotificationSettings!
 
-    # obsolete
+    # Deprecated
+    notificationsDelay: NotificationsDelay!
     desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
     commentNotifications: NotificationComments!

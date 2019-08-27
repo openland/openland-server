@@ -250,12 +250,8 @@ export default {
         notificationsDelay: src => src.notificationsDelay as any,
         countUnreadChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_chats' || src.globalCounterType === 'unread_chats_no_muted'),
         excludeMutedChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_messages_no_muted' || src.globalCounterType === 'unread_chats_no_muted'),
-        desktop: src => {
-            return src.desktop;
-        },
-        mobile: src => {
-            return src.mobile;
-        }
+        desktop: src => src.desktop,
+        mobile: src => src.mobile
     },
     Query: {
         settings: withUser(async (ctx, args, uid) => {

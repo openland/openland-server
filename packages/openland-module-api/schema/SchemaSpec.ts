@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '34956c45fd8e55c296943734185ac72b';
+export const GQL_SPEC_VERSION = '8eaaa0a02e401d98aab18461ce18c0d3';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -496,9 +496,9 @@ export namespace GQL {
     }
     export interface UpdateSettingsInput {
         emailFrequency: Nullable<EmailFrequency>;
-        notificationsDelay: Nullable<NotificationsDelay>;
         desktop: Nullable<PlatformNotificationSettingsInput>;
         mobile: Nullable<PlatformNotificationSettingsInput>;
+        notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
         commentNotifications: Nullable<NotificationComments>;
@@ -513,9 +513,9 @@ export namespace GQL {
         id: string;
         primaryEmail: string;
         emailFrequency: EmailFrequency;
-        notificationsDelay: NotificationsDelay;
         desktop: PlatformNotificationSettings;
         mobile: PlatformNotificationSettings;
+        notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
         commentNotifications: NotificationComments;
@@ -772,6 +772,10 @@ export namespace GQL {
         mobile: boolean;
         desktop: boolean;
     }
+    export interface ShowNotificationMessageInfo {
+        mobile: boolean;
+        desktop: boolean;
+    }
     export interface DialogMessageReceived {
         cid: string;
         message: ConversationMessage;
@@ -781,6 +785,7 @@ export namespace GQL {
         globalUnread: number;
         haveMention: boolean;
         silent: SilentMessageInfo;
+        showNotification: SilentMessageInfo;
     }
     export interface DialogMessageUpdated {
         cid: string;
@@ -3031,7 +3036,8 @@ export interface GQLResolver {
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
     DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated'>;
     SilentMessageInfo?: ComplexTypedResolver<GQL.SilentMessageInfo, GQLRoots.SilentMessageInfoRoot, {}, {}>;
-    DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot, silent: GQLRoots.SilentMessageInfoRoot}, {}>;
+    ShowNotificationMessageInfo?: ComplexTypedResolver<GQL.ShowNotificationMessageInfo, GQLRoots.ShowNotificationMessageInfoRoot, {}, {}>;
+    DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot, silent: GQLRoots.SilentMessageInfoRoot, showNotification: GQLRoots.SilentMessageInfoRoot}, {}>;
     DialogMessageUpdated?: ComplexTypedResolver<GQL.DialogMessageUpdated, GQLRoots.DialogMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
     DialogMessageDeleted?: ComplexTypedResolver<GQL.DialogMessageDeleted, GQLRoots.DialogMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, prevMessage: Nullable<GQLRoots.RoomMessageRoot>, alphaPrevMessage: Nullable<GQLRoots.ModernMessageRoot>, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
     DialogMessageRead?: ComplexTypedResolver<GQL.DialogMessageRead, GQLRoots.DialogMessageReadRoot, {}, {}>;

@@ -187,9 +187,9 @@ const handleUser = async (_ctx: Context, uid: number) => {
             continue;
         }
 
-        let silenceData = await Modules.Messaging.isSilent(ctx, uid, m.mid);
-        let sendMobile = !silenceData.mobile;
-        let sendDesktop = !silenceData.desktop;
+        let sendData = await Modules.Messaging.isShown(ctx, uid, m.mid);
+        let sendMobile = sendData.mobile;
+        let sendDesktop = sendData.desktop;
 
         if (!sendMobile && !sendDesktop) {
             continue;
@@ -220,6 +220,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
             unreadCounter = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
         }
 
+        let silenceSettings = await Modules.Messaging.isSilent(ctx, uid, message.id);
         let push = {
             uid: uid,
             title: pushTitle,
@@ -229,8 +230,8 @@ const handleUser = async (_ctx: Context, uid: number) => {
             conversationId: conversation.id,
             mobile: sendMobile,
             desktop: sendDesktop,
-            mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
-            mobileIncludeText: (settings.mobileIncludeText !== undefined && settings.mobileIncludeText !== null) ? settings.mobileIncludeText : true,
+            mobileAlert: silenceSettings.mobile,
+            mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
             silent: null,
         };
 
