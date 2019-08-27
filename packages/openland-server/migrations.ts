@@ -153,4 +153,79 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '108-new-notification-settings',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            let settings = (await Store.UserSettings.findAll(ctx));
+
+            for (let s of settings) {
+                let mobileAlertDirect = s.mobileNotifications === 'all' || s.mobileNotifications === 'direct';
+                let mobileAlertChat = s.mobileNotifications === 'all';
+                let mobileChatNotificationEnabled = !!s.mobileAlert && mobileAlertChat;
+                let mobileDirectNotificationEnabled = !!s.mobileAlert && mobileAlertDirect;
+                s.mobile = {
+                    direct: {
+                        showNotification: mobileDirectNotificationEnabled,
+                        sound: mobileAlertDirect,
+                    },
+                    communityChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    organizationChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    secretChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    comments: {
+                        showNotification: s.commentNotifications !== 'none',
+                        sound: s.commentNotifications !== 'none',
+                    },
+                    badge: {
+                        countUnreadChats: s.globalCounterType === 'unread_chats' || s.globalCounterType === 'unread_chats_no_muted',
+                        excludeMuted: s.globalCounterType === 'unread_messages_no_muted' || s.globalCounterType === 'unread_chats_no_muted',
+                    },
+                    notificationPreview: s.mobileIncludeText ? 'name_text' : 'name',
+                };
+
+                let desktopChatNotificationEnabled = s.desktopNotifications === 'all';
+                let desktopDirectNotificationEnabled = s.desktopNotifications === 'all' || s.desktopNotifications === 'direct';
+                s.desktop = {
+                    direct: {
+                        showNotification: desktopDirectNotificationEnabled,
+                        sound: desktopDirectNotificationEnabled,
+                    },
+                    communityChat: {
+                        showNotification: desktopChatNotificationEnabled,
+                        sound: desktopChatNotificationEnabled
+                    },
+                    organizationChat: {
+                        showNotification: desktopChatNotificationEnabled,
+                        sound: desktopChatNotificationEnabled
+                    },
+                    secretChat: {
+                        showNotification: desktopChatNotificationEnabled,
+                        sound: desktopChatNotificationEnabled
+                    },
+                    comments: {
+                        showNotification: s.commentNotifications !== 'none',
+                        sound: s.commentNotifications !== 'none',
+                    },
+                    badge: {
+                        countUnreadChats: s.globalCounterType === 'unread_chats' || s.globalCounterType === 'unread_chats_no_muted',
+                        excludeMuted: s.globalCounterType === 'unread_messages_no_muted' || s.globalCounterType === 'unread_chats_no_muted',
+                    },
+                    notificationPreview: 'name_text',
+                };
+
+                await s.flush(ctx);
+            }
+        });
+    }
+});
+
 export default migrations;
