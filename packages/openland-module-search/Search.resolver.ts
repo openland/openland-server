@@ -78,7 +78,7 @@ export default {
             //
             let globalRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
-                    sort: [{ membersCount: {'order' : 'desc'} }],
+                    sort: [{membersCount: {'order': 'desc'}}],
                     query: {
                         bool: {
                             must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
@@ -126,27 +126,6 @@ export default {
 
             let allHits = [...localDialogsHits.hits.hits, ...usersHits.hits.hits.hits, ...orgRoomHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
 
-            let rooms = new Set<number>();
-            let users = new Set<number>();
-
-            allHits = allHits.filter(hit => {
-                if (hit._type === 'dialog' || hit._type === 'room') {
-                    let cid = (hit._source as any).cid;
-                    if (!rooms.has(cid)) {
-                        rooms.add(cid);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-
-                if (hit._type === 'user_profile') {
-                    let userId = parseInt(hit._id, 10);
-                    users.add(userId);
-                }
-                return true;
-            });
-
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
                     return Store.User.findById(ctx, parseInt(hit._id, 10));
@@ -174,6 +153,29 @@ export default {
 
             let data = await Promise.all(dataPromises as Promise<User | Organization | Conversation>[]);
 
+            let rooms = new Set<number>();
+            let users = new Set<number>();
+
+            data = data.filter(value => {
+                if (value instanceof User) {
+                    if (!users.has(value.id)) {
+                        users.add(value.id);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                if (value instanceof Conversation) {
+                    if (!rooms.has(value.id)) {
+                        rooms.add(value.id);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
             data = data.filter(item => {
                 if (!item) {
                     return false;
@@ -188,9 +190,6 @@ export default {
                     }
 
                     return false;
-                }
-                if (item instanceof Conversation) {
-                    return item.kind !== 'private';
                 }
                 return true;
             });
