@@ -142,6 +142,20 @@ export namespace GQLRoots {
     export type DialogRoot = { cid: number };
     export type DialogsConnectionRoot = any;
     export type SettingsRoot = UserSettings;
+    export type ChatTypeNotificationSettingsRoot = { showNotification: boolean, sound: boolean };
+    export type BadgeSettingsRoot = { excludeMuted: boolean, countUnreadChats: boolean };
+    export type PlatformNotificationSettingsRoot = {
+        direct: ChatTypeNotificationSettingsRoot,
+        secretChat: ChatTypeNotificationSettingsRoot,
+        organizationChat: ChatTypeNotificationSettingsRoot,
+        communityChat: ChatTypeNotificationSettingsRoot,
+        comments: ChatTypeNotificationSettingsRoot,
+        notificationPreview: 'name_text' | 'name',
+        badge: {
+            excludeMuted: boolean,
+            countUnreadChats: boolean
+        }
+    };
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
@@ -153,22 +167,6 @@ export namespace GQLRoots {
     export type ImageRefRoot = any;
     export type RangeRoot = any;
     export type ChannelConversationRoot = Conversation | ConversationRoom;
-    export type ChannelMemberOrgRoot = any;
-    export type ChannelMemberRoot = any;
-    export type ChannelInviteRoot = any;
-    export type ChannelOrgInviteRoot = any;
-    export type ChannelJoinRequestOrgRoot = any;
-    export type ChannelConversationConnectionEdgeRoot = any;
-    export type ChannelConversationConnectionRoot = any;
-    export type ConversationUpdateSingleRoot = any;
-    export type ConversationUpdateBatchRoot = any;
-    export type ConversationUpdateContainerRoot = any;
-    export type ConversationUpdateRoot = any;
-    export type ConversationUpdatedRoot = any;
-    export type ConversationMessageReceivedRoot = any;
-    export type ConversationMessageUpdatedRoot = any;
-    export type ConversationMessageDeletedRoot = any;
-    export type ConversationLostAccessRoot = any;
     export type FeatureFlagRoot = FeatureFlag;
     export type OrganizationContactRoot = any;
     export type OrganizationRoot = Organization;

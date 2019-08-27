@@ -1,4 +1,24 @@
-import { declareSchema, atomicInt, primaryKey, atomicBool, integer, entity, field, string, optional, boolean, rangeIndex, uniqueIndex, enumString, json, struct, customDirectory, array, union, event } from '@openland/foundationdb-compiler';
+import {
+    declareSchema,
+    atomicInt,
+    primaryKey,
+    atomicBool,
+    integer,
+    entity,
+    field,
+    string,
+    optional,
+    boolean,
+    rangeIndex,
+    uniqueIndex,
+    enumString,
+    json,
+    struct,
+    customDirectory,
+    array,
+    union,
+    event,
+} from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 
 export default declareSchema(() => {
@@ -51,6 +71,24 @@ export default declareSchema(() => {
         field('picture', optional(string()));
     });
 
+    let notificationSettings = struct({
+        showNotification: boolean(),
+        sound: boolean(),
+    });
+
+    let platformNotificationSettings = struct({
+        direct: notificationSettings,
+        secretChat: notificationSettings,
+        organizationChat: notificationSettings,
+        communityChat: notificationSettings,
+        comments: notificationSettings,
+        notificationPreview: enumString('name_text', 'name'),
+        badge: struct({
+            excludeMuted: boolean(),
+            countUnreadChats: boolean(),
+        })
+    });
+
     entity('UserSettings', () => {
         primaryKey('id', integer());
         field('emailFrequency', enumString('1hour', '15min', 'never', '24hour', '1week'));
@@ -62,6 +100,8 @@ export default declareSchema(() => {
         field('mobileIncludeText', optional(boolean()));
         field('notificationsDelay', optional(enumString('none', '1min', '15min')));
         field('globalCounterType', optional(enumString('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')));
+        field('desktop', optional(platformNotificationSettings));
+        field('mobile', optional(platformNotificationSettings));
     });
 
     entity('UserIndexingQueue', () => {
@@ -88,13 +128,9 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('name', string());
         field('photo', optional(struct({
-            uuid: string(),
-            crop: optional(struct({
-                x: integer(),
-                y: integer(),
-                w: integer(),
-                h: integer()
-            }))
+            uuid: string(), crop: optional(struct({
+                x: integer(), y: integer(), w: integer(), h: integer(),
+            })),
         })));
         field('about', optional(string()));
         field('twitter', optional(string()));
@@ -223,17 +259,12 @@ export default declareSchema(() => {
     // Content
     //
     const basicSpan = struct({
-        offset: integer(),
-        length: integer(),
+        offset: integer(), length: integer(),
     });
     const ImageRef = struct({
-        uuid: string(),
-        crop: optional(struct({
-            x: integer(),
-            y: integer(),
-            w: integer(),
-            h: integer()
-        }))
+        uuid: string(), crop: optional(struct({
+            x: integer(), y: integer(), w: integer(), h: integer(),
+        })),
     });
     const FileInfo = struct({
         name: string(),
@@ -243,7 +274,7 @@ export default declareSchema(() => {
         imageWidth: optional(integer()),
         imageHeight: optional(integer()),
         imageFormat: optional(string()),
-        mimeType: string()
+        mimeType: string(),
     });
 
     entity('Message', () => {
@@ -256,8 +287,7 @@ export default declareSchema(() => {
         field('replyMessages', optional(array(integer())));
         field('serviceMetadata', optional(json()));
         field('reactions', optional(array(struct({
-            userId: integer(),
-            reaction: string()
+            userId: integer(), reaction: string(),
         }))));
         field('edited', optional(boolean()));
         field('isMuted', boolean());
@@ -265,29 +295,19 @@ export default declareSchema(() => {
         field('deleted', optional(boolean()));
         field('spans', optional(array(union({
             user_mention: struct({
-                offset: integer(),
-                length: integer(),
-                user: integer()
+                offset: integer(), length: integer(), user: integer(),
             }),
             multi_user_mention: struct({
-                offset: integer(),
-                length: integer(),
-                users: array(integer())
+                offset: integer(), length: integer(), users: array(integer()),
             }),
             room_mention: struct({
-                offset: integer(),
-                length: integer(),
-                room: integer()
+                offset: integer(), length: integer(), room: integer(),
             }),
             link: struct({
-                offset: integer(),
-                length: integer(),
-                url: string()
+                offset: integer(), length: integer(), url: string(),
             }),
             date_text: struct({
-                offset: integer(),
-                length: integer(),
-                date: integer(),
+                offset: integer(), length: integer(), date: integer(),
             }),
             bold_text: basicSpan,
             italic_text: basicSpan,
@@ -297,16 +317,12 @@ export default declareSchema(() => {
             insane_text: basicSpan,
             loud_text: basicSpan,
             rotating_text: basicSpan,
-            all_mention: basicSpan
+            all_mention: basicSpan,
         }))));
         field('attachmentsModern', optional(array(union({
             file_attachment: struct({
-                id: string(),
-                fileId: string(),
-                filePreview: optional(string()),
-                fileMetadata: optional(FileInfo)
-            }),
-            rich_attachment: struct({
+                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
+            }), rich_attachment: struct({
                 id: string(),
                 title: optional(string()),
                 subTitle: optional(string()),
@@ -318,18 +334,15 @@ export default declareSchema(() => {
                 imageInfo: optional(FileInfo),
                 imagePreview: optional(string()),
                 imageFallback: optional(struct({
-                    photo: string(),
-                    text: string()
+                    photo: string(), text: string(),
                 })),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(),
-                        style: enumString('DEFAULT', 'LIGHT'),
-                        url: optional(string()),
-                    })))
-                }))
-            })
+                        title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
+                    }))),
+                })),
+            }),
         }))));
 
         // deprecated start
@@ -342,7 +355,7 @@ export default declareSchema(() => {
             imageWidth: optional(integer()),
             imageHeight: optional(integer()),
             imageFormat: optional(string()),
-            mimeType: string()
+            mimeType: string(),
         }))).secure();
         field('filePreview', optional(string())).secure();
         field('augmentation', optional(json()));
@@ -374,34 +387,23 @@ export default declareSchema(() => {
 
         field('text', optional(string())).secure();
         field('reactions', optional(array(struct({
-            userId: integer(),
-            reaction: string()
+            userId: integer(), reaction: string(),
         }))));
         field('spans', optional(array(union({
             user_mention: struct({
-                offset: integer(),
-                length: integer(),
-                user: integer()
+                offset: integer(), length: integer(), user: integer(),
             }),
             multi_user_mention: struct({
-                offset: integer(),
-                length: integer(),
-                users: array(integer())
+                offset: integer(), length: integer(), users: array(integer()),
             }),
             room_mention: struct({
-                offset: integer(),
-                length: integer(),
-                room: integer()
+                offset: integer(), length: integer(), room: integer(),
             }),
             link: struct({
-                offset: integer(),
-                length: integer(),
-                url: string()
+                offset: integer(), length: integer(), url: string(),
             }),
             date_text: struct({
-                offset: integer(),
-                length: integer(),
-                date: integer()
+                offset: integer(), length: integer(), date: integer(),
             }),
             bold_text: basicSpan,
             italic_text: basicSpan,
@@ -411,16 +413,12 @@ export default declareSchema(() => {
             insane_text: basicSpan,
             loud_text: basicSpan,
             rotating_text: basicSpan,
-            all_mention: basicSpan
+            all_mention: basicSpan,
         }))));
         field('attachments', optional(array(union({
             file_attachment: struct({
-                id: string(),
-                fileId: string(),
-                filePreview: optional(string()),
-                fileMetadata: optional(FileInfo),
-            }),
-            rich_attachment: struct({
+                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
+            }), rich_attachment: struct({
                 id: string(),
                 title: optional(string()),
                 subTitle: optional(string()),
@@ -432,18 +430,15 @@ export default declareSchema(() => {
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
                 imageFallback: optional(struct({
-                    photo: string(),
-                    text: string()
+                    photo: string(), text: string(),
                 })),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(),
-                        style: enumString('DEFAULT', 'LIGHT'),
-                        url: optional(string())
-                    })))
-                }))
-            })
+                        title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
+                    }))),
+                })),
+            }),
         }))));
 
         field('deleted', optional(boolean()));
@@ -465,34 +460,23 @@ export default declareSchema(() => {
 
         field('text', optional(string())).secure();
         field('reactions', optional(array(struct({
-            userId: integer(),
-            reaction: string()
+            userId: integer(), reaction: string(),
         }))));
         field('spans', optional(array(union({
             user_mention: struct({
-                offset: integer(),
-                length: integer(),
-                user: integer()
+                offset: integer(), length: integer(), user: integer(),
             }),
             multi_user_mention: struct({
-                offset: integer(),
-                length: integer(),
-                users: array(integer())
+                offset: integer(), length: integer(), users: array(integer()),
             }),
             room_mention: struct({
-                offset: integer(),
-                length: integer(),
-                room: integer()
+                offset: integer(), length: integer(), room: integer(),
             }),
             link: struct({
-                offset: integer(),
-                length: integer(),
-                url: string()
+                offset: integer(), length: integer(), url: string(),
             }),
             date_text: struct({
-                offset: integer(),
-                length: integer(),
-                date: integer()
+                offset: integer(), length: integer(), date: integer(),
             }),
             bold_text: basicSpan,
             italic_text: basicSpan,
@@ -502,16 +486,12 @@ export default declareSchema(() => {
             insane_text: basicSpan,
             loud_text: basicSpan,
             rotating_text: basicSpan,
-            all_mention: basicSpan
+            all_mention: basicSpan,
         }))));
         field('attachments', optional(array(union({
             file_attachment: struct({
-                id: string(),
-                fileId: string(),
-                filePreview: optional(string()),
-                fileMetadata: optional(FileInfo),
-            }),
-            rich_attachment: struct({
+                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
+            }), rich_attachment: struct({
                 id: string(),
                 title: optional(string()),
                 subTitle: optional(string()),
@@ -522,19 +502,16 @@ export default declareSchema(() => {
                 iconInfo: optional(FileInfo),
                 imageInfo: optional(FileInfo),
                 imageFallback: optional(struct({
-                    photo: string(),
-                    text: string()
+                    photo: string(), text: string(),
                 })),
                 imagePreview: optional(string()),
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(),
-                        style: enumString('DEFAULT', 'LIGHT'),
-                        url: optional(string())
-                    })))
-                }))
-            })
+                        title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
+                    }))),
+                })),
+            }),
         }))));
 
         field('edited', optional(boolean()));
@@ -880,8 +857,8 @@ export default declareSchema(() => {
 
         field('content', optional(array(union({
             'new_comment': struct({
-                commentId: integer()
-            })
+                commentId: integer(),
+            }),
         }))));
 
         rangeIndex('notificationCenter', ['ncid', 'id']).withCondition((src) => !src.deleted);
@@ -905,10 +882,8 @@ export default declareSchema(() => {
         field('notificationId', optional(integer()));
         field('updatedContent', optional(union({
             comment: struct({
-                peerId: integer(),
-                peerType: string(),
-                commentId: optional(integer())
-            })
+                peerId: integer(), peerType: string(), commentId: optional(integer()),
+            }),
         })));
         field('kind', enumString('notification_received', 'notification_read', 'notification_deleted', 'notification_updated', 'notification_content_updated'));
 
