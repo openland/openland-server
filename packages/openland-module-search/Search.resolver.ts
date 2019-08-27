@@ -63,7 +63,7 @@ export default {
             // User dialog rooms
             //
 
-            let localRoomsHitsPromise = Modules.Search.elastic.client.search({
+            let localDialogsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'dialog', type: 'dialog', size: 10, body: {
                     query: {
                         bool: {
@@ -112,19 +112,19 @@ export default {
 
             let [
                 usersHits,
-                localRoomsHits,
+                localDialogsHits,
                 globalRoomHits,
                 orgRoomHits,
                 orgsHits
             ] = await Promise.all([
                 usersHitsPromise,
-                localRoomsHitsPromise,
+                localDialogsHitsPromise,
                 globalRoomHitsPromise,
                 orgRoomHitsPromise,
                 orgsHitsPromise
             ]);
 
-            let allHits = [...usersHits.hits.hits.hits, ...localRoomsHits.hits.hits, ...globalRoomHits.hits.hits, ...orgRoomHits.hits.hits, ...orgsHits.hits.hits];
+            let allHits = [...localDialogsHits.hits.hits, ...usersHits.hits.hits.hits, ...orgRoomHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
 
             let rooms = new Set<number>();
             let users = new Set<number>();
@@ -147,14 +147,21 @@ export default {
                 return true;
             });
 
-            // allHits = allHits.sort((a, b) => b._score = a._score);
-
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
                     return Store.User.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'organization') {
                     return Store.Organization.findById(ctx, parseInt(hit._id, 10));
-                } else if (hit._type === 'dialog' || hit._type === 'room') {
+                } else if (hit._type === 'dialog') {
+                    let val = (hit._source as any);
+                    if (!val.cid) {
+                        return null;
+                    }
+                    if (val.uid2) {
+                        return Store.User.findById(ctx, val.uid2);
+                    }
+                    return Store.Conversation.findById(ctx, val.cid);
+                } else if (hit._type === 'room') {
                     let cid = (hit._source as any).cid;
                     if (!cid) {
                         return null;
