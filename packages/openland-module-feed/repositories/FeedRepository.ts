@@ -116,6 +116,7 @@ export class FeedRepository {
             getTransaction(ctx).afterCommit(() => {
                 EventBus.publish('new_post', { id: event.id, tid: event.tid });
             });
+            return event;
         });
     }
 }

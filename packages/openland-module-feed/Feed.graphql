@@ -14,10 +14,10 @@ type FeedItem {
 }
 
 extend type Query {
-    alphaHomeFeed: [FeedItem!]!
+    alphaHomeFeed(first: Int!, after: Date): [FeedItem!]!
 }
 
 extend type Mutation {
-    alphaCreateFeedPost(message: String!): FeedItem!
+    alphaCreateFeedPost(message: String!, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
     alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
 }
