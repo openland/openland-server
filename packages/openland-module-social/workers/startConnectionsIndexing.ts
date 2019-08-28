@@ -11,6 +11,8 @@ export function startConnectionsIndexer() {
                 if (pr) {
                     let uid2 = pr.uid1 === i.uid ? pr.uid2 : pr.uid1;
                     await Modules.Social.connections.onMessageSent(ctx, i.uid, uid2);
+                } else {
+                    await Modules.Social.connections.onGroupMessageSent(ctx, i.uid, i.cid);
                 }
             }
         });

@@ -99,7 +99,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                     throw e;
                 }
             }
-        }, { delay: 5000 });
+        }, { delay: 0 });
     }
 }
 

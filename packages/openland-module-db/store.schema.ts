@@ -791,6 +791,13 @@ export default declareSchema(() => {
         rangeIndex('reverseWeight', ['uid2', 'weight']);
     });
 
+    entity('UserGroupEdge', () => {
+        primaryKey('uid', integer());
+        primaryKey('cid', integer());
+        field('weight', optional(integer()));
+        rangeIndex('user', ['uid', 'weight']);
+    });
+
     entity('UserInfluencerUserIndex', () => {
         primaryKey('uid', integer());
         field('value', integer());

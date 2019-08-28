@@ -28,4 +28,16 @@ export class ConnectionsRepository {
             }
         });
     }
+
+    onGroupMessageSent = async (parent: Context, fromUid: number, toCid: number) => {
+        await inTx(parent, async (ctx) => {
+            let edge = await Store.UserGroupEdge.findById(ctx, fromUid, toCid);
+            if (!edge) {
+                await Store.UserGroupEdge.create(ctx, fromUid, toCid, { weight: 1 });
+            } else {
+                edge.weight = (edge.weight || 0) + 1;
+                await edge.flush(ctx);
+            }
+        });
+    }
 }

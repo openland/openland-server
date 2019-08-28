@@ -253,6 +253,9 @@ export default {
         desktop: src => src.desktop,
         mobile: src => src.mobile
     },
+    PlatformNotificationSettings: {
+        notificationPreview: src => src.notificationPreview.toUpperCase()
+    },
     Query: {
         settings: withUser(async (ctx, args, uid) => {
             return Modules.Users.getUserSettings(ctx, uid);
