@@ -14,35 +14,80 @@ async function getBrowserPage() {
   return browser.newPage();
 }
 
+
+export class AsyncLock {
+  permits = 1;
+  promiseResolverQueue = [];
+
+  async inLock(func) {
+    try {
+      await this.lock();
+      return await func();
+    } finally {
+      this.unlock();
+    }
+  }
+
+  async lock() {
+    if (this.permits > 0) {
+      this.permits = this.permits - 1;
+      return;
+    }
+    await new Promise(resolve => this.promiseResolverQueue.push(resolve));
+  }
+
+  unlock() {
+    this.permits += 1;
+    if (this.permits > 1 && this.promiseResolverQueue.length > 0) {
+      throw new Error('this.permits should never be > 0 when there is someone waiting.');
+    } else if (this.permits === 1 && this.promiseResolverQueue.length > 0) {
+      // If there is someone else waiting, immediately consume the permit that was released
+      // at the beginning of this function and let the waiting function resume.
+      this.permits -= 1;
+
+      const nextResolver = this.promiseResolverQueue.shift();
+      // Resolve on the next tick
+      if (nextResolver) {
+        setTimeout(() => {
+          nextResolver(true);
+        }, 0);
+      }
+    }
+  }
+}
+
+const lock = new AsyncLock();
+
 exports.makeScreenshot = async (req, res) => {
+  await lock.inLock(async () => {
+    if (!page) {
+      page = await getBrowserPage();
+    }
 
-  if (!page) {
-    page = await getBrowserPage();
-  }
+    const url = req.body.url;
+    const src = req.body.src;
+    const width = req.body.width || 640;
+    const height = req.body.height || 320;
+    const scale = req.body.scale || 1;
 
-  const url = req.body.url;
-  const src = req.body.src;
-  const width = req.body.width || 640;
-  const height = req.body.height || 320;
-  const scale = req.body.scale || 1;
+    if (!url && !src) {
+      return res.status(400).send('Invalid request');
+    }
 
-  if (!url && !src) {
-    return res.status(400).send('Invalid request');
-  }
+    // Load page
+    await page.setViewport({ width, height, deviceScaleFactor: scale });
+    if (url) {
+      await page.goto(url, { waitUntil: 'networkidle2' });
+    } else {
+      await page.setContent(src, { waitUntil: 'networkidle2' });
+    }
 
-  // Load page
-  await page.setViewport({ width, height, deviceScaleFactor: scale });
-  if (url) {
-    await page.goto(url, { waitUntil: 'networkidle2' });
-  } else {
-    await page.setContent(src, { waitUntil: 'networkidle2' });
-  }
-
-  // Make screenshot
-  const screenshot = await page.screenshot({
-    type: 'png',
-    omitBackground: false
+    // Make screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      omitBackground: false
+    });
+    res.set('Content-Type', 'image/png');
+    res.send(screenshot);
   });
-  res.set('Content-Type', 'image/png');
-  res.send(screenshot);
 };
