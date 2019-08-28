@@ -43,6 +43,10 @@ export class FeedModule {
         return this.repo.createPost(parent, uid, topic, input);
     }
 
+    async subscribeTopic(tid: number, cb: (event: { id: number }) => void) {
+        return this.repo.subscribeTopic(tid, cb);
+    }
+
     start = () => {
         // Do nothing
     }

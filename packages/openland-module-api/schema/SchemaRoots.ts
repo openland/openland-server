@@ -71,9 +71,16 @@ export namespace GQLRoots {
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
 
+    //
+    //  Feed
+    //
     export type FeedItemRoot = FeedEvent;
     export type FeedItemContentRoot = RichMessage;
     export type FeedPostRoot = RichMessage;
+    export type FeedUpdate = { type: 'new_item', id: number };
+    export type FeedUpdateContainerRoot = { updates: FeedUpdate[] };
+    export type FeedUpdateRoot = FeedUpdate;
+    export type ItemReceivedRoot = FeedUpdate;
 
     //
     // Calls

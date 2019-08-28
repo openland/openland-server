@@ -9,11 +9,20 @@ import {
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
+import { Modules } from '../../openland-modules/Modules';
+import { Pubsub } from '../../openland-module-pubsub/pubsub';
 
 @injectable()
 export class FeedRepository {
     @lazyInject('RichMessageRepository')
     private readonly richMessageRepo!: RichMessageRepository;
+    private localSub = new Pubsub<{ id: number, tid: number }>(false);
+
+    constructor() {
+        EventBus.subscribe('new_post', async (event: { id: number, tid: number }) => {
+            await this.localSub.publish('topic_' + event.tid, event);
+        });
+    }
 
     //
     // Topics
@@ -94,7 +103,9 @@ export class FeedRepository {
     async findSubscriptions(parent: Context, subscriber: string) {
         return await inTx(parent, async (ctx) => {
             let s = await this.resolveSubscriber(ctx, subscriber);
-            return (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
+            let userSubscriptions = (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
+            let globalTag = await Modules.Feed.resolveTopic(ctx, 'tag-global');
+            return [globalTag.id, ...userSubscriptions];
         });
     }
 
@@ -118,5 +129,9 @@ export class FeedRepository {
             });
             return event;
         });
+    }
+
+    async subscribeTopic(tid: number, cb: (event: { id: number }) => void) {
+        return await this.localSub.subscribe('topic_' + tid, cb);
     }
 }

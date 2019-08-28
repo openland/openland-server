@@ -1,14 +1,14 @@
-import { FeedEvent, RichMessage } from './../openland-module-db/store';
+import { FeedEvent, RichMessage } from '../../openland-module-db/store';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
-import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import FeedItemContentRoot = GQLRoots.FeedItemContentRoot;
-import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { inTx } from '@openland/foundationdb';
-import { resolveRichMessageCreation } from '../openland-module-rich-message/resolvers/resolveRichMessageCreation';
+import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 
 export default {
     FeedItem: {
@@ -38,9 +38,6 @@ export default {
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
-            let globalTag = await Modules.Feed.resolveTopic(ctx, 'tag-global');
-            subscriptions.push(globalTag.id);
-
             let allEvents: FeedEvent[] = [];
             let topicPosts = await Promise.all(subscriptions.map(s => Store.FeedEvent.topic.query(ctx, s, { after: args.after && args.after.getTime(), reverse: true })));
             for (let posts of topicPosts) {
