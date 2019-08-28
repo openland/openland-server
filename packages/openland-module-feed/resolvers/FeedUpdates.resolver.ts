@@ -35,7 +35,7 @@ export default {
 
                 let subscriptions: PubsubSubcription[] = [];
                 onContextCancel(ctx, () => subscriptions.forEach(s => s.cancel()));
-                let iterator = createIterator<{ updates: FeedTopicEvent[] }>(() => subscriptions.forEach(s => s.cancel()));
+                let iterator = createIterator<{ updates: FeedTopicEvent[] }>(() => 0);
                 for (let tid of topics) {
                     subscriptions.push(await Modules.Feed.subscribeTopicEvents(tid, event => {
                         iterator.push({ updates: [event] });
