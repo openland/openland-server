@@ -106,7 +106,7 @@ export class FeedRepository {
         return await inTx(parent, async (ctx) => {
             let s = await this.resolveSubscriber(ctx, subscriber);
             let userSubscriptions = (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
-            let globalTag = await Modules.Feed.resolveTopic(ctx, 'tag-global');
+            let globalTag = await this.resolveTopic(ctx, 'tag-global');
             return [globalTag.id, ...userSubscriptions];
         });
     }

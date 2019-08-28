@@ -70,7 +70,6 @@ describe('FeedRepository', () => {
         await repo.resolveSubscriber(createNamedContext('test'), 'test-key-3');
         let t1 = await repo.resolveTopic(createNamedContext('test'), 'test-key-3');
         let subs = (await repo.findSubscriptions(createNamedContext('test'), 'test-key-3'));
-        expect(subs.length).toBe(1);
-        expect(subs[0]).toBe(t1.id);
+        expect(subs.indexOf(t1.id) > -1).toBeTruthy();
     });
 });
