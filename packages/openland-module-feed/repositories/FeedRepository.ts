@@ -9,7 +9,6 @@ import {
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
-import { Modules } from '../../openland-modules/Modules';
 import { Pubsub } from '../../openland-module-pubsub/pubsub';
 
 export type FeedTopicEvent = { type: 'new_item', id: number, tid: number };
