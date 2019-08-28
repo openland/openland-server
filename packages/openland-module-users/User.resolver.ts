@@ -82,6 +82,7 @@ export default {
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
         instagram: withProfile((ctx, src, profile) => profile && profile.instagram),
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
+        facebook: withProfile((ctx, src, profile) => profile && profile.facebook),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
         badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),
         primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null),

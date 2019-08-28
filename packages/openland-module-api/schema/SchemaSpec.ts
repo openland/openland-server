@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '34956c45fd8e55c296943734185ac72b';
+export const GQL_SPEC_VERSION = '21a2a3fb7c5f008de7300fb32efd4209';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -263,6 +263,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
         alphaJoinedAt: Nullable<string>;
@@ -287,6 +288,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
     }
     export interface UpdateProfileInput {
@@ -301,6 +303,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
         alphaRole: Nullable<string>;
         alphaLocations: Nullable<string[]>;
@@ -319,6 +322,7 @@ export namespace GQL {
         website: Nullable<string>;
         linkedin: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
     }
     export interface AlphaSignupData {
@@ -2530,6 +2534,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         audienceSize: number;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;

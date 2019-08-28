@@ -53,9 +53,10 @@ export default declareSchema(() => {
         field('location', optional(string()));
         field('email', optional(string()));
         field('picture', optional(json()));
+        field('twitter', optional(string()));
+        field('facebook', optional(string()));
         field('linkedin', optional(string()));
         field('instagram', optional(string()));
-        field('twitter', optional(string()));
         field('locations', optional(json()));
         field('primaryOrganization', optional(integer()));
         field('primaryBadge', optional(integer()));

@@ -14,6 +14,7 @@ type User {
     linkedin: String
     instagram: String
     twitter: String
+    facebook: String
     audienceSize: Int!
 
     # TODO: Refactor
