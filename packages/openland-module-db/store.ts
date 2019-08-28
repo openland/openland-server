@@ -1357,9 +1357,10 @@ export interface UserProfileShape {
     location: string | null;
     email: string | null;
     picture: any | null;
+    twitter: string | null;
+    facebook: string | null;
     linkedin: string | null;
     instagram: string | null;
-    twitter: string | null;
     locations: any | null;
     primaryOrganization: number | null;
     primaryBadge: number | null;
@@ -1375,9 +1376,10 @@ export interface UserProfileCreateShape {
     location?: string | null | undefined;
     email?: string | null | undefined;
     picture?: any | null | undefined;
+    twitter?: string | null | undefined;
+    facebook?: string | null | undefined;
     linkedin?: string | null | undefined;
     instagram?: string | null | undefined;
-    twitter?: string | null | undefined;
     locations?: any | null | undefined;
     primaryOrganization?: number | null | undefined;
     primaryBadge?: number | null | undefined;
@@ -1458,6 +1460,24 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get twitter(): string | null { return this._rawValue.twitter; }
+    set twitter(value: string | null) {
+        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
+        if (this._rawValue.twitter !== normalized) {
+            this._rawValue.twitter = normalized;
+            this._updatedValues.twitter = normalized;
+            this.invalidate();
+        }
+    }
+    get facebook(): string | null { return this._rawValue.facebook; }
+    set facebook(value: string | null) {
+        let normalized = this.descriptor.codec.fields.facebook.normalize(value);
+        if (this._rawValue.facebook !== normalized) {
+            this._rawValue.facebook = normalized;
+            this._updatedValues.facebook = normalized;
+            this.invalidate();
+        }
+    }
     get linkedin(): string | null { return this._rawValue.linkedin; }
     set linkedin(value: string | null) {
         let normalized = this.descriptor.codec.fields.linkedin.normalize(value);
@@ -1473,15 +1493,6 @@ export class UserProfile extends Entity<UserProfileShape> {
         if (this._rawValue.instagram !== normalized) {
             this._rawValue.instagram = normalized;
             this._updatedValues.instagram = normalized;
-            this.invalidate();
-        }
-    }
-    get twitter(): string | null { return this._rawValue.twitter; }
-    set twitter(value: string | null) {
-        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
-        if (this._rawValue.twitter !== normalized) {
-            this._rawValue.twitter = normalized;
-            this._updatedValues.twitter = normalized;
             this.invalidate();
         }
     }
@@ -1541,9 +1552,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'location', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'email', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'facebook', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'locations', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'primaryOrganization', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'primaryBadge', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -1558,9 +1570,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             location: c.optional(c.string),
             email: c.optional(c.string),
             picture: c.optional(c.any),
+            twitter: c.optional(c.string),
+            facebook: c.optional(c.string),
             linkedin: c.optional(c.string),
             instagram: c.optional(c.string),
-            twitter: c.optional(c.string),
             locations: c.optional(c.any),
             primaryOrganization: c.optional(c.integer),
             primaryBadge: c.optional(c.integer),

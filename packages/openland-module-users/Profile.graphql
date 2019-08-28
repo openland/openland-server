@@ -12,6 +12,7 @@ type Profile {
     linkedin: String
     instagram: String
     twitter: String
+    facebook: String
 
     # Deprecated
     alphaLinkedin: String
@@ -34,6 +35,7 @@ input ProfileInput {
     linkedin: String
     instagram: String
     twitter: String
+    facebook: String
     primaryOrganization: ID
 }
 
@@ -50,6 +52,7 @@ input UpdateProfileInput {
     linkedin: String
     instagram: String
     twitter: String
+    facebook: String
     primaryOrganization: ID
 
     alphaRole: String
@@ -71,6 +74,7 @@ input CreateProfileInput {
     website: String
     linkedin: String
     twitter: String
+    facebook: String
     primaryOrganization: ID
 }
 

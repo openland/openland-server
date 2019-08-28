@@ -134,6 +134,7 @@ export class UserRepository {
                 linkedin: null,
                 instagram: null,
                 twitter: null,
+                facebook: null,
                 locations: null,
                 primaryOrganization: null,
                 primaryBadge: null,
