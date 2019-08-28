@@ -63,13 +63,28 @@ export default {
             // User dialog rooms
             //
 
-            let localRoomsHitsPromise = Modules.Search.elastic.client.search({
+            let functions: any[] = [];
+            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
+                Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true }),
+                Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true })
+            ]);
+            // Boost top dialogs
+            topPrivateDialogs.items.forEach(dialog => functions.push({ filter: { match: { uid2: dialog.uid2 } }, weight: dialog.weight || 1 }));
+            topGroupDialogs.items.forEach(dialog => functions.push({ filter: { match: { cid: dialog.cid } }, weight: dialog.weight || 1 }));
+
+            let localDialogsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'dialog', type: 'dialog', size: 10, body: {
-                    query: {
-                        bool: {
-                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
-                        },
-                    },
+                    query:  {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
+                                },
+                            },
+                            functions: functions,
+                            boost_mode: 'multiply'
+                        }
+                    }
                 },
             });
 
@@ -78,7 +93,7 @@ export default {
             //
             let globalRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
-                    sort: [{ membersCount: {'order' : 'desc'} }],
+                    sort: [{membersCount: {'order': 'desc'}}],
                     query: {
                         bool: {
                             must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
@@ -112,49 +127,35 @@ export default {
 
             let [
                 usersHits,
-                localRoomsHits,
+                localDialogsHits,
                 globalRoomHits,
                 orgRoomHits,
                 orgsHits
             ] = await Promise.all([
                 usersHitsPromise,
-                localRoomsHitsPromise,
+                localDialogsHitsPromise,
                 globalRoomHitsPromise,
                 orgRoomHitsPromise,
                 orgsHitsPromise
             ]);
 
-            let allHits = [...usersHits.hits.hits.hits, ...localRoomsHits.hits.hits, ...globalRoomHits.hits.hits, ...orgRoomHits.hits.hits, ...orgsHits.hits.hits];
-
-            let rooms = new Set<number>();
-            let users = new Set<number>();
-
-            allHits = allHits.filter(hit => {
-                if (hit._type === 'dialog' || hit._type === 'room') {
-                    let cid = (hit._source as any).cid;
-                    if (!rooms.has(cid)) {
-                        rooms.add(cid);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-
-                if (hit._type === 'user_profile') {
-                    let userId = parseInt(hit._id, 10);
-                    users.add(userId);
-                }
-                return true;
-            });
-
-            allHits = allHits.sort((a, b) => b._score = a._score);
+            let allHits = [...localDialogsHits.hits.hits, ...usersHits.hits.hits.hits, ...orgRoomHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
 
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
                     return Store.User.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'organization') {
                     return Store.Organization.findById(ctx, parseInt(hit._id, 10));
-                } else if (hit._type === 'dialog' || hit._type === 'room') {
+                } else if (hit._type === 'dialog') {
+                    let val = (hit._source as any);
+                    if (!val.cid) {
+                        return null;
+                    }
+                    if (val.uid2) {
+                        return Store.User.findById(ctx, val.uid2);
+                    }
+                    return Store.Conversation.findById(ctx, val.cid);
+                } else if (hit._type === 'room') {
                     let cid = (hit._source as any).cid;
                     if (!cid) {
                         return null;
@@ -166,6 +167,29 @@ export default {
             });
 
             let data = await Promise.all(dataPromises as Promise<User | Organization | Conversation>[]);
+
+            let rooms = new Set<number>();
+            let users = new Set<number>();
+
+            data = data.filter(value => {
+                if (value instanceof User) {
+                    if (!users.has(value.id)) {
+                        users.add(value.id);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                if (value instanceof Conversation) {
+                    if (!rooms.has(value.id)) {
+                        rooms.add(value.id);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            });
 
             data = data.filter(item => {
                 if (!item) {
@@ -181,9 +205,6 @@ export default {
                     }
 
                     return false;
-                }
-                if (item instanceof Conversation) {
-                    return item.kind !== 'private';
                 }
                 return true;
             });

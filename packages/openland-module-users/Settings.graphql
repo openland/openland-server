@@ -29,8 +29,60 @@ enum NotificationsDelay {
     MIN_15
 }
 
+enum NotificationPreview {
+    NAME_TEXT
+    NAME
+}
+
+type ChatTypeNotificationSettings {
+    showNotification: Boolean!
+    sound: Boolean!
+}
+
+input ChatTypeNotificationSettingsInput {
+    showNotification: Boolean!
+    sound: Boolean!
+}
+
+type BadgeSettings {
+    excludeMuted: Boolean!
+    countUnreadChats: Boolean!
+}
+
+input BadgeSettingsInput {
+    excludeMuted: Boolean!
+    countUnreadChats: Boolean!
+}
+
+type PlatformNotificationSettings {
+    direct: ChatTypeNotificationSettings!
+    secretChat: ChatTypeNotificationSettings!
+    organizationChat: ChatTypeNotificationSettings!
+    communityChat: ChatTypeNotificationSettings!
+    comments: ChatTypeNotificationSettings!
+    notificationPreview: NotificationPreview!
+    badge: BadgeSettings!
+}
+
+
+input PlatformNotificationSettingsInput {
+    direct: ChatTypeNotificationSettingsInput
+    secretChat: ChatTypeNotificationSettingsInput
+    organizationChat: ChatTypeNotificationSettingsInput
+    communityChat: ChatTypeNotificationSettingsInput
+    comments: ChatTypeNotificationSettingsInput
+    notificationPreview: NotificationPreview
+    badge: BadgeSettingsInput
+}
+
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
+    notificationsDelay: NotificationsDelay
+    desktop: PlatformNotificationSettingsInput
+    mobile: PlatformNotificationSettingsInput
+
+
+    #obsolete
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
     commentNotifications: NotificationComments
@@ -38,7 +90,6 @@ input UpdateSettingsInput {
     mobileAlert: Boolean
     mobileIncludeText: Boolean
     mute: Boolean
-    notificationsDelay: NotificationsDelay
     countUnreadChats: Boolean
     excludeMutedChats: Boolean
 }
@@ -47,6 +98,11 @@ type Settings {
     id: ID!
     primaryEmail: String!
     emailFrequency: EmailFrequency!
+    notificationsDelay: NotificationsDelay!
+    desktop: PlatformNotificationSettings!
+    mobile: PlatformNotificationSettings!
+
+    # obsolete
     desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
     commentNotifications: NotificationComments!
@@ -54,7 +110,6 @@ type Settings {
     mobileAlert: Boolean!
     mobileIncludeText: Boolean!
     mute: Boolean
-    notificationsDelay: NotificationsDelay!
     countUnreadChats: Boolean!
     excludeMutedChats: Boolean!
 }
