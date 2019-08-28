@@ -5,9 +5,9 @@ import { AppContext } from '../../openland-modules/AppContext';
 import { Modules } from '../../openland-modules/Modules';
 import { PubsubSubcription } from '../../openland-module-pubsub/pubsub';
 import { createIterator } from '../../openland-utils/asyncIterator';
-import FeedUpdate = GQLRoots.FeedUpdate;
 import { Store } from '../../openland-module-db/FDB';
 import { onContextCancel } from '@openland/lifetime';
+import { FeedTopicEvent } from '../repositories/FeedRepository';
 
 export default {
     FeedUpdateContainer: {
@@ -35,10 +35,10 @@ export default {
 
                 let subscriptions: PubsubSubcription[] = [];
                 onContextCancel(ctx, () => subscriptions.forEach(s => s.cancel()));
-                let iterator = createIterator<{ updates: FeedUpdate[] }>(() => subscriptions.forEach(s => s.cancel()));
+                let iterator = createIterator<{ updates: FeedTopicEvent[] }>(() => subscriptions.forEach(s => s.cancel()));
                 for (let tid of topics) {
-                    subscriptions.push(await Modules.Feed.subscribeTopic(tid, event => {
-                        iterator.push({ updates: [{ type: 'new_item', id: event.id }] });
+                    subscriptions.push(await Modules.Feed.subscribeTopicEvents(tid, event => {
+                        iterator.push({ updates: [event] });
                     }));
                 }
                 return iterator;

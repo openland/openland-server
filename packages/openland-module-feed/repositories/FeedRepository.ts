@@ -12,15 +12,17 @@ import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { Modules } from '../../openland-modules/Modules';
 import { Pubsub } from '../../openland-module-pubsub/pubsub';
 
+export type FeedTopicEvent = { type: 'new_item', id: number, tid: number };
+
 @injectable()
 export class FeedRepository {
     @lazyInject('RichMessageRepository')
     private readonly richMessageRepo!: RichMessageRepository;
-    private localSub = new Pubsub<{ id: number, tid: number }>(false);
+    private localSub = new Pubsub<FeedTopicEvent>(false);
 
     constructor() {
         EventBus.subscribe('new_post', async (event: { id: number, tid: number }) => {
-            await this.localSub.publish('topic_' + event.tid, event);
+            await this.localSub.publish('topic_' + event.tid, { type: 'new_item', id: event.id, tid: event.tid });
         });
     }
 
@@ -131,7 +133,10 @@ export class FeedRepository {
         });
     }
 
-    async subscribeTopic(tid: number, cb: (event: { id: number }) => void) {
+    //
+    //  Events
+    //
+    async subscribeTopicEvents(tid: number, cb: (event: FeedTopicEvent) => void) {
         return await this.localSub.subscribe('topic_' + tid, cb);
     }
 }

@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { FeedRepository } from './repositories/FeedRepository';
+import { FeedRepository, FeedTopicEvent } from './repositories/FeedRepository';
 import { Context } from '@openland/context';
 import { JsonMap } from 'openland-utils/json';
 import { RichMessageInput } from '../openland-module-rich-message/repositories/RichMessageRepository';
@@ -43,8 +43,8 @@ export class FeedModule {
         return this.repo.createPost(parent, uid, topic, input);
     }
 
-    async subscribeTopic(tid: number, cb: (event: { id: number }) => void) {
-        return this.repo.subscribeTopic(tid, cb);
+    async subscribeTopicEvents(tid: number, cb: (event: FeedTopicEvent) => void) {
+        return this.repo.subscribeTopicEvents(tid, cb);
     }
 
     start = () => {
