@@ -15,9 +15,11 @@ async function getBrowserPage() {
 }
 
 
-export class AsyncLock {
-  permits = 1;
-  promiseResolverQueue = [];
+class AsyncLock {
+  constructor() {
+    this.permits = 1;
+    this.promiseResolverQueue = [];
+  }
 
   async inLock(func) {
     try {
