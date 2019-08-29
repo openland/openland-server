@@ -43,6 +43,10 @@ export class FeedModule {
         return this.repo.createPost(parent, uid, topic, input);
     }
 
+    async editPost(parent: Context, uid: number, eventId: number, input: RichMessageInput) {
+        return this.repo.editPost(parent, uid, eventId, input);
+    }
+
     async subscribeTopicEvents(tid: number, cb: (event: FeedTopicEvent) => void) {
         return this.repo.subscribeTopicEvents(tid, cb);
     }

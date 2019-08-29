@@ -80,7 +80,8 @@ export namespace GQLRoots {
     export type FeedPostRoot = RichMessage;
     export type FeedUpdateContainerRoot = { updates: FeedTopicEvent[] };
     export type FeedUpdateRoot = FeedTopicEvent;
-    export type ItemReceivedRoot = FeedTopicEvent;
+    export type FeedItemReceivedRoot = FeedTopicEvent;
+    export type FeedItemUpdatedRoot = FeedTopicEvent;
     export type FeedItemConnectionRoot = { items: FeedEvent[], cursor: string };
 
     //

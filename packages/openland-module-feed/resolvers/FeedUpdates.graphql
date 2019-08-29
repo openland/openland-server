@@ -2,9 +2,12 @@ type FeedUpdateContainer {
     updates: [FeedUpdate!]!
 }
 
-union FeedUpdate = ItemReceived
+union FeedUpdate = FeedItemReceived | FeedItemUpdated
 
-type ItemReceived {
+type FeedItemReceived {
+    post: FeedItem!
+}
+type FeedItemUpdated {
     post: FeedItem!
 }
 

@@ -14,6 +14,7 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import { inTx } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { UserError } from '../../openland-errors/UserError';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -85,6 +86,34 @@ export class RichMessageRepository {
         });
     }
 
+    async editRichMessage(parent: Context, uid: number, mid: number, newMessage: RichMessageInput, markAsEdited: boolean) {
+        return await inTx(parent, async (ctx) => {
+            let message = await Store.RichMessage.findById(ctx, mid);
+            if (!message) {
+                throw new UserError('Message not found');
+            }
+            //
+            // Update message
+            //
+
+            if (newMessage.message) {
+                message.text = newMessage.message;
+            }
+            if (markAsEdited) {
+                message.edited = true;
+            }
+            if (newMessage.attachments) {
+                if (newMessage.appendAttachments) {
+                    message.attachments = [...(message.attachments || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
+                } else {
+                    message.attachments = await this.prepareAttachments(ctx, newMessage.attachments || []);
+                }
+            }
+            if (newMessage.spans) {
+                message.spans = newMessage.spans;
+            }
+        });
+    }
     private async fetchNextRichMessageId(parent: Context) {
         return fetchNextDBSeq(parent, 'rich-message-id');
     }

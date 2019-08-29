@@ -16,12 +16,17 @@ export default {
     FeedUpdate: {
         __resolveType(src: FeedUpdateRoot) {
             if (src.type === 'new_item') {
-                return 'ItemReceived';
+                return 'FeedItemReceived';
+            } else if (src.type === 'edit_item') {
+                return 'FeedItemUpdated';
             }
             throw new Error('unknown feed update: ' + src);
         }
     },
-    ItemReceived: {
+    FeedItemReceived: {
+        post: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+    },
+    FeedItemUpdated: {
         post: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
     },
     Subscription: {

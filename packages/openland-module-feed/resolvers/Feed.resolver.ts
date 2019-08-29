@@ -57,6 +57,11 @@ export default {
                 return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
             });
         }),
+        alphaEditFeedPost: withUser(async (root, args, uid) => {
+            return inTx(root, async ctx => {
+                return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
+            });
+        }),
         alphaCreateGlobalFeedPost: withUser(async (root, args, uid) => {
             return await inTx(root, async ctx => {
                 let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
