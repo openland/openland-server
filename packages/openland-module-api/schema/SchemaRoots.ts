@@ -81,6 +81,7 @@ export namespace GQLRoots {
     export type FeedUpdateContainerRoot = { updates: FeedTopicEvent[] };
     export type FeedUpdateRoot = FeedTopicEvent;
     export type ItemReceivedRoot = FeedTopicEvent;
+    export type FeedItemConnectionRoot = { items: FeedEvent[], cursor: string };
 
     //
     // Calls

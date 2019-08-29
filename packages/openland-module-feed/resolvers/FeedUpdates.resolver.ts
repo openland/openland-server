@@ -26,9 +26,7 @@ export default {
     },
     Subscription: {
         homeFeedUpdates: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
+            resolve: (msg: any) => msg,
             subscribe: async function (r: any, args: {}, ctx: AppContext) {
                 let uid = ctx.auth.uid!;
                 let topics = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);

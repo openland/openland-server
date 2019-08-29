@@ -951,6 +951,7 @@ export default declareSchema(() => {
         field('content', json());
 
         rangeIndex('topic', ['tid', 'createdAt']);
+        rangeIndex('fromTopic', ['tid', 'id']);
         rangeIndex('updated', ['updatedAt']);
     });
 

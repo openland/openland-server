@@ -35,16 +35,20 @@ export default {
             throw new Error('Unknown FeedItemContent: ' + src);
         }
     },
+    FeedItemConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor
+    },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
             let allEvents: FeedEvent[] = [];
-            let topicPosts = await Promise.all(subscriptions.map(s => Store.FeedEvent.topic.query(ctx, s, { after: args.after && args.after.getTime(), reverse: true })));
+            let topicPosts = await Promise.all(subscriptions.map(s => Store.FeedEvent.fromTopic.query(ctx, s, { after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined, reverse: true })));
             for (let posts of topicPosts) {
                 allEvents.push(...posts.items);
             }
-            allEvents = allEvents.sort((a, b) => b.id - a.id);
-            return allEvents.splice(0, args.first);
+            let items = allEvents.sort((a, b) => b.id - a.id).splice(0, args.first);
+            return { items, cursor: IDs.HomeFeedCursor.serialize(items[items.length - 1].id) };
         })
     },
     Mutation: {
