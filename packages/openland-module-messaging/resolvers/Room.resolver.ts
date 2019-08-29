@@ -140,10 +140,10 @@ export default {
                 afterMember = await Store.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
             }
             if (afterMember) {
-                return (await Store.RoomParticipant.active.query(ctx, id, { after: afterMember.uid, limit: args.first || 2000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, id, { after: afterMember.uid, limit: args.first || 1000 })).items;
             }
 
-            return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 2000 })).items;
+            return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
         }),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
@@ -404,10 +404,10 @@ export default {
                     afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
                 }
                 if (afterMember) {
-                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 2000 })).items;
+                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 1000 })).items;
                 }
 
-                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 2000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
             }
         }),
         roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
