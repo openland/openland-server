@@ -404,10 +404,10 @@ export default {
                     afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
                 }
                 if (afterMember) {
-                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 1000 })).items;
+                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 2000 })).items;
                 }
 
-                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 2000 })).items;
             }
         }),
         roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
