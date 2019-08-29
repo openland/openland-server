@@ -22,7 +22,6 @@ export function startPushNotificationWorker() {
         delay: 3000,
         startDelay: 3000
     }, async (parent) => {
-        console.log('lol kek started');
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
