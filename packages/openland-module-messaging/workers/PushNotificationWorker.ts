@@ -187,9 +187,9 @@ const handleUser = async (_ctx: Context, uid: number) => {
             continue;
         }
 
-        let sendData = await Modules.Messaging.isShown(ctx, uid, m.mid);
-        let sendMobile = sendData.mobile;
-        let sendDesktop = sendData.desktop;
+        let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
+        let sendMobile = messageSettings.mobile.showNotification;
+        let sendDesktop = messageSettings.desktop.showNotification;
 
         if (!sendMobile && !sendDesktop) {
             continue;
@@ -220,7 +220,6 @@ const handleUser = async (_ctx: Context, uid: number) => {
             unreadCounter = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
         }
 
-        let silenceSettings = await Modules.Messaging.isSilent(ctx, uid, message.id);
         let push = {
             uid: uid,
             title: pushTitle,
@@ -230,7 +229,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
             conversationId: conversation.id,
             mobile: sendMobile,
             desktop: sendDesktop,
-            mobileAlert: silenceSettings.mobile,
+            mobileAlert: messageSettings.mobile.sound,
             mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
             silent: null,
         };

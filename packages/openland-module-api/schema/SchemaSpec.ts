@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8eaaa0a02e401d98aab18461ce18c0d3';
+export const GQL_SPEC_VERSION = '067115b9cd3103394359ba6f5062fe9d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -468,14 +468,6 @@ export namespace GQL {
         showNotification: boolean;
         sound: boolean;
     }
-    export interface BadgeSettings {
-        excludeMuted: boolean;
-        countUnreadChats: boolean;
-    }
-    export interface BadgeSettingsInput {
-        excludeMuted: boolean;
-        countUnreadChats: boolean;
-    }
     export interface PlatformNotificationSettings {
         direct: ChatTypeNotificationSettings;
         secretChat: ChatTypeNotificationSettings;
@@ -483,7 +475,6 @@ export namespace GQL {
         communityChat: ChatTypeNotificationSettings;
         comments: ChatTypeNotificationSettings;
         notificationPreview: NotificationPreview;
-        badge: BadgeSettings;
     }
     export interface PlatformNotificationSettingsInput {
         direct: Nullable<ChatTypeNotificationSettingsInput>;
@@ -492,12 +483,13 @@ export namespace GQL {
         communityChat: Nullable<ChatTypeNotificationSettingsInput>;
         comments: Nullable<ChatTypeNotificationSettingsInput>;
         notificationPreview: Nullable<NotificationPreview>;
-        badge: Nullable<BadgeSettingsInput>;
     }
     export interface UpdateSettingsInput {
         emailFrequency: Nullable<EmailFrequency>;
         desktop: Nullable<PlatformNotificationSettingsInput>;
         mobile: Nullable<PlatformNotificationSettingsInput>;
+        countUnreadChats: Nullable<boolean>;
+        excludeMutedChats: Nullable<boolean>;
         notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
@@ -506,8 +498,6 @@ export namespace GQL {
         mobileAlert: Nullable<boolean>;
         mobileIncludeText: Nullable<boolean>;
         mute: Nullable<boolean>;
-        countUnreadChats: Nullable<boolean>;
-        excludeMutedChats: Nullable<boolean>;
     }
     export interface Settings {
         id: string;
@@ -515,6 +505,8 @@ export namespace GQL {
         emailFrequency: EmailFrequency;
         desktop: PlatformNotificationSettings;
         mobile: PlatformNotificationSettings;
+        countUnreadChats: boolean;
+        excludeMutedChats: boolean;
         notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
@@ -523,8 +515,6 @@ export namespace GQL {
         mobileAlert: boolean;
         mobileIncludeText: boolean;
         mute: Nullable<boolean>;
-        countUnreadChats: boolean;
-        excludeMutedChats: boolean;
     }
     export type OrganizationMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
     export interface OrganizationMember {
@@ -2989,8 +2979,7 @@ export interface GQLResolver {
     Dialog?: ComplexTypedResolver<GQL.Dialog, GQLRoots.DialogRoot, {topMessage: Nullable<GQLRoots.MessageRoot>, betaTopMessage: Nullable<GQLRoots.RoomMessageRoot>, alphaTopMessage: Nullable<GQLRoots.ModernMessageRoot>}, {}>;
     DialogsConnection?: ComplexTypedResolver<GQL.DialogsConnection, GQLRoots.DialogsConnectionRoot, {items: GQLRoots.DialogRoot[]}, {}>;
     ChatTypeNotificationSettings?: ComplexTypedResolver<GQL.ChatTypeNotificationSettings, GQLRoots.ChatTypeNotificationSettingsRoot, {}, {}>;
-    BadgeSettings?: ComplexTypedResolver<GQL.BadgeSettings, GQLRoots.BadgeSettingsRoot, {}, {}>;
-    PlatformNotificationSettings?: ComplexTypedResolver<GQL.PlatformNotificationSettings, GQLRoots.PlatformNotificationSettingsRoot, {direct: GQLRoots.ChatTypeNotificationSettingsRoot, secretChat: GQLRoots.ChatTypeNotificationSettingsRoot, organizationChat: GQLRoots.ChatTypeNotificationSettingsRoot, communityChat: GQLRoots.ChatTypeNotificationSettingsRoot, comments: GQLRoots.ChatTypeNotificationSettingsRoot, badge: GQLRoots.BadgeSettingsRoot}, {}>;
+    PlatformNotificationSettings?: ComplexTypedResolver<GQL.PlatformNotificationSettings, GQLRoots.PlatformNotificationSettingsRoot, {direct: GQLRoots.ChatTypeNotificationSettingsRoot, secretChat: GQLRoots.ChatTypeNotificationSettingsRoot, organizationChat: GQLRoots.ChatTypeNotificationSettingsRoot, communityChat: GQLRoots.ChatTypeNotificationSettingsRoot, comments: GQLRoots.ChatTypeNotificationSettingsRoot}, {}>;
     Settings?: ComplexTypedResolver<GQL.Settings, GQLRoots.SettingsRoot, {desktop: GQLRoots.PlatformNotificationSettingsRoot, mobile: GQLRoots.PlatformNotificationSettingsRoot}, {}>;
     OrganizationIvitedMember?: ComplexTypedResolver<GQL.OrganizationIvitedMember, GQLRoots.OrganizationIvitedMemberRoot, {}, {}>;
     OrganizationJoinedMember?: ComplexTypedResolver<GQL.OrganizationJoinedMember, GQLRoots.OrganizationJoinedMemberRoot, {user: GQLRoots.UserRoot}, {}>;

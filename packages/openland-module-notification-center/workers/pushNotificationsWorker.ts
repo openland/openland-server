@@ -22,6 +22,7 @@ export function startPushNotificationWorker() {
         delay: 3000,
         startDelay: 3000
     }, async (parent) => {
+        console.log('lol kek started');
         let needDelivery = Modules.NotificationCenter.needDelivery;
         let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
@@ -82,18 +83,27 @@ export function startPushNotificationWorker() {
                     }
 
                     // Ignore user's with disabled notifications
-                    if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
-                        state.lastPushSeq = state.seq;
-                        needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                        log.debug(ctx, 'ignore user\'s with disabled notifications');
-                        return;
-                    }
+                    if (settings.mobile && settings.desktop) {
+                        if (!settings.desktop.comments.showNotification && !settings.mobile.comments.showNotification) {
+                            state.lastPushSeq = state.seq;
+                            needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                            log.debug(ctx, 'ignore user\'s with disabled notifications');
+                            return;
+                        }
+                    } else {
+                        if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
+                            state.lastPushSeq = state.seq;
+                            needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                            log.debug(ctx, 'ignore user\'s with disabled notifications');
+                            return;
+                        }
 
-                    if (!settings.commentNotificationsDelivery || settings.commentNotificationsDelivery === 'none') {
-                        state.lastPushSeq = state.seq;
-                        needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                        log.debug(ctx, 'ignore user\'s with disabled notifications');
-                        return;
+                        if (!settings.commentNotificationsDelivery || settings.commentNotificationsDelivery === 'none') {
+                            state.lastPushSeq = state.seq;
+                            needDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                            log.debug(ctx, 'ignore user\'s with disabled notifications');
+                            return;
+                        }
                     }
 
                     // Ignore already processed updates
@@ -126,8 +136,8 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let sendDesktop = settings.desktopNotifications !== 'none';
-                        let sendMobile = settings.mobileNotifications !== 'none';
+                        let sendDesktop = settings.desktop ? settings.desktop.comments.showNotification : settings.desktopNotifications !== 'none';
+                        let sendMobile = settings.mobile ? settings.mobile.comments.showNotification : settings.mobileNotifications !== 'none';
 
                         if (!sendMobile && !sendDesktop) {
                             continue;
@@ -159,6 +169,7 @@ export function startPushNotificationWorker() {
                             }
                         }
 
+                        let deprecatedMobileAlert = (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true;
                         let push = {
                             uid: uid,
                             title: title,
@@ -168,8 +179,8 @@ export function startPushNotificationWorker() {
                             conversationId: null,
                             mobile: sendMobile,
                             desktop: sendDesktop,
-                            mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
-                            mobileIncludeText: (settings.mobileIncludeText !== undefined && settings.mobileIncludeText !== null) ? settings.mobileIncludeText : true,
+                            mobileAlert: settings.mobile ? settings.mobile.comments.sound : deprecatedMobileAlert,
+                            mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
                             silent: null
                         };
 

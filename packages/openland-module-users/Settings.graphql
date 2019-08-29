@@ -44,15 +44,15 @@ input ChatTypeNotificationSettingsInput {
     sound: Boolean!
 }
 
-type BadgeSettings {
-    excludeMuted: Boolean!
-    countUnreadChats: Boolean!
-}
-
-input BadgeSettingsInput {
-    excludeMuted: Boolean!
-    countUnreadChats: Boolean!
-}
+# type BadgeSettings {
+#     excludeMuted: Boolean!
+#     countUnreadChats: Boolean!
+# }
+#
+# input BadgeSettingsInput {
+#     excludeMuted: Boolean!
+#     countUnreadChats: Boolean!
+# }
 
 type PlatformNotificationSettings {
     direct: ChatTypeNotificationSettings!
@@ -61,7 +61,7 @@ type PlatformNotificationSettings {
     communityChat: ChatTypeNotificationSettings!
     comments: ChatTypeNotificationSettings!
     notificationPreview: NotificationPreview!
-    badge: BadgeSettings!
+    # badge: BadgeSettings!
 }
 
 
@@ -72,13 +72,15 @@ input PlatformNotificationSettingsInput {
     communityChat: ChatTypeNotificationSettingsInput
     comments: ChatTypeNotificationSettingsInput
     notificationPreview: NotificationPreview
-    badge: BadgeSettingsInput
+    # badge: BadgeSettingsInput
 }
 
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
     desktop: PlatformNotificationSettingsInput
     mobile: PlatformNotificationSettingsInput
+    countUnreadChats: Boolean
+    excludeMutedChats: Boolean
 
 
     # Deprecated
@@ -90,8 +92,6 @@ input UpdateSettingsInput {
     mobileAlert: Boolean
     mobileIncludeText: Boolean
     mute: Boolean
-    countUnreadChats: Boolean
-    excludeMutedChats: Boolean
 }
 
 type Settings {
@@ -100,6 +100,8 @@ type Settings {
     emailFrequency: EmailFrequency!
     desktop: PlatformNotificationSettings!
     mobile: PlatformNotificationSettings!
+    countUnreadChats: Boolean!
+    excludeMutedChats: Boolean!
 
     # Deprecated
     notificationsDelay: NotificationsDelay!
@@ -110,8 +112,6 @@ type Settings {
     mobileAlert: Boolean!
     mobileIncludeText: Boolean!
     mute: Boolean
-    countUnreadChats: Boolean!
-    excludeMutedChats: Boolean!
 }
 
 extend type Query {

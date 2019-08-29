@@ -267,6 +267,13 @@ export class MessagingModule {
             desktopSettings = { showNotification: false, sound: false };
         }
 
+        let isMuted = !mobileSettings.showNotification || !mobileSettings.sound ||
+            !desktopSettings.sound || !desktopSettings.showNotification;
+        if (isMuted && userMentioned) {
+            mobileSettings = { showNotification: true, sound: true };
+            desktopSettings = { showNotification: true, sound: true };
+        }
+
         return {
             mobile: mobileSettings,
             desktop: desktopSettings
