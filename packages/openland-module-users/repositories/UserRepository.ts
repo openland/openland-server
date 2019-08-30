@@ -180,6 +180,18 @@ export class UserRepository {
         return await inTx(parent, async (ctx) => {
             let settings = await Store.UserSettings.findById(ctx, uid);
             if (!settings) {
+                let allChatEnabled = {
+                    sound: true,
+                    showNotification: true
+                };
+                let allPlatformEnabled = {
+                    comments: allChatEnabled,
+                    secretChat: allChatEnabled,
+                    direct: allChatEnabled,
+                    communityChat: allChatEnabled,
+                    organizationChat: allChatEnabled,
+                    notificationPreview: 'name_text' as any
+                };
                 settings = await Store.UserSettings.create(ctx, uid, {
                     emailFrequency: '1hour',
                     desktopNotifications: 'all',
@@ -190,6 +202,8 @@ export class UserRepository {
                     commentNotifications: null,
                     commentNotificationsDelivery: null,
                     globalCounterType: null,
+                    desktop: allPlatformEnabled,
+                    mobile: allPlatformEnabled
                 });
             }
             return settings;

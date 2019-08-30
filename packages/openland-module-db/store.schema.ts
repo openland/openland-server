@@ -84,10 +84,10 @@ export default declareSchema(() => {
         communityChat: notificationSettings,
         comments: notificationSettings,
         notificationPreview: enumString('name_text', 'name'),
-        badge: struct({
-            excludeMuted: boolean(),
-            countUnreadChats: boolean(),
-        })
+        // badge: struct({
+        //     excludeMuted: boolean(),
+        //     countUnreadChats: boolean(),
+        // })
     });
 
     entity('UserSettings', () => {

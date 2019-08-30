@@ -909,13 +909,16 @@ export default {
             let chatId = IDs.Conversation.parse(args.chatId);
             let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, chatId);
             let msg = (readMessageId !== 0) && await Store.Message.findById(ctx, readMessageId);
-            if (!msg) {
-                return null;
-            }
+
             if (msg && msg.deleted) {
                 let msgs = (await Store.Message.chat.query(ctx, chatId, { after: readMessageId, limit: 1, reverse: true })).items;
                 msg = msgs[msgs.length - 1];
             }
+
+            if (!msg) {
+                return null;
+            }
+
             await Modules.Messaging.room.checkAccess(ctx, uid, msg.cid);
             return msg;
         }),

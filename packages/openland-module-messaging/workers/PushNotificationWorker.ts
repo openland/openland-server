@@ -187,9 +187,9 @@ const handleUser = async (_ctx: Context, uid: number) => {
             continue;
         }
 
-        let silenceData = await Modules.Messaging.isSilent(ctx, uid, m.mid);
-        let sendMobile = !silenceData.mobile;
-        let sendDesktop = !silenceData.desktop;
+        let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
+        let sendMobile = messageSettings.mobile.showNotification;
+        let sendDesktop = messageSettings.desktop.showNotification;
 
         if (!sendMobile && !sendDesktop) {
             continue;
@@ -229,8 +229,8 @@ const handleUser = async (_ctx: Context, uid: number) => {
             conversationId: conversation.id,
             mobile: sendMobile,
             desktop: sendDesktop,
-            mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
-            mobileIncludeText: (settings.mobileIncludeText !== undefined && settings.mobileIncludeText !== null) ? settings.mobileIncludeText : true,
+            mobileAlert: messageSettings.mobile.sound,
+            mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
             silent: null,
         };
 
