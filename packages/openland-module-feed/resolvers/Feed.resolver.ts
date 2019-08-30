@@ -72,5 +72,16 @@ export default {
                 return true;
             });
         }),
+        feedReactionAdd: withUser(async (root, args, uid) => {
+            return await inTx(root, async ctx => {
+                return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);
+            });
+        }),
+        feedReactionRemove: withUser(async (root, args, uid) => {
+            return await inTx(root, async ctx => {
+                return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
+            });
+        }),
+
     }
 } as GQLResolver;

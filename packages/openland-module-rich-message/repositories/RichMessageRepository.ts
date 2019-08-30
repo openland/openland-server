@@ -46,6 +46,8 @@ export interface RichMessageInput {
     appendAttachments?: boolean | null;
 }
 
+export type RichMessageReaction = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
+
 @injectable()
 export class RichMessageRepository {
     async createRichMessage(parent: Context, uid: number, messageInput: RichMessageInput) {
@@ -114,6 +116,36 @@ export class RichMessageRepository {
             }
         });
     }
+
+    async setReaction(parent: Context, mid: number, uid: number, reaction: RichMessageReaction, reset: boolean = false) {
+        return await inTx(parent, async (ctx) => {
+            let message = await Store.RichMessage.findById(ctx, mid);
+
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            //
+            // Update message
+            //
+
+            let reactions: { reaction: string, userId: number }[] = message.reactions ? [...message.reactions] as any : [];
+
+            if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
+                if (reset) {
+                    reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
+                } else {
+                    return false;
+                }
+            } else {
+                reactions.push({ userId: uid, reaction });
+            }
+            message.reactions = reactions;
+
+            return true;
+        });
+    }
+
     private async fetchNextRichMessageId(parent: Context) {
         return fetchNextDBSeq(parent, 'rich-message-id');
     }

@@ -5,7 +5,7 @@ import { JsonMap } from 'openland-utils/json';
 import { Store } from 'openland-module-db/FDB';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import {
-    RichMessageInput,
+    RichMessageInput, RichMessageReaction,
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
@@ -162,6 +162,21 @@ export class FeedRepository {
 
             getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
             return feedEvent;
+        });
+    }
+
+    async setReaction(parent: Context, uid: number, eventId: number, reaction: RichMessageReaction, reset: boolean = false) {
+        return inTx(parent, async ctx => {
+            let feedEvent = await Store.FeedEvent.findById(ctx, eventId);
+            if (!feedEvent) {
+                throw new NotFoundError();
+            }
+            if (feedEvent.type !== 'post' || !feedEvent.content.richMessageId) {
+                throw new UserError('No post found');
+            }
+            await this.richMessageRepo.setReaction(ctx, feedEvent.content.richMessageId, uid, reaction, reset);
+            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            return true;
         });
     }
 
