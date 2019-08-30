@@ -20,6 +20,11 @@ type SilentMessageInfo {
     desktop: Boolean!
 }
 
+type ShowNotificationMessageInfo {
+    mobile: Boolean!
+    desktop: Boolean!
+}
+
 type DialogMessageReceived {
     cid: ID!
     message: ConversationMessage!
@@ -29,6 +34,7 @@ type DialogMessageReceived {
     globalUnread: Int!
     haveMention: Boolean!
     silent: SilentMessageInfo!
+    showNotification: SilentMessageInfo!
 }
 
 type DialogMessageUpdated {

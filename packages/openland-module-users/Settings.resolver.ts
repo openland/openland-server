@@ -137,24 +137,24 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
             excludeMutedChats = args.settings.excludeMutedChats;
         }
 
-        if (settings.desktop) {
-            settings.desktop.badge = {
-                countUnreadChats: countUnreadChats,
-                excludeMuted: excludeMutedChats,
-            };
-        }
-        if (settings.mobile) {
-            settings.mobile.badge = {
-                countUnreadChats,
-                excludeMuted: excludeMutedChats
-            };
-        }
+        // if (settings.desktop) {
+        //     settings.desktop.badge = {
+        //         countUnreadChats: countUnreadChats,
+        //         excludeMuted: excludeMutedChats,
+        //     };
+        // }
+        // if (settings.mobile) {
+        //     settings.mobile.badge = {
+        //         countUnreadChats,
+        //         excludeMuted: excludeMutedChats
+        //     };
+        // }
 
         if (settings.desktop && args.settings.desktop) {
             let { desktop } = args.settings;
-            if (desktop.badge) {
-                settings.desktop.badge = desktop.badge;
-            }
+            // if (desktop.badge) {
+            //     settings.desktop.badge = desktop.badge;
+            // }
             if (desktop.comments) {
                 settings.desktop.comments = desktop.comments;
             }
@@ -176,9 +176,9 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
         }
         if (settings.mobile && args.settings.mobile) {
             let { mobile } = args.settings;
-            if (mobile.badge) {
-                settings.mobile.badge = mobile.badge;
-            }
+            // if (mobile.badge) {
+            //     settings.mobile.badge = mobile.badge;
+            // }
             if (mobile.comments) {
                 settings.mobile.comments = mobile.comments;
             }
@@ -250,12 +250,8 @@ export default {
         notificationsDelay: src => src.notificationsDelay as any,
         countUnreadChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_chats' || src.globalCounterType === 'unread_chats_no_muted'),
         excludeMutedChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_messages_no_muted' || src.globalCounterType === 'unread_chats_no_muted'),
-        desktop: src => {
-            return src.desktop;
-        },
-        mobile: src => {
-            return src.mobile;
-        }
+        desktop: src => src.desktop,
+        mobile: src => src.mobile
     },
     PlatformNotificationSettings: {
         notificationPreview: src => src.notificationPreview.toUpperCase()

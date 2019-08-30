@@ -184,31 +184,34 @@ export class MessagingModule {
     // Util
     //
 
-    async isSilent(ctx: Context, uid: number, mid: number) {
+    async getSettingsForMessage(ctx: Context, uid: number, mid: number): Promise<{
+        mobile: { showNotification: boolean, sound: boolean },
+        desktop: { showNotification: boolean, sound: boolean }
+    }> {
         let message = await Store.Message.findById(ctx, mid);
         if (!message) {
             throw new Error('Invalid message id');
         }
         let senderId = message.uid!;
 
-        // Ignore current user
-        if (senderId === uid) {
+        let settings = await Store.UserSettings.findById(ctx, uid);
+        if (senderId === uid || !settings || !settings.desktop || !settings.mobile) {
             return {
-                mobile: true,
-                desktop: true
+                mobile: {
+                    showNotification: false,
+                    sound: false,
+                },
+                desktop: {
+                    showNotification: false,
+                    sound: false,
+                }
             };
         }
 
-        let sender = await Modules.Users.profileById(ctx, senderId);
-        let receiver = await Modules.Users.profileById(ctx, uid);
         let conversation = await Store.Conversation.findById(ctx, message.cid);
         let convRoom = await Store.ConversationRoom.findById(ctx, message.cid);
-
-        if (!sender || !receiver || !conversation) {
-            return {
-                mobile: true,
-                desktop: true
-            };
+        if (!conversation) {
+            throw new Error('Consistency error');
         }
 
         // Ignore service messages for big rooms
@@ -217,54 +220,81 @@ export class MessagingModule {
             let serviceType = message.serviceMetadata && message.serviceMetadata.type;
             if (org!.kind === 'community' && (serviceType === 'user_kick' || serviceType === 'user_invite')) {
                 return {
-                    mobile: true,
-                    desktop: true
+                    mobile: {
+                        showNotification: false,
+                        sound: false,
+                    },
+                    desktop: {
+                        showNotification: false,
+                        sound: false,
+                    }
                 };
             }
         }
 
         let userMentioned = hasMention(message, uid);
 
-        let settings = await Modules.Users.getUserSettings(ctx, uid);
-
-        let sendDesktop = settings.desktopNotifications !== 'none';
-        let sendMobile = settings.mobileNotifications !== 'none';
-
-        // Filter non-private if only direct messages enabled
-        if (settings.desktopNotifications === 'direct') {
-            if (conversation.kind !== 'private') {
-                sendDesktop = false;
+        let { mobile, desktop } = settings;
+        let mobileSettings: { showNotification: boolean, sound: boolean } | null = null;
+        let desktopSettings: { showNotification: boolean, sound: boolean } | null = null;
+        if (conversation.kind === 'private') {
+            mobileSettings = mobile.direct;
+            desktopSettings = desktop.direct;
+        }
+        if (convRoom) {
+            if (convRoom.kind === 'group') {
+                mobileSettings = mobile.secretChat;
+                desktopSettings = desktop.secretChat;
+            } else if (convRoom.kind === 'public' && convRoom.oid) {
+                let org = await Store.Organization.findById(ctx, convRoom.oid);
+                if (!org) {
+                    throw new Error('Consistency error');
+                }
+                mobileSettings = org.kind === 'community' ? mobile.communityChat : mobile.organizationChat;
+                desktopSettings = org.kind === 'community' ? desktop.communityChat : desktop.organizationChat;
             }
         }
-        if (settings.mobileNotifications === 'direct') {
-            if (conversation.kind !== 'private') {
-                sendMobile = false;
-            }
+
+        if (!mobileSettings || !desktopSettings) {
+            // ¯\_(ツ)_/¯ treat deprecated chats as secret chats
+            mobileSettings = mobile.secretChat;
+            desktopSettings = desktop.secretChat;
         }
 
         let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, uid, conversation.id);
         if (conversationSettings.mute && !userMentioned) {
-            return {
-                mobile: true,
-                desktop: true
-            };
+            mobileSettings = { showNotification: false, sound: false };
+            desktopSettings = { showNotification: false, sound: false };
         }
 
-        if (userMentioned) {
-            sendMobile = true;
-            sendDesktop = true;
-        }
-
-        if (!sendMobile && !sendDesktop) {
-            return {
-                mobile: true,
-                desktop: true
-            };
+        let isMuted = !mobileSettings.showNotification || !mobileSettings.sound ||
+            !desktopSettings.sound || !desktopSettings.showNotification;
+        if (isMuted && userMentioned) {
+            mobileSettings = { showNotification: true, sound: true };
+            desktopSettings = { showNotification: true, sound: true };
         }
 
         return {
-            mobile: !sendMobile,
-            desktop: !sendDesktop
+            mobile: mobileSettings,
+            desktop: desktopSettings
+        };
+    }
+
+    async isShown(ctx: Context, uid: number, mid: number) {
+        let messageSettings = await this.getSettingsForMessage(ctx, uid, mid);
+
+        return {
+            mobile: messageSettings.mobile.showNotification,
+            desktop: messageSettings.desktop.showNotification
+        };
+    }
+
+    async isSilent(ctx: Context, uid: number, mid: number) {
+        let messageSettings = await this.getSettingsForMessage(ctx, uid, mid);
+
+        return {
+            mobile: !messageSettings.mobile.sound,
+            desktop: !messageSettings.desktop.sound
         };
     }
 
