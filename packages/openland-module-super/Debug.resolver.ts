@@ -994,6 +994,14 @@ export default {
             });
             return true;
         }),
+        debugReindexFeedEvents: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.FeedEvent, parent.auth.uid!, 'debugReindexFeedEvents', async (ctx, id, log) => {
+                let event = await Store.FeedEvent.findById(ctx, id);
+                event!.invalidate();
+                await event!.flush(ctx);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

@@ -127,6 +127,7 @@ extend type Mutation {
     debugSendPush(id: ID!, message: String!): Boolean!
     debugReindexPrivateDialogs: Boolean!
     debugReindexUsersDialogs: Boolean!
+    debugReindexFeedEvents: Boolean!
 }
 
 extend type Subscription {

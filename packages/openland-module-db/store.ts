@@ -1357,9 +1357,10 @@ export interface UserProfileShape {
     location: string | null;
     email: string | null;
     picture: any | null;
+    twitter: string | null;
+    facebook: string | null;
     linkedin: string | null;
     instagram: string | null;
-    twitter: string | null;
     locations: any | null;
     primaryOrganization: number | null;
     primaryBadge: number | null;
@@ -1375,9 +1376,10 @@ export interface UserProfileCreateShape {
     location?: string | null | undefined;
     email?: string | null | undefined;
     picture?: any | null | undefined;
+    twitter?: string | null | undefined;
+    facebook?: string | null | undefined;
     linkedin?: string | null | undefined;
     instagram?: string | null | undefined;
-    twitter?: string | null | undefined;
     locations?: any | null | undefined;
     primaryOrganization?: number | null | undefined;
     primaryBadge?: number | null | undefined;
@@ -1458,6 +1460,24 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get twitter(): string | null { return this._rawValue.twitter; }
+    set twitter(value: string | null) {
+        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
+        if (this._rawValue.twitter !== normalized) {
+            this._rawValue.twitter = normalized;
+            this._updatedValues.twitter = normalized;
+            this.invalidate();
+        }
+    }
+    get facebook(): string | null { return this._rawValue.facebook; }
+    set facebook(value: string | null) {
+        let normalized = this.descriptor.codec.fields.facebook.normalize(value);
+        if (this._rawValue.facebook !== normalized) {
+            this._rawValue.facebook = normalized;
+            this._updatedValues.facebook = normalized;
+            this.invalidate();
+        }
+    }
     get linkedin(): string | null { return this._rawValue.linkedin; }
     set linkedin(value: string | null) {
         let normalized = this.descriptor.codec.fields.linkedin.normalize(value);
@@ -1473,15 +1493,6 @@ export class UserProfile extends Entity<UserProfileShape> {
         if (this._rawValue.instagram !== normalized) {
             this._rawValue.instagram = normalized;
             this._updatedValues.instagram = normalized;
-            this.invalidate();
-        }
-    }
-    get twitter(): string | null { return this._rawValue.twitter; }
-    set twitter(value: string | null) {
-        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
-        if (this._rawValue.twitter !== normalized) {
-            this._rawValue.twitter = normalized;
-            this._updatedValues.twitter = normalized;
             this.invalidate();
         }
     }
@@ -1541,9 +1552,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'location', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'email', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'facebook', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'locations', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'primaryOrganization', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'primaryBadge', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -1558,9 +1570,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             location: c.optional(c.string),
             email: c.optional(c.string),
             picture: c.optional(c.any),
+            twitter: c.optional(c.string),
+            facebook: c.optional(c.string),
             linkedin: c.optional(c.string),
             instagram: c.optional(c.string),
-            twitter: c.optional(c.string),
             locations: c.optional(c.any),
             primaryOrganization: c.optional(c.integer),
             primaryBadge: c.optional(c.integer),
@@ -8057,6 +8070,7 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         let subspace = await storage.resolveEntityDirectory('feedEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'topic'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'fromTopic'), condition: undefined });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -8097,18 +8111,33 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         },
     });
 
+    readonly fromTopic = Object.freeze({
+        findAll: async (ctx: Context, tid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [tid])).items;
+        },
+        query: (ctx: Context, tid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (tid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [tid], opts);
+        },
+        liveStream: (ctx: Context, tid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [tid], opts);
+        },
+    });
+
     readonly updated = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
         },
     });
 

@@ -1,0 +1,29 @@
+union FeedItemContent = FeedPost
+
+type FeedPost {
+    message: GeneralMessage
+}
+
+type FeedItem {
+    id: ID!
+    date: Date!
+    content: FeedItemContent
+    # deprecated
+    text: String!
+    alphaBy: User!
+}
+
+type FeedItemConnection {
+    items: [FeedItem!]!
+    cursor: String!
+}
+
+extend type Query {
+    alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
+}
+
+extend type Mutation {
+    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
+    alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
+    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
+}
