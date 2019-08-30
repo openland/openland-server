@@ -60,6 +60,7 @@ import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { FeedTopicEvent } from '../../openland-module-feed/repositories/FeedRepository';
+import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
 
 //
 //  Root types
@@ -313,7 +314,7 @@ export namespace GQLRoots {
     //
     //  Comments
     //
-    export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[] };
+    export type CommentsPeerRoot = { peerType: CommentPeerType, peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
     export type CommentUpdateContainerRoot = LiveStreamItem<CommentEvent>;
     export type CommentUpdateSingleRoot = LiveStreamItem<CommentEvent>;
@@ -325,6 +326,7 @@ export namespace GQLRoots {
     export type CommentPeerRootRoot = Message;
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
+    export type CommentPeerRootFeedItemRoot = FeedEvent;
 
     export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
     export type CommentGlobalUpdateSingleRoot = LiveStreamItem<CommentEventGlobal>;

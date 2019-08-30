@@ -4052,7 +4052,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
 export interface CommentShape {
     id: number;
     peerId: number;
-    peerType: 'message';
+    peerType: 'message' | 'feed_post';
     parentCommentId: number | null;
     uid: number;
     repeatKey: string | null;
@@ -4067,7 +4067,7 @@ export interface CommentShape {
 
 export interface CommentCreateShape {
     peerId: number;
-    peerType: 'message';
+    peerType: 'message' | 'feed_post';
     parentCommentId?: number | null | undefined;
     uid: number;
     repeatKey?: string | null | undefined;
@@ -4091,8 +4091,8 @@ export class Comment extends Entity<CommentShape> {
             this.invalidate();
         }
     }
-    get peerType(): 'message' { return this._rawValue.peerType; }
-    set peerType(value: 'message') {
+    get peerType(): 'message' | 'feed_post' { return this._rawValue.peerType; }
+    set peerType(value: 'message' | 'feed_post') {
         let normalized = this.descriptor.codec.fields.peerType.normalize(value);
         if (this._rawValue.peerType !== normalized) {
             this._rawValue.peerType = normalized;
@@ -4204,7 +4204,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'peerId', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message'] }, secure: false });
+        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message', 'feed_post'] }, secure: false });
         fields.push({ name: 'parentCommentId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -4218,7 +4218,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         let codec = c.struct({
             id: c.integer,
             peerId: c.integer,
-            peerType: c.enum('message'),
+            peerType: c.enum('message', 'feed_post'),
             parentCommentId: c.optional(c.integer),
             uid: c.integer,
             repeatKey: c.optional(c.string),
@@ -4243,16 +4243,16 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     }
 
     readonly peer = Object.freeze({
-        findAll: async (ctx: Context, peerType: 'message', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message', peerId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (peerType: 'message', peerId: number, opts?: StreamProps) => {
+        stream: (peerType: 'message' | 'feed_post', peerId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
-        liveStream: (ctx: Context, peerType: 'message', peerId: number, opts?: StreamProps) => {
+        liveStream: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
     });
@@ -4273,13 +4273,13 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     });
 
     readonly repeat = Object.freeze({
-        find: async (ctx: Context, peerType: 'message', peerId: number, repeatKey: string | null) => {
+        find: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, repeatKey: string | null) => {
             return this._findFromUniqueIndex(ctx, [peerType, peerId, repeatKey], this.descriptor.secondaryIndexes[2]);
         },
-        findAll: async (ctx: Context, peerType: 'message', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message', peerId: number, opts?: RangeQueryOptions<string | null>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: RangeQueryOptions<string | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });

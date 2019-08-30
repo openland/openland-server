@@ -8,13 +8,16 @@ import {
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../repositories/CommentsRepository';
-import { Message } from '../../openland-module-db/store';
+import { FeedEvent, Message } from '../../openland-module-db/store';
+import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 
 export default {
     CommentsPeer: {
         id: src => {
             if (src.peerType === 'message') {
                 return IDs.CommentMessagePeer.serialize(src.peerId);
+            } else if (src.peerType === 'feed_post') {
+                return IDs.CommentFeedPeer.serialize(src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
@@ -28,6 +31,8 @@ export default {
         peerRoot: async (src, args, ctx) => {
             if (src.peerType === 'message') {
                 return await Store.Message.findById(ctx, src.peerId);
+            }  else if (src.peerType === 'feed_post') {
+                return await Store.FeedEvent.findById(ctx, src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
@@ -51,6 +56,8 @@ export default {
         __resolveType(obj: any) {
             if (obj instanceof Message) {
                 return 'CommentPeerRootMessage';
+            } else if (obj instanceof FeedEvent) {
+                return 'CommentPeerRootFeedItem';
             } else {
                 throw new Error('Unknown comments peer root type: ' + obj);
             }
@@ -59,6 +66,9 @@ export default {
     CommentPeerRootMessage: {
         message: src => src,
         chat: src => src.cid
+    },
+    CommentPeerRootFeedItem: {
+        item: async (src, args, ctx) => await Store.FeedEvent.findById(ctx, src.id)
     },
     CommentSubscription: {
         type: src => src.kind.toUpperCase()
@@ -170,101 +180,20 @@ export default {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
 
-            let spans: CommentSpan[] = [];
-
-            //
-            // Mentions
-            //
-            if (args.mentions) {
-                let mentions: CommentSpan[] = [];
-
-                for (let mention of args.mentions) {
-                    if (mention.userId) {
-                        mentions.push({
-                            type: 'user_mention',
-                            offset: mention.offset,
-                            length: mention.length,
-                            user: IDs.User.parse(mention.userId!)
-                        });
-                    } else if (mention.chatId) {
-                        mentions.push({
-                            type: 'room_mention',
-                            offset: mention.offset,
-                            length: mention.length,
-                            room: IDs.Conversation.parse(mention.chatId!)
-                        });
-                    } else if (mention.userIds) {
-                        mentions.push({
-                            type: 'multi_user_mention',
-                            offset: mention.offset,
-                            length: mention.length,
-                            users: mention.userIds.map(id => IDs.User.parse(id))
-                        });
-                    } else if (mention.all) {
-                        mentions.push({
-                            type: 'all_mention',
-                            offset: mention.offset,
-                            length: mention.length,
-                        });
-                    }
-                }
-
-                spans.push(...mentions);
-            }
-
-            //
-            // File attachments
-            //
-            let attachments: MessageAttachmentFileInput[] = [];
-            if (args.fileAttachments) {
-                for (let fileInput of args.fileAttachments) {
-                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
-                    let filePreview: string | null = null;
-
-                    if (fileMetadata.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
-                    }
-
-                    attachments.push({
-                        type: 'file_attachment',
-                        fileId: fileInput.fileId,
-                        fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null
-                    });
-                }
-            }
-
-            //
-            //  Spans
-            //
-            if (args.spans) {
-                for (let span of args.spans) {
-                    if (span.type === 'Bold') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
-                    } else if (span.type === 'Italic') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
-                    } else if (span.type === 'InlineCode') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
-                    } else if (span.type === 'CodeBlock') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
-                    } else if (span.type === 'Irony') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
-                    } else if (span.type === 'Insane') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
-                    } else if (span.type === 'Loud') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
-                    } else if (span.type === 'Rotating') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
-                    }
-                }
-            }
-
             return await Modules.Comments.addMessageComment(ctx, messageId, uid, {
-                message: args.message,
+                ...(await resolveRichMessageCreation(ctx, args)),
                 replyToComment,
-                attachments,
-                spans,
-                repeatKey: args.repeatKey
+                repeatKey: args.repeatKey,
+            });
+        }),
+        betaAddFeedComment: withUser(async (ctx, args, uid) => {
+            let itemId = IDs.FeedItem.parse(args.feedItemId);
+            let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
+
+            return await Modules.Comments.addFeedComment(ctx, itemId, uid, {
+                ...(await resolveRichMessageCreation(ctx, args)),
+                replyToComment,
+                repeatKey: args.repeatKey,
             });
         }),
         editComment: withUser(async (ctx, args, uid) => {
@@ -426,6 +355,16 @@ export default {
                 comments: comments.filter(c => c.visible),
                 peerType: 'message',
                 peerId: messageId,
+            };
+        }),
+        feedItemComments: withUser(async (ctx, args, uid) => {
+            let itemId = IDs.FeedItem.parse(args.feedItemId);
+            let comments = await Store.Comment.peer.findAll(ctx, 'feed_post', itemId);
+
+            return {
+                comments: comments.filter(c => c.visible),
+                peerType: 'feed_post',
+                peerId: itemId,
             };
         }),
     },
