@@ -8,6 +8,7 @@ import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { User, Organization, Conversation } from 'openland-module-db/store';
+import { IDs } from '../openland-module-api/IDs';
 
 const log = createLogger('search-resolver');
 
@@ -65,16 +66,22 @@ export default {
 
             let functions: any[] = [];
             let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
-                Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true }),
-                Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true })
+                Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
+                Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
             ]);
             // Boost top dialogs
-            topPrivateDialogs.items.forEach(dialog => functions.push({ filter: { match: { uid2: dialog.uid2 } }, weight: dialog.weight || 1 }));
-            topGroupDialogs.items.forEach(dialog => functions.push({ filter: { match: { cid: dialog.cid } }, weight: dialog.weight || 1 }));
+            topPrivateDialogs.items.forEach(dialog => functions.push({
+                filter: {match: {uid2: dialog.uid2}},
+                weight: dialog.weight || 1
+            }));
+            topGroupDialogs.items.forEach(dialog => functions.push({
+                filter: {match: {cid: dialog.cid}},
+                weight: dialog.weight || 1
+            }));
 
             let localDialogsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'dialog', type: 'dialog', size: 10, body: {
-                    query:  {
+                    query: {
                         function_score: {
                             query: {
                                 bool: {
@@ -303,5 +310,55 @@ export default {
                 };
             }
         }),
+        chatMembersSearch: withAccount(async (ctx, args, uid, oid) => {
+            let cid = IDs.Conversation.parse(args.cid);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
+            let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
+
+            let clauses: any[] = [];
+            clauses.push({terms: {userId: members}});
+            clauses.push({bool: {should: {match_phrase_prefix: {name: args.query}}}});
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile',
+                type: 'user_profile',
+                size: args.first || 20,
+                body: {
+                    query: {bool: {must: clauses}},
+                },
+                from: args && args.after ? parseInt(args.after, 10) : (args && args.page ? ((args.page - 1) * (args && args.first ? args.first : 20)) : 0),
+            });
+
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
+            }
+
+            let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+            let total = hits.hits.total;
+
+            // Fetch profiles
+            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
+
+            return {
+                edges: users.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+        })
     },
 } as GQLResolver;
