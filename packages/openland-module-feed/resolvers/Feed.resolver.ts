@@ -33,7 +33,7 @@ export default {
         date: src => src.metadata.createdAt,
         sender: withRichMessage((ctx, message) => message.uid),
         edited: withRichMessage((ctx, message, src) => src.edited),
-        reactions: withRichMessage((ctx, message) => message.reactions),
+        reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
         message: withRichMessage((ctx, message) => message.text),
         spans: withRichMessage((ctx, message) => message.spans),
