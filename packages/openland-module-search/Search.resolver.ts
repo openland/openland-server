@@ -317,7 +317,7 @@ export default {
 
             let clauses: any[] = [];
             clauses.push({terms: {userId: members}});
-            clauses.push({bool: {should: {match_phrase_prefix: {name: args.query}}}});
+            clauses.push({bool: {should: {match_phrase_prefix: {search: args.query}}}});
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'user_profile',
