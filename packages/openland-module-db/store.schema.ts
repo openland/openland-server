@@ -84,10 +84,6 @@ export default declareSchema(() => {
         communityChat: notificationSettings,
         comments: notificationSettings,
         notificationPreview: enumString('name_text', 'name'),
-        // badge: struct({
-        //     excludeMuted: boolean(),
-        //     countUnreadChats: boolean(),
-        // })
     });
 
     entity('UserSettings', () => {
@@ -101,8 +97,8 @@ export default declareSchema(() => {
         field('mobileIncludeText', optional(boolean()));
         field('notificationsDelay', optional(enumString('none', '1min', '15min')));
         field('globalCounterType', optional(enumString('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')));
-        field('desktop', optional(platformNotificationSettings));
-        field('mobile', optional(platformNotificationSettings));
+        field('desktop', platformNotificationSettings);
+        field('mobile', platformNotificationSettings);
     });
 
     entity('UserIndexingQueue', () => {

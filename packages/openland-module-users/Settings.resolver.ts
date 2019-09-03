@@ -137,24 +137,8 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
             excludeMutedChats = args.settings.excludeMutedChats;
         }
 
-        // if (settings.desktop) {
-        //     settings.desktop.badge = {
-        //         countUnreadChats: countUnreadChats,
-        //         excludeMuted: excludeMutedChats,
-        //     };
-        // }
-        // if (settings.mobile) {
-        //     settings.mobile.badge = {
-        //         countUnreadChats,
-        //         excludeMuted: excludeMutedChats
-        //     };
-        // }
-
         if (settings.desktop && args.settings.desktop) {
             let { desktop } = args.settings;
-            // if (desktop.badge) {
-            //     settings.desktop.badge = desktop.badge;
-            // }
             if (desktop.comments) {
                 settings.desktop.comments = desktop.comments;
             }
@@ -176,9 +160,6 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
         }
         if (settings.mobile && args.settings.mobile) {
             let { mobile } = args.settings;
-            // if (mobile.badge) {
-            //     settings.mobile.badge = mobile.badge;
-            // }
             if (mobile.comments) {
                 settings.mobile.comments = mobile.comments;
             }

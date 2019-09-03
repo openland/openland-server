@@ -185,10 +185,6 @@ migrations.push({
                         showNotification: s.commentNotifications !== 'none',
                         sound: s.commentNotifications !== 'none',
                     },
-                    // badge: {
-                    //     countUnreadChats: s.globalCounterType === 'unread_chats' || s.globalCounterType === 'unread_chats_no_muted',
-                    //     excludeMuted: s.globalCounterType === 'unread_messages_no_muted' || s.globalCounterType === 'unread_chats_no_muted',
-                    // },
                     notificationPreview: s.mobileIncludeText ? 'name_text' : 'name',
                 };
 
@@ -215,10 +211,6 @@ migrations.push({
                         showNotification: s.commentNotifications !== 'none',
                         sound: s.commentNotifications !== 'none',
                     },
-                    // badge: {
-                    //     countUnreadChats: s.globalCounterType === 'unread_chats' || s.globalCounterType === 'unread_chats_no_muted',
-                    //     excludeMuted: s.globalCounterType === 'unread_messages_no_muted' || s.globalCounterType === 'unread_chats_no_muted',
-                    // },
                     notificationPreview: 'name_text',
                 };
 
