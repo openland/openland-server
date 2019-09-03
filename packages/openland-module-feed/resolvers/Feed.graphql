@@ -1,21 +1,29 @@
-union FeedItemContent = FeedPost
+union FeedItem = FeedPost
 
 type FeedPost {
-    message: GeneralMessage
-}
-
-type FeedItem {
+    #
+    #   State
+    #
     id: ID!
     date: Date!
-    content: FeedItemContent
-    # deprecated
-    text: String!
-    alphaBy: User!
+    sender: User!
+    edited: Boolean!
+    reactions: [ModernMessageReaction!]!
+    isMentioned: Boolean!
+
+    #
+    #   Content
+    #
+    message: String
+    spans: [MessageSpan!]!
+    attachments: [ModernMessageAttachment!]!
+    commentsCount: Int!
+    fallback: String!
 }
 
 type FeedItemConnection {
     items: [FeedItem!]!
-    cursor: String!
+    cursor: String
 }
 
 extend type Query {
@@ -25,6 +33,7 @@ extend type Query {
 extend type Mutation {
     alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
     alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
+    alphaDeleteFeedPost(feedItemId: ID!): Boolean!
     alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
 
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!

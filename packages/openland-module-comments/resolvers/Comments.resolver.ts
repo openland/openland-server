@@ -16,8 +16,8 @@ export default {
         id: src => {
             if (src.peerType === 'message') {
                 return IDs.CommentMessagePeer.serialize(src.peerId);
-            } else if (src.peerType === 'feed_post') {
-                return IDs.CommentFeedPeer.serialize(src.peerId);
+            } else if (src.peerType === 'feed_item') {
+                return IDs.CommentFeedItemPeer.serialize(src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
@@ -31,7 +31,7 @@ export default {
         peerRoot: async (src, args, ctx) => {
             if (src.peerType === 'message') {
                 return await Store.Message.findById(ctx, src.peerId);
-            }  else if (src.peerType === 'feed_post') {
+            }  else if (src.peerType === 'feed_item') {
                 return await Store.FeedEvent.findById(ctx, src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
@@ -68,7 +68,7 @@ export default {
         chat: src => src.cid
     },
     CommentPeerRootFeedItem: {
-        item: async (src, args, ctx) => await Store.FeedEvent.findById(ctx, src.id)
+        item: async (src, args, ctx) => src
     },
     CommentSubscription: {
         type: src => src.kind.toUpperCase()
@@ -190,7 +190,7 @@ export default {
             let itemId = IDs.FeedItem.parse(args.feedItemId);
             let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
 
-            return await Modules.Comments.addFeedComment(ctx, itemId, uid, {
+            return await Modules.Comments.addFeedItemComment(ctx, itemId, uid, {
                 ...(await resolveRichMessageCreation(ctx, args)),
                 replyToComment,
                 repeatKey: args.repeatKey,
@@ -359,11 +359,11 @@ export default {
         }),
         feedItemComments: withUser(async (ctx, args, uid) => {
             let itemId = IDs.FeedItem.parse(args.feedItemId);
-            let comments = await Store.Comment.peer.findAll(ctx, 'feed_post', itemId);
+            let comments = await Store.Comment.peer.findAll(ctx, 'feed_item', itemId);
 
             return {
                 comments: comments.filter(c => c.visible),
-                peerType: 'feed_post',
+                peerType: 'feed_item',
                 peerId: itemId,
             };
         }),

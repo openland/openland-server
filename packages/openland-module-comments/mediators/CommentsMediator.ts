@@ -66,7 +66,7 @@ export class CommentsMediator {
         });
     }
 
-    async addFeedComment(parent: Context, feedItemId: number, uid: number, commentInput: CommentInput) {
+    async addFeedItemComment(parent: Context, feedItemId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
             // TODO: check access
             let item = await Store.FeedEvent.findById(ctx, feedItemId);
@@ -77,12 +77,12 @@ export class CommentsMediator {
             //
             // Create comment
             //
-            let res = await this.repo.createComment(ctx, 'feed_post', feedItemId, uid, commentInput);
+            let res = await this.repo.createComment(ctx, 'feed_item', feedItemId, uid, commentInput);
 
             //
             //  Subscribe to notifications
             //
-            await this.notificationsMediator.subscribeToComments(ctx, 'feed_post', feedItemId, uid, 'all');
+            await this.notificationsMediator.subscribeToComments(ctx, 'feed_item', feedItemId, uid, 'all');
 
             //
             // Send notifications
@@ -90,9 +90,9 @@ export class CommentsMediator {
             await this.notificationsMediator.onNewComment(ctx, res);
 
             //
-            // Send message updated event
+            // Send feed item updated event
             //
-            // await Modules.Messaging.markMessageUpdated(ctx, message.id);
+            await Modules.Feed.deliverFeedItemUpdated(ctx, item.id);
 
             if (!commentInput.ignoreAugmentation) {
                 await this.augmentation.onNewComment(ctx, res);

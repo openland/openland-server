@@ -377,7 +377,7 @@ export default declareSchema(() => {
     entity('Comment', () => {
         primaryKey('id', integer());
         field('peerId', integer());
-        field('peerType', enumString('message', 'feed_post'));
+        field('peerType', enumString('message', 'feed_item'));
         field('parentCommentId', optional(integer()));
         field('uid', integer());
         field('repeatKey', optional(string()));
@@ -946,8 +946,11 @@ export default declareSchema(() => {
         field('type', string());
         field('content', json());
 
+        field('edited', optional(boolean()));
+        field('deleted', optional(boolean()));
+
         rangeIndex('topic', ['tid', 'createdAt']);
-        rangeIndex('fromTopic', ['tid', 'id']);
+        rangeIndex('fromTopic', ['tid', 'id']).withCondition(src => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
     });
 

@@ -19,15 +19,20 @@ export default {
                 return 'FeedItemReceived';
             } else if (src.type === 'edit_item') {
                 return 'FeedItemUpdated';
+            } else if (src.type === 'delete_item') {
+                return 'FeedItemDeleted';
             }
             throw new Error('unknown feed update: ' + src);
         }
     },
     FeedItemReceived: {
-        post: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
     },
     FeedItemUpdated: {
-        post: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+    },
+    FeedItemDeleted: {
+        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
     },
     Subscription: {
         homeFeedUpdates: {

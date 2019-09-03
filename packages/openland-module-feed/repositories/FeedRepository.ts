@@ -16,7 +16,8 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export type FeedTopicEvent =
     { type: 'new_item', id: number, tid: number } |
-    { type: 'edit_item', id: number, tid: number };
+    { type: 'edit_item', id: number, tid: number } |
+    { type: 'delete_item', id: number, tid: number };
 
 @injectable()
 export class FeedRepository {
@@ -30,6 +31,9 @@ export class FeedRepository {
         });
         EventBus.subscribe('edit_post', async (event: { id: number, tid: number }) => {
             await this.localSub.publish('topic_' + event.tid, { type: 'edit_item', id: event.id, tid: event.tid });
+        });
+        EventBus.subscribe('delete_post', async (event: { id: number, tid: number }) => {
+            await this.localSub.publish('topic_' + event.tid, { type: 'delete_item', id: event.id, tid: event.tid });
         });
     }
 
@@ -159,9 +163,30 @@ export class FeedRepository {
             // Edit message
             //
             await this.richMessageRepo.editRichMessage(ctx, uid, feedEvent.content.richMessageId, input, true);
+            feedEvent.edited = true;
 
             getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
             return feedEvent;
+        });
+    }
+
+    async deletePost(parent: Context, uid: number, eventId: number) {
+        return inTx(parent, async ctx => {
+            let feedEvent = await Store.FeedEvent.findById(ctx, eventId);
+            if (!feedEvent) {
+                throw new NotFoundError();
+            }
+            if (feedEvent.type !== 'post' || !feedEvent.content.richMessageId) {
+                throw new UserError('No post found');
+            }
+            let message = await Store.RichMessage.findById(ctx, feedEvent.content.richMessageId);
+            if (!message) {
+                throw new UserError('Message not found');
+            }
+            message.deleted = true;
+            feedEvent.deleted = true;
+            getTransaction(ctx).afterCommit(() => EventBus.publish('delete_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            return true;
         });
     }
 
@@ -175,6 +200,17 @@ export class FeedRepository {
                 throw new UserError('No post found');
             }
             await this.richMessageRepo.setReaction(ctx, feedEvent.content.richMessageId, uid, reaction, reset);
+            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            return true;
+        });
+    }
+
+    async deliverFeedItemUpdated(parent: Context, eventId: number) {
+        return inTx(parent, async ctx => {
+            let feedEvent = await Store.FeedEvent.findById(ctx, eventId);
+            if (!feedEvent) {
+                throw new NotFoundError();
+            }
             getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
             return true;
         });

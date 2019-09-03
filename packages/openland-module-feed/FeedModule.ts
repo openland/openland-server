@@ -46,6 +46,10 @@ export class FeedModule {
         return this.repo.createPost(parent, uid, topic, input);
     }
 
+    async deletePost(parent: Context, uid: number, eventId: number) {
+        return this.repo.deletePost(parent, uid, eventId);
+    }
+
     async editPost(parent: Context, uid: number, eventId: number, input: RichMessageInput) {
         return this.repo.editPost(parent, uid, eventId, input);
     }
@@ -56,6 +60,10 @@ export class FeedModule {
 
     async setReaction(parent: Context, uid: number, eventId: number, reaction: RichMessageReaction, reset: boolean = false) {
         return this.repo.setReaction(parent, uid, eventId, reaction, reset);
+    }
+
+    async deliverFeedItemUpdated(parent: Context, eventId: number) {
+        return this.repo.deliverFeedItemUpdated(parent, eventId);
     }
 
     start = () => {

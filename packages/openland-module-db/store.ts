@@ -1747,8 +1747,8 @@ export interface UserSettingsShape {
     mobileIncludeText: boolean | null;
     notificationsDelay: 'none' | '1min' | '15min' | null;
     globalCounterType: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null;
-    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null;
-    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null;
+    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
+    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
 }
 
 export interface UserSettingsCreateShape {
@@ -1761,8 +1761,8 @@ export interface UserSettingsCreateShape {
     mobileIncludeText?: boolean | null | undefined;
     notificationsDelay?: 'none' | '1min' | '15min' | null | undefined;
     globalCounterType?: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null | undefined;
-    desktop?: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null | undefined;
-    mobile?: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null | undefined;
+    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
+    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
 }
 
 export class UserSettings extends Entity<UserSettingsShape> {
@@ -1848,8 +1848,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
-    get desktop(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null { return this._rawValue.desktop; }
-    set desktop(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null) {
+    get desktop(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } { return this._rawValue.desktop; }
+    set desktop(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' }) {
         let normalized = this.descriptor.codec.fields.desktop.normalize(value);
         if (this._rawValue.desktop !== normalized) {
             this._rawValue.desktop = normalized;
@@ -1857,8 +1857,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
-    get mobile(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null { return this._rawValue.mobile; }
-    set mobile(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null) {
+    get mobile(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } { return this._rawValue.mobile; }
+    set mobile(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' }) {
         let normalized = this.descriptor.codec.fields.mobile.normalize(value);
         if (this._rawValue.mobile !== normalized) {
             this._rawValue.mobile = normalized;
@@ -1885,8 +1885,8 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         fields.push({ name: 'mobileIncludeText', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'notificationsDelay', type: { type: 'optional', inner: { type: 'enum', values: ['none', '1min', '15min'] } }, secure: false });
         fields.push({ name: 'globalCounterType', type: { type: 'optional', inner: { type: 'enum', values: ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted'] } }, secure: false });
-        fields.push({ name: 'desktop', type: { type: 'optional', inner: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } } }, secure: false });
-        fields.push({ name: 'mobile', type: { type: 'optional', inner: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } } }, secure: false });
+        fields.push({ name: 'desktop', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
+        fields.push({ name: 'mobile', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             emailFrequency: c.enum('1hour', '15min', 'never', '24hour', '1week'),
@@ -1898,8 +1898,8 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
             mobileIncludeText: c.optional(c.boolean),
             notificationsDelay: c.optional(c.enum('none', '1min', '15min')),
             globalCounterType: c.optional(c.enum('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')),
-            desktop: c.optional(c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') })),
-            mobile: c.optional(c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') })),
+            desktop: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') }),
+            mobile: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') }),
         });
         let descriptor: EntityDescriptor<UserSettingsShape> = {
             name: 'UserSettings',
@@ -4052,7 +4052,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
 export interface CommentShape {
     id: number;
     peerId: number;
-    peerType: 'message' | 'feed_post';
+    peerType: 'message' | 'feed_item';
     parentCommentId: number | null;
     uid: number;
     repeatKey: string | null;
@@ -4067,7 +4067,7 @@ export interface CommentShape {
 
 export interface CommentCreateShape {
     peerId: number;
-    peerType: 'message' | 'feed_post';
+    peerType: 'message' | 'feed_item';
     parentCommentId?: number | null | undefined;
     uid: number;
     repeatKey?: string | null | undefined;
@@ -4091,8 +4091,8 @@ export class Comment extends Entity<CommentShape> {
             this.invalidate();
         }
     }
-    get peerType(): 'message' | 'feed_post' { return this._rawValue.peerType; }
-    set peerType(value: 'message' | 'feed_post') {
+    get peerType(): 'message' | 'feed_item' { return this._rawValue.peerType; }
+    set peerType(value: 'message' | 'feed_item') {
         let normalized = this.descriptor.codec.fields.peerType.normalize(value);
         if (this._rawValue.peerType !== normalized) {
             this._rawValue.peerType = normalized;
@@ -4204,7 +4204,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'peerId', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message', 'feed_post'] }, secure: false });
+        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message', 'feed_item'] }, secure: false });
         fields.push({ name: 'parentCommentId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -4218,7 +4218,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         let codec = c.struct({
             id: c.integer,
             peerId: c.integer,
-            peerType: c.enum('message', 'feed_post'),
+            peerType: c.enum('message', 'feed_item'),
             parentCommentId: c.optional(c.integer),
             uid: c.integer,
             repeatKey: c.optional(c.string),
@@ -4243,16 +4243,16 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     }
 
     readonly peer = Object.freeze({
-        findAll: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_item', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (peerType: 'message' | 'feed_post', peerId: number, opts?: StreamProps) => {
+        stream: (peerType: 'message' | 'feed_item', peerId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
-        liveStream: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: StreamProps) => {
+        liveStream: (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
     });
@@ -4273,13 +4273,13 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     });
 
     readonly repeat = Object.freeze({
-        find: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, repeatKey: string | null) => {
+        find: async (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, repeatKey: string | null) => {
             return this._findFromUniqueIndex(ctx, [peerType, peerId, repeatKey], this.descriptor.secondaryIndexes[2]);
         },
-        findAll: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_item', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: RangeQueryOptions<string | null>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, opts?: RangeQueryOptions<string | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
@@ -8025,12 +8025,16 @@ export interface FeedEventShape {
     tid: number;
     type: string;
     content: any;
+    edited: boolean | null;
+    deleted: boolean | null;
 }
 
 export interface FeedEventCreateShape {
     tid: number;
     type: string;
     content: any;
+    edited?: boolean | null | undefined;
+    deleted?: boolean | null | undefined;
 }
 
 export class FeedEvent extends Entity<FeedEventShape> {
@@ -8062,6 +8066,24 @@ export class FeedEvent extends Entity<FeedEventShape> {
             this.invalidate();
         }
     }
+    get edited(): boolean | null { return this._rawValue.edited; }
+    set edited(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.edited.normalize(value);
+        if (this._rawValue.edited !== normalized) {
+            this._rawValue.edited = normalized;
+            this._updatedValues.edited = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
@@ -8070,7 +8092,7 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         let subspace = await storage.resolveEntityDirectory('feedEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'topic'), condition: undefined });
-        secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'fromTopic'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'fromTopic'), condition: src => !src.deleted });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -8078,11 +8100,15 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         fields.push({ name: 'tid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'type', type: { type: 'string' }, secure: false });
         fields.push({ name: 'content', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'edited', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             tid: c.integer,
             type: c.string,
             content: c.any,
+            edited: c.optional(c.boolean),
+            deleted: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<FeedEventShape> = {
             name: 'FeedEvent',
