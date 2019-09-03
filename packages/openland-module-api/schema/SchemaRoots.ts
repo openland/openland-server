@@ -153,7 +153,6 @@ export namespace GQLRoots {
     export type DialogsConnectionRoot = any;
     export type SettingsRoot = UserSettings;
     export type ChatTypeNotificationSettingsRoot = { showNotification: boolean, sound: boolean };
-    // export type BadgeSettingsRoot = { excludeMuted: boolean, countUnreadChats: boolean };
     export type PlatformNotificationSettingsRoot = {
         direct: ChatTypeNotificationSettingsRoot,
         secretChat: ChatTypeNotificationSettingsRoot,
@@ -161,10 +160,6 @@ export namespace GQLRoots {
         communityChat: ChatTypeNotificationSettingsRoot,
         comments: ChatTypeNotificationSettingsRoot,
         notificationPreview: 'name_text' | 'name',
-        // badge: {
-        //     excludeMuted: boolean,
-        //     countUnreadChats: boolean
-        // }
     };
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;

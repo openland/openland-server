@@ -44,16 +44,6 @@ input ChatTypeNotificationSettingsInput {
     sound: Boolean!
 }
 
-# type BadgeSettings {
-#     excludeMuted: Boolean!
-#     countUnreadChats: Boolean!
-# }
-#
-# input BadgeSettingsInput {
-#     excludeMuted: Boolean!
-#     countUnreadChats: Boolean!
-# }
-
 type PlatformNotificationSettings {
     direct: ChatTypeNotificationSettings!
     secretChat: ChatTypeNotificationSettings!
@@ -61,7 +51,6 @@ type PlatformNotificationSettings {
     communityChat: ChatTypeNotificationSettings!
     comments: ChatTypeNotificationSettings!
     notificationPreview: NotificationPreview!
-    # badge: BadgeSettings!
 }
 
 
@@ -72,7 +61,6 @@ input PlatformNotificationSettingsInput {
     communityChat: ChatTypeNotificationSettingsInput
     comments: ChatTypeNotificationSettingsInput
     notificationPreview: NotificationPreview
-    # badge: BadgeSettingsInput
 }
 
 input UpdateSettingsInput {
