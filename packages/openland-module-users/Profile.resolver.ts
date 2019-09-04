@@ -24,6 +24,7 @@ export default {
         linkedin: (src: UserProfile) => src.linkedin,
         instagram: (src: UserProfile) => src.instagram,
         twitter: (src: UserProfile) => src.twitter,
+        facebook: (src: UserProfile) => src.facebook,
         primaryBadge: (src: UserProfile, args: {}, ctx: AppContext) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
 
         alphaRole: (src: UserProfile) => src.role,
@@ -112,6 +113,10 @@ export default {
 
                 if (args.input.twitter !== undefined) {
                     profile.twitter = Sanitizer.sanitizeString(args.input.twitter);
+                }
+
+                if (args.input.facebook !== undefined) {
+                    profile.facebook = Sanitizer.sanitizeString(args.input.facebook);
                 }
 
                 if (args.input.primaryOrganization) {
@@ -226,7 +231,6 @@ export default {
                 await profile.flush(ctx);
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
-                await Modules.Messaging.markUserDialogsForIndexing(ctx, uid);
 
                 return Modules.Users.profileById(ctx, uid);
             });

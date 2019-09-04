@@ -1,0 +1,16 @@
+type FeedUpdateContainer {
+    updates: [FeedUpdate!]!
+}
+
+union FeedUpdate = FeedItemReceived | FeedItemUpdated
+
+type FeedItemReceived {
+    post: FeedItem!
+}
+type FeedItemUpdated {
+    post: FeedItem!
+}
+
+extend type Subscription {
+    homeFeedUpdates: FeedUpdateContainer
+}

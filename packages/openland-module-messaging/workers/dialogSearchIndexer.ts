@@ -5,7 +5,7 @@ import { inTx } from '@openland/foundationdb';
 import { DialogNeedReindexEvent } from '../../openland-module-db/store';
 
 export function dialogSearchIndexer() {
-    declareSearchIndexer('dialog-index', 9, 'dialog', Store.DialogIndexEventStore.createStream({ batchSize: 50 }))
+    declareSearchIndexer('dialog-index', 9, 'dialog', Store.DialogIndexEventStore.createStream({ batchSize: 1500 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -18,6 +18,12 @@ export function dialogSearchIndexer() {
             },
             visible: {
                 type: 'boolean'
+            },
+            dialog_kind: {
+                type: 'text'
+            },
+            uid2: {
+                type: 'integer'
             }
         })
         .start(async (event, parent) => {
@@ -39,6 +45,13 @@ export function dialogSearchIndexer() {
                     }
                 };
             }
+            let uid2: number|undefined;
+            let conv = await inTx(parent, async (ctx) => await Store.Conversation.findById(ctx, item.cid));
+            if (conv && conv.kind === 'private') {
+                let privateConv = await inTx(parent, async (ctx) => await Store.ConversationPrivate.findById(ctx, item.cid));
+                uid2 = privateConv!.uid1 === item.uid ? privateConv!.uid2 : privateConv!.uid1;
+            }
+            // console.log(title, item, uid2);
             return {
                 id: item.cid + '_' + item.uid,
                 doc: {
@@ -46,6 +59,8 @@ export function dialogSearchIndexer() {
                     cid: item.cid,
                     uid: item.uid,
                     visible: await Modules.Messaging.hasActiveDialog(parent, item.uid, item.cid),
+                    uid2,
+                    dialog_kind: conv!.kind
                 }
             };
         });

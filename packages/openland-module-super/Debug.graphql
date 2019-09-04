@@ -101,7 +101,6 @@ extend type Mutation {
     debugSetCommentVisibility(commentId: ID!, visible: Boolean!): Boolean!
     debugRemoveDeletedDialogs: Boolean!
     debugReindexOrgs(marActivatedOrgsListed: Boolean!): Boolean!
-    debugFixUserDialogsIndex: Boolean!
     debugCalcRoomsActiveMembers: Boolean!
     debugCalcOrgsActiveMembers: Boolean!
     debugCreateCommentSubscriptions: Boolean!
@@ -127,6 +126,8 @@ extend type Mutation {
     debugReindexRoomProfiles: Boolean!
     debugSendPush(id: ID!, message: String!): Boolean!
     debugReindexPrivateDialogs: Boolean!
+    debugReindexUsersDialogs: Boolean!
+    debugReindexFeedEvents: Boolean!
 }
 
 extend type Subscription {

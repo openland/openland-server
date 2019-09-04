@@ -12,5 +12,6 @@ export interface ProfileInput {
     linkedin?: string | undefined | null;
     instagram?: string | undefined | null;
     twitter?: string | undefined | null;
+    facebook?: string | undefined | null;
     primaryOrganization?: string | undefined | null;
 }

@@ -29,8 +29,50 @@ enum NotificationsDelay {
     MIN_15
 }
 
+enum NotificationPreview {
+    NAME_TEXT
+    NAME
+}
+
+type ChatTypeNotificationSettings {
+    showNotification: Boolean!
+    sound: Boolean!
+}
+
+input ChatTypeNotificationSettingsInput {
+    showNotification: Boolean!
+    sound: Boolean!
+}
+
+type PlatformNotificationSettings {
+    direct: ChatTypeNotificationSettings!
+    secretChat: ChatTypeNotificationSettings!
+    organizationChat: ChatTypeNotificationSettings!
+    communityChat: ChatTypeNotificationSettings!
+    comments: ChatTypeNotificationSettings!
+    notificationPreview: NotificationPreview!
+}
+
+
+input PlatformNotificationSettingsInput {
+    direct: ChatTypeNotificationSettingsInput
+    secretChat: ChatTypeNotificationSettingsInput
+    organizationChat: ChatTypeNotificationSettingsInput
+    communityChat: ChatTypeNotificationSettingsInput
+    comments: ChatTypeNotificationSettingsInput
+    notificationPreview: NotificationPreview
+}
+
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
+    desktop: PlatformNotificationSettingsInput
+    mobile: PlatformNotificationSettingsInput
+    countUnreadChats: Boolean
+    excludeMutedChats: Boolean
+
+
+    # Deprecated
+    notificationsDelay: NotificationsDelay
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
     commentNotifications: NotificationComments
@@ -38,15 +80,19 @@ input UpdateSettingsInput {
     mobileAlert: Boolean
     mobileIncludeText: Boolean
     mute: Boolean
-    notificationsDelay: NotificationsDelay
-    countUnreadChats: Boolean
-    excludeMutedChats: Boolean
 }
 
 type Settings {
     id: ID!
     primaryEmail: String!
     emailFrequency: EmailFrequency!
+    desktop: PlatformNotificationSettings!
+    mobile: PlatformNotificationSettings!
+    countUnreadChats: Boolean!
+    excludeMutedChats: Boolean!
+
+    # Deprecated
+    notificationsDelay: NotificationsDelay!
     desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
     commentNotifications: NotificationComments!
@@ -54,9 +100,6 @@ type Settings {
     mobileAlert: Boolean!
     mobileIncludeText: Boolean!
     mute: Boolean
-    notificationsDelay: NotificationsDelay!
-    countUnreadChats: Boolean!
-    excludeMutedChats: Boolean!
 }
 
 extend type Query {

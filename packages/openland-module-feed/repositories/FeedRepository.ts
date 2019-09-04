@@ -5,15 +5,33 @@ import { JsonMap } from 'openland-utils/json';
 import { Store } from 'openland-module-db/FDB';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import {
-    RichMessageInput,
+    RichMessageInput, RichMessageReaction,
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
+import { Pubsub } from '../../openland-module-pubsub/pubsub';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { UserError } from '../../openland-errors/UserError';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+
+export type FeedTopicEvent =
+    { type: 'new_item', id: number, tid: number } |
+    { type: 'edit_item', id: number, tid: number };
 
 @injectable()
 export class FeedRepository {
     @lazyInject('RichMessageRepository')
     private readonly richMessageRepo!: RichMessageRepository;
+    private localSub = new Pubsub<FeedTopicEvent>(false);
+
+    constructor() {
+        EventBus.subscribe('new_post', async (event: { id: number, tid: number }) => {
+            await this.localSub.publish('topic_' + event.tid, { type: 'new_item', id: event.id, tid: event.tid });
+        });
+        EventBus.subscribe('edit_post', async (event: { id: number, tid: number }) => {
+            await this.localSub.publish('topic_' + event.tid, { type: 'edit_item', id: event.id, tid: event.tid });
+        });
+    }
 
     //
     // Topics
@@ -94,7 +112,9 @@ export class FeedRepository {
     async findSubscriptions(parent: Context, subscriber: string) {
         return await inTx(parent, async (ctx) => {
             let s = await this.resolveSubscriber(ctx, subscriber);
-            return (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
+            let userSubscriptions = (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
+            let globalTag = await this.resolveTopic(ctx, 'tag-global');
+            return [globalTag.id, ...userSubscriptions];
         });
     }
 
@@ -113,9 +133,57 @@ export class FeedRepository {
             //
             let event = await this.createEvent(ctx, topic, 'post', { richMessageId: message.id });
 
-            getTransaction(ctx).afterCommit(() => {
-                EventBus.publish('new_post', { id: event.id, tid: event.tid });
-            });
+            getTransaction(ctx).afterCommit(() => EventBus.publish('new_post', { id: event.id, tid: event.tid }));
+            return event;
         });
+    }
+
+    async editPost(parent: Context, uid: number, eventId: number, input: RichMessageInput) {
+        return inTx(parent, async ctx => {
+            let feedEvent = await Store.FeedEvent.findById(ctx, eventId);
+            if (!feedEvent) {
+                throw new NotFoundError();
+            }
+            if (feedEvent.type !== 'post' || !feedEvent.content.richMessageId) {
+                throw new UserError('No post found');
+            }
+            let message = await Store.RichMessage.findById(ctx, feedEvent.content.richMessageId);
+            if (!message) {
+                throw new UserError('Message not found');
+            }
+            if (message.uid !== uid) {
+                throw new AccessDeniedError();
+            }
+
+            //
+            // Edit message
+            //
+            await this.richMessageRepo.editRichMessage(ctx, uid, feedEvent.content.richMessageId, input, true);
+
+            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            return feedEvent;
+        });
+    }
+
+    async setReaction(parent: Context, uid: number, eventId: number, reaction: RichMessageReaction, reset: boolean = false) {
+        return inTx(parent, async ctx => {
+            let feedEvent = await Store.FeedEvent.findById(ctx, eventId);
+            if (!feedEvent) {
+                throw new NotFoundError();
+            }
+            if (feedEvent.type !== 'post' || !feedEvent.content.richMessageId) {
+                throw new UserError('No post found');
+            }
+            await this.richMessageRepo.setReaction(ctx, feedEvent.content.richMessageId, uid, reaction, reset);
+            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            return true;
+        });
+    }
+
+    //
+    //  Events
+    //
+    async subscribeTopicEvents(tid: number, cb: (event: FeedTopicEvent) => void) {
+        return await this.localSub.subscribe('topic_' + tid, cb);
     }
 }

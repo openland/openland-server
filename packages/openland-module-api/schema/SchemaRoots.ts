@@ -61,6 +61,8 @@ import {
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
+import { FeedTopicEvent } from '../../openland-module-feed/repositories/FeedRepository';
+import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
 
 //
 //  Root types
@@ -73,9 +75,17 @@ export namespace GQLRoots {
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
 
+    //
+    //  Feed
+    //
     export type FeedItemRoot = FeedEvent;
     export type FeedItemContentRoot = RichMessage;
     export type FeedPostRoot = RichMessage;
+    export type FeedUpdateContainerRoot = { updates: FeedTopicEvent[] };
+    export type FeedUpdateRoot = FeedTopicEvent;
+    export type FeedItemReceivedRoot = FeedTopicEvent;
+    export type FeedItemUpdatedRoot = FeedTopicEvent;
+    export type FeedItemConnectionRoot = { items: FeedEvent[], cursor: string };
 
     //
     // Calls
@@ -145,6 +155,15 @@ export namespace GQLRoots {
     export type DialogRoot = { cid: number };
     export type DialogsConnectionRoot = any;
     export type SettingsRoot = UserSettings;
+    export type ChatTypeNotificationSettingsRoot = { showNotification: boolean, sound: boolean };
+    export type PlatformNotificationSettingsRoot = {
+        direct: ChatTypeNotificationSettingsRoot,
+        secretChat: ChatTypeNotificationSettingsRoot,
+        organizationChat: ChatTypeNotificationSettingsRoot,
+        communityChat: ChatTypeNotificationSettingsRoot,
+        comments: ChatTypeNotificationSettingsRoot,
+        notificationPreview: 'name_text' | 'name',
+    };
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
@@ -156,22 +175,6 @@ export namespace GQLRoots {
     export type ImageRefRoot = any;
     export type RangeRoot = any;
     export type ChannelConversationRoot = Conversation | ConversationRoom;
-    export type ChannelMemberOrgRoot = any;
-    export type ChannelMemberRoot = any;
-    export type ChannelInviteRoot = any;
-    export type ChannelOrgInviteRoot = any;
-    export type ChannelJoinRequestOrgRoot = any;
-    export type ChannelConversationConnectionEdgeRoot = any;
-    export type ChannelConversationConnectionRoot = any;
-    export type ConversationUpdateSingleRoot = any;
-    export type ConversationUpdateBatchRoot = any;
-    export type ConversationUpdateContainerRoot = any;
-    export type ConversationUpdateRoot = any;
-    export type ConversationUpdatedRoot = any;
-    export type ConversationMessageReceivedRoot = any;
-    export type ConversationMessageUpdatedRoot = any;
-    export type ConversationMessageDeletedRoot = any;
-    export type ConversationLostAccessRoot = any;
     export type FeatureFlagRoot = FeatureFlag;
     export type OrganizationContactRoot = any;
     export type OrganizationRoot = Organization;
@@ -256,6 +259,7 @@ export namespace GQLRoots {
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
+    export type ShowNotificationMessageInfoRoot = { mobile: boolean, desktop: boolean };
     export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
 
     //
@@ -309,7 +313,7 @@ export namespace GQLRoots {
     //
     //  Comments
     //
-    export type CommentsPeerRoot = { peerType: 'message', peerId: number, comments: Comment[] };
+    export type CommentsPeerRoot = { peerType: CommentPeerType, peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
     export type CommentUpdateContainerRoot = LiveStreamItem<CommentEvent>;
     export type CommentUpdateSingleRoot = LiveStreamItem<CommentEvent>;
@@ -321,6 +325,7 @@ export namespace GQLRoots {
     export type CommentPeerRootRoot = Message;
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
+    export type CommentPeerRootFeedItemRoot = FeedEvent;
 
     export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
     export type CommentGlobalUpdateSingleRoot = LiveStreamItem<CommentEventGlobal>;

@@ -66,6 +66,42 @@ export class CommentsMediator {
         });
     }
 
+    async addFeedComment(parent: Context, feedItemId: number, uid: number, commentInput: CommentInput) {
+        return await inTx(parent, async (ctx) => {
+            // TODO: check access
+            let item = await Store.FeedEvent.findById(ctx, feedItemId);
+            if (!item) {
+                throw new NotFoundError();
+            }
+
+            //
+            // Create comment
+            //
+            let res = await this.repo.createComment(ctx, 'feed_post', feedItemId, uid, commentInput);
+
+            //
+            //  Subscribe to notifications
+            //
+            await this.notificationsMediator.subscribeToComments(ctx, 'feed_post', feedItemId, uid, 'all');
+
+            //
+            // Send notifications
+            //
+            await this.notificationsMediator.onNewComment(ctx, res);
+
+            //
+            // Send message updated event
+            //
+            // await Modules.Messaging.markMessageUpdated(ctx, message.id);
+
+            if (!commentInput.ignoreAugmentation) {
+                await this.augmentation.onNewComment(ctx, res);
+            }
+
+            return res;
+        });
+    }
+
     async editComment(parent: Context, commentId: number, uid: number, newComment: CommentInput, markEdited: boolean) {
         return await inTx(parent, async (ctx) => {
             let comment = await Store.Comment.findById(ctx, commentId);

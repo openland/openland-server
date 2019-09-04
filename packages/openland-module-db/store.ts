@@ -1357,9 +1357,10 @@ export interface UserProfileShape {
     location: string | null;
     email: string | null;
     picture: any | null;
+    twitter: string | null;
+    facebook: string | null;
     linkedin: string | null;
     instagram: string | null;
-    twitter: string | null;
     locations: any | null;
     primaryOrganization: number | null;
     primaryBadge: number | null;
@@ -1375,9 +1376,10 @@ export interface UserProfileCreateShape {
     location?: string | null | undefined;
     email?: string | null | undefined;
     picture?: any | null | undefined;
+    twitter?: string | null | undefined;
+    facebook?: string | null | undefined;
     linkedin?: string | null | undefined;
     instagram?: string | null | undefined;
-    twitter?: string | null | undefined;
     locations?: any | null | undefined;
     primaryOrganization?: number | null | undefined;
     primaryBadge?: number | null | undefined;
@@ -1458,6 +1460,24 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get twitter(): string | null { return this._rawValue.twitter; }
+    set twitter(value: string | null) {
+        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
+        if (this._rawValue.twitter !== normalized) {
+            this._rawValue.twitter = normalized;
+            this._updatedValues.twitter = normalized;
+            this.invalidate();
+        }
+    }
+    get facebook(): string | null { return this._rawValue.facebook; }
+    set facebook(value: string | null) {
+        let normalized = this.descriptor.codec.fields.facebook.normalize(value);
+        if (this._rawValue.facebook !== normalized) {
+            this._rawValue.facebook = normalized;
+            this._updatedValues.facebook = normalized;
+            this.invalidate();
+        }
+    }
     get linkedin(): string | null { return this._rawValue.linkedin; }
     set linkedin(value: string | null) {
         let normalized = this.descriptor.codec.fields.linkedin.normalize(value);
@@ -1473,15 +1493,6 @@ export class UserProfile extends Entity<UserProfileShape> {
         if (this._rawValue.instagram !== normalized) {
             this._rawValue.instagram = normalized;
             this._updatedValues.instagram = normalized;
-            this.invalidate();
-        }
-    }
-    get twitter(): string | null { return this._rawValue.twitter; }
-    set twitter(value: string | null) {
-        let normalized = this.descriptor.codec.fields.twitter.normalize(value);
-        if (this._rawValue.twitter !== normalized) {
-            this._rawValue.twitter = normalized;
-            this._updatedValues.twitter = normalized;
             this.invalidate();
         }
     }
@@ -1541,9 +1552,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'location', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'email', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'picture', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'facebook', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'twitter', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'locations', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'primaryOrganization', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'primaryBadge', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -1558,9 +1570,10 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             location: c.optional(c.string),
             email: c.optional(c.string),
             picture: c.optional(c.any),
+            twitter: c.optional(c.string),
+            facebook: c.optional(c.string),
             linkedin: c.optional(c.string),
             instagram: c.optional(c.string),
-            twitter: c.optional(c.string),
             locations: c.optional(c.any),
             primaryOrganization: c.optional(c.integer),
             primaryBadge: c.optional(c.integer),
@@ -1734,6 +1747,8 @@ export interface UserSettingsShape {
     mobileIncludeText: boolean | null;
     notificationsDelay: 'none' | '1min' | '15min' | null;
     globalCounterType: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null;
+    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null;
+    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null;
 }
 
 export interface UserSettingsCreateShape {
@@ -1746,6 +1761,8 @@ export interface UserSettingsCreateShape {
     mobileIncludeText?: boolean | null | undefined;
     notificationsDelay?: 'none' | '1min' | '15min' | null | undefined;
     globalCounterType?: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null | undefined;
+    desktop?: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null | undefined;
+    mobile?: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null | undefined;
 }
 
 export class UserSettings extends Entity<UserSettingsShape> {
@@ -1831,6 +1848,24 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
+    get desktop(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null { return this._rawValue.desktop; }
+    set desktop(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null) {
+        let normalized = this.descriptor.codec.fields.desktop.normalize(value);
+        if (this._rawValue.desktop !== normalized) {
+            this._rawValue.desktop = normalized;
+            this._updatedValues.desktop = normalized;
+            this.invalidate();
+        }
+    }
+    get mobile(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null { return this._rawValue.mobile; }
+    set mobile(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } | null) {
+        let normalized = this.descriptor.codec.fields.mobile.normalize(value);
+        if (this._rawValue.mobile !== normalized) {
+            this._rawValue.mobile = normalized;
+            this._updatedValues.mobile = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSettings> {
@@ -1850,6 +1885,8 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         fields.push({ name: 'mobileIncludeText', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'notificationsDelay', type: { type: 'optional', inner: { type: 'enum', values: ['none', '1min', '15min'] } }, secure: false });
         fields.push({ name: 'globalCounterType', type: { type: 'optional', inner: { type: 'enum', values: ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted'] } }, secure: false });
+        fields.push({ name: 'desktop', type: { type: 'optional', inner: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } } }, secure: false });
+        fields.push({ name: 'mobile', type: { type: 'optional', inner: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             emailFrequency: c.enum('1hour', '15min', 'never', '24hour', '1week'),
@@ -1861,6 +1898,8 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
             mobileIncludeText: c.optional(c.boolean),
             notificationsDelay: c.optional(c.enum('none', '1min', '15min')),
             globalCounterType: c.optional(c.enum('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')),
+            desktop: c.optional(c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') })),
+            mobile: c.optional(c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') })),
         });
         let descriptor: EntityDescriptor<UserSettingsShape> = {
             name: 'UserSettings',
@@ -4013,7 +4052,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
 export interface CommentShape {
     id: number;
     peerId: number;
-    peerType: 'message';
+    peerType: 'message' | 'feed_post';
     parentCommentId: number | null;
     uid: number;
     repeatKey: string | null;
@@ -4028,7 +4067,7 @@ export interface CommentShape {
 
 export interface CommentCreateShape {
     peerId: number;
-    peerType: 'message';
+    peerType: 'message' | 'feed_post';
     parentCommentId?: number | null | undefined;
     uid: number;
     repeatKey?: string | null | undefined;
@@ -4052,8 +4091,8 @@ export class Comment extends Entity<CommentShape> {
             this.invalidate();
         }
     }
-    get peerType(): 'message' { return this._rawValue.peerType; }
-    set peerType(value: 'message') {
+    get peerType(): 'message' | 'feed_post' { return this._rawValue.peerType; }
+    set peerType(value: 'message' | 'feed_post') {
         let normalized = this.descriptor.codec.fields.peerType.normalize(value);
         if (this._rawValue.peerType !== normalized) {
             this._rawValue.peerType = normalized;
@@ -4165,7 +4204,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'peerId', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message'] }, secure: false });
+        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message', 'feed_post'] }, secure: false });
         fields.push({ name: 'parentCommentId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -4179,7 +4218,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         let codec = c.struct({
             id: c.integer,
             peerId: c.integer,
-            peerType: c.enum('message'),
+            peerType: c.enum('message', 'feed_post'),
             parentCommentId: c.optional(c.integer),
             uid: c.integer,
             repeatKey: c.optional(c.string),
@@ -4204,16 +4243,16 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     }
 
     readonly peer = Object.freeze({
-        findAll: async (ctx: Context, peerType: 'message', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message', peerId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (peerType: 'message', peerId: number, opts?: StreamProps) => {
+        stream: (peerType: 'message' | 'feed_post', peerId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
-        liveStream: (ctx: Context, peerType: 'message', peerId: number, opts?: StreamProps) => {
+        liveStream: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
     });
@@ -4234,13 +4273,13 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     });
 
     readonly repeat = Object.freeze({
-        find: async (ctx: Context, peerType: 'message', peerId: number, repeatKey: string | null) => {
+        find: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, repeatKey: string | null) => {
             return this._findFromUniqueIndex(ctx, [peerType, peerId, repeatKey], this.descriptor.secondaryIndexes[2]);
         },
-        findAll: async (ctx: Context, peerType: 'message', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_post', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message', peerId: number, opts?: RangeQueryOptions<string | null>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_post', peerId: number, opts?: RangeQueryOptions<string | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
@@ -6382,6 +6421,94 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
     }
 }
 
+export interface UserGroupEdgeShape {
+    uid: number;
+    cid: number;
+    weight: number | null;
+}
+
+export interface UserGroupEdgeCreateShape {
+    weight?: number | null | undefined;
+}
+
+export class UserGroupEdge extends Entity<UserGroupEdgeShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get cid(): number { return this._rawValue.cid; }
+    get weight(): number | null { return this._rawValue.weight; }
+    set weight(value: number | null) {
+        let normalized = this.descriptor.codec.fields.weight.normalize(value);
+        if (this._rawValue.weight !== normalized) {
+            this._rawValue.weight = normalized;
+            this._updatedValues.weight = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserGroupEdgeFactory extends EntityFactory<UserGroupEdgeShape, UserGroupEdge> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userGroupEdge');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userGroupEdge', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'weight', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            cid: c.integer,
+            weight: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<UserGroupEdgeShape> = {
+            name: 'UserGroupEdge',
+            storageKey: 'userGroupEdge',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserGroupEdgeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserGroupEdgeShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, cid: number, src: UserGroupEdgeCreateShape): Promise<UserGroupEdge> {
+        return this._create(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, cid: number, src: UserGroupEdgeCreateShape): UserGroupEdge {
+        return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, cid: number): Promise<UserGroupEdge | null> {
+        return this._findById(ctx, [uid, cid]);
+    }
+
+    watch(ctx: Context, uid: number, cid: number): Watch {
+        return this._watch(ctx, [uid, cid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserGroupEdgeShape>): UserGroupEdge {
+        return new UserGroupEdge([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserInfluencerUserIndexShape {
     uid: number;
     value: number;
@@ -7943,6 +8070,7 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         let subspace = await storage.resolveEntityDirectory('feedEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'topic'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'fromTopic'), condition: undefined });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -7983,18 +8111,33 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         },
     });
 
+    readonly fromTopic = Object.freeze({
+        findAll: async (ctx: Context, tid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [tid])).items;
+        },
+        query: (ctx: Context, tid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (tid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [tid], opts);
+        },
+        liveStream: (ctx: Context, tid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [tid], opts);
+        },
+    });
+
     readonly updated = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
         },
     });
 
@@ -12825,6 +12968,7 @@ export interface Store extends BaseStore {
     readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
     readonly ConferenceConnection: ConferenceConnectionFactory;
     readonly UserEdge: UserEdgeFactory;
+    readonly UserGroupEdge: UserGroupEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     readonly UserInfluencerIndex: UserInfluencerIndexFactory;
     readonly UserBadge: UserBadgeFactory;
@@ -12971,6 +13115,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
     let ConferenceConnectionPromise = ConferenceConnectionFactory.open(storage);
     let UserEdgePromise = UserEdgeFactory.open(storage);
+    let UserGroupEdgePromise = UserGroupEdgeFactory.open(storage);
     let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(storage);
     let UserInfluencerIndexPromise = UserInfluencerIndexFactory.open(storage);
     let UserBadgePromise = UserBadgeFactory.open(storage);
@@ -13101,6 +13246,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferenceMediaStream: await ConferenceMediaStreamPromise,
         ConferenceConnection: await ConferenceConnectionPromise,
         UserEdge: await UserEdgePromise,
+        UserGroupEdge: await UserGroupEdgePromise,
         UserInfluencerUserIndex: await UserInfluencerUserIndexPromise,
         UserInfluencerIndex: await UserInfluencerIndexPromise,
         UserBadge: await UserBadgePromise,

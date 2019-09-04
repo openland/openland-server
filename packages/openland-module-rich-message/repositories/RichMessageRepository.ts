@@ -14,6 +14,7 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import { inTx } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { UserError } from '../../openland-errors/UserError';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -44,6 +45,8 @@ export interface RichMessageInput {
     // appends attachments instead of replacing them in editComment
     appendAttachments?: boolean | null;
 }
+
+export type RichMessageReaction = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
 
 @injectable()
 export class RichMessageRepository {
@@ -82,6 +85,64 @@ export class RichMessageRepository {
             });
 
             return message;
+        });
+    }
+
+    async editRichMessage(parent: Context, uid: number, mid: number, newMessage: RichMessageInput, markAsEdited: boolean) {
+        return await inTx(parent, async (ctx) => {
+            let message = await Store.RichMessage.findById(ctx, mid);
+            if (!message) {
+                throw new UserError('Message not found');
+            }
+            //
+            // Update message
+            //
+
+            if (newMessage.message) {
+                message.text = newMessage.message;
+            }
+            if (markAsEdited) {
+                message.edited = true;
+            }
+            if (newMessage.attachments) {
+                if (newMessage.appendAttachments) {
+                    message.attachments = [...(message.attachments || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
+                } else {
+                    message.attachments = await this.prepareAttachments(ctx, newMessage.attachments || []);
+                }
+            }
+            if (newMessage.spans) {
+                message.spans = newMessage.spans;
+            }
+        });
+    }
+
+    async setReaction(parent: Context, mid: number, uid: number, reaction: RichMessageReaction, reset: boolean = false) {
+        return await inTx(parent, async (ctx) => {
+            let message = await Store.RichMessage.findById(ctx, mid);
+
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            //
+            // Update message
+            //
+
+            let reactions: { reaction: string, userId: number }[] = message.reactions ? [...message.reactions] as any : [];
+
+            if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
+                if (reset) {
+                    reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
+                } else {
+                    return false;
+                }
+            } else {
+                reactions.push({ userId: uid, reaction });
+            }
+            message.reactions = reactions;
+
+            return true;
         });
     }
 

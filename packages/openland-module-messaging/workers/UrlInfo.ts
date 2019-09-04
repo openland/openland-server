@@ -79,6 +79,7 @@ function createURLInfoFetcher() {
     fetcher
         .specialUrl((_, hostname) => hostname.endsWith('linkedin.com'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('notion.so'), async () => false)
+        .specialUrl((_, hostname) => hostname.endsWith('docsend.com'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('wikipedia.org'), async (url) => {
             let raw = await fetchRawURLInfo(url);
             if (raw && raw.doc) {
@@ -209,6 +210,26 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
         imageURL = URL.resolve(url, imageURL);
         try {
             let { file } = await Modules.Media.uploadFromUrl(rootCtx, imageURL);
+            imageRef = { uuid: file, crop: null };
+            imageInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
+        } catch (e) {
+            logger.warn(rootCtx, 'Cant fetch image ' + imageURL);
+        }
+    } else {
+        let image = await fetch('https://screenshot.openland.io', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: encodeURI(url),
+                width: 1280,
+                height: 720
+            })
+        });
+        try {
+            let { file } = await Modules.Media.upload(rootCtx, await image.buffer(), '.png');
             imageRef = { uuid: file, crop: null };
             imageInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
         } catch (e) {

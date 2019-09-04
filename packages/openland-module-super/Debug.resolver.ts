@@ -1,4 +1,4 @@
-import { Organization, Message, Comment } from './../openland-module-db/store';
+import { Organization, Message, Comment, DialogNeedReindexEvent } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
@@ -572,28 +572,6 @@ export default {
             });
             return true;
         }),
-        debugFixUserDialogsIndex: withPermission('super-admin', async (parent, args) => {
-            // debugTask(parent.auth.uid!, 'debugReindexOrgs', async (log) => {
-            //     let allUids = await fetchAllUids(parent);
-            //     for (let uid of allUids) {
-            //         await inTx(rootCtx, async (ctx) => {
-            //             let duplicatesCount = await fixIndexConsistency(
-            //                 ctx,
-            //                 Store.UserDialog,
-            //                 ['__indexes', 'user', uid],
-            //                 value => [value.uid, value.cid],
-            //                 _ctx => FDB.UserDialog.allFromUser(_ctx, uid),
-            //             );
-            //             if (duplicatesCount > 0) {
-            //                 await log(`fix UserDialog.allFromUser(${uid}): ${duplicatesCount} duplicates`);
-            //             }
-            //         });
-            //     }
-
-            //     return 'done';
-            // });
-            return true;
-        }),
         debugCalcRoomsActiveMembers: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugCalcRoomsActiveMembers', async (log) => {
                 let allRooms = await Store.RoomProfile.findAll(rootCtx);
@@ -932,24 +910,8 @@ export default {
             });
         }),
         debugReindexUserProfiles: withPermission('super-admin', async (parent) => {
-            debugTask(parent.auth.uid!, 'debugReindexUsers', async (log) => {
-                let users = await Store.UserProfile.findAll(parent);
-                let i = 0;
-                for (let u of users) {
-                    try {
-                        await inTx(parent, async ctx => {
-                            await u.flush(ctx);
-                        });
-
-                        if ((i % 100) === 0) {
-                            await log('done: ' + i);
-                        }
-                    } catch (e) {
-                        await log('error: ' + e);
-                    }
-                    i++;
-                }
-                return 'done';
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUserProfiles', async (ctx, uid, log) => {
+                await Modules.Users.markForUndexing(ctx, uid);
             });
             return true;
         }),
@@ -1020,6 +982,23 @@ export default {
                 let dialog = await Store.ConversationPrivate.findById(ctx, id);
                 dialog!.invalidate();
                 await dialog!.flush(ctx);
+            });
+            return true;
+        }),
+        debugReindexUsersDialogs: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUsersDialogs', async (ctx, uid, log) => {
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                for (let dialog of dialogs) {
+                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid: dialog.cid }));
+                }
+            });
+            return true;
+        }),
+        debugReindexFeedEvents: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.FeedEvent, parent.auth.uid!, 'debugReindexFeedEvents', async (ctx, id, log) => {
+                let event = await Store.FeedEvent.findById(ctx, id);
+                event!.invalidate();
+                await event!.flush(ctx);
             });
             return true;
         }),
