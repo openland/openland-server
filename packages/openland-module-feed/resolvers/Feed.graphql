@@ -38,4 +38,7 @@ extend type Mutation {
 
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
+
+    feedSubscribeUser(uid: ID!): Boolean!
+    feedUnsubscribeUser(uid: ID!): Boolean!
 }

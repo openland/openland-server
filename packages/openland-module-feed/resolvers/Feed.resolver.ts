@@ -61,20 +61,14 @@ export default {
         })
     },
     Mutation: {
-        alphaCreateFeedPost: withUser(async (root, args, uid) => {
-            return inTx(root, async ctx => {
-                return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
-            });
+        alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
         }),
-        alphaEditFeedPost: withUser(async (root, args, uid) => {
-            return inTx(root, async ctx => {
-                return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
-            });
+        alphaEditFeedPost: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
         }),
-        alphaDeleteFeedPost: withUser(async (root, args, uid) => {
-            return inTx(root, async ctx => {
-                return await Modules.Feed.deletePost(ctx, uid, IDs.FeedItem.parse(args.feedItemId));
-            });
+        alphaDeleteFeedPost: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.deletePost(ctx, uid, IDs.FeedItem.parse(args.feedItemId));
         }),
         alphaCreateGlobalFeedPost: withUser(async (root, args, uid) => {
             return await inTx(root, async ctx => {
@@ -86,16 +80,19 @@ export default {
                 return true;
             });
         }),
-        feedReactionAdd: withUser(async (root, args, uid) => {
-            return await inTx(root, async ctx => {
-                return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);
-            });
+        feedReactionAdd: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);
         }),
-        feedReactionRemove: withUser(async (root, args, uid) => {
-            return await inTx(root, async ctx => {
-                return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
-            });
+        feedReactionRemove: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
         }),
-
+        feedSubscribeUser: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.subscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
+            return true;
+        }),
+        feedUnsubscribeUser: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.unsubscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
+            return true;
+        })
     }
 } as GQLResolver;
