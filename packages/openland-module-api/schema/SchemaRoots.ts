@@ -82,7 +82,7 @@ export namespace GQLRoots {
     export type FeedItemReceivedRoot = FeedTopicEvent;
     export type FeedItemUpdatedRoot = FeedTopicEvent;
     export type FeedItemDeletedRoot = FeedTopicEvent;
-    export type FeedItemConnectionRoot = { items: FeedEvent[], cursor: string };
+    export type FeedItemConnectionRoot = { items: FeedEvent[], cursor?: string };
 
     //
     // Calls

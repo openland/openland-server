@@ -36,7 +36,7 @@ export default {
         reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
         message: withRichMessage((ctx, message) => message.text),
-        spans: withRichMessage((ctx, message) => message.spans),
+        spans: withRichMessage((ctx, message) => message.spans || []),
         attachments: withRichMessage((ctx, message) => message.attachments ? message.attachments.map(a => ({ message: message, attachment: a })) : []),
         commentsCount: withRichMessage(async (ctx, message, src) => {
             let state = await Store.CommentState.findById(ctx, 'feed_item', src.id);
@@ -57,7 +57,7 @@ export default {
                 allEvents.push(...posts.items);
             }
             let items = allEvents.sort((a, b) => b.id - a.id).splice(0, args.first);
-            return { items, cursor: IDs.HomeFeedCursor.serialize(items[items.length - 1].id) };
+            return { items, cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined };
         })
     },
     Mutation: {
