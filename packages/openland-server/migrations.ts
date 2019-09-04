@@ -116,7 +116,7 @@ migrations.push({
                 .withValueEncoding(encoders.json);
             for (let d of dialogs) {
                 if (d.date) {
-                    dc.set(ctx, [d.uid, d.cid], { date: d.date! });
+                    dc.set(ctx, [d.uid, d.cid], {date: d.date!});
                 } else {
                     dc.clear(ctx, [d.uid, d.cid]);
                 }
@@ -234,12 +234,11 @@ migrations.push({
                         uid: event.content.uid,
                         text: event.content.text || '',
                     });
-                    event.content = { richMessageId: richMessage.id };
+                    event.content = {richMessageId: richMessage.id};
                 }
             }
         });
     }
 });
-
 
 export default migrations;
