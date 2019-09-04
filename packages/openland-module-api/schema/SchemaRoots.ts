@@ -40,6 +40,8 @@ import {
     UserDialogMuteChangedEvent,
     UserDialogBumpEvent,
     UserDialogPeerUpdatedEvent,
+    StickerPack,
+    Sticker, UserStickersState,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -109,8 +111,9 @@ export namespace GQLRoots {
     export type MessageReactionRoot = { userId: number, reaction: string };
     export type ConversationMessageRoot = Message;
     export type FileMetadataRoot = any;
-    export type StickerPackRoot = any;
-    export type StickerRoot = any;
+    export type StickerPackRoot = StickerPack | number;
+    export type UserStickersRoot = UserStickersState;
+    export type StickerRoot = Sticker | string;
     export type ConversationEventSimpleBatchRoot = any;
     export type ConversationEventRoot = any;
     export type ConversationEventMessageRoot = any;

@@ -8,6 +8,7 @@ import StickerPackInput = GQL.StickerPackInput;
 import StickerInput = GQL.StickerInput;
 import { Modules } from '../../openland-modules/Modules';
 import { AuthContext } from '../../openland-module-auth/AuthContext';
+import { Sanitizer } from '../../openland-utils/Sanitizer';
 
 @injectable()
 export class StickersRepository {
@@ -66,19 +67,36 @@ export class StickersRepository {
                 throw new Error('Cannot add sticker to foreign sticker pack');
             }
 
+            let stickerKek = await Store.Sticker.findById(ctx, input.image.uuid);
+            if (stickerKek) {
+                stickerKek.packId = pid;
+
+                pack.emojis = [...pack.emojis, {
+                    emoji: stickerKek.emoji,
+                    stickerId: stickerKek.uuid,
+                }];
+
+                return stickerKek;
+            }
+
             let fileInfo = await Modules.Media.fetchFileInfo(parent, input.image.uuid);
+            let imageRef = await Sanitizer.sanitizeImageRef(input.image);
+            if (imageRef) {
+                await Modules.Media.saveFile(ctx, imageRef.uuid);
+            }
 
             let sticker = await Store.Sticker.create(ctx, input.image.uuid, {
                 emoji: input.emoji,
                 packId: pid,
+                image: imageRef!,
                 animated: fileInfo.imageFormat === 'GIF',
                 deleted: false
             });
 
-            pack.emojis.push({
+            pack.emojis = [...pack.emojis, {
                 emoji: sticker.emoji,
                 stickerId: sticker.uuid,
-            });
+            }];
             await pack.flush(ctx);
             return sticker;
         });
@@ -101,13 +119,74 @@ export class StickersRepository {
             }
 
             sticker.deleted = true;
-            pack.emojis = pack.emojis.filter((e) => e.stickerId !== uuid);
+            pack.emojis = [...pack.emojis.filter((e) => e.stickerId !== uuid)];
             if (pack.emojis.length === 0) {
                 pack.published = false;
             }
 
             await pack.flush(ctx);
             await sticker.flush(ctx);
+        });
+    }
+
+    addToCollection = (parent: Context, uid: number, pid: number) => {
+        return inTx(parent, async (ctx) => {
+            let pack = await Store.StickerPack.findById(ctx, pid);
+            if (!pack) {
+                throw new Error('invalid pack');
+            }
+
+            let userStickersState = await this.getUserStickersState(ctx, uid);
+            if (!userStickersState.packIds.every(a => a !== pid)) {
+                return false;
+            }
+            userStickersState.packIds = [...userStickersState.packIds, pid];
+            await userStickersState.flush(ctx);
+
+            pack.usesCount++;
+            await pack.flush(ctx);
+
+            return true;
+        });
+    }
+
+    removeFromCollection = (parent: Context, uid: number, pid: number) => {
+        return inTx(parent, async (ctx) => {
+            let pack = await Store.StickerPack.findById(ctx, pid);
+            if (!pack) {
+                throw new Error('invalid pack');
+            }
+
+            let userStickersState = await this.getUserStickersState(ctx, uid);
+            if (userStickersState.packIds.every(a => a !== pid)) {
+                return false;
+            }
+
+            userStickersState.packIds = [...userStickersState.packIds.filter(a => a !== pid)];
+            await userStickersState.flush(ctx);
+
+            pack.usesCount--;
+            await pack.flush(ctx);
+
+            return true;
+        });
+    }
+
+    getUserStickers = (parent: Context, uid: number) => {
+        return inTx(parent, (ctx) => {
+            return this.getUserStickersState(ctx, uid);
+        });
+    }
+
+    private getUserStickersState = async (parent: Context, uid: number) => {
+        return inTx(parent,  async ctx => {
+            let state = await Store.UserStickersState.findById(ctx, uid);
+            if (!state) {
+                state = await Store.UserStickersState.create(ctx, uid, {
+                    favouriteIds: [], packIds: [],
+                });
+            }
+            return state;
         });
     }
 

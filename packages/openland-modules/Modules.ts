@@ -132,7 +132,7 @@ class ModulesImpl {
         return container.get<MonitoringModule>('MonitoringModule');
     }
     get Stickers() {
-        return container.get<StickersModule>('StickersModule');
+        return container.get(StickersModule);
     }
 }
 

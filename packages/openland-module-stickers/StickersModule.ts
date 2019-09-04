@@ -5,8 +5,9 @@ import { Context } from '@openland/context';
 import { GQL } from '../openland-module-api/schema/SchemaSpec';
 import StickerPackInput = GQL.StickerPackInput;
 import StickerInput = GQL.StickerInput;
-import { inTx } from '@openland/foundationdb';
 import { Store } from '../openland-module-db/FDB';
+import { AuthContext } from '../openland-module-auth/AuthContext';
+import { inTx } from '@openland/foundationdb';
 
 @injectable()
 export class StickersModule {
@@ -33,27 +34,68 @@ export class StickersModule {
     }
 
     addToCollection = (parent: Context, uid: number, pid: number) => {
-        return inTx(parent, async (ctx) => {
-            let pack = await Store.StickerPack.findById(ctx, pid);
-            if (!pack) {
-                throw new Error('invalid pack');
+        return this.repo.addToCollection(parent, uid, pid);
+    }
+
+    removeFromCollection = (parent: Context, uid: number, pid: number) => {
+        return this.repo.removeFromCollection(parent, uid, pid);
+    }
+
+    findStickers = async (parent: Context, emoji: string) => {
+        let auth = AuthContext.get(parent);
+
+        let userStickers = await this.getUserStickers(parent, auth.uid!);
+        let stickers: string[] = [];
+        for (let id of userStickers.packIds) {
+            let pack = await Store.StickerPack.findById(parent, id);
+            stickers = stickers.concat(pack!.emojis.filter(a => a.emoji === emoji).map(a => a.stickerId));
+        }
+
+        return stickers;
+    }
+
+    getPack = async (parent: Context, pid: number) => {
+        let user = AuthContext.get(parent);
+        let pack = await Store.StickerPack.findById(parent, pid);
+
+        if (!pack || (user.uid !== pack.authorId && !pack.published)) {
+            return null;
+        }
+
+        return pack;
+    }
+
+    addStickerToFavs = async (parent: Context, uuid: string) => {
+        let user = AuthContext.get(parent);
+
+        return await inTx(parent, async ctx => {
+            let userStickers = await this.getUserStickers(ctx, user.uid!);
+            if (userStickers.favouriteIds.find(a => a === uuid)) {
+                return false;
             }
+            userStickers.favouriteIds = [...userStickers.favouriteIds, uuid];
 
-            let userStickersState = await this.getUserStickersState(ctx, uid);
-            userStickersState.packIds.push(pid);
-            await userStickersState.flush(ctx);
-
+            await userStickers.flush(ctx);
             return true;
         });
     }
 
-    private getUserStickersState = async (ctx: Context, uid: number) => {
-        let state = await Store.UserStickersState.findById(ctx, uid);
-        if (!state) {
-            state = await Store.UserStickersState.create(ctx, uid, {
-                favouriteIds: [], packIds: [],
-            });
-        }
-        return state;
+    removeStickerFromFavs = async (parent: Context, uuid: string) => {
+        let user = AuthContext.get(parent);
+
+        return await inTx(parent, async ctx => {
+            let userStickers = await this.getUserStickers(ctx, user.uid!);
+            if (userStickers.favouriteIds.every(a => a !== uuid)) {
+                return false;
+            }
+            userStickers.favouriteIds = [...userStickers.favouriteIds.filter(a => a !== uuid)];
+
+            await userStickers.flush(ctx);
+            return true;
+        });
+    }
+
+    getUserStickers = (parent: Context, uid: number) => {
+        return this.repo.getUserStickers(parent, uid);
     }
 }

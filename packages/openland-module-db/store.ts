@@ -10217,6 +10217,7 @@ export class UserStickerPackFactory extends EntityFactory<UserStickerPackShape, 
 
 export interface StickerShape {
     uuid: string;
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null };
     animated: boolean;
     deleted: boolean;
     emoji: string;
@@ -10224,6 +10225,7 @@ export interface StickerShape {
 }
 
 export interface StickerCreateShape {
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined };
     animated: boolean;
     deleted: boolean;
     emoji: string;
@@ -10232,6 +10234,15 @@ export interface StickerCreateShape {
 
 export class Sticker extends Entity<StickerShape> {
     get uuid(): string { return this._rawValue.uuid; }
+    get image(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } { return this._rawValue.image; }
+    set image(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }) {
+        let normalized = this.descriptor.codec.fields.image.normalize(value);
+        if (this._rawValue.image !== normalized) {
+            this._rawValue.image = normalized;
+            this._updatedValues.image = normalized;
+            this.invalidate();
+        }
+    }
     get animated(): boolean { return this._rawValue.animated; }
     set animated(value: boolean) {
         let normalized = this.descriptor.codec.fields.animated.normalize(value);
@@ -10280,12 +10291,14 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uuid', type: 'string' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'image', type: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, secure: false });
         fields.push({ name: 'animated', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'emoji', type: { type: 'string' }, secure: false });
         fields.push({ name: 'packId', type: { type: 'integer' }, secure: false });
         let codec = c.struct({
             uuid: c.string,
+            image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }),
             animated: c.boolean,
             deleted: c.boolean,
             emoji: c.string,

@@ -1278,6 +1278,7 @@ export default declareSchema(() => {
 
     entity('Sticker', () => {
        primaryKey('uuid', string());
+       field('image', ImageRef);
        field('animated', boolean());
        field('deleted', boolean());
        field('emoji', string());
