@@ -1,6 +1,7 @@
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
+import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 
 let migrations: MigrationDefinition[] = [];
 
@@ -219,5 +220,26 @@ migrations.push({
         });
     }
 });
+
+migrations.push({
+    key: '110-migrate-feed',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            let events = await Store.FeedEvent.findAll(ctx);
+
+            for (let event of events) {
+                if (event.type === 'post' && !event.content.richMessageId) {
+                    let messageId = await fetchNextDBSeq(parent, 'rich-message-id');
+                    let richMessage = await Store.RichMessage.create(ctx, messageId, {
+                        uid: event.content.uid,
+                        text: event.content.text || '',
+                    });
+                    event.content = { richMessageId: richMessage.id };
+                }
+            }
+        });
+    }
+});
+
 
 export default migrations;

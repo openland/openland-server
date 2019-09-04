@@ -32,7 +32,7 @@ export default {
         id: (src) => IDs.FeedItem.serialize(src.id),
         date: src => src.metadata.createdAt,
         sender: withRichMessage((ctx, message) => message.uid),
-        edited: withRichMessage((ctx, message, src) => src.edited),
+        edited: withRichMessage((ctx, message, src) => src.edited || false),
         reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
         message: withRichMessage((ctx, message) => message.text),
