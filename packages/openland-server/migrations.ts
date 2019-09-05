@@ -1,6 +1,7 @@
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
+import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 
 let migrations: MigrationDefinition[] = [];
 
@@ -213,6 +214,68 @@ migrations.push({
                     },
                     notificationPreview: 'name_text',
                 };
+
+                await s.flush(ctx);
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '110-migrate-feed',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            let events = await Store.FeedEvent.findAll(ctx);
+
+            for (let event of events) {
+                if (event.type === 'post' && !event.content.richMessageId) {
+                    let messageId = await fetchNextDBSeq(parent, 'rich-message-id');
+                    let richMessage = await Store.RichMessage.create(ctx, messageId, {
+                        uid: event.content.uid,
+                        text: event.content.text || '',
+                    });
+                    event.content = {richMessageId: richMessage.id};
+                }
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '111-notifications-fix',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            let settings = (await Store.UserSettings.findAll(ctx));
+
+            for (let s of settings) {
+                let commentsEnabled = s.commentNotifications ? s.commentNotifications !== 'none' : true;
+                let mobileIncludeText: 'name_text' | 'name' = (s.mobileIncludeText == null || s.mobileIncludeText) ? 'name_text' : 'name';
+
+                if (s.mobileAlert === null) {
+                    s.mobile = {
+                        direct: {
+                            showNotification: true,
+                            sound: true,
+                        },
+                        communityChat: {
+                            showNotification: true,
+                            sound: true
+                        },
+                        organizationChat: {
+                            showNotification: true,
+                            sound: true
+                        },
+                        secretChat: {
+                            showNotification: true,
+                            sound: true
+                        },
+                        comments: {
+                            showNotification: commentsEnabled,
+                            sound: commentsEnabled,
+                        },
+                        notificationPreview: mobileIncludeText,
+                    };
+                }
 
                 await s.flush(ctx);
             }

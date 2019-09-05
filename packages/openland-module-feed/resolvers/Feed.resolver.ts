@@ -5,35 +5,44 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
-import FeedItemContentRoot = GQLRoots.FeedItemContentRoot;
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { inTx } from '@openland/foundationdb';
 import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
+import FeedItemRoot = GQLRoots.FeedItemRoot;
+import { AppContext } from '../../openland-modules/AppContext';
+import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
+
+export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
+    return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
+        let message = await Store.RichMessage.findById(ctx, src.content.richMessageId);
+        return handler(ctx, message!, src);
+    };
+}
 
 export default {
     FeedItem: {
-        id: (src) => IDs.FeedItem.serialize(src.id),
-        alphaBy: (src) => src.content.uid,
-        content: async (src, args, ctx) => {
-            if (src.type === 'post' && src.content.richMessageId) {
-                return await Store.RichMessage.findById(ctx, src.content.richMessageId);
-            }
-            return null;
-        },
-
-        text: (src) => src.content.text,
-        date: (src) => src.metadata.createdAt,
-    },
-    FeedPost: {
-        message: src => src
-    },
-    FeedItemContent: {
-        __resolveType(src: FeedItemContentRoot) {
-            if (src instanceof RichMessage) {
+        __resolveType(src: FeedItemRoot) {
+            if (src.type === 'post') {
                 return 'FeedPost';
             }
-            throw new Error('Unknown FeedItemContent: ' + src);
+            throw new Error('Unknown feed item type: ' + src.type);
         }
+    },
+    FeedPost: {
+        id: (src) => IDs.FeedItem.serialize(src.id),
+        date: src => src.metadata.createdAt,
+        sender: withRichMessage((ctx, message) => message.uid),
+        edited: withRichMessage((ctx, message, src) => src.edited || false),
+        reactions: withRichMessage((ctx, message) => message.reactions || []),
+        isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
+        message: withRichMessage((ctx, message) => message.text),
+        spans: withRichMessage((ctx, message) => message.spans || []),
+        attachments: withRichMessage((ctx, message) => message.attachments ? message.attachments.map(a => ({ message: message, attachment: a })) : []),
+        commentsCount: withRichMessage(async (ctx, message, src) => {
+            let state = await Store.CommentState.findById(ctx, 'feed_item', src.id);
+            return (state && state.commentsCount) || 0;
+        }),
+        fallback: withRichMessage((ctx, message) => fetchMessageFallback(message)),
     },
     FeedItemConnection: {
         items: src => src.items,
@@ -48,19 +57,18 @@ export default {
                 allEvents.push(...posts.items);
             }
             let items = allEvents.sort((a, b) => b.id - a.id).splice(0, args.first);
-            return { items, cursor: IDs.HomeFeedCursor.serialize(items[items.length - 1].id) };
+            return { items, cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined };
         })
     },
     Mutation: {
-        alphaCreateFeedPost: withUser(async (root, args, uid) => {
-            return inTx(root, async ctx => {
-                return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
-            });
+        alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
         }),
-        alphaEditFeedPost: withUser(async (root, args, uid) => {
-            return inTx(root, async ctx => {
-                return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
-            });
+        alphaEditFeedPost: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
+        }),
+        alphaDeleteFeedPost: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.deletePost(ctx, uid, IDs.FeedItem.parse(args.feedItemId));
         }),
         alphaCreateGlobalFeedPost: withUser(async (root, args, uid) => {
             return await inTx(root, async ctx => {
@@ -72,16 +80,19 @@ export default {
                 return true;
             });
         }),
-        feedReactionAdd: withUser(async (root, args, uid) => {
-            return await inTx(root, async ctx => {
-                return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);
-            });
+        feedReactionAdd: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);
         }),
-        feedReactionRemove: withUser(async (root, args, uid) => {
-            return await inTx(root, async ctx => {
-                return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
-            });
+        feedReactionRemove: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
         }),
-
+        feedSubscribeUser: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.subscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
+            return true;
+        }),
+        feedUnsubscribeUser: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.unsubscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
+            return true;
+        })
     }
 } as GQLResolver;

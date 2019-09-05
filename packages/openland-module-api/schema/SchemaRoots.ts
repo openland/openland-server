@@ -62,7 +62,6 @@ import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { FeedTopicEvent } from '../../openland-module-feed/repositories/FeedRepository';
-import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
 
 //
 //  Root types
@@ -79,13 +78,13 @@ export namespace GQLRoots {
     //  Feed
     //
     export type FeedItemRoot = FeedEvent;
-    export type FeedItemContentRoot = RichMessage;
-    export type FeedPostRoot = RichMessage;
+    export type FeedPostRoot = FeedEvent;
     export type FeedUpdateContainerRoot = { updates: FeedTopicEvent[] };
     export type FeedUpdateRoot = FeedTopicEvent;
     export type FeedItemReceivedRoot = FeedTopicEvent;
     export type FeedItemUpdatedRoot = FeedTopicEvent;
-    export type FeedItemConnectionRoot = { items: FeedEvent[], cursor: string };
+    export type FeedItemDeletedRoot = FeedTopicEvent;
+    export type FeedItemConnectionRoot = { items: FeedEvent[], cursor?: string };
 
     //
     // Calls
@@ -249,7 +248,7 @@ export namespace GQLRoots {
     export type MessageSpanRotatingRoot = RotatingTextSpan;
     export type MessageSpanDateRoot = DateTextSpan;
     export type MessageSpanAllMentionRoot = DateTextSpan;
-    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
+    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message|RichMessage };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
@@ -313,7 +312,7 @@ export namespace GQLRoots {
     //
     //  Comments
     //
-    export type CommentsPeerRoot = { peerType: CommentPeerType, peerId: number, comments: Comment[] };
+    export type CommentsPeerRoot = { peerType: 'message' | 'feed_item', peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
     export type CommentUpdateContainerRoot = LiveStreamItem<CommentEvent>;
     export type CommentUpdateSingleRoot = LiveStreamItem<CommentEvent>;

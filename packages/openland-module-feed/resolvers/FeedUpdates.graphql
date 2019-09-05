@@ -2,13 +2,16 @@ type FeedUpdateContainer {
     updates: [FeedUpdate!]!
 }
 
-union FeedUpdate = FeedItemReceived | FeedItemUpdated
+union FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted
 
 type FeedItemReceived {
-    post: FeedItem!
+    item: FeedItem!
 }
 type FeedItemUpdated {
-    post: FeedItem!
+    item: FeedItem!
+}
+type FeedItemDeleted {
+    item: FeedItem!
 }
 
 extend type Subscription {

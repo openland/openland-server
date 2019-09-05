@@ -19,14 +19,14 @@ import { AppContext } from 'openland-modules/AppContext';
 import { Store } from 'openland-module-db/FDB';
 import MessageSourceRoot = GQLRoots.MessageSourceRoot;
 
-export function hasMention(message: Message, uid: number) {
+export function hasMention(message: Message|RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
         return true;
     } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
         return true;
-    } else if (message.mentions && message.mentions.indexOf(uid) > -1) {
+    } else if (message instanceof Message && message.mentions && message.mentions.indexOf(uid) > -1) {
         return true;
-    } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
+    } else if (message instanceof Message && message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
         return true;
     }
     return false;

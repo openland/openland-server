@@ -49,7 +49,7 @@ export interface CommentInput {
     appendAttachments?: boolean | null;
 }
 
-export type CommentPeerType = 'message' | 'feed_post';
+export type CommentPeerType = 'message' | 'feed_item';
 
 @injectable()
 export class CommentsRepository {

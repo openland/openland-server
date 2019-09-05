@@ -315,9 +315,17 @@ export default {
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
             let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
 
+            let query = args.query || '';
             let clauses: any[] = [];
             clauses.push({terms: {userId: members}});
-            clauses.push({bool: {should: {match_phrase_prefix: {name: args.query}}}});
+            clauses.push({
+                bool: {
+                    should: query.trim().length > 0 ? [
+                        {match_phrase_prefix: {name: query}},
+                        {match_phrase_prefix: {shortName: query}}
+                    ] : []
+                }
+            });
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'user_profile',
