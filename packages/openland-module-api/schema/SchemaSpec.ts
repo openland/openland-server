@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c7d027e98e20901277a2ed7b38ee4452';
+export const GQL_SPEC_VERSION = 'b6b6f6f1e9d9e40b471fd36b1ddc3202';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1747,6 +1747,7 @@ export namespace GQL {
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
+        slides: OptionalNullable<SlideInput[]>;
     }
     export interface MutationAlphaEditFeedPostArgs {
         feedItemId: string;
@@ -1754,6 +1755,7 @@ export namespace GQL {
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
+        slides: OptionalNullable<SlideInput[]>;
     }
     export interface MutationAlphaDeleteFeedPostArgs {
         feedItemId: string;
@@ -2665,11 +2667,28 @@ export namespace GQL {
         spans: MessageSpan[];
         attachments: ModernMessageAttachment[];
         commentsCount: number;
+        slides: Slide[];
         fallback: string;
     }
     export interface FeedItemConnection {
         items: FeedItem[];
         cursor: Nullable<string>;
+    }
+    export type Slide = TextSlide;
+    export interface TextSlide {
+        id: string;
+        title: Nullable<string>;
+        text: string;
+        spans: MessageSpan[];
+        cover: Nullable<Image>;
+    }
+    export type SlideType = 'Text';
+    export interface SlideInput {
+        type: SlideType;
+        title: Nullable<string>;
+        text: Nullable<string>;
+        spans: Nullable<MessageSpanInput[]>;
+        cover: Nullable<ImageRefInput>;
     }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKind = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
@@ -3187,8 +3206,10 @@ export interface GQLResolver {
     ChatUserEdge?: ComplexTypedResolver<GQL.ChatUserEdge, GQLRoots.ChatUserEdgeRoot, {node: GQLRoots.UserRoot}, {}>;
     ChatUserConnection?: ComplexTypedResolver<GQL.ChatUserConnection, GQLRoots.ChatUserConnectionRoot, {edges: GQLRoots.ChatUserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;
-    FeedPost?: ComplexTypedResolver<GQL.FeedPost, GQLRoots.FeedPostRoot, {sender: GQLRoots.UserRoot, reactions: GQLRoots.ModernMessageReactionRoot[], spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[]}, {}>;
+    FeedPost?: ComplexTypedResolver<GQL.FeedPost, GQLRoots.FeedPostRoot, {sender: GQLRoots.UserRoot, reactions: GQLRoots.ModernMessageReactionRoot[], spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], slides: GQLRoots.SlideRoot[]}, {}>;
     FeedItemConnection?: ComplexTypedResolver<GQL.FeedItemConnection, GQLRoots.FeedItemConnectionRoot, {items: GQLRoots.FeedItemRoot[]}, {}>;
+    Slide?: UnionTypeResolver<GQLRoots.SlideRoot, 'TextSlide'>;
+    TextSlide?: ComplexTypedResolver<GQL.TextSlide, GQLRoots.TextSlideRoot, {spans: GQLRoots.MessageSpanRoot[], cover: Nullable<GQLRoots.ImageRoot>}, {}>;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     MessageWithChat?: ComplexTypedResolver<GQL.MessageWithChat, GQLRoots.MessageWithChatRoot, {message: GQLRoots.ModernMessageRoot, chat: GQLRoots.RoomRoot}, {}>;
     MessageEdge?: ComplexTypedResolver<GQL.MessageEdge, GQLRoots.MessageEdgeRoot, {node: GQLRoots.MessageWithChatRoot}, {}>;

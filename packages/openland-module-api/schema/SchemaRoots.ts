@@ -60,6 +60,7 @@ import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { FeedTopicEvent } from '../../openland-module-feed/repositories/FeedRepository';
+import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 
 //
 //  Root types
@@ -83,6 +84,8 @@ export namespace GQLRoots {
     export type FeedItemUpdatedRoot = FeedTopicEvent;
     export type FeedItemDeletedRoot = FeedTopicEvent;
     export type FeedItemConnectionRoot = { items: FeedEvent[], cursor?: string };
+    export type SlideRoot = Slide;
+    export type TextSlideRoot = Slide;
 
     //
     // Calls

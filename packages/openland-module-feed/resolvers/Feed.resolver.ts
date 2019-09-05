@@ -11,6 +11,7 @@ import { resolveRichMessageCreation } from '../../openland-module-rich-message/r
 import FeedItemRoot = GQLRoots.FeedItemRoot;
 import { AppContext } from '../../openland-modules/AppContext';
 import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
+import SlideRoot = GQLRoots.SlideRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -42,11 +43,27 @@ export default {
             let state = await Store.CommentState.findById(ctx, 'feed_item', src.id);
             return (state && state.commentsCount) || 0;
         }),
+        slides: withRichMessage((ctx, message) => message.slides || []),
         fallback: withRichMessage((ctx, message) => fetchMessageFallback(message)),
     },
     FeedItemConnection: {
         items: src => src.items,
         cursor: src => src.cursor
+    },
+    Slide: {
+        __resolveType(src: SlideRoot) {
+            if (src.type === 'text') {
+                return 'TextSlide';
+            }
+            throw new Error('Unknown slide type: ' + src.type);
+        }
+    },
+    TextSlide: {
+        id: src => IDs.Slide.serialize(src.id),
+        title: src => src.title,
+        text: src => src.text,
+        spans: src => src.spans || [],
+        cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {

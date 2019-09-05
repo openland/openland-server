@@ -18,6 +18,7 @@ type FeedPost {
     spans: [MessageSpan!]!
     attachments: [ModernMessageAttachment!]!
     commentsCount: Int!
+    slides: [Slide!]!
     fallback: String!
 }
 
@@ -26,13 +27,35 @@ type FeedItemConnection {
     cursor: String
 }
 
+union Slide = TextSlide
+
+type TextSlide {
+    id: ID!
+    title: String
+    text: String!
+    spans: [MessageSpan!]!
+    cover: Image
+}
+
+enum SlideType {
+    Text
+}
+
+input SlideInput {
+    type: SlideType!
+    title: String
+    text: String
+    spans: [MessageSpanInput!]
+    cover: ImageRefInput
+}
+
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
 }
 
 extend type Mutation {
-    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
-    alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
+    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
+    alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaDeleteFeedPost(feedItemId: ID!): Boolean!
     alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
 

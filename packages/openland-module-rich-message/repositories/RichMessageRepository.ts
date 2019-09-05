@@ -15,6 +15,9 @@ import { inTx } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { RandomLayer } from '@openland/foundationdb-random';
 import { UserError } from '../../openland-errors/UserError';
+import { ImageRef } from '../../openland-module-media/ImageRef';
+import { FileInfo } from '../../openland-module-media/FileInfo';
+import { RichMessageShape } from '../../openland-module-db/store';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -34,6 +37,25 @@ export type RichMessageSpan =
     DateTextSpan |
     AllMentionSpan;
 
+export type Slide = {
+    type: 'text',
+    id: string,
+    title: string | null | undefined,
+    text: string,
+    spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined,
+    cover: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } } | null | undefined
+};
+
+export type SlideInput = TextSlideInput;
+
+export type TextSlideInput = {
+    type: 'text',
+    title: string | null,
+    text: string,
+    spans: RichMessageSpan[] | null,
+    cover: { image: ImageRef, info: FileInfo } | null
+};
+
 export interface RichMessageInput {
     repeatKey?: string | null;
     message?: string | null;
@@ -41,6 +63,7 @@ export interface RichMessageInput {
     spans?: RichMessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
+    slides?: SlideInput[] | null;
 
     // appends attachments instead of replacing them in editComment
     appendAttachments?: boolean | null;
@@ -82,6 +105,7 @@ export class RichMessageRepository {
                 text: messageInput.message || null,
                 spans,
                 attachments,
+                slides: await this.prepareSlides(ctx, messageInput.slides || [])
             });
 
             return message;
@@ -138,7 +162,7 @@ export class RichMessageRepository {
                     return false;
                 }
             } else {
-                reactions.push({ userId: uid, reaction });
+                reactions.push({userId: uid, reaction});
             }
             message.reactions = reactions;
 
@@ -198,6 +222,21 @@ export class RichMessageRepository {
             for (let attachInput of attachments) {
                 res.push({
                     ...attachInput,
+                    id: Store.storage.db.get(RandomLayer).nextRandomId()
+                });
+            }
+
+            return res;
+        });
+    }
+
+    private async prepareSlides(parent: Context, slides: SlideInput[]) {
+        return await inTx(parent, async ctx => {
+            let res: RichMessageShape['slides'] = [];
+
+            for (let input of slides) {
+                res.push({
+                    ...input,
                     id: Store.storage.db.get(RandomLayer).nextRandomId()
                 });
             }
