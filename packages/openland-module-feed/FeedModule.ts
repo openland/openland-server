@@ -30,7 +30,7 @@ export class FeedModule {
         return this.repo.createEvent(parent, topic, type, content);
     }
 
-    async subsctibe(parent: Context, subscriber: string, topic: string) {
+    async subscribe(parent: Context, subscriber: string, topic: string) {
         return this.repo.subscribe(parent, subscriber, topic);
     }
 
