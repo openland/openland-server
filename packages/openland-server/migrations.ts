@@ -116,7 +116,7 @@ migrations.push({
                 .withValueEncoding(encoders.json);
             for (let d of dialogs) {
                 if (d.date) {
-                    dc.set(ctx, [d.uid, d.cid], {date: d.date!});
+                    dc.set(ctx, [d.uid, d.cid], { date: d.date! });
                 } else {
                     dc.clear(ctx, [d.uid, d.cid]);
                 }
@@ -236,6 +236,48 @@ migrations.push({
                     });
                     event.content = {richMessageId: richMessage.id};
                 }
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '111-notifications-fix',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            let settings = (await Store.UserSettings.findAll(ctx));
+
+            for (let s of settings) {
+                let commentsEnabled = s.commentNotifications ? s.commentNotifications !== 'none' : true;
+                let mobileIncludeText: 'name_text' | 'name' = (s.mobileIncludeText == null || s.mobileIncludeText) ? 'name_text' : 'name';
+
+                if (s.mobileAlert === null) {
+                    s.mobile = {
+                        direct: {
+                            showNotification: true,
+                            sound: true,
+                        },
+                        communityChat: {
+                            showNotification: true,
+                            sound: true
+                        },
+                        organizationChat: {
+                            showNotification: true,
+                            sound: true
+                        },
+                        secretChat: {
+                            showNotification: true,
+                            sound: true
+                        },
+                        comments: {
+                            showNotification: commentsEnabled,
+                            sound: commentsEnabled,
+                        },
+                        notificationPreview: mobileIncludeText,
+                    };
+                }
+
+                await s.flush(ctx);
             }
         });
     }
