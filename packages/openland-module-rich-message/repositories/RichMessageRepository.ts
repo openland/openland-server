@@ -135,6 +135,13 @@ export class RichMessageRepository {
                     message.attachments = await this.prepareAttachments(ctx, newMessage.attachments || []);
                 }
             }
+            if (newMessage.slides) {
+                if (newMessage.appendAttachments) {
+                    message.slides = [...(message.slides || []), ...await this.prepareSlides(ctx, newMessage.slides || [])];
+                } else {
+                    message.slides = await this.prepareSlides(ctx, newMessage.slides || []);
+                }
+            }
             if (newMessage.spans) {
                 message.spans = newMessage.spans;
             }

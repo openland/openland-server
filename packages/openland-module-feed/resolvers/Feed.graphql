@@ -57,7 +57,7 @@ extend type Mutation {
     alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaDeleteFeedPost(feedItemId: ID!): Boolean!
-    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
+    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): Boolean!
 
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
