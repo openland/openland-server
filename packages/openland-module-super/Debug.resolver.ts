@@ -1002,6 +1002,17 @@ export default {
             });
             return true;
         }),
+        debugChangeUserEmail: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                let user = await Store.User.findById(ctx, IDs.User.parse(args.uid));
+                if (!user) {
+                    return false;
+                }
+                user.email = args.email;
+                await user.flush(ctx);
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {
