@@ -554,7 +554,7 @@ export default declareSchema(() => {
                 text: string(),
                 spans: optional(Spans),
                 cover: optional(Image),
-                title: optional(string()) // deprecated
+                coverAlign: optional(enumString('top', 'bottom', 'cover')),
             })
         }))));
 

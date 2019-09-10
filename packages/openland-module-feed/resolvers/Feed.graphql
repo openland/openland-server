@@ -34,10 +34,17 @@ type TextSlide {
     text: String!
     spans: [MessageSpan!]!
     cover: Image
+    coverAlign: SlideCoverAlign
 }
 
 enum SlideType {
     Text
+}
+
+enum SlideCoverAlign {
+    Top,
+    Bottom,
+    Cover
 }
 
 input SlideInput {
@@ -45,6 +52,7 @@ input SlideInput {
     text: String
     spans: [MessageSpanInput!]
     cover: ImageRefInput
+    coverAlign: SlideCoverAlign
 }
 
 extend type Query {

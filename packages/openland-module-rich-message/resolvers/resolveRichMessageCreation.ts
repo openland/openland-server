@@ -134,15 +134,25 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
             if (slide.cover) {
                 imageMetadata = await Modules.Media.saveFile(ctx, slide.cover.uuid);
             }
+            let coverAlign = 'top';
+
+            if (slide.coverAlign === 'Top') {
+                coverAlign = 'top';
+            } else if (slide.coverAlign === 'Bottom') {
+                coverAlign = 'bottom';
+            } else if (slide.coverAlign === 'Cover') {
+                coverAlign = 'cover';
+            }
+
             slides.push({
                 type: 'text',
-                title: slide.title,
                 text: slide.text || '',
                 spans: resolveSpansInput(slide.spans || []),
                 cover: slide.cover ? {
                     image: slide.cover,
                     info: imageMetadata!
-                } : null
+                } : null,
+                coverAlign: coverAlign as any
             });
         }
     }

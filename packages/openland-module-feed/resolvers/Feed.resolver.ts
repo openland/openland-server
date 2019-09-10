@@ -62,7 +62,18 @@ export default {
         id: src => IDs.Slide.serialize(src.id),
         text: src => src.text,
         spans: src => src.spans || [],
-        cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined
+        cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined,
+        coverAlign: src => {
+            if (src.coverAlign === 'top') {
+                return 'Top';
+            } else if (src.coverAlign === 'bottom') {
+                return 'Bottom';
+            } else if (src.coverAlign === 'cover') {
+                return 'Cover';
+            }
+            return 'Top';
+        }
+
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
