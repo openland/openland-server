@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd96f0e50ce7083066990397bae87f29f';
+export const GQL_SPEC_VERSION = '422ce67968d0be3da2be27293d3f93f3';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -254,6 +254,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
         alphaJoinedAt: Nullable<string>;
@@ -278,6 +279,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
     }
     export interface UpdateProfileInput {
@@ -292,6 +294,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
         alphaRole: Nullable<string>;
         alphaLocations: Nullable<string[]>;
@@ -310,6 +313,7 @@ export namespace GQL {
         website: Nullable<string>;
         linkedin: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
     }
     export interface AlphaSignupData {
@@ -450,8 +454,38 @@ export namespace GQL {
     export type NotificationComments = 'ALL' | 'DIRECT' | 'NONE';
     export type CommentsNotificationDelivery = 'ALL' | 'NONE';
     export type NotificationsDelay = 'NONE' | 'MIN_1' | 'MIN_15';
+    export type NotificationPreview = 'NAME_TEXT' | 'NAME';
+    export interface ChatTypeNotificationSettings {
+        showNotification: boolean;
+        sound: boolean;
+    }
+    export interface ChatTypeNotificationSettingsInput {
+        showNotification: boolean;
+        sound: boolean;
+    }
+    export interface PlatformNotificationSettings {
+        direct: ChatTypeNotificationSettings;
+        secretChat: ChatTypeNotificationSettings;
+        organizationChat: ChatTypeNotificationSettings;
+        communityChat: ChatTypeNotificationSettings;
+        comments: ChatTypeNotificationSettings;
+        notificationPreview: NotificationPreview;
+    }
+    export interface PlatformNotificationSettingsInput {
+        direct: Nullable<ChatTypeNotificationSettingsInput>;
+        secretChat: Nullable<ChatTypeNotificationSettingsInput>;
+        organizationChat: Nullable<ChatTypeNotificationSettingsInput>;
+        communityChat: Nullable<ChatTypeNotificationSettingsInput>;
+        comments: Nullable<ChatTypeNotificationSettingsInput>;
+        notificationPreview: Nullable<NotificationPreview>;
+    }
     export interface UpdateSettingsInput {
         emailFrequency: Nullable<EmailFrequency>;
+        desktop: Nullable<PlatformNotificationSettingsInput>;
+        mobile: Nullable<PlatformNotificationSettingsInput>;
+        countUnreadChats: Nullable<boolean>;
+        excludeMutedChats: Nullable<boolean>;
+        notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
         commentNotifications: Nullable<NotificationComments>;
@@ -459,14 +493,16 @@ export namespace GQL {
         mobileAlert: Nullable<boolean>;
         mobileIncludeText: Nullable<boolean>;
         mute: Nullable<boolean>;
-        notificationsDelay: Nullable<NotificationsDelay>;
-        countUnreadChats: Nullable<boolean>;
-        excludeMutedChats: Nullable<boolean>;
     }
     export interface Settings {
         id: string;
         primaryEmail: string;
         emailFrequency: EmailFrequency;
+        desktop: PlatformNotificationSettings;
+        mobile: PlatformNotificationSettings;
+        countUnreadChats: boolean;
+        excludeMutedChats: boolean;
+        notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
         commentNotifications: NotificationComments;
@@ -474,9 +510,6 @@ export namespace GQL {
         mobileAlert: boolean;
         mobileIncludeText: boolean;
         mute: Nullable<boolean>;
-        notificationsDelay: NotificationsDelay;
-        countUnreadChats: boolean;
-        excludeMutedChats: boolean;
     }
     export type OrganizationMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
     export interface OrganizationMember {
@@ -698,10 +731,13 @@ export namespace GQL {
         parentComment: Nullable<CommentEntry>;
         childComments: CommentEntry[];
     }
-    export type CommentPeerRoot = CommentPeerRootMessage;
+    export type CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem;
     export interface CommentPeerRootMessage {
         message: GeneralMessage;
         chat: Room;
+    }
+    export interface CommentPeerRootFeedItem {
+        item: FeedItem;
     }
     export type CommentSubscriptionType = 'ALL' | 'DIRECT';
     export interface CommentSubscription {
@@ -724,6 +760,10 @@ export namespace GQL {
         mobile: boolean;
         desktop: boolean;
     }
+    export interface ShowNotificationMessageInfo {
+        mobile: boolean;
+        desktop: boolean;
+    }
     export interface DialogMessageReceived {
         cid: string;
         message: ConversationMessage;
@@ -733,6 +773,7 @@ export namespace GQL {
         globalUnread: number;
         haveMention: boolean;
         silent: SilentMessageInfo;
+        showNotification: SilentMessageInfo;
     }
     export interface DialogMessageUpdated {
         cid: string;
@@ -801,6 +842,19 @@ export namespace GQL {
         id: string;
         key: string;
         title: string;
+    }
+    export interface FeedUpdateContainer {
+        updates: FeedUpdate[];
+    }
+    export type FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted;
+    export interface FeedItemReceived {
+        item: FeedItem;
+    }
+    export interface FeedItemUpdated {
+        item: FeedItem;
+    }
+    export interface FeedItemDeleted {
+        item: FeedItem;
     }
     export interface ICEServer {
         urls: string[];
@@ -907,7 +961,6 @@ export namespace GQL {
         debugSetCommentVisibility: boolean;
         debugRemoveDeletedDialogs: boolean;
         debugReindexOrgs: boolean;
-        debugFixUserDialogsIndex: boolean;
         debugCalcRoomsActiveMembers: boolean;
         debugCalcOrgsActiveMembers: boolean;
         debugCreateCommentSubscriptions: boolean;
@@ -933,6 +986,8 @@ export namespace GQL {
         debugReindexRoomProfiles: boolean;
         debugSendPush: boolean;
         debugReindexPrivateDialogs: boolean;
+        debugReindexUsersDialogs: boolean;
+        debugReindexFeedEvents: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         betaOrganizationMemberRequestApprove: Organization;
@@ -976,6 +1031,7 @@ export namespace GQL {
         userStorageSet: AppStorageValue[];
         addMessageComment: boolean;
         betaAddMessageComment: CommentEntry;
+        betaAddFeedComment: CommentEntry;
         editComment: boolean;
         deleteComment: boolean;
         deleteCommentAugmentation: boolean;
@@ -1048,7 +1104,13 @@ export namespace GQL {
         superBadgeVerify: User;
         superBadgeUnverify: User;
         alphaCreateFeedPost: FeedItem;
+        alphaEditFeedPost: FeedItem;
+        alphaDeleteFeedPost: boolean;
         alphaCreateGlobalFeedPost: boolean;
+        feedReactionAdd: boolean;
+        feedReactionRemove: boolean;
+        feedSubscribeUser: boolean;
+        feedUnsubscribeUser: boolean;
         sendMessage: boolean;
         editMessage: boolean;
         pinMessage: boolean;
@@ -1419,6 +1481,15 @@ export namespace GQL {
         spans: OptionalNullable<MessageSpanInput[]>;
         repeatKey: OptionalNullable<string>;
     }
+    export interface MutationBetaAddFeedCommentArgs {
+        feedItemId: string;
+        message: OptionalNullable<string>;
+        replyComment: OptionalNullable<string>;
+        mentions: OptionalNullable<MentionInput[]>;
+        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+        repeatKey: OptionalNullable<string>;
+    }
     export interface MutationEditCommentArgs {
         id: string;
         message: OptionalNullable<string>;
@@ -1698,13 +1769,40 @@ export namespace GQL {
         userId: string;
     }
     export interface MutationAlphaCreateFeedPostArgs {
-        message: string;
+        message: OptionalNullable<string>;
+        mentions: OptionalNullable<MentionInput[]>;
+        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+    }
+    export interface MutationAlphaEditFeedPostArgs {
+        feedItemId: string;
+        message: OptionalNullable<string>;
+        mentions: OptionalNullable<MentionInput[]>;
+        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+    }
+    export interface MutationAlphaDeleteFeedPostArgs {
+        feedItemId: string;
     }
     export interface MutationAlphaCreateGlobalFeedPostArgs {
         message: OptionalNullable<string>;
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
+    }
+    export interface MutationFeedReactionAddArgs {
+        feedItemId: string;
+        reaction: MessageReactionType;
+    }
+    export interface MutationFeedReactionRemoveArgs {
+        feedItemId: string;
+        reaction: MessageReactionType;
+    }
+    export interface MutationFeedSubscribeUserArgs {
+        uid: string;
+    }
+    export interface MutationFeedUnsubscribeUserArgs {
+        uid: string;
     }
     export interface MutationSendMessageArgs {
         chatId: string;
@@ -2080,6 +2178,7 @@ export namespace GQL {
         chatState: ChatUpdateState;
         conversationState: ConversationUpdateState;
         messageComments: CommentsPeer;
+        feedItemComments: CommentsPeer;
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
@@ -2117,11 +2216,12 @@ export namespace GQL {
         userSearch: UserConnection;
         userSearchForChat: ChatUserConnection;
         alphaProfiles: UserConnection;
-        alphaHomeFeed: FeedItem[];
+        alphaHomeFeed: FeedItemConnection;
         alphaGlobalSearch: GlobalSearchEntry[];
         featuredGroups: Nullable<SharedRoom[]>;
         featuredCommunities: Nullable<Organization[]>;
         messagesSearch: MessageConnection;
+        chatMembersSearch: UserConnection;
         messages: ModernMessage[];
         gammaMessages: Nullable<GammaMessagesBatch>;
         message: Nullable<ModernMessage>;
@@ -2231,6 +2331,9 @@ export namespace GQL {
     export interface QueryMessageCommentsArgs {
         messageId: string;
     }
+    export interface QueryFeedItemCommentsArgs {
+        feedItemId: string;
+    }
     export interface QueryEnvVarArgs {
         name: string;
     }
@@ -2325,6 +2428,10 @@ export namespace GQL {
         page: OptionalNullable<number>;
         sort: OptionalNullable<string>;
     }
+    export interface QueryAlphaHomeFeedArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
     export interface QueryAlphaGlobalSearchArgs {
         query: string;
         kinds: OptionalNullable<GlobalSearchEntryKind[]>;
@@ -2334,6 +2441,13 @@ export namespace GQL {
         sort: OptionalNullable<string>;
         first: number;
         after: OptionalNullable<string>;
+    }
+    export interface QueryChatMembersSearchArgs {
+        cid: string;
+        query: OptionalNullable<string>;
+        first: number;
+        after: OptionalNullable<string>;
+        page: OptionalNullable<number>;
     }
     export interface QueryMessagesArgs {
         chatId: string;
@@ -2455,6 +2569,7 @@ export namespace GQL {
         chatUpdates: ChatUpdateContainer;
         commentUpdates: Nullable<CommentUpdateContainer>;
         dialogsUpdates: DialogUpdateContainer;
+        homeFeedUpdates: Nullable<FeedUpdateContainer>;
         alphaConferenceWatch: Conference;
         alphaConferenceMediaWatch: ConferenceMedia;
         notificationCenterUpdates: Nullable<NotificationCenterUpdateContainer>;
@@ -2553,6 +2668,7 @@ export namespace GQL {
         linkedin: Nullable<string>;
         instagram: Nullable<string>;
         twitter: Nullable<string>;
+        facebook: Nullable<string>;
         audienceSize: number;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;
@@ -2599,16 +2715,23 @@ export namespace GQL {
         edges: ChatUserEdge[];
         pageInfo: PageInfo;
     }
-    export type FeedItemContent = FeedPost;
+    export type FeedItem = FeedPost;
     export interface FeedPost {
-        message: Nullable<GeneralMessage>;
-    }
-    export interface FeedItem {
         id: string;
         date: Date;
-        content: Nullable<FeedItemContent>;
-        text: string;
-        alphaBy: User;
+        sender: User;
+        edited: boolean;
+        reactions: ModernMessageReaction[];
+        isMentioned: boolean;
+        message: Nullable<string>;
+        spans: MessageSpan[];
+        attachments: ModernMessageAttachment[];
+        commentsCount: number;
+        fallback: string;
+    }
+    export interface FeedItemConnection {
+        items: FeedItem[];
+        cursor: Nullable<string>;
     }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKind = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
@@ -3004,7 +3127,9 @@ export interface GQLResolver {
     DebugGlobalCounters?: ComplexTypedResolver<GQL.DebugGlobalCounters, GQLRoots.DebugGlobalCountersRoot, {}, {}>;
     Dialog?: ComplexTypedResolver<GQL.Dialog, GQLRoots.DialogRoot, {topMessage: Nullable<GQLRoots.MessageRoot>, betaTopMessage: Nullable<GQLRoots.RoomMessageRoot>, alphaTopMessage: Nullable<GQLRoots.ModernMessageRoot>}, {}>;
     DialogsConnection?: ComplexTypedResolver<GQL.DialogsConnection, GQLRoots.DialogsConnectionRoot, {items: GQLRoots.DialogRoot[]}, {}>;
-    Settings?: ComplexTypedResolver<GQL.Settings, GQLRoots.SettingsRoot, {}, {}>;
+    ChatTypeNotificationSettings?: ComplexTypedResolver<GQL.ChatTypeNotificationSettings, GQLRoots.ChatTypeNotificationSettingsRoot, {}, {}>;
+    PlatformNotificationSettings?: ComplexTypedResolver<GQL.PlatformNotificationSettings, GQLRoots.PlatformNotificationSettingsRoot, {direct: GQLRoots.ChatTypeNotificationSettingsRoot, secretChat: GQLRoots.ChatTypeNotificationSettingsRoot, organizationChat: GQLRoots.ChatTypeNotificationSettingsRoot, communityChat: GQLRoots.ChatTypeNotificationSettingsRoot, comments: GQLRoots.ChatTypeNotificationSettingsRoot}, {}>;
+    Settings?: ComplexTypedResolver<GQL.Settings, GQLRoots.SettingsRoot, {desktop: GQLRoots.PlatformNotificationSettingsRoot, mobile: GQLRoots.PlatformNotificationSettingsRoot}, {}>;
     OrganizationIvitedMember?: ComplexTypedResolver<GQL.OrganizationIvitedMember, GQLRoots.OrganizationIvitedMemberRoot, {}, {}>;
     OrganizationJoinedMember?: ComplexTypedResolver<GQL.OrganizationJoinedMember, GQLRoots.OrganizationJoinedMemberRoot, {user: GQLRoots.UserRoot}, {}>;
     OrganizationRequestedMember?: ComplexTypedResolver<GQL.OrganizationRequestedMember, GQLRoots.OrganizationRequestedMemberRoot, {user: GQLRoots.UserRoot}, {}>;
@@ -3041,15 +3166,17 @@ export interface GQLResolver {
     CommentUpdateContainer?: UnionTypeResolver<GQLRoots.CommentUpdateContainerRoot, 'CommentUpdateSingle' | 'CommentUpdateBatch'>;
     CommentsPeer?: ComplexTypedResolver<GQL.CommentsPeer, GQLRoots.CommentsPeerRoot, {state: GQLRoots.CommentUpdatesStateRoot, comments: GQLRoots.CommentEntryRoot[], peerRoot: GQLRoots.CommentPeerRootRoot, subscription: Nullable<GQLRoots.CommentSubscriptionRoot>}, {}>;
     CommentEntry?: ComplexTypedResolver<GQL.CommentEntry, GQLRoots.CommentEntryRoot, {comment: GQLRoots.GeneralMessageRoot, parentComment: Nullable<GQLRoots.CommentEntryRoot>, childComments: GQLRoots.CommentEntryRoot[]}, {}>;
-    CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage'>;
+    CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage' | 'CommentPeerRootFeedItem'>;
     CommentPeerRootMessage?: ComplexTypedResolver<GQL.CommentPeerRootMessage, GQLRoots.CommentPeerRootMessageRoot, {message: GQLRoots.GeneralMessageRoot, chat: GQLRoots.RoomRoot}, {}>;
+    CommentPeerRootFeedItem?: ComplexTypedResolver<GQL.CommentPeerRootFeedItem, GQLRoots.CommentPeerRootFeedItemRoot, {item: GQLRoots.FeedItemRoot}, {}>;
     CommentSubscription?: ComplexTypedResolver<GQL.CommentSubscription, GQLRoots.CommentSubscriptionRoot, {}, {}>;
     DialogUpdateSingle?: ComplexTypedResolver<GQL.DialogUpdateSingle, GQLRoots.DialogUpdateSingleRoot, {update: GQLRoots.DialogUpdateRoot}, {}>;
     DialogUpdateBatch?: ComplexTypedResolver<GQL.DialogUpdateBatch, GQLRoots.DialogUpdateBatchRoot, {updates: GQLRoots.DialogUpdateRoot[]}, {}>;
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
     DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated'>;
     SilentMessageInfo?: ComplexTypedResolver<GQL.SilentMessageInfo, GQLRoots.SilentMessageInfoRoot, {}, {}>;
-    DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot, silent: GQLRoots.SilentMessageInfoRoot}, {}>;
+    ShowNotificationMessageInfo?: ComplexTypedResolver<GQL.ShowNotificationMessageInfo, GQLRoots.ShowNotificationMessageInfoRoot, {}, {}>;
+    DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot, silent: GQLRoots.SilentMessageInfoRoot, showNotification: GQLRoots.SilentMessageInfoRoot}, {}>;
     DialogMessageUpdated?: ComplexTypedResolver<GQL.DialogMessageUpdated, GQLRoots.DialogMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
     DialogMessageDeleted?: ComplexTypedResolver<GQL.DialogMessageDeleted, GQLRoots.DialogMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, prevMessage: Nullable<GQLRoots.RoomMessageRoot>, alphaPrevMessage: Nullable<GQLRoots.ModernMessageRoot>, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
     DialogMessageRead?: ComplexTypedResolver<GQL.DialogMessageRead, GQLRoots.DialogMessageReadRoot, {}, {}>;
@@ -3063,6 +3190,11 @@ export interface GQLResolver {
     DialogUpdateState?: ComplexTypedResolver<GQL.DialogUpdateState, GQLRoots.DialogUpdateStateRoot, {}, {}>;
     EnvVar?: ComplexTypedResolver<GQL.EnvVar, GQLRoots.EnvVarRoot, {}, {}>;
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, GQLRoots.FeatureFlagRoot, {}, {}>;
+    FeedUpdateContainer?: ComplexTypedResolver<GQL.FeedUpdateContainer, GQLRoots.FeedUpdateContainerRoot, {updates: GQLRoots.FeedUpdateRoot[]}, {}>;
+    FeedUpdate?: UnionTypeResolver<GQLRoots.FeedUpdateRoot, 'FeedItemReceived' | 'FeedItemUpdated' | 'FeedItemDeleted'>;
+    FeedItemReceived?: ComplexTypedResolver<GQL.FeedItemReceived, GQLRoots.FeedItemReceivedRoot, {item: GQLRoots.FeedItemRoot}, {}>;
+    FeedItemUpdated?: ComplexTypedResolver<GQL.FeedItemUpdated, GQLRoots.FeedItemUpdatedRoot, {item: GQLRoots.FeedItemRoot}, {}>;
+    FeedItemDeleted?: ComplexTypedResolver<GQL.FeedItemDeleted, GQLRoots.FeedItemDeletedRoot, {item: GQLRoots.FeedItemRoot}, {}>;
     ICEServer?: ComplexTypedResolver<GQL.ICEServer, GQLRoots.ICEServerRoot, {}, {}>;
     Conference?: ComplexTypedResolver<GQL.Conference, GQLRoots.ConferenceRoot, {peers: GQLRoots.ConferencePeerRoot[], iceServers: GQLRoots.ICEServerRoot[]}, {}>;
     ConferencePeer?: ComplexTypedResolver<GQL.ConferencePeer, GQLRoots.ConferencePeerRoot, {user: GQLRoots.UserRoot, connection: Nullable<GQLRoots.ConferencePeerConnectionRoot>}, {}>;
@@ -3073,7 +3205,7 @@ export interface GQLResolver {
     MessageReaction?: ComplexTypedResolver<GQL.MessageReaction, GQLRoots.MessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
     MessageAttachment?: ComplexTypedResolver<GQL.MessageAttachment, GQLRoots.MessageAttachmentRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
     MessageButton?: ComplexTypedResolver<GQL.MessageButton, GQLRoots.MessageButtonRoot, {}, {}>;
-    Mutation?: ComplexTypedResolver<GQL.Mutation, GQLRoots.MutationRoot, {alphaSendMessage: GQLRoots.ConversationEventMessageRoot, alphaReadChat: GQLRoots.ChatReadResultRoot, alphaEditMessage: GQLRoots.ConversationEventEditMessageRoot, alphaSendIntro: GQLRoots.ConversationEventMessageRoot, alphaEditIntro: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessageUrlAugmentation: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessage: GQLRoots.ConversationEventDeleteRoot, alphaChatCreateGroup: GQLRoots.ConversationRoot, alphaChatUpdateGroup: GQLRoots.ConversationUpdateResponseRoot, alphaChatChangeGroupTitle: GQLRoots.GroupChatUpdateResponseRoot, alphaChatInviteToGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatKickFromGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatChangeRoleInGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatCopyGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatLeave: GQLRoots.ConversationUpdateResponseRoot, alphaUpdateConversationSettings: GQLRoots.ConversationSettingsRoot, profileCreate: GQLRoots.ProfileRoot, profileUpdate: GQLRoots.ProfileRoot, createProfile: GQLRoots.ProfileRoot, updateProfile: GQLRoots.ProfileRoot, alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot, alphaCreateInvite: GQLRoots.InviteRoot, debugCreateTestUser: GQLRoots.UserRoot, settingsUpdate: GQLRoots.SettingsRoot, updateSettings: GQLRoots.SettingsRoot, betaOrganizationMemberRequestApprove: GQLRoots.OrganizationRoot, betaOrganizationMemberRemove: GQLRoots.OrganizationRoot, betaOrganizationMemberAdd: GQLRoots.OrganizationRoot, alphaOrganizationMemberAdd: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot, alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot, superAccountAdd: GQLRoots.SuperAccountRoot, superAccountRename: GQLRoots.SuperAccountRoot, superAccountActivate: GQLRoots.SuperAccountRoot, superAccountSuspend: GQLRoots.SuperAccountRoot, superAccountPend: GQLRoots.SuperAccountRoot, superAccountMemberAdd: GQLRoots.SuperAccountRoot, superAccountMemberRemove: GQLRoots.SuperAccountRoot, alphaAlterPublished: GQLRoots.OrganizationRoot, createApp: GQLRoots.AppProfileRoot, createSuperApp: GQLRoots.AppProfileRoot, refreshAppToken: GQLRoots.AppProfileRoot, updateAppProfile: GQLRoots.AppProfileRoot, addAppToChat: GQLRoots.AppChatRoot, userStorageSet: GQLRoots.AppStorageValueRoot[], betaAddMessageComment: GQLRoots.CommentEntryRoot, featureFlagAdd: GQLRoots.FeatureFlagRoot, superAccountFeatureAdd: GQLRoots.SuperAccountRoot, superAccountFeatureRemove: GQLRoots.SuperAccountRoot, conferenceJoin: GQLRoots.ConferenceJoinResultRoot, conferenceKeepAlive: GQLRoots.ConferenceRoot, conferenceLeave: GQLRoots.ConferenceRoot, mediaStreamOffer: GQLRoots.ConferenceMediaRoot, mediaStreamNegotiationNeeded: GQLRoots.ConferenceMediaRoot, mediaStreamAnswer: GQLRoots.ConferenceMediaRoot, mediaStreamCandidate: GQLRoots.ConferenceMediaRoot, mediaStreamFailed: GQLRoots.ConferenceMediaRoot, peerConnectionOffer: GQLRoots.ConferenceRoot, peerConnectionAnswer: GQLRoots.ConferenceRoot, peerConnectionCandidate: GQLRoots.ConferenceRoot, readNotification: GQLRoots.NotificationCenterRoot, createOrganization: GQLRoots.OrganizationProfileRoot, updateOrganizationProfile: GQLRoots.OrganizationProfileRoot, stickerPackCreate: GQLRoots.StickerPackRoot, stickerPackUpdate: GQLRoots.StickerPackRoot, stickerPackAddSticker: GQLRoots.StickerRoot, betaDiscoverSkip: Nullable<GQLRoots.DiscoverPageRoot>, betaNextDiscoverPageOrChats: Nullable<GQLRoots.DiscoverPageRoot>, betaSaveSelectedTags: Nullable<GQLRoots.DiscoverPageRoot>, betaSubmitNextDiscover: Nullable<GQLRoots.DiscoverPageRoot>, superBadgeCreateToRoom: GQLRoots.UserBadgeRoot, badgeCreate: GQLRoots.UserRoot, badgeCreateToRoom: GQLRoots.UserBadgeRoot, badgeSetToRoom: GQLRoots.UserBadgeRoot, badgeDelete: GQLRoots.UserRoot, badgeSetPrimary: GQLRoots.UserRoot, badgeUnsetPrimary: GQLRoots.UserRoot, superBadgeCreate: GQLRoots.UserRoot, superBadgeSetToRoom: GQLRoots.UserBadgeRoot, superBadgeDelete: GQLRoots.UserRoot, superBadgeVerify: GQLRoots.UserRoot, superBadgeUnverify: GQLRoots.UserRoot, alphaCreateFeedPost: GQLRoots.FeedItemRoot, betaPinMessage: GQLRoots.SharedRoomRoot, betaUnpinMessage: GQLRoots.SharedRoomRoot, gammaPinMessage: GQLRoots.RoomRoot, gammaUnpinMessage: GQLRoots.RoomRoot, betaRoomCreate: GQLRoots.SharedRoomRoot, betaRoomUpdate: GQLRoots.RoomRoot, betaRoomMove: GQLRoots.RoomRoot, betaRoomInvite: GQLRoots.RoomRoot, alphaRoomInvite: GQLRoots.RoomMemberRoot[], betaRoomKick: GQLRoots.RoomRoot, betaRoomLeave: GQLRoots.RoomRoot, betaRoomChangeRole: GQLRoots.RoomRoot, betaRoomJoin: GQLRoots.RoomRoot, betaRoomsJoin: GQLRoots.RoomRoot[], betaRoomDeclineJoinRequest: GQLRoots.RoomRoot, betaRoomInviteLinkJoin: GQLRoots.RoomRoot, betaRoomUpdateUserNotificationSettings: GQLRoots.RoomUserNotificaionSettingsRoot, betaRoomsInviteUser: GQLRoots.RoomRoot[], betaRoomAlterFeatured: GQLRoots.RoomSuperRoot, betaRoomAlterListed: GQLRoots.RoomSuperRoot}, {alphaSendMessage: GQL.MutationAlphaSendMessageArgs, alphaReadChat: GQL.MutationAlphaReadChatArgs, alphaEditMessage: GQL.MutationAlphaEditMessageArgs, alphaSendIntro: GQL.MutationAlphaSendIntroArgs, alphaEditIntro: GQL.MutationAlphaEditIntroArgs, alphaDeleteMessageUrlAugmentation: GQL.MutationAlphaDeleteMessageUrlAugmentationArgs, alphaDeleteMessage: GQL.MutationAlphaDeleteMessageArgs, alphaChatSetReaction: GQL.MutationAlphaChatSetReactionArgs, alphaChatUnsetReaction: GQL.MutationAlphaChatUnsetReactionArgs, alphaGlobalRead: GQL.MutationAlphaGlobalReadArgs, alphaBlockUser: GQL.MutationAlphaBlockUserArgs, alphaUnblockUser: GQL.MutationAlphaUnblockUserArgs, alphaChatCreateGroup: GQL.MutationAlphaChatCreateGroupArgs, alphaChatUpdateGroup: GQL.MutationAlphaChatUpdateGroupArgs, alphaChatChangeGroupTitle: GQL.MutationAlphaChatChangeGroupTitleArgs, alphaChatInviteToGroup: GQL.MutationAlphaChatInviteToGroupArgs, alphaChatKickFromGroup: GQL.MutationAlphaChatKickFromGroupArgs, alphaChatChangeRoleInGroup: GQL.MutationAlphaChatChangeRoleInGroupArgs, alphaChatCopyGroup: GQL.MutationAlphaChatCopyGroupArgs, alphaChatLeave: GQL.MutationAlphaChatLeaveArgs, alphaUpdateConversationSettings: GQL.MutationAlphaUpdateConversationSettingsArgs, profileCreate: GQL.MutationProfileCreateArgs, profileUpdate: GQL.MutationProfileUpdateArgs, createProfile: GQL.MutationCreateProfileArgs, updateProfile: GQL.MutationUpdateProfileArgs, alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs, alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs, alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs, joinAppInvite: GQL.MutationJoinAppInviteArgs, debugSendEmail: GQL.MutationDebugSendEmailArgs, debugCreateTestUser: GQL.MutationDebugCreateTestUserArgs, debugDeleteUrlInfoCache: GQL.MutationDebugDeleteUrlInfoCacheArgs, debugSuperNotifications: GQL.MutationDebugSuperNotificationsArgs, debugConvertOrgChatToNormal: GQL.MutationDebugConvertOrgChatToNormalArgs, debugSetCommentVisibility: GQL.MutationDebugSetCommentVisibilityArgs, debugReindexOrgs: GQL.MutationDebugReindexOrgsArgs, debugResetAudienceCounter: GQL.MutationDebugResetAudienceCounterArgs, debugFixMessage: GQL.MutationDebugFixMessageArgs, debugCreateBigChat: GQL.MutationDebugCreateBigChatArgs, debugFlood: GQL.MutationDebugFloodArgs, debugSendPush: GQL.MutationDebugSendPushArgs, settingsUpdate: GQL.MutationSettingsUpdateArgs, updateSettings: GQL.MutationUpdateSettingsArgs, betaOrganizationMemberRequestApprove: GQL.MutationBetaOrganizationMemberRequestApproveArgs, betaOrganizationMemberRemove: GQL.MutationBetaOrganizationMemberRemoveArgs, betaOrganizationMemberAdd: GQL.MutationBetaOrganizationMemberAddArgs, alphaOrganizationMemberAdd: GQL.MutationAlphaOrganizationMemberAddArgs, alphaOrganizationChangeMemberRole: GQL.MutationAlphaOrganizationChangeMemberRoleArgs, alphaOrganizationInviteMembers: GQL.MutationAlphaOrganizationInviteMembersArgs, alphaOrganizationRefreshInviteLink: GQL.MutationAlphaOrganizationRefreshInviteLinkArgs, alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs, alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs, alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs, presenceReportOnline: GQL.MutationPresenceReportOnlineArgs, presenceReportOffline: GQL.MutationPresenceReportOfflineArgs, alphaReportActive: GQL.MutationAlphaReportActiveArgs, superAccountAdd: GQL.MutationSuperAccountAddArgs, superAccountRename: GQL.MutationSuperAccountRenameArgs, superAccountActivate: GQL.MutationSuperAccountActivateArgs, superAccountSuspend: GQL.MutationSuperAccountSuspendArgs, superAccountPend: GQL.MutationSuperAccountPendArgs, superAccountMemberAdd: GQL.MutationSuperAccountMemberAddArgs, superAccountMemberRemove: GQL.MutationSuperAccountMemberRemoveArgs, superAccountChannelMemberAdd: GQL.MutationSuperAccountChannelMemberAddArgs, superDeleteUser: GQL.MutationSuperDeleteUserArgs, superAdminAdd: GQL.MutationSuperAdminAddArgs, superAdminRemove: GQL.MutationSuperAdminRemoveArgs, alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs, alphaRenderVideo: GQL.MutationAlphaRenderVideoArgs, betaFixCounter: GQL.MutationBetaFixCounterArgs, conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs, alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs, track: GQL.MutationTrackArgs, createApp: GQL.MutationCreateAppArgs, createSuperApp: GQL.MutationCreateSuperAppArgs, refreshAppToken: GQL.MutationRefreshAppTokenArgs, updateAppProfile: GQL.MutationUpdateAppProfileArgs, deleteApp: GQL.MutationDeleteAppArgs, addAppToChat: GQL.MutationAddAppToChatArgs, userStorageSet: GQL.MutationUserStorageSetArgs, addMessageComment: GQL.MutationAddMessageCommentArgs, betaAddMessageComment: GQL.MutationBetaAddMessageCommentArgs, editComment: GQL.MutationEditCommentArgs, deleteComment: GQL.MutationDeleteCommentArgs, deleteCommentAugmentation: GQL.MutationDeleteCommentAugmentationArgs, commentReactionAdd: GQL.MutationCommentReactionAddArgs, commentReactionRemove: GQL.MutationCommentReactionRemoveArgs, subscribeMessageComments: GQL.MutationSubscribeMessageCommentsArgs, unSubscribeMessageComments: GQL.MutationUnSubscribeMessageCommentsArgs, setEnvVar: GQL.MutationSetEnvVarArgs, featureFlagAdd: GQL.MutationFeatureFlagAddArgs, superAccountFeatureAdd: GQL.MutationSuperAccountFeatureAddArgs, superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs, conferenceJoin: GQL.MutationConferenceJoinArgs, conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs, conferenceLeave: GQL.MutationConferenceLeaveArgs, mediaStreamOffer: GQL.MutationMediaStreamOfferArgs, mediaStreamNegotiationNeeded: GQL.MutationMediaStreamNegotiationNeededArgs, mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs, mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs, mediaStreamFailed: GQL.MutationMediaStreamFailedArgs, peerConnectionOffer: GQL.MutationPeerConnectionOfferArgs, peerConnectionAnswer: GQL.MutationPeerConnectionAnswerArgs, peerConnectionCandidate: GQL.MutationPeerConnectionCandidateArgs, roomRead: GQL.MutationRoomReadArgs, betaMessageSend: GQL.MutationBetaMessageSendArgs, betaMessageEdit: GQL.MutationBetaMessageEditArgs, betaMessageDeleteAugmentation: GQL.MutationBetaMessageDeleteAugmentationArgs, betaMessageDelete: GQL.MutationBetaMessageDeleteArgs, betaReactionSet: GQL.MutationBetaReactionSetArgs, betaReactionRemove: GQL.MutationBetaReactionRemoveArgs, betaIntroSend: GQL.MutationBetaIntroSendArgs, betaIntroEdit: GQL.MutationBetaIntroEditArgs, readNotification: GQL.MutationReadNotificationArgs, deleteNotification: GQL.MutationDeleteNotificationArgs, notificationCenterMarkSeqRead: GQL.MutationNotificationCenterMarkSeqReadArgs, debugCreateNotification: GQL.MutationDebugCreateNotificationArgs, createOrganization: GQL.MutationCreateOrganizationArgs, updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs, deleteOrganization: GQL.MutationDeleteOrganizationArgs, registerWebPush: GQL.MutationRegisterWebPushArgs, registerPush: GQL.MutationRegisterPushArgs, stickerPackCreate: GQL.MutationStickerPackCreateArgs, stickerPackUpdate: GQL.MutationStickerPackUpdateArgs, stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs, stickerPackRemoveSticker: GQL.MutationStickerPackRemoveStickerArgs, stickerPackAddToCollection: GQL.MutationStickerPackAddToCollectionArgs, stickerPackRemoveFromCollection: GQL.MutationStickerPackRemoveFromCollectionArgs, stickerAddToFavorites: GQL.MutationStickerAddToFavoritesArgs, stickerRemoveFromFavorites: GQL.MutationStickerRemoveFromFavoritesArgs, betaDiscoverSkip: GQL.MutationBetaDiscoverSkipArgs, betaNextDiscoverPageOrChats: GQL.MutationBetaNextDiscoverPageOrChatsArgs, betaSaveSelectedTags: GQL.MutationBetaSaveSelectedTagsArgs, betaSubmitNextDiscover: GQL.MutationBetaSubmitNextDiscoverArgs, typingSend: GQL.MutationTypingSendArgs, typingCancel: GQL.MutationTypingCancelArgs, alphaSetTyping: GQL.MutationAlphaSetTypingArgs, superBadgeCreateToRoom: GQL.MutationSuperBadgeCreateToRoomArgs, superBadgeUnsetToRoom: GQL.MutationSuperBadgeUnsetToRoomArgs, badgeCreate: GQL.MutationBadgeCreateArgs, badgeCreateToRoom: GQL.MutationBadgeCreateToRoomArgs, badgeSetToRoom: GQL.MutationBadgeSetToRoomArgs, badgeUnsetToRoom: GQL.MutationBadgeUnsetToRoomArgs, badgeDelete: GQL.MutationBadgeDeleteArgs, badgeSetPrimary: GQL.MutationBadgeSetPrimaryArgs, superBadgeCreate: GQL.MutationSuperBadgeCreateArgs, superBadgeSetToRoom: GQL.MutationSuperBadgeSetToRoomArgs, superBadgeDelete: GQL.MutationSuperBadgeDeleteArgs, superBadgeVerify: GQL.MutationSuperBadgeVerifyArgs, superBadgeUnverify: GQL.MutationSuperBadgeUnverifyArgs, alphaCreateFeedPost: GQL.MutationAlphaCreateFeedPostArgs, alphaCreateGlobalFeedPost: GQL.MutationAlphaCreateGlobalFeedPostArgs, sendMessage: GQL.MutationSendMessageArgs, editMessage: GQL.MutationEditMessageArgs, pinMessage: GQL.MutationPinMessageArgs, unpinMessage: GQL.MutationUnpinMessageArgs, betaPinMessage: GQL.MutationBetaPinMessageArgs, betaUnpinMessage: GQL.MutationBetaUnpinMessageArgs, gammaPinMessage: GQL.MutationGammaPinMessageArgs, gammaUnpinMessage: GQL.MutationGammaUnpinMessageArgs, messageReactionAdd: GQL.MutationMessageReactionAddArgs, messageReactionRemove: GQL.MutationMessageReactionRemoveArgs, deleteChat: GQL.MutationDeleteChatArgs, archiveChat: GQL.MutationArchiveChatArgs, betaRoomCreate: GQL.MutationBetaRoomCreateArgs, betaRoomUpdate: GQL.MutationBetaRoomUpdateArgs, betaRoomMove: GQL.MutationBetaRoomMoveArgs, betaRoomInvite: GQL.MutationBetaRoomInviteArgs, alphaRoomInvite: GQL.MutationAlphaRoomInviteArgs, betaRoomKick: GQL.MutationBetaRoomKickArgs, betaRoomLeave: GQL.MutationBetaRoomLeaveArgs, betaRoomChangeRole: GQL.MutationBetaRoomChangeRoleArgs, betaRoomJoin: GQL.MutationBetaRoomJoinArgs, betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs, betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs, betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs, betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs, betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs, betaRoomUpdateUserNotificationSettings: GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs, betaRoomsInviteUser: GQL.MutationBetaRoomsInviteUserArgs, betaRoomAlterFeatured: GQL.MutationBetaRoomAlterFeaturedArgs, betaRoomAlterListed: GQL.MutationBetaRoomAlterListedArgs, updateWelcomeMessage: GQL.MutationUpdateWelcomeMessageArgs, alphaSetUserShortName: GQL.MutationAlphaSetUserShortNameArgs, alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs}>;
+    Mutation?: ComplexTypedResolver<GQL.Mutation, GQLRoots.MutationRoot, {alphaSendMessage: GQLRoots.ConversationEventMessageRoot, alphaReadChat: GQLRoots.ChatReadResultRoot, alphaEditMessage: GQLRoots.ConversationEventEditMessageRoot, alphaSendIntro: GQLRoots.ConversationEventMessageRoot, alphaEditIntro: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessageUrlAugmentation: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessage: GQLRoots.ConversationEventDeleteRoot, alphaChatCreateGroup: GQLRoots.ConversationRoot, alphaChatUpdateGroup: GQLRoots.ConversationUpdateResponseRoot, alphaChatChangeGroupTitle: GQLRoots.GroupChatUpdateResponseRoot, alphaChatInviteToGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatKickFromGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatChangeRoleInGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatCopyGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatLeave: GQLRoots.ConversationUpdateResponseRoot, alphaUpdateConversationSettings: GQLRoots.ConversationSettingsRoot, profileCreate: GQLRoots.ProfileRoot, profileUpdate: GQLRoots.ProfileRoot, createProfile: GQLRoots.ProfileRoot, updateProfile: GQLRoots.ProfileRoot, alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot, alphaCreateInvite: GQLRoots.InviteRoot, debugCreateTestUser: GQLRoots.UserRoot, settingsUpdate: GQLRoots.SettingsRoot, updateSettings: GQLRoots.SettingsRoot, betaOrganizationMemberRequestApprove: GQLRoots.OrganizationRoot, betaOrganizationMemberRemove: GQLRoots.OrganizationRoot, betaOrganizationMemberAdd: GQLRoots.OrganizationRoot, alphaOrganizationMemberAdd: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot, alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot, superAccountAdd: GQLRoots.SuperAccountRoot, superAccountRename: GQLRoots.SuperAccountRoot, superAccountActivate: GQLRoots.SuperAccountRoot, superAccountSuspend: GQLRoots.SuperAccountRoot, superAccountPend: GQLRoots.SuperAccountRoot, superAccountMemberAdd: GQLRoots.SuperAccountRoot, superAccountMemberRemove: GQLRoots.SuperAccountRoot, alphaAlterPublished: GQLRoots.OrganizationRoot, createApp: GQLRoots.AppProfileRoot, createSuperApp: GQLRoots.AppProfileRoot, refreshAppToken: GQLRoots.AppProfileRoot, updateAppProfile: GQLRoots.AppProfileRoot, addAppToChat: GQLRoots.AppChatRoot, userStorageSet: GQLRoots.AppStorageValueRoot[], betaAddMessageComment: GQLRoots.CommentEntryRoot, betaAddFeedComment: GQLRoots.CommentEntryRoot, featureFlagAdd: GQLRoots.FeatureFlagRoot, superAccountFeatureAdd: GQLRoots.SuperAccountRoot, superAccountFeatureRemove: GQLRoots.SuperAccountRoot, conferenceJoin: GQLRoots.ConferenceJoinResultRoot, conferenceKeepAlive: GQLRoots.ConferenceRoot, conferenceLeave: GQLRoots.ConferenceRoot, mediaStreamOffer: GQLRoots.ConferenceMediaRoot, mediaStreamNegotiationNeeded: GQLRoots.ConferenceMediaRoot, mediaStreamAnswer: GQLRoots.ConferenceMediaRoot, mediaStreamCandidate: GQLRoots.ConferenceMediaRoot, mediaStreamFailed: GQLRoots.ConferenceMediaRoot, peerConnectionOffer: GQLRoots.ConferenceRoot, peerConnectionAnswer: GQLRoots.ConferenceRoot, peerConnectionCandidate: GQLRoots.ConferenceRoot, readNotification: GQLRoots.NotificationCenterRoot, createOrganization: GQLRoots.OrganizationProfileRoot, updateOrganizationProfile: GQLRoots.OrganizationProfileRoot, stickerPackCreate: GQLRoots.StickerPackRoot, stickerPackUpdate: GQLRoots.StickerPackRoot, stickerPackAddSticker: GQLRoots.StickerRoot, betaDiscoverSkip: Nullable<GQLRoots.DiscoverPageRoot>, betaNextDiscoverPageOrChats: Nullable<GQLRoots.DiscoverPageRoot>, betaSaveSelectedTags: Nullable<GQLRoots.DiscoverPageRoot>, betaSubmitNextDiscover: Nullable<GQLRoots.DiscoverPageRoot>, superBadgeCreateToRoom: GQLRoots.UserBadgeRoot, badgeCreate: GQLRoots.UserRoot, badgeCreateToRoom: GQLRoots.UserBadgeRoot, badgeSetToRoom: GQLRoots.UserBadgeRoot, badgeDelete: GQLRoots.UserRoot, badgeSetPrimary: GQLRoots.UserRoot, badgeUnsetPrimary: GQLRoots.UserRoot, superBadgeCreate: GQLRoots.UserRoot, superBadgeSetToRoom: GQLRoots.UserBadgeRoot, superBadgeDelete: GQLRoots.UserRoot, superBadgeVerify: GQLRoots.UserRoot, superBadgeUnverify: GQLRoots.UserRoot, alphaCreateFeedPost: GQLRoots.FeedItemRoot, alphaEditFeedPost: GQLRoots.FeedItemRoot, betaPinMessage: GQLRoots.SharedRoomRoot, betaUnpinMessage: GQLRoots.SharedRoomRoot, gammaPinMessage: GQLRoots.RoomRoot, gammaUnpinMessage: GQLRoots.RoomRoot, betaRoomCreate: GQLRoots.SharedRoomRoot, betaRoomUpdate: GQLRoots.RoomRoot, betaRoomMove: GQLRoots.RoomRoot, betaRoomInvite: GQLRoots.RoomRoot, alphaRoomInvite: GQLRoots.RoomMemberRoot[], betaRoomKick: GQLRoots.RoomRoot, betaRoomLeave: GQLRoots.RoomRoot, betaRoomChangeRole: GQLRoots.RoomRoot, betaRoomJoin: GQLRoots.RoomRoot, betaRoomsJoin: GQLRoots.RoomRoot[], betaRoomDeclineJoinRequest: GQLRoots.RoomRoot, betaRoomInviteLinkJoin: GQLRoots.RoomRoot, betaRoomUpdateUserNotificationSettings: GQLRoots.RoomUserNotificaionSettingsRoot, betaRoomsInviteUser: GQLRoots.RoomRoot[], betaRoomAlterFeatured: GQLRoots.RoomSuperRoot, betaRoomAlterListed: GQLRoots.RoomSuperRoot}, {alphaSendMessage: GQL.MutationAlphaSendMessageArgs, alphaReadChat: GQL.MutationAlphaReadChatArgs, alphaEditMessage: GQL.MutationAlphaEditMessageArgs, alphaSendIntro: GQL.MutationAlphaSendIntroArgs, alphaEditIntro: GQL.MutationAlphaEditIntroArgs, alphaDeleteMessageUrlAugmentation: GQL.MutationAlphaDeleteMessageUrlAugmentationArgs, alphaDeleteMessage: GQL.MutationAlphaDeleteMessageArgs, alphaChatSetReaction: GQL.MutationAlphaChatSetReactionArgs, alphaChatUnsetReaction: GQL.MutationAlphaChatUnsetReactionArgs, alphaGlobalRead: GQL.MutationAlphaGlobalReadArgs, alphaBlockUser: GQL.MutationAlphaBlockUserArgs, alphaUnblockUser: GQL.MutationAlphaUnblockUserArgs, alphaChatCreateGroup: GQL.MutationAlphaChatCreateGroupArgs, alphaChatUpdateGroup: GQL.MutationAlphaChatUpdateGroupArgs, alphaChatChangeGroupTitle: GQL.MutationAlphaChatChangeGroupTitleArgs, alphaChatInviteToGroup: GQL.MutationAlphaChatInviteToGroupArgs, alphaChatKickFromGroup: GQL.MutationAlphaChatKickFromGroupArgs, alphaChatChangeRoleInGroup: GQL.MutationAlphaChatChangeRoleInGroupArgs, alphaChatCopyGroup: GQL.MutationAlphaChatCopyGroupArgs, alphaChatLeave: GQL.MutationAlphaChatLeaveArgs, alphaUpdateConversationSettings: GQL.MutationAlphaUpdateConversationSettingsArgs, profileCreate: GQL.MutationProfileCreateArgs, profileUpdate: GQL.MutationProfileUpdateArgs, createProfile: GQL.MutationCreateProfileArgs, updateProfile: GQL.MutationUpdateProfileArgs, alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs, alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs, alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs, joinAppInvite: GQL.MutationJoinAppInviteArgs, debugSendEmail: GQL.MutationDebugSendEmailArgs, debugCreateTestUser: GQL.MutationDebugCreateTestUserArgs, debugDeleteUrlInfoCache: GQL.MutationDebugDeleteUrlInfoCacheArgs, debugSuperNotifications: GQL.MutationDebugSuperNotificationsArgs, debugConvertOrgChatToNormal: GQL.MutationDebugConvertOrgChatToNormalArgs, debugSetCommentVisibility: GQL.MutationDebugSetCommentVisibilityArgs, debugReindexOrgs: GQL.MutationDebugReindexOrgsArgs, debugResetAudienceCounter: GQL.MutationDebugResetAudienceCounterArgs, debugFixMessage: GQL.MutationDebugFixMessageArgs, debugCreateBigChat: GQL.MutationDebugCreateBigChatArgs, debugFlood: GQL.MutationDebugFloodArgs, debugSendPush: GQL.MutationDebugSendPushArgs, settingsUpdate: GQL.MutationSettingsUpdateArgs, updateSettings: GQL.MutationUpdateSettingsArgs, betaOrganizationMemberRequestApprove: GQL.MutationBetaOrganizationMemberRequestApproveArgs, betaOrganizationMemberRemove: GQL.MutationBetaOrganizationMemberRemoveArgs, betaOrganizationMemberAdd: GQL.MutationBetaOrganizationMemberAddArgs, alphaOrganizationMemberAdd: GQL.MutationAlphaOrganizationMemberAddArgs, alphaOrganizationChangeMemberRole: GQL.MutationAlphaOrganizationChangeMemberRoleArgs, alphaOrganizationInviteMembers: GQL.MutationAlphaOrganizationInviteMembersArgs, alphaOrganizationRefreshInviteLink: GQL.MutationAlphaOrganizationRefreshInviteLinkArgs, alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs, alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs, alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs, presenceReportOnline: GQL.MutationPresenceReportOnlineArgs, presenceReportOffline: GQL.MutationPresenceReportOfflineArgs, alphaReportActive: GQL.MutationAlphaReportActiveArgs, superAccountAdd: GQL.MutationSuperAccountAddArgs, superAccountRename: GQL.MutationSuperAccountRenameArgs, superAccountActivate: GQL.MutationSuperAccountActivateArgs, superAccountSuspend: GQL.MutationSuperAccountSuspendArgs, superAccountPend: GQL.MutationSuperAccountPendArgs, superAccountMemberAdd: GQL.MutationSuperAccountMemberAddArgs, superAccountMemberRemove: GQL.MutationSuperAccountMemberRemoveArgs, superAccountChannelMemberAdd: GQL.MutationSuperAccountChannelMemberAddArgs, superDeleteUser: GQL.MutationSuperDeleteUserArgs, superAdminAdd: GQL.MutationSuperAdminAddArgs, superAdminRemove: GQL.MutationSuperAdminRemoveArgs, alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs, alphaRenderVideo: GQL.MutationAlphaRenderVideoArgs, betaFixCounter: GQL.MutationBetaFixCounterArgs, conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs, alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs, track: GQL.MutationTrackArgs, createApp: GQL.MutationCreateAppArgs, createSuperApp: GQL.MutationCreateSuperAppArgs, refreshAppToken: GQL.MutationRefreshAppTokenArgs, updateAppProfile: GQL.MutationUpdateAppProfileArgs, deleteApp: GQL.MutationDeleteAppArgs, addAppToChat: GQL.MutationAddAppToChatArgs, userStorageSet: GQL.MutationUserStorageSetArgs, addMessageComment: GQL.MutationAddMessageCommentArgs, betaAddMessageComment: GQL.MutationBetaAddMessageCommentArgs, betaAddFeedComment: GQL.MutationBetaAddFeedCommentArgs, editComment: GQL.MutationEditCommentArgs, deleteComment: GQL.MutationDeleteCommentArgs, deleteCommentAugmentation: GQL.MutationDeleteCommentAugmentationArgs, commentReactionAdd: GQL.MutationCommentReactionAddArgs, commentReactionRemove: GQL.MutationCommentReactionRemoveArgs, subscribeMessageComments: GQL.MutationSubscribeMessageCommentsArgs, unSubscribeMessageComments: GQL.MutationUnSubscribeMessageCommentsArgs, setEnvVar: GQL.MutationSetEnvVarArgs, featureFlagAdd: GQL.MutationFeatureFlagAddArgs, superAccountFeatureAdd: GQL.MutationSuperAccountFeatureAddArgs, superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs, conferenceJoin: GQL.MutationConferenceJoinArgs, conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs, conferenceLeave: GQL.MutationConferenceLeaveArgs, mediaStreamOffer: GQL.MutationMediaStreamOfferArgs, mediaStreamNegotiationNeeded: GQL.MutationMediaStreamNegotiationNeededArgs, mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs, mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs, mediaStreamFailed: GQL.MutationMediaStreamFailedArgs, peerConnectionOffer: GQL.MutationPeerConnectionOfferArgs, peerConnectionAnswer: GQL.MutationPeerConnectionAnswerArgs, peerConnectionCandidate: GQL.MutationPeerConnectionCandidateArgs, roomRead: GQL.MutationRoomReadArgs, betaMessageSend: GQL.MutationBetaMessageSendArgs, betaMessageEdit: GQL.MutationBetaMessageEditArgs, betaMessageDeleteAugmentation: GQL.MutationBetaMessageDeleteAugmentationArgs, betaMessageDelete: GQL.MutationBetaMessageDeleteArgs, betaReactionSet: GQL.MutationBetaReactionSetArgs, betaReactionRemove: GQL.MutationBetaReactionRemoveArgs, betaIntroSend: GQL.MutationBetaIntroSendArgs, betaIntroEdit: GQL.MutationBetaIntroEditArgs, readNotification: GQL.MutationReadNotificationArgs, deleteNotification: GQL.MutationDeleteNotificationArgs, notificationCenterMarkSeqRead: GQL.MutationNotificationCenterMarkSeqReadArgs, debugCreateNotification: GQL.MutationDebugCreateNotificationArgs, createOrganization: GQL.MutationCreateOrganizationArgs, updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs, deleteOrganization: GQL.MutationDeleteOrganizationArgs, registerWebPush: GQL.MutationRegisterWebPushArgs, registerPush: GQL.MutationRegisterPushArgs, stickerPackCreate: GQL.MutationStickerPackCreateArgs, stickerPackUpdate: GQL.MutationStickerPackUpdateArgs, stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs, stickerPackRemoveSticker: GQL.MutationStickerPackRemoveStickerArgs, stickerPackAddToCollection: GQL.MutationStickerPackAddToCollectionArgs, stickerPackRemoveFromCollection: GQL.MutationStickerPackRemoveFromCollectionArgs, stickerAddToFavorites: GQL.MutationStickerAddToFavoritesArgs, stickerRemoveFromFavorites: GQL.MutationStickerRemoveFromFavoritesArgs, betaDiscoverSkip: GQL.MutationBetaDiscoverSkipArgs, betaNextDiscoverPageOrChats: GQL.MutationBetaNextDiscoverPageOrChatsArgs, betaSaveSelectedTags: GQL.MutationBetaSaveSelectedTagsArgs, betaSubmitNextDiscover: GQL.MutationBetaSubmitNextDiscoverArgs, typingSend: GQL.MutationTypingSendArgs, typingCancel: GQL.MutationTypingCancelArgs, alphaSetTyping: GQL.MutationAlphaSetTypingArgs, superBadgeCreateToRoom: GQL.MutationSuperBadgeCreateToRoomArgs, superBadgeUnsetToRoom: GQL.MutationSuperBadgeUnsetToRoomArgs, badgeCreate: GQL.MutationBadgeCreateArgs, badgeCreateToRoom: GQL.MutationBadgeCreateToRoomArgs, badgeSetToRoom: GQL.MutationBadgeSetToRoomArgs, badgeUnsetToRoom: GQL.MutationBadgeUnsetToRoomArgs, badgeDelete: GQL.MutationBadgeDeleteArgs, badgeSetPrimary: GQL.MutationBadgeSetPrimaryArgs, superBadgeCreate: GQL.MutationSuperBadgeCreateArgs, superBadgeSetToRoom: GQL.MutationSuperBadgeSetToRoomArgs, superBadgeDelete: GQL.MutationSuperBadgeDeleteArgs, superBadgeVerify: GQL.MutationSuperBadgeVerifyArgs, superBadgeUnverify: GQL.MutationSuperBadgeUnverifyArgs, alphaCreateFeedPost: GQL.MutationAlphaCreateFeedPostArgs, alphaEditFeedPost: GQL.MutationAlphaEditFeedPostArgs, alphaDeleteFeedPost: GQL.MutationAlphaDeleteFeedPostArgs, alphaCreateGlobalFeedPost: GQL.MutationAlphaCreateGlobalFeedPostArgs, feedReactionAdd: GQL.MutationFeedReactionAddArgs, feedReactionRemove: GQL.MutationFeedReactionRemoveArgs, feedSubscribeUser: GQL.MutationFeedSubscribeUserArgs, feedUnsubscribeUser: GQL.MutationFeedUnsubscribeUserArgs, sendMessage: GQL.MutationSendMessageArgs, editMessage: GQL.MutationEditMessageArgs, pinMessage: GQL.MutationPinMessageArgs, unpinMessage: GQL.MutationUnpinMessageArgs, betaPinMessage: GQL.MutationBetaPinMessageArgs, betaUnpinMessage: GQL.MutationBetaUnpinMessageArgs, gammaPinMessage: GQL.MutationGammaPinMessageArgs, gammaUnpinMessage: GQL.MutationGammaUnpinMessageArgs, messageReactionAdd: GQL.MutationMessageReactionAddArgs, messageReactionRemove: GQL.MutationMessageReactionRemoveArgs, deleteChat: GQL.MutationDeleteChatArgs, archiveChat: GQL.MutationArchiveChatArgs, betaRoomCreate: GQL.MutationBetaRoomCreateArgs, betaRoomUpdate: GQL.MutationBetaRoomUpdateArgs, betaRoomMove: GQL.MutationBetaRoomMoveArgs, betaRoomInvite: GQL.MutationBetaRoomInviteArgs, alphaRoomInvite: GQL.MutationAlphaRoomInviteArgs, betaRoomKick: GQL.MutationBetaRoomKickArgs, betaRoomLeave: GQL.MutationBetaRoomLeaveArgs, betaRoomChangeRole: GQL.MutationBetaRoomChangeRoleArgs, betaRoomJoin: GQL.MutationBetaRoomJoinArgs, betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs, betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs, betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs, betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs, betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs, betaRoomUpdateUserNotificationSettings: GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs, betaRoomsInviteUser: GQL.MutationBetaRoomsInviteUserArgs, betaRoomAlterFeatured: GQL.MutationBetaRoomAlterFeaturedArgs, betaRoomAlterListed: GQL.MutationBetaRoomAlterListedArgs, updateWelcomeMessage: GQL.MutationUpdateWelcomeMessageArgs, alphaSetUserShortName: GQL.MutationAlphaSetUserShortNameArgs, alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs}>;
     NotificationCenter?: ComplexTypedResolver<GQL.NotificationCenter, GQLRoots.NotificationCenterRoot, {state: GQLRoots.NotificationCenterUpdatesStateRoot}, {}>;
     Notification?: ComplexTypedResolver<GQL.Notification, GQLRoots.NotificationRoot, {content: GQLRoots.NotificationContentRoot[]}, {}>;
     NotificationContent?: UnionTypeResolver<GQLRoots.NotificationContentRoot, 'NewCommentNotification'>;
@@ -3099,12 +3231,12 @@ export interface GQLResolver {
     Permissions?: ComplexTypedResolver<GQL.Permissions, GQLRoots.PermissionsRoot, {}, {}>;
     ProfilePrefill?: ComplexTypedResolver<GQL.ProfilePrefill, GQLRoots.ProfilePrefillRoot, {}, {}>;
     PushSettings?: ComplexTypedResolver<GQL.PushSettings, GQLRoots.PushSettingsRoot, {}, {}>;
-    Query?: ComplexTypedResolver<GQL.Query, GQLRoots.QueryRoot, {alphaNotificationCounter: GQLRoots.NotificationCounterRoot, alphaChat: GQLRoots.ConversationRoot, alphaLoadMessages: GQLRoots.ConversationStateRoot, alphaChatsSearchForCompose: GQLRoots.ComposeSearchResultRoot[], alphaChatSearch: Nullable<GQLRoots.ConversationRoot>, alphaGroupConversationMembers: GQLRoots.GroupConversationMemberRoot[], myProfile: Nullable<GQLRoots.ProfileRoot>, alphaInvites: Nullable<GQLRoots.InviteRoot[]>, alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>, appInviteInfo: Nullable<GQLRoots.AppInviteRoot>, alphaAppInviteInfo: Nullable<GQLRoots.AppInviteInfoRoot>, alphaInvitesHistory: Nullable<GQLRoots.InviteHistotyInfoRoot[]>, alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>, commentGlobalUpdatesState: GQLRoots.CommentGlobalUpdatesStateRoot, debugParseID: GQLRoots.DebugIDRoot, debugUrlInfo: Nullable<GQLRoots.UrlAugmentationRoot>, userPresence: GQLRoots.DebugUserPresenceRoot[], organizationChatsStats: GQLRoots.OrganizationChatStatsRoot[], debugEventsState: GQLRoots.DebugEventsStateRoot, debugUserMetrics: GQLRoots.DebugUserMetricsRoot, debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot, dialogs: GQLRoots.DialogsConnectionRoot, settings: GQLRoots.SettingsRoot, alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[], alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>, alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>, superAccounts: GQLRoots.SuperAccountRoot[], superAccount: GQLRoots.SuperAccountRoot, superAdmins: GQLRoots.SuperAdminRoot[], alphaChatTextSearch: GQLRoots.ConversationRoot[], betaDialogTextSearch: GQLRoots.DialogRoot[], myApps: GQLRoots.AppProfileRoot[], userStorage: GQLRoots.AppStorageValueRoot[], chatState: GQLRoots.ChatUpdateStateRoot, conversationState: GQLRoots.ConversationUpdateStateRoot, messageComments: GQLRoots.CommentsPeerRoot, dialogsState: GQLRoots.DialogUpdateStateRoot, envVars: Nullable<GQLRoots.EnvVarRoot[]>, envVar: Nullable<GQLRoots.EnvVarRoot>, featureFlags: GQLRoots.FeatureFlagRoot[], conference: GQLRoots.ConferenceRoot, conferenceMedia: GQLRoots.ConferenceMediaRoot, myNotificationCenter: GQLRoots.NotificationCenterRoot, myNotifications: GQLRoots.NotificationConnectionRoot, myOrganization: Nullable<GQLRoots.OrganizationRoot>, myOrganizations: GQLRoots.OrganizationRoot[], organization: GQLRoots.OrganizationRoot, myOrganizationProfile: GQLRoots.OrganizationProfileRoot, organizationProfile: GQLRoots.OrganizationProfileRoot, alphaOrganizations: GQLRoots.OrganizationsConnectionRoot, alphaOrganizationByPrefix: Nullable<GQLRoots.OrganizationRoot>, alphaComunityPrefixSearch: GQLRoots.OrganizationsConnectionRoot, myPermissions: GQLRoots.PermissionsRoot, users: GQLRoots.UserRoot[], myProfilePrefill: Nullable<GQLRoots.ProfilePrefillRoot>, pushSettings: GQLRoots.PushSettingsRoot, sessionState: GQLRoots.SessionStateRoot, myStickers: GQLRoots.UserStickersRoot, stickersByEmoji: GQLRoots.StickerRoot[], stickerPack: Nullable<GQLRoots.StickerPackRoot>, betaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>, gammaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>, betaSuggestedRooms: GQLRoots.RoomRoot[], trendingRoomsByMessages: GQLRoots.TrendingRoomRoot[], me: Nullable<GQLRoots.UserRoot>, user: GQLRoots.UserRoot, superBadgeInRoom: Nullable<GQLRoots.UserBadgeRoot>, badgeInRoom: Nullable<GQLRoots.UserBadgeRoot>, userSearch: GQLRoots.UserConnectionRoot, userSearchForChat: GQLRoots.ChatUserConnectionRoot, alphaProfiles: GQLRoots.UserConnectionRoot, alphaHomeFeed: GQLRoots.FeedItemRoot[], alphaGlobalSearch: GQLRoots.GlobalSearchEntryRoot[], featuredGroups: Nullable<GQLRoots.SharedRoomRoot[]>, featuredCommunities: Nullable<GQLRoots.OrganizationRoot[]>, messagesSearch: GQLRoots.MessageConnectionRoot, messages: GQLRoots.ModernMessageRoot[], gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>, message: Nullable<GQLRoots.ModernMessageRoot>, lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>, room: Nullable<GQLRoots.RoomRoot>, rooms: GQLRoots.RoomRoot[], roomSuper: Nullable<GQLRoots.RoomSuperRoot>, roomMessages: GQLRoots.RoomMessageRoot[], roomMembers: GQLRoots.RoomMemberRoot[], roomFeaturedMembers: GQLRoots.RoomMemberRoot[], roomMember: Nullable<GQLRoots.RoomMemberRoot>, betaRoomSearch: GQLRoots.RoomConnectionRoot, betaRoomInviteInfo: Nullable<GQLRoots.RoomInviteRoot>, betaAvailableRooms: GQLRoots.SharedRoomRoot[], betaUserRooms: GQLRoots.SharedRoomRoot[], betaUserAvailableRooms: GQLRoots.SharedRoomRoot[], alphaResolveShortName: Nullable<GQLRoots.ShortNameDestinationRoot>}, {alphaChat: GQL.QueryAlphaChatArgs, alphaLoadMessages: GQL.QueryAlphaLoadMessagesArgs, alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs, alphaChatSearch: GQL.QueryAlphaChatSearchArgs, alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs, alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs, appInviteInfo: GQL.QueryAppInviteInfoArgs, alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs, alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs, debugParseID: GQL.QueryDebugParseIDArgs, debugUrlInfo: GQL.QueryDebugUrlInfoArgs, userPresence: GQL.QueryUserPresenceArgs, debugUserMetrics: GQL.QueryDebugUserMetricsArgs, dialogs: GQL.QueryDialogsArgs, alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs, alphaOrganizationInviteLink: GQL.QueryAlphaOrganizationInviteLinkArgs, alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs, superAccount: GQL.QuerySuperAccountArgs, alphaChatTextSearch: GQL.QueryAlphaChatTextSearchArgs, betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs, conversationDraft: GQL.QueryConversationDraftArgs, alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs, userStorage: GQL.QueryUserStorageArgs, chatState: GQL.QueryChatStateArgs, conversationState: GQL.QueryConversationStateArgs, messageComments: GQL.QueryMessageCommentsArgs, envVar: GQL.QueryEnvVarArgs, conference: GQL.QueryConferenceArgs, conferenceMedia: GQL.QueryConferenceMediaArgs, myNotifications: GQL.QueryMyNotificationsArgs, organization: GQL.QueryOrganizationArgs, organizationProfile: GQL.QueryOrganizationProfileArgs, alphaOrganizations: GQL.QueryAlphaOrganizationsArgs, alphaOrganizationByPrefix: GQL.QueryAlphaOrganizationByPrefixArgs, alphaComunityPrefixSearch: GQL.QueryAlphaComunityPrefixSearchArgs, users: GQL.QueryUsersArgs, stickersByEmoji: GQL.QueryStickersByEmojiArgs, stickerPack: GQL.QueryStickerPackArgs, betaNextDiscoverPage: GQL.QueryBetaNextDiscoverPageArgs, gammaNextDiscoverPage: GQL.QueryGammaNextDiscoverPageArgs, trendingRoomsByMessages: GQL.QueryTrendingRoomsByMessagesArgs, user: GQL.QueryUserArgs, superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs, badgeInRoom: GQL.QueryBadgeInRoomArgs, userSearch: GQL.QueryUserSearchArgs, userSearchForChat: GQL.QueryUserSearchForChatArgs, alphaProfiles: GQL.QueryAlphaProfilesArgs, alphaGlobalSearch: GQL.QueryAlphaGlobalSearchArgs, messagesSearch: GQL.QueryMessagesSearchArgs, messages: GQL.QueryMessagesArgs, gammaMessages: GQL.QueryGammaMessagesArgs, message: GQL.QueryMessageArgs, lastReadedMessage: GQL.QueryLastReadedMessageArgs, room: GQL.QueryRoomArgs, rooms: GQL.QueryRoomsArgs, roomSuper: GQL.QueryRoomSuperArgs, roomMessages: GQL.QueryRoomMessagesArgs, roomMembers: GQL.QueryRoomMembersArgs, roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs, roomMember: GQL.QueryRoomMemberArgs, betaRoomSearch: GQL.QueryBetaRoomSearchArgs, betaRoomInviteInfo: GQL.QueryBetaRoomInviteInfoArgs, betaRoomInviteLink: GQL.QueryBetaRoomInviteLinkArgs, betaUserRooms: GQL.QueryBetaUserRoomsArgs, betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs, alphaResolveShortName: GQL.QueryAlphaResolveShortNameArgs}>;
+    Query?: ComplexTypedResolver<GQL.Query, GQLRoots.QueryRoot, {alphaNotificationCounter: GQLRoots.NotificationCounterRoot, alphaChat: GQLRoots.ConversationRoot, alphaLoadMessages: GQLRoots.ConversationStateRoot, alphaChatsSearchForCompose: GQLRoots.ComposeSearchResultRoot[], alphaChatSearch: Nullable<GQLRoots.ConversationRoot>, alphaGroupConversationMembers: GQLRoots.GroupConversationMemberRoot[], myProfile: Nullable<GQLRoots.ProfileRoot>, alphaInvites: Nullable<GQLRoots.InviteRoot[]>, alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>, appInviteInfo: Nullable<GQLRoots.AppInviteRoot>, alphaAppInviteInfo: Nullable<GQLRoots.AppInviteInfoRoot>, alphaInvitesHistory: Nullable<GQLRoots.InviteHistotyInfoRoot[]>, alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>, commentGlobalUpdatesState: GQLRoots.CommentGlobalUpdatesStateRoot, debugParseID: GQLRoots.DebugIDRoot, debugUrlInfo: Nullable<GQLRoots.UrlAugmentationRoot>, userPresence: GQLRoots.DebugUserPresenceRoot[], organizationChatsStats: GQLRoots.OrganizationChatStatsRoot[], debugEventsState: GQLRoots.DebugEventsStateRoot, debugUserMetrics: GQLRoots.DebugUserMetricsRoot, debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot, dialogs: GQLRoots.DialogsConnectionRoot, settings: GQLRoots.SettingsRoot, alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[], alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>, alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>, superAccounts: GQLRoots.SuperAccountRoot[], superAccount: GQLRoots.SuperAccountRoot, superAdmins: GQLRoots.SuperAdminRoot[], alphaChatTextSearch: GQLRoots.ConversationRoot[], betaDialogTextSearch: GQLRoots.DialogRoot[], myApps: GQLRoots.AppProfileRoot[], userStorage: GQLRoots.AppStorageValueRoot[], chatState: GQLRoots.ChatUpdateStateRoot, conversationState: GQLRoots.ConversationUpdateStateRoot, messageComments: GQLRoots.CommentsPeerRoot, feedItemComments: GQLRoots.CommentsPeerRoot, dialogsState: GQLRoots.DialogUpdateStateRoot, envVars: Nullable<GQLRoots.EnvVarRoot[]>, envVar: Nullable<GQLRoots.EnvVarRoot>, featureFlags: GQLRoots.FeatureFlagRoot[], conference: GQLRoots.ConferenceRoot, conferenceMedia: GQLRoots.ConferenceMediaRoot, myNotificationCenter: GQLRoots.NotificationCenterRoot, myNotifications: GQLRoots.NotificationConnectionRoot, myOrganization: Nullable<GQLRoots.OrganizationRoot>, myOrganizations: GQLRoots.OrganizationRoot[], organization: GQLRoots.OrganizationRoot, myOrganizationProfile: GQLRoots.OrganizationProfileRoot, organizationProfile: GQLRoots.OrganizationProfileRoot, alphaOrganizations: GQLRoots.OrganizationsConnectionRoot, alphaOrganizationByPrefix: Nullable<GQLRoots.OrganizationRoot>, alphaComunityPrefixSearch: GQLRoots.OrganizationsConnectionRoot, myPermissions: GQLRoots.PermissionsRoot, users: GQLRoots.UserRoot[], myProfilePrefill: Nullable<GQLRoots.ProfilePrefillRoot>, pushSettings: GQLRoots.PushSettingsRoot, sessionState: GQLRoots.SessionStateRoot, myStickers: GQLRoots.UserStickersRoot, stickersByEmoji: GQLRoots.StickerRoot[], stickerPack: Nullable<GQLRoots.StickerPackRoot>, betaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>, gammaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>, betaSuggestedRooms: GQLRoots.RoomRoot[], trendingRoomsByMessages: GQLRoots.TrendingRoomRoot[], me: Nullable<GQLRoots.UserRoot>, user: GQLRoots.UserRoot, superBadgeInRoom: Nullable<GQLRoots.UserBadgeRoot>, badgeInRoom: Nullable<GQLRoots.UserBadgeRoot>, userSearch: GQLRoots.UserConnectionRoot, userSearchForChat: GQLRoots.ChatUserConnectionRoot, alphaProfiles: GQLRoots.UserConnectionRoot, alphaHomeFeed: GQLRoots.FeedItemConnectionRoot, alphaGlobalSearch: GQLRoots.GlobalSearchEntryRoot[], featuredGroups: Nullable<GQLRoots.SharedRoomRoot[]>, featuredCommunities: Nullable<GQLRoots.OrganizationRoot[]>, messagesSearch: GQLRoots.MessageConnectionRoot, chatMembersSearch: GQLRoots.UserConnectionRoot, messages: GQLRoots.ModernMessageRoot[], gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>, message: Nullable<GQLRoots.ModernMessageRoot>, lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>, room: Nullable<GQLRoots.RoomRoot>, rooms: GQLRoots.RoomRoot[], roomSuper: Nullable<GQLRoots.RoomSuperRoot>, roomMessages: GQLRoots.RoomMessageRoot[], roomMembers: GQLRoots.RoomMemberRoot[], roomFeaturedMembers: GQLRoots.RoomMemberRoot[], roomMember: Nullable<GQLRoots.RoomMemberRoot>, betaRoomSearch: GQLRoots.RoomConnectionRoot, betaRoomInviteInfo: Nullable<GQLRoots.RoomInviteRoot>, betaAvailableRooms: GQLRoots.SharedRoomRoot[], betaUserRooms: GQLRoots.SharedRoomRoot[], betaUserAvailableRooms: GQLRoots.SharedRoomRoot[], alphaResolveShortName: Nullable<GQLRoots.ShortNameDestinationRoot>}, {alphaChat: GQL.QueryAlphaChatArgs, alphaLoadMessages: GQL.QueryAlphaLoadMessagesArgs, alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs, alphaChatSearch: GQL.QueryAlphaChatSearchArgs, alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs, alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs, appInviteInfo: GQL.QueryAppInviteInfoArgs, alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs, alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs, debugParseID: GQL.QueryDebugParseIDArgs, debugUrlInfo: GQL.QueryDebugUrlInfoArgs, userPresence: GQL.QueryUserPresenceArgs, debugUserMetrics: GQL.QueryDebugUserMetricsArgs, dialogs: GQL.QueryDialogsArgs, alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs, alphaOrganizationInviteLink: GQL.QueryAlphaOrganizationInviteLinkArgs, alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs, superAccount: GQL.QuerySuperAccountArgs, alphaChatTextSearch: GQL.QueryAlphaChatTextSearchArgs, betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs, conversationDraft: GQL.QueryConversationDraftArgs, alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs, userStorage: GQL.QueryUserStorageArgs, chatState: GQL.QueryChatStateArgs, conversationState: GQL.QueryConversationStateArgs, messageComments: GQL.QueryMessageCommentsArgs, feedItemComments: GQL.QueryFeedItemCommentsArgs, envVar: GQL.QueryEnvVarArgs, conference: GQL.QueryConferenceArgs, conferenceMedia: GQL.QueryConferenceMediaArgs, myNotifications: GQL.QueryMyNotificationsArgs, organization: GQL.QueryOrganizationArgs, organizationProfile: GQL.QueryOrganizationProfileArgs, alphaOrganizations: GQL.QueryAlphaOrganizationsArgs, alphaOrganizationByPrefix: GQL.QueryAlphaOrganizationByPrefixArgs, alphaComunityPrefixSearch: GQL.QueryAlphaComunityPrefixSearchArgs, users: GQL.QueryUsersArgs, stickersByEmoji: GQL.QueryStickersByEmojiArgs, stickerPack: GQL.QueryStickerPackArgs, betaNextDiscoverPage: GQL.QueryBetaNextDiscoverPageArgs, gammaNextDiscoverPage: GQL.QueryGammaNextDiscoverPageArgs, trendingRoomsByMessages: GQL.QueryTrendingRoomsByMessagesArgs, user: GQL.QueryUserArgs, superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs, badgeInRoom: GQL.QueryBadgeInRoomArgs, userSearch: GQL.QueryUserSearchArgs, userSearchForChat: GQL.QueryUserSearchForChatArgs, alphaProfiles: GQL.QueryAlphaProfilesArgs, alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs, alphaGlobalSearch: GQL.QueryAlphaGlobalSearchArgs, messagesSearch: GQL.QueryMessagesSearchArgs, chatMembersSearch: GQL.QueryChatMembersSearchArgs, messages: GQL.QueryMessagesArgs, gammaMessages: GQL.QueryGammaMessagesArgs, message: GQL.QueryMessageArgs, lastReadedMessage: GQL.QueryLastReadedMessageArgs, room: GQL.QueryRoomArgs, rooms: GQL.QueryRoomsArgs, roomSuper: GQL.QueryRoomSuperArgs, roomMessages: GQL.QueryRoomMessagesArgs, roomMembers: GQL.QueryRoomMembersArgs, roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs, roomMember: GQL.QueryRoomMemberArgs, betaRoomSearch: GQL.QueryBetaRoomSearchArgs, betaRoomInviteInfo: GQL.QueryBetaRoomInviteInfoArgs, betaRoomInviteLink: GQL.QueryBetaRoomInviteLinkArgs, betaUserRooms: GQL.QueryBetaUserRoomsArgs, betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs, alphaResolveShortName: GQL.QueryAlphaResolveShortNameArgs}>;
     SessionState?: ComplexTypedResolver<GQL.SessionState, GQLRoots.SessionStateRoot, {}, {}>;
     Sticker?: ComplexTypedResolver<GQL.Sticker, GQLRoots.StickerRoot, {image: GQLRoots.ImageRefRoot, pack: GQLRoots.StickerPackRoot}, {}>;
     StickerPack?: ComplexTypedResolver<GQL.StickerPack, GQLRoots.StickerPackRoot, {stickers: GQLRoots.StickerRoot[], author: GQLRoots.UserRoot}, {}>;
     UserStickers?: ComplexTypedResolver<GQL.UserStickers, GQLRoots.UserStickersRoot, {packs: GQLRoots.StickerPackRoot[], favourites: GQLRoots.StickerRoot[]}, {}>;
-    Subscription?: ComplexTypedSubscriptionResolver<GQL.Subscription, GQLRoots.SubscriptionRoot, {commentUpdatesGlobal: Nullable<GQLRoots.CommentGlobalUpdateContainerRoot>, debugEvents: GQLRoots.DebugEventRoot, settingsWatch: GQLRoots.SettingsRoot, watchSettings: GQLRoots.SettingsRoot, alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot, alphaSubscribeOnline: GQLRoots.OnlineEventRoot, chatOnlinesCount: GQLRoots.ChatOnlineEventRoot, chatUpdates: GQLRoots.ChatUpdateContainerRoot, commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>, dialogsUpdates: GQLRoots.DialogUpdateContainerRoot, alphaConferenceWatch: GQLRoots.ConferenceRoot, alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot, notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>, typings: GQLRoots.TypingEventRoot, conversationTypings: GQLRoots.TypingEventRoot, alphaSubscribeTypings: GQLRoots.TypingEventRoot, alphaSubscribeChatTypings: GQLRoots.TypingEventRoot}, {commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs, debugEvents: GQL.SubscriptionDebugEventsArgs, debugReaderState: GQL.SubscriptionDebugReaderStateArgs, alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs, alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs, chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs, chatUpdates: GQL.SubscriptionChatUpdatesArgs, commentUpdates: GQL.SubscriptionCommentUpdatesArgs, dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs, alphaConferenceWatch: GQL.SubscriptionAlphaConferenceWatchArgs, alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs, notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs, conversationTypings: GQL.SubscriptionConversationTypingsArgs, alphaSubscribeChatTypings: GQL.SubscriptionAlphaSubscribeChatTypingsArgs}>;
+    Subscription?: ComplexTypedSubscriptionResolver<GQL.Subscription, GQLRoots.SubscriptionRoot, {commentUpdatesGlobal: Nullable<GQLRoots.CommentGlobalUpdateContainerRoot>, debugEvents: GQLRoots.DebugEventRoot, settingsWatch: GQLRoots.SettingsRoot, watchSettings: GQLRoots.SettingsRoot, alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot, alphaSubscribeOnline: GQLRoots.OnlineEventRoot, chatOnlinesCount: GQLRoots.ChatOnlineEventRoot, chatUpdates: GQLRoots.ChatUpdateContainerRoot, commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>, dialogsUpdates: GQLRoots.DialogUpdateContainerRoot, homeFeedUpdates: Nullable<GQLRoots.FeedUpdateContainerRoot>, alphaConferenceWatch: GQLRoots.ConferenceRoot, alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot, notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>, typings: GQLRoots.TypingEventRoot, conversationTypings: GQLRoots.TypingEventRoot, alphaSubscribeTypings: GQLRoots.TypingEventRoot, alphaSubscribeChatTypings: GQLRoots.TypingEventRoot}, {commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs, debugEvents: GQL.SubscriptionDebugEventsArgs, debugReaderState: GQL.SubscriptionDebugReaderStateArgs, alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs, alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs, chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs, chatUpdates: GQL.SubscriptionChatUpdatesArgs, commentUpdates: GQL.SubscriptionCommentUpdatesArgs, dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs, alphaConferenceWatch: GQL.SubscriptionAlphaConferenceWatchArgs, alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs, notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs, conversationTypings: GQL.SubscriptionConversationTypingsArgs, alphaSubscribeChatTypings: GQL.SubscriptionAlphaSubscribeChatTypingsArgs}>;
     Tag?: ComplexTypedResolver<GQL.Tag, GQLRoots.TagRoot, {}, {}>;
     TagGroup?: ComplexTypedResolver<GQL.TagGroup, GQLRoots.TagGroupRoot, {tags: GQLRoots.TagRoot[]}, {}>;
     DiscoverPage?: ComplexTypedResolver<GQL.DiscoverPage, GQLRoots.DiscoverPageRoot, {chats: Nullable<GQLRoots.RoomRoot[]>, tagGroup: Nullable<GQLRoots.TagGroupRoot>}, {}>;
@@ -3117,9 +3249,9 @@ export interface GQLResolver {
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, GQLRoots.UserConnectionRoot, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     ChatUserEdge?: ComplexTypedResolver<GQL.ChatUserEdge, GQLRoots.ChatUserEdgeRoot, {node: GQLRoots.UserRoot}, {}>;
     ChatUserConnection?: ComplexTypedResolver<GQL.ChatUserConnection, GQLRoots.ChatUserConnectionRoot, {edges: GQLRoots.ChatUserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
-    FeedItemContent?: UnionTypeResolver<GQLRoots.FeedItemContentRoot, 'FeedPost'>;
-    FeedPost?: ComplexTypedResolver<GQL.FeedPost, GQLRoots.FeedPostRoot, {message: Nullable<GQLRoots.GeneralMessageRoot>}, {}>;
-    FeedItem?: ComplexTypedResolver<GQL.FeedItem, GQLRoots.FeedItemRoot, {content: Nullable<GQLRoots.FeedItemContentRoot>, alphaBy: GQLRoots.UserRoot}, {}>;
+    FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;
+    FeedPost?: ComplexTypedResolver<GQL.FeedPost, GQLRoots.FeedPostRoot, {sender: GQLRoots.UserRoot, reactions: GQLRoots.ModernMessageReactionRoot[], spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[]}, {}>;
+    FeedItemConnection?: ComplexTypedResolver<GQL.FeedItemConnection, GQLRoots.FeedItemConnectionRoot, {items: GQLRoots.FeedItemRoot[]}, {}>;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     MessageWithChat?: ComplexTypedResolver<GQL.MessageWithChat, GQLRoots.MessageWithChatRoot, {message: GQLRoots.ModernMessageRoot, chat: GQLRoots.RoomRoot}, {}>;
     MessageEdge?: ComplexTypedResolver<GQL.MessageEdge, GQLRoots.MessageEdgeRoot, {node: GQLRoots.MessageWithChatRoot}, {}>;
