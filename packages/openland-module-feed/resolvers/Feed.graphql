@@ -31,7 +31,6 @@ union Slide = TextSlide
 
 type TextSlide {
     id: ID!
-    title: String
     text: String!
     spans: [MessageSpan!]!
     cover: Image
@@ -43,7 +42,6 @@ enum SlideType {
 
 input SlideInput {
     type: SlideType!
-    title: String
     text: String
     spans: [MessageSpanInput!]
     cover: ImageRefInput

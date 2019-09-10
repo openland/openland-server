@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '126cf2169bba06c75fa0f6d9fc0401e1';
+export const GQL_SPEC_VERSION = '416c317b8595470d33c5385ede85a5be';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2683,7 +2683,6 @@ export namespace GQL {
     export type Slide = TextSlide;
     export interface TextSlide {
         id: string;
-        title: Nullable<string>;
         text: string;
         spans: MessageSpan[];
         cover: Nullable<Image>;
@@ -2691,7 +2690,6 @@ export namespace GQL {
     export type SlideType = 'Text';
     export interface SlideInput {
         type: SlideType;
-        title: Nullable<string>;
         text: Nullable<string>;
         spans: Nullable<MessageSpanInput[]>;
         cover: Nullable<ImageRefInput>;

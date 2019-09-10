@@ -60,7 +60,6 @@ export default {
     },
     TextSlide: {
         id: src => IDs.Slide.serialize(src.id),
-        title: src => src.title,
         text: src => src.text,
         spans: src => src.spans || [],
         cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined
