@@ -31,22 +31,28 @@ union Slide = TextSlide
 
 type TextSlide {
     id: ID!
-    title: String
     text: String!
     spans: [MessageSpan!]!
     cover: Image
+    coverAlign: SlideCoverAlign
 }
 
 enum SlideType {
     Text
 }
 
+enum SlideCoverAlign {
+    Top,
+    Bottom,
+    Cover
+}
+
 input SlideInput {
     type: SlideType!
-    title: String
     text: String
     spans: [MessageSpanInput!]
     cover: ImageRefInput
+    coverAlign: SlideCoverAlign
 }
 
 extend type Query {

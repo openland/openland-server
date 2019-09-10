@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '126cf2169bba06c75fa0f6d9fc0401e1';
+export const GQL_SPEC_VERSION = '7b5499f808dff0407aa02a18304bc04e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2683,18 +2683,19 @@ export namespace GQL {
     export type Slide = TextSlide;
     export interface TextSlide {
         id: string;
-        title: Nullable<string>;
         text: string;
         spans: MessageSpan[];
         cover: Nullable<Image>;
+        coverAlign: Nullable<SlideCoverAlign>;
     }
     export type SlideType = 'Text';
+    export type SlideCoverAlign = 'Top' | 'Bottom' | 'Cover';
     export interface SlideInput {
         type: SlideType;
-        title: Nullable<string>;
         text: Nullable<string>;
         spans: Nullable<MessageSpanInput[]>;
         cover: Nullable<ImageRefInput>;
+        coverAlign: Nullable<SlideCoverAlign>;
     }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKind = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';

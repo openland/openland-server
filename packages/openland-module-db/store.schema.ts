@@ -551,10 +551,10 @@ export default declareSchema(() => {
         field('slides', optional(array(union({
             text: struct({
                 id: string(),
-                title: optional(string()),
                 text: string(),
                 spans: optional(Spans),
-                cover: optional(Image)
+                cover: optional(Image),
+                coverAlign: optional(enumString('top', 'bottom', 'cover')),
             })
         }))));
 
