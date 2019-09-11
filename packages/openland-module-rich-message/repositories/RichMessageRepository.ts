@@ -64,7 +64,7 @@ export interface RichMessageInput {
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
     slides?: SlideInput[] | null;
-
+    oid?: number | null;
     // appends attachments instead of replacing them in editComment
     appendAttachments?: boolean | null;
 }
@@ -105,7 +105,8 @@ export class RichMessageRepository {
                 text: messageInput.message || null,
                 spans,
                 attachments,
-                slides: await this.prepareSlides(ctx, messageInput.slides || [])
+                slides: await this.prepareSlides(ctx, messageInput.slides || []),
+                oid: messageInput.oid || null
             });
 
             return message;

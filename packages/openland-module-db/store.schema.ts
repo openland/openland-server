@@ -488,6 +488,7 @@ export default declareSchema(() => {
     entity('RichMessage', () => {
         primaryKey('id', integer());
         field('uid', integer());
+        field('oid', optional(integer()));
 
         field('text', optional(string())).secure();
         field('reactions', optional(array(struct({

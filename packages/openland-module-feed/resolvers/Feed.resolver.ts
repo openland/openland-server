@@ -1,4 +1,4 @@
-import { FeedEvent, RichMessage } from '../../openland-module-db/store';
+import { FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -12,6 +12,7 @@ import FeedItemRoot = GQLRoots.FeedItemRoot;
 import { AppContext } from '../../openland-modules/AppContext';
 import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import SlideRoot = GQLRoots.SlideRoot;
+import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -29,10 +30,26 @@ export default {
             throw new Error('Unknown feed item type: ' + src.type);
         }
     },
+    FeedPostAuthor: {
+        __resolveType(src: FeedPostAuthorRoot) {
+            if (src instanceof User) {
+                return 'User';
+            } else if (src instanceof Organization) {
+                return 'Organization';
+            }
+            throw new Error('Unknown post author type: ' + src);
+        }
+    },
     FeedPost: {
         id: (src) => IDs.FeedItem.serialize(src.id),
         date: src => src.metadata.createdAt,
-        sender: withRichMessage((ctx, message) => message.uid),
+        author: withRichMessage(async (ctx, message) => {
+            if (message.oid) {
+                return (await Store.Organization.findById(ctx, message.oid));
+            } else {
+                return (await Store.User.findById(ctx, message.uid));
+            }
+        }),
         edited: withRichMessage((ctx, message, src) => src.edited || false),
         reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
@@ -107,8 +124,14 @@ export default {
                 if (!isSuperAdmin) {
                     throw new AccessDeniedError();
                 }
-                await Modules.Feed.createPost(ctx, uid, 'tag-global', await resolveRichMessageCreation(ctx, args));
-                return true;
+                let oid: number|null = null;
+                if (args.fromCommunity) {
+                    oid = IDs.Organization.parse(args.fromCommunity);
+                    if (!await Modules.Orgs.isUserAdmin(ctx, uid, oid)) {
+                        throw new AccessDeniedError();
+                    }
+                }
+                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid });
             });
         }),
         feedReactionAdd: withUser(async (ctx, args, uid) => {
