@@ -1,4 +1,9 @@
-import { Organization, Message, Comment, DialogNeedReindexEvent } from './../openland-module-db/store';
+import {
+    Organization,
+    Message,
+    Comment,
+    DialogNeedReindexEvent, OrganizationProfile,
+} from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
@@ -16,6 +21,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
+import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1012,6 +1018,30 @@ export default {
                 await user.flush(ctx);
                 return true;
             });
+        }),
+        debugFindUsefulCommunities: withPermission('super-admin', async (ctx, args) => {
+            let communities = await Store.Organization.community.findAll(ctx);
+
+            let message = [heading('Top communities with 5+ members and 1 or more chats'), '\n'];
+            let result: OrganizationProfile[] = [];
+            for (let community of communities) {
+                let profile = await Store.OrganizationProfile.findById(ctx, community.id);
+                let chats = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, community.id);
+                if (profile && profile.joinedMembersCount && profile.joinedMembersCount >= 5 && chats.length >= 1) {
+                    result.push(profile);
+                }
+            }
+
+            message = message.concat(result.sort((a, b) => a.joinedMembersCount! - b.joinedMembersCount!)
+                .map(a => `${a.name} openland.com/${IDs.Organization.serialize(a.id)}\n`));
+
+            let botId = await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
+            if (botId) {
+                let cid = await Modules.Messaging.room.resolvePrivateChat(ctx, botId, ctx.auth.uid!);
+                await Modules.Messaging.sendMessage(ctx, cid.id, botId!, buildMessage(...message));
+            }
+
+            return true;
         }),
     },
     Subscription: {

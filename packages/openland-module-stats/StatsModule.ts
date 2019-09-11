@@ -21,10 +21,10 @@ import { EmailSpan } from 'openland-module-email/EmailSpans';
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
 const newInvitersLog = createHyperlogger<{ uid: number, inviteeId: number, isTest: boolean }>('new-inviter');
-const newAboutFillerLog = createHyperlogger<{ uid: number }>('new-about-filler');
-const newThreeLikeGiverLog = createHyperlogger<{ uid: number }>('new-three-like-giver');
-const newThreeLikeGetterLog = createHyperlogger<{ uid: number }>('new-three-like-getter');
-const newReactionLog = createHyperlogger<{ mid: number, messageAuthorId: number, uid: number }>('new-reaction');
+const newAboutFillerLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-about-filler');
+const newThreeLikeGiverLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-three-like-giver');
+const newThreeLikeGetterLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-three-like-getter');
+const newReactionLog = createHyperlogger<{ mid: number, messageAuthorId: number, uid: number, isTest: boolean }>('new-reaction');
 
 @injectable()
 export class StatsModule {
@@ -70,7 +70,7 @@ export class StatsModule {
     onAboutChange = async (ctx: Context, uid: number) => {
         if (!await Store.UserHasFilledAbout.byId(uid).get(ctx)) {
             Store.UserHasFilledAbout.byId(uid).set(ctx, true);
-            newAboutFillerLog.event(ctx, { uid });
+            newAboutFillerLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
         }
     }
 
@@ -78,13 +78,24 @@ export class StatsModule {
         Store.UserReactionsGot.byId(message.uid).increment(ctx);
         Store.UserReactionsGiven.byId(uid).increment(ctx);
 
-        newReactionLog.event(ctx, { uid, messageAuthorId: message.uid, mid: message.id });
+        newReactionLog.event(ctx, {
+            uid,
+            messageAuthorId: message.uid,
+            mid: message.id,
+            isTest: await Modules.Users.isTest(ctx, uid)
+        });
 
         if (await Store.UserReactionsGiven.byId(uid).get(ctx) === 3) {
-            newThreeLikeGiverLog.event(ctx, { uid });
+            newThreeLikeGiverLog.event(ctx, {
+                uid,
+                isTest: await Modules.Users.isTest(ctx, uid)
+            });
         }
         if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
-            newThreeLikeGetterLog.event(ctx, { uid: message.uid });
+            newThreeLikeGetterLog.event(ctx, {
+                uid: message.uid,
+                isTest: await Modules.Users.isTest(ctx, uid)
+            });
         }
     }
 
