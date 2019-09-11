@@ -4308,6 +4308,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
 export interface RichMessageShape {
     id: number;
     uid: number;
+    oid: number | null;
     text: string | null;
     reactions: ({ userId: number, reaction: string })[] | null;
     spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null;
@@ -4319,6 +4320,7 @@ export interface RichMessageShape {
 
 export interface RichMessageCreateShape {
     uid: number;
+    oid?: number | null | undefined;
     text?: string | null | undefined;
     reactions?: ({ userId: number, reaction: string })[] | null | undefined;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined;
@@ -4336,6 +4338,15 @@ export class RichMessage extends Entity<RichMessageShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get oid(): number | null { return this._rawValue.oid; }
+    set oid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.oid.normalize(value);
+        if (this._rawValue.oid !== normalized) {
+            this._rawValue.oid = normalized;
+            this._updatedValues.oid = normalized;
             this.invalidate();
         }
     }
@@ -4414,6 +4425,7 @@ export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMess
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'oid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
         fields.push({ name: 'reactions', type: { type: 'optional', inner: { type: 'array', inner: { type: 'struct', fields: { userId: { type: 'integer' }, reaction: { type: 'string' } } } } }, secure: false });
         fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, secure: false });
@@ -4424,6 +4436,7 @@ export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMess
         let codec = c.struct({
             id: c.integer,
             uid: c.integer,
+            oid: c.optional(c.integer),
             text: c.optional(c.string),
             reactions: c.optional(c.array(c.struct({ userId: c.integer, reaction: c.string }))),
             spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) }))),
