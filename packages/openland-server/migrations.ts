@@ -283,4 +283,39 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '112-notifications-enable-all',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            let settings = (await Store.UserSettings.findAll(ctx));
+
+            for (let s of settings) {
+                let allEnabled = {
+                    direct: {
+                        showNotification: true,
+                        sound: true,
+                    }, communityChat: {
+                        showNotification: true,
+                        sound: true
+                    }, organizationChat: {
+                        showNotification: true,
+                        sound: true
+                    }, secretChat: {
+                        showNotification: true,
+                        sound: true
+                    }, comments: {
+                        showNotification: true, sound: true,
+                    },
+                    notificationPreview: 'name_text' as any,
+                };
+
+                s.mobile = allEnabled;
+                s.desktop = allEnabled;
+
+                await s.flush(ctx);
+            }
+        });
+    }
+});
+
 export default migrations;

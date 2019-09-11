@@ -70,7 +70,7 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
                 };
             }
         }
-        if (args.settings.mobileAlert !== null) {
+        if (args.settings.mobileAlert !== null && args.settings.mobileAlert !== undefined) {
             settings.mobileAlert = args.settings.mobileAlert as any;
             if (settings.mobile) {
                 let mobileAlertDirect = settings.mobileNotifications === 'all' || settings.mobileNotifications === 'direct';
