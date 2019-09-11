@@ -85,6 +85,10 @@ export default {
             }
             let items = allEvents.sort((a, b) => b.id - a.id).splice(0, args.first);
             return { items, cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined };
+        }),
+        alphaFeedItem: withUser(async (ctx, args, uid) => {
+            let id = IDs.FeedItem.parse(args.id);
+            return await Store.FeedEvent.findById(ctx, id);
         })
     },
     Mutation: {
