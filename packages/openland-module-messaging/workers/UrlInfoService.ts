@@ -122,71 +122,71 @@ export function createUrlInfoService() {
     let service = new UrlInfoService();
 
     service
-        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
-            let [, , , , _userId] = data;
-            let { hostname } = URL.parse(url);
-
-            let userId = IDs.User.parse(_userId);
-
-            let user = await Modules.Users.profileById(rootCtx, userId);
-
-            return await getURLAugmentationForUser({ hostname, url, userId, user });
-        })
-        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(directory\/)?(o|c)\/(.*)/, false, async (url, data) => {
-            let [, , , , , _orgId] = data;
-
-            let orgId = IDs.Organization.parse(_orgId);
-
-            let ctx = withReadOnlyTransaction(rootCtx);
-            let org = await Store.OrganizationProfile.findById(ctx, orgId);
-            let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
-
-            return {
-                url,
-                title: org!.name || null,
-                subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
-                description: org!.about || null,
-                imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(rootCtx, org!.photo!.uuid) : null,
-                photo: org!.photo || null,
-                photoPreview: org!.photo ? await Modules.Media.fetchLowResPreview(ctx, org!.photo.uuid) : null,
-                hostname: null,
-                iconRef: null,
-                iconInfo: null,
-                photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
-            };
-        })
-        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
-            let [, , , , , , _channelId] = data;
-
-            let ctx = withReadOnlyTransaction(rootCtx);
-            let channelId = IDs.Conversation.parse(_channelId);
-
-            let channel = await Store.ConversationRoom.findById(ctx, channelId);
-
-            if (!channel || channel!.kind !== 'public' || (channel.oid && (await Store.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
-                return null;
-            }
-
-            let profile = await Store.RoomProfile.findById(ctx, channelId);
-            if (!profile) {
-                return null;
-            }
-            let membersCount = profile.activeMembersCount || 0;
-
-            return {
-                url,
-                title: profile!.title || null,
-                subtitle: membersCount < 10 ? `New ${channel && channel.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
-                description: profile!.description || null,
-                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(rootCtx, profile!.image.uuid) : null,
-                photo: profile!.image,
-                photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
-                hostname: null,
-                iconRef: null,
-                iconInfo: null,
-                photoFallback: makePhotoFallback(IDs.Conversation.serialize(channelId), profile.title || 'deleted')
-            };
-        })
+        // .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
+        //     let [, , , , _userId] = data;
+        //     let { hostname } = URL.parse(url);
+        //
+        //     let userId = IDs.User.parse(_userId);
+        //
+        //     let user = await Modules.Users.profileById(rootCtx, userId);
+        //
+        //     return await getURLAugmentationForUser({ hostname, url, userId, user });
+        // })
+        // .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(directory\/)?(o|c)\/(.*)/, false, async (url, data) => {
+        //     let [, , , , , _orgId] = data;
+        //
+        //     let orgId = IDs.Organization.parse(_orgId);
+        //
+        //     let ctx = withReadOnlyTransaction(rootCtx);
+        //     let org = await Store.OrganizationProfile.findById(ctx, orgId);
+        //     let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
+        //
+        //     return {
+        //         url,
+        //         title: org!.name || null,
+        //         subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
+        //         description: org!.about || null,
+        //         imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(rootCtx, org!.photo!.uuid) : null,
+        //         photo: org!.photo || null,
+        //         photoPreview: org!.photo ? await Modules.Media.fetchLowResPreview(ctx, org!.photo.uuid) : null,
+        //         hostname: null,
+        //         iconRef: null,
+        //         iconInfo: null,
+        //         photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
+        //     };
+        // })
+        // .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
+        //     let [, , , , , , _channelId] = data;
+        //
+        //     let ctx = withReadOnlyTransaction(rootCtx);
+        //     let channelId = IDs.Conversation.parse(_channelId);
+        //
+        //     let channel = await Store.ConversationRoom.findById(ctx, channelId);
+        //
+        //     if (!channel || channel!.kind !== 'public' || (channel.oid && (await Store.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
+        //         return null;
+        //     }
+        //
+        //     let profile = await Store.RoomProfile.findById(ctx, channelId);
+        //     if (!profile) {
+        //         return null;
+        //     }
+        //     let membersCount = profile.activeMembersCount || 0;
+        //
+        //     return {
+        //         url,
+        //         title: profile!.title || null,
+        //         subtitle: membersCount < 10 ? `New ${channel && channel.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
+        //         description: profile!.description || null,
+        //         imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(rootCtx, profile!.image.uuid) : null,
+        //         photo: profile!.image,
+        //         photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
+        //         hostname: null,
+        //         iconRef: null,
+        //         iconInfo: null,
+        //         photoFallback: makePhotoFallback(IDs.Conversation.serialize(channelId), profile.title || 'deleted')
+        //     };
+        // })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(joinChannel|invite)\/(.*)/, false, async (url, data) => {
             let ctx = withReadOnlyTransaction(rootCtx);
             let [, , , , _invite] = data;
