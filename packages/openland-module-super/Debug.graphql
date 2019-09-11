@@ -129,6 +129,7 @@ extend type Mutation {
     debugReindexUsersDialogs: Boolean!
     debugReindexFeedEvents: Boolean!
     debugChangeUserEmail(uid: ID!, email: String!): Boolean!
+    debugFindUsefulCommunities: Boolean!
 }
 
 extend type Subscription {
