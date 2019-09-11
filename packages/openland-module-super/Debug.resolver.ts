@@ -21,7 +21,6 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
-import { header } from 'change-case';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 
 const URLInfoService = createUrlInfoService();
