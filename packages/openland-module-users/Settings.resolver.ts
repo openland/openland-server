@@ -98,13 +98,13 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
                 };
             }
         }
-        if (args.settings.mobileIncludeText !== null) {
+        if (args.settings.mobileIncludeText !== null && args.settings.mobileIncludeText !== undefined) {
             settings.mobileIncludeText = args.settings.mobileIncludeText as any;
             if (settings.mobile) {
                 settings.mobile.notificationPreview = settings.mobileIncludeText ? 'name_text' : 'name';
             }
         }
-        if (args.settings.notificationsDelay !== null) {
+        if (args.settings.notificationsDelay !== null && args.settings.notificationsDelay !== undefined) {
             settings.notificationsDelay = args.settings.notificationsDelay as any;
         }
         if (args.settings.commentNotifications && args.settings.commentNotifications !== null) {
