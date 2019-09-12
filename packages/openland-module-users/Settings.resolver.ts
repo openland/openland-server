@@ -185,6 +185,8 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
         } else {
             settings.globalCounterType = excludeMutedChats ? 'unread_messages_no_muted' : 'unread_messages';
         }
+
+        settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, uid);
 
         return settings;
