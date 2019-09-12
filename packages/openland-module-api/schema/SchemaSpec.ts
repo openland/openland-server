@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5862b3a109e623150619963f25c70340';
+export const GQL_SPEC_VERSION = 'a3c7b4f1e08f1773d522c6e6e7886a96';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2688,12 +2688,14 @@ export namespace GQL {
         cursor: Nullable<string>;
     }
     export type Slide = TextSlide;
+    export type SlideAttachment = User | SharedRoom;
     export interface TextSlide {
         id: string;
         text: string;
         spans: MessageSpan[];
         cover: Nullable<Image>;
         coverAlign: Nullable<SlideCoverAlign>;
+        attachments: SlideAttachment[];
     }
     export type SlideType = 'Text';
     export type SlideCoverAlign = 'Top' | 'Bottom' | 'Cover';
@@ -2703,6 +2705,7 @@ export namespace GQL {
         spans: Nullable<MessageSpanInput[]>;
         cover: Nullable<ImageRefInput>;
         coverAlign: Nullable<SlideCoverAlign>;
+        attachments: Nullable<string[]>;
     }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKind = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
@@ -3224,7 +3227,8 @@ export interface GQLResolver {
     FeedPost?: ComplexTypedResolver<GQL.FeedPost, GQLRoots.FeedPostRoot, {author: GQLRoots.FeedPostAuthorRoot, reactions: GQLRoots.ModernMessageReactionRoot[], spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], slides: GQLRoots.SlideRoot[]}, {}>;
     FeedItemConnection?: ComplexTypedResolver<GQL.FeedItemConnection, GQLRoots.FeedItemConnectionRoot, {items: GQLRoots.FeedItemRoot[]}, {}>;
     Slide?: UnionTypeResolver<GQLRoots.SlideRoot, 'TextSlide'>;
-    TextSlide?: ComplexTypedResolver<GQL.TextSlide, GQLRoots.TextSlideRoot, {spans: GQLRoots.MessageSpanRoot[], cover: Nullable<GQLRoots.ImageRoot>}, {}>;
+    SlideAttachment?: UnionTypeResolver<GQLRoots.SlideAttachmentRoot, 'User' | 'SharedRoom'>;
+    TextSlide?: ComplexTypedResolver<GQL.TextSlide, GQLRoots.TextSlideRoot, {spans: GQLRoots.MessageSpanRoot[], cover: Nullable<GQLRoots.ImageRoot>, attachments: GQLRoots.SlideAttachmentRoot[]}, {}>;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     MessageWithChat?: ComplexTypedResolver<GQL.MessageWithChat, GQLRoots.MessageWithChatRoot, {message: GQLRoots.ModernMessageRoot, chat: GQLRoots.RoomRoot}, {}>;
     MessageEdge?: ComplexTypedResolver<GQL.MessageEdge, GQLRoots.MessageEdgeRoot, {node: GQLRoots.MessageWithChatRoot}, {}>;

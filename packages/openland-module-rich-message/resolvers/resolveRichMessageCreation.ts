@@ -1,7 +1,7 @@
 import { MessageAttachmentFileInput } from '../../openland-module-messaging/MessageInput';
 import { RichMessageInput, SlideInput as RichMessageSlideInput } from '../repositories/RichMessageRepository';
 import { CommentSpan } from '../../openland-module-comments/repositories/CommentsRepository';
-import { IDs } from '../../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
 import { Nullable, OptionalNullable } from '../../openland-module-api/schema/SchemaUtils';
 import { Context } from '@openland/context';
@@ -10,6 +10,7 @@ import FileAttachmentInput = GQL.FileAttachmentInput;
 import MessageSpanInput = GQL.MessageSpanInput;
 import SlideInput = GQL.SlideInput;
 import { FileInfo } from '../../openland-module-media/FileInfo';
+import { UserError } from '../../openland-errors/UserError';
 
 interface Input {
     message: OptionalNullable<string>;
@@ -144,6 +145,21 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
                 coverAlign = 'cover';
             }
 
+            let slideAttachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number })[] = [];
+
+            if (slide.attachments) {
+                for (let id of slide.attachments) {
+                    let parsed = IdsFactory.resolve(id);
+                    if (parsed.type === IDs.User) {
+                        slideAttachments.push({ type: 'user', userId: parsed.id as number });
+                    } else if (parsed.type === IDs.Conversation) {
+                        slideAttachments.push({ type: 'room', roomId: parsed.id as number });
+                    } else {
+                        throw new UserError('only user or shared room ids are supported');
+                    }
+                }
+            }
+
             slides.push({
                 type: 'text',
                 text: slide.text || '',
@@ -152,7 +168,8 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
                     image: slide.cover,
                     info: imageMetadata!
                 } : null,
-                coverAlign: coverAlign as any
+                coverAlign: coverAlign as any,
+                attachments: slideAttachments
             });
         }
     }

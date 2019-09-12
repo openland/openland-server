@@ -31,12 +31,15 @@ type FeedItemConnection {
 
 union Slide = TextSlide
 
+union SlideAttachment = User | SharedRoom
+
 type TextSlide {
     id: ID!
     text: String!
     spans: [MessageSpan!]!
     cover: Image
     coverAlign: SlideCoverAlign
+    attachments: [SlideAttachment!]!
 }
 
 enum SlideType {
@@ -55,6 +58,7 @@ input SlideInput {
     spans: [MessageSpanInput!]
     cover: ImageRefInput
     coverAlign: SlideCoverAlign
+    attachments: [ID!]
 }
 
 extend type Query {

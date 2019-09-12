@@ -556,6 +556,14 @@ export default declareSchema(() => {
                 spans: optional(Spans),
                 cover: optional(Image),
                 coverAlign: optional(enumString('top', 'bottom', 'cover')),
+                attachments: optional(array(union({
+                    user: struct({
+                        userId: integer()
+                    }),
+                    room: struct({
+                        roomId: integer()
+                    })
+                })))
             })
         }))));
 

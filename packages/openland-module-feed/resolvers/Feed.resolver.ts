@@ -1,4 +1,4 @@
-import { FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
+import { Conversation, FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -13,6 +13,7 @@ import { AppContext } from '../../openland-modules/AppContext';
 import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import SlideRoot = GQLRoots.SlideRoot;
 import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
+import SlideAttachmentRoot = GQLRoots.SlideAttachmentRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -89,8 +90,31 @@ export default {
                 return 'Cover';
             }
             return 'Top';
+        },
+        attachments: async (src, args, ctx) => {
+            if (src.attachments) {
+                let out: (User|Conversation)[] = [];
+                for (let attach of src.attachments) {
+                    if (attach.type === 'user') {
+                        out.push((await Store.User.findById(ctx, attach.userId))!);
+                    } else if (attach.type === 'room') {
+                        out.push((await Store.Conversation.findById(ctx, attach.roomId))!);
+                    }
+                }
+                return out;
+            }
+            return [];
         }
-
+    },
+    SlideAttachment: {
+        __resolveType(src: SlideAttachmentRoot) {
+            if (src instanceof User) {
+                return 'User';
+            } else if (src instanceof Conversation) {
+                return 'SharedRoom';
+            }
+            throw new Error('Unknown slide attachment: ' + src);
+        }
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
