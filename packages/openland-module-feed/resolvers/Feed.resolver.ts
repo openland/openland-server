@@ -1,4 +1,4 @@
-import { FeedEvent, RichMessage } from '../../openland-module-db/store';
+import { FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -11,6 +11,8 @@ import { resolveRichMessageCreation } from '../../openland-module-rich-message/r
 import FeedItemRoot = GQLRoots.FeedItemRoot;
 import { AppContext } from '../../openland-modules/AppContext';
 import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
+import SlideRoot = GQLRoots.SlideRoot;
+import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -28,10 +30,26 @@ export default {
             throw new Error('Unknown feed item type: ' + src.type);
         }
     },
+    FeedPostAuthor: {
+        __resolveType(src: FeedPostAuthorRoot) {
+            if (src instanceof User) {
+                return 'User';
+            } else if (src instanceof Organization) {
+                return 'Organization';
+            }
+            throw new Error('Unknown post author type: ' + src);
+        }
+    },
     FeedPost: {
         id: (src) => IDs.FeedItem.serialize(src.id),
         date: src => src.metadata.createdAt,
-        sender: withRichMessage((ctx, message) => message.uid),
+        author: withRichMessage(async (ctx, message) => {
+            if (message.oid) {
+                return (await Store.Organization.findById(ctx, message.oid));
+            } else {
+                return (await Store.User.findById(ctx, message.uid));
+            }
+        }),
         edited: withRichMessage((ctx, message, src) => src.edited || false),
         reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
@@ -42,11 +60,37 @@ export default {
             let state = await Store.CommentState.findById(ctx, 'feed_item', src.id);
             return (state && state.commentsCount) || 0;
         }),
+        slides: withRichMessage((ctx, message) => message.slides || []),
         fallback: withRichMessage((ctx, message) => fetchMessageFallback(message)),
     },
     FeedItemConnection: {
         items: src => src.items,
         cursor: src => src.cursor
+    },
+    Slide: {
+        __resolveType(src: SlideRoot) {
+            if (src.type === 'text') {
+                return 'TextSlide';
+            }
+            throw new Error('Unknown slide type: ' + src.type);
+        }
+    },
+    TextSlide: {
+        id: src => IDs.Slide.serialize(src.id),
+        text: src => src.text,
+        spans: src => src.spans || [],
+        cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined,
+        coverAlign: src => {
+            if (src.coverAlign === 'top') {
+                return 'Top';
+            } else if (src.coverAlign === 'bottom') {
+                return 'Bottom';
+            } else if (src.coverAlign === 'cover') {
+                return 'Cover';
+            }
+            return 'Top';
+        }
+
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
@@ -58,6 +102,10 @@ export default {
             }
             let items = allEvents.sort((a, b) => b.id - a.id).splice(0, args.first);
             return { items, cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined };
+        }),
+        alphaFeedItem: withUser(async (ctx, args, uid) => {
+            let id = IDs.FeedItem.parse(args.id);
+            return await Store.FeedEvent.findById(ctx, id);
         })
     },
     Mutation: {
@@ -76,8 +124,14 @@ export default {
                 if (!isSuperAdmin) {
                     throw new AccessDeniedError();
                 }
-                await Modules.Feed.createPost(ctx, uid, 'tag-global', await resolveRichMessageCreation(ctx, args));
-                return true;
+                let oid: number|null = null;
+                if (args.fromCommunity) {
+                    oid = IDs.Organization.parse(args.fromCommunity);
+                    if (!await Modules.Orgs.isUserAdmin(ctx, uid, oid)) {
+                        throw new AccessDeniedError();
+                    }
+                }
+                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid });
             });
         }),
         feedReactionAdd: withUser(async (ctx, args, uid) => {

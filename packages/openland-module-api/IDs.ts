@@ -63,4 +63,5 @@ export const IDs = {
     ChatUpdatesCursor: IdsFactory.createStringId('ChatUpdatesCursor'),
     DialogsUpdatesCursor: IdsFactory.createStringId('DialogsUpdatesCursor'),
     HomeFeedCursor: IdsFactory.createId('HomeFeedCursor'),
+    Slide: IdsFactory.createStringId('Slide'),
 };

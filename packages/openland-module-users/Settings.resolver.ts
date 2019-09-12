@@ -70,7 +70,7 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
                 };
             }
         }
-        if (args.settings.mobileAlert !== null) {
+        if (args.settings.mobileAlert !== null && args.settings.mobileAlert !== undefined) {
             settings.mobileAlert = args.settings.mobileAlert as any;
             if (settings.mobile) {
                 let mobileAlertDirect = settings.mobileNotifications === 'all' || settings.mobileNotifications === 'direct';
@@ -98,13 +98,13 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
                 };
             }
         }
-        if (args.settings.mobileIncludeText !== null) {
+        if (args.settings.mobileIncludeText !== null && args.settings.mobileIncludeText !== undefined) {
             settings.mobileIncludeText = args.settings.mobileIncludeText as any;
             if (settings.mobile) {
                 settings.mobile.notificationPreview = settings.mobileIncludeText ? 'name_text' : 'name';
             }
         }
-        if (args.settings.notificationsDelay !== null) {
+        if (args.settings.notificationsDelay !== null && args.settings.notificationsDelay !== undefined) {
             settings.notificationsDelay = args.settings.notificationsDelay as any;
         }
         if (args.settings.commentNotifications && args.settings.commentNotifications !== null) {
@@ -185,6 +185,8 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
         } else {
             settings.globalCounterType = excludeMutedChats ? 'unread_messages_no_muted' : 'unread_messages';
         }
+
+        settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, uid);
 
         return settings;

@@ -80,7 +80,7 @@ export const getOnboardingCounters = async (startDate: number) => {
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
-                    must: [{ term: { type: 'new-three-like-giver' } }, {
+                    must: [{ term: { type: 'new-three-like-giver' } }, { term: { ['body.isTest']: false } }, {
                         range: {
                             date: {
                                 gte: startDate,
@@ -97,7 +97,7 @@ export const getOnboardingCounters = async (startDate: number) => {
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
-                    must: [{ term: { type: 'new-three-like-getter' } }, {
+                    must: [{ term: { type: 'new-three-like-getter' } }, { term: { ['body.isTest']: false } }, {
                         range: {
                             date: {
                                 gte: startDate,
@@ -115,7 +115,7 @@ export const getOnboardingCounters = async (startDate: number) => {
         body: {
             query: {
                 bool: {
-                    must: [{ term: { type: 'new-about-filler' } }, {
+                    must: [{ term: { type: 'new-about-filler' } }, { term: { ['body.isTest']: false } }, {
                         range: {
                             date: {
                                 gte: startDate,
@@ -208,7 +208,7 @@ export const getEngagementCounters =  async (startDate: number) => {
                                 gte: startDate,
                             },
                         },
-                    }],
+                    }, { term: { ['body.isTest']: false } }],
                 },
             }, aggs: {
                 givers: {

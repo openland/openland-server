@@ -1,12 +1,14 @@
 union FeedItem = FeedPost
 
+union FeedPostAuthor = User | Organization
+
 type FeedPost {
     #
     #   State
     #
     id: ID!
     date: Date!
-    sender: User!
+    author: FeedPostAuthor!
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
     isMentioned: Boolean!
@@ -18,6 +20,7 @@ type FeedPost {
     spans: [MessageSpan!]!
     attachments: [ModernMessageAttachment!]!
     commentsCount: Int!
+    slides: [Slide!]!
     fallback: String!
 }
 
@@ -26,15 +29,44 @@ type FeedItemConnection {
     cursor: String
 }
 
+union Slide = TextSlide
+
+type TextSlide {
+    id: ID!
+    text: String!
+    spans: [MessageSpan!]!
+    cover: Image
+    coverAlign: SlideCoverAlign
+}
+
+enum SlideType {
+    Text
+}
+
+enum SlideCoverAlign {
+    Top,
+    Bottom,
+    Cover
+}
+
+input SlideInput {
+    type: SlideType!
+    text: String
+    spans: [MessageSpanInput!]
+    cover: ImageRefInput
+    coverAlign: SlideCoverAlign
+}
+
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
+    alphaFeedItem(id: ID!): FeedItem!
 }
 
 extend type Mutation {
-    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
-    alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): FeedItem!
+    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
+    alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaDeleteFeedPost(feedItemId: ID!): Boolean!
-    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
+    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], fromCommunity: ID): FeedItem!
 
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
