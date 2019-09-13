@@ -66,7 +66,7 @@ export class UrlInfoService {
             if (!info) {
                 return null;
             }
-
+            
             await this.cache.write(ctx, url, { ...info });
 
             return { ...info };

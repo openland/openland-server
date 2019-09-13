@@ -7,6 +7,8 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { CacheRepository } from '../../openland-module-cache/CacheRepository';
+import { inTx } from '@openland/foundationdb';
 
 export interface URLInfo {
     url: string;
@@ -188,6 +190,7 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
 
 const rootCtx = createNamedContext('url-info');
 const logger = createLogger('url-info');
+const faviconCache = new CacheRepository<{ iconRef: ImageRef | null, iconInfo: FileInfo | null}>('url_info_favicon');
 
 async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     if (!params) {
@@ -241,12 +244,20 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     let iconRef: ImageRef | null = null;
 
     if (iconURL) {
-        try {
-            let { file } = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
-            iconRef = { uuid: file, crop: null };
-            iconInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
-        } catch (e) {
-            logger.warn(rootCtx, 'Cant fetch image ' + iconURL);
+        let cached = await inTx(rootCtx, async ctx => await faviconCache.read(ctx, hostname || ''));
+        let creationTime = await inTx(rootCtx, async ctx => await faviconCache.getCreationTime(ctx, hostname || ''));
+        if (cached && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
+            iconRef = cached.iconRef;
+            iconInfo = cached.iconInfo;
+        } else {
+            try {
+                let { file } = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
+                iconRef = { uuid: file, crop: null };
+                iconInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
+                await inTx(rootCtx, async ctx => await faviconCache.write(ctx, hostname || '', { iconRef, iconInfo }));
+            } catch (e) {
+                logger.warn(rootCtx, 'Cant fetch image ' + iconURL);
+            }
         }
     }
 
