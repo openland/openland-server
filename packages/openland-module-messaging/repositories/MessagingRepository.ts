@@ -51,6 +51,7 @@ export class MessagingRepository {
                 repeatKey: message.repeatKey,
                 deleted: false,
                 spans: (message.spans && message.spans.length > 0) ? message.spans : null,
+                stickerId: message.stickerId,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
             });
 

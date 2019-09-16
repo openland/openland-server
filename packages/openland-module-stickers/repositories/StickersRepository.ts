@@ -4,11 +4,18 @@ import { inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
 import { GQL } from '../../openland-module-api/schema/SchemaSpec';
-import StickerPackInput = GQL.StickerPackInput;
 import StickerInput = GQL.StickerInput;
 import { Modules } from '../../openland-modules/Modules';
 import { AuthContext } from '../../openland-module-auth/AuthContext';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
+import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
+import { Nullable } from '../../openland-module-api/schema/SchemaUtils';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+
+export interface StickerPackInput {
+    title: Nullable<string>;
+    published: Nullable<boolean>;
+}
 
 @injectable()
 export class StickersRepository {
@@ -55,6 +62,7 @@ export class StickersRepository {
         });
     }
 
+    // TODO: Dont' user gql StickerInput
     addSticker = (parent: Context, pid: number, input: StickerInput) => {
         return inTx(parent, async (ctx) => {
             let pack = await Store.StickerPack.findById(ctx, pid);
@@ -62,21 +70,10 @@ export class StickersRepository {
                 throw new Error('Invalid pack id');
             }
 
+            // TODO: pass uid in argument
             let authId = AuthContext.get(ctx).uid;
             if (pack.authorId !== authId) {
                 throw new Error('Cannot add sticker to foreign sticker pack');
-            }
-
-            let stickerKek = await Store.Sticker.findById(ctx, input.image.uuid);
-            if (stickerKek) {
-                stickerKek.packId = pid;
-
-                pack.emojis = [...pack.emojis, {
-                    emoji: stickerKek.emoji,
-                    stickerId: stickerKek.uuid,
-                }];
-
-                return stickerKek;
             }
 
             let fileInfo = await Modules.Media.fetchFileInfo(parent, input.image.uuid);
@@ -113,9 +110,10 @@ export class StickersRepository {
                 throw new Error('Consistency error');
             }
 
+            // TODO: pass uid in argument
             let authId = AuthContext.get(ctx).uid;
             if (pack.authorId !== authId) {
-                throw new Error('Cannot remove sticker from foreign sticker pack');
+                throw new AccessDeniedError();
             }
 
             sticker.deleted = true;
@@ -137,7 +135,7 @@ export class StickersRepository {
             }
 
             let userStickersState = await this.getUserStickersState(ctx, uid);
-            if (!userStickersState.packIds.every(a => a !== pid)) {
+            if (userStickersState.packIds.find(a => a === pid)) {
                 return false;
             }
             userStickersState.packIds = [...userStickersState.packIds, pid];
@@ -158,7 +156,7 @@ export class StickersRepository {
             }
 
             let userStickersState = await this.getUserStickersState(ctx, uid);
-            if (userStickersState.packIds.every(a => a !== pid)) {
+            if (!userStickersState.packIds.find(a => a === pid)) {
                 return false;
             }
 
@@ -190,11 +188,5 @@ export class StickersRepository {
         });
     }
 
-    private fetchNextPackId = async (ctx: Context) => {
-        let seq = (await Store.Sequence.findById(ctx, 'sticker-pack-id'));
-        if (!seq) {
-            seq = await Store.Sequence.create(ctx, 'sticker-pack-id', { value: 0 });
-        }
-        return ++seq.value;
-    }
+    private fetchNextPackId = async (ctx: Context) => await fetchNextDBSeq(ctx, 'sticker-pack-id');
 }

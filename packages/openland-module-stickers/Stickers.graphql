@@ -30,6 +30,28 @@ input StickerPackInput {
     published: Boolean
 }
 
+type StickerMessage implements ModernMessage {
+    #
+    #   State
+    #
+    id: ID!
+    date: Date!
+    sender: User!
+    senderBadge: UserBadge
+    source: MessageSource
+
+    #
+    #   Content
+    #
+    message: String
+    spans: [MessageSpan!]!
+    reactions: [ModernMessageReaction!]!
+    fallback: String!
+    quotedMessages: [ModernMessage!]!
+    commentsCount: Int!
+    sticker: Sticker!
+}
+
 extend type Query {
     myStickers: UserStickers!
     stickersByEmoji(emoji: String!): [Sticker!]!

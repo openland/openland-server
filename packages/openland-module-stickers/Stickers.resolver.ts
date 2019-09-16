@@ -6,9 +6,9 @@ import { AppContext } from '../openland-modules/AppContext';
 import { MaybePromise } from '../openland-module-api/schema/SchemaUtils';
 import { Sticker, StickerPack } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
-
-type StickerPackRoot = StickerPack | number;
-type StickerRoot = Sticker | string;
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import StickerPackRoot = GQLRoots.StickerPackRoot;
+import StickerRoot = GQLRoots.StickerRoot;
 
 function withStickerPackId<T, R>(handler: (ctx: AppContext, src: number, args: T) => MaybePromise<R>) {
     return (src: StickerPackRoot, args: T, ctx: AppContext) => {
@@ -45,19 +45,6 @@ function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T)
 }
 
 export default {
-    Query: {
-        myStickers: withActivatedUser(async (ctx, args, id) => {
-            return await Modules.Stickers.getUserStickers(ctx, id);
-        }),
-        stickersByEmoji: withActivatedUser((ctx, args) => {
-            return Modules.Stickers.findStickers(ctx, args.emoji);
-        }),
-        stickerPack: withActivatedUser(async (ctx, args, id) => {
-            let pid = IDs.StickerPack.parse(args.id);
-
-            return await Modules.Stickers.getPack(ctx, pid);
-        })
-    },
     StickerPack: {
         id: withStickerPackId((ctx, id) => IDs.StickerPack.serialize(id)),
         author: withStickerPack(async (ctx, pack) => pack.authorId),
@@ -78,6 +65,19 @@ export default {
         emoji: withSticker((ctx, sticker) => sticker.emoji),
         pack: withSticker((ctx, sticker) => sticker.packId),
         uuid: withSticker((ctx, sticker) => sticker.uuid),
+    },
+    Query: {
+        myStickers: withActivatedUser(async (ctx, args, id) => {
+            return await Modules.Stickers.getUserStickers(ctx, id);
+        }),
+        stickersByEmoji: withActivatedUser((ctx, args) => {
+            return Modules.Stickers.findStickers(ctx, args.emoji);
+        }),
+        stickerPack: withActivatedUser(async (ctx, args, id) => {
+            let pid = IDs.StickerPack.parse(args.id);
+
+            return await Modules.Stickers.getPack(ctx, pid);
+        })
     },
     Mutation: {
         stickerPackCreate: withActivatedUser((ctx, args, uid) => {

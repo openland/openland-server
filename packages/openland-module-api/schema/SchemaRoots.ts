@@ -233,6 +233,7 @@ export namespace GQLRoots {
     export type MessageRoot = Message | number;
     export type ModernMessageRoot = Message | Comment | RichMessage;
     export type GeneralMessageRoot = Message | Comment | RichMessage;
+    export type StickerMessageRoot = Message | Comment;
     export type ServiceMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
     export type MessageKeyboardRoot = { buttons: MessageButton & { id: string } };
