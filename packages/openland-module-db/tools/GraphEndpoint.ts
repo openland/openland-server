@@ -114,10 +114,10 @@ export async function createGraphQLAdminSchema() {
                 name: val.descriptor.name,
                 fields: {
                     ...fields,
-                    rawValue: {
-                        type: GraphQLString,
-                        resolve: entity => JSON.stringify(entity._rawValue)
-                    }
+                    // rawValue: {
+                    //     type: GraphQLString,
+                    //     resolve: entity => JSON.stringify(entity._rawValue)
+                    // }
                 }
             });
 
