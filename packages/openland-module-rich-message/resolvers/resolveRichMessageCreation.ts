@@ -137,7 +137,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
             if (slide.cover) {
                 imageMetadata = await Modules.Media.saveFile(ctx, slide.cover.uuid);
             }
-            let coverAlign = 'top';
+            let coverAlign: string|null = null;
 
             if (slide.coverAlign === 'Top') {
                 coverAlign = 'top';
