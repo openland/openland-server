@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '77e326cefbc97162f7ff94a4046a0261';
+export const GQL_SPEC_VERSION = '9b25d52dd90f37b618a6005552d7fb48';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1685,7 +1685,7 @@ export namespace GQL {
         input: StickerInput;
     }
     export interface MutationStickerPackRemoveStickerArgs {
-        uuid: string;
+        id: string;
     }
     export interface MutationStickerPackAddToCollectionArgs {
         id: string;
@@ -2551,10 +2551,9 @@ export namespace GQL {
         isAccountActivated: boolean;
     }
     export interface Sticker {
-        uuid: string;
+        id: string;
         image: ImageRef;
         pack: StickerPack;
-        animated: boolean;
         emoji: string;
     }
     export interface StickerPack {
@@ -2576,20 +2575,6 @@ export namespace GQL {
     export interface StickerPackInput {
         title: Nullable<string>;
         published: Nullable<boolean>;
-    }
-    export interface StickerMessage extends ModernMessage {
-        id: string;
-        date: Date;
-        sender: User;
-        senderBadge: Nullable<UserBadge>;
-        source: Nullable<MessageSource>;
-        message: Nullable<string>;
-        spans: MessageSpan[];
-        reactions: ModernMessageReaction[];
-        fallback: string;
-        quotedMessages: ModernMessage[];
-        commentsCount: number;
-        sticker: Sticker;
     }
     export interface Subscription {
         lifecheck: Nullable<string>;
@@ -2845,6 +2830,20 @@ export namespace GQL {
         quotedMessages: ModernMessage[];
         commentsCount: number;
         fallback: string;
+    }
+    export interface StickerMessage extends ModernMessage {
+        id: string;
+        date: Date;
+        sender: User;
+        senderBadge: Nullable<UserBadge>;
+        source: Nullable<MessageSource>;
+        message: Nullable<string>;
+        spans: MessageSpan[];
+        reactions: ModernMessageReaction[];
+        fallback: string;
+        quotedMessages: ModernMessage[];
+        commentsCount: number;
+        sticker: Sticker;
     }
     export interface GammaMessagesBatch {
         messages: ModernMessage[];
@@ -3290,7 +3289,6 @@ export interface GQLResolver {
     Sticker?: ComplexTypedResolver<GQL.Sticker, GQLRoots.StickerRoot, {image: GQLRoots.ImageRefRoot, pack: GQLRoots.StickerPackRoot}, {}>;
     StickerPack?: ComplexTypedResolver<GQL.StickerPack, GQLRoots.StickerPackRoot, {stickers: GQLRoots.StickerRoot[], author: GQLRoots.UserRoot}, {}>;
     UserStickers?: ComplexTypedResolver<GQL.UserStickers, GQLRoots.UserStickersRoot, {packs: GQLRoots.StickerPackRoot[], favourites: GQLRoots.StickerRoot[]}, {}>;
-    StickerMessage?: ComplexTypedResolver<GQL.StickerMessage, GQLRoots.StickerMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], reactions: GQLRoots.ModernMessageReactionRoot[], quotedMessages: GQLRoots.ModernMessageRoot[], sticker: GQLRoots.StickerRoot}, {}>;
     Subscription?: ComplexTypedSubscriptionResolver<GQL.Subscription, GQLRoots.SubscriptionRoot, {commentUpdatesGlobal: Nullable<GQLRoots.CommentGlobalUpdateContainerRoot>, debugEvents: GQLRoots.DebugEventRoot, settingsWatch: GQLRoots.SettingsRoot, watchSettings: GQLRoots.SettingsRoot, alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot, alphaSubscribeOnline: GQLRoots.OnlineEventRoot, chatOnlinesCount: GQLRoots.ChatOnlineEventRoot, chatUpdates: GQLRoots.ChatUpdateContainerRoot, commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>, dialogsUpdates: GQLRoots.DialogUpdateContainerRoot, homeFeedUpdates: Nullable<GQLRoots.FeedUpdateContainerRoot>, alphaConferenceWatch: GQLRoots.ConferenceRoot, alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot, notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>, typings: GQLRoots.TypingEventRoot, conversationTypings: GQLRoots.TypingEventRoot, alphaSubscribeTypings: GQLRoots.TypingEventRoot, alphaSubscribeChatTypings: GQLRoots.TypingEventRoot}, {commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs, debugEvents: GQL.SubscriptionDebugEventsArgs, debugReaderState: GQL.SubscriptionDebugReaderStateArgs, alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs, alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs, chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs, chatUpdates: GQL.SubscriptionChatUpdatesArgs, commentUpdates: GQL.SubscriptionCommentUpdatesArgs, dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs, alphaConferenceWatch: GQL.SubscriptionAlphaConferenceWatchArgs, alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs, notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs, conversationTypings: GQL.SubscriptionConversationTypingsArgs, alphaSubscribeChatTypings: GQL.SubscriptionAlphaSubscribeChatTypingsArgs}>;
     Tag?: ComplexTypedResolver<GQL.Tag, GQLRoots.TagRoot, {}, {}>;
     TagGroup?: ComplexTypedResolver<GQL.TagGroup, GQLRoots.TagGroupRoot, {tags: GQLRoots.TagRoot[]}, {}>;
@@ -3319,6 +3317,7 @@ export interface GQLResolver {
     MessageSourceComment?: ComplexTypedResolver<GQL.MessageSourceComment, GQLRoots.MessageSourceCommentRoot, {peer: GQLRoots.CommentsPeerRoot}, {}>;
     ServiceMessage?: ComplexTypedResolver<GQL.ServiceMessage, GQLRoots.ServiceMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>}, {}>;
     GeneralMessage?: ComplexTypedResolver<GQL.GeneralMessage, GQLRoots.GeneralMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, reactions: GQLRoots.ModernMessageReactionRoot[], source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], quotedMessages: GQLRoots.ModernMessageRoot[]}, {}>;
+    StickerMessage?: ComplexTypedResolver<GQL.StickerMessage, GQLRoots.StickerMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], reactions: GQLRoots.ModernMessageReactionRoot[], quotedMessages: GQLRoots.ModernMessageRoot[], sticker: GQLRoots.StickerRoot}, {}>;
     GammaMessagesBatch?: ComplexTypedResolver<GQL.GammaMessagesBatch, GQLRoots.GammaMessagesBatchRoot, {messages: GQLRoots.ModernMessageRoot[]}, {}>;
     ImageFallback?: ComplexTypedResolver<GQL.ImageFallback, GQLRoots.ImageFallbackRoot, {}, {}>;
     Image?: ComplexTypedResolver<GQL.Image, GQLRoots.ImageRoot, {metadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;

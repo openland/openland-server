@@ -1099,6 +1099,7 @@ export default {
         }),
         sendSticker: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.chatId);
+            let sid = IDs.Sticker.parse(args.stickerId);
 
             let spans: MessageSpan[] = [];
 
@@ -1114,7 +1115,7 @@ export default {
                 attachments: [],
                 replyMessages,
                 spans,
-                stickerId: args.stickerId
+                stickerId: sid
             });
 
             return true;

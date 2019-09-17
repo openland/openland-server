@@ -1,8 +1,7 @@
 type Sticker {
-    uuid: String!
+    id: ID!
     image: ImageRef!
     pack: StickerPack!
-    animated: Boolean!
     emoji: String!
 }
 
@@ -30,28 +29,6 @@ input StickerPackInput {
     published: Boolean
 }
 
-type StickerMessage implements ModernMessage {
-    #
-    #   State
-    #
-    id: ID!
-    date: Date!
-    sender: User!
-    senderBadge: UserBadge
-    source: MessageSource
-
-    #
-    #   Content
-    #
-    message: String
-    spans: [MessageSpan!]!
-    reactions: [ModernMessageReaction!]!
-    fallback: String!
-    quotedMessages: [ModernMessage!]!
-    commentsCount: Int!
-    sticker: Sticker!
-}
-
 extend type Query {
     myStickers: UserStickers!
     stickersByEmoji(emoji: String!): [Sticker!]!
@@ -62,10 +39,10 @@ extend type Mutation {
     stickerPackCreate(title: String!, stickers: [StickerInput!]): StickerPack!
     stickerPackUpdate(id: ID!, input: StickerPackInput!): StickerPack!
     stickerPackAddSticker(id: ID!, input: StickerInput!): Sticker!
-    stickerPackRemoveSticker(uuid: String!): Boolean!
+    stickerPackRemoveSticker(id: ID!): Boolean!
 
     stickerPackAddToCollection(id: ID!): Boolean!
     stickerPackRemoveFromCollection(id: ID!): Boolean!
-    stickerAddToFavorites(id: String!): Boolean!
-    stickerRemoveFromFavorites(id: String!): Boolean!
+    stickerAddToFavorites(id: ID!): Boolean!
+    stickerRemoveFromFavorites(id: ID!): Boolean!
 }

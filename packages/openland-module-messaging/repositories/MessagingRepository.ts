@@ -36,6 +36,10 @@ export class MessagingRepository {
             //
             let attachments: MessageAttachment[] = await this.prepareAttachments(ctx, message.attachments || []);
 
+            if (message.stickerId) {
+                message.sti
+            }
+
             //
             // Persist Messages
             //

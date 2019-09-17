@@ -47,7 +47,7 @@ function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T)
 export default {
     StickerPack: {
         id: withStickerPackId((ctx, id) => IDs.StickerPack.serialize(id)),
-        author: withStickerPack(async (ctx, pack) => pack.authorId),
+        author: withStickerPack(async (ctx, pack) => pack.uid),
         title: withStickerPack((ctx, pack) => pack.title),
         usesCount: withStickerPack((ctx, pack) => pack.usesCount),
         stickers: withStickerPackId(async (ctx, id) => {
@@ -61,22 +61,21 @@ export default {
     },
     Sticker: {
         image: withSticker((ctx, sticker) => sticker.image),
-        animated: withSticker((ctx, sticker) => sticker.animated),
         emoji: withSticker((ctx, sticker) => sticker.emoji),
         pack: withSticker((ctx, sticker) => sticker.packId),
-        uuid: withSticker((ctx, sticker) => sticker.uuid),
+        id: withSticker((ctx, sticker) => IDs.Sticker.serialize(sticker.id)),
     },
     Query: {
         myStickers: withActivatedUser(async (ctx, args, id) => {
             return await Modules.Stickers.getUserStickers(ctx, id);
         }),
-        stickersByEmoji: withActivatedUser((ctx, args) => {
-            return Modules.Stickers.findStickers(ctx, args.emoji);
+        stickersByEmoji: withActivatedUser((ctx, args, id) => {
+            return Modules.Stickers.findStickers(ctx, id, args.emoji);
         }),
         stickerPack: withActivatedUser(async (ctx, args, id) => {
             let pid = IDs.StickerPack.parse(args.id);
 
-            return await Modules.Stickers.getPack(ctx, pid);
+            return await Modules.Stickers.getPack(ctx, id, pid);
         })
     },
     Mutation: {
@@ -88,29 +87,37 @@ export default {
 
             return Modules.Stickers.updatePack(ctx, id, args.input);
         }),
-        stickerPackAddSticker: withActivatedUser((ctx, args) => {
+        stickerPackAddSticker: withActivatedUser((ctx, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
 
-            return Modules.Stickers.addSticker(ctx, id, args.input);
+            return Modules.Stickers.addSticker(ctx, uid, id, args.input);
         }),
-        stickerPackRemoveSticker: withActivatedUser(async (ctx, args) => {
-            await Modules.Stickers.removeSticker(ctx, args.uuid);
+        stickerPackRemoveSticker: withActivatedUser(async (ctx, args, uid) => {
+            let id = IDs.Sticker.parse(args.id);
+
+            await Modules.Stickers.removeSticker(ctx, uid, id);
             return true;
         }),
 
         stickerPackAddToCollection: withActivatedUser(async (ctx, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
+
             return await Modules.Stickers.addToCollection(ctx, uid, id);
         }),
         stickerPackRemoveFromCollection: withActivatedUser(async (ctx, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
+
             return await Modules.Stickers.removeFromCollection(ctx, uid, id);
         }),
-        stickerAddToFavorites: withActivatedUser(async (ctx, args) => {
-            return Modules.Stickers.addStickerToFavs(ctx, args.id);
+        stickerAddToFavorites: withActivatedUser(async (ctx, args, uid) => {
+            let id = IDs.Sticker.parse(args.id);
+
+            return Modules.Stickers.addStickerToFavs(ctx, uid, id);
         }),
-        stickerRemoveFromFavorites: withActivatedUser(async (ctx, args) => {
-            return Modules.Stickers.removeStickerFromFavs(ctx, args.id);
+        stickerRemoveFromFavorites: withActivatedUser(async (ctx, args, uid) => {
+            let id = IDs.Sticker.parse(args.id);
+
+            return Modules.Stickers.removeStickerFromFavs(ctx, uid, id);
         }),
     },
 } as GQLResolver;

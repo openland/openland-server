@@ -3,18 +3,21 @@ import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
-import { GQL } from '../../openland-module-api/schema/SchemaSpec';
-import StickerInput = GQL.StickerInput;
 import { Modules } from '../../openland-modules/Modules';
-import { AuthContext } from '../../openland-module-auth/AuthContext';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
-import { Nullable } from '../../openland-module-api/schema/SchemaUtils';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { ImageRef } from '../../openland-module-media/ImageRef';
+import { RandomLayer } from '@openland/foundationdb-random';
 
 export interface StickerPackInput {
-    title: Nullable<string>;
-    published: Nullable<boolean>;
+    title: string | null;
+    published: boolean | null;
+}
+
+export interface StickerInput {
+    image: ImageRef;
+    emoji: string;
 }
 
 @injectable()
@@ -27,7 +30,7 @@ export class StickersRepository {
             let id = await this.fetchNextPackId(ctx);
 
             return await Store.StickerPack.create(ctx, id, {
-                authorId: uid,
+                uid,
                 emojis: [],
                 published: false,
                 title: title,
@@ -62,44 +65,40 @@ export class StickersRepository {
         });
     }
 
-    // TODO: Dont' user gql StickerInput
-    addSticker = (parent: Context, pid: number, input: StickerInput) => {
+    addSticker = (parent: Context, uid: number, pid: number, input: StickerInput) => {
         return inTx(parent, async (ctx) => {
             let pack = await Store.StickerPack.findById(ctx, pid);
             if (!pack) {
                 throw new Error('Invalid pack id');
             }
 
-            // TODO: pass uid in argument
-            let authId = AuthContext.get(ctx).uid;
-            if (pack.authorId !== authId) {
+            if (pack.uid !== uid) {
                 throw new Error('Cannot add sticker to foreign sticker pack');
             }
 
-            let fileInfo = await Modules.Media.fetchFileInfo(parent, input.image.uuid);
             let imageRef = await Sanitizer.sanitizeImageRef(input.image);
             if (imageRef) {
                 await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
 
-            let sticker = await Store.Sticker.create(ctx, input.image.uuid, {
+            let id = Store.storage.db.get(RandomLayer).nextRandomId();
+            let sticker = await Store.Sticker.create(ctx, id, {
                 emoji: input.emoji,
                 packId: pid,
                 image: imageRef!,
-                animated: fileInfo.imageFormat === 'GIF',
                 deleted: false
             });
 
             pack.emojis = [...pack.emojis, {
                 emoji: sticker.emoji,
-                stickerId: sticker.uuid,
+                stickerId: sticker.id,
             }];
             await pack.flush(ctx);
             return sticker;
         });
     }
 
-    removeSticker = (parent: Context, uuid: string) => {
+    removeSticker = (parent: Context, uid: number, uuid: string) => {
         return inTx(parent, async (ctx) => {
             let sticker = await Store.Sticker.findById(ctx, uuid);
             if (!sticker) {
@@ -110,9 +109,7 @@ export class StickersRepository {
                 throw new Error('Consistency error');
             }
 
-            // TODO: pass uid in argument
-            let authId = AuthContext.get(ctx).uid;
-            if (pack.authorId !== authId) {
+            if (pack.uid !== uid) {
                 throw new AccessDeniedError();
             }
 
@@ -173,6 +170,53 @@ export class StickersRepository {
     getUserStickers = (parent: Context, uid: number) => {
         return inTx(parent, (ctx) => {
             return this.getUserStickersState(ctx, uid);
+        });
+    }
+
+    findStickers = async (parent: Context, uid: number, emoji: string) => {
+        let userStickers = await this.getUserStickers(parent, uid);
+        let stickers: string[] = [];
+        for (let id of userStickers.packIds) {
+            let pack = await Store.StickerPack.findById(parent, id);
+            stickers = stickers.concat(pack!.emojis.filter(a => a.emoji === emoji).map(a => a.stickerId));
+        }
+
+        return stickers;
+    }
+
+    getPack = async (parent: Context, uid: number, pid: number) => {
+        let pack = await Store.StickerPack.findById(parent, pid);
+
+        if (!pack || (uid !== pack.uid && !pack.published)) {
+            return null;
+        }
+
+        return pack;
+    }
+
+    addStickerToFavs = async (parent: Context, uid: number, uuid: string) => {
+        return await inTx(parent, async ctx => {
+            let userStickers = await this.getUserStickers(ctx, uid);
+            if (userStickers.favouriteIds.find(a => a === uuid)) {
+                return false;
+            }
+            userStickers.favouriteIds = [...userStickers.favouriteIds, uuid];
+
+            await userStickers.flush(ctx);
+            return true;
+        });
+    }
+
+    removeStickerFromFavs = async (parent: Context, uid: number, uuid: string) => {
+        return await inTx(parent, async ctx => {
+            let userStickers = await this.getUserStickers(ctx, uid);
+            if (userStickers.favouriteIds.every(a => a !== uuid)) {
+                return false;
+            }
+            userStickers.favouriteIds = [...userStickers.favouriteIds.filter(a => a !== uuid)];
+
+            await userStickers.flush(ctx);
+            return true;
         });
     }
 

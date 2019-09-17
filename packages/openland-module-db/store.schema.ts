@@ -1287,7 +1287,7 @@ export default declareSchema(() => {
     entity('StickerPack', () => {
        primaryKey('id', integer());
        field('title', string());
-       field('authorId', integer());
+       field('uid', integer());
        field('published', boolean());
        field('usesCount', integer());
        field('emojis', array(struct({
@@ -1303,9 +1303,8 @@ export default declareSchema(() => {
     });
 
     entity('Sticker', () => {
-       primaryKey('uuid', string());
+       primaryKey('id', string());
        field('image', ImageRef);
-       field('animated', boolean());
        field('deleted', boolean());
        field('emoji', string());
        field('packId', integer());
