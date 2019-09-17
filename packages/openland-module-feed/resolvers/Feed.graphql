@@ -9,7 +9,7 @@ type FeedPost {
     id: ID!
     date: Date!
     author: FeedPostAuthor!
-    canEdit: Boolean1
+    canEdit: Boolean
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
     isMentioned: Boolean!
