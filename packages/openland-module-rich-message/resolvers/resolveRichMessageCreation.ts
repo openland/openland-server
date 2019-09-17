@@ -29,7 +29,7 @@ export interface MentionInput {
     length: number;
 }
 
-export function resolveSpansInput(input: MessageSpanInput[]) {
+export function resolveSpansInput(input: MessageSpanInput[] = []) {
     let spans: CommentSpan[] = [];
     for (let span of input) {
         if (span.type === 'Bold') {
@@ -53,6 +53,41 @@ export function resolveSpansInput(input: MessageSpanInput[]) {
     return spans;
 }
 
+export function resolveMentionsInput(input: MentionInput[] = []) {
+    let mentions: CommentSpan[] = [];
+    for (let mention of input) {
+        if (mention.userId) {
+            mentions.push({
+                type: 'user_mention',
+                offset: mention.offset,
+                length: mention.length,
+                user: IDs.User.parse(mention.userId!)
+            });
+        } else if (mention.chatId) {
+            mentions.push({
+                type: 'room_mention',
+                offset: mention.offset,
+                length: mention.length,
+                room: IDs.Conversation.parse(mention.chatId!)
+            });
+        } else if (mention.userIds) {
+            mentions.push({
+                type: 'multi_user_mention',
+                offset: mention.offset,
+                length: mention.length,
+                users: mention.userIds.map(id => IDs.User.parse(id))
+            });
+        } else if (mention.all) {
+            mentions.push({
+                type: 'all_mention',
+                offset: mention.offset,
+                length: mention.length,
+            });
+        }
+    }
+    return mentions;
+}
+
 export async function resolveRichMessageCreation(ctx: Context, input: Input): Promise<RichMessageInput> {
     let spans: CommentSpan[] = [];
 
@@ -60,40 +95,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
     // Mentions
     //
     if (input.mentions) {
-        let mentions: CommentSpan[] = [];
-
-        for (let mention of input.mentions) {
-            if (mention.userId) {
-                mentions.push({
-                    type: 'user_mention',
-                    offset: mention.offset,
-                    length: mention.length,
-                    user: IDs.User.parse(mention.userId!)
-                });
-            } else if (mention.chatId) {
-                mentions.push({
-                    type: 'room_mention',
-                    offset: mention.offset,
-                    length: mention.length,
-                    room: IDs.Conversation.parse(mention.chatId!)
-                });
-            } else if (mention.userIds) {
-                mentions.push({
-                    type: 'multi_user_mention',
-                    offset: mention.offset,
-                    length: mention.length,
-                    users: mention.userIds.map(id => IDs.User.parse(id))
-                });
-            } else if (mention.all) {
-                mentions.push({
-                    type: 'all_mention',
-                    offset: mention.offset,
-                    length: mention.length,
-                });
-            }
-        }
-
-        spans.push(...mentions);
+        spans.push(...resolveMentionsInput(input.mentions || []));
     }
 
     //
@@ -122,7 +124,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
     //  Spans
     //
     if (input.spans) {
-        spans = resolveSpansInput(input.spans);
+        spans = resolveSpansInput(input.spans || []);
     }
 
     //
@@ -163,7 +165,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
             slides.push({
                 type: 'text',
                 text: slide.text || '',
-                spans: resolveSpansInput(slide.spans || []),
+                spans: [...resolveSpansInput(slide.spans || []), ...resolveMentionsInput(slide.mentions || [])],
                 cover: slide.cover ? {
                     image: slide.cover,
                     info: imageMetadata!

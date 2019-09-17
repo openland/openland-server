@@ -56,6 +56,7 @@ input SlideInput {
     type: SlideType!
     text: String
     spans: [MessageSpanInput!]
+    mentions: [MentionInput!]
     cover: ImageRefInput
     coverAlign: SlideCoverAlign
     attachments: [ID!]
