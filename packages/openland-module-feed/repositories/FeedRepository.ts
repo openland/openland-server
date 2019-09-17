@@ -13,6 +13,7 @@ import { Pubsub } from '../../openland-module-pubsub/pubsub';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 
 export type FeedTopicEvent =
     { type: 'new_item', id: number, tid: number } |
@@ -76,7 +77,7 @@ export class FeedRepository {
         });
     }
 
-    async createEvent(parent: Context, topic: string, type: string, content: JsonMap) {
+    async createEvent(parent: Context, topic: string, type: string, content: JsonMap, repeatKey?: string) {
         return await inTx(parent, async (ctx) => {
             let t = await this.resolveTopic(ctx, topic);
 
@@ -85,7 +86,7 @@ export class FeedRepository {
                 seq = await Store.Sequence.create(ctx, 'feed-event-id', { value: 0 });
             }
             let id = ++seq.value;
-            return await Store.FeedEvent.create(ctx, id, { tid: t.id, content, type });
+            return await Store.FeedEvent.create(ctx, id, { tid: t.id, content, type, repeatKey });
         });
     }
 
@@ -125,8 +126,12 @@ export class FeedRepository {
     //
     //  Posts
     //
-    async createPost(parent: Context, uid: number, topic: string, input: RichMessageInput) {
+    async createPost(parent: Context, uid: number, topic: string, input: RichMessageInput & { repeatKey?: string | null }) {
         return inTx(parent, async ctx => {
+            let tid = (await this.resolveTopic(ctx, topic))!.id;
+            if (input.repeatKey && await Store.FeedEvent.repeat.find(ctx, tid, input.repeatKey)) {
+                throw new DoubleInvokeError();
+            }
             //
             // Create message
             //
@@ -135,7 +140,7 @@ export class FeedRepository {
             //
             // Create feed item
             //
-            let event = await this.createEvent(ctx, topic, 'post', { richMessageId: message.id });
+            let event = await this.createEvent(ctx, topic, 'post', { richMessageId: message.id }, input.repeatKey || undefined);
 
             getTransaction(ctx).afterCommit(() => EventBus.publish('new_post', { id: event.id, tid: event.tid }));
             return event;

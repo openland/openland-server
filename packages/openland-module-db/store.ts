@@ -8049,6 +8049,7 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
 export interface FeedEventShape {
     id: number;
     tid: number;
+    repeatKey: string | null;
     type: string;
     content: any;
     edited: boolean | null;
@@ -8057,6 +8058,7 @@ export interface FeedEventShape {
 
 export interface FeedEventCreateShape {
     tid: number;
+    repeatKey?: string | null | undefined;
     type: string;
     content: any;
     edited?: boolean | null | undefined;
@@ -8071,6 +8073,15 @@ export class FeedEvent extends Entity<FeedEventShape> {
         if (this._rawValue.tid !== normalized) {
             this._rawValue.tid = normalized;
             this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
+    get repeatKey(): string | null { return this._rawValue.repeatKey; }
+    set repeatKey(value: string | null) {
+        let normalized = this.descriptor.codec.fields.repeatKey.normalize(value);
+        if (this._rawValue.repeatKey !== normalized) {
+            this._rawValue.repeatKey = normalized;
+            this._updatedValues.repeatKey = normalized;
             this.invalidate();
         }
     }
@@ -8120,10 +8131,12 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'topic'), condition: undefined });
         secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'fromTopic'), condition: src => !src.deleted });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'tid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'tid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'type', type: { type: 'string' }, secure: false });
         fields.push({ name: 'content', type: { type: 'json' }, secure: false });
         fields.push({ name: 'edited', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
@@ -8131,6 +8144,7 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         let codec = c.struct({
             id: c.integer,
             tid: c.integer,
+            repeatKey: c.optional(c.string),
             type: c.string,
             content: c.any,
             edited: c.optional(c.boolean),
@@ -8190,6 +8204,18 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+        },
+    });
+
+    readonly repeat = Object.freeze({
+        find: async (ctx: Context, tid: number, repeatKey: string | null) => {
+            return this._findFromUniqueIndex(ctx, [tid, repeatKey], this.descriptor.secondaryIndexes[3]);
+        },
+        findAll: async (ctx: Context, tid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [tid])).items;
+        },
+        query: (ctx: Context, tid: number, opts?: RangeQueryOptions<string | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [tid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 

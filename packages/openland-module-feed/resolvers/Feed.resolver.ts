@@ -134,7 +134,7 @@ export default {
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
+            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, { ...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey });
         }),
         alphaEditFeedPost: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
@@ -155,7 +155,7 @@ export default {
                         throw new AccessDeniedError();
                     }
                 }
-                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid });
+                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid, repeatKey: args.repeatKey });
             });
         }),
         feedReactionAdd: withUser(async (ctx, args, uid) => {
