@@ -14,6 +14,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
+import { Modules } from '../../openland-modules/Modules';
 
 export type FeedTopicEvent =
     { type: 'new_item', id: number, tid: number } |
@@ -160,7 +161,9 @@ export class FeedRepository {
             if (!message) {
                 throw new UserError('Message not found');
             }
-            if (message.uid !== uid) {
+            if (!message.oid && (message.uid !== uid)) {
+                throw new AccessDeniedError();
+            } else if (message.oid && !await Modules.Orgs.isUserAdmin(ctx, uid, message.oid)) {
                 throw new AccessDeniedError();
             }
 

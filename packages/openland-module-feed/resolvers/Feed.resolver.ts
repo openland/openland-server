@@ -52,6 +52,15 @@ export default {
             }
         }),
         edited: withRichMessage((ctx, message, src) => src.edited || false),
+        canEdit: withRichMessage(async (ctx, message, src) => {
+            if (message.uid === ctx.auth.uid) {
+                return true;
+            } else if (message.oid) {
+                return await Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, message.oid);
+            } else {
+                return false;
+            }
+        }),
         reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
         message: withRichMessage((ctx, message) => message.text),
