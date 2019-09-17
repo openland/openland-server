@@ -64,6 +64,9 @@ export default {
                 if (id.type === IDs.ConversationMessage) {
                     peerId = id.id as number;
                     peerType = 'message';
+                } else if (id.type === IDs.FeedItem) {
+                    peerId = id.id as number;
+                    peerType = 'feed_item';
                 } else {
                     throw new UserError('Unknown peer');
                 }
