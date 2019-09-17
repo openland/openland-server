@@ -91,7 +91,9 @@ export default {
         spans: src => src.spans || [],
         cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined,
         coverAlign: src => {
-            if (src.coverAlign === 'top') {
+            if (!src.cover) {
+                return null;
+            } else if (src.coverAlign === 'top') {
                 return 'Top';
             } else if (src.coverAlign === 'bottom') {
                 return 'Bottom';
