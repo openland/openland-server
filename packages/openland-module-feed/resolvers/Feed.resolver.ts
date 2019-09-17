@@ -89,7 +89,7 @@ export default {
             } else if (src.coverAlign === 'cover') {
                 return 'Cover';
             }
-            return 'Top';
+            return null;
         },
         attachments: async (src, args, ctx) => {
             if (src.attachments) {
