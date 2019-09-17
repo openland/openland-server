@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd5cdda1a58e77422741fe00efaa84637';
+export const GQL_SPEC_VERSION = 'e0bdf616f52276e7f83d95c6a230f809';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2675,7 +2675,7 @@ export namespace GQL {
         id: string;
         date: Date;
         author: FeedPostAuthor;
-        canEdit: Nullable<boolean>;
+        canEdit: boolean;
         edited: boolean;
         reactions: ModernMessageReaction[];
         isMentioned: boolean;
