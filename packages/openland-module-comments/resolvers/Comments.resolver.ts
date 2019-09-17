@@ -2,7 +2,7 @@ import { Store } from './../../openland-module-db/FDB';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
-import { IDs } from '../../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import {
     MessageAttachmentFileInput, MessageAttachmentInput,
 } from '../../openland-module-messaging/MessageInput';
@@ -10,6 +10,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../repositories/CommentsRepository';
 import { FeedEvent, Message } from '../../openland-module-db/store';
 import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
+import { UserError } from '../../openland-errors/UserError';
 
 export default {
     CommentsPeer: {
@@ -365,6 +366,29 @@ export default {
                 comments: comments.filter(c => c.visible),
                 peerType: 'feed_item',
                 peerId: itemId,
+            };
+        }),
+        comments: withUser(async (ctx, args, uid) => {
+            let id = IdsFactory.resolve(args.peerId);
+            let peerId: number | null;
+            let peerType: 'message' | 'feed_item' | null;
+
+            if (id.type === IDs.ConversationMessage) {
+                peerId = id.id as number;
+                peerType = 'message';
+            } else if (id.type === IDs.FeedItem) {
+                peerId = id.id as number;
+                peerType = 'feed_item';
+            } else {
+                throw new UserError('Unknown peer');
+            }
+
+            let comments = await Store.Comment.peer.findAll(ctx, peerType, peerId);
+
+            return {
+                comments: comments.filter(c => c.visible),
+                peerType: peerType,
+                peerId: peerId,
             };
         }),
     },
