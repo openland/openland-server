@@ -178,7 +178,7 @@ export default {
             let reportChatId = await Modules.Super.getEnvVar<number>(ctx, 'content-report-chat-id');
 
             if (superBotId && reportChatId) {
-                await Modules.Messaging.sendMessage(ctx, superBotId, reportChatId, buildMessage(...message));
+                await Modules.Messaging.sendMessage(ctx, reportChatId, superBotId, buildMessage(...message));
             }
             return true;
         })
