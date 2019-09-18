@@ -164,6 +164,8 @@ export default {
             if (args.message) {
                 message.push(`Message: ${args.message}\n`);
             }
+            message.push(`From: `, userMention(await Modules.Users.getUserFullName(ctx, uid), uid), '\n');
+
             let id = IdsFactory.resolve(args.contentId);
 
             if (id.type === IDs.User) {
@@ -172,6 +174,8 @@ export default {
                 message.push('org: openland.com/' + args.contentId);
             } else if (id.type === IDs.Conversation) {
                 message.push('room: ', roomMention(await Modules.Messaging.room.resolveConversationTitle(ctx, id.id as number, uid), id.id as number));
+            } else if (id.type === IDs.FeedItem) {
+                message.push('post: openland.com/feed/' + args.contentId);
             }
 
             let superBotId = await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
