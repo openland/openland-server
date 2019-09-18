@@ -197,6 +197,39 @@ export default {
                 repeatKey: args.repeatKey,
             });
         }),
+        betaAddComment: withUser(async (ctx, args, uid) => {
+            let id = IdsFactory.resolve(args.peerId);
+            let peerId: number | null;
+            let peerType: 'message' | 'feed_item' | null;
+
+            if (id.type === IDs.ConversationMessage) {
+                peerId = id.id as number;
+                peerType = 'message';
+            } else if (id.type === IDs.FeedItem) {
+                peerId = id.id as number;
+                peerType = 'feed_item';
+            } else {
+                throw new UserError('Unknown peer');
+            }
+
+            let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
+
+            if (peerType === 'message') {
+                return await Modules.Comments.addMessageComment(ctx, peerId, uid, {
+                    ...(await resolveRichMessageCreation(ctx, args)),
+                    replyToComment,
+                    repeatKey: args.repeatKey,
+                });
+            } else if (peerType === 'feed_item') {
+                return await Modules.Comments.addFeedItemComment(ctx, peerId, uid, {
+                    ...(await resolveRichMessageCreation(ctx, args)),
+                    replyToComment,
+                    repeatKey: args.repeatKey,
+                });
+            } else {
+                throw new UserError('Unknown peer type');
+            }
+        }),
         editComment: withUser(async (ctx, args, uid) => {
             let commentId = IDs.Comment.parse(args.id);
             let spans: CommentSpan[] = [];
