@@ -6,6 +6,7 @@ import { CommentPeerType } from '../repositories/CommentsRepository';
 import { Comment } from '../../openland-module-db/store';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
+import { MessageSpan } from '../../openland-module-messaging/MessageInput';
 
 @injectable()
 export class CommentsNotificationsMediator {
@@ -37,5 +38,9 @@ export class CommentsNotificationsMediator {
 
     async onNewComment(parent: Context, comment: Comment) {
         await this.queue.pushWork(parent, { commentId: comment.id });
+    }
+
+    async onNewPeer(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, mentions: MessageSpan[] = []) {
+        return await this.repo.onNewPeer(parent, peerType, peerId, uid, mentions);
     }
 }

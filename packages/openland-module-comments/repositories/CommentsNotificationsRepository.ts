@@ -4,6 +4,7 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
+import { MessageSpan } from '../../openland-module-messaging/MessageInput';
 
 @injectable()
 export class CommentsNotificationsRepository {
@@ -103,6 +104,24 @@ export class CommentsNotificationsRepository {
 
                 if (sendNotification) {
                     await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
+                }
+            }
+        });
+    }
+
+    async onNewPeer(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, mentions: MessageSpan[] = []) {
+        return await inTx(parent, async ctx => {
+            // Subscribe to comments
+            await Modules.Comments.subscribeToComments(ctx, peerType, peerId, uid, 'all');
+
+            // Subscribe user to comments if he was mentioned
+            mentions = mentions.filter(s => s.type === 'user_mention');
+            for (let mention of mentions) {
+                if (mention.type !== 'user_mention') {
+                    continue;
+                }
+                if (!(await Store.CommentsSubscription.findById(ctx, peerType, peerId, mention.user))) {
+                    await await Modules.Comments.subscribeToComments(ctx, peerType, peerId, mention.user, 'all');
                 }
             }
         });

@@ -91,18 +91,7 @@ export class MessagingMediator {
             await this.delivery.onNewMessage(ctx, res.message);
 
             // Subscribe to comments
-            await Modules.Comments.subscribeToComments(ctx, 'message', res.message.id, uid, 'all');
-
-            // Subscribe user to comments if he was mentioned
-            let mentions = (message.spans || []).filter(s => s.type === 'user_mention');
-            for (let mention of mentions) {
-                if (mention.type !== 'user_mention') {
-                    continue;
-                }
-                if (!(await Store.CommentsSubscription.findById(ctx, 'message', res.message.id, mention.user))) {
-                    await await Modules.Comments.subscribeToComments(ctx, 'message', res.message.id, mention.user, 'all');
-                }
-            }
+            await Modules.Comments.notificationsMediator.onNewPeer(ctx, 'message', res.message.id, uid, message.spans || []);
 
             if (!msg.ignoreAugmentation) {
                 // Augment

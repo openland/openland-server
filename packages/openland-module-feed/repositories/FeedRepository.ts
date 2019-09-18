@@ -144,19 +144,7 @@ export class FeedRepository {
             let event = await this.createEvent(ctx, topic, 'post', { richMessageId: message.id }, input.repeatKey || undefined);
 
             // Subscribe to comments
-            // Subscribe to comments
-            await Modules.Comments.subscribeToComments(ctx, 'feed_item', event.id, uid, 'all');
-
-            // Subscribe user to comments if he was mentioned
-            let mentions = (message.spans || []).filter(s => s.type === 'user_mention');
-            for (let mention of mentions) {
-                if (mention.type !== 'user_mention') {
-                    continue;
-                }
-                if (!(await Store.CommentsSubscription.findById(ctx, 'message', event.id, mention.user))) {
-                    await await Modules.Comments.subscribeToComments(ctx, 'message', event.id, mention.user, 'all');
-                }
-            }
+            await Modules.Comments.notificationsMediator.onNewPeer(ctx, 'feed_item', event.id, uid, message.spans || []);
 
             getTransaction(ctx).afterCommit(() => EventBus.publish('new_post', { id: event.id, tid: event.tid }));
             return event;
