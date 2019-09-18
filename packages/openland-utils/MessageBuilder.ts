@@ -7,13 +7,15 @@ export type MessagePart = string
     | ({ type: 'rich_attach', attach: Partial<MessageRichAttachmentInput> })
     | ({ type: 'file_attach', attach: MessageAttachmentFileInput })
     | ({ type: 'loud_text', parts: MessagePart[] })
-    | ({ type: 'insane_text', text: string });
+    | ({ type: 'insane_text', text: string })
+    | ({ type: 'room_mention', room: number, text: string });
 
 export const boldString = (str: string) => ({ type: 'bold_text', text: str }) as MessagePart;
 export const heading = (...parts: MessagePart[]) => ({ type: 'loud_text', parts: parts }) as MessagePart;
 export const insaneString = (str: string) => ({ type: 'insane_text', text: str }) as MessagePart;
 export const userMention = (str: string, uid: number) => ({ type: 'user_mention', text: str, uid }) as MessagePart;
 export const usersMention = (str: string, uids: number[]) => ({ type: 'users_mention', text: str, uids }) as MessagePart;
+export const roomMention = (str: string, room: number) => ({ type: 'room_mention', room, text: str }) as MessagePart;
 
 export function buildMessage(...parts: MessagePart[]): MessageInput {
     let text = '';
@@ -60,6 +62,9 @@ export function buildMessage(...parts: MessagePart[]): MessageInput {
             attachments.push(part.attach);
         } else if (part.type === 'insane_text') {
             spans.push({ type: 'insane_text', offset, length: part.text.length });
+            text += part.text;
+        } else if (part.type === 'room_mention') {
+            spans.push({ type: 'room_mention', offset, length: part.text.length, room: part.room });
             text += part.text;
         }
     }
