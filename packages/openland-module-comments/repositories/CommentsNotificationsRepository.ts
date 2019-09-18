@@ -1,4 +1,3 @@
-import { Message } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
@@ -104,24 +103,6 @@ export class CommentsNotificationsRepository {
 
                 if (sendNotification) {
                     await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
-                }
-            }
-        });
-    }
-
-    async onNewMessage(parent: Context, message: Message) {
-        return await inTx(parent, async (ctx) => {
-            // Subscribe message sender creator to comments
-            await this.subscribeToComments(ctx, 'message', message.id, message.uid, 'all');
-
-            // Subscribe user to comments if he was mentioned
-            let mentions = (message.spans || []).filter(s => s.type === 'user_mention');
-            for (let mention of mentions) {
-                if (mention.type !== 'user_mention') {
-                    continue;
-                }
-                if (!(await Store.CommentsSubscription.findById(ctx, 'message', message.id, mention.user))) {
-                    await this.subscribeToComments(ctx, 'message', message.id, mention.user, 'all');
                 }
             }
         });
