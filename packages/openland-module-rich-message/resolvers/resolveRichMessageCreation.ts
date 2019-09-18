@@ -124,7 +124,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
     //  Spans
     //
     if (input.spans) {
-        spans = resolveSpansInput(input.spans || []);
+        spans.push(...resolveSpansInput(input.spans || []));
     }
 
     //
