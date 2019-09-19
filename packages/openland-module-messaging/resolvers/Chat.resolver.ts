@@ -526,6 +526,7 @@ export default {
                 conversationId: conversationId
             };
         }),
+        // Deprecated
         alphaGlobalRead: withUser(async (ctx, args, uid) => {
             // await Modules.Messaging.markAsSeqRead(ctx, uid, args.toSeq);
             return 'ok';

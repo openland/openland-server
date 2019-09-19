@@ -959,11 +959,14 @@ export default declareSchema(() => {
 
     entity('UserNotificationsState', () => {
         primaryKey('uid', integer());
-        field('readSeq', optional(integer()));
         field('lastEmailNotification', optional(integer()));
         field('lastPushNotification', optional(integer()));
+
+        // DEPRECATED START
+        field('readSeq', optional(integer()));
         field('lastEmailSeq', optional(integer()));
         field('lastPushSeq', optional(integer()));
+        // DEPRECATED END
 
         field('lastEmailCursor', optional(string()));
         field('lastPushCursor', optional(string()));

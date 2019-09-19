@@ -24,27 +24,15 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     lastSeen: 'online' | 'never_online' | number,
     isActive: boolean,
     notificationsDelay: '1min' | '15min' | 'none' | null,
-    notificationsReadSeq: number | null,
-    userStateSeq: number,
-    lastPushSeq: number | null,
     lastPushCursor: string | null,
     eventsTail: string | null,
     mobileNotifications: 'all' | 'direct' | 'none',
     desktopNotifications: 'all' | 'direct' | 'none'
 }) => {
-
     if (user.lastSeen === 'never_online') {
         log.debug(ctx, 'skip never-online');
         return true;
     }
-
-    // // Pause notifications only if delay was set
-    // // if (settings.notificationsDelay !== 'none') {
-    // // Ignore online
-    // if (lastSeen === 'online') {
-    //     log.debug(ctx, 'skip online');
-    //     return;
-    // }
 
     // Ignore active users
     if (user.isActive) {
@@ -59,29 +47,13 @@ export const shouldIgnoreUser = (ctx: Context, user: {
         return true;
     }
 
-    // Ignore read updates
-    if (user.notificationsReadSeq === user.userStateSeq) {
-        log.debug(ctx, 'ignore read updates');
-        return true;
-    }
-
-    // Ignore never opened apps
-    if (user.notificationsReadSeq === null) {
-        log.debug(ctx, 'ignore never opened apps');
-        return true;
-    }
-
     // Ignore user's with disabled notifications
     if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
         log.debug(ctx, 'ignore user\'s with disabled notifications');
         return true;
     }
 
-    // Ignore already processed updates
-    // if (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq) {
-    //     log.debug(ctx, 'ignore already processed updates');
-    //     return true;
-    // }
+    // Ignore already sent pushes
     if (user.lastPushCursor && user.eventsTail) {
         let comp = Buffer.compare(Buffer.from(user.lastPushCursor, 'base64'), Buffer.from(user.eventsTail, 'base64'));
         if (comp === 0) {
@@ -92,39 +64,10 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     return false;
 };
 
-export const shouldResetNotificationDelivery = (ctx: Context, user: {
-    uid: number,
-    lastSeen: 'online' | 'never_online' | number,
-    notificationsReadSeq: number | null,
-    userStateSeq: number,
-    lastPushSeq: number | null,
-    mobileNotifications: 'all' | 'direct' | 'none',
-    desktopNotifications: 'all' | 'direct' | 'none'
-}) => {
-    return user.lastSeen === 'never_online'
-        || user.notificationsReadSeq === user.userStateSeq // Ignore read updates
-        || user.notificationsReadSeq === null // Ignore never opened apps
-        || (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') // Ignore user's with disabled notifications
-        || (user.lastPushSeq !== null && user.lastPushSeq >= user.userStateSeq);  // Ignore already processed updates
-};
-
-export const shouldUpdateUserSeq = (ctx: Context, user: {
-    mobileNotifications: 'all' | 'direct' | 'none',
-    desktopNotifications: 'all' | 'direct' | 'none',
-}) => {
-    if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
-        return true;
-    }
-    return false;
-};
-
 const handleUser = async (_ctx: Context, uid: number) => {
     let ctx = withLogPath(_ctx, 'user ' + uid);
 
-    log.debug(ctx, 'kek');
     // Loading user's settings and state
-
-    let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);
     let settings = await Modules.Users.getUserSettings(ctx, uid);
     let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
     let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
@@ -135,10 +78,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
         lastSeen,
         isActive,
         notificationsDelay: settings.notificationsDelay,
-        notificationsReadSeq: state.readSeq,
-        userStateSeq: ustate.seq,
         lastPushCursor: state.lastPushCursor,
-        lastPushSeq: state.lastPushSeq,
         eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
         mobileNotifications: settings.mobileNotifications,
         desktopNotifications: settings.desktopNotifications,
@@ -146,13 +86,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
     if (shouldIgnoreUser(ctx, user)) {
         await Modules.Push.sendCounterPush(ctx, uid);
-
-        // if (shouldResetNotificationDelivery(ctx, user)) {
         Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-        // }
-        // if (shouldUpdateUserSeq(ctx, user)) {
-        //     state.lastPushSeq = ustate.seq;
-        // }
         state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
         return;
     }
@@ -167,10 +101,10 @@ const handleUser = async (_ctx: Context, uid: number) => {
     let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
     let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
 
-    let unreadCounter: number | undefined = undefined;
+    let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
 
     // Handling unread messages
-    let hasMessage = false;
+    let hasPush = false;
     for (let m of messages) {
         let messageId = m.mid!;
         let message = await Store.Message.findById(ctx, messageId);
@@ -178,8 +112,18 @@ const handleUser = async (_ctx: Context, uid: number) => {
             continue;
         }
 
-        let senderId = message.uid;
-        let sender = await Modules.Users.profileById(ctx, senderId);
+        // Ignore current user
+        if (message.uid === uid) {
+            continue;
+        }
+
+        let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
+        // Ignore read messages
+        if (readMessageId >= message.id) {
+            continue;
+        }
+
+        let sender = await Modules.Users.profileById(ctx, message.uid);
         let receiver = await Modules.Users.profileById(ctx, uid);
         let conversation = await Store.Conversation.findById(ctx, message.cid);
 
@@ -201,9 +145,8 @@ const handleUser = async (_ctx: Context, uid: number) => {
             chatTitle = chatTitle.slice(1);
         }
 
-        hasMessage = true;
-        let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
-
+        hasPush = true;
+        let senderName = await Modules.Users.getUserFullName(ctx, sender.id);
         let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({senderName, chatTitle});
 
         if (conversation.kind === 'private') {
@@ -216,16 +159,12 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
         let pushBody = await fetchMessageFallback(message);
 
-        if (unreadCounter === undefined) {
-            unreadCounter = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
-        }
-
         let push = {
             uid: uid,
             title: pushTitle,
             body: pushBody,
             picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
-            counter: unreadCounter!,
+            counter: unreadCounter,
             conversationId: conversation.id,
             mobile: sendMobile,
             desktop: sendDesktop,
@@ -243,19 +182,15 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
         log.debug(ctx, 'new_push', JSON.stringify(push));
         await Modules.Push.pushWork(ctx, push);
-        // workDone = true;
     }
 
     // Save state
-    if (hasMessage) {
+    if (hasPush) {
         state.lastPushNotification = Date.now();
     } else {
         await Modules.Push.sendCounterPush(ctx, uid);
     }
 
-    log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + ustate.seq);
-
-    state.lastPushSeq = ustate.seq;
     state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
 };

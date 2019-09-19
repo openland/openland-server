@@ -31,6 +31,7 @@ export class UserStateRepository {
         return res.mute;
     }
 
+    // Deprecated
     async markAsSeqRead(parent: Context, uid: number, toSeq: number) {
         await inTx(parent, async (ctx) => {
             let state = await this.getUserNotificationState(ctx, uid);
