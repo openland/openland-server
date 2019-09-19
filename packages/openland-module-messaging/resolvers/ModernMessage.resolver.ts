@@ -270,6 +270,9 @@ export async function fetchMessageFallback(message: Message | Comment | RichMess
     if (message.text) {
         fallback.push(message.text);
     }
+    if ((message instanceof Message || message instanceof Comment) && message.stickerId) {
+        fallback.push(Texts.Notifications.STICKER);
+    }
     if (message instanceof Message && message.fileMetadata) {
         fallback.push(attachFallback(message.fileMetadata && message.fileMetadata.mimeType, message.fileMetadata && message.fileMetadata.isImage));
     }
@@ -321,7 +324,9 @@ async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): P
 export default {
     ModernMessage: {
         __resolveType(src: Message | Comment) {
-            if (src instanceof Comment) {
+            if (src.stickerId) {
+                return 'StickerMessage';
+            } else if (src instanceof Comment) {
                 return 'GeneralMessage';
             } else if (src.isService) {
                 return 'ServiceMessage';
@@ -604,6 +609,67 @@ export default {
                 return [];
             }
             if (src instanceof Comment || src instanceof RichMessage) {
+                return [];
+            }
+            if (src.replyMessages) {
+                let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
+                let filtered = messages.filter(m => !!m);
+                if (filtered.length > 0) {
+                    return filtered;
+                }
+                return [];
+            }
+            return [];
+        },
+        commentsCount: async (src, argx, ctx) => {
+            if (src instanceof Comment) {
+                return 0;
+            }
+
+            let state = await Store.CommentState.findById(ctx, 'message', src.id);
+            return (state && state.commentsCount) || 0;
+        },
+        fallback: src => fetchMessageFallback(src)
+    },
+    StickerMessage: {
+        //
+        //  State
+        //
+        id: src => {
+            if (src instanceof Comment) {
+                return IDs.Comment.serialize(src.id);
+            } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            }
+            throw new Error('unknown message ' + src);
+        },
+        date: src => src.metadata.createdAt,
+        sender: async (src, args, ctx) => {
+            // message can be deleted, while sender can be alive or deleted
+
+            if (src.deleted) {
+                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                if (deletedUserId) {
+                    return deletedUserId;
+                }
+            }
+            return src.uid;
+        },
+        senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
+        reactions: src => src.reactions || [],
+        source: (src, args, ctx) => src,
+        sticker: (src) => src.stickerId,
+
+        //
+        //  Content
+        //
+        message: src => null,
+        spans: src => [],
+        quotedMessages: async (src, args, ctx) => {
+            if (src.deleted) {
+                return [];
+            }
+            if (src instanceof Comment) {
                 return [];
             }
             if (src.replyMessages) {
@@ -1029,6 +1095,29 @@ export default {
                 attachments,
                 replyMessages,
                 spans
+            });
+
+            return true;
+        }),
+        sendSticker: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            let sid = IDs.Sticker.parse(args.stickerId);
+
+            let spans: MessageSpan[] = [];
+
+            //
+            // Reply messages
+            //
+            let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
+
+            // Send message
+            await Modules.Messaging.sendMessage(ctx, cid, uid!, {
+                message: null,
+                repeatKey: args.repeatKey,
+                attachments: [],
+                replyMessages,
+                spans,
+                stickerId: sid
             });
 
             return true;

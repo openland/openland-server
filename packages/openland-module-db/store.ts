@@ -3652,6 +3652,7 @@ export interface MessageShape {
     deleted: boolean | null;
     spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null;
     attachmentsModern: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imagePreview: string | null, imageFallback: { photo: string, text: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null })[])[] } | null })[] | null;
+    stickerId: string | null;
     fileId: string | null;
     fileMetadata: { name: string, size: number, isStored: boolean | null, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null;
     filePreview: string | null;
@@ -3679,6 +3680,7 @@ export interface MessageCreateShape {
     deleted?: boolean | null | undefined;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined;
     attachmentsModern?: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null | undefined, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined } | { type: 'rich_attachment', id: string, title: string | null | undefined, subTitle: string | null | undefined, titleLink: string | null | undefined, text: string | null | undefined, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imagePreview: string | null | undefined, imageFallback: { photo: string, text: string } | null | undefined, titleLinkHostname: string | null | undefined, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null | undefined })[])[] } | null | undefined })[] | null | undefined;
+    stickerId?: string | null | undefined;
     fileId?: string | null | undefined;
     fileMetadata?: { name: string, size: number, isStored: boolean | null | undefined, isImage: boolean | null | undefined, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined;
     filePreview?: string | null | undefined;
@@ -3811,6 +3813,15 @@ export class Message extends Entity<MessageShape> {
             this.invalidate();
         }
     }
+    get stickerId(): string | null { return this._rawValue.stickerId; }
+    set stickerId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.stickerId.normalize(value);
+        if (this._rawValue.stickerId !== normalized) {
+            this._rawValue.stickerId = normalized;
+            this._updatedValues.stickerId = normalized;
+            this.invalidate();
+        }
+    }
     get fileId(): string | null { return this._rawValue.fileId; }
     set fileId(value: string | null) {
         let normalized = this.descriptor.codec.fields.fileId.normalize(value);
@@ -3936,6 +3947,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, secure: false });
         fields.push({ name: 'attachmentsModern', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { file_attachment: { id: { type: 'string' }, fileId: { type: 'string' }, filePreview: { type: 'optional', inner: { type: 'string' } }, fileMetadata: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } }, rich_attachment: { id: { type: 'string' }, title: { type: 'optional', inner: { type: 'string' } }, subTitle: { type: 'optional', inner: { type: 'string' } }, titleLink: { type: 'optional', inner: { type: 'string' } }, text: { type: 'optional', inner: { type: 'string' } }, icon: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, image: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, iconInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imagePreview: { type: 'optional', inner: { type: 'string' } }, imageFallback: { type: 'optional', inner: { type: 'struct', fields: { photo: { type: 'string' }, text: { type: 'string' } } } }, titleLinkHostname: { type: 'optional', inner: { type: 'string' } }, keyboard: { type: 'optional', inner: { type: 'struct', fields: { buttons: { type: 'array', inner: { type: 'array', inner: { type: 'struct', fields: { title: { type: 'string' }, style: { type: 'enum', values: ['DEFAULT', 'LIGHT'] }, url: { type: 'optional', inner: { type: 'string' } } } } } } } } } } } } } }, secure: false });
+        fields.push({ name: 'stickerId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'fileId', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
         fields.push({ name: 'fileMetadata', type: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isStored: { type: 'optional', inner: { type: 'boolean' } }, isImage: { type: 'optional', inner: { type: 'boolean' } }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, secure: true });
         fields.push({ name: 'filePreview', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
@@ -3962,6 +3974,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
             deleted: c.optional(c.boolean),
             spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) }))),
             attachmentsModern: c.optional(c.array(c.union({ file_attachment: c.struct({ id: c.string, fileId: c.string, filePreview: c.optional(c.string), fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })) }), rich_attachment: c.struct({ id: c.string, title: c.optional(c.string), subTitle: c.optional(c.string), titleLink: c.optional(c.string), text: c.optional(c.string), icon: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), iconInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imagePreview: c.optional(c.string), imageFallback: c.optional(c.struct({ photo: c.string, text: c.string })), titleLinkHostname: c.optional(c.string), keyboard: c.optional(c.struct({ buttons: c.array(c.array(c.struct({ title: c.string, style: c.enum('DEFAULT', 'LIGHT'), url: c.optional(c.string) }))) })) }) }))),
+            stickerId: c.optional(c.string),
             fileId: c.optional(c.string),
             fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isStored: c.optional(c.boolean), isImage: c.optional(c.boolean), imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })),
             filePreview: c.optional(c.string),
@@ -4057,6 +4070,7 @@ export interface CommentShape {
     uid: number;
     repeatKey: string | null;
     text: string | null;
+    stickerId: string | null;
     reactions: ({ userId: number, reaction: string })[] | null;
     spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null;
     attachments: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, imagePreview: string | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageFallback: { photo: string, text: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null })[])[] } | null })[] | null;
@@ -4072,6 +4086,7 @@ export interface CommentCreateShape {
     uid: number;
     repeatKey?: string | null | undefined;
     text?: string | null | undefined;
+    stickerId?: string | null | undefined;
     reactions?: ({ userId: number, reaction: string })[] | null | undefined;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined;
     attachments?: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null | undefined, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined } | { type: 'rich_attachment', id: string, title: string | null | undefined, subTitle: string | null | undefined, titleLink: string | null | undefined, text: string | null | undefined, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, imagePreview: string | null | undefined, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imageFallback: { photo: string, text: string } | null | undefined, titleLinkHostname: string | null | undefined, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null | undefined })[])[] } | null | undefined })[] | null | undefined;
@@ -4133,6 +4148,15 @@ export class Comment extends Entity<CommentShape> {
         if (this._rawValue.text !== normalized) {
             this._rawValue.text = normalized;
             this._updatedValues.text = normalized;
+            this.invalidate();
+        }
+    }
+    get stickerId(): string | null { return this._rawValue.stickerId; }
+    set stickerId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.stickerId.normalize(value);
+        if (this._rawValue.stickerId !== normalized) {
+            this._rawValue.stickerId = normalized;
+            this._updatedValues.stickerId = normalized;
             this.invalidate();
         }
     }
@@ -4209,6 +4233,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
+        fields.push({ name: 'stickerId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'reactions', type: { type: 'optional', inner: { type: 'array', inner: { type: 'struct', fields: { userId: { type: 'integer' }, reaction: { type: 'string' } } } } }, secure: false });
         fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, secure: false });
         fields.push({ name: 'attachments', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { file_attachment: { id: { type: 'string' }, fileId: { type: 'string' }, filePreview: { type: 'optional', inner: { type: 'string' } }, fileMetadata: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } }, rich_attachment: { id: { type: 'string' }, title: { type: 'optional', inner: { type: 'string' } }, subTitle: { type: 'optional', inner: { type: 'string' } }, titleLink: { type: 'optional', inner: { type: 'string' } }, text: { type: 'optional', inner: { type: 'string' } }, icon: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, image: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, imagePreview: { type: 'optional', inner: { type: 'string' } }, iconInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imageFallback: { type: 'optional', inner: { type: 'struct', fields: { photo: { type: 'string' }, text: { type: 'string' } } } }, titleLinkHostname: { type: 'optional', inner: { type: 'string' } }, keyboard: { type: 'optional', inner: { type: 'struct', fields: { buttons: { type: 'array', inner: { type: 'array', inner: { type: 'struct', fields: { title: { type: 'string' }, style: { type: 'enum', values: ['DEFAULT', 'LIGHT'] }, url: { type: 'optional', inner: { type: 'string' } } } } } } } } } } } } } }, secure: false });
@@ -4223,6 +4248,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
             uid: c.integer,
             repeatKey: c.optional(c.string),
             text: c.optional(c.string),
+            stickerId: c.optional(c.string),
             reactions: c.optional(c.array(c.struct({ userId: c.integer, reaction: c.string }))),
             spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) }))),
             attachments: c.optional(c.array(c.union({ file_attachment: c.struct({ id: c.string, fileId: c.string, filePreview: c.optional(c.string), fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })) }), rich_attachment: c.struct({ id: c.string, title: c.optional(c.string), subTitle: c.optional(c.string), titleLink: c.optional(c.string), text: c.optional(c.string), icon: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), imagePreview: c.optional(c.string), iconInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imageFallback: c.optional(c.struct({ photo: c.string, text: c.string })), titleLinkHostname: c.optional(c.string), keyboard: c.optional(c.struct({ buttons: c.array(c.array(c.struct({ title: c.string, style: c.enum('DEFAULT', 'LIGHT'), url: c.optional(c.string) }))) })) }) }))),
@@ -10144,6 +10170,346 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
     }
 }
 
+export interface StickerPackShape {
+    id: number;
+    title: string;
+    uid: number;
+    published: boolean;
+    usesCount: number;
+    emojis: ({ emoji: string, stickerId: string })[];
+}
+
+export interface StickerPackCreateShape {
+    title: string;
+    uid: number;
+    published: boolean;
+    usesCount: number;
+    emojis: ({ emoji: string, stickerId: string })[];
+}
+
+export class StickerPack extends Entity<StickerPackShape> {
+    get id(): number { return this._rawValue.id; }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get published(): boolean { return this._rawValue.published; }
+    set published(value: boolean) {
+        let normalized = this.descriptor.codec.fields.published.normalize(value);
+        if (this._rawValue.published !== normalized) {
+            this._rawValue.published = normalized;
+            this._updatedValues.published = normalized;
+            this.invalidate();
+        }
+    }
+    get usesCount(): number { return this._rawValue.usesCount; }
+    set usesCount(value: number) {
+        let normalized = this.descriptor.codec.fields.usesCount.normalize(value);
+        if (this._rawValue.usesCount !== normalized) {
+            this._rawValue.usesCount = normalized;
+            this._updatedValues.usesCount = normalized;
+            this.invalidate();
+        }
+    }
+    get emojis(): ({ emoji: string, stickerId: string })[] { return this._rawValue.emojis; }
+    set emojis(value: ({ emoji: string, stickerId: string })[]) {
+        let normalized = this.descriptor.codec.fields.emojis.normalize(value);
+        if (this._rawValue.emojis !== normalized) {
+            this._rawValue.emojis = normalized;
+            this._updatedValues.emojis = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerPack> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('stickerPack');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'published', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'usesCount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'emojis', type: { type: 'array', inner: { type: 'struct', fields: { emoji: { type: 'string' }, stickerId: { type: 'string' } } } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            title: c.string,
+            uid: c.integer,
+            published: c.boolean,
+            usesCount: c.integer,
+            emojis: c.array(c.struct({ emoji: c.string, stickerId: c.string })),
+        });
+        let descriptor: EntityDescriptor<StickerPackShape> = {
+            name: 'StickerPack',
+            storageKey: 'stickerPack',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StickerPackFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StickerPackShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: StickerPackCreateShape): Promise<StickerPack> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: StickerPackCreateShape): StickerPack {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<StickerPack | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StickerPackShape>): StickerPack {
+        return new StickerPack([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserStickersStateShape {
+    uid: number;
+    packIds: (number)[];
+    favouriteIds: (string)[];
+}
+
+export interface UserStickersStateCreateShape {
+    packIds: (number)[];
+    favouriteIds: (string)[];
+}
+
+export class UserStickersState extends Entity<UserStickersStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get packIds(): (number)[] { return this._rawValue.packIds; }
+    set packIds(value: (number)[]) {
+        let normalized = this.descriptor.codec.fields.packIds.normalize(value);
+        if (this._rawValue.packIds !== normalized) {
+            this._rawValue.packIds = normalized;
+            this._updatedValues.packIds = normalized;
+            this.invalidate();
+        }
+    }
+    get favouriteIds(): (string)[] { return this._rawValue.favouriteIds; }
+    set favouriteIds(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.favouriteIds.normalize(value);
+        if (this._rawValue.favouriteIds !== normalized) {
+            this._rawValue.favouriteIds = normalized;
+            this._updatedValues.favouriteIds = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserStickersStateFactory extends EntityFactory<UserStickersStateShape, UserStickersState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userStickersState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'packIds', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'favouriteIds', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            packIds: c.array(c.integer),
+            favouriteIds: c.array(c.string),
+        });
+        let descriptor: EntityDescriptor<UserStickersStateShape> = {
+            name: 'UserStickersState',
+            storageKey: 'userStickersState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserStickersStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserStickersStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: UserStickersStateCreateShape): Promise<UserStickersState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserStickersStateCreateShape): UserStickersState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserStickersState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStickersStateShape>): UserStickersState {
+        return new UserStickersState([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface StickerShape {
+    id: string;
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null };
+    deleted: boolean;
+    emoji: string;
+    packId: number;
+}
+
+export interface StickerCreateShape {
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined };
+    deleted: boolean;
+    emoji: string;
+    packId: number;
+}
+
+export class Sticker extends Entity<StickerShape> {
+    get id(): string { return this._rawValue.id; }
+    get image(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } { return this._rawValue.image; }
+    set image(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }) {
+        let normalized = this.descriptor.codec.fields.image.normalize(value);
+        if (this._rawValue.image !== normalized) {
+            this._rawValue.image = normalized;
+            this._updatedValues.image = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean { return this._rawValue.deleted; }
+    set deleted(value: boolean) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+    get emoji(): string { return this._rawValue.emoji; }
+    set emoji(value: string) {
+        let normalized = this.descriptor.codec.fields.emoji.normalize(value);
+        if (this._rawValue.emoji !== normalized) {
+            this._rawValue.emoji = normalized;
+            this._updatedValues.emoji = normalized;
+            this.invalidate();
+        }
+    }
+    get packId(): number { return this._rawValue.packId; }
+    set packId(value: number) {
+        let normalized = this.descriptor.codec.fields.packId.normalize(value);
+        if (this._rawValue.packId !== normalized) {
+            this._rawValue.packId = normalized;
+            this._updatedValues.packId = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('sticker');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'pack', storageKey: 'pack', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'pack'), condition: undefined });
+        secondaryIndexes.push({ name: 'packActive', storageKey: 'packActive', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'packActive'), condition: (src) => !src.deleted });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'image', type: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'emoji', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'packId', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }),
+            deleted: c.boolean,
+            emoji: c.string,
+            packId: c.integer,
+        });
+        let descriptor: EntityDescriptor<StickerShape> = {
+            name: 'Sticker',
+            storageKey: 'sticker',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StickerFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StickerShape>) {
+        super(descriptor);
+    }
+
+    readonly pack = Object.freeze({
+        findAll: async (ctx: Context, packId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [packId])).items;
+        },
+        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [packId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (packId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [packId], opts);
+        },
+        liveStream: (ctx: Context, packId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [packId], opts);
+        },
+    });
+
+    readonly packActive = Object.freeze({
+        findAll: async (ctx: Context, packId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [packId])).items;
+        },
+        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [packId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (packId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [packId], opts);
+        },
+        liveStream: (ctx: Context, packId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [packId], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: StickerCreateShape): Promise<Sticker> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: StickerCreateShape): Sticker {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<Sticker | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StickerShape>): Sticker {
+        return new Sticker([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserStorageNamespaceShape {
     id: number;
     ns: string;
@@ -12632,6 +12998,9 @@ export interface Store extends BaseStore {
     readonly PushWeb: PushWebFactory;
     readonly PushSafari: PushSafariFactory;
     readonly AppHook: AppHookFactory;
+    readonly StickerPack: StickerPackFactory;
+    readonly UserStickersState: UserStickersStateFactory;
+    readonly Sticker: StickerFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly Sequence: SequenceFactory;
@@ -12775,6 +13144,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let PushWebPromise = PushWebFactory.open(storage);
     let PushSafariPromise = PushSafariFactory.open(storage);
     let AppHookPromise = AppHookFactory.open(storage);
+    let StickerPackPromise = StickerPackFactory.open(storage);
+    let UserStickersStatePromise = UserStickersStateFactory.open(storage);
+    let StickerPromise = StickerFactory.open(storage);
     let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
@@ -12902,6 +13274,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         PushWeb: await PushWebPromise,
         PushSafari: await PushSafariPromise,
         AppHook: await AppHookPromise,
+        StickerPack: await StickerPackPromise,
+        UserStickersState: await UserStickersStatePromise,
+        Sticker: await StickerPromise,
         UserStorageNamespace: await UserStorageNamespacePromise,
         UserStorageRecord: await UserStorageRecordPromise,
         Sequence: await SequencePromise,

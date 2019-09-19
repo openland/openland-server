@@ -1,0 +1,49 @@
+type ImageSticker {
+    id: ID!
+    image: ImageRef!
+    pack: StickerPack!
+    emoji: String!
+}
+
+union Sticker = ImageSticker
+type StickerPack {
+    id: ID!
+    title: String!
+    stickers: [Sticker!]!
+    author: User!
+    usesCount: Int!
+    published: Boolean!
+}
+
+type UserStickers {
+    packs: [StickerPack!]!
+    favourites: [Sticker!]!
+}
+
+input StickerInput {
+    image: ImageRefInput!
+    emoji: String!
+}
+
+input StickerPackInput {
+    title: String
+    published: Boolean
+}
+
+extend type Query {
+    myStickers: UserStickers!
+    stickersByEmoji(emoji: String!): [Sticker!]!
+    stickerPack(id: ID!): StickerPack
+}
+
+extend type Mutation {
+    stickerPackCreate(title: String!, stickers: [StickerInput!]): StickerPack!
+    stickerPackUpdate(id: ID!, input: StickerPackInput!): StickerPack!
+    stickerPackAddSticker(id: ID!, input: StickerInput!): Sticker!
+    stickerPackRemoveSticker(id: ID!): Boolean!
+
+    stickerPackAddToCollection(id: ID!): Boolean!
+    stickerPackRemoveFromCollection(id: ID!): Boolean!
+    stickerAddToFavorites(id: ID!): Boolean!
+    stickerRemoveFromFavorites(id: ID!): Boolean!
+}

@@ -127,6 +127,7 @@ export interface MessageInput {
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
     replyMessages?: number[] | null;
+    stickerId?: string | null;
 
     spans?: MessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;

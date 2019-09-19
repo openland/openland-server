@@ -375,6 +375,7 @@ export default declareSchema(() => {
                 })),
             }),
         }))));
+        field('stickerId', optional(string()));
 
         // deprecated start
         field('fileId', optional(string())).secure();
@@ -417,6 +418,7 @@ export default declareSchema(() => {
         field('repeatKey', optional(string()));
 
         field('text', optional(string())).secure();
+        field('stickerId', optional(string()));
         field('reactions', optional(array(struct({
             userId: integer(), reaction: string(),
         }))));
@@ -1289,6 +1291,38 @@ export default declareSchema(() => {
         primaryKey('chatId', integer());
         field('key', string());
         uniqueIndex('key', ['key']);
+    });
+
+    //
+    // Stickers
+    //
+
+    entity('StickerPack', () => {
+       primaryKey('id', integer());
+       field('title', string());
+       field('uid', integer());
+       field('published', boolean());
+       field('usesCount', integer());
+       field('emojis', array(struct({
+           emoji: string(),
+           stickerId: string()
+       })));
+    });
+
+    entity('UserStickersState', () => {
+       primaryKey('uid', integer());
+       field('packIds', array(integer()));
+       field('favouriteIds', array(string()));
+    });
+
+    entity('Sticker', () => {
+       primaryKey('id', string());
+       field('image', ImageRef);
+       field('deleted', boolean());
+       field('emoji', string());
+       field('packId', integer());
+       rangeIndex('pack', ['packId', 'createdAt']);
+       rangeIndex('packActive', ['packId', 'createdAt']).withCondition((src) => !src.deleted);
     });
 
     //
