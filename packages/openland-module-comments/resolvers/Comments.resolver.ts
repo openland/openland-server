@@ -50,6 +50,7 @@ export default {
         id: src => IDs.CommentEntry.serialize(src.id),
         deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
+        betaComment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId && Store.Comment.findById(ctx, src.parentCommentId!),
         childComments: async (src, args, ctx) => (await Store.Comment.child.findAll(ctx, src.id)).filter(c => c.visible)
     },
@@ -103,6 +104,39 @@ export default {
                 return await Modules.Comments.addFeedItemComment(ctx, peerId, uid, {
                     ...(await resolveRichMessageCreation(ctx, args)),
                     replyToComment,
+                    repeatKey: args.repeatKey,
+                });
+            } else {
+                throw new UserError('Unknown peer type');
+            }
+        }),
+        betaAddStickerComment: withUser(async (ctx, args, uid) => {
+            let id = IdsFactory.resolve(args.peerId);
+            let peerId: number | null;
+            let peerType: 'message' | 'feed_item' | null;
+
+            if (id.type === IDs.ConversationMessage) {
+                peerId = id.id as number;
+                peerType = 'message';
+            } else if (id.type === IDs.FeedItem) {
+                peerId = id.id as number;
+                peerType = 'feed_item';
+            } else {
+                throw new UserError('Unknown peer');
+            }
+
+            let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
+
+            if (peerType === 'message') {
+                return await Modules.Comments.addMessageComment(ctx, peerId, uid, {
+                    replyToComment,
+                    stickerId: IDs.Sticker.parse(args.stickerId),
+                    repeatKey: args.repeatKey,
+                });
+            } else if (peerType === 'feed_item') {
+                return await Modules.Comments.addFeedItemComment(ctx, peerId, uid, {
+                    replyToComment,
+                    stickerId: IDs.Sticker.parse(args.stickerId),
                     repeatKey: args.repeatKey,
                 });
             } else {

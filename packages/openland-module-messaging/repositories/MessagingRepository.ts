@@ -15,6 +15,7 @@ import { RandomLayer } from '@openland/foundationdb-random';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
 
 @injectable()
 export class MessagingRepository {
@@ -32,9 +33,23 @@ export class MessagingRepository {
             }
 
             //
+            // Check if sticker exists
+            //
+            if (message.stickerId) {
+                let sticker = await Store.Sticker.findById(ctx, message.stickerId);
+                if (!sticker) {
+                    throw new NotFoundError();
+                }
+            }
+
+            //
             // Prepare attachments
             //
             let attachments: MessageAttachment[] = await this.prepareAttachments(ctx, message.attachments || []);
+
+            if (message.stickerId) {
+                // message.sti
+            }
 
             //
             // Persist Messages
@@ -51,6 +66,7 @@ export class MessagingRepository {
                 repeatKey: message.repeatKey,
                 deleted: false,
                 spans: (message.spans && message.spans.length > 0) ? message.spans : null,
+                stickerId: message.stickerId,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
             });
 

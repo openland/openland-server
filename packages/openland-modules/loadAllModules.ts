@@ -54,6 +54,7 @@ import { openStore } from 'openland-module-db/store';
 import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringModule';
+import { loadStickersModule } from '../openland-module-stickers/Stickers.container';
 
 const logger = createLogger('starting');
 
@@ -112,6 +113,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     loadCallsModule();
     loadFeedModule();
+    loadStickersModule();
 }
 
 export async function startAllModules() {

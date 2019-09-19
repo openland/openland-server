@@ -31,6 +31,7 @@ import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { MonitoringModule } from 'openland-module-monitoring/MonitoringModule';
+import { StickersModule } from '../openland-module-stickers/StickersModule';
 
 class ModulesImpl {
 
@@ -129,6 +130,9 @@ class ModulesImpl {
     }
     get Monitoring() {
         return container.get<MonitoringModule>('MonitoringModule');
+    }
+    get Stickers() {
+        return container.get(StickersModule);
     }
 }
 
