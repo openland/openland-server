@@ -1,10 +1,11 @@
-type Sticker {
+type ImageSticker {
     id: ID!
     image: ImageRef!
     pack: StickerPack!
     emoji: String!
 }
 
+union Sticker = ImageSticker
 type StickerPack {
     id: ID!
     title: String!

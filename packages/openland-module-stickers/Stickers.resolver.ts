@@ -4,7 +4,7 @@ import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
 import { AppContext } from '../openland-modules/AppContext';
 import { MaybePromise } from '../openland-module-api/schema/SchemaUtils';
-import { Sticker, StickerPack } from 'openland-module-db/store';
+import { Comment, Message, Sticker, StickerPack } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import StickerPackRoot = GQLRoots.StickerPackRoot;
@@ -45,6 +45,11 @@ function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T)
 }
 
 export default {
+    Sticker: {
+        __resolveType() {
+            return 'ImageSticker';
+        }
+    },
     StickerPack: {
         id: withStickerPackId((ctx, id) => IDs.StickerPack.serialize(id)),
         author: withStickerPack(async (ctx, pack) => pack.uid),
@@ -59,7 +64,7 @@ export default {
         favourites: root => root.favouriteIds,
         packs: root => root.packIds
     },
-    Sticker: {
+    ImageSticker: {
         image: withSticker((ctx, sticker) => sticker.image),
         emoji: withSticker((ctx, sticker) => sticker.emoji),
         pack: withSticker((ctx, sticker) => sticker.packId),

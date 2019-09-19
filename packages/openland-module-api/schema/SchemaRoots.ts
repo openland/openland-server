@@ -127,7 +127,8 @@ export namespace GQLRoots {
     export type FileMetadataRoot = any;
     export type StickerPackRoot = StickerPack | number;
     export type UserStickersRoot = UserStickersState;
-    export type StickerRoot = Sticker | string;
+    export type StickerRoot = ImageStickerRoot;
+    export type ImageStickerRoot = Sticker | string;
     export type ConversationEventSimpleBatchRoot = any;
     export type ConversationEventRoot = any;
     export type ConversationEventMessageRoot = any;
