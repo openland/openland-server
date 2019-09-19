@@ -176,8 +176,9 @@ export class StickersRepository {
     findStickers = async (parent: Context, uid: number, emoji: string) => {
         let userStickers = await this.getUserStickers(parent, uid);
         let stickers: string[] = [];
-        for (let id of userStickers.packIds) {
-            let pack = await Store.StickerPack.findById(parent, id);
+
+        let packs = await Promise.all(userStickers.packIds.map(id =>  Store.StickerPack.findById(parent, id)));
+        for (let pack of packs) {
             stickers = stickers.concat(pack!.emojis.filter(a => a.emoji === emoji).map(a => a.stickerId));
         }
 

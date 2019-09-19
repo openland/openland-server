@@ -7,5 +7,6 @@ export const Notifications = {
     GIF_ATTACH: 'GIF',
     DOCUMENT_ATTACH: 'Document',
     REPLY_ATTACH: 'Forward',
+    STICKER: 'Sticker',
     GROUP_PUSH_TITLE: templated<{ senderName: string, chatTitle: string }>('{{senderName}}@{{chatTitle}}')
 };

@@ -49,6 +49,7 @@ export default {
         id: src => IDs.CommentEntry.serialize(src.id),
         deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
+        modernComment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId && Store.Comment.findById(ctx, src.parentCommentId!),
         childComments: async (src, args, ctx) => (await Store.Comment.child.findAll(ctx, src.id)).filter(c => c.visible)
     },
@@ -186,6 +187,17 @@ export default {
                 repeatKey: args.repeatKey,
             });
         }),
+        betaAddMessageStickerComment: withUser(async (ctx, args, uid) => {
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+            let stickerId = IDs.Sticker.parse(args.stickerId);
+            let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
+
+            return await Modules.Comments.addMessageComment(ctx, messageId, uid, {
+                replyToComment,
+                stickerId,
+                repeatKey: args.repeatKey,
+            });
+        }),
         betaAddFeedComment: withUser(async (ctx, args, uid) => {
             let itemId = IDs.FeedItem.parse(args.feedItemId);
             let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
@@ -193,6 +205,17 @@ export default {
             return await Modules.Comments.addFeedItemComment(ctx, itemId, uid, {
                 ...(await resolveRichMessageCreation(ctx, args)),
                 replyToComment,
+                repeatKey: args.repeatKey,
+            });
+        }),
+        betaAddFeedStickerComment: withUser(async (ctx, args, uid) => {
+            let itemId = IDs.FeedItem.parse(args.feedItemId);
+            let stickerId = IDs.Sticker.parse(args.stickerId);
+            let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
+
+            return await Modules.Comments.addFeedItemComment(ctx, itemId, uid, {
+                replyToComment,
+                stickerId,
                 repeatKey: args.repeatKey,
             });
         }),

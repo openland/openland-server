@@ -270,6 +270,9 @@ export async function fetchMessageFallback(message: Message | Comment | RichMess
     if (message.text) {
         fallback.push(message.text);
     }
+    if ((message instanceof Message || message instanceof Comment) && message.stickerId) {
+        fallback.push(Texts.Notifications.STICKER);
+    }
     if (message instanceof Message && message.fileMetadata) {
         fallback.push(attachFallback(message.fileMetadata && message.fileMetadata.mimeType, message.fileMetadata && message.fileMetadata.isImage));
     }
@@ -660,9 +663,8 @@ export default {
         //
         //  Content
         //
-        message: src => {
-            return null;
-        },
+        message: src => null,
+        spans: src => [],
         quotedMessages: async (src, args, ctx) => {
             if (src.deleted) {
                 return [];

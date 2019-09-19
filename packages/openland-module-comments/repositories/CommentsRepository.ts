@@ -44,6 +44,7 @@ export interface CommentInput {
     spans?: CommentSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
+    stickerId?: string | null;
 
     // appends attachments instead of replacing them in editComment
     appendAttachments?: boolean | null;
@@ -70,6 +71,16 @@ export class CommentsRepository {
             if (commentInput.replyToComment) {
                 let replyComment = await Store.Comment.findById(ctx, commentInput.replyToComment);
                 if (!replyComment || replyComment.peerType !== peerType || replyComment.peerId !== peerId || replyComment.visible === false) {
+                    throw new NotFoundError();
+                }
+            }
+
+            //
+            // Check if sticker exists
+            //
+            if (commentInput.stickerId) {
+                let sticker = await Store.Sticker.findById(ctx, commentInput.stickerId);
+                if (!sticker) {
                     throw new NotFoundError();
                 }
             }
@@ -108,7 +119,8 @@ export class CommentsRepository {
                 spans,
                 attachments,
                 visible: true,
-                repeatKey: commentInput.repeatKey
+                repeatKey: commentInput.repeatKey,
+                stickerId: commentInput.stickerId
             });
 
             //
