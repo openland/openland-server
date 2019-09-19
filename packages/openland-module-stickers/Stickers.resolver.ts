@@ -4,7 +4,7 @@ import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
 import { AppContext } from '../openland-modules/AppContext';
 import { MaybePromise } from '../openland-module-api/schema/SchemaUtils';
-import { Comment, Message, Sticker, StickerPack } from 'openland-module-db/store';
+import { Sticker, StickerPack } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import StickerPackRoot = GQLRoots.StickerPackRoot;
