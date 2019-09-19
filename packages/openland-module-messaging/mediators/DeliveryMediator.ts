@@ -16,10 +16,12 @@ import { Modules } from '../../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { currentRunningTime } from 'openland-utils/timer';
 import { createMetric } from 'openland-module-monitoring/Metric';
+import { createLogger } from '@openland/log';
 
 const tracer = createTracer('message-delivery');
 const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
 const deliveryMetric = createMetric('delivery-user-multiple', 'average');
+const log = createLogger('delivery');
 
 @injectable()
 export class DeliveryMediator {
@@ -138,6 +140,8 @@ export class DeliveryMediator {
                 ...(await Store.ConversationPrivate.users.findAll(ctx, uid)),
                 ...(await Store.ConversationPrivate.usersReverse.findAll(ctx, uid))
             ];
+
+            log.log(ctx, 'onUserProfileUpdated', dialogs.length);
 
             for (let dialog of dialogs) {
                 let peerUid: number;
