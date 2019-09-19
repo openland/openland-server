@@ -558,6 +558,14 @@ export default declareSchema(() => {
                 spans: optional(Spans),
                 cover: optional(Image),
                 coverAlign: optional(enumString('top', 'bottom', 'cover')),
+                attachments: optional(array(union({
+                    user: struct({
+                        userId: integer()
+                    }),
+                    room: struct({
+                        roomId: integer()
+                    })
+                })))
             })
         }))));
 
@@ -992,6 +1000,7 @@ export default declareSchema(() => {
     entity('FeedEvent', () => {
         primaryKey('id', integer());
         field('tid', integer());
+        field('repeatKey', optional(string()));
 
         field('type', string());
         field('content', json());
@@ -1002,6 +1011,7 @@ export default declareSchema(() => {
         rangeIndex('topic', ['tid', 'createdAt']);
         rangeIndex('fromTopic', ['tid', 'id']).withCondition(src => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
+        uniqueIndex('repeat', ['tid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
 
     //

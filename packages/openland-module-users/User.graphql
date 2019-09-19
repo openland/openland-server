@@ -42,3 +42,7 @@ extend type Query {
     user(id: ID!): User!
     mySuccessfulInvitesCount: Int!
 }
+
+extend type Mutation {
+    reportContent(contentId: ID!, type: String!, message: String): Boolean
+}

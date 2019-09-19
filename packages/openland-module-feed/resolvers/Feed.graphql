@@ -9,6 +9,7 @@ type FeedPost {
     id: ID!
     date: Date!
     author: FeedPostAuthor!
+    canEdit: Boolean!
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
     isMentioned: Boolean!
@@ -31,12 +32,15 @@ type FeedItemConnection {
 
 union Slide = TextSlide
 
+union SlideAttachment = User | SharedRoom
+
 type TextSlide {
     id: ID!
     text: String!
     spans: [MessageSpan!]!
     cover: Image
     coverAlign: SlideCoverAlign
+    attachments: [SlideAttachment!]!
 }
 
 enum SlideType {
@@ -53,8 +57,10 @@ input SlideInput {
     type: SlideType!
     text: String
     spans: [MessageSpanInput!]
+    mentions: [MentionInput!]
     cover: ImageRefInput
     coverAlign: SlideCoverAlign
+    attachments: [ID!]
 }
 
 extend type Query {
@@ -63,10 +69,10 @@ extend type Query {
 }
 
 extend type Mutation {
-    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
+    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], repeatKey: String): FeedItem!
     alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaDeleteFeedPost(feedItemId: ID!): Boolean!
-    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], fromCommunity: ID): FeedItem!
+    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], fromCommunity: ID, repeatKey: String): FeedItem!
 
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!

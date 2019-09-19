@@ -11,7 +11,6 @@ type CommentEntry {
     id: ID!
     deleted: Boolean!
     comment: GeneralMessage!
-    modernComment: ModernMessage!
     parentComment: CommentEntry
     childComments: [CommentEntry!]!
 }
@@ -39,14 +38,11 @@ type CommentSubscription {
 extend type Query {
     messageComments(messageId: ID!): CommentsPeer!
     feedItemComments(feedItemId: ID!): CommentsPeer!
+    comments(peerId: ID!): CommentsPeer!
 }
 
 extend type Mutation {
-    addMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
-    betaAddMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
-    betaAddMessageStickerComment(messageId: ID!, stickerId: ID!, replyComment: ID, repeatKey: String): CommentEntry!
-    betaAddFeedComment(feedItemId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
-    betaAddFeedStickerComment(feedItemId: ID!, stickerId: ID!, replyComment: ID, repeatKey: String): CommentEntry!
+    betaAddComment(peerId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
     editComment(id: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
     deleteComment(id: ID!): Boolean!
     deleteCommentAugmentation(id: ID!): Boolean!
@@ -54,6 +50,15 @@ extend type Mutation {
     commentReactionAdd(commentId: ID!, reaction: MessageReactionType!): Boolean!
     commentReactionRemove(commentId: ID!, reaction: MessageReactionType!): Boolean!
 
+    subscribeToComments(peerId: ID!, type: CommentSubscriptionType!): Boolean!
+    unsubscribeFromComments(peerId: ID!): Boolean!
+
+    #
+    # Deprecated
+    #
+    addMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
+    betaAddMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
+    betaAddFeedComment(feedItemId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
     subscribeMessageComments(messageId: ID!, type: CommentSubscriptionType!): Boolean!
     unSubscribeMessageComments(messageId: ID!): Boolean!
 }

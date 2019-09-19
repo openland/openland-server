@@ -1,10 +1,10 @@
-import { Message } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
+import { MessageSpan } from '../../openland-module-messaging/MessageInput';
 
 @injectable()
 export class CommentsNotificationsRepository {
@@ -109,19 +109,19 @@ export class CommentsNotificationsRepository {
         });
     }
 
-    async onNewMessage(parent: Context, message: Message) {
-        return await inTx(parent, async (ctx) => {
-            // Subscribe message sender creator to comments
-            await this.subscribeToComments(ctx, 'message', message.id, message.uid, 'all');
+    async onNewPeer(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, mentions: MessageSpan[] = []) {
+        return await inTx(parent, async ctx => {
+            // Subscribe to comments
+            await Modules.Comments.subscribeToComments(ctx, peerType, peerId, uid, 'all');
 
             // Subscribe user to comments if he was mentioned
-            let mentions = (message.spans || []).filter(s => s.type === 'user_mention');
+            mentions = mentions.filter(s => s.type === 'user_mention');
             for (let mention of mentions) {
                 if (mention.type !== 'user_mention') {
                     continue;
                 }
-                if (!(await Store.CommentsSubscription.findById(ctx, 'message', message.id, mention.user))) {
-                    await this.subscribeToComments(ctx, 'message', message.id, mention.user, 'all');
+                if (!(await Store.CommentsSubscription.findById(ctx, peerType, peerId, mention.user))) {
+                    await await Modules.Comments.subscribeToComments(ctx, peerType, peerId, mention.user, 'all');
                 }
             }
         });

@@ -1,4 +1,4 @@
-import { FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
+import { Conversation, FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -13,6 +13,7 @@ import { AppContext } from '../../openland-modules/AppContext';
 import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import SlideRoot = GQLRoots.SlideRoot;
 import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
+import SlideAttachmentRoot = GQLRoots.SlideAttachmentRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -51,6 +52,15 @@ export default {
             }
         }),
         edited: withRichMessage((ctx, message, src) => src.edited || false),
+        canEdit: withRichMessage(async (ctx, message, src) => {
+            if (message.uid === ctx.auth.uid) {
+                return true;
+            } else if (message.oid) {
+                return await Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, message.oid);
+            } else {
+                return false;
+            }
+        }),
         reactions: withRichMessage((ctx, message) => message.reactions || []),
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
         message: withRichMessage((ctx, message) => message.text),
@@ -81,16 +91,41 @@ export default {
         spans: src => src.spans || [],
         cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined,
         coverAlign: src => {
-            if (src.coverAlign === 'top') {
+            if (!src.cover) {
+                return null;
+            } else if (src.coverAlign === 'top') {
                 return 'Top';
             } else if (src.coverAlign === 'bottom') {
                 return 'Bottom';
             } else if (src.coverAlign === 'cover') {
                 return 'Cover';
             }
-            return 'Top';
+            return null;
+        },
+        attachments: async (src, args, ctx) => {
+            if (src.attachments) {
+                let out: (User|Conversation)[] = [];
+                for (let attach of src.attachments) {
+                    if (attach.type === 'user') {
+                        out.push((await Store.User.findById(ctx, attach.userId))!);
+                    } else if (attach.type === 'room') {
+                        out.push((await Store.Conversation.findById(ctx, attach.roomId))!);
+                    }
+                }
+                return out;
+            }
+            return [];
         }
-
+    },
+    SlideAttachment: {
+        __resolveType(src: SlideAttachmentRoot) {
+            if (src instanceof User) {
+                return 'User';
+            } else if (src instanceof Conversation) {
+                return 'SharedRoom';
+            }
+            throw new Error('Unknown slide attachment: ' + src);
+        }
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
@@ -110,7 +145,7 @@ export default {
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, await resolveRichMessageCreation(ctx, args));
+            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, { ...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey });
         }),
         alphaEditFeedPost: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
@@ -131,7 +166,7 @@ export default {
                         throw new AccessDeniedError();
                     }
                 }
-                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid });
+                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid, repeatKey: args.repeatKey });
             });
         }),
         feedReactionAdd: withUser(async (ctx, args, uid) => {

@@ -1,12 +1,13 @@
 import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Store } from 'openland-module-db/FDB';
-import { IDs } from 'openland-module-api/IDs';
-import { withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
+import { IDs, IdsFactory } from 'openland-module-api/IDs';
+import { withAccount, withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { User, UserProfile, UserBadge } from 'openland-module-db/store';
+import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -122,7 +123,7 @@ export default {
                     continue;
                 }
 
-                res.push({ cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))! });
+                res.push({cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))!});
             }
             return res;
         }),
@@ -155,6 +156,35 @@ export default {
         }),
         mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
             return Store.UserSuccessfulInvitesCounter.get(ctx, uid);
+        })
+    },
+    Mutation: {
+        reportContent: withAccount(async (ctx, args, uid) => {
+            let message: MessagePart[] = [`🚨‼🚨 Report: \n`, 'Type: ' + args.type + '\n'];
+            if (args.message) {
+                message.push(`Message: ${args.message}\n`);
+            }
+            message.push(`From: `, userMention(await Modules.Users.getUserFullName(ctx, uid), uid), '\n');
+
+            let id = IdsFactory.resolve(args.contentId);
+
+            if (id.type === IDs.User) {
+                message.push('user: ', userMention(await Modules.Users.getUserFullName(ctx, id.id as number), id.id as number));
+            } else if (id.type === IDs.Organization) {
+                message.push('org: openland.com/' + args.contentId);
+            } else if (id.type === IDs.Conversation) {
+                message.push('room: ', roomMention(await Modules.Messaging.room.resolveConversationTitle(ctx, id.id as number, uid), id.id as number));
+            } else if (id.type === IDs.FeedItem) {
+                message.push('post: openland.com/feed/' + args.contentId);
+            }
+
+            let superBotId = await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
+            let reportChatId = await Modules.Super.getEnvVar<number>(ctx, 'content-report-chat-id');
+
+            if (superBotId && reportChatId) {
+                await Modules.Messaging.sendMessage(ctx, reportChatId, superBotId, buildMessage(...message));
+            }
+            return true;
         })
     }
 } as GQLResolver;
