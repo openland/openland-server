@@ -8,7 +8,7 @@ import { Message } from 'openland-module-db/store';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
 import { RoomMediator } from './RoomMediator';
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
@@ -143,17 +143,20 @@ export class DeliveryMediator {
 
             log.log(ctx, 'onUserProfileUpdated', dialogs.length);
 
-            for (let dialog of dialogs) {
-                let peerUid: number;
+            let b = batch(dialogs, 10);
+            await Promise.all(b.map(d => inTx(createNamedContext('delivery'), async (ctx2) => {
+                for (let dialog of d) {
+                    let peerUid: number;
 
-                if (dialog.uid1 === uid) {
-                    peerUid = dialog.uid2;
-                } else {
-                    peerUid = dialog.uid1;
+                    if (dialog.uid1 === uid) {
+                        peerUid = dialog.uid2;
+                    } else {
+                        peerUid = dialog.uid1;
+                    }
+
+                    await this.repo.deliverDialogPeerUpdatedToUser(ctx2, peerUid, dialog.id);
                 }
-
-                await this.repo.deliverDialogPeerUpdatedToUser(ctx, peerUid, dialog.id);
-            }
+            })));
         });
     }
 
