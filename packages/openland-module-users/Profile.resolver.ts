@@ -126,6 +126,7 @@ export default {
                         profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
                     }
                 }
+                await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
                 return user;
             });
