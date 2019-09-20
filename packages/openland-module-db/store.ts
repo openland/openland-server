@@ -7662,9 +7662,9 @@ export class UserMessagingStateFactory extends EntityFactory<UserMessagingStateS
 
 export interface UserNotificationsStateShape {
     uid: number;
-    readSeq: number | null;
     lastEmailNotification: number | null;
     lastPushNotification: number | null;
+    readSeq: number | null;
     lastEmailSeq: number | null;
     lastPushSeq: number | null;
     lastEmailCursor: string | null;
@@ -7672,9 +7672,9 @@ export interface UserNotificationsStateShape {
 }
 
 export interface UserNotificationsStateCreateShape {
-    readSeq?: number | null | undefined;
     lastEmailNotification?: number | null | undefined;
     lastPushNotification?: number | null | undefined;
+    readSeq?: number | null | undefined;
     lastEmailSeq?: number | null | undefined;
     lastPushSeq?: number | null | undefined;
     lastEmailCursor?: string | null | undefined;
@@ -7683,15 +7683,6 @@ export interface UserNotificationsStateCreateShape {
 
 export class UserNotificationsState extends Entity<UserNotificationsStateShape> {
     get uid(): number { return this._rawValue.uid; }
-    get readSeq(): number | null { return this._rawValue.readSeq; }
-    set readSeq(value: number | null) {
-        let normalized = this.descriptor.codec.fields.readSeq.normalize(value);
-        if (this._rawValue.readSeq !== normalized) {
-            this._rawValue.readSeq = normalized;
-            this._updatedValues.readSeq = normalized;
-            this.invalidate();
-        }
-    }
     get lastEmailNotification(): number | null { return this._rawValue.lastEmailNotification; }
     set lastEmailNotification(value: number | null) {
         let normalized = this.descriptor.codec.fields.lastEmailNotification.normalize(value);
@@ -7707,6 +7698,15 @@ export class UserNotificationsState extends Entity<UserNotificationsStateShape> 
         if (this._rawValue.lastPushNotification !== normalized) {
             this._rawValue.lastPushNotification = normalized;
             this._updatedValues.lastPushNotification = normalized;
+            this.invalidate();
+        }
+    }
+    get readSeq(): number | null { return this._rawValue.readSeq; }
+    set readSeq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.readSeq.normalize(value);
+        if (this._rawValue.readSeq !== normalized) {
+            this._rawValue.readSeq = normalized;
+            this._updatedValues.readSeq = normalized;
             this.invalidate();
         }
     }
@@ -7756,18 +7756,18 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'readSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastEmailNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastPushNotification', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'readSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastEmailSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastPushSeq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'lastEmailCursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'lastPushCursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
-            readSeq: c.optional(c.integer),
             lastEmailNotification: c.optional(c.integer),
             lastPushNotification: c.optional(c.integer),
+            readSeq: c.optional(c.integer),
             lastEmailSeq: c.optional(c.integer),
             lastPushSeq: c.optional(c.integer),
             lastEmailCursor: c.optional(c.string),
@@ -10293,12 +10293,12 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
 export interface UserStickersStateShape {
     uid: number;
     packIds: (number)[];
-    favouriteIds: (string)[];
+    favoriteIds: (string)[];
 }
 
 export interface UserStickersStateCreateShape {
     packIds: (number)[];
-    favouriteIds: (string)[];
+    favoriteIds: (string)[];
 }
 
 export class UserStickersState extends Entity<UserStickersStateShape> {
@@ -10312,12 +10312,12 @@ export class UserStickersState extends Entity<UserStickersStateShape> {
             this.invalidate();
         }
     }
-    get favouriteIds(): (string)[] { return this._rawValue.favouriteIds; }
-    set favouriteIds(value: (string)[]) {
-        let normalized = this.descriptor.codec.fields.favouriteIds.normalize(value);
-        if (this._rawValue.favouriteIds !== normalized) {
-            this._rawValue.favouriteIds = normalized;
-            this._updatedValues.favouriteIds = normalized;
+    get favoriteIds(): (string)[] { return this._rawValue.favoriteIds; }
+    set favoriteIds(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.favoriteIds.normalize(value);
+        if (this._rawValue.favoriteIds !== normalized) {
+            this._rawValue.favoriteIds = normalized;
+            this._updatedValues.favoriteIds = normalized;
             this.invalidate();
         }
     }
@@ -10332,11 +10332,11 @@ export class UserStickersStateFactory extends EntityFactory<UserStickersStateSha
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'packIds', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'favouriteIds', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'favoriteIds', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             packIds: c.array(c.integer),
-            favouriteIds: c.array(c.string),
+            favoriteIds: c.array(c.string),
         });
         let descriptor: EntityDescriptor<UserStickersStateShape> = {
             name: 'UserStickersState',

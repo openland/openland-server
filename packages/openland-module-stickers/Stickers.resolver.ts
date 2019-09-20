@@ -61,7 +61,7 @@ export default {
         published: withStickerPack((ctx, pack) => pack.published),
     },
     UserStickers: {
-        favourites: root => root.favouriteIds,
+        favorites: root => root.favoriteIds,
         packs: root => root.packIds
     },
     ImageSticker: {

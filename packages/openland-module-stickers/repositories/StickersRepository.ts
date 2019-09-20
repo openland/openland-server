@@ -198,10 +198,10 @@ export class StickersRepository {
     addStickerToFavs = async (parent: Context, uid: number, uuid: string) => {
         return await inTx(parent, async ctx => {
             let userStickers = await this.getUserStickers(ctx, uid);
-            if (userStickers.favouriteIds.find(a => a === uuid)) {
+            if (userStickers.favoriteIds.find(a => a === uuid)) {
                 return false;
             }
-            userStickers.favouriteIds = [...userStickers.favouriteIds, uuid];
+            userStickers.favoriteIds = [...userStickers.favoriteIds, uuid];
 
             await userStickers.flush(ctx);
             return true;
@@ -211,10 +211,10 @@ export class StickersRepository {
     removeStickerFromFavs = async (parent: Context, uid: number, uuid: string) => {
         return await inTx(parent, async ctx => {
             let userStickers = await this.getUserStickers(ctx, uid);
-            if (userStickers.favouriteIds.every(a => a !== uuid)) {
+            if (userStickers.favoriteIds.every(a => a !== uuid)) {
                 return false;
             }
-            userStickers.favouriteIds = [...userStickers.favouriteIds.filter(a => a !== uuid)];
+            userStickers.favoriteIds = [...userStickers.favoriteIds.filter(a => a !== uuid)];
 
             await userStickers.flush(ctx);
             return true;
@@ -226,7 +226,7 @@ export class StickersRepository {
             let state = await Store.UserStickersState.findById(ctx, uid);
             if (!state) {
                 state = await Store.UserStickersState.create(ctx, uid, {
-                    favouriteIds: [], packIds: [],
+                    favoriteIds: [], packIds: [],
                 });
             }
             return state;

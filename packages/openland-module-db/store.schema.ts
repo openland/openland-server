@@ -1312,7 +1312,7 @@ export default declareSchema(() => {
     entity('UserStickersState', () => {
        primaryKey('uid', integer());
        field('packIds', array(integer()));
-       field('favouriteIds', array(string()));
+       field('favoriteIds', array(string()));
     });
 
     entity('Sticker', () => {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4109eb054b8c34b6f4d29cef07bcc3c0';
+export const GQL_SPEC_VERSION = '13205a3eb48ed5438ed681d1dce8dd48';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -912,7 +912,7 @@ export namespace GQL {
     }
     export interface UserStickers {
         packs: StickerPack[];
-        favourites: Sticker[];
+        favorites: Sticker[];
     }
     export interface StickerInput {
         image: ImageRefInput;
@@ -3303,7 +3303,7 @@ export interface GQLResolver {
     ImageSticker?: ComplexTypedResolver<GQL.ImageSticker, GQLRoots.ImageStickerRoot, {image: GQLRoots.ImageRefRoot, pack: GQLRoots.StickerPackRoot}, {}>;
     Sticker?: UnionTypeResolver<GQLRoots.StickerRoot, 'ImageSticker'>;
     StickerPack?: ComplexTypedResolver<GQL.StickerPack, GQLRoots.StickerPackRoot, {stickers: GQLRoots.StickerRoot[], author: GQLRoots.UserRoot}, {}>;
-    UserStickers?: ComplexTypedResolver<GQL.UserStickers, GQLRoots.UserStickersRoot, {packs: GQLRoots.StickerPackRoot[], favourites: GQLRoots.StickerRoot[]}, {}>;
+    UserStickers?: ComplexTypedResolver<GQL.UserStickers, GQLRoots.UserStickersRoot, {packs: GQLRoots.StickerPackRoot[], favorites: GQLRoots.StickerRoot[]}, {}>;
     MessageReaction?: ComplexTypedResolver<GQL.MessageReaction, GQLRoots.MessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
     MessageAttachment?: ComplexTypedResolver<GQL.MessageAttachment, GQLRoots.MessageAttachmentRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
     MessageButton?: ComplexTypedResolver<GQL.MessageButton, GQLRoots.MessageButtonRoot, {}, {}>;

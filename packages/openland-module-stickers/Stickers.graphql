@@ -17,7 +17,7 @@ type StickerPack {
 
 type UserStickers {
     packs: [StickerPack!]!
-    favourites: [Sticker!]!
+    favorites: [Sticker!]!
 }
 
 input StickerInput {
