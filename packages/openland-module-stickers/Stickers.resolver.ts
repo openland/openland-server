@@ -81,11 +81,14 @@ export default {
             let pid = IDs.StickerPack.parse(args.id);
 
             return await Modules.Stickers.getPack(ctx, id, pid);
+        }),
+        createdStickerPacks: withActivatedUser(async (ctx, args, id) => {
+            return await Modules.Stickers.getPacksBy(ctx, id);
         })
     },
     Mutation: {
         stickerPackCreate: withActivatedUser((ctx, args, uid) => {
-            return Modules.Stickers.createPack(ctx, uid, args.title);
+            return Modules.Stickers.createPack(ctx, uid, args.title, args.stickers);
         }),
         stickerPackUpdate: withActivatedUser((ctx, args) => {
             let id = IDs.StickerPack.parse(args.id);

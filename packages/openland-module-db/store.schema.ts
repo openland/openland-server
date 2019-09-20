@@ -1307,6 +1307,8 @@ export default declareSchema(() => {
            emoji: string(),
            stickerId: string()
        })));
+
+       rangeIndex('author', ['uid', 'id']);
     });
 
     entity('UserStickersState', () => {

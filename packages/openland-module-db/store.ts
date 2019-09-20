@@ -10241,6 +10241,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('stickerPack');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'author', storageKey: 'author', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('stickerPack', 'author'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -10268,6 +10269,21 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
     private constructor(descriptor: EntityDescriptor<StickerPackShape>) {
         super(descriptor);
     }
+
+    readonly author = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
 
     create(ctx: Context, id: number, src: StickerPackCreateShape): Promise<StickerPack> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));

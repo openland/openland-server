@@ -173,6 +173,10 @@ export class StickersRepository {
         });
     }
 
+    getPacksBy = (parent: Context, uid: number) => {
+        return Store.StickerPack.author.findAll(parent, uid);
+    }
+
     findStickers = async (parent: Context, uid: number, emoji: string) => {
         let userStickers = await this.getUserStickers(parent, uid);
         let stickers: string[] = [];

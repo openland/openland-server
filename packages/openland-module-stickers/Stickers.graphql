@@ -32,6 +32,7 @@ input StickerPackInput {
 
 extend type Query {
     myStickers: UserStickers!
+    createdStickerPacks: [StickerPack!]!
     stickersByEmoji(emoji: String!): [Sticker!]!
     stickerPack(id: ID!): StickerPack
 }
