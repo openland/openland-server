@@ -62,7 +62,7 @@ export default {
     },
     UserStickers: {
         favorites: root => root.favoriteIds,
-        packs: root => root.packIds
+        packs: root => root.packs
     },
     ImageSticker: {
         image: withSticker((ctx, sticker) => sticker.image),

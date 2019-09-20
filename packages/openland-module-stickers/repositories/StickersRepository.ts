@@ -168,8 +168,14 @@ export class StickersRepository {
     }
 
     getUserStickers = (parent: Context, uid: number) => {
-        return inTx(parent, (ctx) => {
-            return this.getUserStickersState(ctx, uid);
+        return inTx(parent, async (ctx) => {
+            let state = await this.getUserStickersState(ctx, uid);
+            let packs = await Promise.all(state.packIds.map(a => Store.StickerPack.findById(ctx, a)));
+
+            return {
+                packs: packs.filter(a => a!.published),
+                favoriteIds: state.favoriteIds
+            };
         });
     }
 
@@ -181,8 +187,10 @@ export class StickersRepository {
         let userStickers = await this.getUserStickers(parent, uid);
         let stickers: string[] = [];
 
-        let packs = await Promise.all(userStickers.packIds.map(id =>  Store.StickerPack.findById(parent, id)));
-        for (let pack of packs) {
+        for (let pack of userStickers.packs) {
+            if (!pack!.published) {
+                continue;
+            }
             stickers = stickers.concat(pack!.emojis.filter(a => a.emoji === emoji).map(a => a.stickerId));
         }
 
@@ -201,7 +209,7 @@ export class StickersRepository {
 
     addStickerToFavs = async (parent: Context, uid: number, uuid: string) => {
         return await inTx(parent, async ctx => {
-            let userStickers = await this.getUserStickers(ctx, uid);
+            let userStickers = await this.getUserStickersState(ctx, uid);
             if (userStickers.favoriteIds.find(a => a === uuid)) {
                 return false;
             }
@@ -214,7 +222,7 @@ export class StickersRepository {
 
     removeStickerFromFavs = async (parent: Context, uid: number, uuid: string) => {
         return await inTx(parent, async ctx => {
-            let userStickers = await this.getUserStickers(ctx, uid);
+            let userStickers = await this.getUserStickersState(ctx, uid);
             if (userStickers.favoriteIds.every(a => a !== uuid)) {
                 return false;
             }
