@@ -32,7 +32,7 @@ type FeedItemConnection {
 
 union Slide = TextSlide
 
-union SlideAttachment = User | SharedRoom
+union SlideAttachment = User | SharedRoom | Organization
 
 type TextSlide {
     id: ID!

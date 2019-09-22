@@ -55,7 +55,7 @@ export type TextSlideInput = {
     spans: RichMessageSpan[] | null,
     cover: { image: ImageRef, info: FileInfo } | null,
     coverAlign: 'top' | 'bottom' | 'cover' | null,
-    attachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number })[] | null
+    attachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number } | { type: 'organization', orgId: number })[] | null
 };
 
 export interface RichMessageInput {
