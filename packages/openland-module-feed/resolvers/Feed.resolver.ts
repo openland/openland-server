@@ -104,12 +104,14 @@ export default {
         },
         attachments: async (src, args, ctx) => {
             if (src.attachments) {
-                let out: (User|Conversation)[] = [];
+                let out: (User | Conversation | Organization)[] = [];
                 for (let attach of src.attachments) {
                     if (attach.type === 'user') {
                         out.push((await Store.User.findById(ctx, attach.userId))!);
                     } else if (attach.type === 'room') {
                         out.push((await Store.Conversation.findById(ctx, attach.roomId))!);
+                    } else if (attach.type === 'organization') {
+                        out.push((await Store.Organization.findById(ctx, attach.orgId))!);
                     }
                 }
                 return out;

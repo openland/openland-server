@@ -564,6 +564,9 @@ export default declareSchema(() => {
                     }),
                     room: struct({
                         roomId: integer()
+                    }),
+                    organization: struct({
+                        orgId: integer()
                     })
                 })))
             })
