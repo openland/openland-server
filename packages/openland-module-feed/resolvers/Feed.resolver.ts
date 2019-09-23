@@ -130,6 +130,8 @@ export default {
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
+            let allUids = Array.from(new Set(['user-' + uid, ...(await Store.UserEdge.forward.findAll(ctx, uid)).map((v) => 'user-' + v.uid2)]));
+            subscriptions.push(...(await Promise.all(allUids.map(u => Modules.Feed.resolveTopic(ctx, u)))).map(t => t.id));
             let allEvents: FeedEvent[] = [];
             let topicPosts = await Promise.all(subscriptions.map(s => Store.FeedEvent.fromTopic.query(ctx, s, { after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined, reverse: true })));
             for (let posts of topicPosts) {
