@@ -44,7 +44,7 @@ export type Slide = {
     spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined,
     cover: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } } | null | undefined,
     coverAlign: 'top' | 'bottom' | 'cover' | null | undefined,
-    attachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number })[] | null | undefined
+    attachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number } | { type: 'organization', orgId: number })[] | null | undefined
 };
 
 export type SlideInput = TextSlideInput;
@@ -55,7 +55,7 @@ export type TextSlideInput = {
     spans: RichMessageSpan[] | null,
     cover: { image: ImageRef, info: FileInfo } | null,
     coverAlign: 'top' | 'bottom' | 'cover' | null,
-    attachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number })[] | null
+    attachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number } | { type: 'organization', orgId: number })[] | null
 };
 
 export interface RichMessageInput {

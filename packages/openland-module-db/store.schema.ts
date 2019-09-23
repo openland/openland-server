@@ -564,6 +564,9 @@ export default declareSchema(() => {
                     }),
                     room: struct({
                         roomId: integer()
+                    }),
+                    organization: struct({
+                        orgId: integer()
                     })
                 })))
             })
@@ -1307,12 +1310,14 @@ export default declareSchema(() => {
            emoji: string(),
            stickerId: string()
        })));
+
+       rangeIndex('author', ['uid', 'id']);
     });
 
     entity('UserStickersState', () => {
        primaryKey('uid', integer());
        field('packIds', array(integer()));
-       field('favouriteIds', array(string()));
+       field('favoriteIds', array(string()));
     });
 
     entity('Sticker', () => {

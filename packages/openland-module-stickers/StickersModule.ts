@@ -14,8 +14,13 @@ export class StickersModule {
         //
     }
 
-    createPack = (parent: Context, uid: number, title: string) => {
-        return this.repo.createPack(parent, uid, title);
+    createPack = async (parent: Context, uid: number, title: string, stickers?: StickerInput[] | null) => {
+        let pack = await this.repo.createPack(parent, uid, title);
+        if (stickers) {
+            await Promise.all(stickers.map(a => this.repo.addSticker(parent, uid, pack.id, a)));
+
+        }
+        return pack;
     }
 
     updatePack = (parent: Context, id: number, input: StickerPackInput) => {
@@ -52,6 +57,10 @@ export class StickersModule {
 
     removeStickerFromFavs = async (parent: Context, uid: number, id: string) => {
         return this.repo.removeStickerFromFavs(parent, uid, id);
+    }
+
+    getPacksBy = async (parent: Context, uid: number) => {
+        return this.repo.getPacksBy(parent, uid);
     }
 
     getUserStickers = (parent: Context, uid: number) => {
