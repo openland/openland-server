@@ -1020,6 +1020,22 @@ export default declareSchema(() => {
         uniqueIndex('repeat', ['tid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
 
+    event('FeedItemReceivedEvent', () => {
+        field('subscriberId', integer());
+        field('itemId', integer());
+    });
+    event('FeedItemUpdatedEvent', () => {
+        field('subscriberId', integer());
+        field('itemId', integer());
+    });
+    event('FeedItemDeletedEvent', () => {
+        field('subscriberId', integer());
+        field('itemId', integer());
+    });
+    eventStore('FeedEventStore', () => {
+        primaryKey('subscriberId', integer());
+    });
+
     //
     // Counters
     //

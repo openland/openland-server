@@ -1,5 +1,6 @@
 type FeedUpdateContainer {
     updates: [FeedUpdate!]!
+    state: String!
 }
 
 union FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted
@@ -15,5 +16,5 @@ type FeedItemDeleted {
 }
 
 extend type Subscription {
-    homeFeedUpdates: FeedUpdateContainer
+    homeFeedUpdates(fromState: String): FeedUpdateContainer!
 }

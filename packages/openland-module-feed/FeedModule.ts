@@ -1,21 +1,30 @@
 import { injectable, inject } from 'inversify';
-import { FeedRepository, FeedTopicEvent } from './repositories/FeedRepository';
+import { FeedRepository } from './repositories/FeedRepository';
 import { Context } from '@openland/context';
 import { JsonMap } from 'openland-utils/json';
 import {
     RichMessageInput,
     RichMessageReaction
 } from '../openland-module-rich-message/repositories/RichMessageRepository';
+import { lazyInject } from '../openland-modules/Modules.container';
+import { FeedDeliveryMediator } from './repositories/FeedDeliveryMediator';
 
 @injectable()
 export class FeedModule {
 
     private repo: FeedRepository;
 
+    @lazyInject('FeedDeliveryMediator')
+    private readonly delivery!: FeedDeliveryMediator;
+
     constructor(
         @inject(FeedRepository) repo: FeedRepository
     ) {
         this.repo = repo;
+    }
+
+    start = () => {
+        this.delivery.start();
     }
 
     async resolveSubscriber(parent: Context, key: string) {
@@ -54,19 +63,11 @@ export class FeedModule {
         return this.repo.editPost(parent, uid, eventId, input);
     }
 
-    async subscribeTopicEvents(tid: number, cb: (event: FeedTopicEvent) => void) {
-        return this.repo.subscribeTopicEvents(tid, cb);
-    }
-
     async setReaction(parent: Context, uid: number, eventId: number, reaction: RichMessageReaction, reset: boolean = false) {
         return this.repo.setReaction(parent, uid, eventId, reaction, reset);
     }
 
     async deliverFeedItemUpdated(parent: Context, eventId: number) {
         return this.repo.deliverFeedItemUpdated(parent, eventId);
-    }
-
-    start = () => {
-        // Do nothing
     }
 }

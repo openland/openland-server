@@ -41,7 +41,7 @@ import {
     UserDialogBumpEvent,
     UserDialogPeerUpdatedEvent,
     StickerPack,
-    Sticker,
+    Sticker, FeedItemReceivedEvent, FeedItemUpdatedEvent, FeedItemDeletedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -61,7 +61,6 @@ import {
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
-import { FeedTopicEvent } from '../../openland-module-feed/repositories/FeedRepository';
 import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 
 //
@@ -81,11 +80,11 @@ export namespace GQLRoots {
     export type FeedItemRoot = FeedEvent;
     export type FeedPostRoot = FeedEvent;
     export type FeedPostAuthorRoot = User | Organization;
-    export type FeedUpdateContainerRoot = { updates: FeedTopicEvent[] };
-    export type FeedUpdateRoot = FeedTopicEvent;
-    export type FeedItemReceivedRoot = FeedTopicEvent;
-    export type FeedItemUpdatedRoot = FeedTopicEvent;
-    export type FeedItemDeletedRoot = FeedTopicEvent;
+    export type FeedUpdateContainerRoot = LiveStreamItem<BaseEvent>;
+    export type FeedUpdateRoot = BaseEvent;
+    export type FeedItemReceivedRoot = FeedItemReceivedEvent;
+    export type FeedItemUpdatedRoot = FeedItemUpdatedEvent;
+    export type FeedItemDeletedRoot = FeedItemDeletedEvent;
     export type FeedItemConnectionRoot = { items: FeedEvent[], cursor?: string };
     export type SlideRoot = Slide;
     export type TextSlideRoot = Slide;

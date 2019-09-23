@@ -12808,6 +12808,102 @@ export class UserDialogPeerUpdatedEvent extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const feedItemReceivedEventCodec = c.struct({
+    subscriberId: c.integer,
+    itemId: c.integer,
+});
+
+interface FeedItemReceivedEventShape {
+    subscriberId: number;
+    itemId: number;
+}
+
+export class FeedItemReceivedEvent extends BaseEvent {
+
+    static create(data: FeedItemReceivedEventShape) {
+        return new FeedItemReceivedEvent(feedItemReceivedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new FeedItemReceivedEvent(feedItemReceivedEventCodec.decode(data));
+    }
+
+    static encode(event: FeedItemReceivedEvent) {
+        return feedItemReceivedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('feedItemReceivedEvent', data);
+    }
+
+    get subscriberId(): number { return this.raw.subscriberId; }
+    get itemId(): number { return this.raw.itemId; }
+}
+
+const feedItemUpdatedEventCodec = c.struct({
+    subscriberId: c.integer,
+    itemId: c.integer,
+});
+
+interface FeedItemUpdatedEventShape {
+    subscriberId: number;
+    itemId: number;
+}
+
+export class FeedItemUpdatedEvent extends BaseEvent {
+
+    static create(data: FeedItemUpdatedEventShape) {
+        return new FeedItemUpdatedEvent(feedItemUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new FeedItemUpdatedEvent(feedItemUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: FeedItemUpdatedEvent) {
+        return feedItemUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('feedItemUpdatedEvent', data);
+    }
+
+    get subscriberId(): number { return this.raw.subscriberId; }
+    get itemId(): number { return this.raw.itemId; }
+}
+
+const feedItemDeletedEventCodec = c.struct({
+    subscriberId: c.integer,
+    itemId: c.integer,
+});
+
+interface FeedItemDeletedEventShape {
+    subscriberId: number;
+    itemId: number;
+}
+
+export class FeedItemDeletedEvent extends BaseEvent {
+
+    static create(data: FeedItemDeletedEventShape) {
+        return new FeedItemDeletedEvent(feedItemDeletedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new FeedItemDeletedEvent(feedItemDeletedEventCodec.decode(data));
+    }
+
+    static encode(event: FeedItemDeletedEvent) {
+        return feedItemDeletedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('feedItemDeletedEvent', data);
+    }
+
+    get subscriberId(): number { return this.raw.subscriberId; }
+    get itemId(): number { return this.raw.itemId; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -12910,6 +13006,41 @@ export class UserDialogEventStore extends EventStore {
 
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
+    }
+}
+
+export class FeedEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('feedEventStore');
+        const descriptor = {
+            name: 'FeedEventStore',
+            storageKey: 'feedEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new FeedEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, subscriberId: number, event: BaseEvent) {
+        this._post(ctx, [subscriberId], event);
+    }
+
+    async findAll(ctx: Context, subscriberId: number) {
+        return this._findAll(ctx, [subscriberId]);
+    }
+
+    createStream(subscriberId: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([subscriberId], opts);
+    }
+
+    createLiveStream(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [subscriberId], opts);
     }
 }
 
@@ -13037,6 +13168,7 @@ export interface Store extends BaseStore {
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
+    readonly FeedEventStore: FeedEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -13060,6 +13192,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('userDialogPhotoUpdatedEvent', UserDialogPhotoUpdatedEvent.encode as any, UserDialogPhotoUpdatedEvent.decode);
     eventFactory.registerEventType('userDialogMuteChangedEvent', UserDialogMuteChangedEvent.encode as any, UserDialogMuteChangedEvent.decode);
     eventFactory.registerEventType('userDialogPeerUpdatedEvent', UserDialogPeerUpdatedEvent.encode as any, UserDialogPeerUpdatedEvent.decode);
+    eventFactory.registerEventType('feedItemReceivedEvent', FeedItemReceivedEvent.encode as any, FeedItemReceivedEvent.decode);
+    eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
+    eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
@@ -13187,6 +13322,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
+    let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -13317,5 +13453,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationEventStore: await ConversationEventStorePromise,
         DialogIndexEventStore: await DialogIndexEventStorePromise,
         UserDialogEventStore: await UserDialogEventStorePromise,
+        FeedEventStore: await FeedEventStorePromise,
     };
 }

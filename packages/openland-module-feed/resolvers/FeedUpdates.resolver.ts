@@ -1,55 +1,46 @@
-import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import FeedUpdateRoot = GQLRoots.FeedUpdateRoot;
 import { AppContext } from '../../openland-modules/AppContext';
 import { Modules } from '../../openland-modules/Modules';
-import { PubsubSubcription } from '../../openland-module-pubsub/pubsub';
-import { createIterator } from '../../openland-utils/asyncIterator';
 import { Store } from '../../openland-module-db/FDB';
-import { onContextCancel } from '@openland/lifetime';
-import { FeedTopicEvent } from '../repositories/FeedRepository';
+import { FeedItemDeletedEvent, FeedItemReceivedEvent, FeedItemUpdatedEvent } from '../../openland-module-db/store';
+import { IDs } from '../../openland-module-api/IDs';
 
 export default {
     FeedUpdateContainer: {
-        updates: src => src.updates
+        updates: src => src.items,
+        state: src => IDs.FeedUpdatesCursor.serialize(src.cursor || '')
     },
     FeedUpdate: {
         __resolveType(src: FeedUpdateRoot) {
-            if (src.type === 'new_item') {
+            if (src instanceof FeedItemReceivedEvent) {
                 return 'FeedItemReceived';
-            } else if (src.type === 'edit_item') {
+            } else if (src instanceof FeedItemUpdatedEvent) {
                 return 'FeedItemUpdated';
-            } else if (src.type === 'delete_item') {
+            } else if (src instanceof FeedItemDeletedEvent) {
                 return 'FeedItemDeleted';
+            } else {
+                throw new Error('unknown feed update: ' + src);
             }
-            throw new Error('unknown feed update: ' + src);
         }
     },
     FeedItemReceived: {
-        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
     },
     FeedItemUpdated: {
-        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
     },
     FeedItemDeleted: {
-        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.id)
+        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
     },
     Subscription: {
         homeFeedUpdates: {
             resolve: (msg: any) => msg,
-            subscribe: async function (r: any, args: {}, ctx: AppContext) {
+            subscribe: async function (r: any, args: GQL.SubscriptionHomeFeedUpdatesArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid!;
-                let topics = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
-
-                let subscriptions: PubsubSubcription[] = [];
-                onContextCancel(ctx, () => subscriptions.forEach(s => s.cancel()));
-                let iterator = createIterator<{ updates: FeedTopicEvent[] }>(() => 0);
-                for (let tid of topics) {
-                    subscriptions.push(await Modules.Feed.subscribeTopicEvents(tid, event => {
-                        iterator.push({ updates: [event] });
-                    }));
-                }
-                return iterator;
+                let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
+                return await Store.FeedEventStore.createLiveStream(ctx, subscriber.id, { after: args.fromState ? IDs.FeedUpdatesCursor.parse(args.fromState) : undefined });
             }
         }
     }

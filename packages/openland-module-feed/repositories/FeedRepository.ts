@@ -9,35 +9,19 @@ import {
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
-import { Pubsub } from '../../openland-module-pubsub/pubsub';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { Modules } from '../../openland-modules/Modules';
-
-export type FeedTopicEvent =
-    { type: 'new_item', id: number, tid: number } |
-    { type: 'edit_item', id: number, tid: number } |
-    { type: 'delete_item', id: number, tid: number };
+import { FeedDeliveryMediator } from './FeedDeliveryMediator';
 
 @injectable()
 export class FeedRepository {
     @lazyInject('RichMessageRepository')
     private readonly richMessageRepo!: RichMessageRepository;
-    private localSub = new Pubsub<FeedTopicEvent>(false);
-
-    constructor() {
-        EventBus.subscribe('new_post', async (event: { id: number, tid: number }) => {
-            await this.localSub.publish('topic_' + event.tid, { type: 'new_item', id: event.id, tid: event.tid });
-        });
-        EventBus.subscribe('edit_post', async (event: { id: number, tid: number }) => {
-            await this.localSub.publish('topic_' + event.tid, { type: 'edit_item', id: event.id, tid: event.tid });
-        });
-        EventBus.subscribe('delete_post', async (event: { id: number, tid: number }) => {
-            await this.localSub.publish('topic_' + event.tid, { type: 'delete_item', id: event.id, tid: event.tid });
-        });
-    }
+    @lazyInject('FeedDeliveryMediator')
+    private readonly delivery!: FeedDeliveryMediator;
 
     //
     // Topics
@@ -146,7 +130,8 @@ export class FeedRepository {
             // Subscribe to comments
             await Modules.Comments.notificationsMediator.onNewPeer(ctx, 'feed_item', event.id, uid, message.spans || []);
 
-            getTransaction(ctx).afterCommit(() => EventBus.publish('new_post', { id: event.id, tid: event.tid }));
+            await this.delivery.onNewItem(ctx, event);
+
             return event;
         });
     }
@@ -176,7 +161,8 @@ export class FeedRepository {
             await this.richMessageRepo.editRichMessage(ctx, uid, feedEvent.content.richMessageId, input, true);
             feedEvent.edited = true;
 
-            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            await this.delivery.onItemUpdated(ctx, feedEvent);
+
             return feedEvent;
         });
     }
@@ -196,7 +182,9 @@ export class FeedRepository {
             }
             message.deleted = true;
             feedEvent.deleted = true;
-            getTransaction(ctx).afterCommit(() => EventBus.publish('delete_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+
+            await this.delivery.onItemDeleted(ctx, feedEvent);
+
             return true;
         });
     }
@@ -225,12 +213,5 @@ export class FeedRepository {
             getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
             return true;
         });
-    }
-
-    //
-    //  Events
-    //
-    async subscribeTopicEvents(tid: number, cb: (event: FeedTopicEvent) => void) {
-        return await this.localSub.subscribe('topic_' + tid, cb);
     }
 }
