@@ -147,7 +147,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
                 coverAlign = 'cover';
             }
 
-            let slideAttachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number })[] = [];
+            let slideAttachments: ({ type: 'user', userId: number } | { type: 'room', roomId: number } | { type: 'organization', orgId: number })[] = [];
 
             if (slide.attachments) {
                 for (let id of slide.attachments) {
@@ -156,8 +156,10 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
                         slideAttachments.push({ type: 'user', userId: parsed.id as number });
                     } else if (parsed.type === IDs.Conversation) {
                         slideAttachments.push({ type: 'room', roomId: parsed.id as number });
+                    } else if (parsed.type === IDs.Organization) {
+                        slideAttachments.push({ type: 'organization', orgId: parsed.id as number });
                     } else {
-                        throw new UserError('only user or shared room ids are supported');
+                        throw new UserError('only user, shared room and organization ids are supported');
                     }
                 }
             }
