@@ -144,7 +144,12 @@ export default {
         }),
         alphaFeedItem: withUser(async (ctx, args, uid) => {
             let id = IDs.FeedItem.parse(args.id);
-            return await Store.FeedEvent.findById(ctx, id);
+            let event = await Store.FeedEvent.findById(ctx, id);
+
+            if (event && !event.deleted) {
+                return event;
+            }
+            return null;
         })
     },
     Mutation: {

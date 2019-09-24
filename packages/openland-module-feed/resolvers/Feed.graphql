@@ -65,7 +65,7 @@ input SlideInput {
 
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
-    alphaFeedItem(id: ID!): FeedItem!
+    alphaFeedItem(id: ID!): FeedItem
 }
 
 extend type Mutation {
