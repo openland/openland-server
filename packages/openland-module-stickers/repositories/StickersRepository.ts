@@ -135,7 +135,7 @@ export class StickersRepository {
             if (userStickersState.packIds.find(a => a === pid)) {
                 return false;
             }
-            userStickersState.packIds = [...userStickersState.packIds, pid];
+            userStickersState.packIds = [pid, ...userStickersState.packIds];
             await userStickersState.flush(ctx);
 
             pack.usesCount++;
@@ -213,7 +213,7 @@ export class StickersRepository {
             if (userStickers.favoriteIds.find(a => a === uuid)) {
                 return false;
             }
-            userStickers.favoriteIds = [...userStickers.favoriteIds, uuid];
+            userStickers.favoriteIds = [uuid, ...userStickers.favoriteIds];
 
             await userStickers.flush(ctx);
             return true;

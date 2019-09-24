@@ -22,6 +22,7 @@ import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
+import { AuthContext } from '../openland-module-auth/AuthContext';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1043,6 +1044,40 @@ export default {
 
             return true;
         }),
+        debugFixStickerPack: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let pid = IDs.StickerPack.parse(args.id);
+
+                let pack = await Store.StickerPack.findById(ctx, pid);
+                if (!pack) {
+                    return null;
+                }
+
+                let user = AuthContext.get(ctx);
+                let stickers = await Store.Sticker.pack.findAll(ctx, pid);
+                for (let sticker of stickers) {
+                    await Modules.Stickers.removeSticker(ctx, user.uid!, sticker.id);
+                }
+
+                for (let st of args.stickers) {
+                    await Modules.Stickers.addSticker(ctx, user.uid!, pid, st);
+                }
+                return pid;
+            });
+        }),
+        debugReverseStickers: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async ctx => {
+                let userStickers = await Store.UserStickersState.findAll(ctx);
+                for (let us of userStickers) {
+                    us.packIds = [...us.packIds.reverse()];
+                    us.favoriteIds = [...us.favoriteIds.reverse()];
+
+                    await us.invalidate();
+                    await us.flush(ctx);
+                }
+            });
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {

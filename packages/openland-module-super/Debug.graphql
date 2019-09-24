@@ -130,6 +130,8 @@ extend type Mutation {
     debugReindexFeedEvents: Boolean!
     debugChangeUserEmail(uid: ID!, email: String!): Boolean!
     debugFindUsefulCommunities: Boolean!
+    debugFixStickerPack(id: ID!, stickers: [StickerInput!]!): StickerPack
+    debugReverseStickers: Boolean!
 }
 
 extend type Subscription {
