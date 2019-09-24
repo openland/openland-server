@@ -72,13 +72,12 @@ export class FeedDeliveryMediator {
         await inTx(parent, async (ctx) => {
             let event = (await Store.FeedEvent.findById(ctx, itemId))!;
             let subscribers = (await Store.FeedSubscription.topic.findAll(ctx, event.tid)).map(s => s.sid);
-
             // Deliver
             if (subscribers.length > 0) {
                 let batches = batch(subscribers, 20);
                 let tasks = batches.map(b => this.queueUserMultiple.pushWork(ctx, {
                     itemId: event.id,
-                    subscriberIds: subscribers,
+                    subscriberIds: b,
                     action
                 }));
                 await Promise.all(tasks);
