@@ -1055,13 +1055,10 @@ export default {
 
                 let user = AuthContext.get(ctx);
                 let stickers = await Store.Sticker.pack.findAll(ctx, pid);
-                for (let sticker of stickers) {
-                    await Modules.Stickers.removeSticker(ctx, user.uid!, sticker.id);
-                }
+                
+                await Promise.all(stickers.map(a => Modules.Stickers.removeSticker(ctx, user.uid!, a.id)));
+                await Promise.all(args.stickers.map(a => Modules.Stickers.addSticker(ctx, user.uid!, pid, a)));
 
-                for (let st of args.stickers) {
-                    await Modules.Stickers.addSticker(ctx, user.uid!, pid, st);
-                }
                 return pid;
             });
         }),

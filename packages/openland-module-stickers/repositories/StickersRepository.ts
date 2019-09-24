@@ -76,7 +76,7 @@ export class StickersRepository {
                 throw new Error('Cannot add sticker to foreign sticker pack');
             }
 
-            let imageRef = await Sanitizer.sanitizeImageRef(input.image);
+            let imageRef = Sanitizer.sanitizeImageRef(input.image);
             if (imageRef) {
                 await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
