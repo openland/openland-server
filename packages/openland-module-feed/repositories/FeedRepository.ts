@@ -199,7 +199,9 @@ export class FeedRepository {
                 throw new UserError('No post found');
             }
             await this.richMessageRepo.setReaction(ctx, feedEvent.content.richMessageId, uid, reaction, reset);
-            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+
+            await this.delivery.onItemUpdated(ctx, feedEvent);
+
             return true;
         });
     }
