@@ -43,6 +43,8 @@ class FuckApolloSession {
     public operations: { [operationId: string]: { destroy(): void } } = {};
     public waitAuth: Promise<any> = Promise.resolve();
     public socket: WebSocket;
+    public protocolVersion = 1;
+    public lastPingAck: number = Date.now();
 
     constructor(socket: WebSocket) {
         this.socket = socket;
@@ -57,6 +59,10 @@ class FuckApolloSession {
     sendConnectionAck = () => this.send({ type: 'connection_ack' });
 
     sendKeepAlive = () => this.send({ type: 'ka' });
+
+    sendPing = () => this.send({ type: 'ping' });
+
+    sendPingAck = () => this.send({ type: 'pong' });
 
     sendData = (id: string, payload: any) => this.send({ id, type: 'data', payload });
 
@@ -80,6 +86,13 @@ class FuckApolloSession {
             delete this.operations[operationId];
         }
     }
+
+    close = () => {
+        this.stopAllOperations();
+        this.socket.close();
+    }
+
+    isConnected = () => this.socket.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
 }
 
 const asyncRun = (handler: () => Promise<any>) => {
@@ -95,6 +108,14 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             return;
         }
 
+        if (message.protocol_v && typeof message.protocol_v === 'number') {
+            if (message.protocol_v > 2 || message.protocol_v < 1) {
+                socket.close();
+                return;
+            }
+            session.protocolVersion = message.protocol_v;
+        }
+
         session.setWaitingConnect();
         session.waitAuth = (async () => {
             session.authParams = await params.onAuth(message.payload, req);
@@ -102,11 +123,24 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             session.waitAuth = Promise.resolve();
             session.setConnected();
             asyncRun(async () => {
-                while (session.socket.readyState === WebSocket.OPEN && session.state === 'CONNECTED') {
+                while (session.isConnected()) {
                     session.sendKeepAlive();
                     await delay(5000);
                 }
             });
+            if (session.protocolVersion === 2) {
+                asyncRun(async () => {
+                    while (session.isConnected()) {
+                        session.sendPing();
+                        setTimeout(() => {
+                            if (session.isConnected() && Date.now() - session.lastPingAck > 1000 * 10) {
+                                session.close();
+                            }
+                        }, 1000 * 10);
+                        await delay(1000 * 30);
+                    }
+                });
+            }
         })();
     } else if (session.state === 'CONNECTED' || session.state === 'WAITING_CONNECT') {
         await Promise.resolve(session.waitAuth);
@@ -169,6 +203,10 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
         } else if (message.type && message.type === 'connection_terminate') {
             session.stopAllOperations();
             socket.close();
+        } else if (message.type && message.type === 'ping' && session.protocolVersion === 2) {
+            session.sendPingAck();
+        } else if (message.type && message.type === 'pong' && session.protocolVersion === 2) {
+            session.lastPingAck = Date.now();
         }
     }
 }
