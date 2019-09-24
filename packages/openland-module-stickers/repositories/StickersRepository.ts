@@ -76,7 +76,7 @@ export class StickersRepository {
                 throw new Error('Cannot add sticker to foreign sticker pack');
             }
 
-            let imageRef = await Sanitizer.sanitizeImageRef(input.image);
+            let imageRef = Sanitizer.sanitizeImageRef(input.image);
             if (imageRef) {
                 await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
@@ -135,7 +135,7 @@ export class StickersRepository {
             if (userStickersState.packIds.find(a => a === pid)) {
                 return false;
             }
-            userStickersState.packIds = [...userStickersState.packIds, pid];
+            userStickersState.packIds = [pid, ...userStickersState.packIds];
             await userStickersState.flush(ctx);
 
             pack.usesCount++;
@@ -213,7 +213,7 @@ export class StickersRepository {
             if (userStickers.favoriteIds.find(a => a === uuid)) {
                 return false;
             }
-            userStickers.favoriteIds = [...userStickers.favoriteIds, uuid];
+            userStickers.favoriteIds = [uuid, ...userStickers.favoriteIds];
 
             await userStickers.flush(ctx);
             return true;
