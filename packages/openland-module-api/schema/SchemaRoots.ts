@@ -389,4 +389,16 @@ export namespace GQLRoots {
     export type NewCommentNotificationRoot = NewCommentNotification;
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };
     export type UserChatWithBadgeRoot = { badge: UserBadge, cid: number };
+
+    //
+    // Matchmaking
+    //
+    export type MatchmakingRoomRoot = any;
+    export type MatchmakingProfileRoot = any;
+    export type MatchmakingAnswerRoot = any;
+    export type MultiselectMatchmakingAnswerRoot = any;
+    export type TextMatchmakingQuestionRoot = any;
+    export type MatchmakingQuestionRoot = any;
+    export type MultiselectMatchmakingQuestionRoot = any;
+    export type
 }

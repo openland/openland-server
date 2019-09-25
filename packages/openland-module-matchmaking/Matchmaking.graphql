@@ -1,0 +1,77 @@
+
+type TextMatchmakingQuestion {
+    id: ID!
+    title: String!
+    subtitle: String!
+}
+
+type MultiselectMatchmakingQuestion {
+    id: ID!
+    title: String!
+    subtitle: String!
+    tags: [String!]!
+}
+
+union MatchmakingQuestion = TextMatchmakingQuestion | MultiselectMatchmakingQuestion
+
+type TextMatchmakingAnswer {
+    question: TextMatchmakingQuestion!
+    answer: String!
+}
+
+type MultiselectMatchmakingAnswer {
+    question: MultiselectMatchmakingQuestion!
+    tags: [String!]!
+}
+
+union MatchmakingAnswer = TextMatchmakingAnswer | MultiselectMatchmakingAnswer
+
+type MatchmakingProfile {
+    user: UserProfile!
+    answers: [MatchmakingAnswer!]!
+}
+
+type MatchmakingRoom {
+    id: ID!
+    enabled: Boolean!
+    questions: [MatchmakingQuestion!]!
+    profiles: [MatchmakingProfile!]!
+    myProfile: MatchmakingProfile!
+}
+
+enum MatchmakingQuestionType {
+    Text,
+    Multiselect
+}
+
+input MatchmakingQuestionInput {
+    type: MatchmakingQuestionType!
+    title: String
+    subtitle: String
+    tags: [String!]
+}
+
+input MatchmakingRoomInput {
+    enabled: Boolean
+    questions: [MatchmakingQuestionInput!]
+}
+
+input MatchmakingAnswerInput {
+    type: MatchmakingQuestionType!
+    questionId: ID!
+    answer: String
+    tags: [String!]
+}
+
+input MatchmakingProfileFillInput {
+    answers: [MatchmakingAnswerInput!]
+}
+
+extend type Query {
+    matchmakingRoom(peerId: ID!): MatchmakingRoom!
+}
+
+extend type Mutation {
+    matchmakingRoomCreate(peerId: ID!, input: MatchmakingRoomInput!): MatchmakingRoom!
+    matchmakingProfileFill(peerId: ID!, input: MatchmakingProfileFillInput!): MatchmakingProfile!
+}
