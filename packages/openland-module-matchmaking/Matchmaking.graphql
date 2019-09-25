@@ -27,7 +27,7 @@ type MultiselectMatchmakingAnswer {
 union MatchmakingAnswer = TextMatchmakingAnswer | MultiselectMatchmakingAnswer
 
 type MatchmakingProfile {
-    user: UserProfile!
+    user: User!
     answers: [MatchmakingAnswer!]!
 }
 

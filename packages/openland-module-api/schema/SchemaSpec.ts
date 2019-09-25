@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f239fadba16278d923c1fa7de170a29f';
+export const GQL_SPEC_VERSION = 'da298ad3aef16e154391b6a5f79ced36';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -342,7 +342,7 @@ export namespace GQL {
     }
     export type MatchmakingAnswer = TextMatchmakingAnswer | MultiselectMatchmakingAnswer;
     export interface MatchmakingProfile {
-        user: UserProfile;
+        user: User;
         answers: MatchmakingAnswer[];
     }
     export interface MatchmakingRoom {
@@ -3285,7 +3285,7 @@ export interface GQLResolver {
     TextMatchmakingAnswer?: ComplexTypedResolver<GQL.TextMatchmakingAnswer, GQLRoots.TextMatchmakingAnswerRoot, {question: GQLRoots.TextMatchmakingQuestionRoot}, {}>;
     MultiselectMatchmakingAnswer?: ComplexTypedResolver<GQL.MultiselectMatchmakingAnswer, GQLRoots.MultiselectMatchmakingAnswerRoot, {question: GQLRoots.MultiselectMatchmakingQuestionRoot}, {}>;
     MatchmakingAnswer?: UnionTypeResolver<GQLRoots.MatchmakingAnswerRoot, 'TextMatchmakingAnswer' | 'MultiselectMatchmakingAnswer'>;
-    MatchmakingProfile?: ComplexTypedResolver<GQL.MatchmakingProfile, GQLRoots.MatchmakingProfileRoot, {user: GQLRoots.UserProfileRoot, answers: GQLRoots.MatchmakingAnswerRoot[]}, {}>;
+    MatchmakingProfile?: ComplexTypedResolver<GQL.MatchmakingProfile, GQLRoots.MatchmakingProfileRoot, {user: GQLRoots.UserRoot, answers: GQLRoots.MatchmakingAnswerRoot[]}, {}>;
     MatchmakingRoom?: ComplexTypedResolver<GQL.MatchmakingRoom, GQLRoots.MatchmakingRoomRoot, {questions: GQLRoots.MatchmakingQuestionRoot[], profiles: GQLRoots.MatchmakingProfileRoot[], myProfile: GQLRoots.MatchmakingProfileRoot}, {}>;
     Invite?: ComplexTypedResolver<GQL.Invite, GQLRoots.InviteRoot, {}, {}>;
     InviteInfo?: ComplexTypedResolver<GQL.InviteInfo, GQLRoots.InviteInfoRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>, creator: Nullable<GQLRoots.UserRoot>, organization: Nullable<GQLRoots.OrganizationRoot>}, {}>;

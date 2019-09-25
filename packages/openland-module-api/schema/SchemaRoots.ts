@@ -400,5 +400,5 @@ export namespace GQLRoots {
     export type TextMatchmakingQuestionRoot = any;
     export type MatchmakingQuestionRoot = any;
     export type MultiselectMatchmakingQuestionRoot = any;
-    export type
+    export type TextMatchmakingAnswerRoot = any;
 }
