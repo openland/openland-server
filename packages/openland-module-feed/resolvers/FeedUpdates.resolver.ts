@@ -39,6 +39,7 @@ export default {
             resolve: (msg: any) => msg,
             subscribe: async function (r: any, args: GQL.SubscriptionHomeFeedUpdatesArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid!;
+                await Modules.Feed.subscribe(ctx, 'user-' + uid, 'tag-global');
                 let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
                 return await Store.FeedEventStore.createLiveStream(ctx, subscriber.id, { after: args.fromState ? IDs.FeedUpdatesCursor.parse(args.fromState) : undefined });
             }
