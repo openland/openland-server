@@ -45,8 +45,9 @@ enum MatchmakingQuestionType {
 }
 
 input MatchmakingQuestionInput {
+    id: ID
     type: MatchmakingQuestionType!
-    title: String
+    title: String!
     subtitle: String
     tags: [String!]
 }
@@ -72,6 +73,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    matchmakingRoomMofify(peerId: ID!, input: MatchmakingRoomInput!): MatchmakingRoom!
+    matchmakingRoomSave(peerId: ID!, input: MatchmakingRoomInput!): MatchmakingRoom!
     matchmakingProfileFill(peerId: ID!, input: MatchmakingProfileFillInput!): MatchmakingProfile!
+    matchmakingStartConversation(peerId: ID!, uid: ID!): Boolean
 }

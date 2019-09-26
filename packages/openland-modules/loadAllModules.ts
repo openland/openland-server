@@ -55,6 +55,8 @@ import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnb
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringModule';
 import { loadStickersModule } from '../openland-module-stickers/Stickers.container';
+import { loadMatchmakingModule } from '../openland-module-matchmaking/Matchmaking.container';
+import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
 
 const logger = createLogger('starting');
 
@@ -114,6 +116,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadCallsModule();
     loadFeedModule();
     loadStickersModule();
+    loadMatchmakingModule();
 }
 
 export async function startAllModules() {
@@ -148,4 +151,5 @@ export async function startAllModules() {
     await container.get(UserOnboardingModule).start();
     await container.get(StatsModule).start();
     await container.get<MonitoringModule>('MonitoringModule').start();
+    await container.get(MatchmakingModule).start();
 }

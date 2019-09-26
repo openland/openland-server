@@ -1351,42 +1351,42 @@ export default declareSchema(() => {
     //
 
     entity('MatchmakingRoom', () => {
-        primaryKey('id', integer());
-        field('peerType', enumString('room'));
-        field('peerId', integer());
+        primaryKey('peerId', integer());
+        primaryKey('peerType', string());
+
         field('enabled', boolean());
-
-        uniqueIndex('peer', ['peerId', 'peerType']);
-    });
-
-    entity('MatchmakingQuestion', () => {
-        primaryKey('id', string());
-        field('rid', integer());
-
-        field('type', enumString('text', 'multiselect'));
-        field('title', string());
-        field('subtitle', optional(string()));
-        field('tags', optional(array(string())));
-
-        rangeIndex('room', ['rid']);
+        field('questions', array(union({
+            text: struct({
+                id: string(),
+                title: string(),
+                subtitle: optional(string()),
+            }),
+            multiselect: struct({
+                id: string(),
+                title: string(),
+                subtitle: optional(string()),
+                tags: array(string())
+            })
+        })));
     });
 
     entity('MatchmakingProfile', () => {
+        primaryKey('peerId', integer());
+        primaryKey('peerType', string());
         primaryKey('uid', integer());
-        primaryKey('rid', integer());
-    });
 
-    entity('MatchmakingAnswer', () => {
-        primaryKey('uid', integer());
-        primaryKey('qid', string());
+        field('answers', array(union({
+            text: struct({
+                qid: string(),
+                text: string(),
+            }),
+            multiselect: struct({
+                qid: string(),
+                tags: array(string())
+            })
+        })));
 
-        field('rid', integer());
-        field('answer', union({
-            text: struct({ text: string() }),
-            tags: struct({ tags: array(string()) })
-        }));
-
-        rangeIndex('roomUser', ['uid', 'rid', 'createdAt']);
+        rangeIndex('room', ['peerId', 'peerType', 'createdAt']);
     });
 
     //
