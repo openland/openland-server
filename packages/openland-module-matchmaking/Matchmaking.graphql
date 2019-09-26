@@ -34,9 +34,9 @@ type MatchmakingProfile {
 type MatchmakingRoom {
     id: ID!
     enabled: Boolean!
-    questions: [MatchmakingQuestion!]!
-    profiles: [MatchmakingProfile!]!
-    myProfile: MatchmakingProfile!
+    questions: [MatchmakingQuestion!]
+    profiles: [MatchmakingProfile!]
+    myProfile: MatchmakingProfile
 }
 
 enum MatchmakingQuestionType {
@@ -68,10 +68,10 @@ input MatchmakingProfileFillInput {
 }
 
 extend type Query {
-    matchmakingRoom(peerId: ID!): MatchmakingRoom!
+    matchmakingRoom(peerId: ID!): MatchmakingRoom
 }
 
 extend type Mutation {
-    matchmakingRoomCreate(peerId: ID!, input: MatchmakingRoomInput!): MatchmakingRoom!
+    matchmakingRoomMofify(peerId: ID!, input: MatchmakingRoomInput!): MatchmakingRoom!
     matchmakingProfileFill(peerId: ID!, input: MatchmakingProfileFillInput!): MatchmakingProfile!
 }

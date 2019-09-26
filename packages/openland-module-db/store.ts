@@ -10526,6 +10526,409 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
     }
 }
 
+export interface MatchmakingRoomShape {
+    id: number;
+    peerType: 'room';
+    peerId: number;
+    enabled: boolean;
+}
+
+export interface MatchmakingRoomCreateShape {
+    peerType: 'room';
+    peerId: number;
+    enabled: boolean;
+}
+
+export class MatchmakingRoom extends Entity<MatchmakingRoomShape> {
+    get id(): number { return this._rawValue.id; }
+    get peerType(): 'room' { return this._rawValue.peerType; }
+    set peerType(value: 'room') {
+        let normalized = this.descriptor.codec.fields.peerType.normalize(value);
+        if (this._rawValue.peerType !== normalized) {
+            this._rawValue.peerType = normalized;
+            this._updatedValues.peerType = normalized;
+            this.invalidate();
+        }
+    }
+    get peerId(): number { return this._rawValue.peerId; }
+    set peerId(value: number) {
+        let normalized = this.descriptor.codec.fields.peerId.normalize(value);
+        if (this._rawValue.peerId !== normalized) {
+            this._rawValue.peerId = normalized;
+            this._updatedValues.peerId = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class MatchmakingRoomFactory extends EntityFactory<MatchmakingRoomShape, MatchmakingRoom> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('matchmakingRoom');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'unique', fields: [{ name: 'peerId', type: 'integer' }, { name: 'peerType', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('matchmakingRoom', 'peer'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'peerType', type: { type: 'enum', values: ['room'] }, secure: false });
+        fields.push({ name: 'peerId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            peerType: c.enum('room'),
+            peerId: c.integer,
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<MatchmakingRoomShape> = {
+            name: 'MatchmakingRoom',
+            storageKey: 'matchmakingRoom',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new MatchmakingRoomFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<MatchmakingRoomShape>) {
+        super(descriptor);
+    }
+
+    readonly peer = Object.freeze({
+        find: async (ctx: Context, peerId: number, peerType: 'room') => {
+            return this._findFromUniqueIndex(ctx, [peerId, peerType], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, peerId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerId])).items;
+        },
+        query: (ctx: Context, peerId: number, opts?: RangeQueryOptions<'room'>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: number, src: MatchmakingRoomCreateShape): Promise<MatchmakingRoom> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: MatchmakingRoomCreateShape): MatchmakingRoom {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<MatchmakingRoom | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MatchmakingRoomShape>): MatchmakingRoom {
+        return new MatchmakingRoom([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface MatchmakingQuestionShape {
+    id: string;
+    rid: number;
+    type: 'text' | 'multiselect';
+    title: string;
+    subtitle: string | null;
+    tags: (string)[] | null;
+}
+
+export interface MatchmakingQuestionCreateShape {
+    rid: number;
+    type: 'text' | 'multiselect';
+    title: string;
+    subtitle?: string | null | undefined;
+    tags?: (string)[] | null | undefined;
+}
+
+export class MatchmakingQuestion extends Entity<MatchmakingQuestionShape> {
+    get id(): string { return this._rawValue.id; }
+    get rid(): number { return this._rawValue.rid; }
+    set rid(value: number) {
+        let normalized = this.descriptor.codec.fields.rid.normalize(value);
+        if (this._rawValue.rid !== normalized) {
+            this._rawValue.rid = normalized;
+            this._updatedValues.rid = normalized;
+            this.invalidate();
+        }
+    }
+    get type(): 'text' | 'multiselect' { return this._rawValue.type; }
+    set type(value: 'text' | 'multiselect') {
+        let normalized = this.descriptor.codec.fields.type.normalize(value);
+        if (this._rawValue.type !== normalized) {
+            this._rawValue.type = normalized;
+            this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get subtitle(): string | null { return this._rawValue.subtitle; }
+    set subtitle(value: string | null) {
+        let normalized = this.descriptor.codec.fields.subtitle.normalize(value);
+        if (this._rawValue.subtitle !== normalized) {
+            this._rawValue.subtitle = normalized;
+            this._updatedValues.subtitle = normalized;
+            this.invalidate();
+        }
+    }
+    get tags(): (string)[] | null { return this._rawValue.tags; }
+    set tags(value: (string)[] | null) {
+        let normalized = this.descriptor.codec.fields.tags.normalize(value);
+        if (this._rawValue.tags !== normalized) {
+            this._rawValue.tags = normalized;
+            this._updatedValues.tags = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class MatchmakingQuestionFactory extends EntityFactory<MatchmakingQuestionShape, MatchmakingQuestion> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('matchmakingQuestion');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'room', storageKey: 'room', type: { type: 'range', fields: [{ name: 'rid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('matchmakingQuestion', 'room'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'rid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'type', type: { type: 'enum', values: ['text', 'multiselect'] }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'subtitle', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'tags', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            rid: c.integer,
+            type: c.enum('text', 'multiselect'),
+            title: c.string,
+            subtitle: c.optional(c.string),
+            tags: c.optional(c.array(c.string)),
+        });
+        let descriptor: EntityDescriptor<MatchmakingQuestionShape> = {
+            name: 'MatchmakingQuestion',
+            storageKey: 'matchmakingQuestion',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new MatchmakingQuestionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<MatchmakingQuestionShape>) {
+        super(descriptor);
+    }
+
+    readonly room = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: MatchmakingQuestionCreateShape): Promise<MatchmakingQuestion> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: MatchmakingQuestionCreateShape): MatchmakingQuestion {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<MatchmakingQuestion | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MatchmakingQuestionShape>): MatchmakingQuestion {
+        return new MatchmakingQuestion([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface MatchmakingProfileShape {
+    uid: number;
+    rid: number;
+}
+
+export interface MatchmakingProfileCreateShape {
+}
+
+export class MatchmakingProfile extends Entity<MatchmakingProfileShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get rid(): number { return this._rawValue.rid; }
+}
+
+export class MatchmakingProfileFactory extends EntityFactory<MatchmakingProfileShape, MatchmakingProfile> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('matchmakingProfile');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'rid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        let codec = c.struct({
+            uid: c.integer,
+            rid: c.integer,
+        });
+        let descriptor: EntityDescriptor<MatchmakingProfileShape> = {
+            name: 'MatchmakingProfile',
+            storageKey: 'matchmakingProfile',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new MatchmakingProfileFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<MatchmakingProfileShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, rid: number, src: MatchmakingProfileCreateShape): Promise<MatchmakingProfile> {
+        return this._create(ctx, [uid, rid], this.descriptor.codec.normalize({ uid, rid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, rid: number, src: MatchmakingProfileCreateShape): MatchmakingProfile {
+        return this._create_UNSAFE(ctx, [uid, rid], this.descriptor.codec.normalize({ uid, rid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, rid: number): Promise<MatchmakingProfile | null> {
+        return this._findById(ctx, [uid, rid]);
+    }
+
+    watch(ctx: Context, uid: number, rid: number): Watch {
+        return this._watch(ctx, [uid, rid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MatchmakingProfileShape>): MatchmakingProfile {
+        return new MatchmakingProfile([value.uid, value.rid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface MatchmakingAnswerShape {
+    uid: number;
+    qid: string;
+    rid: number;
+    answer: { type: 'text', text: string } | { type: 'tags', tags: (string)[] };
+}
+
+export interface MatchmakingAnswerCreateShape {
+    rid: number;
+    answer: { type: 'text', text: string } | { type: 'tags', tags: (string)[] };
+}
+
+export class MatchmakingAnswer extends Entity<MatchmakingAnswerShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get qid(): string { return this._rawValue.qid; }
+    get rid(): number { return this._rawValue.rid; }
+    set rid(value: number) {
+        let normalized = this.descriptor.codec.fields.rid.normalize(value);
+        if (this._rawValue.rid !== normalized) {
+            this._rawValue.rid = normalized;
+            this._updatedValues.rid = normalized;
+            this.invalidate();
+        }
+    }
+    get answer(): { type: 'text', text: string } | { type: 'tags', tags: (string)[] } { return this._rawValue.answer; }
+    set answer(value: { type: 'text', text: string } | { type: 'tags', tags: (string)[] }) {
+        let normalized = this.descriptor.codec.fields.answer.normalize(value);
+        if (this._rawValue.answer !== normalized) {
+            this._rawValue.answer = normalized;
+            this._updatedValues.answer = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class MatchmakingAnswerFactory extends EntityFactory<MatchmakingAnswerShape, MatchmakingAnswer> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('matchmakingAnswer');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'roomUser', storageKey: 'roomUser', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'rid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('matchmakingAnswer', 'roomUser'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'qid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'rid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'answer', type: { type: 'union', types: { text: { text: { type: 'string' } }, tags: { tags: { type: 'array', inner: { type: 'string' } } } } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            qid: c.string,
+            rid: c.integer,
+            answer: c.union({ text: c.struct({ text: c.string }), tags: c.struct({ tags: c.array(c.string) }) }),
+        });
+        let descriptor: EntityDescriptor<MatchmakingAnswerShape> = {
+            name: 'MatchmakingAnswer',
+            storageKey: 'matchmakingAnswer',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new MatchmakingAnswerFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<MatchmakingAnswerShape>) {
+        super(descriptor);
+    }
+
+    readonly roomUser = Object.freeze({
+        findAll: async (ctx: Context, uid: number, rid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid, rid])).items;
+        },
+        query: (ctx: Context, uid: number, rid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid, rid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, rid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid, rid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, rid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid, rid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, qid: string, src: MatchmakingAnswerCreateShape): Promise<MatchmakingAnswer> {
+        return this._create(ctx, [uid, qid], this.descriptor.codec.normalize({ uid, qid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, qid: string, src: MatchmakingAnswerCreateShape): MatchmakingAnswer {
+        return this._create_UNSAFE(ctx, [uid, qid], this.descriptor.codec.normalize({ uid, qid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, qid: string): Promise<MatchmakingAnswer | null> {
+        return this._findById(ctx, [uid, qid]);
+    }
+
+    watch(ctx: Context, uid: number, qid: string): Watch {
+        return this._watch(ctx, [uid, qid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MatchmakingAnswerShape>): MatchmakingAnswer {
+        return new MatchmakingAnswer([value.uid, value.qid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserStorageNamespaceShape {
     id: number;
     ns: string;
@@ -13148,6 +13551,10 @@ export interface Store extends BaseStore {
     readonly StickerPack: StickerPackFactory;
     readonly UserStickersState: UserStickersStateFactory;
     readonly Sticker: StickerFactory;
+    readonly MatchmakingRoom: MatchmakingRoomFactory;
+    readonly MatchmakingQuestion: MatchmakingQuestionFactory;
+    readonly MatchmakingProfile: MatchmakingProfileFactory;
+    readonly MatchmakingAnswer: MatchmakingAnswerFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly Sequence: SequenceFactory;
@@ -13298,6 +13705,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StickerPackPromise = StickerPackFactory.open(storage);
     let UserStickersStatePromise = UserStickersStateFactory.open(storage);
     let StickerPromise = StickerFactory.open(storage);
+    let MatchmakingRoomPromise = MatchmakingRoomFactory.open(storage);
+    let MatchmakingQuestionPromise = MatchmakingQuestionFactory.open(storage);
+    let MatchmakingProfilePromise = MatchmakingProfileFactory.open(storage);
+    let MatchmakingAnswerPromise = MatchmakingAnswerFactory.open(storage);
     let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
@@ -13429,6 +13840,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StickerPack: await StickerPackPromise,
         UserStickersState: await UserStickersStatePromise,
         Sticker: await StickerPromise,
+        MatchmakingRoom: await MatchmakingRoomPromise,
+        MatchmakingQuestion: await MatchmakingQuestionPromise,
+        MatchmakingProfile: await MatchmakingProfilePromise,
+        MatchmakingAnswer: await MatchmakingAnswerPromise,
         UserStorageNamespace: await UserStorageNamespacePromise,
         UserStorageRecord: await UserStorageRecordPromise,
         Sequence: await SequencePromise,

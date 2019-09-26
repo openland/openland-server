@@ -60,6 +60,7 @@ type SharedRoom {
     canSendMessage: Boolean!
     archived: Boolean!
     myBadge: UserBadge
+    matchmaking: MatchmakingRoom
 }
 
 type RoomSuper {
