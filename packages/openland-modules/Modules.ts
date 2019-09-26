@@ -32,6 +32,7 @@ import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnb
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { MonitoringModule } from 'openland-module-monitoring/MonitoringModule';
 import { StickersModule } from '../openland-module-stickers/StickersModule';
+import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
 
 class ModulesImpl {
 
@@ -133,6 +134,9 @@ class ModulesImpl {
     }
     get Stickers() {
         return container.get(StickersModule);
+    }
+    getMatchmaking() {
+        return container.get(MatchmakingModule);
     }
 }
 
