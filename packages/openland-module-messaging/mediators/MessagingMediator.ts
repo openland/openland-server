@@ -90,8 +90,10 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
 
-            // Subscribe to comments
-            await Modules.Comments.notificationsMediator.onNewPeer(ctx, 'message', res.message.id, uid, message.spans || []);
+            if (!message.isService) {
+                // Subscribe to comments
+                await Modules.Comments.notificationsMediator.onNewPeer(ctx, 'message', res.message.id, uid, message.spans || []);
+            }
 
             if (!msg.ignoreAugmentation) {
                 // Augment
