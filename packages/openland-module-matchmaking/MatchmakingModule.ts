@@ -1,11 +1,13 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import {
-    MatchmakingAnswerInput,
     MatchmakingRepository,
-    MatchmakingRoomInput, PeerType,
+    PeerType,
 } from './repositories/MatchmakingRepository';
 import { Context } from '@openland/context';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import MatchmakingRoomInput = GQL.MatchmakingRoomInput;
+import MatchmakingAnswerInput = GQL.MatchmakingAnswerInput;
 
 @injectable()
 export class MatchmakingModule {

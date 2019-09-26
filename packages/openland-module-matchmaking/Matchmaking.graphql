@@ -32,7 +32,6 @@ type MatchmakingProfile {
 }
 
 type MatchmakingRoom {
-    id: ID!
     enabled: Boolean!
     questions: [MatchmakingQuestion!]
     profiles: [MatchmakingProfile!]
@@ -58,18 +57,18 @@ input MatchmakingRoomInput {
 }
 
 input MatchmakingAnswerInput {
-    type: MatchmakingQuestionType!
     questionId: ID!
-    answer: String
+    text: String
     tags: [String!]
 }
 
 input MatchmakingProfileFillInput {
-    answers: [MatchmakingAnswerInput!]
+    answers: [MatchmakingAnswerInput!]!
 }
 
 extend type Query {
     matchmakingRoom(peerId: ID!): MatchmakingRoom
+    matchmakingProfile(peerId: ID!, uid: ID!): MatchmakingProfile
 }
 
 extend type Mutation {

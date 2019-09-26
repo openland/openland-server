@@ -41,7 +41,11 @@ import {
     UserDialogBumpEvent,
     UserDialogPeerUpdatedEvent,
     StickerPack,
-    Sticker, FeedItemReceivedEvent, FeedItemUpdatedEvent, FeedItemDeletedEvent,
+    Sticker,
+    FeedItemReceivedEvent,
+    FeedItemUpdatedEvent,
+    FeedItemDeletedEvent,
+    MatchmakingRoom, MatchmakingProfile,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -393,12 +397,13 @@ export namespace GQLRoots {
     //
     // Matchmaking
     //
-    export type MatchmakingRoomRoot = any;
-    export type MatchmakingProfileRoot = any;
-    export type MatchmakingAnswerRoot = any;
-    export type MultiselectMatchmakingAnswerRoot = any;
-    export type TextMatchmakingQuestionRoot = any;
-    export type MatchmakingQuestionRoot = any;
-    export type MultiselectMatchmakingQuestionRoot = any;
-    export type TextMatchmakingAnswerRoot = any;
+    export type MatchmakingRoomRoot = MatchmakingRoom;
+    export type MatchmakingProfileRoot = MatchmakingProfile;
+    export type MatchmakingAnswerRoot = TextMatchmakingAnswerRoot | MultiselectMatchmakingAnswerRoot;
+    export type TextMatchmakingAnswerRoot = { type: 'text', text: string, question: MatchmakingQuestionRoot };
+    export type MultiselectMatchmakingAnswerRoot = { type: 'multiselect', tags: string[], question: MatchmakingQuestionRoot };
+
+    export type TextMatchmakingQuestionRoot = { type: 'text', id: string, title: string, subtitle?: string | null };
+    export type MultiselectMatchmakingQuestionRoot = { type: 'multiselect', id: string, title: string, subtitle?: string | null, tags: string[] };
+    export type MatchmakingQuestionRoot = TextMatchmakingQuestionRoot | MultiselectMatchmakingQuestionRoot;
 }

@@ -60,7 +60,7 @@ export const IDs = {
     UserBadge: IdsFactory.createId('UserBadge'),
     StickerPack: IdsFactory.createId('StickerPack'),
     Sticker: IdsFactory.createStringId('Sticker'),
-    MatchmakingRoom: IdsFactory.createId('MatchmakingRoom'),
+    MatchmakingQuestion: IdsFactory.createStringId('MatchmakingQuestion'),
 
     ChatUpdatesCursor: IdsFactory.createStringId('ChatUpdatesCursor'),
     DialogsUpdatesCursor: IdsFactory.createStringId('DialogsUpdatesCursor'),

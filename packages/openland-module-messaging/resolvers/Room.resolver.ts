@@ -158,6 +158,7 @@ export default {
         }),
         myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
         featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length),
+        matchmaking: withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')),
     },
     RoomMessage: {
         id: (src: Message) => {
