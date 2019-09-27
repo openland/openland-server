@@ -125,6 +125,8 @@ export default {
                 return 'User';
             } else if (src instanceof Conversation) {
                 return 'SharedRoom';
+            } else if (src instanceof Organization) {
+                return 'Organization';
             }
             throw new Error('Unknown slide attachment: ' + src);
         }
