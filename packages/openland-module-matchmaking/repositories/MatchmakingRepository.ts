@@ -5,16 +5,25 @@ import { RandomLayer } from '@openland/foundationdb-random';
 import { inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { GQL } from '../../openland-module-api/schema/SchemaSpec';
+import MatchmakingRoomInput = GQL.MatchmakingRoomInput;
+import MatchmakingAnswerInput = GQL.MatchmakingAnswerInput;
+import { Modules } from 'openland-modules/Modules';
+import { MatchmakingProfile } from '../../openland-module-db/store';
 
 export type PeerType = 'room';
 
-export type MatchmakingAnswerInput = { questionId: string } & ({ type: 'text', answer: string } | { type: 'multiselect', tags: string[] });
+// export type MatchmakingAnswerInput = { questionId: string } & ({ type: 'text', answer: string } | { type: 'multiselect', tags: string[] });
+//
+// export type MatchmakingQuestionInput = { id?: string | null, title: string, subtitle?: string | null } & ({ type: 'text' } | { type: 'multiselect', tags: string[] });
+//
+// export type MatchmakingRoomInput = {
+//     enabled: boolean
+//     questions: MatchmakingQuestionInput[]
+// };
 
-export type MatchmakingQuestionInput = { id?: string | null, title: string, subtitle?: string | null } & ({ type: 'text' } | { type: 'multiselect', tags: string[] });
-
-export type MatchmakingRoomInput = {
-    enabled: boolean
-    questions: MatchmakingQuestionInput[]
+let mapByIds = <Id, T extends { id: Id }>(arr: T[]): Map<Id, T> => {
+    return arr.reduce((acc, a) => acc.set(a.id, a), new Map<Id, T>());
 };
 
 @injectable()
@@ -25,10 +34,12 @@ export class MatchmakingRepository {
             room = await Store.MatchmakingRoom.create(ctx, peerId, peerType, {
                 enabled: false,
                 questions: [{
-                    type: 'text' as any,
+                    type: 'tags' as any,
                     id: this.nextQuestionId(),
                     title: 'Interested in',
                     subtitle: '',
+                    tags: ['Founder', 'Engineer', 'Investor', 'Product manager', 'Recruiter', 'Marketing and sales',
+                    'Another']
                 }, {
                     type: 'text' as any,
                     id: this.nextQuestionId(),
@@ -40,31 +51,60 @@ export class MatchmakingRepository {
         return room;
     }
 
-    getRoomProfiles = async (ctx: Context, peerId: number, peerType: PeerType) => {
-        return await Store.MatchmakingProfile.room.findAll(ctx, peerId, peerType);
+    getRoomProfiles = async (ctx: Context, peerId: number, peerType: PeerType, uid?: number) => {
+        let profiles = await Store.MatchmakingProfile.room.findAll(ctx, peerId, peerType);
+        if (uid) {
+            let myProfile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
+            if (!myProfile) {
+                return profiles;
+            }
+
+            let findIntersectionScore = (arr1: string[] | undefined, arr2: string[]) => {
+                if (!arr1) {
+                    return 0;
+                }
+                return arr1.reduce((acc, a) => arr2.find(b => b === a) ? acc + 1 : acc, 0);
+            };
+            let myAnswers = myProfile.answers
+                .reduce((acc, a) => a.type === 'multiselect' ? acc.set(a.qid, a.tags) : acc, new Map<string, string[]>());
+            let scoreProfile = (profile: MatchmakingProfile) => {
+                return profile.answers
+                    .reduce((acc, b) => b.type === 'multiselect' ?  (acc + findIntersectionScore(myAnswers.get(b.qid), b.tags)) : acc, 0);
+            };
+            profiles = profiles.sort((a, b) => scoreProfile(b) - scoreProfile(a));
+        }
+        return profiles;
     }
 
     getRoomProfile = async (ctx: Context, peerId: number, peerType: PeerType, uid: number) => {
         return await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
     }
 
-    saveRoom = async (parent: Context, peerId: number, peerType: PeerType, input: MatchmakingRoomInput) => {
+    saveRoom = async (parent: Context, peerId: number, peerType: PeerType, uid: number, input: MatchmakingRoomInput) => {
         return await inTx(parent, async ctx => {
+            if (peerType === 'room') {
+                await Modules.Messaging.room.checkCanEditChat(ctx, peerId, uid);
+            }
+
             let room = await this.getRoom(ctx, peerId, peerType);
 
-            room.enabled = input.enabled;
-            room.questions = input.questions.map(a => a.type === 'multiselect' ? {
-                id: a.id || this.nextQuestionId(),
-                type: 'multiselect',
-                tags: a.tags,
-                title: a.title,
-                subtitle: a.subtitle || null
-            } : {
-                id: a.id || this.nextQuestionId(),
-                type: 'text',
-                title: a.title,
-                subtitle: a.subtitle || null
-            });
+            if (input.enabled !== null && input.enabled !== undefined) {
+                room.enabled = input.enabled;
+            }
+            if (input.questions) {
+                room.questions = input.questions.map(a => a.type === 'Multiselect' ? {
+                    id: a.id || this.nextQuestionId(),
+                    type: 'multiselect',
+                    tags: a.tags!,
+                    title: a.title,
+                    subtitle: a.subtitle || null,
+                } : {
+                    id: a.id || this.nextQuestionId(),
+                    type: 'text',
+                    title: a.title,
+                    subtitle: a.subtitle || null,
+                });
+            }
 
             return room;
         });
@@ -75,32 +115,48 @@ export class MatchmakingRepository {
         if (!room.enabled) {
             throw new UserError('Matchmaking is disabled');
         }
-        // check for question existance
-        let qids = room.questions.map(a => a.id);
-        if (!answers.every(a => qids.includes(a.questionId))) {
-            throw new NotFoundError('Some of questions are not found');
+        if (peerType === 'room') {
+            await Modules.Messaging.room.checkCanUserSeeChat(parent, uid, peerId);
         }
 
-        // check for duplicates
+        let questions = mapByIds(room.questions);
         let qidSet = new Set<string>();
         for (let ans of answers) {
+            // check for question existance
+            if (!questions.has(ans.questionId)) {
+                throw new NotFoundError('Some of questions are not found');
+            }
+
+            // check for duplicates
             if (qidSet.has(ans.questionId)) {
                 throw new UserError('Duplicate answer');
             }
             qidSet.add(ans.questionId);
+
+            // check for question type
+            let question = questions.get(ans.questionId);
+            if (question!.type === 'text' && (ans.tags || !ans.text)) {
+                throw new UserError('Text answer cannot contain tags and should contain text');
+            }
+            if (question!.type === 'multiselect' && (ans.text !== null || !ans.tags)) {
+                throw new UserError('Multiselect answer cannot contain text and should contain tags');
+            }
         }
 
         return await inTx(parent, async ctx => {
             let profile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
+            let answersData = answers.map(a => ({
+                type: questions.get(a.questionId)!.type,
+                text: a.text as any,
+                qid: a.questionId,
+                tags: a.tags as any,
+            }));
             if (!profile) {
-                await Store.MatchmakingProfile.create(ctx, peerId, peerType, uid, {
-                    answers: answers.map(a => ({
-                        type: a.type as any,
-                        text: '',
-                        qid: a.questionId,
-                        tags: a.type === 'multiselect' ? a.tags : undefined,
-                    })),
+                profile = await Store.MatchmakingProfile.create(ctx, peerId, peerType, uid, {
+                    answers: answersData,
                 });
+            } else {
+                profile.answers = answersData;
             }
             return profile;
         });

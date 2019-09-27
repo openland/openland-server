@@ -135,7 +135,7 @@ class ModulesImpl {
     get Stickers() {
         return container.get(StickersModule);
     }
-    getMatchmaking() {
+    get Matchmaking() {
         return container.get(MatchmakingModule);
     }
 }
