@@ -110,7 +110,7 @@ export default {
                     args.input.questions.map(a => ({ ...a, id: a.id ? IDs.MatchmakingQuestion.parse(a.id) : null }))
                      : null
             };
-            return await Modules.Matchmaking.saveRoom(ctx, peer.id, peer.type, args.input);
+            return await Modules.Matchmaking.saveRoom(ctx, peer.id, peer.type, uid, args.input);
         }),
         matchmakingProfileFill: withUser(async (ctx, args, uid) => {
             let peer = resolvePeer(args.peerId);
@@ -122,12 +122,14 @@ export default {
                 questionId: IDs.MatchmakingQuestion.parse(a.questionId)
             })));
         }),
-        matchmakingStartConversation: withUser(async (ctx, args, uid) => {
+        matchmakingConnect: withUser(async (ctx, args, uid) => {
             let peer = resolvePeer(args.peerId);
             if (!peer) {
-                return null;
+                return false;
             }
-            return null;
+            let uid2 = IDs.User.parse(args.uid);
+
+            return await Modules.Matchmaking.connect(ctx, peer.id, peer.type, uid, uid2);
         }),
     }
 

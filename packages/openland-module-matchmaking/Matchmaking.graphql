@@ -29,6 +29,7 @@ union MatchmakingAnswer = TextMatchmakingAnswer | MultiselectMatchmakingAnswer
 type MatchmakingProfile {
     user: User!
     answers: [MatchmakingAnswer!]!
+    hasConnection: Boolean!
 }
 
 type MatchmakingRoom {
@@ -74,5 +75,5 @@ extend type Query {
 extend type Mutation {
     matchmakingRoomSave(peerId: ID!, input: MatchmakingRoomInput!): MatchmakingRoom!
     matchmakingProfileFill(peerId: ID!, input: MatchmakingProfileFillInput!): MatchmakingProfile!
-    matchmakingStartConversation(peerId: ID!, uid: ID!): Boolean
+    matchmakingConnect(peerId: ID!, uid: ID!): Boolean!
 }
