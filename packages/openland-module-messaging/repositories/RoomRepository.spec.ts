@@ -3,11 +3,13 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { container } from 'openland-modules/Modules.container';
 import { RoomRepository } from './RoomRepository';
 import { createNamedContext } from '@openland/context';
+import { loadMatchmakingModule } from '../../openland-module-matchmaking/Matchmaking.container';
 
 describe('RoomRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('room-repo');
         container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
+        loadMatchmakingModule();
     });
     afterAll( async () => {
       await  testEnvironmentEnd();
