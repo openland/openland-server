@@ -34,17 +34,25 @@ export class MatchmakingRepository {
             room = await Store.MatchmakingRoom.create(ctx, peerId, peerType, {
                 enabled: false,
                 questions: [{
-                    type: 'tags' as any,
+                    type: 'multiselect' as any,
                     id: this.nextQuestionId(),
                     title: 'Interested in',
                     subtitle: '',
-                    tags: ['Founder', 'Engineer', 'Investor', 'Product manager', 'Recruiter', 'Marketing and sales',
-                    'Another']
+                    tags: [
+                        'Founder', 'Engineer', 'Investor',
+                        'Product manager', 'Recruiter',
+                        'Marketing and sales', 'Another'
+                    ]
                 }, {
                     type: 'text' as any,
                     id: this.nextQuestionId(),
                     title: 'Looking for',
                     subtitle: '',
+                }, {
+                    type: 'text' as any,
+                    id: this.nextQuestionId(),
+                    title: 'Can help with',
+                    subtitle: ''
                 }],
             });
         }
@@ -66,10 +74,10 @@ export class MatchmakingRepository {
                 return arr1.reduce((acc, a) => arr2.find(b => b === a) ? acc + 1 : acc, 0);
             };
             let myAnswers = myProfile.answers
-                .reduce((acc, a) => a.type === 'multiselect' ? acc.set(a.qid, a.tags) : acc, new Map<string, string[]>());
+                .reduce((acc, a) => a.type === 'multiselect' ? acc.set(a.question.id, a.tags) : acc, new Map<string, string[]>());
             let scoreProfile = (profile: MatchmakingProfile) => {
                 return profile.answers
-                    .reduce((acc, b) => b.type === 'multiselect' ?  (acc + findIntersectionScore(myAnswers.get(b.qid), b.tags)) : acc, 0);
+                    .reduce((acc, b) => b.type === 'multiselect' ?  (acc + findIntersectionScore(myAnswers.get(b.question.id), b.tags)) : acc, 0);
             };
             profiles = profiles.sort((a, b) => scoreProfile(b) - scoreProfile(a));
         }
@@ -91,18 +99,24 @@ export class MatchmakingRepository {
             if (input.enabled !== null && input.enabled !== undefined) {
                 room.enabled = input.enabled;
             }
+            let existingQuestions = mapByIds(room.questions);
             if (input.questions) {
-                room.questions = input.questions.map(a => a.type === 'Multiselect' ? {
-                    id: a.id || this.nextQuestionId(),
-                    type: 'multiselect',
-                    tags: a.tags!,
-                    title: a.title,
-                    subtitle: a.subtitle || null,
-                } : {
-                    id: a.id || this.nextQuestionId(),
-                    type: 'text',
-                    title: a.title,
-                    subtitle: a.subtitle || null,
+                room.questions = input.questions.map(a => {
+                    if (a.id && existingQuestions.has(a.id)) {
+                        return existingQuestions.get(a.id)!;
+                    }
+                    return a.type === 'Multiselect' ? {
+                        id: this.nextQuestionId(),
+                        type: 'multiselect',
+                        tags: a.tags!,
+                        title: a.title,
+                        subtitle: a.subtitle || null,
+                    } : {
+                        id: this.nextQuestionId(),
+                        type: 'text',
+                        title: a.title,
+                        subtitle: a.subtitle || null,
+                    };
                 });
             }
 
@@ -135,11 +149,11 @@ export class MatchmakingRepository {
 
             // check for question type
             let question = questions.get(ans.questionId);
-            if (question!.type === 'text' && (ans.tags || !ans.text)) {
-                throw new UserError('Text answer cannot contain tags and should contain text');
+            if (question!.type === 'text' && !ans.text) {
+                throw new UserError('Text answer should contain text');
             }
-            if (question!.type === 'multiselect' && (ans.text !== null || !ans.tags)) {
-                throw new UserError('Multiselect answer cannot contain text and should contain tags');
+            if (question!.type === 'multiselect' && !ans.tags) {
+                throw new UserError('Multiselect answer should contain tags');
             }
         }
 
@@ -147,8 +161,8 @@ export class MatchmakingRepository {
             let profile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
             let answersData = answers.map(a => ({
                 type: questions.get(a.questionId)!.type,
+                question: questions.get(a.questionId)!,
                 text: a.text as any,
-                qid: a.questionId,
                 tags: a.tags as any,
             }));
             if (!profile) {

@@ -1350,24 +1350,26 @@ export default declareSchema(() => {
     // Matchmaking
     //
 
+    let MatchmakingQuestion = union({
+        text: struct({
+            id: string(),
+            title: string(),
+            subtitle: optional(string()),
+        }),
+        multiselect: struct({
+            id: string(),
+            title: string(),
+            subtitle: optional(string()),
+            tags: array(string())
+        })
+    });
+
     entity('MatchmakingRoom', () => {
         primaryKey('peerId', integer());
         primaryKey('peerType', string());
 
         field('enabled', boolean());
-        field('questions', array(union({
-            text: struct({
-                id: string(),
-                title: string(),
-                subtitle: optional(string()),
-            }),
-            multiselect: struct({
-                id: string(),
-                title: string(),
-                subtitle: optional(string()),
-                tags: array(string())
-            })
-        })));
+        field('questions', array(MatchmakingQuestion));
     });
 
     entity('MatchmakingProfile', () => {
@@ -1377,11 +1379,11 @@ export default declareSchema(() => {
 
         field('answers', array(union({
             text: struct({
-                qid: string(),
+                question: MatchmakingQuestion,
                 text: string(),
             }),
             multiselect: struct({
-                qid: string(),
+                question: MatchmakingQuestion,
                 tags: array(string())
             })
         })));

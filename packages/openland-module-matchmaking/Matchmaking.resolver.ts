@@ -30,13 +30,7 @@ export default {
         questions: src => src.questions,
     },
     MatchmakingProfile: {
-        answers: async (root, _, ctx) => {
-            let room = await Modules.Matchmaking.getRoom(ctx, root.peerId, root.peerType as any);
-            return root.answers
-                .map(a => ({
-                    ...a, question: room.questions.find(b => b.id === a.qid),
-                }));
-        },
+        answers: root => root.answers,
         user: root => root.uid,
     },
     MatchmakingAnswer: {

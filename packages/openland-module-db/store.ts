@@ -10615,19 +10615,19 @@ export interface MatchmakingProfileShape {
     peerId: number;
     peerType: string;
     uid: number;
-    answers: ({ type: 'text', qid: string, text: string } | { type: 'multiselect', qid: string, tags: (string)[] })[];
+    answers: ({ type: 'text', question: { type: 'text', id: string, title: string, subtitle: string | null } | { type: 'multiselect', id: string, title: string, subtitle: string | null, tags: (string)[] }, text: string } | { type: 'multiselect', question: { type: 'text', id: string, title: string, subtitle: string | null } | { type: 'multiselect', id: string, title: string, subtitle: string | null, tags: (string)[] }, tags: (string)[] })[];
 }
 
 export interface MatchmakingProfileCreateShape {
-    answers: ({ type: 'text', qid: string, text: string } | { type: 'multiselect', qid: string, tags: (string)[] })[];
+    answers: ({ type: 'text', question: { type: 'text', id: string, title: string, subtitle: string | null | undefined } | { type: 'multiselect', id: string, title: string, subtitle: string | null | undefined, tags: (string)[] }, text: string } | { type: 'multiselect', question: { type: 'text', id: string, title: string, subtitle: string | null | undefined } | { type: 'multiselect', id: string, title: string, subtitle: string | null | undefined, tags: (string)[] }, tags: (string)[] })[];
 }
 
 export class MatchmakingProfile extends Entity<MatchmakingProfileShape> {
     get peerId(): number { return this._rawValue.peerId; }
     get peerType(): string { return this._rawValue.peerType; }
     get uid(): number { return this._rawValue.uid; }
-    get answers(): ({ type: 'text', qid: string, text: string } | { type: 'multiselect', qid: string, tags: (string)[] })[] { return this._rawValue.answers; }
-    set answers(value: ({ type: 'text', qid: string, text: string } | { type: 'multiselect', qid: string, tags: (string)[] })[]) {
+    get answers(): ({ type: 'text', question: { type: 'text', id: string, title: string, subtitle: string | null } | { type: 'multiselect', id: string, title: string, subtitle: string | null, tags: (string)[] }, text: string } | { type: 'multiselect', question: { type: 'text', id: string, title: string, subtitle: string | null } | { type: 'multiselect', id: string, title: string, subtitle: string | null, tags: (string)[] }, tags: (string)[] })[] { return this._rawValue.answers; }
+    set answers(value: ({ type: 'text', question: { type: 'text', id: string, title: string, subtitle: string | null } | { type: 'multiselect', id: string, title: string, subtitle: string | null, tags: (string)[] }, text: string } | { type: 'multiselect', question: { type: 'text', id: string, title: string, subtitle: string | null } | { type: 'multiselect', id: string, title: string, subtitle: string | null, tags: (string)[] }, tags: (string)[] })[]) {
         let normalized = this.descriptor.codec.fields.answers.normalize(value);
         if (this._rawValue.answers !== normalized) {
             this._rawValue.answers = normalized;
@@ -10648,12 +10648,12 @@ export class MatchmakingProfileFactory extends EntityFactory<MatchmakingProfileS
         primaryKeys.push({ name: 'peerType', type: 'string' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'answers', type: { type: 'array', inner: { type: 'union', types: { text: { qid: { type: 'string' }, text: { type: 'string' } }, multiselect: { qid: { type: 'string' }, tags: { type: 'array', inner: { type: 'string' } } } } } }, secure: false });
+        fields.push({ name: 'answers', type: { type: 'array', inner: { type: 'union', types: { text: { question: { type: 'union', types: { text: { id: { type: 'string' }, title: { type: 'string' }, subtitle: { type: 'optional', inner: { type: 'string' } } }, multiselect: { id: { type: 'string' }, title: { type: 'string' }, subtitle: { type: 'optional', inner: { type: 'string' } }, tags: { type: 'array', inner: { type: 'string' } } } } }, text: { type: 'string' } }, multiselect: { question: { type: 'union', types: { text: { id: { type: 'string' }, title: { type: 'string' }, subtitle: { type: 'optional', inner: { type: 'string' } } }, multiselect: { id: { type: 'string' }, title: { type: 'string' }, subtitle: { type: 'optional', inner: { type: 'string' } }, tags: { type: 'array', inner: { type: 'string' } } } } }, tags: { type: 'array', inner: { type: 'string' } } } } } }, secure: false });
         let codec = c.struct({
             peerId: c.integer,
             peerType: c.string,
             uid: c.integer,
-            answers: c.array(c.union({ text: c.struct({ qid: c.string, text: c.string }), multiselect: c.struct({ qid: c.string, tags: c.array(c.string) }) })),
+            answers: c.array(c.union({ text: c.struct({ question: c.union({ text: c.struct({ id: c.string, title: c.string, subtitle: c.optional(c.string) }), multiselect: c.struct({ id: c.string, title: c.string, subtitle: c.optional(c.string), tags: c.array(c.string) }) }), text: c.string }), multiselect: c.struct({ question: c.union({ text: c.struct({ id: c.string, title: c.string, subtitle: c.optional(c.string) }), multiselect: c.struct({ id: c.string, title: c.string, subtitle: c.optional(c.string), tags: c.array(c.string) }) }), tags: c.array(c.string) }) })),
         });
         let descriptor: EntityDescriptor<MatchmakingProfileShape> = {
             name: 'MatchmakingProfile',
