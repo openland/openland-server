@@ -3,7 +3,6 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { container } from 'openland-modules/Modules.container';
 import { RoomRepository } from './RoomRepository';
 import { createNamedContext } from '@openland/context';
-import { loadMatchmakingModule } from '../../openland-module-matchmaking/Matchmaking.container';
 
 describe('RoomRepository', () => {
     beforeAll(async () => {
