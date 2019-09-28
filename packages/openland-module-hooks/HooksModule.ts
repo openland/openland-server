@@ -200,4 +200,8 @@ export class HooksModule {
             await Modules.UserOnboarding.onMuted(ctx, uid, cid);
         }
     }
+
+    onRoomLeave = async (ctx: Context, cid: number, uid: number) => {
+        await Modules.Matchmaking.clearProfile(ctx, cid, 'room', uid);
+    }
 }

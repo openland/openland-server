@@ -29,7 +29,7 @@ union MatchmakingAnswer = TextMatchmakingAnswer | MultiselectMatchmakingAnswer
 type MatchmakingProfile {
     user: User!
     answers: [MatchmakingAnswer!]!
-    hasConnection: Boolean!
+    chatCreated: Boolean!
 }
 
 type MatchmakingRoom {

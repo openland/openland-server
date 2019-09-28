@@ -61,9 +61,18 @@ export class MatchmakingRepository {
 
     getRoomProfiles = async (ctx: Context, peerId: number, peerType: PeerType, uid?: number) => {
         let profiles = await Store.MatchmakingProfile.room.findAll(ctx, peerId, peerType);
+        profiles = profiles.filter(a => !!a.answers);
+
+        // take only current members in room
+        if (peerType === 'room') {
+            let roomMembers = await Modules.Messaging.room.findConversationMembers(ctx, peerId);
+            profiles = profiles.filter(a => !!roomMembers.find(b => b === a.uid));
+        }
+
+        // sort by common tags if uid is set
         if (uid) {
             let myProfile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
-            if (!myProfile) {
+            if (!myProfile || !myProfile.answers) {
                 return profiles;
             }
 
@@ -76,16 +85,21 @@ export class MatchmakingRepository {
             let myAnswers = myProfile.answers
                 .reduce((acc, a) => a.type === 'multiselect' ? acc.set(a.question.id, a.tags) : acc, new Map<string, string[]>());
             let scoreProfile = (profile: MatchmakingProfile) => {
-                return profile.answers
+                return profile.answers!
                     .reduce((acc, b) => b.type === 'multiselect' ?  (acc + findIntersectionScore(myAnswers.get(b.question.id), b.tags)) : acc, 0);
             };
             profiles = profiles.sort((a, b) => scoreProfile(b) - scoreProfile(a));
         }
+
         return profiles;
     }
 
     getRoomProfile = async (ctx: Context, peerId: number, peerType: PeerType, uid: number) => {
-        return await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
+        let profile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
+        if (!profile || !profile.answers) {
+            return null;
+        }
+        return profile;
     }
 
     saveRoom = async (parent: Context, peerId: number, peerType: PeerType, uid: number, input: MatchmakingRoomInput) => {
@@ -173,6 +187,17 @@ export class MatchmakingRepository {
                 profile.answers = answersData;
             }
             return profile;
+        });
+    }
+
+    clearProfile = async (parent: Context, peerId: number, peerType: PeerType, uid: number) => {
+        await inTx(parent, async ctx => {
+            let profile = await Store.MatchmakingProfile.findById(parent, peerId, peerType, uid);
+            if (!profile) {
+                return;
+            }
+            profile.answers = null;
+            await profile.flush(ctx);
         });
     }
 

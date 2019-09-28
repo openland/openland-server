@@ -9,7 +9,6 @@ import { GQL } from '../openland-module-api/schema/SchemaSpec';
 import MatchmakingRoomInput = GQL.MatchmakingRoomInput;
 import MatchmakingAnswerInput = GQL.MatchmakingAnswerInput;
 import { Modules } from '../openland-modules/Modules';
-import { Store } from '../openland-module-db/FDB';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 @injectable()
@@ -57,9 +56,12 @@ export class MatchmakingModule {
         return this.repo.fillRoomProfile(ctx, peerId, peerType, uid, answers);
     }
 
+    clearProfile = (ctx: Context, peerId: number, peerType: PeerType, uid: number)  => {
+        return this.repo.clearProfile(ctx, peerId, peerType, uid);
+    }
+
     connect = async (ctx: Context, peerId: number, peerType: PeerType, uid: number, uid2: number) => {
-        let convPrivate = await Store.ConversationPrivate.users.find(ctx, Math.min(uid, uid2), Math.max(uid, uid2));
-        if (convPrivate) {
+        if (await Modules.Messaging.room.hasPrivateChat(ctx, uid, uid2)) {
             return false;
         }
         let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, uid2);

@@ -1377,7 +1377,7 @@ export default declareSchema(() => {
         primaryKey('peerType', string());
         primaryKey('uid', integer());
 
-        field('answers', array(union({
+        field('answers', optional(array(union({
             text: struct({
                 question: MatchmakingQuestion,
                 text: string(),
@@ -1386,7 +1386,7 @@ export default declareSchema(() => {
                 question: MatchmakingQuestion,
                 tags: array(string())
             })
-        })));
+        }))));
 
         rangeIndex('room', ['peerId', 'peerType', 'createdAt']);
     });

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1875c2411ddd39dcc823f6e9276c8669';
+export const GQL_SPEC_VERSION = '48f3cb09fc2a4fd7ea7e6b8ab8b61c3e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -344,7 +344,7 @@ export namespace GQL {
     export interface MatchmakingProfile {
         user: User;
         answers: MatchmakingAnswer[];
-        hasConnection: boolean;
+        chatCreated: boolean;
     }
     export interface MatchmakingRoom {
         enabled: boolean;

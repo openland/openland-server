@@ -32,6 +32,13 @@ export default {
     MatchmakingProfile: {
         answers: root => root.answers,
         user: root => root.uid,
+        chatCreated: async (root, _, ctx) => {
+            let auth = AuthContext.get(ctx);
+            if (!auth.uid) {
+                return false;
+            }
+            return await Modules.Messaging.room.hasPrivateChat(ctx, root.uid, auth.uid);
+        }
     },
     MatchmakingAnswer: {
         __resolveType(obj: MatchmakingAnswerRoot) {

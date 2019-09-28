@@ -555,6 +555,11 @@ export class RoomRepository {
         });
     }
 
+    async hasPrivateChat(parent: Context, uid1: number, uid2: number) {
+        let conv = await Store.ConversationPrivate.users.find(parent, Math.min(uid1, uid2), Math.max(uid1, uid2));
+        return !!conv;
+    }
+
     async resolveOrganizationChat(parent: Context, oid: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await Store.ConversationOrganization.organization.find(ctx, oid);
@@ -1170,6 +1175,8 @@ export class RoomRepository {
             if (userRoomBadge && userRoomBadge.bid !== null) {
                 userRoomBadge.bid = null;
             }
+
+            await Modules.Hooks.onRoomLeave(ctx, cid, uid);
         });
     }
 

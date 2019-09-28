@@ -566,6 +566,10 @@ export class RoomMediator {
         return await this.repo.resolvePrivateChat(ctx, uid1, uid2);
     }
 
+    async hasPrivateChat(ctx: Context, uid1: number, uid2: number) {
+        return await this.repo.hasPrivateChat(ctx, uid1, uid2);
+    }
+
     async resolveOrganizationChat(ctx: Context, oid: number) {
         return await this.repo.resolveOrganizationChat(ctx, oid);
     }
