@@ -92,7 +92,7 @@ export namespace GQLRoots {
     export type FeedItemConnectionRoot = { items: FeedEvent[], cursor?: string };
     export type SlideRoot = Slide;
     export type TextSlideRoot = Slide;
-    export type SlideAttachmentRoot = User | Conversation;
+    export type SlideAttachmentRoot = User | Conversation | Organization;
 
     //
     // Calls
