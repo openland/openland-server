@@ -71,4 +71,8 @@ export class HooksModuleMock {
     onEmailSent = async (ctx: Context, uid: number) => {
         // nothing to do
     }
+
+    onRoomLeave = async (ctx: Context, cid: number, uid: number) => {
+
+    }
 }

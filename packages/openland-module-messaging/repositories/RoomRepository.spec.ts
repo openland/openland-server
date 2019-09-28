@@ -9,7 +9,6 @@ describe('RoomRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('room-repo');
         container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
-        loadMatchmakingModule();
     });
     afterAll( async () => {
       await  testEnvironmentEnd();
