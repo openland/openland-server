@@ -73,6 +73,6 @@ export class HooksModuleMock {
     }
 
     onRoomLeave = async (ctx: Context, cid: number, uid: number) => {
-
+        // nothing to do
     }
 }
