@@ -12,7 +12,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { UserProfile } from 'openland-module-db/store';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 
-const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
+export const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
 
 const rootCtx = createNamedContext('url-info');
 

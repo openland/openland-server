@@ -49,7 +49,7 @@ export default {
                 return 'TextMatchmakingAnswer';
             }
 
-            throw new Error('Unknown question type');
+            throw new Error('Unknown answer type');
         },
     },
     MultiselectMatchmakingAnswer: {

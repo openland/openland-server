@@ -10,6 +10,10 @@ import MatchmakingRoomInput = GQL.MatchmakingRoomInput;
 import MatchmakingAnswerInput = GQL.MatchmakingAnswerInput;
 import { Modules } from '../openland-modules/Modules';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { Store } from '../openland-module-db/FDB';
+import { IDs } from 'openland-module-api/IDs';
+import { makePhotoFallback } from 'openland-module-messaging/workers/UrlInfoService';
+import { MessageAttachmentInput } from '../openland-module-messaging/MessageInput';
 
 @injectable()
 export class MatchmakingModule {
@@ -61,6 +65,9 @@ export class MatchmakingModule {
     }
 
     connect = async (ctx: Context, peerId: number, peerType: PeerType, uid: number, uid2: number) => {
+        if (!(await this.getRoomProfile(ctx, peerId, peerType, uid)) || !(await this.getRoomProfile(ctx, peerId, peerType, uid2))) {
+            return false;
+        }
         if (await Modules.Messaging.room.hasPrivateChat(ctx, uid, uid2)) {
             return false;
         }
@@ -70,10 +77,47 @@ export class MatchmakingModule {
                 userMention(await Modules.Users.getUserFullName(ctx, uid), uid),
                 ' and ',
                 userMention(await Modules.Users.getUserFullName(ctx, uid2), uid2),
-                ' you’re matched in Matchmaking chat'
+                ' you’re matched in Matchmaking chat',
             ),
-            isService: true
+            isService: true,
         });
+
+        let attachmentUser1 = await this.getProfileAttachmentForUser(ctx, peerId, peerType, uid);
+        await Modules.Messaging.sendMessage(ctx, conv.id, uid, {
+            attachments: [attachmentUser1],
+        });
+
+        let attachmentUser2 = await this.getProfileAttachmentForUser(ctx, peerId, peerType, uid2);
+        await Modules.Messaging.sendMessage(ctx, conv.id, uid2, {
+            attachments: [attachmentUser2],
+        });
+
         return true;
+    }
+
+    getProfileAttachmentForUser = async (ctx: Context, peerId: number, peerType: PeerType, uid: number): Promise<MessageAttachmentInput> => {
+        let user = await Store.UserProfile.findById(ctx, uid);
+        let org = user!.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, user!.primaryOrganization) : null;
+        let profile = await this.getRoomProfile(ctx, peerId, peerType, uid);
+        let question = profile!.answers ? profile!.answers.find(a => a.question.title === 'Interested in') : null;
+        return {
+            type: 'rich_attachment' as any,
+            title: await Modules.Users.getUserFullName(ctx, uid),
+            titleLink: `https://openland.com/${IDs.User.serialize(uid)}`,
+            titleLinkHostname: null,
+            subTitle: org ? org.name : null,
+            text: (question && question.type === 'multiselect') ? question.tags.join(', ') : null,
+            icon: null,
+            iconInfo: null,
+            image: user!.picture,
+            imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(ctx, user!.picture.uuid) : null,
+            imageFallback: makePhotoFallback(IDs.User.serialize(user!.id), user!.firstName + ' ' + user!.lastName),
+            imagePreview: user!.picture ? await Modules.Media.fetchLowResPreview(ctx, user!.picture.uuid) : null,
+            keyboard: {
+                buttons: [[
+                    { title: 'View details', style: 'DEFAULT', url: `https://openland.com/mail/${IDs.User.serialize(uid)}` },
+                ]],
+            },
+        };
     }
 }

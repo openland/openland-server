@@ -557,6 +557,10 @@ export class RoomRepository {
 
     async hasPrivateChat(parent: Context, uid1: number, uid2: number) {
         let conv = await Store.ConversationPrivate.users.find(parent, Math.min(uid1, uid2), Math.max(uid1, uid2));
+        if (conv) {
+            let message = await Store.Message.chat.query(parent, conv.id, { limit: 1 });
+            return message.items.length === 1;
+        }
         return !!conv;
     }
 
