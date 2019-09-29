@@ -28,35 +28,37 @@ let mapByIds = <Id, T extends { id: Id }>(arr: T[]): Map<Id, T> => {
 
 @injectable()
 export class MatchmakingRepository {
-    getRoom = async (ctx: Context, peerId: number, peerType: PeerType) => {
-        let room = await Store.MatchmakingRoom.findById(ctx, peerId, peerType);
-        if (!room) {
-            room = await Store.MatchmakingRoom.create(ctx, peerId, peerType, {
-                enabled: false,
-                questions: [{
-                    type: 'multiselect' as any,
-                    id: this.nextQuestionId(),
-                    title: 'Interested in',
-                    subtitle: '',
-                    tags: [
-                        'Founder', 'Engineer', 'Investor',
-                        'Product manager', 'Recruiter',
-                        'Marketing and sales', 'Another'
-                    ]
-                }, {
-                    type: 'text' as any,
-                    id: this.nextQuestionId(),
-                    title: 'Looking for',
-                    subtitle: '',
-                }, {
-                    type: 'text' as any,
-                    id: this.nextQuestionId(),
-                    title: 'Can help with',
-                    subtitle: ''
-                }],
-            });
-        }
-        return room;
+    getRoom = async (parent: Context, peerId: number, peerType: PeerType) => {
+        return await inTx(parent, async ctx => {
+            let room = await Store.MatchmakingRoom.findById(ctx, peerId, peerType);
+            if (!room) {
+                room = await Store.MatchmakingRoom.create(ctx, peerId, peerType, {
+                    enabled: false,
+                    questions: [{
+                        type: 'multiselect' as any,
+                        id: this.nextQuestionId(),
+                        title: 'Interested in',
+                        subtitle: '',
+                        tags: [
+                            'Founder', 'Engineer', 'Investor',
+                            'Product manager', 'Recruiter',
+                            'Marketing and sales', 'Another'
+                        ]
+                    }, {
+                        type: 'text' as any,
+                        id: this.nextQuestionId(),
+                        title: 'Looking for',
+                        subtitle: '',
+                    }, {
+                        type: 'text' as any,
+                        id: this.nextQuestionId(),
+                        title: 'Can help with',
+                        subtitle: ''
+                    }],
+                });
+            }
+            return room;
+        });
     }
 
     getRoomProfiles = async (ctx: Context, peerId: number, peerType: PeerType, uid?: number) => {
@@ -139,39 +141,38 @@ export class MatchmakingRepository {
     }
 
     fillRoomProfile = async (parent: Context, peerId: number, peerType: PeerType, uid: number, answers: MatchmakingAnswerInput[]) => {
-        let room = await this.getRoom(parent, peerId, peerType);
-        if (!room.enabled) {
-            throw new UserError('Matchmaking is disabled');
-        }
-        if (peerType === 'room') {
-            await Modules.Messaging.room.checkCanUserSeeChat(parent, uid, peerId);
-        }
-
-        let questions = mapByIds(room.questions);
-        let qidSet = new Set<string>();
-        for (let ans of answers) {
-            // check for question existance
-            if (!questions.has(ans.questionId)) {
-                throw new NotFoundError('Some of questions are not found');
-            }
-
-            // check for duplicates
-            if (qidSet.has(ans.questionId)) {
-                throw new UserError('Duplicate answer');
-            }
-            qidSet.add(ans.questionId);
-
-            // check for question type
-            let question = questions.get(ans.questionId);
-            if (question!.type === 'text' && !ans.text) {
-                throw new UserError('Text answer should contain text');
-            }
-            if (question!.type === 'multiselect' && !ans.tags) {
-                throw new UserError('Multiselect answer should contain tags');
-            }
-        }
-
         return await inTx(parent, async ctx => {
+            let room = await this.getRoom(parent, peerId, peerType);
+            if (!room.enabled) {
+                throw new UserError('Matchmaking is disabled');
+            }
+            if (peerType === 'room') {
+                await Modules.Messaging.room.checkCanUserSeeChat(parent, uid, peerId);
+            }
+
+            let questions = mapByIds(room.questions);
+            let qidSet = new Set<string>();
+            for (let ans of answers) {
+                // check for question existance
+                if (!questions.has(ans.questionId)) {
+                    throw new NotFoundError('Some of questions are not found');
+                }
+
+                // check for duplicates
+                if (qidSet.has(ans.questionId)) {
+                    throw new UserError('Duplicate answer');
+                }
+                qidSet.add(ans.questionId);
+
+                // check for question type
+                let question = questions.get(ans.questionId);
+                if (question!.type === 'text' && !ans.text) {
+                    throw new UserError('Text answer should contain text');
+                }
+                if (question!.type === 'multiselect' && !ans.tags) {
+                    throw new UserError('Multiselect answer should contain tags');
+                }
+            }
             let profile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
             let answersData = answers.map(a => ({
                 type: questions.get(a.questionId)!.type,

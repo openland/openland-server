@@ -7,6 +7,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { withUser } from 'openland-module-api/Resolvers';
 import { PeerType } from './repositories/MatchmakingRepository';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 let resolvePeer = (id: string): { id: number, type: PeerType } | null => {
     let idMeta = IdsFactory.resolve(id);
@@ -116,7 +117,7 @@ export default {
         matchmakingProfileFill: withUser(async (ctx, args, uid) => {
             let peer = resolvePeer(args.peerId);
             if (!peer) {
-                return null;
+                throw new NotFoundError();
             }
             return await Modules.Matchmaking.fillRoomProfile(ctx, peer.id, peer.type, uid, args.input.answers.map(a => ({
                 ...a,
