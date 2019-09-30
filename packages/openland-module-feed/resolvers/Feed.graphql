@@ -63,9 +63,34 @@ input SlideInput {
     attachments: [ID!]
 }
 
+#
+#   Channels
+#
+
+#enum FeedChannelType {
+#    Open,
+#    Editorial
+#}
+#
+#union FeedChannelAttachedEntity = SharedRoom | Organization
+#
+#type FeedChannel {
+#    id: ID!
+#    title: String!
+#    about: String
+#    photo: String!
+#    type: FeedChannelType!
+#    attachedEntities: [FeedChannelAttachedEntity!]!
+#}
+
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
     alphaFeedItem(id: ID!): FeedItem
+
+#    alphaFeedChannel(id: ID!): FeedChannel!
+#    alphaFeedChannelContent(id: ID!): FeedItemConnection!
+#    alphaFeedChannelSubscriptions(id: ID!): [User!]!
+#    alphaFeedMySubscriptions: [FeedChannel!]!
 }
 
 extend type Mutation {
@@ -79,4 +104,6 @@ extend type Mutation {
 
     feedSubscribeUser(uid: ID!): Boolean!
     feedUnsubscribeUser(uid: ID!): Boolean!
+
+#    alphaFeedCreateChannel(title: String!, about: String, type: FeedChannelType!, photoRef: ImageRefInput): FeedChannel!
 }
