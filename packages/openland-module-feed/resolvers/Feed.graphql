@@ -67,21 +67,31 @@ input SlideInput {
 #   Channels
 #
 
-#enum FeedChannelType {
-#    Open,
-#    Editorial
-#}
+
 #
 #union FeedChannelAttachedEntity = SharedRoom | Organization
 #
-#type FeedChannel {
-#    id: ID!
-#    title: String!
-#    about: String
-#    photo: String!
-#    type: FeedChannelType!
+
+enum FeedChannelType {
+    Open,
+    Editorial
+}
+
+type FeedChannel {
+    id: ID!
+    title: String!
+    about: String
+    photo: String!
+    type: FeedChannelType!
 #    attachedEntities: [FeedChannelAttachedEntity!]!
-#}
+}
+
+type FeedChannelConnection {
+    items: [FeedChannel!]!
+    cursor: String
+}
+
+union FeedSubscription = FeedChannel | User
 
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
@@ -90,7 +100,8 @@ extend type Query {
 #    alphaFeedChannel(id: ID!): FeedChannel!
 #    alphaFeedChannelContent(id: ID!): FeedItemConnection!
 #    alphaFeedChannelSubscriptions(id: ID!): [User!]!
-#    alphaFeedMySubscriptions: [FeedChannel!]!
+    alphaFeedMySubscriptions: [FeedSubscription!]!
+    alphaFeedMyChannels(first: Int!, after: ID): FeedChannelConnection!
 }
 
 extend type Mutation {
@@ -105,5 +116,5 @@ extend type Mutation {
     feedSubscribeUser(uid: ID!): Boolean!
     feedUnsubscribeUser(uid: ID!): Boolean!
 
-#    alphaFeedCreateChannel(title: String!, about: String, type: FeedChannelType!, photoRef: ImageRefInput): FeedChannel!
+    alphaFeedCreateChannel(title: String!, about: String, type: FeedChannelType!, photoRef: ImageRefInput): FeedChannel!
 }

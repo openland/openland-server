@@ -1,4 +1,12 @@
-import { Conversation, FeedEvent, Organization, RichMessage, User } from '../../openland-module-db/store';
+import {
+    Conversation,
+    FeedChannel,
+    FeedEvent,
+    FeedTopic,
+    Organization,
+    RichMessage,
+    User
+} from '../../openland-module-db/store';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -14,6 +22,8 @@ import { fetchMessageFallback, hasMention } from '../../openland-module-messagin
 import SlideRoot = GQLRoots.SlideRoot;
 import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
 import SlideAttachmentRoot = GQLRoots.SlideAttachmentRoot;
+import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import FeedSubscriptionRoot = GQLRoots.FeedSubscriptionRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -131,6 +141,37 @@ export default {
             throw new Error('Unknown slide attachment: ' + src);
         }
     },
+
+    FeedChannelConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor
+    },
+    FeedChannel: {
+        id: src => IDs.FeedChannel.serialize(src.id),
+        title: src => src.title,
+        about: src => src.about,
+        photo: src => src.image ? buildBaseImageUrl(src.image) : null,
+        type: src => {
+            if (src.type === 'open') {
+                return 'Open';
+            } else if (src.type === 'editorial') {
+                return 'Editorial';
+            }
+            return 'Open';
+        }
+    },
+    FeedSubscription: {
+        __resolveType(src: FeedSubscriptionRoot) {
+            if (src instanceof User) {
+                return 'User';
+            } else if (src instanceof FeedChannel) {
+                return 'FeedChannel';
+            } else {
+                throw new Error('Unknown feed subscription root: ' + src);
+            }
+        }
+    },
+
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
@@ -152,6 +193,39 @@ export default {
                 return event;
             }
             return null;
+        }),
+
+        alphaFeedMyChannels: withUser(async (ctx, args, uid) => {
+            let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
+            if (!args.first || args.first <= 0) {
+                return { items: [] };
+            }
+            let afterExists = afterId && await Store.FeedChannel.findById(ctx, afterId);
+            let {items, haveMore} = await Store.FeedChannel.owner.query(ctx, uid, { limit: args.first, after: afterExists ? afterId : undefined });
+            return {
+                items,
+                cursor: haveMore ? IDs.FeedChannel.serialize(items[items.length - 1].id) : undefined
+            };
+        }),
+        alphaFeedMySubscriptions: withUser(async (ctx, args, uid) => {
+            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
+            let topics: FeedTopic[] = (await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid)))).filter(t => !!t) as FeedTopic[];
+
+            let res: (User | FeedChannel)[] = [];
+
+            for (let topic of topics.filter(t => t.key.startsWith('user-') || t.key.startsWith('channel-'))) {
+                if (topic.key.startsWith('user-')) {
+                    let subscriptionUid = parseInt(topic.key.replace('user-', ''), 10);
+                    if (subscriptionUid === uid) {
+                        continue;
+                    }
+                    res.push((await Store.User.findById(ctx, subscriptionUid))!);
+                } else if (topic.key.startsWith('channel-')) {
+                    res.push((await Store.FeedChannel.findById(ctx, parseInt(topic.key.replace('channel-', ''), 10)))!);
+                }
+            }
+
+            return res;
         })
     },
     Mutation: {
@@ -193,6 +267,15 @@ export default {
         feedUnsubscribeUser: withUser(async (ctx, args, uid) => {
             await Modules.Feed.unsubscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
             return true;
+        }),
+
+        alphaFeedCreateChannel: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.createFeedChannel(ctx, uid, {
+                title: args.title,
+                about: args.about || undefined,
+                type: args.type,
+                image: args.photoRef || undefined
+            });
         })
     }
 } as GQLResolver;

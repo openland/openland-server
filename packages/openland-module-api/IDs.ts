@@ -67,4 +67,6 @@ export const IDs = {
     HomeFeedCursor: IdsFactory.createId('HomeFeedCursor'),
     FeedUpdatesCursor: IdsFactory.createStringId('FeedUpdatesCursor'),
     Slide: IdsFactory.createStringId('Slide'),
+    FeedChannel: IdsFactory.createId('FeedChannel'),
+    // FeedChannelUser: IdsFactory.createId('FeedChannelUser')
 };

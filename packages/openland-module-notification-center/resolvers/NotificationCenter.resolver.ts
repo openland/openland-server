@@ -61,7 +61,7 @@ export default {
             let center = await Modules.NotificationCenter.notificationCenterForUser(ctx, uid);
             let beforeId = args.before ? IDs.Notification.parse(args.before) : null;
             if (!args.first || args.first <= 0) {
-                return [];
+                return { items: [] };
             }
             let items: Notification[] = [];
             if (args.before && await Store.Notification.findById(ctx, beforeId!)) {

@@ -8266,6 +8266,142 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
     }
 }
 
+export interface FeedChannelShape {
+    id: number;
+    ownerId: number;
+    title: string;
+    about: string | null;
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
+    type: 'open' | 'editorial';
+}
+
+export interface FeedChannelCreateShape {
+    ownerId: number;
+    title: string;
+    about?: string | null | undefined;
+    image?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
+    type: 'open' | 'editorial';
+}
+
+export class FeedChannel extends Entity<FeedChannelShape> {
+    get id(): number { return this._rawValue.id; }
+    get ownerId(): number { return this._rawValue.ownerId; }
+    set ownerId(value: number) {
+        let normalized = this.descriptor.codec.fields.ownerId.normalize(value);
+        if (this._rawValue.ownerId !== normalized) {
+            this._rawValue.ownerId = normalized;
+            this._updatedValues.ownerId = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get about(): string | null { return this._rawValue.about; }
+    set about(value: string | null) {
+        let normalized = this.descriptor.codec.fields.about.normalize(value);
+        if (this._rawValue.about !== normalized) {
+            this._rawValue.about = normalized;
+            this._updatedValues.about = normalized;
+            this.invalidate();
+        }
+    }
+    get image(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this._rawValue.image; }
+    set image(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null) {
+        let normalized = this.descriptor.codec.fields.image.normalize(value);
+        if (this._rawValue.image !== normalized) {
+            this._rawValue.image = normalized;
+            this._updatedValues.image = normalized;
+            this.invalidate();
+        }
+    }
+    get type(): 'open' | 'editorial' { return this._rawValue.type; }
+    set type(value: 'open' | 'editorial') {
+        let normalized = this.descriptor.codec.fields.type.normalize(value);
+        if (this._rawValue.type !== normalized) {
+            this._rawValue.type = normalized;
+            this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChannel> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('feedChannel');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'ownerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'owner'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'ownerId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'about', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'image', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
+        fields.push({ name: 'type', type: { type: 'enum', values: ['open', 'editorial'] }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            ownerId: c.integer,
+            title: c.string,
+            about: c.optional(c.string),
+            image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
+            type: c.enum('open', 'editorial'),
+        });
+        let descriptor: EntityDescriptor<FeedChannelShape> = {
+            name: 'FeedChannel',
+            storageKey: 'feedChannel',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new FeedChannelFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<FeedChannelShape>) {
+        super(descriptor);
+    }
+
+    readonly owner = Object.freeze({
+        findAll: async (ctx: Context, ownerId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [ownerId])).items;
+        },
+        query: (ctx: Context, ownerId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [ownerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (ownerId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [ownerId], opts);
+        },
+        liveStream: (ctx: Context, ownerId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [ownerId], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: FeedChannelCreateShape): Promise<FeedChannel> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: FeedChannelCreateShape): FeedChannel {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<FeedChannel | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelShape>): FeedChannel {
+        return new FeedChannel([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ChatAudienceCalculatingQueueShape {
     id: number;
     active: boolean;
@@ -13309,6 +13445,7 @@ export interface Store extends BaseStore {
     readonly FeedSubscription: FeedSubscriptionFactory;
     readonly FeedTopic: FeedTopicFactory;
     readonly FeedEvent: FeedEventFactory;
+    readonly FeedChannel: FeedChannelFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
@@ -13461,6 +13598,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedSubscriptionPromise = FeedSubscriptionFactory.open(storage);
     let FeedTopicPromise = FeedTopicFactory.open(storage);
     let FeedEventPromise = FeedEventFactory.open(storage);
+    let FeedChannelPromise = FeedChannelFactory.open(storage);
     let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
     let ChannelLinkPromise = ChannelLinkFactory.open(storage);
     let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
@@ -13594,6 +13732,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedSubscription: await FeedSubscriptionPromise,
         FeedTopic: await FeedTopicPromise,
         FeedEvent: await FeedEventPromise,
+        FeedChannel: await FeedChannelPromise,
         ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
         ChannelLink: await ChannelLinkPromise,
         AppInviteLink: await AppInviteLinkPromise,

@@ -45,7 +45,7 @@ import {
     FeedItemReceivedEvent,
     FeedItemUpdatedEvent,
     FeedItemDeletedEvent,
-    MatchmakingRoom, MatchmakingProfile,
+    MatchmakingRoom, MatchmakingProfile, FeedChannel,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -93,6 +93,9 @@ export namespace GQLRoots {
     export type SlideRoot = Slide;
     export type TextSlideRoot = Slide;
     export type SlideAttachmentRoot = User | Conversation | Organization;
+    export type FeedChannelRoot = FeedChannel;
+    export type FeedChannelConnectionRoot = { items: FeedChannelRoot[], cursor?: string };
+    export type FeedSubscriptionRoot = FeedChannel | User;
 
     //
     // Calls

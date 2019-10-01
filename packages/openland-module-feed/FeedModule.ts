@@ -1,4 +1,4 @@
-import { injectable, inject } from 'inversify';
+import { injectable } from 'inversify';
 import { FeedRepository } from './repositories/FeedRepository';
 import { Context } from '@openland/context';
 import { JsonMap } from 'openland-utils/json';
@@ -8,20 +8,19 @@ import {
 } from '../openland-module-rich-message/repositories/RichMessageRepository';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { FeedDeliveryMediator } from './repositories/FeedDeliveryMediator';
+import { FeedChannelInput, FeedChannelRepository } from './repositories/FeedChannelRepository';
 
 @injectable()
 export class FeedModule {
 
-    private repo: FeedRepository;
+    @lazyInject('FeedRepository')
+    private readonly repo!: FeedRepository;
 
     @lazyInject('FeedDeliveryMediator')
     private readonly delivery!: FeedDeliveryMediator;
 
-    constructor(
-        @inject(FeedRepository) repo: FeedRepository
-    ) {
-        this.repo = repo;
-    }
+    @lazyInject('FeedChannelRepository')
+    private readonly channels!: FeedChannelRepository;
 
     start = () => {
         this.delivery.start();
@@ -69,5 +68,9 @@ export class FeedModule {
 
     async deliverFeedItemUpdated(parent: Context, eventId: number) {
         return this.repo.deliverFeedItemUpdated(parent, eventId);
+    }
+
+    async createFeedChannel(parent: Context, uid: number, input: FeedChannelInput) {
+        return this.channels.createFeedChannel(parent, uid, input);
     }
 }

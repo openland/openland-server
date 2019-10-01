@@ -1036,6 +1036,17 @@ export default declareSchema(() => {
         primaryKey('subscriberId', integer());
     });
 
+    entity('FeedChannel', () => {
+        primaryKey('id', integer());
+        field('ownerId', integer());
+        field('title', string());
+        field('about', optional(string()));
+        field('image', optional(ImageRef));
+        field('type', enumString('open', 'editorial'));
+
+        rangeIndex('owner', ['ownerId', 'id']);
+    });
+
     //
     // Counters
     //
