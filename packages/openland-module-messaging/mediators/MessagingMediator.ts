@@ -55,6 +55,7 @@ export class MessagingMediator {
 
             let msg = message;
 
+            // /me service message
             if (message.message && message.message.startsWith('/me ')) {
                 let user = (await Store.UserProfile.findById(ctx, uid))!;
                 let userMentionStr = `@${user.firstName} ${user.lastName}`;
@@ -65,6 +66,28 @@ export class MessagingMediator {
                     spans: [{ type: 'user_mention', offset: 0, length: userMentionStr.length, user: uid }, ...(msg.spans || []).map(s => ({ ...s, offset: s.offset + lengthDiff }))],
                     repeatKey: msg.repeatKey
                 };
+            }
+
+            // Replace only-replies messages with original ones
+            if (message.replyMessages) {
+                for (let i = message.replyMessages.length - 1; i >= 0; i--) {
+                    let replyMessage = message.replyMessages[i];
+                    let originalMessage = await Store.Message.findById(ctx, replyMessage);
+
+                    if (
+                        originalMessage &&
+                        originalMessage.replyMessages &&
+                        !originalMessage.attachments &&
+                        !originalMessage.attachmentsModern &&
+                        !originalMessage.augmentation &&
+                        !originalMessage.text &&
+                        !originalMessage.stickerId &&
+                        !originalMessage.buttons &&
+                        !originalMessage.title
+                    ) {
+                        message.replyMessages.splice(i, 1, ...originalMessage.replyMessages);
+                    }
+                }
             }
 
             let spans = msg.spans ? [...msg.spans] : [];
