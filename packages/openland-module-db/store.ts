@@ -7994,10 +7994,12 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
 export interface FeedTopicShape {
     id: number;
     key: string;
+    isGlobal: boolean | null;
 }
 
 export interface FeedTopicCreateShape {
     key: string;
+    isGlobal?: boolean | null | undefined;
 }
 
 export class FeedTopic extends Entity<FeedTopicShape> {
@@ -8011,6 +8013,15 @@ export class FeedTopic extends Entity<FeedTopicShape> {
             this.invalidate();
         }
     }
+    get isGlobal(): boolean | null { return this._rawValue.isGlobal; }
+    set isGlobal(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isGlobal.normalize(value);
+        if (this._rawValue.isGlobal !== normalized) {
+            this._rawValue.isGlobal = normalized;
+            this._updatedValues.isGlobal = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
@@ -8019,13 +8030,16 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         let subspace = await storage.resolveEntityDirectory('feedTopic');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'key'), condition: undefined });
+        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'global'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'key', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'isGlobal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             key: c.string,
+            isGlobal: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<FeedTopicShape> = {
             name: 'FeedTopic',
@@ -8048,6 +8062,21 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         },
         query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly global = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -8272,7 +8301,8 @@ export interface FeedChannelShape {
     title: string;
     about: string | null;
     image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
-    type: 'open' | 'editorial';
+    type: 'open' | 'editorial' | null;
+    isGlobal: boolean | null;
 }
 
 export interface FeedChannelCreateShape {
@@ -8280,7 +8310,8 @@ export interface FeedChannelCreateShape {
     title: string;
     about?: string | null | undefined;
     image?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
-    type: 'open' | 'editorial';
+    type?: 'open' | 'editorial' | null | undefined;
+    isGlobal?: boolean | null | undefined;
 }
 
 export class FeedChannel extends Entity<FeedChannelShape> {
@@ -8321,12 +8352,21 @@ export class FeedChannel extends Entity<FeedChannelShape> {
             this.invalidate();
         }
     }
-    get type(): 'open' | 'editorial' { return this._rawValue.type; }
-    set type(value: 'open' | 'editorial') {
+    get type(): 'open' | 'editorial' | null { return this._rawValue.type; }
+    set type(value: 'open' | 'editorial' | null) {
         let normalized = this.descriptor.codec.fields.type.normalize(value);
         if (this._rawValue.type !== normalized) {
             this._rawValue.type = normalized;
             this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+    get isGlobal(): boolean | null { return this._rawValue.isGlobal; }
+    set isGlobal(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isGlobal.normalize(value);
+        if (this._rawValue.isGlobal !== normalized) {
+            this._rawValue.isGlobal = normalized;
+            this._updatedValues.isGlobal = normalized;
             this.invalidate();
         }
     }
@@ -8338,6 +8378,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         let subspace = await storage.resolveEntityDirectory('feedChannel');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'ownerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'owner'), condition: undefined });
+        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'global'), condition: src => !!src.isGlobal });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -8345,14 +8386,16 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
         fields.push({ name: 'about', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'image', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
-        fields.push({ name: 'type', type: { type: 'enum', values: ['open', 'editorial'] }, secure: false });
+        fields.push({ name: 'type', type: { type: 'optional', inner: { type: 'enum', values: ['open', 'editorial'] } }, secure: false });
+        fields.push({ name: 'isGlobal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             ownerId: c.integer,
             title: c.string,
             about: c.optional(c.string),
             image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
-            type: c.enum('open', 'editorial'),
+            type: c.optional(c.enum('open', 'editorial')),
+            isGlobal: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<FeedChannelShape> = {
             name: 'FeedChannel',
@@ -8378,6 +8421,21 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         },
         liveStream: (ctx: Context, ownerId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [ownerId], opts);
+        },
+    });
+
+    readonly global = Object.freeze({
+        findAll: async (ctx: Context, id: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [id])).items;
+        },
+        query: (ctx: Context, id: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [id], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (id: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [id], opts);
+        },
+        liveStream: (ctx: Context, id: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [id], opts);
         },
     });
 
@@ -13122,12 +13180,12 @@ export class UserDialogPeerUpdatedEvent extends BaseEvent {
 }
 
 const feedItemReceivedEventCodec = c.struct({
-    subscriberId: c.integer,
+    subscriberId: c.optional(c.integer),
     itemId: c.integer,
 });
 
 interface FeedItemReceivedEventShape {
-    subscriberId: number;
+    subscriberId?: number | null | undefined;
     itemId: number;
 }
 
@@ -13149,17 +13207,17 @@ export class FeedItemReceivedEvent extends BaseEvent {
         super('feedItemReceivedEvent', data);
     }
 
-    get subscriberId(): number { return this.raw.subscriberId; }
+    get subscriberId(): number | null { return this.raw.subscriberId; }
     get itemId(): number { return this.raw.itemId; }
 }
 
 const feedItemUpdatedEventCodec = c.struct({
-    subscriberId: c.integer,
+    subscriberId: c.optional(c.integer),
     itemId: c.integer,
 });
 
 interface FeedItemUpdatedEventShape {
-    subscriberId: number;
+    subscriberId?: number | null | undefined;
     itemId: number;
 }
 
@@ -13181,17 +13239,17 @@ export class FeedItemUpdatedEvent extends BaseEvent {
         super('feedItemUpdatedEvent', data);
     }
 
-    get subscriberId(): number { return this.raw.subscriberId; }
+    get subscriberId(): number | null { return this.raw.subscriberId; }
     get itemId(): number { return this.raw.itemId; }
 }
 
 const feedItemDeletedEventCodec = c.struct({
-    subscriberId: c.integer,
+    subscriberId: c.optional(c.integer),
     itemId: c.integer,
 });
 
 interface FeedItemDeletedEventShape {
-    subscriberId: number;
+    subscriberId?: number | null | undefined;
     itemId: number;
 }
 
@@ -13213,7 +13271,7 @@ export class FeedItemDeletedEvent extends BaseEvent {
         super('feedItemDeletedEvent', data);
     }
 
-    get subscriberId(): number { return this.raw.subscriberId; }
+    get subscriberId(): number | null { return this.raw.subscriberId; }
     get itemId(): number { return this.raw.itemId; }
 }
 
@@ -13357,6 +13415,41 @@ export class FeedEventStore extends EventStore {
     }
 }
 
+export class FeedGlobalEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('feedGlobalEventStore');
+        const descriptor = {
+            name: 'FeedGlobalEventStore',
+            storageKey: 'feedGlobalEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new FeedGlobalEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, event: BaseEvent) {
+        this._post(ctx, [], event);
+    }
+
+    async findAll(ctx: Context) {
+        return this._findAll(ctx, []);
+    }
+
+    createStream(opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([], opts);
+    }
+
+    createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly UserCounter: UserCounterFactory;
@@ -13485,6 +13578,7 @@ export interface Store extends BaseStore {
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
     readonly FeedEventStore: FeedEventStore;
+    readonly FeedGlobalEventStore: FeedGlobalEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -13642,6 +13736,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
+    let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -13776,5 +13871,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DialogIndexEventStore: await DialogIndexEventStorePromise,
         UserDialogEventStore: await UserDialogEventStorePromise,
         FeedEventStore: await FeedEventStorePromise,
+        FeedGlobalEventStore: await FeedGlobalEventStorePromise,
     };
 }

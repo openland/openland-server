@@ -490,7 +490,7 @@ export default declareSchema(() => {
     entity('RichMessage', () => {
         primaryKey('id', integer());
         field('uid', integer());
-        field('oid', optional(integer()));
+        field('oid', optional(integer())); // deprecated
 
         field('text', optional(string())).secure();
         field('reactions', optional(array(struct({
@@ -1001,7 +1001,9 @@ export default declareSchema(() => {
     entity('FeedTopic', () => {
         primaryKey('id', integer());
         field('key', string());
+        field('isGlobal', optional(boolean()));
         uniqueIndex('key', ['key']);
+        rangeIndex('global', ['createdAt']);
     });
     entity('FeedEvent', () => {
         primaryKey('id', integer());
@@ -1021,19 +1023,23 @@ export default declareSchema(() => {
     });
 
     event('FeedItemReceivedEvent', () => {
-        field('subscriberId', integer());
+        field('subscriberId', optional(integer()));
         field('itemId', integer());
     });
     event('FeedItemUpdatedEvent', () => {
-        field('subscriberId', integer());
+        field('subscriberId', optional(integer()));
         field('itemId', integer());
     });
     event('FeedItemDeletedEvent', () => {
-        field('subscriberId', integer());
+        field('subscriberId', optional(integer()));
         field('itemId', integer());
     });
     eventStore('FeedEventStore', () => {
         primaryKey('subscriberId', integer());
+    });
+
+    eventStore('FeedGlobalEventStore', () => {
+        // Noop
     });
 
     entity('FeedChannel', () => {
@@ -1042,9 +1048,11 @@ export default declareSchema(() => {
         field('title', string());
         field('about', optional(string()));
         field('image', optional(ImageRef));
-        field('type', enumString('open', 'editorial'));
+        field('type', optional(enumString('open', 'editorial'))); // deprecated
+        field('isGlobal', optional(boolean()));
 
         rangeIndex('owner', ['ownerId', 'id']);
+        rangeIndex('global', ['id', 'createdAt']).withCondition(src => !!src.isGlobal);
     });
 
     //

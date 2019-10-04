@@ -43,6 +43,10 @@ export class SuperModule {
         return this.permissionsRepo.superRole(ctx, userId);
     }
 
+    async isSuperAdmin(ctx: Context, uid: number) {
+        return await this.permissionsRepo.superRole(ctx, uid) === 'super-admin';
+    }
+
     async getEnvVar<T extends EnvVarValueType>(ctx: Context, name: string): Promise<T | null> {
         return this.envVarsRepo.get<T>(ctx, name);
     }

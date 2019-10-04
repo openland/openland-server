@@ -13,8 +13,6 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
-import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
-import { inTx } from '@openland/foundationdb';
 import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import FeedItemRoot = GQLRoots.FeedItemRoot;
 import { AppContext } from '../../openland-modules/AppContext';
@@ -24,6 +22,7 @@ import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
 import SlideAttachmentRoot = GQLRoots.SlideAttachmentRoot;
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 import FeedSubscriptionRoot = GQLRoots.FeedSubscriptionRoot;
+import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -45,8 +44,6 @@ export default {
         __resolveType(src: FeedPostAuthorRoot) {
             if (src instanceof User) {
                 return 'User';
-            } else if (src instanceof Organization) {
-                return 'Organization';
             }
             throw new Error('Unknown post author type: ' + src);
         }
@@ -54,12 +51,14 @@ export default {
     FeedPost: {
         id: (src) => IDs.FeedItem.serialize(src.id),
         date: src => src.metadata.createdAt,
-        author: withRichMessage(async (ctx, message) => {
-            if (message.oid) {
-                return (await Store.Organization.findById(ctx, message.oid));
-            } else {
-                return (await Store.User.findById(ctx, message.uid));
+        author: withRichMessage(async (ctx, message) => await Store.User.findById(ctx, message.uid)),
+        source: withRichMessage(async (ctx, message, src) => {
+            let topic = (await Store.FeedTopic.findById(ctx, src.tid))!;
+            if (!topic.key.startsWith('channel-')) {
+                return null;
             }
+            let channelId = parseInt(topic.key.replace('channel-', ''), 10);
+            return await Store.FeedChannel.findById(ctx, channelId);
         }),
         edited: withRichMessage((ctx, message, src) => src.edited || false),
         canEdit: withRichMessage(async (ctx, message, src) => {
@@ -151,20 +150,19 @@ export default {
         title: src => src.title,
         about: src => src.about,
         photo: src => src.image ? buildBaseImageUrl(src.image) : null,
-        type: src => {
-            if (src.type === 'open') {
-                return 'Open';
-            } else if (src.type === 'editorial') {
-                return 'Editorial';
-            }
-            return 'Open';
-        }
     },
     FeedSubscription: {
         __resolveType(src: FeedSubscriptionRoot) {
-            if (src instanceof User) {
-                return 'User';
-            } else if (src instanceof FeedChannel) {
+            if (src instanceof FeedChannel) {
+                return 'FeedChannel';
+            } else {
+                throw new Error('Unknown feed subscription root: ' + src);
+            }
+        }
+    },
+    FeedPostSource: {
+        __resolveType(src: FeedPostSourceRoot) {
+            if (src instanceof FeedChannel) {
                 return 'FeedChannel';
             } else {
                 throw new Error('Unknown feed subscription root: ' + src);
@@ -175,10 +173,11 @@ export default {
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
-            // let allUids = Array.from(new Set(['user-' + uid, ...(await Store.UserEdge.forward.findAll(ctx, uid)).map((v) => 'user-' + v.uid2)]));
-            // subscriptions.push(...(await Promise.all(allUids.map(u => Modules.Feed.resolveTopic(ctx, u)))).map(t => t.id));
+            let topics: FeedTopic[] = await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))) as FeedTopic[];
+            topics = topics.filter(t => t.key.startsWith('channel-'));
+
             let allEvents: FeedEvent[] = [];
-            let topicPosts = await Promise.all(subscriptions.map(s => Store.FeedEvent.fromTopic.query(ctx, s, { after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined, reverse: true })));
+            let topicPosts = await Promise.all(topics.map(t => Store.FeedEvent.fromTopic.query(ctx, t.id, { after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined, reverse: true, limit: args.first })));
             for (let posts of topicPosts) {
                 allEvents.push(...posts.items);
             }
@@ -213,24 +212,31 @@ export default {
 
             let res: (User | FeedChannel)[] = [];
 
-            for (let topic of topics.filter(t => t.key.startsWith('user-') || t.key.startsWith('channel-'))) {
-                if (topic.key.startsWith('user-')) {
-                    let subscriptionUid = parseInt(topic.key.replace('user-', ''), 10);
-                    if (subscriptionUid === uid) {
-                        continue;
-                    }
-                    res.push((await Store.User.findById(ctx, subscriptionUid))!);
-                } else if (topic.key.startsWith('channel-')) {
-                    res.push((await Store.FeedChannel.findById(ctx, parseInt(topic.key.replace('channel-', ''), 10)))!);
-                }
+            for (let topic of topics.filter(t => t.key.startsWith('channel-'))) {
+                res.push((await Store.FeedChannel.findById(ctx, parseInt(topic.key.replace('channel-', ''), 10)))!);
             }
 
             return res;
-        })
+        }),
+
+        alphaFeedChannel: withUser(async (ctx, args, uid) => {
+            return await Store.FeedChannel.findById(ctx, IDs.FeedChannel.parse(args.id));
+        }),
+        alphaFeedChannelContent: withUser(async (ctx, args, uid) => {
+            let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + IDs.FeedChannel.parse(args.id));
+            let data = await Store.FeedEvent.fromTopic.query(ctx, topic.id, {
+                limit: args.first,
+                reverse: true,
+                after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined
+            });
+
+            return { items: data.items, cursor: data.haveMore ? IDs.HomeFeedCursor.serialize(data.items[data.items.length - 1].id) : undefined };
+        }),
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.createPost(ctx, uid, 'user-' + uid, { ...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey });
+            let channelId = IDs.FeedChannel.parse(args.channel);
+            return await Modules.Feed.createPost(ctx, uid, 'channel-' + channelId, { ...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey });
         }),
         alphaEditFeedPost: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
@@ -238,43 +244,19 @@ export default {
         alphaDeleteFeedPost: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.deletePost(ctx, uid, IDs.FeedItem.parse(args.feedItemId));
         }),
-        alphaCreateGlobalFeedPost: withUser(async (root, args, uid) => {
-            return await inTx(root, async ctx => {
-                let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
-                if (!isSuperAdmin) {
-                    throw new AccessDeniedError();
-                }
-                let oid: number|null = null;
-                if (args.fromCommunity) {
-                    oid = IDs.Organization.parse(args.fromCommunity);
-                    if (!await Modules.Orgs.isUserAdmin(ctx, uid, oid)) {
-                        throw new AccessDeniedError();
-                    }
-                }
-                return await Modules.Feed.createPost(ctx, uid, 'tag-global', { ...await resolveRichMessageCreation(ctx, args), oid, repeatKey: args.repeatKey });
-            });
-        }),
         feedReactionAdd: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);
         }),
         feedReactionRemove: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
         }),
-        feedSubscribeUser: withUser(async (ctx, args, uid) => {
-            await Modules.Feed.subscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
-            return true;
-        }),
-        feedUnsubscribeUser: withUser(async (ctx, args, uid) => {
-            await Modules.Feed.unsubscribe(ctx, 'user-' + uid, 'user-' + IDs.User.parse(args.uid));
-            return true;
-        }),
 
         alphaFeedCreateChannel: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.createFeedChannel(ctx, uid, {
                 title: args.title,
                 about: args.about || undefined,
-                type: args.type,
-                image: args.photoRef || undefined
+                image: args.photoRef || undefined,
+                global: args.global || undefined
             });
         })
     }

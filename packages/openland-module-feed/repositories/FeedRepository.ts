@@ -46,7 +46,7 @@ export class FeedRepository {
         });
     }
 
-    async resolveTopic(parent: Context, key: string) {
+    async resolveTopic(parent: Context, key: string, global: boolean = false) {
         return await inTx(parent, async (ctx) => {
             let res = await Store.FeedTopic.key.find(ctx, key);
             if (res) {
@@ -57,7 +57,7 @@ export class FeedRepository {
                 seq = await Store.Sequence.create(ctx, 'feed-topic-id', { value: 0 });
             }
             let id = ++seq.value;
-            res = await Store.FeedTopic.create(ctx, id, { key });
+            res = await Store.FeedTopic.create(ctx, id, { key, isGlobal: global });
             return res;
         });
     }

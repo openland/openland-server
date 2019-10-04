@@ -1,6 +1,8 @@
 union FeedItem = FeedPost
 
-union FeedPostAuthor = User | Organization
+union FeedPostAuthor = User
+
+union FeedPostSource = FeedChannel
 
 type FeedPost {
     #
@@ -9,6 +11,7 @@ type FeedPost {
     id: ID!
     date: Date!
     author: FeedPostAuthor!
+    source: FeedPostSource
     canEdit: Boolean!
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
@@ -67,23 +70,11 @@ input SlideInput {
 #   Channels
 #
 
-
-#
-#union FeedChannelAttachedEntity = SharedRoom | Organization
-#
-
-enum FeedChannelType {
-    Open,
-    Editorial
-}
-
 type FeedChannel {
     id: ID!
     title: String!
     about: String
     photo: String!
-    type: FeedChannelType!
-#    attachedEntities: [FeedChannelAttachedEntity!]!
 }
 
 type FeedChannelConnection {
@@ -91,30 +82,26 @@ type FeedChannelConnection {
     cursor: String
 }
 
-union FeedSubscription = FeedChannel | User
+union FeedSubscription = FeedChannel
 
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
     alphaFeedItem(id: ID!): FeedItem
 
-#    alphaFeedChannel(id: ID!): FeedChannel!
-#    alphaFeedChannelContent(id: ID!): FeedItemConnection!
+    alphaFeedChannel(id: ID!): FeedChannel!
+    alphaFeedChannelContent(id: ID!, first: Int!, after: String): FeedItemConnection!
 #    alphaFeedChannelSubscriptions(id: ID!): [User!]!
     alphaFeedMySubscriptions: [FeedSubscription!]!
     alphaFeedMyChannels(first: Int!, after: ID): FeedChannelConnection!
 }
 
 extend type Mutation {
-    alphaCreateFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], repeatKey: String): FeedItem!
+    alphaCreateFeedPost(channel: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], repeatKey: String): FeedItem!
     alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaDeleteFeedPost(feedItemId: ID!): Boolean!
-    alphaCreateGlobalFeedPost(message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!], fromCommunity: ID, repeatKey: String): FeedItem!
 
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
 
-    feedSubscribeUser(uid: ID!): Boolean!
-    feedUnsubscribeUser(uid: ID!): Boolean!
-
-    alphaFeedCreateChannel(title: String!, about: String, type: FeedChannelType!, photoRef: ImageRefInput): FeedChannel!
+    alphaFeedCreateChannel(title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
 }

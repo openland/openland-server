@@ -56,16 +56,44 @@ export class FeedDeliveryMediator {
         }
     }
 
-    onNewItem = async (ctx: Context, item: FeedEvent) => {
-        await this.queue.pushWork(ctx, { itemId: item.id, action: 'new' });
+    onNewItem = async (root: Context, item: FeedEvent) => {
+        await inTx(root, async ctx => {
+            let topic = await Store.FeedTopic.findById(ctx, item.tid);
+            if (!topic) {
+                throw new Error('Internal inconsistency');
+            }
+            if (topic.isGlobal) {
+                console.log('global');
+                await Store.FeedGlobalEventStore.post(ctx, FeedItemReceivedEvent.create({ itemId: item.id }));
+            } else {
+                console.log('non-global');
+                await this.queue.pushWork(ctx, { itemId: item.id, action: 'new' });
+            }
+        });
     }
 
     onItemUpdated = async (ctx: Context, item: FeedEvent) => {
-        await this.queue.pushWork(ctx, { itemId: item.id, action: 'update' });
+        let topic = await Store.FeedTopic.findById(ctx, item.tid);
+        if (!topic) {
+            throw new Error('Internal inconsistency');
+        }
+        if (topic.isGlobal) {
+            await Store.FeedGlobalEventStore.post(ctx, FeedItemUpdatedEvent.create({ itemId: item.id }));
+        } else {
+            await this.queue.pushWork(ctx, { itemId: item.id, action: 'update' });
+        }
     }
 
     onItemDeleted = async (ctx: Context, item: FeedEvent) => {
-        await this.queue.pushWork(ctx, { itemId: item.id, action: 'delete' });
+        let topic = await Store.FeedTopic.findById(ctx, item.tid);
+        if (!topic) {
+            throw new Error('Internal inconsistency');
+        }
+        if (topic.isGlobal) {
+            await Store.FeedGlobalEventStore.post(ctx, FeedItemDeletedEvent.create({ itemId: item.id }));
+        } else {
+            await this.queue.pushWork(ctx, { itemId: item.id, action: 'delete' });
+        }
     }
 
     private async fanOutDelivery(parent: Context, itemId: number, action: 'new' | 'update' | 'delete') {
@@ -92,6 +120,7 @@ export class FeedDeliveryMediator {
     private deliverItemUpdatedToUser = async (ctx: Context, sid: number, item: FeedEvent) => {
         await Store.FeedEventStore.post(ctx, sid, FeedItemUpdatedEvent.create({ subscriberId: sid, itemId: item.id }));
     }
+
     private deliverItemDeletedToUser = async (ctx: Context, sid: number, item: FeedEvent) => {
         await Store.FeedEventStore.post(ctx, sid, FeedItemDeletedEvent.create({ subscriberId: sid, itemId: item.id }));
     }

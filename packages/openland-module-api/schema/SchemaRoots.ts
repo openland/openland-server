@@ -83,7 +83,7 @@ export namespace GQLRoots {
     //
     export type FeedItemRoot = FeedEvent;
     export type FeedPostRoot = FeedEvent;
-    export type FeedPostAuthorRoot = User | Organization;
+    export type FeedPostAuthorRoot = User;
     export type FeedUpdateContainerRoot = LiveStreamItem<BaseEvent>;
     export type FeedUpdateRoot = BaseEvent;
     export type FeedItemReceivedRoot = FeedItemReceivedEvent;
@@ -95,7 +95,8 @@ export namespace GQLRoots {
     export type SlideAttachmentRoot = User | Conversation | Organization;
     export type FeedChannelRoot = FeedChannel;
     export type FeedChannelConnectionRoot = { items: FeedChannelRoot[], cursor?: string };
-    export type FeedSubscriptionRoot = FeedChannel | User;
+    export type FeedSubscriptionRoot = FeedChannel;
+    export type FeedPostSourceRoot = FeedChannel;
 
     //
     // Calls

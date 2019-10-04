@@ -8,6 +8,7 @@ import * as http from 'http';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { createGraphQLAdminSchema } from 'openland-module-db/tools/GraphEndpoint';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const rootCtx = createNamedContext('admin');
 const logger = createLogger('admin');
@@ -43,4 +44,13 @@ export async function startAdminInterface() {
     Server.applyMiddleware({ app, path: '/api' });
     Server.installSubscriptionHandlers(httpServer);
     httpServer.listen(8319);
+
+    Shutdown.registerWork({
+        name: 'admin-gql',
+        shutdown: async (ctx) => {
+            await new Promise(resolve => {
+                httpServer.close(() => resolve());
+            });
+        }
+    });
 }
