@@ -66,7 +66,7 @@ export class UrlInfoService {
             if (!info) {
                 return null;
             }
-            
+
             await this.cache.write(ctx, url, { ...info });
 
             return { ...info };
@@ -218,7 +218,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
                 keyboard: {
                     buttons: [[
-                        { title: 'Accept invite', style: 'DEFAULT', url }
+                        { title: 'Join chat', style: 'DEFAULT', url }
                     ]]
                 },
                 photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
