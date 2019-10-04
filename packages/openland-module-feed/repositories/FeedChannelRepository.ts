@@ -8,6 +8,7 @@ import { lazyInject } from '../../openland-modules/Modules.container';
 import { FeedRepository } from './FeedRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { UserError } from '../../openland-errors/UserError';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
 
 export interface FeedChannelInput {
     title: string;
@@ -32,10 +33,37 @@ export class FeedChannelRepository {
                 title: input.title,
                 about: input.about,
                 image: input.image,
+                isGlobal: input.global
             });
 
             await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
             await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channel.id);
+            return channel;
+        });
+    }
+
+    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
+        return await inTx(parent, async ctx => {
+            let channel = await Store.FeedChannel.findById(ctx, channelId);
+            if (!channel) {
+                throw new NotFoundError();
+            }
+            if (input.title) {
+                channel.title = input.title;
+            }
+            if (input.about) {
+                channel.title = input.about;
+            }
+            if (input.image) {
+                channel.image = input.image;
+            }
+            if (input.global) {
+                channel.isGlobal = input.global;
+                let topic = await Store.FeedTopic.key.find(ctx, 'channel-' + channel.id);
+                if (topic) {
+                    topic.isGlobal = channel.isGlobal;
+                }
+            }
             return channel;
         });
     }

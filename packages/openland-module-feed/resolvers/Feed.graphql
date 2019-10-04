@@ -104,4 +104,5 @@ extend type Mutation {
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
 
     alphaFeedCreateChannel(title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
+    alphaFeedUpdateChannel(id: ID!, title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
 }

@@ -73,4 +73,8 @@ export class FeedModule {
     async createFeedChannel(parent: Context, uid: number, input: FeedChannelInput) {
         return this.channels.createFeedChannel(parent, uid, input);
     }
+
+    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
+        return this.channels.updateFeedChannel(parent, channelId, uid, input);
+    }
 }

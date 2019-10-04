@@ -258,6 +258,14 @@ export default {
                 image: args.photoRef || undefined,
                 global: args.global || undefined
             });
-        })
+        }),
+        alphaFeedUpdateChannel: withUser(async (ctx, args, uid) => {
+            return await Modules.Feed.updateFeedChannel(ctx, IDs.FeedChannel.parse(args.id), uid, {
+                title: args.title,
+                about: args.about || undefined,
+                image: args.photoRef || undefined,
+                global: args.global || undefined
+            });
+        }),
     }
 } as GQLResolver;
