@@ -46,6 +46,42 @@ export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
     }
 }
 
+export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('feedChannelMembersCount');
+        return new FeedChannelMembersCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(channelId: number) {
+        return this._findById([channelId]);
+    }
+
+    get(ctx: Context, channelId: number) {
+        return this._get(ctx, [channelId]);
+    }
+
+    set(ctx: Context, channelId: number, value: number) {
+        return this._set(ctx, [channelId], value);
+    }
+
+    add(ctx: Context, channelId: number, value: number) {
+        return this._add(ctx, [channelId], value);
+    }
+
+    increment(ctx: Context, channelId: number) {
+        return this._increment(ctx, [channelId]);
+    }
+
+    decrement(ctx: Context, channelId: number) {
+        return this._decrement(ctx, [channelId]);
+    }
+}
+
 export class UserCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -8460,6 +8496,120 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
     }
 }
 
+export interface FeedChannelAdminShape {
+    channelId: number;
+    uid: number;
+    promoter: number | null;
+    role: 'creator' | 'editor';
+    enabled: boolean | null;
+}
+
+export interface FeedChannelAdminCreateShape {
+    promoter?: number | null | undefined;
+    role: 'creator' | 'editor';
+    enabled?: boolean | null | undefined;
+}
+
+export class FeedChannelAdmin extends Entity<FeedChannelAdminShape> {
+    get channelId(): number { return this._rawValue.channelId; }
+    get uid(): number { return this._rawValue.uid; }
+    get promoter(): number | null { return this._rawValue.promoter; }
+    set promoter(value: number | null) {
+        let normalized = this.descriptor.codec.fields.promoter.normalize(value);
+        if (this._rawValue.promoter !== normalized) {
+            this._rawValue.promoter = normalized;
+            this._updatedValues.promoter = normalized;
+            this.invalidate();
+        }
+    }
+    get role(): 'creator' | 'editor' { return this._rawValue.role; }
+    set role(value: 'creator' | 'editor') {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean | null { return this._rawValue.enabled; }
+    set enabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape, FeedChannelAdmin> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('feedChannelAdmin');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAdmin', 'channel'), condition: src => !!src.enabled });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'channelId', type: 'integer' });
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'promoter', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'role', type: { type: 'enum', values: ['creator', 'editor'] }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            channelId: c.integer,
+            uid: c.integer,
+            promoter: c.optional(c.integer),
+            role: c.enum('creator', 'editor'),
+            enabled: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<FeedChannelAdminShape> = {
+            name: 'FeedChannelAdmin',
+            storageKey: 'feedChannelAdmin',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new FeedChannelAdminFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<FeedChannelAdminShape>) {
+        super(descriptor);
+    }
+
+    readonly channel = Object.freeze({
+        findAll: async (ctx: Context, channelId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [channelId])).items;
+        },
+        query: (ctx: Context, channelId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [channelId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (channelId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [channelId], opts);
+        },
+        liveStream: (ctx: Context, channelId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [channelId], opts);
+        },
+    });
+
+    create(ctx: Context, channelId: number, uid: number, src: FeedChannelAdminCreateShape): Promise<FeedChannelAdmin> {
+        return this._create(ctx, [channelId, uid], this.descriptor.codec.normalize({ channelId, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, channelId: number, uid: number, src: FeedChannelAdminCreateShape): FeedChannelAdmin {
+        return this._create_UNSAFE(ctx, [channelId, uid], this.descriptor.codec.normalize({ channelId, uid, ...src }));
+    }
+
+    findById(ctx: Context, channelId: number, uid: number): Promise<FeedChannelAdmin | null> {
+        return this._findById(ctx, [channelId, uid]);
+    }
+
+    watch(ctx: Context, channelId: number, uid: number): Watch {
+        return this._watch(ctx, [channelId, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelAdminShape>): FeedChannelAdmin {
+        return new FeedChannelAdmin([value.channelId, value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ChatAudienceCalculatingQueueShape {
     id: number;
     active: boolean;
@@ -13452,6 +13602,7 @@ export class FeedGlobalEventStore extends EventStore {
 
 export interface Store extends BaseStore {
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
+    readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesSentWeeklyCounter: UserMessagesSentWeeklyCounterFactory;
@@ -13539,6 +13690,7 @@ export interface Store extends BaseStore {
     readonly FeedTopic: FeedTopicFactory;
     readonly FeedEvent: FeedEventFactory;
     readonly FeedChannel: FeedChannelFactory;
+    readonly FeedChannelAdmin: FeedChannelAdminFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
@@ -13606,6 +13758,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
+    let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
     let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
@@ -13693,6 +13846,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedTopicPromise = FeedTopicFactory.open(storage);
     let FeedEventPromise = FeedEventFactory.open(storage);
     let FeedChannelPromise = FeedChannelFactory.open(storage);
+    let FeedChannelAdminPromise = FeedChannelAdminFactory.open(storage);
     let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
     let ChannelLinkPromise = ChannelLinkFactory.open(storage);
     let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
@@ -13741,6 +13895,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         eventFactory,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
+        FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         UserCounter: await UserCounterPromise,
         UserMessagesSentCounter: await UserMessagesSentCounterPromise,
         UserMessagesSentWeeklyCounter: await UserMessagesSentWeeklyCounterPromise,
@@ -13828,6 +13983,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedTopic: await FeedTopicPromise,
         FeedEvent: await FeedEventPromise,
         FeedChannel: await FeedChannelPromise,
+        FeedChannelAdmin: await FeedChannelAdminPromise,
         ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
         ChannelLink: await ChannelLinkPromise,
         AppInviteLink: await AppInviteLinkPromise,

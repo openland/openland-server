@@ -36,8 +36,9 @@ export class FeedChannelRepository {
                 isGlobal: input.global
             });
 
+            await Store.FeedChannelAdmin.create(ctx, channel.id, uid, { role: 'creator', enabled: true });
             await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
-            await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channel.id);
+            await this.subscribeChannel(ctx, uid, channel.id);
             return channel;
         });
     }
@@ -65,6 +66,68 @@ export class FeedChannelRepository {
                 }
             }
             return channel;
+        });
+    }
+
+    async subscribeChannel(parent: Context, uid: number, channelId: number) {
+        return await inTx(parent, async ctx => {
+            await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId);
+            await Store.FeedChannelMembersCount.increment(ctx, channelId);
+        });
+    }
+
+    async unsubscribeChannel(parent: Context, uid: number, channelId: number) {
+        return await inTx(parent, async ctx => {
+            await this.feedRepo.unsubscribe(ctx, 'user-' + uid, 'channel-' + channelId);
+            await Store.FeedChannelMembersCount.decrement(ctx, channelId);
+        });
+    }
+
+    async addEditor(parent: Context, channelId: number, uid: number) {
+        return await inTx(parent, async ctx => {
+            let existing = await Store.FeedChannelAdmin.findById(ctx, channelId, uid);
+            if (existing) {
+                existing.role = 'editor';
+                existing.enabled = true;
+                existing.promoter = uid;
+            } else {
+                await Store.FeedChannelAdmin.create(ctx, channelId, uid, { role: 'editor', enabled: true, promoter: uid });
+            }
+        });
+    }
+
+    async removeEditor(parent: Context, channelId: number, uid: number) {
+        return await inTx(parent, async ctx => {
+            let existing = await Store.FeedChannelAdmin.findById(ctx, channelId, uid);
+            if (existing) {
+                existing.enabled = false;
+            }
+        });
+    }
+
+    async roleInChannel(parent: Context, channelId: number, uid: number): Promise<'creator' | 'editor' | 'subscriber' | 'none'> {
+        return await inTx(parent, async ctx => {
+            let channel = await Store.FeedChannel.findById(ctx, channelId);
+            if (!channel) {
+                throw new NotFoundError();
+            }
+            if (channel.ownerId === uid) {
+                return 'creator';
+            }
+            let adminship = await Store.FeedChannelAdmin.findById(ctx, channelId, uid);
+            if (adminship && adminship.enabled) {
+                if (adminship.role === 'editor') {
+                    return 'editor';
+                }
+            }
+            let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
+            let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + channelId);
+            let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
+            if (subscription && subscription.enabled) {
+                return 'subscriber';
+            }
+
+            return 'none';
         });
     }
 }

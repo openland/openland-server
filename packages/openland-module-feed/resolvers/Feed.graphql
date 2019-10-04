@@ -76,6 +76,8 @@ type FeedChannel {
     about: String
     photo: String!
     subscribed: Boolean!
+    myRole: FeedChannelAdminRole!
+    subscribersCount: Int!
 }
 
 type FeedChannelConnection {
@@ -84,6 +86,24 @@ type FeedChannelConnection {
 }
 
 union FeedSubscription = FeedChannel
+
+enum FeedChannelAdminRole {
+    Creator,
+    Editor,
+    Subscriber,
+    None
+}
+
+type FeedChannelAdmin {
+    user: User!
+    role: FeedChannelAdminRole!
+    promoter: User
+}
+
+type FeedChannelAdminConnection {
+    items: [FeedChannelAdmin!]!
+    cursor: String
+}
 
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
@@ -94,6 +114,7 @@ extend type Query {
 #    alphaFeedChannelSubscriptions(id: ID!): [User!]!
     alphaFeedMySubscriptions: [FeedSubscription!]!
     alphaFeedMyChannels(first: Int!, after: ID): FeedChannelConnection!
+    alphaFeedChannelAdmins(id: ID!, first: Int!, after: ID): FeedChannelAdminConnection!
 }
 
 extend type Mutation {
@@ -106,4 +127,10 @@ extend type Mutation {
 
     alphaFeedCreateChannel(title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
     alphaFeedUpdateChannel(id: ID!, title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
+
+    alphaFeedChannelSubscribe(id: ID!): Boolean!
+    alphaFeedChannelUnsubscribe(id: ID!): Boolean!
+
+    alphaFeedChannelAddEditor(id: ID!, userId: ID!): Boolean!
+    alphaFeedChannelRemoveEditor(id: ID!, userId: ID!): Boolean!
 }

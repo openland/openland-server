@@ -8,7 +8,8 @@ import {
 } from '../openland-module-rich-message/repositories/RichMessageRepository';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { FeedDeliveryMediator } from './repositories/FeedDeliveryMediator';
-import { FeedChannelInput, FeedChannelRepository } from './repositories/FeedChannelRepository';
+import { FeedChannelInput } from './repositories/FeedChannelRepository';
+import FeedChannelMediator from './repositories/FeedChannelMediator';
 
 @injectable()
 export class FeedModule {
@@ -19,8 +20,8 @@ export class FeedModule {
     @lazyInject('FeedDeliveryMediator')
     private readonly delivery!: FeedDeliveryMediator;
 
-    @lazyInject('FeedChannelRepository')
-    private readonly channels!: FeedChannelRepository;
+    @lazyInject('FeedChannelMediator')
+    private readonly channels!: FeedChannelMediator;
 
     start = () => {
         this.delivery.start();
@@ -71,10 +72,22 @@ export class FeedModule {
     }
 
     async createFeedChannel(parent: Context, uid: number, input: FeedChannelInput) {
-        return this.channels.createFeedChannel(parent, uid, input);
+        return await this.channels.createFeedChannel(parent, uid, input);
     }
 
     async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
-        return this.channels.updateFeedChannel(parent, channelId, uid, input);
+        return await this.channels.updateFeedChannel(parent, channelId, uid, input);
+    }
+
+    async subscribeChannel(parent: Context, uid: number, channelId: number) {
+        return await this.channels.subscribeChannel(parent, uid, channelId);
+    }
+
+    async unsubscribeChannel(parent: Context, uid: number, channelId: number) {
+        return await this.channels.unsubscribeChannel(parent, uid, channelId);
+    }
+
+    async roleInChannel(parent: Context, channelId: number, uid: number): Promise<'creator' | 'editor' | 'subscriber' | 'none'> {
+        return await this.channels.roleInChannel(parent, channelId, uid);
     }
 }

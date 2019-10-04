@@ -1055,6 +1055,20 @@ export default declareSchema(() => {
         rangeIndex('global', ['id', 'createdAt']).withCondition(src => !!src.isGlobal);
     });
 
+    atomicInt('FeedChannelMembersCount', () => {
+        primaryKey('channelId', integer());
+    });
+
+    entity('FeedChannelAdmin', () => {
+        primaryKey('channelId', integer());
+        primaryKey('uid', integer());
+        field('promoter', optional(integer()));
+        field('role', enumString('creator', 'editor'));
+        field('enabled', optional(boolean()));
+
+        rangeIndex('channel', ['channelId', 'uid']).withCondition(src => !!src.enabled);
+    });
+
     //
     // Counters
     //

@@ -23,6 +23,8 @@ import SlideAttachmentRoot = GQLRoots.SlideAttachmentRoot;
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 import FeedSubscriptionRoot = GQLRoots.FeedSubscriptionRoot;
 import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -159,7 +161,19 @@ export default {
                 return true;
             }
             return false;
-        }
+        },
+        myRole: async (src, args, ctx) => {
+            let role = await Modules.Feed.roleInChannel(ctx, src.id, ctx.auth.uid!);
+            if (role === 'creator') {
+                return 'Creator';
+            } else if (role === 'editor') {
+                return 'Editor';
+            } else if (role === 'subscriber') {
+                return 'Subscriber';
+            }
+            return 'None';
+        },
+        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id)
     },
     FeedSubscription: {
         __resolveType(src: FeedSubscriptionRoot) {
@@ -177,6 +191,18 @@ export default {
             } else {
                 throw new Error('Unknown feed subscription root: ' + src);
             }
+        }
+    },
+    FeedChannelAdmin: {
+        user: src => src.uid,
+        promoter: src => src.promoter || null,
+        role: src => {
+            if (src.role === 'editor') {
+                return 'Editor';
+            } else if (src.role === 'creator') {
+                return 'Creator';
+            }
+            throw new NotFoundError();
         }
     },
 
@@ -242,6 +268,19 @@ export default {
 
             return { items: data.items, cursor: data.haveMore ? IDs.HomeFeedCursor.serialize(data.items[data.items.length - 1].id) : undefined };
         }),
+        alphaFeedChannelAdmins: withUser(async (ctx, args, uid) => {
+            let channelId = IDs.FeedChannel.parse(args.id);
+            let role = await Modules.Feed.roleInChannel(ctx, channelId, uid);
+            if (role !== 'creator' && role !== 'editor') {
+                throw new AccessDeniedError();
+            }
+            let data = await Store.FeedChannelAdmin.channel.query(ctx, channelId, {
+                limit: args.first,
+                after: args.after ? IDs.User.parse(args.after) : undefined
+            });
+
+            return { items: data.items, cursor: data.haveMore ? IDs.User.serialize(data.items[data.items.length - 1].uid) : undefined };
+        }),
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
@@ -276,6 +315,20 @@ export default {
                 image: args.photoRef || undefined,
                 global: args.global || undefined
             });
+        }),
+
+        alphaFeedChannelSubscribe: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.subscribeChannel(ctx, uid, IDs.FeedChannel.parse(args.id));
+            return true;
+        }),
+        alphaFeedChannelUnsubscribe: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.unsubscribeChannel(ctx, uid, IDs.FeedChannel.parse(args.id));
+            return true;
+        }),
+
+        alphaFeedChannelAddEditor: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.unsubscribeChannel(ctx, uid, IDs.FeedChannel.parse(args.id));
+            return true;
         }),
     }
 } as GQLResolver;
