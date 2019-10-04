@@ -64,6 +64,7 @@ export default {
                 let lastUserCursor: null|string = userCursor || await Store.FeedEventStore.createStream(subscriber.id, { after: userCursor }).tail(ctx);
                 let lastGlobalCursor: null|string = globalCursor || await Store.FeedGlobalEventStore.createStream({ after: globalCursor }).tail(ctx);
 
+                // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     for await (let item of userStream) {
                         lastUserCursor = item.cursor;
@@ -74,6 +75,7 @@ export default {
                         }
                     }
                 })();
+                // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     for await (let item of globalStream) {
                         lastGlobalCursor = item.cursor;
