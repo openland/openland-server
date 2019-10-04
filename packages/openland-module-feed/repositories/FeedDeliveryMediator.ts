@@ -63,10 +63,8 @@ export class FeedDeliveryMediator {
                 throw new Error('Internal inconsistency');
             }
             if (topic.isGlobal) {
-                console.log('global');
                 await Store.FeedGlobalEventStore.post(ctx, FeedItemReceivedEvent.create({ itemId: item.id }));
             } else {
-                console.log('non-global');
                 await this.queue.pushWork(ctx, { itemId: item.id, action: 'new' });
             }
         });
