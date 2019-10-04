@@ -150,6 +150,16 @@ export default {
         title: src => src.title,
         about: src => src.about,
         photo: src => src.image ? buildBaseImageUrl(src.image) : null,
+        subscribed: async (src, args, ctx) => {
+            let uid = ctx.auth.uid!;
+            let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
+            let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + uid);
+            let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
+            if (subscription && subscription.enabled) {
+                return true;
+            }
+            return false;
+        }
     },
     FeedSubscription: {
         __resolveType(src: FeedSubscriptionRoot) {

@@ -75,6 +75,7 @@ type FeedChannel {
     title: String!
     about: String
     photo: String!
+    subscribed: Boolean!
 }
 
 type FeedChannelConnection {
