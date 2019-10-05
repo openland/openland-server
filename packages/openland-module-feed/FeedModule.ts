@@ -10,6 +10,8 @@ import { lazyInject } from '../openland-modules/Modules.container';
 import { FeedDeliveryMediator } from './repositories/FeedDeliveryMediator';
 import { FeedChannelInput } from './repositories/FeedChannelRepository';
 import FeedChannelMediator from './repositories/FeedChannelMediator';
+import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
+import { feedChannelIndexer } from './workers/feedChannelIndexer';
 
 @injectable()
 export class FeedModule {
@@ -25,6 +27,9 @@ export class FeedModule {
 
     start = () => {
         this.delivery.start();
+        if (serverRoleEnabled('workers')) {
+            feedChannelIndexer();
+        }
     }
 
     async resolveSubscriber(parent: Context, key: string) {

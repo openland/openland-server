@@ -8610,6 +8610,77 @@ export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape
     }
 }
 
+export interface FeedChannelIndexingQueueShape {
+    id: number;
+}
+
+export interface FeedChannelIndexingQueueCreateShape {
+}
+
+export class FeedChannelIndexingQueue extends Entity<FeedChannelIndexingQueueShape> {
+    get id(): number { return this._rawValue.id; }
+}
+
+export class FeedChannelIndexingQueueFactory extends EntityFactory<FeedChannelIndexingQueueShape, FeedChannelIndexingQueue> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('feedChannelIndexingQueue');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelIndexingQueue', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        let codec = c.struct({
+            id: c.integer,
+        });
+        let descriptor: EntityDescriptor<FeedChannelIndexingQueueShape> = {
+            name: 'FeedChannelIndexingQueue',
+            storageKey: 'feedChannelIndexingQueue',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new FeedChannelIndexingQueueFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<FeedChannelIndexingQueueShape>) {
+        super(descriptor);
+    }
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: FeedChannelIndexingQueueCreateShape): Promise<FeedChannelIndexingQueue> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: FeedChannelIndexingQueueCreateShape): FeedChannelIndexingQueue {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<FeedChannelIndexingQueue | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelIndexingQueueShape>): FeedChannelIndexingQueue {
+        return new FeedChannelIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ChatAudienceCalculatingQueueShape {
     id: number;
     active: boolean;
@@ -13691,6 +13762,7 @@ export interface Store extends BaseStore {
     readonly FeedEvent: FeedEventFactory;
     readonly FeedChannel: FeedChannelFactory;
     readonly FeedChannelAdmin: FeedChannelAdminFactory;
+    readonly FeedChannelIndexingQueue: FeedChannelIndexingQueueFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
@@ -13847,6 +13919,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedEventPromise = FeedEventFactory.open(storage);
     let FeedChannelPromise = FeedChannelFactory.open(storage);
     let FeedChannelAdminPromise = FeedChannelAdminFactory.open(storage);
+    let FeedChannelIndexingQueuePromise = FeedChannelIndexingQueueFactory.open(storage);
     let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
     let ChannelLinkPromise = ChannelLinkFactory.open(storage);
     let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
@@ -13984,6 +14057,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedEvent: await FeedEventPromise,
         FeedChannel: await FeedChannelPromise,
         FeedChannelAdmin: await FeedChannelAdminPromise,
+        FeedChannelIndexingQueue: await FeedChannelIndexingQueuePromise,
         ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
         ChannelLink: await ChannelLinkPromise,
         AppInviteLink: await AppInviteLinkPromise,

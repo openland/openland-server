@@ -1069,6 +1069,11 @@ export default declareSchema(() => {
         rangeIndex('channel', ['channelId', 'uid']).withCondition(src => !!src.enabled);
     });
 
+    entity('FeedChannelIndexingQueue', () => {
+        primaryKey('id', integer());
+        rangeIndex('updated', ['updatedAt']);
+    });
+
     //
     // Counters
     //

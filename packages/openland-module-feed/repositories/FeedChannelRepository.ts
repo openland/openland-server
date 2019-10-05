@@ -39,6 +39,7 @@ export class FeedChannelRepository {
             await Store.FeedChannelAdmin.create(ctx, channel.id, uid, { role: 'creator', enabled: true });
             await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
             await this.subscribeChannel(ctx, uid, channel.id);
+            await this.markForIndexing(ctx, channel.id);
             return channel;
         });
     }
@@ -65,6 +66,7 @@ export class FeedChannelRepository {
                     topic.isGlobal = channel.isGlobal;
                 }
             }
+            await this.markForIndexing(ctx, channelId);
             return channel;
         });
     }
@@ -73,6 +75,7 @@ export class FeedChannelRepository {
         return await inTx(parent, async ctx => {
             await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId);
             await Store.FeedChannelMembersCount.increment(ctx, channelId);
+            await this.markForIndexing(ctx, channelId);
         });
     }
 
@@ -80,6 +83,7 @@ export class FeedChannelRepository {
         return await inTx(parent, async ctx => {
             await this.feedRepo.unsubscribe(ctx, 'user-' + uid, 'channel-' + channelId);
             await Store.FeedChannelMembersCount.decrement(ctx, channelId);
+            await this.markForIndexing(ctx, channelId);
         });
     }
 
@@ -128,6 +132,17 @@ export class FeedChannelRepository {
             }
 
             return 'none';
+        });
+    }
+
+    async markForIndexing(parent: Context, channelId: number) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await Store.FeedChannelIndexingQueue.findById(ctx, channelId);
+            if (existing) {
+                existing.invalidate();
+            } else {
+                await Store.FeedChannelIndexingQueue.create(ctx, channelId, {});
+            }
         });
     }
 }

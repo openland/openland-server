@@ -25,6 +25,7 @@ import FeedSubscriptionRoot = GQLRoots.FeedSubscriptionRoot;
 import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -304,6 +305,60 @@ export default {
                 cursor: data.haveMore ? IDs.User.serialize(data.items[data.items.length - 1].uid) : undefined
             };
         }),
+
+        alphaFeedChannelSearch: withUser(async (ctx, args, uid) => {
+            let clauses: any[] = [];
+            let sort: any[] | undefined = undefined;
+
+            let parser = new QueryParser();
+            parser.registerText('text', 'text');
+            parser.registerBoolean('isService', 'isService');
+            parser.registerText('createdAt', 'createdAt');
+            parser.registerText('updatedAt', 'updatedAt');
+
+            if (args.query) {
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            if (args.sort) {
+                sort = parser.parseSort(args.sort);
+            }
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'feed-channel',
+                type: 'feed-channel',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : 0,
+                body: {
+                    sort: sort || [{createdAt: 'desc'}], query: {bool: {must: clauses}},
+                },
+            });
+
+            let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: channels.filter(c => !!c).map((p, i) => {
+                    return {
+                        node: p, cursor: (i + 1 + offset).toString(),
+                    };
+                }), pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true,
+                },
+            };
+        })
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
