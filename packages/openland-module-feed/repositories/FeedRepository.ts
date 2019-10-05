@@ -11,7 +11,6 @@ import {
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
-import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { Modules } from '../../openland-modules/Modules';
 import { FeedDeliveryMediator } from './FeedDeliveryMediator';
@@ -148,11 +147,11 @@ export class FeedRepository {
             if (!message) {
                 throw new UserError('Message not found');
             }
-            if (!message.oid && (message.uid !== uid)) {
-                throw new AccessDeniedError();
-            } else if (message.oid && !await Modules.Orgs.isUserAdmin(ctx, uid, message.oid)) {
-                throw new AccessDeniedError();
-            }
+            // if (!message.oid && (message.uid !== uid)) {
+            //     throw new AccessDeniedError();
+            // } else if (message.oid && !await Modules.Orgs.isUserAdmin(ctx, uid, message.oid)) {
+            //     throw new AccessDeniedError();
+            // }
 
             //
             // Edit message

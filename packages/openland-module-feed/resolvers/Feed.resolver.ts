@@ -26,7 +26,7 @@ import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
-export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T>|T) {
+export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
         let message = await Store.RichMessage.findById(ctx, src.content.richMessageId);
         return handler(ctx, message!, src);
@@ -76,7 +76,10 @@ export default {
         isMentioned: withRichMessage((ctx, message) => hasMention(message, ctx.auth.uid!)),
         message: withRichMessage((ctx, message) => message.text),
         spans: withRichMessage((ctx, message) => message.spans || []),
-        attachments: withRichMessage((ctx, message) => message.attachments ? message.attachments.map(a => ({ message: message, attachment: a })) : []),
+        attachments: withRichMessage((ctx, message) => message.attachments ? message.attachments.map(a => ({
+            message: message,
+            attachment: a
+        })) : []),
         commentsCount: withRichMessage(async (ctx, message, src) => {
             let state = await Store.CommentState.findById(ctx, 'feed_item', src.id);
             return (state && state.commentsCount) || 0;
@@ -100,7 +103,11 @@ export default {
         id: src => IDs.Slide.serialize(src.id),
         text: src => src.text,
         spans: src => src.spans || [],
-        cover: src => src.cover ? { uuid: src.cover.image.uuid, metadata: src.cover.info, crop: src.cover.image.crop } : undefined,
+        cover: src => src.cover ? {
+            uuid: src.cover.image.uuid,
+            metadata: src.cover.info,
+            crop: src.cover.image.crop
+        } : undefined,
         coverAlign: src => {
             if (!src.cover) {
                 return null;
@@ -213,12 +220,19 @@ export default {
             topics = topics.filter(t => t.key.startsWith('channel-'));
 
             let allEvents: FeedEvent[] = [];
-            let topicPosts = await Promise.all(topics.map(t => Store.FeedEvent.fromTopic.query(ctx, t.id, { after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined, reverse: true, limit: args.first })));
+            let topicPosts = await Promise.all(topics.map(t => Store.FeedEvent.fromTopic.query(ctx, t.id, {
+                after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined,
+                reverse: true,
+                limit: args.first
+            })));
             for (let posts of topicPosts) {
                 allEvents.push(...posts.items);
             }
             let items = allEvents.sort((a, b) => b.id - a.id).splice(0, args.first);
-            return { items, cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined };
+            return {
+                items,
+                cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined
+            };
         }),
         alphaFeedItem: withUser(async (ctx, args, uid) => {
             let id = IDs.FeedItem.parse(args.id);
@@ -233,10 +247,13 @@ export default {
         alphaFeedMyChannels: withUser(async (ctx, args, uid) => {
             let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
             if (!args.first || args.first <= 0) {
-                return { items: [] };
+                return {items: []};
             }
             let afterExists = afterId && await Store.FeedChannel.findById(ctx, afterId);
-            let {items, haveMore} = await Store.FeedChannel.owner.query(ctx, uid, { limit: args.first, after: afterExists ? afterId : undefined });
+            let {items, haveMore} = await Store.FeedChannel.owner.query(ctx, uid, {
+                limit: args.first,
+                after: afterExists ? afterId : undefined
+            });
             return {
                 items,
                 cursor: haveMore ? IDs.FeedChannel.serialize(items[items.length - 1].id) : undefined
@@ -266,7 +283,10 @@ export default {
                 after: args.after ? IDs.HomeFeedCursor.parse(args.after) : undefined
             });
 
-            return { items: data.items, cursor: data.haveMore ? IDs.HomeFeedCursor.serialize(data.items[data.items.length - 1].id) : undefined };
+            return {
+                items: data.items,
+                cursor: data.haveMore ? IDs.HomeFeedCursor.serialize(data.items[data.items.length - 1].id) : undefined
+            };
         }),
         alphaFeedChannelAdmins: withUser(async (ctx, args, uid) => {
             let channelId = IDs.FeedChannel.parse(args.id);
@@ -279,19 +299,26 @@ export default {
                 after: args.after ? IDs.User.parse(args.after) : undefined
             });
 
-            return { items: data.items, cursor: data.haveMore ? IDs.User.serialize(data.items[data.items.length - 1].uid) : undefined };
+            return {
+                items: data.items,
+                cursor: data.haveMore ? IDs.User.serialize(data.items[data.items.length - 1].uid) : undefined
+            };
         }),
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
-            let channelId = IDs.FeedChannel.parse(args.channel);
-            return await Modules.Feed.createPost(ctx, uid, 'channel-' + channelId, { ...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey });
+            return await Modules.Feed.createPostInChannel(
+                ctx,
+                IDs.FeedChannel.parse(args.channel),
+                uid,
+                {...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey}
+            );
         }),
         alphaEditFeedPost: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.editPost(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
+            return await Modules.Feed.editPostInChannel(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
         }),
         alphaDeleteFeedPost: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.deletePost(ctx, uid, IDs.FeedItem.parse(args.feedItemId));
+            return await Modules.Feed.deletePostInChannel(ctx, uid, IDs.FeedItem.parse(args.feedItemId));
         }),
         feedReactionAdd: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction);

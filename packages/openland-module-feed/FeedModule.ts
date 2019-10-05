@@ -90,4 +90,16 @@ export class FeedModule {
     async roleInChannel(parent: Context, channelId: number, uid: number): Promise<'creator' | 'editor' | 'subscriber' | 'none'> {
         return await this.channels.roleInChannel(parent, channelId, uid);
     }
+
+    async createPostInChannel(parent: Context, channelId: number, uid: number, input: RichMessageInput & { repeatKey?: string | null }) {
+        return await this.channels.createPost(parent, channelId, uid, input);
+    }
+
+    async editPostInChannel(parent: Context, uid: number, postId: number, input: RichMessageInput) {
+        return await this.channels.editPost(parent, uid, postId, input);
+    }
+
+    async deletePostInChannel(parent: Context, uid: number, postId: number) {
+        return await this.channels.deletePost(parent, uid, postId);
+    }
 }
