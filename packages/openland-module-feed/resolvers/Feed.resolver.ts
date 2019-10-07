@@ -163,7 +163,7 @@ export default {
         subscribed: async (src, args, ctx) => {
             let uid = ctx.auth.uid!;
             let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
-            let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + uid);
+            let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + src.id);
             let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
             if (subscription && subscription.enabled) {
                 return true;
