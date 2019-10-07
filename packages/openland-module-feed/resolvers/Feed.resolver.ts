@@ -311,7 +311,7 @@ export default {
             let sort: any[] | undefined = undefined;
 
             let parser = new QueryParser();
-            parser.registerText('text', 'text');
+            parser.registerText('title', 'title');
             parser.registerBoolean('isService', 'isService');
             parser.registerText('createdAt', 'createdAt');
             parser.registerText('updatedAt', 'updatedAt');
