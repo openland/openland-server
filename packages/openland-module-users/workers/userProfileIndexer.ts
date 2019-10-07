@@ -54,7 +54,7 @@ export function userProfileIndexer() {
                     return null;
                 }
 
-                let shortName = await Modules.Shortnames.findUserShortname(ctx, item.id);
+                let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', item.id);
                 let orgs = await Modules.Orgs.findUserOrganizations(ctx, item.id);
 
                 let searchData: (string | undefined | null)[] = [];
