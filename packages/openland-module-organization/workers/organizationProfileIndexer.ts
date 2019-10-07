@@ -39,7 +39,7 @@ export function organizationProfileIndexer() {
                 let org = (await Store.Organization.findById(ctx, item.id))!;
                 let profile = (await (Store.OrganizationProfile.findById(ctx, item.id)))!;
                 let editorial = (await Store.OrganizationEditorial.findById(ctx, item.id))!;
-                let shortname = await Modules.Shortnames.findOrganizationShortname(ctx, item.id);
+                let shortname = await Modules.Shortnames.findShortnameByOwner(ctx, 'org', item.id);
                 let membersCount = await Modules.Orgs.organizationMembersCount(ctx, item.id);
 
                 return {

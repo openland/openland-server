@@ -6,8 +6,8 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { withUser } from '../openland-module-users/User.resolver';
-import { AppContext } from '../openland-modules/AppContext';
 import { User, Organization } from 'openland-module-db/store';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export default {
     ShortNameDestination: {
@@ -24,7 +24,6 @@ export default {
 
     Query: {
         alphaResolveShortName: withAccount(async (ctx, args, uid, orgId) => {
-
             let ownerId;
             let ownerType;
             try {
@@ -34,7 +33,6 @@ export default {
                 } else if (idInfo.type.typeId === IDs.Organization.typeId) {
                     ownerType = 'org';
                 }
-                ownerId = idInfo.id as number;
             } catch {
                 let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
                 if (shortname) {
@@ -51,6 +49,8 @@ export default {
                 return await Store.User.findById(ctx, ownerId);
             } else if (ownerType === 'org') {
                 return await Store.Organization.findById(ctx, ownerId);
+            } else if (ownerType === 'feed_channel') {
+                return await Store.FeedChannel.findById(ctx, ownerId);
             }
 
             return null;
@@ -58,9 +58,7 @@ export default {
     },
     Mutation: {
         alphaSetUserShortName: withAccount(async (ctx, args, uid, orgId) => {
-
-            await Modules.Shortnames.setShortnameToUser(ctx, args.shortname, uid);
-
+            await Modules.Shortnames.setShortName(ctx, args.shortname, 'user', uid, uid);
             return 'ok';
         }),
         alphaSetOrgShortName: withAccount(async (ctx, args, uid) => {
@@ -71,50 +69,48 @@ export default {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
-            await Modules.Shortnames.setShortnameToOrganization(ctx, args.shortname, orgId, uid);
-
+            await Modules.Shortnames.setShortName(ctx, args.shortname, 'org', orgId, uid);
+            return 'ok';
+        }),
+        alphaSetFeedChannelShortName: withAccount(async (ctx, args, uid) => {
+            let channelId = IDs.FeedChannel.parse(args.id);
+            let role = await Modules.Feed.roleInChannel(ctx, channelId, uid);
+            if (role !== 'creator') {
+                throw new AccessDeniedError();
+            }
+            await Modules.Shortnames.setShortName(ctx, args.shortname, 'feed_channel', channelId, uid);
             return 'ok';
         }),
     },
 
     User: {
         shortname: withUser(async (ctx, src) => {
-            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
-            if (shortname) {
-                return shortname.shortname;
-            }
-            return null;
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', src.id);
+            return shortName ? shortName.shortname : null;
         }),
     },
     Profile: {
         shortname: withUser(async (ctx, src) => {
-            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
-            if (shortname) {
-                return shortname.shortname;
-            }
-            return null;
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', src.id);
+            return shortName ? shortName.shortname : null;
         }),
     },
     Organization: {
-        shortname: async (src: Organization, args: {}, ctx: AppContext) => {
-            let shortName = await Modules.Shortnames.findOrganizationShortname(ctx, src.id);
-
-            if (shortName) {
-                return shortName.shortname;
-            }
-
-            return null;
+        shortname: async (src, args, ctx) => {
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'org', src.id);
+            return shortName ? shortName.shortname : null;
         },
     },
     OrganizationProfile: {
-        shortname: async (src: Organization, args: {}, ctx: AppContext) => {
-            let shortName = await Modules.Shortnames.findOrganizationShortname(ctx, src.id);
-
-            if (shortName) {
-                return shortName.shortname;
-            }
-
-            return null;
+        shortname: async (src, args, ctx) => {
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'org', src.id);
+            return shortName ? shortName.shortname : null;
+        },
+    },
+    FeedChannel: {
+        shortname: async (src, args, ctx) => {
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'feed_channel', src.id);
+            return shortName ? shortName.shortname : null;
         },
     }
 } as GQLResolver;

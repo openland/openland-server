@@ -214,7 +214,6 @@ export namespace GQLRoots {
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
-    export type ShortNameDestinationRoot = any;
     export type UserBadgeRoot = UserBadge;
 
     export type RoomMemberRoot = any;
@@ -414,4 +413,9 @@ export namespace GQLRoots {
     export type TextMatchmakingQuestionRoot = { type: 'text', id: string, title: string, subtitle?: string | null };
     export type MultiselectMatchmakingQuestionRoot = { type: 'multiselect', id: string, title: string, subtitle?: string | null, tags: string[] };
     export type MatchmakingQuestionRoot = TextMatchmakingQuestionRoot | MultiselectMatchmakingQuestionRoot;
+
+    //
+    //  Shortnames
+    //
+    export type ShortNameDestinationRoot = User | Organization | FeedChannel;
 }

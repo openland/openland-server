@@ -14,20 +14,12 @@ export class ShortnameModule {
         return this.repo.findShortname(ctx, shortname);
     }
 
-    async findUserShortname(ctx: Context, uid: number) {
-        return this.repo.findUserShortname(ctx, uid);
+    async findShortnameByOwner(parent: Context, ownerType: 'user' | 'org' | 'feed_channel', ownerId: number) {
+        return this.repo.findShortnameByOwner(parent, ownerType, ownerId);
     }
 
-    async findOrganizationShortname(ctx: Context, oid: number) {
-        return this.repo.findOrganizationShortname(ctx, oid);
-    }
-
-    async setShortnameToUser(ctx: Context, shortname: string, uid: number) {
-        return this.repo.setShortnameToUser(ctx, shortname, uid);
-    }
-
-    async setShortnameToOrganization(ctx: Context, shortname: string, oid: number, uid: number) {
-        return this.repo.setShortnameToOrganization(ctx, shortname, oid, uid);
+    async setShortName(parent: Context, shortname: string, ownerType: 'user' | 'org' | 'feed_channel', ownerId: number, uid: number) {
+        return this.repo.setShortName(parent, shortname, ownerType, ownerId, uid);
     }
 
     start = () => {

@@ -48,7 +48,7 @@ export class AppsRepository {
                 profile!.picture = extra.photo;
             }
             if (extra.shortname) {
-                await Modules.Shortnames.setShortnameToUser(ctx, extra.shortname, appUser.id);
+                await Modules.Shortnames.setShortName(ctx, extra.shortname, 'user', appUser.id, appUser.id);
             }
 
             await appUser!.flush(ctx);

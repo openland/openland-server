@@ -18,7 +18,7 @@ export default {
         id: src => IDs.User.serialize(src.id),
         name: withProfile((ctx, src, profile) => profile!.firstName),
         shortname: async (src, args, ctx) => {
-            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
+            let shortname = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', src.id);
             return shortname && shortname.shortname;
         },
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
@@ -100,12 +100,12 @@ export default {
                 }
                 if (args.input.shortname !== undefined) {
                     if (args.input.shortname === null) {
-                        let existing = await Modules.Shortnames.findUserShortname(ctx, botId);
+                        let existing = await Modules.Shortnames.findShortname(ctx, 'user');
                         if (existing) {
                             existing.enabled = false;
                         }
                     } else {
-                        await Modules.Shortnames.setShortnameToUser(ctx, args.input.shortname, botId);
+                        await Modules.Shortnames.setShortName(ctx, args.input.shortname, 'user', botId, botId);
                     }
                 }
 

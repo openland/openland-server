@@ -6978,21 +6978,21 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
 
 export interface ShortnameReservationShape {
     shortname: string;
-    ownerType: 'org' | 'user';
+    ownerType: 'org' | 'user' | 'feed_channel';
     ownerId: number;
     enabled: boolean;
 }
 
 export interface ShortnameReservationCreateShape {
-    ownerType: 'org' | 'user';
+    ownerType: 'org' | 'user' | 'feed_channel';
     ownerId: number;
     enabled: boolean;
 }
 
 export class ShortnameReservation extends Entity<ShortnameReservationShape> {
     get shortname(): string { return this._rawValue.shortname; }
-    get ownerType(): 'org' | 'user' { return this._rawValue.ownerType; }
-    set ownerType(value: 'org' | 'user') {
+    get ownerType(): 'org' | 'user' | 'feed_channel' { return this._rawValue.ownerType; }
+    set ownerType(value: 'org' | 'user' | 'feed_channel') {
         let normalized = this.descriptor.codec.fields.ownerType.normalize(value);
         if (this._rawValue.ownerType !== normalized) {
             this._rawValue.ownerType = normalized;
@@ -7027,15 +7027,16 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('shortnameReservation', 'user'), condition: (src) => src.ownerType === 'user' && src.enabled });
         secondaryIndexes.push({ name: 'org', storageKey: 'org', type: { type: 'unique', fields: [{ name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('shortnameReservation', 'org'), condition: (src) => src.ownerType === 'org' && src.enabled });
+        secondaryIndexes.push({ name: 'fromOwner', storageKey: 'fromOwner', type: { type: 'unique', fields: [{ name: 'ownerType', type: 'string' }, { name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('shortnameReservation', 'fromOwner'), condition: (src) => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'shortname', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'ownerType', type: { type: 'enum', values: ['org', 'user'] }, secure: false });
+        fields.push({ name: 'ownerType', type: { type: 'enum', values: ['org', 'user', 'feed_channel'] }, secure: false });
         fields.push({ name: 'ownerId', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             shortname: c.string,
-            ownerType: c.enum('org', 'user'),
+            ownerType: c.enum('org', 'user', 'feed_channel'),
             ownerId: c.integer,
             enabled: c.boolean,
         });
@@ -7072,6 +7073,18 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly fromOwner = Object.freeze({
+        find: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel', ownerId: number) => {
+            return this._findFromUniqueIndex(ctx, [ownerType, ownerId], this.descriptor.secondaryIndexes[2]);
+        },
+        findAll: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel') => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [ownerType])).items;
+        },
+        query: (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel', opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [ownerType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 

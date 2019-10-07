@@ -4,7 +4,6 @@ import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { injectable } from 'inversify';
-import { ShortnameReservation } from 'openland-module-db/store';
 
 @injectable()
 export class ShortnameRepository {
@@ -56,64 +55,31 @@ export class ShortnameRepository {
         'users'
     ]);
 
-    async findShortname(ctx: Context, shortname: string) {
-        let record = await Store.ShortnameReservation.findById(ctx, shortname);
-        if (record && record.enabled) {
-            return record;
-        } else {
-            return null;
-        }
-    }
-
-    async findUserShortname(ctx: Context, uid: number) {
-        let existing = await Store.ShortnameReservation.user.find(ctx, uid);
-        if (existing && existing.enabled) {
-            return existing;
-        } else {
-            return null;
-        }
-    }
-
-    async findOrganizationShortname(ctx: Context, uid: number) {
-        let existing = await Store.ShortnameReservation.org.find(ctx, uid);
-        if (existing && existing.enabled) {
-            return existing;
-        } else {
-            return null;
-        }
-    }
-
-    async setShortnameToUser(parent: Context, shortname: string, uid: number) {
+    async findShortname(parent: Context, shortname: string) {
         return await inTx(parent, async ctx => {
-            let res = await this.setShortName(parent, shortname, uid, 'user', uid);
-            await Modules.Users.markForUndexing(ctx, uid);
-            return res;
+            let record = await Store.ShortnameReservation.findById(ctx, shortname);
+            if (record && record.enabled) {
+                return record;
+            }
+            return null;
         });
     }
 
-    async setShortnameToOrganization(parent: Context, shortname: string, oid: number, uid: number) {
+    async findShortnameByOwner(parent: Context, ownerType: 'user' | 'org' | 'feed_channel', ownerId: number) {
         return await inTx(parent, async ctx => {
-            let res = await this.setShortName(ctx, shortname, oid, 'org', uid);
-            await Modules.Orgs.markForUndexing(ctx, oid);
-            return res;
+            let record = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
+            if (record && record.enabled) {
+                return record;
+            }
+            return null;
         });
     }
 
-    private async setShortName(parent: Context, shortname: string, ownerId: number, ownerType: 'user' | 'org', uid: number) {
+    async setShortName(parent: Context, shortname: string, ownerType: 'user' | 'org' | 'feed_channel', ownerId: number, uid: number) {
         return await inTx(parent, async ctx => {
             let normalized = await this.normalizeShortname(ctx, shortname, ownerType, uid);
 
-            let oldShortname: ShortnameReservation | null;
-
-            let ownerName = ownerType === 'user' ? 'username' : 'shortname';
-
-            if (ownerType === 'user') {
-                oldShortname = await Store.ShortnameReservation.user.find(ctx, ownerId);
-            } else if (ownerType === 'org') {
-                oldShortname = await Store.ShortnameReservation.org.find(ctx, ownerId);
-            } else {
-                throw new Error('Unknown shortname owner type');
-            }
+            let oldShortname = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
 
             if (oldShortname && oldShortname.shortname === normalized) {
                 return true;
@@ -129,7 +95,7 @@ export class ShortnameRepository {
             let existing = await Store.ShortnameReservation.findById(ctx, normalized);
 
             if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
-                throw new UserError(`Sorry, this ${ownerName} is already taken!`);
+                throw new UserError(`Sorry, this ${ownerType === 'user' ? 'username' : 'shortname'} is already taken!`);
             } else if (existing) {
                 existing.ownerId = ownerId;
                 existing.ownerType = ownerType;
@@ -143,7 +109,7 @@ export class ShortnameRepository {
         });
     }
 
-    private async normalizeShortname(parent: Context, shortname: string, ownerType: 'user' | 'org', uid: number) {
+    private async normalizeShortname(parent: Context, shortname: string, ownerType: 'user' | 'org' | 'feed_channel', uid: number) {
         return await inTx(parent, async (ctx) => {
             let role = await Modules.Super.superRole(ctx, uid);
             let isAdmin = role === 'super-admin';

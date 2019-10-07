@@ -1,4 +1,4 @@
-union ShortNameDestination = User | Organization
+union ShortNameDestination = User | Organization | FeedChannel
 
 extend type Query {
     alphaResolveShortName(shortname: String!): ShortNameDestination
@@ -7,6 +7,7 @@ extend type Query {
 extend type Mutation {
     alphaSetUserShortName(shortname: String!): String
     alphaSetOrgShortName(id: ID!, shortname: String!): String
+    alphaSetFeedChannelShortName(id: ID!, shortname: String!): String
 }
 
 extend type User {
@@ -22,5 +23,9 @@ extend type Organization {
 }
 
 extend type OrganizationProfile {
+    shortname: String
+}
+
+extend type FeedChannel {
     shortname: String
 }

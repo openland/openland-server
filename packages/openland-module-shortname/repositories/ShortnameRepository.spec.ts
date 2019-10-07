@@ -21,39 +21,27 @@ describe('ShortnameRepository', () => {
     afterAll( async () => {
       await  testEnvironmentEnd();
     });
-    it('should set user shortname', async () => {
+    it('should set shortname', async () => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
         let ctx = createNamedContext('test');
-        let res = await repo.setShortnameToUser(ctx, 'hello1', 1);
+        let res = await repo.setShortName(ctx, 'hello1', 'user', 1, 1);
 
         expect(res).toEqual(true);
 
-        let shortname = await repo.findUserShortname(ctx, 1);
+        let shortname = await repo.findShortnameByOwner(ctx, 'user', 1);
 
         expect(shortname).not.toBeNull();
         expect(shortname!.shortname).toEqual('hello1');
     });
-    it('should set org shortname', async () => {
-        let repo = container.get<ShortnameRepository>('ShortnameRepository');
-        let ctx = createNamedContext('test');
-        let res = await repo.setShortnameToOrganization(ctx, 'hello2', 1, 1);
-
-        expect(res).toEqual(true);
-
-        let shortname = await repo.findOrganizationShortname(ctx, 1);
-
-        expect(shortname).not.toBeNull();
-        expect(shortname!.shortname).toEqual('hello2');
-    });
     it('should not set already reserved shortname', async (done) => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
         let ctx = createNamedContext('test');
-        let res = await repo.setShortnameToUser(ctx, 'hello3', 1);
+        let res = await repo.setShortName(ctx, 'hello3', 'user', 1, 1);
 
         expect(res).toEqual(true);
 
         try {
-            await repo.setShortnameToUser(ctx, 'hello3', 2);
+            await repo.setShortName(ctx, 'hello3', 'user', 2, 2);
             done.fail();
         } catch (e) {
             done();
@@ -62,9 +50,9 @@ describe('ShortnameRepository', () => {
     it('should release shortname when changed', async () => {
         let repo = container.get<ShortnameRepository>('ShortnameRepository');
         let ctx = createNamedContext('test');
-        let res = await repo.setShortnameToUser(ctx, 'hello4', 1);
-        res = await repo.setShortnameToUser(ctx, 'hello5', 1);
-        res = await repo.setShortnameToUser(ctx, 'hello4', 2);
+        let res = await repo.setShortName(ctx, 'hello4', 'user', 1, 1);
+        res = await repo.setShortName(ctx, 'hello5', 'user', 1, 1);
+        res = await repo.setShortName(ctx, 'hello4', 'user', 2, 2);
         expect(res).toEqual(true);
     });
 });

@@ -890,11 +890,12 @@ export default declareSchema(() => {
 
     entity('ShortnameReservation', () => {
         primaryKey('shortname', string());
-        field('ownerType', enumString('org', 'user'));
+        field('ownerType', enumString('org', 'user', 'feed_channel'));
         field('ownerId', integer());
         field('enabled', boolean());
-        uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
-        uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
+        uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled); // deprecated
+        uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);   // deprecated
+        uniqueIndex('fromOwner', ['ownerType', 'ownerId']).withCondition((src) => src.enabled);
     });
 
     //
