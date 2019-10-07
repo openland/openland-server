@@ -74,7 +74,7 @@ type FeedChannel {
     id: ID!
     title: String!
     about: String
-    photo: String!
+    photo: String
     subscribed: Boolean!
     myRole: FeedChannelAdminRole!
     subscribersCount: Int!

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a949d91e57c959d4f2edc3ff2be22292';
+export const GQL_SPEC_VERSION = '9d6c026b39ae3be14003f005eccbd4d4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2955,7 +2955,7 @@ export namespace GQL {
         id: string;
         title: string;
         about: Nullable<string>;
-        photo: string;
+        photo: Nullable<string>;
         subscribed: boolean;
         myRole: FeedChannelAdminRole;
         subscribersCount: number;
