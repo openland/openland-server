@@ -54,7 +54,7 @@ export class FeedChannelRepository {
                 channel.title = input.title;
             }
             if (input.about) {
-                channel.title = input.about;
+                channel.about = input.about;
             }
             if (input.image) {
                 channel.image = input.image;
