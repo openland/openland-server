@@ -311,7 +311,7 @@ export default {
             let sort: any[] | undefined = undefined;
 
             let parser = new QueryParser();
-            parser.registerText('title', 'title');
+            parser.registerPrefix('title', 'title');
             parser.registerBoolean('isService', 'isService');
             parser.registerText('createdAt', 'createdAt');
             parser.registerText('updatedAt', 'updatedAt');
@@ -319,6 +319,7 @@ export default {
             if (args.query) {
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
+                console.dir(elasticQuery, {depth: null});
                 clauses.push(elasticQuery);
             }
 

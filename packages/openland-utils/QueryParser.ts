@@ -18,7 +18,7 @@ export interface NotQuery {
 }
 
 export interface IntValueQuery {
-    type: 'field' | 'field_text';
+    type: 'field' | 'field_text' | 'prefix';
     field: string;
     exact: any;
 }
@@ -59,6 +59,8 @@ export function buildElasticQuery(query: QueryPart): any {
         };
     } else if (query.type === 'field_text') {
         return { match: { [query.field]: { query: query.exact, operator: 'and' } } };
+    } else if (query.type === 'prefix') {
+        return { match_phrase_prefix: { [query.field]: query.exact } };
     } else if (query.type === 'field') {
         return { match: { [query.field]: query.exact } };
     } else if (query.type === 'field_enum') {
@@ -120,6 +122,14 @@ export class QueryParser {
     registerText = (name: string, mappedName: string) => {
         if (!this.registeredFields.has(name.toLocaleLowerCase())) {
             this.registeredFields.set(name.toLocaleLowerCase(), { type: 'text', mappedName: mappedName });
+        } else {
+            throw new UserError('Double field registration: ' + name);
+        }
+    }
+
+    registerPrefix = (name: string, mappedName: string) => {
+        if (!this.registeredFields.has(name.toLocaleLowerCase())) {
+            this.registeredFields.set(name.toLocaleLowerCase(), { type: 'prefix', mappedName: mappedName });
         } else {
             throw new UserError('Double field registration: ' + name);
         }
@@ -313,6 +323,17 @@ export class QueryParser {
                     };
                 } else {
                     throw new UserError('Unsupported boolean field value ' + value);
+                }
+            } else if (tp.type === 'prefix') {
+                let value = src[type];
+                if (typeof value === 'string') {
+                    return {
+                        type: 'prefix',
+                        field: tp.mappedName,
+                        exact: value
+                    };
+                } else {
+                    throw new UserError('Unsupported prefix field value ' + value);
                 }
             } else {
                 throw new UserError('Unsupported field type ' + tp.type);
