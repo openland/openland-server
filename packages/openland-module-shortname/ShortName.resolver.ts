@@ -6,7 +6,7 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { withUser } from '../openland-module-users/User.resolver';
-import { User, Organization } from 'openland-module-db/store';
+import { User, Organization, FeedChannel } from 'openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export default {
@@ -16,6 +16,8 @@ export default {
                 return 'User';
             } else if (src instanceof Organization) {
                 return 'Organization';
+            } else if (src instanceof FeedChannel) {
+                return 'FeedChannel';
             }
 
             throw new Error('Unknown shortname type');
@@ -28,11 +30,16 @@ export default {
             let ownerType;
             try {
                 let idInfo = IdsFactory.resolve(args.shortname);
-                if (idInfo.type.typeId === IDs.User.typeId) {
+                if (idInfo.type === IDs.User) {
                     ownerType = 'user';
-                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
+                } else if (idInfo.type === IDs.Organization) {
                     ownerType = 'org';
+                } else if (idInfo.type === IDs.FeedChannel) {
+                    ownerType = 'feed_channel';
+                } else {
+                    return null;
                 }
+                ownerId = idInfo.id as number;
             } catch {
                 let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
                 if (shortname) {
