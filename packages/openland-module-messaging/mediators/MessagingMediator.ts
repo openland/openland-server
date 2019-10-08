@@ -94,9 +94,11 @@ export class MessagingMediator {
             //
             // Parse links
             //
-            let links = this.parseLinks(msg.message || '');
-            if (links.length > 0) {
-                spans.push(...links);
+            if (!msg.isService) {
+                let links = this.parseLinks(msg.message || '');
+                if (links.length > 0) {
+                    spans.push(...links);
+                }
             }
 
             //
