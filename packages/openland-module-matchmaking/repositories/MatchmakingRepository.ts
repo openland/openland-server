@@ -11,7 +11,7 @@ import MatchmakingAnswerInput = GQL.MatchmakingAnswerInput;
 import { Modules } from 'openland-modules/Modules';
 import { MatchmakingProfile } from '../../openland-module-db/store';
 
-export type PeerType = 'room';
+export type MatchmakingPeerType = 'room';
 
 // export type MatchmakingAnswerInput = { questionId: string } & ({ type: 'text', answer: string } | { type: 'multiselect', tags: string[] });
 //
@@ -28,7 +28,7 @@ let mapByIds = <Id, T extends { id: Id }>(arr: T[]): Map<Id, T> => {
 
 @injectable()
 export class MatchmakingRepository {
-    getRoom = async (parent: Context, peerId: number, peerType: PeerType) => {
+    getRoom = async (parent: Context, peerId: number, peerType: MatchmakingPeerType) => {
         return await inTx(parent, async ctx => {
             let room = await Store.MatchmakingRoom.findById(ctx, peerId, peerType);
             if (!room) {
@@ -61,7 +61,7 @@ export class MatchmakingRepository {
         });
     }
 
-    getRoomProfiles = async (ctx: Context, peerId: number, peerType: PeerType, uid?: number) => {
+    getRoomProfiles = async (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid?: number) => {
         let profiles = await Store.MatchmakingProfile.room.findAll(ctx, peerId, peerType);
         profiles = profiles.filter(a => !!a.answers);
 
@@ -96,7 +96,7 @@ export class MatchmakingRepository {
         return profiles;
     }
 
-    getRoomProfile = async (ctx: Context, peerId: number, peerType: PeerType, uid: number) => {
+    getRoomProfile = async (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number) => {
         let profile = await Store.MatchmakingProfile.findById(ctx, peerId, peerType, uid);
         if (!profile || !profile.answers) {
             return null;
@@ -104,7 +104,7 @@ export class MatchmakingRepository {
         return profile;
     }
 
-    saveRoom = async (parent: Context, peerId: number, peerType: PeerType, uid: number, input: MatchmakingRoomInput) => {
+    saveRoom = async (parent: Context, peerId: number, peerType: MatchmakingPeerType, uid: number, input: MatchmakingRoomInput) => {
         return await inTx(parent, async ctx => {
             if (peerType === 'room') {
                 await Modules.Messaging.room.checkCanEditChat(ctx, peerId, uid);
@@ -140,7 +140,7 @@ export class MatchmakingRepository {
         });
     }
 
-    fillRoomProfile = async (parent: Context, peerId: number, peerType: PeerType, uid: number, answers: MatchmakingAnswerInput[]) => {
+    fillRoomProfile = async (parent: Context, peerId: number, peerType: MatchmakingPeerType, uid: number, answers: MatchmakingAnswerInput[]) => {
         return await inTx(parent, async ctx => {
             let room = await this.getRoom(parent, peerId, peerType);
             if (!room.enabled) {
@@ -191,7 +191,7 @@ export class MatchmakingRepository {
         });
     }
 
-    clearProfile = async (parent: Context, peerId: number, peerType: PeerType, uid: number) => {
+    clearProfile = async (parent: Context, peerId: number, peerType: MatchmakingPeerType, uid: number) => {
         await inTx(parent, async ctx => {
             let profile = await Store.MatchmakingProfile.findById(parent, peerId, peerType, uid);
             if (!profile) {

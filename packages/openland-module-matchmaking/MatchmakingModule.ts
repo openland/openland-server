@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import {
-    PeerType,
+    MatchmakingPeerType,
 } from './repositories/MatchmakingRepository';
 import { Context } from '@openland/context';
 import { GQL } from '../openland-module-api/schema/SchemaSpec';
@@ -17,31 +17,31 @@ export class MatchmakingModule {
         // no op
     }
 
-    getRoom = (ctx: Context, peerId: number, peerType: PeerType) => {
+    getRoom = (ctx: Context, peerId: number, peerType: MatchmakingPeerType) => {
         return this.mediator.getRoom(ctx, peerId, peerType);
     }
 
-    getRoomProfiles = async (ctx: Context, peerId: number, peerType: PeerType) => {
+    getRoomProfiles = async (ctx: Context, peerId: number, peerType: MatchmakingPeerType) => {
         return this.mediator.getRoomProfiles(ctx, peerId, peerType);
     }
 
-    getRoomProfile = (ctx: Context, peerId: number, peerType: PeerType, uid: number) => {
+    getRoomProfile = (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number) => {
         return this.mediator.getRoomProfile(ctx, peerId, peerType, uid);
     }
 
-    saveRoom = (ctx: Context, peerId: number, peerType: PeerType, uid: number, input: MatchmakingRoomInput) => {
+    saveRoom = (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number, input: MatchmakingRoomInput) => {
         return this.mediator.saveRoom(ctx, peerId, peerType, uid, input);
     }
 
-    fillRoomProfile = (ctx: Context, peerId: number, peerType: PeerType, uid: number, answers: MatchmakingAnswerInput[]) => {
+    fillRoomProfile = (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number, answers: MatchmakingAnswerInput[]) => {
         return this.mediator.fillRoomProfile(ctx, peerId, peerType, uid, answers);
     }
 
-    clearProfile = (ctx: Context, peerId: number, peerType: PeerType, uid: number)  => {
+    clearProfile = (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number)  => {
         return this.mediator.clearProfile(ctx, peerId, peerType, uid);
     }
 
-    connect = (ctx: Context, peerId: number, peerType: PeerType, uid: number, uid2: number) => {
+    connect = (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number, uid2: number) => {
         return this.mediator.connect(ctx, peerId, peerType, uid, uid2);
     }
 }

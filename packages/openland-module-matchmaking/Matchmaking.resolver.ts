@@ -6,10 +6,14 @@ import MatchmakingQuestionRoot = GQLRoots.MatchmakingQuestionRoot;
 import { Modules } from 'openland-modules/Modules';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { withUser } from 'openland-module-api/Resolvers';
-import { PeerType } from './repositories/MatchmakingRepository';
+import { MatchmakingPeerType } from './repositories/MatchmakingRepository';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { Store } from '../openland-module-db/FDB';
+import MatchmakingPeerRoot = GQLRoots.MatchmakingPeerRoot;
+import { ConversationRoom } from '../openland-module-db/store';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
-let resolvePeer = (id: string): { id: number, type: PeerType } | null => {
+let resolvePeer = (id: string): { id: number, type: MatchmakingPeerType } | null => {
     let idMeta = IdsFactory.resolve(id);
     if (idMeta.type.typeName === 'Conversation') {
         return { id: idMeta.id.valueOf() as number, type: 'room' };
@@ -17,10 +21,19 @@ let resolvePeer = (id: string): { id: number, type: PeerType } | null => {
     return null;
 };
 
+// @ts-ignore
 export default {
+    MatchmakingPeer: {
+      __resolveType(obj: MatchmakingPeerRoot) {
+          if (obj instanceof ConversationRoom) {
+              return 'SharedRoom';
+          }
+          throw new Error('Unsupported matchmaking peer type');
+      }
+    },
     MatchmakingRoom: {
         enabled: src => src.enabled,
-        myProfile:  async (src, _, ctx) => {
+        myProfile: async (src, _, ctx) => {
             let auth = AuthContext.get(ctx);
             if (!auth.uid) {
                 return null;
@@ -29,6 +42,17 @@ export default {
         },
         profiles: async (src, _, ctx) => await Modules.Matchmaking.getRoomProfiles(ctx, src.peerId, src.peerType as any),
         questions: src => src.questions,
+        peer: async (src, _, ctx) => {
+            if (src.peerType === 'room') {
+                let auth = AuthContext.get(ctx);
+                if (!auth.uid) {
+                    throw new AccessDeniedError();
+                }
+                await Modules.Messaging.room.checkCanUserSeeChat(ctx, auth.uid, src.peerId);
+                return await Store.ConversationRoom.findById(ctx, src.peerId);
+            }
+            throw new Error(`Invalid peer type: ${src.peerType}`);
+        },
     },
     MatchmakingProfile: {
         answers: root => root.answers,

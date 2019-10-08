@@ -19,19 +19,20 @@ export default {
     Notification: {
         id: src => IDs.Notification.serialize(src.id),
         text: src => src.text,
-        content: src => src.content || [],
+        content: src => src.content || [] ,
     },
 
     NotificationContent: {
         __resolveType(src: GQLRoots.NotificationContentRoot) {
             if (src.type === 'new_comment') {
                 return 'NewCommentNotification';
+            } if (src.type === 'new_matchmaking_profiles') {
+                return 'NewMatchmakingProfilesNotification';
             } else {
-                throw new Error('Unknown notification content type: ' + src.type);
+                throw new Error('Unknown notification content type');
             }
         }
     },
-
     NewCommentNotification: {
         peer: async (src, args, ctx) => {
             let comment = (await Store.Comment.findById(ctx, src.commentId))!;
@@ -46,6 +47,14 @@ export default {
         comment: async (src, args, ctx) => {
             return await Store.Comment.findById(ctx, src.commentId);
         },
+    },
+    NewMatchmakingProfilesNotification: {
+        room: async (src, args, ctx) => {
+            return await Modules.Matchmaking.getRoom(ctx, src.peerId, src.peerType);
+        },
+        profiles: async (src, args, ctx) => {
+            return await Promise.all(src.uids.map(a => Modules.Matchmaking.getRoomProfile(ctx, src.peerId, src.peerType, a)));
+        }
     },
 
     NotificationConnection: {

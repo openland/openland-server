@@ -59,8 +59,7 @@ import {
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
 import {
-    NewCommentNotification,
-    NotificationContent
+    NewCommentNotification, NewMatchmakingProfileNotification, NotificationContent,
 } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
@@ -398,6 +397,7 @@ export namespace GQLRoots {
     export type UpdatedNotificationContentCommentRoot = { type: 'comment', peerId: number, peerType: string, commentId: number | null, };
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;
+    export type NewMatchmakingProfilesNotificationRoot = NewMatchmakingProfileNotification;
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };
     export type UserChatWithBadgeRoot = { badge: UserBadge, cid: number };
 
@@ -413,6 +413,7 @@ export namespace GQLRoots {
     export type TextMatchmakingQuestionRoot = { type: 'text', id: string, title: string, subtitle?: string | null };
     export type MultiselectMatchmakingQuestionRoot = { type: 'multiselect', id: string, title: string, subtitle?: string | null, tags: string[] };
     export type MatchmakingQuestionRoot = TextMatchmakingQuestionRoot | MultiselectMatchmakingQuestionRoot;
+    export type MatchmakingPeerRoot = ConversationRoom | Conversation;
 
     //
     //  Shortnames

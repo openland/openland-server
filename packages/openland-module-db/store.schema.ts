@@ -925,6 +925,11 @@ export default declareSchema(() => {
             'new_comment': struct({
                 commentId: integer(),
             }),
+            'new_matchmaking_profiles': struct({
+                peerId: integer(),
+                uids: array(integer()),
+                peerType: string()
+            })
         }))));
 
         rangeIndex('notificationCenter', ['ncid', 'id']).withCondition((src) => !src.deleted);

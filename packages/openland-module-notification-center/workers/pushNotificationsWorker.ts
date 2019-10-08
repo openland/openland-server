@@ -6,6 +6,7 @@ import { fetchMessageFallback } from '../../openland-module-messaging/resolvers/
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
 import { batch } from '../../openland-utils/batch';
+import { plural } from '../../openland-utils/string';
 
 const Delays = {
     'none': 10 * 1000,
@@ -152,7 +153,7 @@ export function startPushNotificationWorker() {
                         }
                         if (notification.content) {
                             let commentNotification = notification.content.find(c => c.type === 'new_comment');
-                            if (commentNotification) {
+                            if (commentNotification && commentNotification.type === 'new_comment') {
                                 pushBody += 'New comment';
                                 let comment = await Store.Comment.findById(ctx, commentNotification.commentId);
                                 let message = await Store.Message.findById(ctx, comment!.peerId);
@@ -164,6 +165,17 @@ export function startPushNotificationWorker() {
                                     pushBody = `${userName} commented: ${await fetchMessageFallback(comment!)}`;
                                 } else {
                                     pushBody = `${userName} commented in @${chatName}: ${await fetchMessageFallback(comment!)}`;
+                                }
+                            }
+
+                            let matchmakingProfileNotification = notification.content.find(a => a.type === 'new_matchmaking_profiles');
+                            if (matchmakingProfileNotification && matchmakingProfileNotification.type === 'new_matchmaking_profiles') {
+                                let userNames = await Promise
+                                    .all(matchmakingProfileNotification.uids.map(async a => await Modules.Users.getUserFullName(ctx, a)));
+
+                                pushBody = `New member ${plural(userNames.length, ['profile', 'profiles'])} from ${userNames[0]}`;
+                                if (userNames.length > 1) {
+                                    pushBody += ` and ${userNames.length === 2 ? userNames[1] : `${userNames.length - 1} others.`}`;
                                 }
                             }
                         }

@@ -122,7 +122,7 @@ export function startEmailNotificationWorker() {
                         }
 
                         let newComment = notification.content && notification.content.find(c => c.type === 'new_comment');
-                        if (newComment) {
+                        if (newComment && newComment.type === 'new_comment') {
                             unreadComments.push((await Store.Comment.findById(ctx, newComment.commentId))!);
                         }
                     }

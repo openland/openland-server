@@ -5,12 +5,20 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { CommentPeerType } from '../../openland-module-comments/repositories/CommentsRepository';
 import { Store } from 'openland-module-db/FDB';
+import { MatchmakingPeerType } from '../../openland-module-matchmaking/repositories/MatchmakingRepository';
 
-export type NotificationContent = NewCommentNotification;
+export type NotificationContent = NewCommentNotification | NewMatchmakingProfileNotification;
 
 export type NewCommentNotification = {
-    type: 'new_comment'
+    type: 'new_comment';
     commentId: number;
+};
+
+export type NewMatchmakingProfileNotification = {
+    type: 'new_matchmaking_profiles';
+    peerId: number;
+    peerType: MatchmakingPeerType;
+    uids: number[];
 };
 
 export interface NotificationInput {

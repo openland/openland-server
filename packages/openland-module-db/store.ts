@@ -7263,14 +7263,14 @@ export interface NotificationShape {
     ncid: number;
     text: string | null;
     deleted: boolean | null;
-    content: ({ type: 'new_comment', commentId: number })[] | null;
+    content: ({ type: 'new_comment', commentId: number } | { type: 'new_matchmaking_profiles', peerId: number, uids: (number)[], peerType: string })[] | null;
 }
 
 export interface NotificationCreateShape {
     ncid: number;
     text?: string | null | undefined;
     deleted?: boolean | null | undefined;
-    content?: ({ type: 'new_comment', commentId: number })[] | null | undefined;
+    content?: ({ type: 'new_comment', commentId: number } | { type: 'new_matchmaking_profiles', peerId: number, uids: (number)[], peerType: string })[] | null | undefined;
 }
 
 export class Notification extends Entity<NotificationShape> {
@@ -7302,8 +7302,8 @@ export class Notification extends Entity<NotificationShape> {
             this.invalidate();
         }
     }
-    get content(): ({ type: 'new_comment', commentId: number })[] | null { return this._rawValue.content; }
-    set content(value: ({ type: 'new_comment', commentId: number })[] | null) {
+    get content(): ({ type: 'new_comment', commentId: number } | { type: 'new_matchmaking_profiles', peerId: number, uids: (number)[], peerType: string })[] | null { return this._rawValue.content; }
+    set content(value: ({ type: 'new_comment', commentId: number } | { type: 'new_matchmaking_profiles', peerId: number, uids: (number)[], peerType: string })[] | null) {
         let normalized = this.descriptor.codec.fields.content.normalize(value);
         if (this._rawValue.content !== normalized) {
             this._rawValue.content = normalized;
@@ -7325,13 +7325,13 @@ export class NotificationFactory extends EntityFactory<NotificationShape, Notifi
         fields.push({ name: 'ncid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
         fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { new_comment: { commentId: { type: 'integer' } } } } } }, secure: false });
+        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { new_comment: { commentId: { type: 'integer' } }, new_matchmaking_profiles: { peerId: { type: 'integer' }, uids: { type: 'array', inner: { type: 'integer' } }, peerType: { type: 'string' } } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             ncid: c.integer,
             text: c.optional(c.string),
             deleted: c.optional(c.boolean),
-            content: c.optional(c.array(c.union({ new_comment: c.struct({ commentId: c.integer }) }))),
+            content: c.optional(c.array(c.union({ new_comment: c.struct({ commentId: c.integer }), new_matchmaking_profiles: c.struct({ peerId: c.integer, uids: c.array(c.integer), peerType: c.string }) }))),
         });
         let descriptor: EntityDescriptor<NotificationShape> = {
             name: 'Notification',
