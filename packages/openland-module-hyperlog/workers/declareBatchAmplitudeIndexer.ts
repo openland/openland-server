@@ -139,7 +139,7 @@ export function declareBatchAmplitudeIndexer() {
         let exportedCount = await inTx(parent, async (ctx) => {
             let exCount = 0;
             let eventsProd = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === true));
-            log.debug(ctx, 'prod events length: ', eventsProd.length, JSON.stringify(eventsProd));
+            log.debug(ctx, 'prod events length: ', eventsProd.length);
             if (eventsProd.length > 0) {
                 await saveEvents(ctx, eventsProd, API_KEY_PROD);
                 exCount += eventsProd.length;
