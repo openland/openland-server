@@ -102,8 +102,15 @@ export class FeedChannelRepository {
 
     async removeEditor(parent: Context, channelId: number, uid: number) {
         return await inTx(parent, async ctx => {
+            let channel = await Store.FeedChannel.findById(ctx, channelId);
+            if (!channel) {
+                throw new NotFoundError();
+            }
             let existing = await Store.FeedChannelAdmin.findById(ctx, channelId, uid);
             if (existing) {
+                if (existing.uid === channel.ownerId) {
+                    throw new UserError(`Can't remove channel creator`);
+                }
                 existing.enabled = false;
             }
         });
