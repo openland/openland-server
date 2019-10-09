@@ -430,7 +430,7 @@ export default {
                 }
             }
 
-            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, after: (args.after || undefined) });
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, after: (args.after || undefined), uids: users });
 
             if (uids.length === 0) {
                 return {

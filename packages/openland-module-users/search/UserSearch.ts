@@ -26,7 +26,7 @@ export class UserSearch {
             };
 
             if (options && options.uids) {
-                mainQuery.must = [{terms: {id: options.uids}}];
+                mainQuery.bool.must = [{terms: {userId: options.uids}}];
             }
 
             if (options && options.uid) {
