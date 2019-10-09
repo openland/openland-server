@@ -119,7 +119,7 @@ const saveEvents = async (ctx: Context, events: any[], key: string) => {
                 log.warn(ctx, 'Amplitude error: ', err);
                 reject(err);
             } else if (response.statusCode !== 200) {
-                log.warn(ctx, 'Amplitude status ', response.statusCode, response.body);
+                log.warn(ctx, 'Amplitude status ', response.statusCode, response.body, JSON.stringify(events));
                 reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
             } else {
                 log.log(ctx, 'Export successful...', response.statusCode, response.body);
