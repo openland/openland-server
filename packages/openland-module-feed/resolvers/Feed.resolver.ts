@@ -315,6 +315,7 @@ export default {
             parser.registerBoolean('isService', 'isService');
             parser.registerText('createdAt', 'createdAt');
             parser.registerText('updatedAt', 'updatedAt');
+            parser.registerInt('subscribersCount', 'subscribersCount');
 
             if (args.query) {
                 let parsed = parser.parseQuery(args.query);
@@ -334,6 +335,48 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: sort || [{createdAt: 'desc'}], query: {bool: {must: clauses}},
+                },
+            });
+
+            let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: channels.filter(c => !!c).map((p, i) => {
+                    return {
+                        node: p, cursor: (i + 1 + offset).toString(),
+                    };
+                }), pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true,
+                },
+            };
+        }),
+        alphaRecommendedChannels: withUser(async (ctx, args, uid) => {
+            let sort: any[] | undefined = undefined;
+
+            let parser = new QueryParser();
+            parser.registerPrefix('title', 'title');
+            parser.registerBoolean('isService', 'isService');
+            parser.registerText('createdAt', 'createdAt');
+            parser.registerText('updatedAt', 'updatedAt');
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'feed-channel',
+                type: 'feed-channel',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : 0,
+                body: {
+                    sort: sort || [{subscribersCount: 'desc'}]
                 },
             });
 
