@@ -78,6 +78,7 @@ type FeedChannel {
     subscribed: Boolean!
     myRole: FeedChannelAdminRole!
     subscribersCount: Int!
+    isGlobal: Boolean!
 }
 
 type FeedChannelConnection {

@@ -181,7 +181,8 @@ export default {
             }
             return 'None';
         },
-        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id)
+        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id),
+        isGlobal: async (src, args, ctx) => src.isGlobal,
     },
     FeedSubscription: {
         __resolveType(src: FeedSubscriptionRoot) {
