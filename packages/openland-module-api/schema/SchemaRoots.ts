@@ -100,6 +100,9 @@ export namespace GQLRoots {
     export type FeedChannelAdminConnectionRoot = { items: FeedChannelAdmin[], cursor?: string };
     export type FeedChannelEdgeRoot = { node: FeedChannelRoot, cursor: string };
     export type FeedChannelSearchConnectionRoot = { edges: FeedChannelEdgeRoot[], pageInfo: PageInfoRoot };
+    export type FeedChannelSubscriberRoot = { user: User, channelId: number };
+    export type FeedChannelSubscriberEdgeRoot = { node: FeedChannelSubscriberRoot, cursor: string };
+    export type FeedChannelSubscriberConnectionRoot = { edges: FeedChannelSubscriberEdgeRoot[], pageInfo: PageInfoRoot };
 
     //
     // Calls

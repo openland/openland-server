@@ -76,7 +76,7 @@ type FeedChannel {
     about: String
     photo: String
     subscribed: Boolean!
-    myRole: FeedChannelAdminRole!
+    myRole: FeedChannelSubscriberRole!
     subscribersCount: Int!
     isGlobal: Boolean!
 }
@@ -98,7 +98,7 @@ type FeedChannelSearchConnection {
 
 union FeedSubscription = FeedChannel
 
-enum FeedChannelAdminRole {
+enum FeedChannelSubscriberRole {
     Creator,
     Editor,
     Subscriber,
@@ -107,13 +107,27 @@ enum FeedChannelAdminRole {
 
 type FeedChannelAdmin {
     user: User!
-    role: FeedChannelAdminRole!
+    role: FeedChannelSubscriberRole!
     promoter: User
 }
 
 type FeedChannelAdminConnection {
     items: [FeedChannelAdmin!]!
     cursor: String
+}
+
+type FeedChannelSubscriber {
+    user: User!
+    role: FeedChannelSubscriberRole!
+}
+type FeedChannelSubscriberEdge {
+    node: FeedChannelSubscriber!
+    cursor: String!
+}
+
+type FeedChannelSubscriberConnection {
+    edges: [FeedChannelSubscriberEdge!]!
+    pageInfo: PageInfo!
 }
 
 extend type Query {
@@ -128,6 +142,7 @@ extend type Query {
     alphaFeedChannelAdmins(id: ID!, first: Int!, after: ID): FeedChannelAdminConnection!
 
     alphaFeedChannelSearch(query: String, sort: String, first: Int!, after: String): FeedChannelSearchConnection!
+    alphaFeedChannelSubscribers(channelId: ID!, query: String, first: Int!, after: String): FeedChannelSubscriberConnection!
     alphaRecommendedChannels(first: Int!, after: String): FeedChannelSearchConnection!
 }
 
