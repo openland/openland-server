@@ -1095,6 +1095,19 @@ export default {
             });
             return true;
         }),
+        debugFixHyperlogEvent: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let event = await Store.HyperLog.findById(ctx, args.eventId);
+                if (!event) {
+                    return false;
+                }
+                if (event.body && event.body.args && typeof event.body.args !== 'object' || Array.isArray(event.body.args)) {
+                    event.body.args = undefined;
+                }
+                await event.flush(ctx);
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {
