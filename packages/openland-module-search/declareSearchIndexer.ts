@@ -90,7 +90,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                         body: converted,
                     });
                     if (res.errors) {
-                        log.warn(ctx, 'Elastic error', JSON.stringify(res), JSON.stringify(converted));
+                        log.warn(ctx, 'Elastic error', JSON.stringify(res));
                         throw new Error('Error during indexing (' + this.name + ')');
                     }
                 } catch (e) {
