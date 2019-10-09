@@ -1074,7 +1074,27 @@ export default {
                 }
             });
             return true;
-        })
+        }),
+        debugReindexShortnames: withPermission('super-admin', async (parent) => {
+            debugTask(parent.auth.uid!, 'debugReindexShortnames', async (log) => {
+                let allRecords = await inTx(rootCtx, async ctx => await Store.ShortnameReservation.findAll(ctx));
+                let i = 0;
+
+                for (let record of allRecords) {
+                    await inTx(rootCtx, async (ctx) => {
+                        let shortname = await Store.ShortnameReservation.findById(ctx, record.shortname);
+                        shortname!.invalidate();
+                        await shortname!.flush(ctx);
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
