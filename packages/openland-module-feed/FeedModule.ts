@@ -107,4 +107,12 @@ export class FeedModule {
     async deletePostInChannel(parent: Context, uid: number, postId: number) {
         return await this.channels.deletePost(parent, uid, postId);
     }
+
+    async addEditor(parent: Context, channelId: number, uid: number, by: number) {
+        return await this.channels.addEditor(parent, channelId, uid, by);
+    }
+
+    async removeEditor(parent: Context, channelId: number, uid: number, by: number) {
+        return await this.channels.removeEditor(parent, channelId, uid, by);
+    }
 }

@@ -40,19 +40,19 @@ export default class FeedChannelMediator {
         return this.repo.unsubscribeChannel(parent, uid, channelId);
     }
 
-    async addEditor(parent: Context, channelId: number, uid: number) {
+    async addEditor(parent: Context, channelId: number, uid: number, by: number) {
         return await inTx(parent, async ctx => {
-            let role = await this.repo.roleInChannel(ctx, channelId, uid);
+            let role = await this.repo.roleInChannel(ctx, channelId, by);
             if (role !== 'creator') {
                 throw new AccessDeniedError();
             }
-            return this.repo.addEditor(ctx, channelId, uid);
+            return this.repo.addEditor(ctx, channelId, uid, by);
         });
     }
 
-    async removeEditor(parent: Context, channelId: number, uid: number) {
+    async removeEditor(parent: Context, channelId: number, uid: number, by: number) {
         return await inTx(parent, async ctx => {
-            let role = await this.repo.roleInChannel(ctx, channelId, uid);
+            let role = await this.repo.roleInChannel(ctx, channelId, by);
             if (role !== 'creator') {
                 throw new AccessDeniedError();
             }

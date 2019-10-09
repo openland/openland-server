@@ -410,7 +410,11 @@ export default {
         }),
 
         alphaFeedChannelAddEditor: withUser(async (ctx, args, uid) => {
-            await Modules.Feed.unsubscribeChannel(ctx, uid, IDs.FeedChannel.parse(args.id));
+            await Modules.Feed.addEditor(ctx, IDs.FeedChannel.parse(args.id), IDs.User.parse(args.userId), uid);
+            return true;
+        }),
+        alphaFeedChannelRemoveEditor: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.removeEditor(ctx, IDs.FeedChannel.parse(args.id), IDs.User.parse(args.userId), uid);
             return true;
         }),
     }
