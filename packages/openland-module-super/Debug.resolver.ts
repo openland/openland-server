@@ -1101,8 +1101,8 @@ export default {
                 if (!event) {
                     return false;
                 }
-                if (event.body && event.body.args && typeof event.body.args !== 'object' || Array.isArray(event.body.args)) {
-                    event.body.args = undefined;
+                if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args))) {
+                    event.body = { ...event.body, args: undefined };
                 }
                 await event.flush(ctx);
                 return true;
