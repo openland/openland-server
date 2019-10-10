@@ -26,6 +26,7 @@ import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
+import { inTx } from '@openland/foundationdb';
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -160,6 +161,7 @@ export default {
         title: src => src.title,
         about: src => src.about,
         photo: src => src.image ? buildBaseImageUrl(src.image) : null,
+        socialImage: src => src.image ? buildBaseImageUrl(src.socialImage) : null,
         subscribed: async (src, args, ctx) => {
             let uid = ctx.auth.uid!;
             let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
@@ -287,9 +289,27 @@ export default {
 
             return res;
         }),
+        alphaWritableChannels: withUser(async (ctx, args, uid) => {
+            let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
+            if (!args.first || args.first <= 0) {
+                return {items: []};
+            }
+            let afterExists = afterId && await Store.FeedChannelAdmin.findById(ctx, afterId, uid);
+            let {items, haveMore} = await Store.FeedChannelAdmin.fromUser.query(ctx, uid, {
+                limit: args.first,
+                after: afterExists ? afterId : undefined
+            });
+            return {
+                items: await Promise.all(items.map(a => Store.FeedChannel.findById(ctx, a.channelId))),
+                cursor: haveMore ? IDs.FeedChannel.serialize(items[items.length - 1].channelId) : undefined
+            };
+        }),
 
         alphaFeedChannel: withUser(async (ctx, args, uid) => {
             return await Store.FeedChannel.findById(ctx, IDs.FeedChannel.parse(args.id));
+        }),
+        alphaFeedMyDraftsChannel: withUser(async (ctx, args, uid) => {
+            return await Store.FeedChannel.findById(ctx, await Modules.Feed.getUserDraftsChannel(ctx, uid));
         }),
         alphaFeedChannelContent: withUser(async (ctx, args, uid) => {
             let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + IDs.FeedChannel.parse(args.id));
@@ -343,6 +363,9 @@ export default {
                 sort = parser.parseSort(args.sort);
             }
 
+            clauses.push({term: {type: 'open'}});
+            clauses.push({term: {isHidden: false}});
+
             let hits = await Modules.Search.elastic.client.search({
                 index: 'feed-channel',
                 type: 'feed-channel',
@@ -385,16 +408,19 @@ export default {
             parser.registerText('createdAt', 'createdAt');
             parser.registerText('updatedAt', 'updatedAt');
 
+            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
+            let topics: FeedTopic[] = (await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid)))).filter(t => !!t) as FeedTopic[];
+            let channelIds = topics.filter(t => t.key.startsWith('channel-')).map(t => parseInt(t.key.replace('channel-', ''), 10));
             let hits = await Modules.Search.elastic.client.search({
                 index: 'feed-channel',
                 type: 'feed-channel',
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: sort || [{subscribersCount: 'desc'}]
+                    sort: sort || [{subscribersCount: 'desc'}],
+                    query: { bool: { must_not: [{terms: {channelId: channelIds}}], must: [{term: {type: 'open'}}, {term: {isHidden: false}}] } },
                 },
             });
-
             let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));
             let offset = 0;
             if (args.after) {
@@ -495,20 +521,37 @@ export default {
             return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
         }),
 
-        alphaFeedCreateChannel: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.createFeedChannel(ctx, uid, {
-                title: args.title,
-                about: args.about || undefined,
-                image: args.photoRef || undefined,
-                global: args.global || undefined
+        alphaFeedCreateChannel: withUser(async (root, args, uid) => {
+            return inTx(root, async ctx => {
+                if (args.photoRef) {
+                    await Modules.Media.saveFile(ctx, args.photoRef.uuid);
+                }
+                if (args.socialImageRef) {
+                    await Modules.Media.saveFile(ctx, args.socialImageRef.uuid);
+                }
+                return await Modules.Feed.createFeedChannel(ctx, uid, {
+                    title: args.title,
+                    about: args.about || undefined,
+                    image: args.photoRef || undefined,
+                    socialImage: args.socialImageRef || undefined,
+                    global: args.global || undefined
+                });
             });
         }),
-        alphaFeedUpdateChannel: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.updateFeedChannel(ctx, IDs.FeedChannel.parse(args.id), uid, {
-                title: args.title,
-                about: args.about || undefined,
-                image: args.photoRef || undefined,
-                global: args.global || undefined
+        alphaFeedUpdateChannel: withUser(async (root, args, uid) => {
+            return inTx(root, async ctx => {
+                if (args.photoRef) {
+                    await Modules.Media.saveFile(ctx, args.photoRef.uuid);
+                }
+                if (args.socialImageRef) {
+                    await Modules.Media.saveFile(ctx, args.socialImageRef.uuid);
+                }
+                return await Modules.Feed.updateFeedChannel(ctx, IDs.FeedChannel.parse(args.id), uid, {
+                    title: args.title,
+                    about: args.about || undefined,
+                    image: args.photoRef || undefined,
+                    global: args.global || undefined
+                });
             });
         }),
 

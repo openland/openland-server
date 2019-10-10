@@ -318,4 +318,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '113-fix-feed-channels',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            let channels = (await Store.FeedChannel.findAll(ctx));
+            for (let channel of channels) {
+                channel.type = 'open';
+            }
+        });
+    }
+});
+
 export default migrations;

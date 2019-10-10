@@ -134,6 +134,8 @@ extend type Mutation {
     debugReverseStickers: Boolean!
     debugReindexShortnames: Boolean!
     debugFixHyperlogEvent(eventId: String!): Boolean!
+    debugReindexFeedChannelAdmins: Boolean!
+    debugReindexFeedChannels: Boolean!
 }
 
 extend type Subscription {

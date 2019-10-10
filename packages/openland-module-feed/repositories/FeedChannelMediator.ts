@@ -9,6 +9,7 @@ import { FeedRepository } from './FeedRepository';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
+import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 
 @injectable()
 export default class FeedChannelMediator {
@@ -113,6 +114,27 @@ export default class FeedChannelMediator {
                 throw new AccessDeniedError();
             }
             return this.feedRepo.deletePost(ctx, uid, postId);
+        });
+    }
+
+    async markForIndexing(parent: Context, channelId: number) {
+        return this.repo.markForIndexing(parent, channelId);
+    }
+
+    async getUserDraftsChannel(parent: Context, uid: number) {
+        return inTx(parent, async ctx => {
+            let state = await this.repo.getUserFeedState(ctx, uid);
+            if (state.draftsChannelId) {
+                return state.draftsChannelId;
+            }
+            let id = await fetchNextDBSeq(ctx, 'feed-channel');
+            let channel =  await Store.FeedChannel.create(ctx, id, {
+                ownerId: uid,
+                title: `Drafts`,
+                type: 'private',
+                isHidden: true
+            });
+            return channel.id;
         });
     }
 }

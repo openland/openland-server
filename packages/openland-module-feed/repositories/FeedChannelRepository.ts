@@ -10,10 +10,19 @@ import { Modules } from '../../openland-modules/Modules';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 
+/**
+ * Channel types
+ *
+ * - open (default) (anyone can subscribe, admins can write)
+ * - private (no one can subscribe, used for drafts, not showing in search)
+ * - editorial not supported yet
+ */
+
 export interface FeedChannelInput {
     title: string;
     about?: string;
     image?: ImageRef;
+    socialImage?: ImageRef;
     global?: boolean;
 }
 
@@ -33,6 +42,8 @@ export class FeedChannelRepository {
                 title: input.title,
                 about: input.about,
                 image: input.image,
+                socialImage: input.image,
+                type: 'open',
                 isGlobal: input.global
             });
 
@@ -58,6 +69,9 @@ export class FeedChannelRepository {
             }
             if (input.image) {
                 channel.image = input.image;
+            }
+            if (input.socialImage) {
+                channel.socialImage = input.socialImage;
             }
             if (input.global) {
                 channel.isGlobal = input.global;
@@ -152,6 +166,16 @@ export class FeedChannelRepository {
             } else {
                 await Store.FeedChannelIndexingQueue.create(ctx, channelId, {});
             }
+        });
+    }
+
+    async getUserFeedState(parent: Context, uid: number) {
+        return inTx(parent, async ctx => {
+            let existing = await Store.UserFeedState.findById(ctx, uid);
+            if (existing) {
+                return existing;
+            }
+            return await Store.UserFeedState.create(ctx, uid, { });
         });
     }
 }

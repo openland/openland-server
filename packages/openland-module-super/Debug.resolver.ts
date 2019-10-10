@@ -1108,6 +1108,32 @@ export default {
                 return true;
             });
         }),
+        debugReindexFeedChannelAdmins: withPermission('super-admin', async (parent) => {
+            debugTask(parent.auth.uid!, 'debugReindexFeedChannelAdmins', async (log) => {
+                let allRecords = await inTx(rootCtx, async ctx => await Store.FeedChannelAdmin.findAll(ctx));
+                let i = 0;
+
+                for (let record of allRecords) {
+                    await inTx(rootCtx, async (ctx) => {
+                        let admin = await Store.FeedChannelAdmin.findById(ctx, record.channelId, record.uid);
+                        admin!.invalidate();
+                        await admin!.flush(ctx);
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
+        debugReindexFeedChannels: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugReindexFeedChannels', async (ctx, id, log) => {
+               await Modules.Feed.markChannelForIndexing(ctx, id);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
