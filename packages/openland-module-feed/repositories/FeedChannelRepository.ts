@@ -14,6 +14,7 @@ export interface FeedChannelInput {
     title: string;
     about?: string;
     image?: ImageRef;
+    socialImage?: ImageRef;
     global?: boolean;
 }
 
@@ -33,6 +34,7 @@ export class FeedChannelRepository {
                 title: input.title,
                 about: input.about,
                 image: input.image,
+                socialImage: input.image,
                 isGlobal: input.global
             });
 
@@ -58,6 +60,9 @@ export class FeedChannelRepository {
             }
             if (input.image) {
                 channel.image = input.image;
+            }
+            if (input.socialImage) {
+                channel.socialImage = input.socialImage;
             }
             if (input.global) {
                 channel.isGlobal = input.global;

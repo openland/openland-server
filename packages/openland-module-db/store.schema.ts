@@ -1054,6 +1054,7 @@ export default declareSchema(() => {
         field('title', string());
         field('about', optional(string()));
         field('image', optional(ImageRef));
+        field('socialImage', optional(ImageRef));
         field('type', optional(enumString('open', 'editorial'))); // deprecated
         field('isGlobal', optional(boolean()));
 

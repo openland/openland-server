@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0dab1c1b603a67a9f0c5c2a3830f0f51';
+export const GQL_SPEC_VERSION = '340c74d5712da58672b2cb837c60c141';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1898,6 +1898,7 @@ export namespace GQL {
         title: string;
         about: OptionalNullable<string>;
         photoRef: OptionalNullable<ImageRefInput>;
+        socialImageRef: OptionalNullable<ImageRefInput>;
         global: OptionalNullable<boolean>;
     }
     export interface MutationAlphaFeedUpdateChannelArgs {
@@ -1905,6 +1906,7 @@ export namespace GQL {
         title: string;
         about: OptionalNullable<string>;
         photoRef: OptionalNullable<ImageRefInput>;
+        socialImageRef: OptionalNullable<ImageRefInput>;
         global: OptionalNullable<boolean>;
     }
     export interface MutationAlphaFeedChannelSubscribeArgs {
@@ -2984,6 +2986,7 @@ export namespace GQL {
         title: string;
         about: Nullable<string>;
         photo: Nullable<string>;
+        socialImage: Nullable<string>;
         subscribed: boolean;
         myRole: FeedChannelSubscriberRole;
         subscribersCount: number;

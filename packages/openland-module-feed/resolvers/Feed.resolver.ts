@@ -26,6 +26,7 @@ import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
+import { inTx } from '@openland/foundationdb';
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -160,6 +161,7 @@ export default {
         title: src => src.title,
         about: src => src.about,
         photo: src => src.image ? buildBaseImageUrl(src.image) : null,
+        socialImage: src => src.image ? buildBaseImageUrl(src.socialImage) : null,
         subscribed: async (src, args, ctx) => {
             let uid = ctx.auth.uid!;
             let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
@@ -495,20 +497,37 @@ export default {
             return await Modules.Feed.setReaction(ctx, uid, IDs.FeedItem.parse(args.feedItemId), args.reaction, true);
         }),
 
-        alphaFeedCreateChannel: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.createFeedChannel(ctx, uid, {
-                title: args.title,
-                about: args.about || undefined,
-                image: args.photoRef || undefined,
-                global: args.global || undefined
+        alphaFeedCreateChannel: withUser(async (root, args, uid) => {
+            return inTx(root, async ctx => {
+                if (args.photoRef) {
+                    await Modules.Media.saveFile(ctx, args.photoRef.uuid);
+                }
+                if (args.socialImageRef) {
+                    await Modules.Media.saveFile(ctx, args.socialImageRef.uuid);
+                }
+                return await Modules.Feed.createFeedChannel(ctx, uid, {
+                    title: args.title,
+                    about: args.about || undefined,
+                    image: args.photoRef || undefined,
+                    socialImage: args.socialImageRef || undefined,
+                    global: args.global || undefined
+                });
             });
         }),
-        alphaFeedUpdateChannel: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.updateFeedChannel(ctx, IDs.FeedChannel.parse(args.id), uid, {
-                title: args.title,
-                about: args.about || undefined,
-                image: args.photoRef || undefined,
-                global: args.global || undefined
+        alphaFeedUpdateChannel: withUser(async (root, args, uid) => {
+            return inTx(root, async ctx => {
+                if (args.photoRef) {
+                    await Modules.Media.saveFile(ctx, args.photoRef.uuid);
+                }
+                if (args.socialImageRef) {
+                    await Modules.Media.saveFile(ctx, args.socialImageRef.uuid);
+                }
+                return await Modules.Feed.updateFeedChannel(ctx, IDs.FeedChannel.parse(args.id), uid, {
+                    title: args.title,
+                    about: args.about || undefined,
+                    image: args.photoRef || undefined,
+                    global: args.global || undefined
+                });
             });
         }),
 

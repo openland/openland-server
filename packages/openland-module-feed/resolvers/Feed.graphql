@@ -75,6 +75,7 @@ type FeedChannel {
     title: String!
     about: String
     photo: String
+    socialImage: String
     subscribed: Boolean!
     myRole: FeedChannelSubscriberRole!
     subscribersCount: Int!
@@ -154,8 +155,8 @@ extend type Mutation {
     feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
     feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
 
-    alphaFeedCreateChannel(title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
-    alphaFeedUpdateChannel(id: ID!, title: String!, about: String, photoRef: ImageRefInput, global: Boolean): FeedChannel!
+    alphaFeedCreateChannel(title: String!, about: String, photoRef: ImageRefInput, socialImageRef: ImageRefInput, global: Boolean): FeedChannel!
+    alphaFeedUpdateChannel(id: ID!, title: String!, about: String, photoRef: ImageRefInput, socialImageRef: ImageRefInput, global: Boolean): FeedChannel!
 
     alphaFeedChannelSubscribe(id: ID!): Boolean!
     alphaFeedChannelUnsubscribe(id: ID!): Boolean!
