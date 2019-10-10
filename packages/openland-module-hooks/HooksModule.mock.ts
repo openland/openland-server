@@ -1,6 +1,5 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
-import { Modules } from '../openland-modules/Modules';
 
 @injectable()
 export class HooksModuleMock {
