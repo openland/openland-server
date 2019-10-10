@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
+import { Modules } from '../openland-modules/Modules';
 
 @injectable()
 export class HooksModuleMock {
@@ -72,7 +73,11 @@ export class HooksModuleMock {
         // nothing to do
     }
 
-    onRoomLeave = async (ctx: Context, cid: number, uid: number) => {
+    onRoomLeave = async (ctx: Context, cid: number, uid: number, wasKicked: boolean) => {
+        // nothing to do
+    }
+
+    onRoomJoin = async (ctx: Context, cid: number, uid: number, by: number) => {
         // nothing to do
     }
 }
