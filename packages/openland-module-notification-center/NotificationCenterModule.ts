@@ -38,6 +38,9 @@ export class NotificationCenterModule {
     async deleteUserNotification(ctx: Context, nid: number, uid: number) {
         return this.mediator.deleteUserNotification(ctx, nid, uid);
     }
+    async deleteNotification(ctx: Context, nid: number) {
+        return this.mediator.deleteNotification(ctx, nid);
+    }
 
     async markAsSeqRead(ctx: Context, uid: number, toSeq: number) {
         return this.mediator.markAsSeqRead(ctx, uid, toSeq);

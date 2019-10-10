@@ -125,7 +125,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             await this.decrementRoomActiveMembers(ctx, cid);
-            await this.onRoomLeave(ctx, cid, uid);
+            await this.onRoomLeave(ctx, cid, uid, true);
             return true;
         });
     }
@@ -157,7 +157,7 @@ export class RoomRepository {
             }
             p.status = 'left';
             await this.decrementRoomActiveMembers(ctx, cid);
-            await this.onRoomLeave(ctx, cid, uid);
+            await this.onRoomLeave(ctx, cid, uid, false);
             return true;
         });
     }
@@ -1162,10 +1162,12 @@ export class RoomRepository {
                     await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
                 }
             }
+
+            await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
         });
     }
 
-    private async onRoomLeave(parent: Context, cid: number, uid: number) {
+    private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
         return await inTx(parent, async (ctx) => {
             membersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
@@ -1180,7 +1182,7 @@ export class RoomRepository {
                 userRoomBadge.bid = null;
             }
 
-            await Modules.Hooks.onRoomLeave(ctx, cid, uid);
+            await Modules.Hooks.onRoomLeave(ctx, cid, uid, wasKicked);
         });
     }
 

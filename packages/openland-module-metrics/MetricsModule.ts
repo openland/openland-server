@@ -92,4 +92,24 @@ export class MetricsModule {
             }
         });
     }
+
+    onChatJoined(ctx: Context, uid: number, wasInvited: boolean) {
+        trackServerEvent(ctx, {
+            uid: uid,
+            name: 'chat_joined',
+            args: {
+                added_by_user: wasInvited
+            }
+        });
+    }
+
+    onChatLeave(ctx: Context, uid: number, wasKicked: boolean) {
+        trackServerEvent(ctx, {
+            uid: uid,
+            name: 'chat_left',
+            args: {
+                kicked_by_user: wasKicked
+            }
+        });
+    }
 }

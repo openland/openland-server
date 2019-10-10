@@ -201,7 +201,15 @@ export class HooksModule {
         }
     }
 
-    onRoomLeave = async (ctx: Context, cid: number, uid: number) => {
+    onRoomLeave = async (ctx: Context, cid: number, uid: number, wasKicked: boolean) => {
         await Modules.Matchmaking.clearProfile(ctx, cid, 'room', uid);
+
+        Modules.Metrics.onChatLeave(ctx, uid, wasKicked);
+    }
+
+    onRoomJoin = async (ctx: Context, cid: number, uid: number, by: number) => {
+        let addedByUser = uid !== by;
+
+        Modules.Metrics.onChatJoined(ctx, uid, addedByUser);
     }
 }

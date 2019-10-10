@@ -11,6 +11,14 @@ import { makePhotoFallback } from '../../openland-module-messaging/workers/UrlIn
 import { GQL } from '../../openland-module-api/schema/SchemaSpec';
 import MatchmakingAnswerInput = GQL.MatchmakingAnswerInput;
 import MatchmakingRoomInput = GQL.MatchmakingRoomInput;
+import { CacheRepository } from '../../openland-module-cache/CacheRepository';
+import { plural } from '../../openland-utils/string';
+
+type NotificationCacheInfo = {
+    nid: number,
+    date: string
+};
+let notificationsCache = new CacheRepository<NotificationCacheInfo>('matchmaking-notifications');
 
 @injectable()
 export class MatchmakingMediator {
@@ -50,9 +58,10 @@ export class MatchmakingMediator {
     }
 
     fillRoomProfile = async (ctx: Context, peerId: number, peerType: MatchmakingPeerType, uid: number, answers: MatchmakingAnswerInput[]) => {
+        let prevProfile = await this.repo.getRoomProfile(ctx, peerId, peerType, uid);
         let profile = await this.repo.fillRoomProfile(ctx, peerId, peerType, uid, answers);
 
-        if (peerType === 'room') {
+        if (peerType === 'room' && !prevProfile) {
             let members = await Modules.Messaging.room.findConversationMembers(ctx, peerId);
             await Promise.all(members.map(async member => {
                 if (member === uid) {
@@ -62,14 +71,37 @@ export class MatchmakingMediator {
                     return;
                 }
 
-                await Modules.NotificationCenter.sendNotification(ctx, member, {
+                let now = new Date();
+                let today = `${now.getDate()}/${now.getMonth()}/${now.getFullYear()}`;
+                let cacheKey = [member, peerId, peerType].join(',');
+
+                let prevNotificationInfo = await notificationsCache.read(ctx, cacheKey);
+                let uids = [uid];
+                if (prevNotificationInfo && prevNotificationInfo.date === today) {
+                    let prevNotification = await Store.Notification.findById(ctx, prevNotificationInfo.nid);
+                    if (prevNotification) {
+                        let content = prevNotification.content!.find(a => a.type === 'new_matchmaking_profiles');
+                        if (content && content.type === 'new_matchmaking_profiles') {
+                            uids = uids.concat(content.uids);
+                        }
+                        uids = [...new Set(uids)];
+
+                        await Modules.NotificationCenter.deleteNotification(ctx, prevNotification.id);
+                    }
+                }
+
+                let notification = await Modules.NotificationCenter.sendNotification(ctx, member, {
                     content: [{
                         type: 'new_matchmaking_profiles',
                         peerId,
                         peerType,
-                        uids: [uid]
+                        uids: uids
                     }],
-                    text: `New member profile from ${await Modules.Users.getUserFullName(ctx, uid)}`
+                    text: await this.getTextForNotification(ctx, uids)
+                });
+                await notificationsCache.write(ctx, cacheKey, {
+                    date: today,
+                    nid: notification.id
                 });
             }));
         }
@@ -136,5 +168,16 @@ export class MatchmakingMediator {
                 ]],
             },
         };
+    }
+
+    private getTextForNotification = async (ctx: Context, uids: number[]) => {
+        let text = `New member ${plural(uids.length, ['profile', 'profiles'])} from ${await Modules.Users.getUserFullName(ctx, uids[0])}`;
+        if (uids.length === 2) {
+            text += ` and ${await Modules.Users.getUserFullName(ctx, uids[1])}`;
+        } else if (uids.length > 2) {
+            text += ` and ${uids.length - 1} others.`;
+        }
+
+        return text;
     }
 }
