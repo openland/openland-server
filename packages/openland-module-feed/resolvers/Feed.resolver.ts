@@ -289,6 +289,21 @@ export default {
 
             return res;
         }),
+        alphaWritableChannels: withUser(async (ctx, args, uid) => {
+            let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
+            if (!args.first || args.first <= 0) {
+                return {items: []};
+            }
+            let afterExists = afterId && await Store.FeedChannelAdmin.findById(ctx, afterId, uid);
+            let {items, haveMore} = await Store.FeedChannelAdmin.fromUser.query(ctx, uid, {
+                limit: args.first,
+                after: afterExists ? afterId : undefined
+            });
+            return {
+                items: await Promise.all(items.map(a => Store.FeedChannel.findById(ctx, a.channelId))),
+                cursor: haveMore ? IDs.FeedChannel.serialize(items[items.length - 1].channelId) : undefined
+            };
+        }),
 
         alphaFeedChannel: withUser(async (ctx, args, uid) => {
             return await Store.FeedChannel.findById(ctx, IDs.FeedChannel.parse(args.id));

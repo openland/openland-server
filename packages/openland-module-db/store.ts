@@ -8574,6 +8574,7 @@ export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape
         let subspace = await storage.resolveEntityDirectory('feedChannelAdmin');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAdmin', 'channel'), condition: src => !!src.enabled });
+        secondaryIndexes.push({ name: 'fromUser', storageKey: 'fromUser', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'channelId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAdmin', 'fromUser'), condition: src => !!src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'channelId', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -8612,6 +8613,21 @@ export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape
         },
         liveStream: (ctx: Context, channelId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [channelId], opts);
+        },
+    });
+
+    readonly fromUser = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
         },
     });
 

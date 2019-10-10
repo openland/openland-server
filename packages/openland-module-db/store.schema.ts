@@ -1074,6 +1074,7 @@ export default declareSchema(() => {
         field('enabled', optional(boolean()));
 
         rangeIndex('channel', ['channelId', 'uid']).withCondition(src => !!src.enabled);
+        rangeIndex('fromUser', ['uid', 'channelId']).withCondition(src => !!src.enabled);
     });
 
     entity('FeedChannelIndexingQueue', () => {
