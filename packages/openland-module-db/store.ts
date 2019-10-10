@@ -8351,7 +8351,7 @@ export interface FeedChannelShape {
     about: string | null;
     image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
     socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
-    type: 'open' | 'editorial' | null;
+    type: 'open' | 'editorial' | 'private' | null;
     isGlobal: boolean | null;
 }
 
@@ -8361,7 +8361,7 @@ export interface FeedChannelCreateShape {
     about?: string | null | undefined;
     image?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
     socialImage?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
-    type?: 'open' | 'editorial' | null | undefined;
+    type?: 'open' | 'editorial' | 'private' | null | undefined;
     isGlobal?: boolean | null | undefined;
 }
 
@@ -8412,8 +8412,8 @@ export class FeedChannel extends Entity<FeedChannelShape> {
             this.invalidate();
         }
     }
-    get type(): 'open' | 'editorial' | null { return this._rawValue.type; }
-    set type(value: 'open' | 'editorial' | null) {
+    get type(): 'open' | 'editorial' | 'private' | null { return this._rawValue.type; }
+    set type(value: 'open' | 'editorial' | 'private' | null) {
         let normalized = this.descriptor.codec.fields.type.normalize(value);
         if (this._rawValue.type !== normalized) {
             this._rawValue.type = normalized;
@@ -8447,7 +8447,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         fields.push({ name: 'about', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'image', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'socialImage', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
-        fields.push({ name: 'type', type: { type: 'optional', inner: { type: 'enum', values: ['open', 'editorial'] } }, secure: false });
+        fields.push({ name: 'type', type: { type: 'optional', inner: { type: 'enum', values: ['open', 'editorial', 'private'] } }, secure: false });
         fields.push({ name: 'isGlobal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
@@ -8456,7 +8456,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
             about: c.optional(c.string),
             image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
             socialImage: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
-            type: c.optional(c.enum('open', 'editorial')),
+            type: c.optional(c.enum('open', 'editorial', 'private')),
             isGlobal: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<FeedChannelShape> = {

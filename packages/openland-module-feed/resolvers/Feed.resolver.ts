@@ -360,6 +360,8 @@ export default {
                 sort = parser.parseSort(args.sort);
             }
 
+            clauses.push({term: {type: 'open'}});
+
             let hits = await Modules.Search.elastic.client.search({
                 index: 'feed-channel',
                 type: 'feed-channel',
@@ -412,7 +414,7 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: sort || [{subscribersCount: 'desc'}],
-                    query: { bool: { must_not: [{terms: {channelId: channelIds}}] } },
+                    query: { bool: { must_not: [{terms: {channelId: channelIds}}], must: [{term: {type: 'open'}}] } },
                 },
             });
             let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));

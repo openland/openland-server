@@ -10,6 +10,14 @@ import { Modules } from '../../openland-modules/Modules';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 
+/**
+ * Channel types
+ *
+ * - open (default) (anyone can subscribe, admins can write)
+ * - private (no one can subscribe, used for drafts, not showing in search)
+ * - editorial not supported yet
+ */
+
 export interface FeedChannelInput {
     title: string;
     about?: string;
@@ -35,6 +43,7 @@ export class FeedChannelRepository {
                 about: input.about,
                 image: input.image,
                 socialImage: input.image,
+                type: 'open',
                 isGlobal: input.global
             });
 
