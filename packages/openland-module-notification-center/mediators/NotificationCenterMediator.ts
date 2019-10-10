@@ -70,6 +70,17 @@ export class NotificationCenterMediator {
         });
     }
 
+    async deleteNotification(parent: Context, nid: number) {
+        return await inTx(parent, async (ctx) => {
+            let notification = await Store.Notification.findById(ctx, nid);
+            if (!notification) {
+                throw new NotFoundError();
+            }
+
+            return this.repo.deleteNotification(ctx, nid);
+        });
+    }
+
     async markAsSeqRead(parent: Context, uid: number, toSeq: number) {
         return await inTx(parent, async (ctx) => {
             let userNotificationCenter = await this.notificationCenterForUser(ctx, uid);
