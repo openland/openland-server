@@ -48,11 +48,16 @@ function toAmplitudeEvent(event: InternalTrackEvent, userProps?: AmplitudeUserPr
         deviceId = 'server ' + randomKey();
     }
 
+    let eventProperties: any =  undefined;
+    if (typeof event.args === 'object' && !Array.isArray(event.args)) {
+        eventProperties = event.args;
+    }
+
     return {
         user_id: userId,
         device_id: deviceId,
         event_type: event.name,
-        event_properties: event.args,
+        event_properties: eventProperties,
         insert_id: event.id,
         platform: event.platform,
         os_name: event.os || 'unknown',
@@ -119,7 +124,7 @@ const saveEvents = async (ctx: Context, events: any[], key: string) => {
                 log.warn(ctx, 'Amplitude error: ', err);
                 reject(err);
             } else if (response.statusCode !== 200) {
-                log.warn(ctx, 'Amplitude status ', response.statusCode, response.body);
+                log.warn(ctx, 'Amplitude status ', response.statusCode, response.body, JSON.stringify(events));
                 reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
             } else {
                 log.log(ctx, 'Export successful...', response.statusCode, response.body);

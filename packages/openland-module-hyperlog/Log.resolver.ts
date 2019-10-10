@@ -4,6 +4,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { createHyperlogger } from './createHyperlogEvent';
 import { Context } from '@openland/context';
 import { uuid } from '../openland-utils/uuid';
+import { UserError } from '../openland-errors/UserError';
 
 export interface InternalTrackEvent {
     id: string;
@@ -39,6 +40,12 @@ export default {
         track: withAny(async (ctx, args) => {
             await inTx(ctx, async (ctx2) => {
                 for (let i of args.events) {
+                    if (i.params) {
+                        let parsed = JSON.parse(i.params);
+                        if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+                            throw new UserError('params should be map');
+                        }
+                    }
                     trackEvent.event(ctx2, {
                         did: args.did,
                         id: i.id,

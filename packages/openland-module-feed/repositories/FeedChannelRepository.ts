@@ -73,27 +73,29 @@ export class FeedChannelRepository {
 
     async subscribeChannel(parent: Context, uid: number, channelId: number) {
         return await inTx(parent, async ctx => {
-            await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId);
-            await Store.FeedChannelMembersCount.increment(ctx, channelId);
-            await this.markForIndexing(ctx, channelId);
+            if (await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
+                await Store.FeedChannelMembersCount.increment(ctx, channelId);
+                await this.markForIndexing(ctx, channelId);
+            }
         });
     }
 
     async unsubscribeChannel(parent: Context, uid: number, channelId: number) {
         return await inTx(parent, async ctx => {
-            await this.feedRepo.unsubscribe(ctx, 'user-' + uid, 'channel-' + channelId);
-            await Store.FeedChannelMembersCount.decrement(ctx, channelId);
-            await this.markForIndexing(ctx, channelId);
+            if (await this.feedRepo.unsubscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
+                await Store.FeedChannelMembersCount.decrement(ctx, channelId);
+                await this.markForIndexing(ctx, channelId);
+            }
         });
     }
 
-    async addEditor(parent: Context, channelId: number, uid: number) {
+    async addEditor(parent: Context, channelId: number, uid: number, by: number) {
         return await inTx(parent, async ctx => {
             let existing = await Store.FeedChannelAdmin.findById(ctx, channelId, uid);
             if (existing) {
                 existing.role = 'editor';
                 existing.enabled = true;
-                existing.promoter = uid;
+                existing.promoter = by;
             } else {
                 await Store.FeedChannelAdmin.create(ctx, channelId, uid, { role: 'editor', enabled: true, promoter: uid });
             }
@@ -102,8 +104,15 @@ export class FeedChannelRepository {
 
     async removeEditor(parent: Context, channelId: number, uid: number) {
         return await inTx(parent, async ctx => {
+            let channel = await Store.FeedChannel.findById(ctx, channelId);
+            if (!channel) {
+                throw new NotFoundError();
+            }
             let existing = await Store.FeedChannelAdmin.findById(ctx, channelId, uid);
             if (existing) {
+                if (existing.uid === channel.ownerId) {
+                    throw new UserError(`Can't remove channel creator`);
+                }
                 existing.enabled = false;
             }
         });

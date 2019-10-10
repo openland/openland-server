@@ -1,7 +1,7 @@
 import {
     Conversation,
     FeedChannel,
-    FeedEvent,
+    FeedEvent, FeedSubscriber,
     FeedTopic,
     Organization,
     RichMessage,
@@ -181,7 +181,8 @@ export default {
             }
             return 'None';
         },
-        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id)
+        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id),
+        isGlobal: async (src, args, ctx) => src.isGlobal || false
     },
     FeedSubscription: {
         __resolveType(src: FeedSubscriptionRoot) {
@@ -211,6 +212,20 @@ export default {
                 return 'Creator';
             }
             throw new NotFoundError();
+        }
+    },
+    FeedChannelSubscriber: {
+        user: src => src.user,
+        role: async (src, args, ctx) => {
+            let role = await Modules.Feed.roleInChannel(ctx, src.channelId, src.user.id);
+            if (role === 'creator') {
+                return 'Creator';
+            } else if (role === 'editor') {
+                return 'Editor';
+            } else if (role === 'subscriber') {
+                return 'Subscriber';
+            }
+            return 'None';
         }
     },
 
@@ -315,6 +330,7 @@ export default {
             parser.registerBoolean('isService', 'isService');
             parser.registerText('createdAt', 'createdAt');
             parser.registerText('updatedAt', 'updatedAt');
+            parser.registerInt('subscribersCount', 'subscribersCount');
 
             if (args.query) {
                 let parsed = parser.parseQuery(args.query);
@@ -359,7 +375,103 @@ export default {
                     openEnded: true,
                 },
             };
-        })
+        }),
+        alphaRecommendedChannels: withUser(async (ctx, args, uid) => {
+            let sort: any[] | undefined = undefined;
+
+            let parser = new QueryParser();
+            parser.registerPrefix('title', 'title');
+            parser.registerBoolean('isService', 'isService');
+            parser.registerText('createdAt', 'createdAt');
+            parser.registerText('updatedAt', 'updatedAt');
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'feed-channel',
+                type: 'feed-channel',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : 0,
+                body: {
+                    sort: sort || [{subscribersCount: 'desc'}]
+                },
+            });
+
+            let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: channels.filter(c => !!c).map((p, i) => {
+                    return {
+                        node: p, cursor: (i + 1 + offset).toString(),
+                    };
+                }), pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true,
+                },
+            };
+        }),
+        alphaFeedChannelSubscribers: withUser(async (ctx, args, uid) => {
+            let channelId = IDs.FeedChannel.parse(args.channelId);
+            let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + channelId);
+            let subscriptions = (await Store.FeedSubscription.topic.findAll(ctx, topic.id)).filter(s => s.enabled);
+            let subscribers: FeedSubscriber[] = (await Promise.all(subscriptions.map(s => Store.FeedSubscriber.findById(ctx, s.sid)))).filter(s => !!s) as FeedSubscriber[];
+            let users: number[] = [];
+            for (let subscriber of subscribers) {
+                if (subscriber.key.includes('user-')) {
+                    users.push(parseInt(subscriber.key.replace('user-', ''), 10));
+                }
+            }
+
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, after: (args.after || undefined), uids: users });
+
+            if (uids.length === 0) {
+                return {
+                    edges: [],
+                    pageInfo: {
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+
+                        itemsCount: 0,
+                        pagesCount: 0,
+                        currentPage: 0,
+                        openEnded: false
+                    },
+                };
+            }
+
+            // Fetch profiles
+            let _users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+
+            return {
+                edges: _users.map((p, i) => {
+                    return {
+                        node: { channelId, user: p },
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+        }),
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
@@ -410,7 +522,11 @@ export default {
         }),
 
         alphaFeedChannelAddEditor: withUser(async (ctx, args, uid) => {
-            await Modules.Feed.unsubscribeChannel(ctx, uid, IDs.FeedChannel.parse(args.id));
+            await Modules.Feed.addEditor(ctx, IDs.FeedChannel.parse(args.id), IDs.User.parse(args.userId), uid);
+            return true;
+        }),
+        alphaFeedChannelRemoveEditor: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.removeEditor(ctx, IDs.FeedChannel.parse(args.id), IDs.User.parse(args.userId), uid);
             return true;
         }),
     }

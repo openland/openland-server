@@ -132,6 +132,8 @@ extend type Mutation {
     debugFindUsefulCommunities: Boolean!
     debugFixStickerPack(id: ID!, stickers: [StickerInput!]!): StickerPack
     debugReverseStickers: Boolean!
+    debugReindexShortnames: Boolean!
+    debugFixHyperlogEvent(eventId: String!): Boolean!
 }
 
 extend type Subscription {

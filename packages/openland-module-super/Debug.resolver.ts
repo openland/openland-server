@@ -1074,7 +1074,40 @@ export default {
                 }
             });
             return true;
-        })
+        }),
+        debugReindexShortnames: withPermission('super-admin', async (parent) => {
+            debugTask(parent.auth.uid!, 'debugReindexShortnames', async (log) => {
+                let allRecords = await inTx(rootCtx, async ctx => await Store.ShortnameReservation.findAll(ctx));
+                let i = 0;
+
+                for (let record of allRecords) {
+                    await inTx(rootCtx, async (ctx) => {
+                        let shortname = await Store.ShortnameReservation.findById(ctx, record.shortname);
+                        shortname!.invalidate();
+                        await shortname!.flush(ctx);
+                        if ((i % 100) === 0) {
+                            await log('done: ' + i);
+                        }
+                        i++;
+                    });
+                }
+                return 'done, total: ' + i;
+            });
+            return true;
+        }),
+        debugFixHyperlogEvent: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let event = await Store.HyperLog.findById(ctx, args.eventId);
+                if (!event) {
+                    return false;
+                }
+                if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args))) {
+                    event.body = { ...event.body, args: undefined };
+                }
+                await event.flush(ctx);
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {

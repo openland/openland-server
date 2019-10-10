@@ -5,7 +5,7 @@ import { Context } from '@openland/context';
 
 const tracer = createTracer('user-search');
 export class UserSearch {
-    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean }) {
+    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean, uids?: number[] }) {
         return await tracer.trace(parent, 'search', async (ctx) => {
 
             let normalized = query.trim();
@@ -24,6 +24,10 @@ export class UserSearch {
                     ] : [],
                 }
             };
+
+            if (options && options.uids) {
+                mainQuery.bool.must = [{terms: {userId: options.uids}}];
+            }
 
             if (options && options.uid) {
                 let profilePromise = Store.UserProfile.findById(ctx, options.uid);

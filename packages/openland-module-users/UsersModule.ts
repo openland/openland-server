@@ -92,7 +92,7 @@ export class UsersModule {
         await this.repo.waitForNextSettings(ctx, uid);
     }
 
-    async searchForUsers(ctx: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean }) {
+    async searchForUsers(ctx: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean, uids?: number[] }) {
         return await this.search.searchForUsers(ctx, query, options);
     }
 

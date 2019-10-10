@@ -75,26 +75,35 @@ export class FeedRepository {
     }
 
     async subscribe(parent: Context, subscriber: string, topic: string) {
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let t = await this.resolveTopic(ctx, topic);
             let s = await this.resolveSubscriber(ctx, subscriber);
             let ex = await Store.FeedSubscription.findById(ctx, s.id, t.id);
             if (ex) {
-                ex.enabled = true;
+                if (!ex.enabled) {
+                    ex.enabled = true;
+                    return true;
+                }
+                return false;
             } else {
                 await Store.FeedSubscription.create(ctx, s.id, t.id, { enabled: true });
+                return true;
             }
         });
     }
 
     async unsubscribe(parent: Context, subscriber: string, topic: string) {
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let t = await this.resolveTopic(ctx, topic);
             let s = await this.resolveSubscriber(ctx, subscriber);
             let ex = await Store.FeedSubscription.findById(ctx, s.id, t.id);
             if (ex) {
-                ex.enabled = false;
+                if (ex.enabled) {
+                    ex.enabled = false;
+                    return true;
+                }
             }
+            return false;
         });
     }
 
