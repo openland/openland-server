@@ -115,4 +115,8 @@ export class FeedModule {
     async removeEditor(parent: Context, channelId: number, uid: number, by: number) {
         return await this.channels.removeEditor(parent, channelId, uid, by);
     }
+
+    async markChannelForIndexing(parent: Context, channelId: number) {
+        return this.channels.markForIndexing(parent, channelId);
+    }
 }

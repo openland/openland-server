@@ -3,7 +3,7 @@ import { Store } from '../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 
 export function feedChannelIndexer() {
-    declareSearchIndexer('feed-channel-index', 1, 'feed-channel', Store.FeedChannelIndexingQueue.updated.stream({ batchSize: 50 }))
+    declareSearchIndexer('feed-channel-index', 3, 'feed-channel', Store.FeedChannelIndexingQueue.updated.stream({ batchSize: 50 }))
         .withProperties({
             channelId: {
                 type: 'integer'
@@ -33,6 +33,7 @@ export function feedChannelIndexer() {
                 return {
                     id: item.id,
                     doc: {
+                        channelId: channel.id,
                         title: channel.title,
                         about: channel.about || undefined,
                         subscribersCount: await Store.FeedChannelMembersCount.get(ctx, channel.id),

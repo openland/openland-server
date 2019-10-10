@@ -1128,6 +1128,12 @@ export default {
             });
             return true;
         }),
+        debugReindexFeedChannels: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugReindexFeedChannels', async (ctx, id, log) => {
+               await Modules.Feed.markChannelForIndexing(ctx, id);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

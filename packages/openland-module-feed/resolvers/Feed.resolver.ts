@@ -402,16 +402,19 @@ export default {
             parser.registerText('createdAt', 'createdAt');
             parser.registerText('updatedAt', 'updatedAt');
 
+            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
+            let topics: FeedTopic[] = (await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid)))).filter(t => !!t) as FeedTopic[];
+            let channelIds = topics.filter(t => t.key.startsWith('channel-')).map(t => parseInt(t.key.replace('channel-', ''), 10));
             let hits = await Modules.Search.elastic.client.search({
                 index: 'feed-channel',
                 type: 'feed-channel',
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: sort || [{subscribersCount: 'desc'}]
+                    sort: sort || [{subscribersCount: 'desc'}],
+                    query: { bool: { must_not: [{terms: {channelId: channelIds}}] } },
                 },
             });
-
             let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));
             let offset = 0;
             if (args.after) {

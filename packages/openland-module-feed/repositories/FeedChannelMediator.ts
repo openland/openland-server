@@ -115,4 +115,8 @@ export default class FeedChannelMediator {
             return this.feedRepo.deletePost(ctx, uid, postId);
         });
     }
+
+    async markForIndexing(parent: Context, channelId: number) {
+        return this.repo.markForIndexing(parent, channelId);
+    }
 }
