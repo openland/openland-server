@@ -84,6 +84,8 @@ export class MatchmakingMediator {
                         if (content && content.type === 'new_matchmaking_profiles') {
                             uids = uids.concat(content.uids);
                         }
+                        uids = [...new Set(uids)];
+
                         await Modules.NotificationCenter.deleteNotification(ctx, prevNotification.id);
                     }
                 }
