@@ -8353,6 +8353,7 @@ export interface FeedChannelShape {
     socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
     type: 'open' | 'editorial' | 'private' | null;
     isGlobal: boolean | null;
+    isHidden: boolean | null;
 }
 
 export interface FeedChannelCreateShape {
@@ -8363,6 +8364,7 @@ export interface FeedChannelCreateShape {
     socialImage?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
     type?: 'open' | 'editorial' | 'private' | null | undefined;
     isGlobal?: boolean | null | undefined;
+    isHidden?: boolean | null | undefined;
 }
 
 export class FeedChannel extends Entity<FeedChannelShape> {
@@ -8430,6 +8432,15 @@ export class FeedChannel extends Entity<FeedChannelShape> {
             this.invalidate();
         }
     }
+    get isHidden(): boolean | null { return this._rawValue.isHidden; }
+    set isHidden(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isHidden.normalize(value);
+        if (this._rawValue.isHidden !== normalized) {
+            this._rawValue.isHidden = normalized;
+            this._updatedValues.isHidden = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChannel> {
@@ -8437,7 +8448,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('feedChannel');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'ownerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'owner'), condition: undefined });
+        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'ownerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'owner'), condition: src => !src.isHidden });
         secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'global'), condition: src => !!src.isGlobal });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -8449,6 +8460,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         fields.push({ name: 'socialImage', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'type', type: { type: 'optional', inner: { type: 'enum', values: ['open', 'editorial', 'private'] } }, secure: false });
         fields.push({ name: 'isGlobal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isHidden', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             ownerId: c.integer,
@@ -8458,6 +8470,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
             socialImage: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
             type: c.optional(c.enum('open', 'editorial', 'private')),
             isGlobal: c.optional(c.boolean),
+            isHidden: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<FeedChannelShape> = {
             name: 'FeedChannel',
@@ -8720,6 +8733,74 @@ export class FeedChannelIndexingQueueFactory extends EntityFactory<FeedChannelIn
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelIndexingQueueShape>): FeedChannelIndexingQueue {
         return new FeedChannelIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface UserFeedStateShape {
+    uid: number;
+    draftsChannelId: number | null;
+}
+
+export interface UserFeedStateCreateShape {
+    draftsChannelId?: number | null | undefined;
+}
+
+export class UserFeedState extends Entity<UserFeedStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get draftsChannelId(): number | null { return this._rawValue.draftsChannelId; }
+    set draftsChannelId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.draftsChannelId.normalize(value);
+        if (this._rawValue.draftsChannelId !== normalized) {
+            this._rawValue.draftsChannelId = normalized;
+            this._updatedValues.draftsChannelId = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserFeedStateFactory extends EntityFactory<UserFeedStateShape, UserFeedState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userFeedState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'draftsChannelId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            draftsChannelId: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<UserFeedStateShape> = {
+            name: 'UserFeedState',
+            storageKey: 'userFeedState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserFeedStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserFeedStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: UserFeedStateCreateShape): Promise<UserFeedState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserFeedStateCreateShape): UserFeedState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserFeedState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserFeedStateShape>): UserFeedState {
+        return new UserFeedState([value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -13805,6 +13886,7 @@ export interface Store extends BaseStore {
     readonly FeedChannel: FeedChannelFactory;
     readonly FeedChannelAdmin: FeedChannelAdminFactory;
     readonly FeedChannelIndexingQueue: FeedChannelIndexingQueueFactory;
+    readonly UserFeedState: UserFeedStateFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
@@ -13962,6 +14044,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedChannelPromise = FeedChannelFactory.open(storage);
     let FeedChannelAdminPromise = FeedChannelAdminFactory.open(storage);
     let FeedChannelIndexingQueuePromise = FeedChannelIndexingQueueFactory.open(storage);
+    let UserFeedStatePromise = UserFeedStateFactory.open(storage);
     let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
     let ChannelLinkPromise = ChannelLinkFactory.open(storage);
     let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
@@ -14100,6 +14183,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedChannel: await FeedChannelPromise,
         FeedChannelAdmin: await FeedChannelAdminPromise,
         FeedChannelIndexingQueue: await FeedChannelIndexingQueuePromise,
+        UserFeedState: await UserFeedStatePromise,
         ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
         ChannelLink: await ChannelLinkPromise,
         AppInviteLink: await AppInviteLinkPromise,

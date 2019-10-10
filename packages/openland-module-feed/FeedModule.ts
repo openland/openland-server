@@ -119,4 +119,8 @@ export class FeedModule {
     async markChannelForIndexing(parent: Context, channelId: number) {
         return this.channels.markForIndexing(parent, channelId);
     }
+
+    async getUserDraftsChannel(parent: Context, uid: number) {
+        return this.channels.getUserDraftsChannel(parent, uid);
+    }
 }

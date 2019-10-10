@@ -308,6 +308,9 @@ export default {
         alphaFeedChannel: withUser(async (ctx, args, uid) => {
             return await Store.FeedChannel.findById(ctx, IDs.FeedChannel.parse(args.id));
         }),
+        alphaFeedMyDraftsChannel: withUser(async (ctx, args, uid) => {
+            return await Store.FeedChannel.findById(ctx, await Modules.Feed.getUserDraftsChannel(ctx, uid));
+        }),
         alphaFeedChannelContent: withUser(async (ctx, args, uid) => {
             let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + IDs.FeedChannel.parse(args.id));
             let data = await Store.FeedEvent.fromTopic.query(ctx, topic.id, {
@@ -361,6 +364,7 @@ export default {
             }
 
             clauses.push({term: {type: 'open'}});
+            clauses.push({term: {isHidden: false}});
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'feed-channel',
@@ -414,7 +418,7 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: sort || [{subscribersCount: 'desc'}],
-                    query: { bool: { must_not: [{terms: {channelId: channelIds}}], must: [{term: {type: 'open'}}] } },
+                    query: { bool: { must_not: [{terms: {channelId: channelIds}}], must: [{term: {type: 'open'}}, {term: {isHidden: false}}] } },
                 },
             });
             let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));

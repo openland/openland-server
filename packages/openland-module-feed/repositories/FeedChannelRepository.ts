@@ -168,4 +168,14 @@ export class FeedChannelRepository {
             }
         });
     }
+
+    async getUserFeedState(parent: Context, uid: number) {
+        return inTx(parent, async ctx => {
+            let existing = await Store.UserFeedState.findById(ctx, uid);
+            if (existing) {
+                return existing;
+            }
+            return await Store.UserFeedState.create(ctx, uid, { });
+        });
+    }
 }

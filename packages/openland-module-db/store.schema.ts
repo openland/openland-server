@@ -1057,8 +1057,9 @@ export default declareSchema(() => {
         field('socialImage', optional(ImageRef));
         field('type', optional(enumString('open', 'editorial', 'private')));
         field('isGlobal', optional(boolean()));
+        field('isHidden', optional(boolean()));
 
-        rangeIndex('owner', ['ownerId', 'id']);
+        rangeIndex('owner', ['ownerId', 'id']).withCondition(src => !src.isHidden);
         rangeIndex('global', ['id', 'createdAt']).withCondition(src => !!src.isGlobal);
     });
 
@@ -1080,6 +1081,11 @@ export default declareSchema(() => {
     entity('FeedChannelIndexingQueue', () => {
         primaryKey('id', integer());
         rangeIndex('updated', ['updatedAt']);
+    });
+
+    entity('UserFeedState', () => {
+        primaryKey('uid', integer());
+        field('draftsChannelId', optional(integer()));
     });
 
     //
