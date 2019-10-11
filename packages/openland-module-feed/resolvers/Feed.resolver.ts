@@ -24,7 +24,6 @@ import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 import FeedSubscriptionRoot = GQLRoots.FeedSubscriptionRoot;
 import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 
@@ -327,15 +326,10 @@ export default {
         }),
         alphaFeedChannelAdmins: withUser(async (ctx, args, uid) => {
             let channelId = IDs.FeedChannel.parse(args.id);
-            let role = await Modules.Feed.roleInChannel(ctx, channelId, uid);
-            if (role !== 'creator' && role !== 'editor') {
-                throw new AccessDeniedError();
-            }
             let data = await Store.FeedChannelAdmin.channel.query(ctx, channelId, {
                 limit: args.first,
                 after: args.after ? IDs.User.parse(args.after) : undefined
             });
-
             return {
                 items: data.items,
                 cursor: data.haveMore ? IDs.User.serialize(data.items[data.items.length - 1].uid) : undefined
