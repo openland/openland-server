@@ -139,7 +139,7 @@ extend type Query {
     alphaFeedChannel(id: ID!): FeedChannel!
     alphaFeedMyDraftsChannel: FeedChannel!
     alphaFeedChannelContent(id: ID!, first: Int!, after: String): FeedItemConnection!
-    alphaFeedMySubscriptions: [FeedSubscription!]!
+    alphaFeedMySubscriptions(first: Int!, after: ID): FeedChannelConnection!
     alphaFeedMyChannels(first: Int!, after: ID): FeedChannelConnection!
     alphaWritableChannels(first: Int!, after: ID): FeedChannelConnection!
     alphaFeedChannelAdmins(id: ID!, first: Int!, after: ID): FeedChannelAdminConnection!
