@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c64c065f624cc40c6223639bcb84c18c';
+export const GQL_SPEC_VERSION = '19f1dff1b104e40cafc2fe2233e347a0';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1025,6 +1025,7 @@ export namespace GQL {
         debugFixHyperlogEvent: boolean;
         debugReindexFeedChannelAdmins: boolean;
         debugReindexFeedChannels: boolean;
+        debugCalcChannelPostsCount: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         betaOrganizationMemberRequestApprove: Organization;
@@ -2995,10 +2996,11 @@ export namespace GQL {
         about: Nullable<string>;
         photo: Nullable<string>;
         socialImage: Nullable<string>;
+        subscribersCount: number;
+        postsCount: number;
+        isGlobal: boolean;
         subscribed: boolean;
         myRole: FeedChannelSubscriberRole;
-        subscribersCount: number;
-        isGlobal: boolean;
         shortname: Nullable<string>;
     }
     export interface FeedChannelConnection {

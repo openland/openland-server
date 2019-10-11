@@ -76,10 +76,11 @@ type FeedChannel {
     about: String
     photo: String
     socialImage: String
+    subscribersCount: Int!
+    postsCount: Int!
+    isGlobal: Boolean!
     subscribed: Boolean!
     myRole: FeedChannelSubscriberRole!
-    subscribersCount: Int!
-    isGlobal: Boolean!
 }
 
 type FeedChannelConnection {

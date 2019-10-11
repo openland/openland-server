@@ -1067,6 +1067,10 @@ export default declareSchema(() => {
         primaryKey('channelId', integer());
     });
 
+    atomicInt('FeedChannelPostsCount', () => {
+        primaryKey('channelId', integer());
+    });
+
     entity('FeedChannelAdmin', () => {
         primaryKey('channelId', integer());
         primaryKey('uid', integer());

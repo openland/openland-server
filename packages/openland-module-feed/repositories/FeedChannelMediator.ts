@@ -71,6 +71,7 @@ export default class FeedChannelMediator {
             if (role !== 'creator' && role !== 'editor') {
                 throw new AccessDeniedError();
             }
+            await Store.FeedChannelPostsCount.increment(ctx, channelId);
             return this.feedRepo.createPost(ctx, uid, 'channel-' + channelId, input);
         });
     }
@@ -113,6 +114,7 @@ export default class FeedChannelMediator {
             if (role !== 'creator' && role !== 'editor') {
                 throw new AccessDeniedError();
             }
+            await Store.FeedChannelPostsCount.decrement(ctx, channelId);
             return this.feedRepo.deletePost(ctx, uid, postId);
         });
     }
