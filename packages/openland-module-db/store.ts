@@ -82,6 +82,42 @@ export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
     }
 }
 
+export class FeedChannelPostsCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('feedChannelPostsCount');
+        return new FeedChannelPostsCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(channelId: number) {
+        return this._findById([channelId]);
+    }
+
+    get(ctx: Context, channelId: number) {
+        return this._get(ctx, [channelId]);
+    }
+
+    set(ctx: Context, channelId: number, value: number) {
+        return this._set(ctx, [channelId], value);
+    }
+
+    add(ctx: Context, channelId: number, value: number) {
+        return this._add(ctx, [channelId], value);
+    }
+
+    increment(ctx: Context, channelId: number) {
+        return this._increment(ctx, [channelId]);
+    }
+
+    decrement(ctx: Context, channelId: number) {
+        return this._decrement(ctx, [channelId]);
+    }
+}
+
 export class UserCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -13797,6 +13833,7 @@ export class FeedGlobalEventStore extends EventStore {
 export interface Store extends BaseStore {
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
+    readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
     readonly UserCounter: UserCounterFactory;
     readonly UserMessagesSentCounter: UserMessagesSentCounterFactory;
     readonly UserMessagesSentWeeklyCounter: UserMessagesSentWeeklyCounterFactory;
@@ -13955,6 +13992,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
+    let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
     let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
     let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
@@ -14094,6 +14132,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         eventFactory,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
+        FeedChannelPostsCount: await FeedChannelPostsCountPromise,
         UserCounter: await UserCounterPromise,
         UserMessagesSentCounter: await UserMessagesSentCounterPromise,
         UserMessagesSentWeeklyCounter: await UserMessagesSentWeeklyCounterPromise,

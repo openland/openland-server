@@ -1134,6 +1134,14 @@ export default {
             });
             return true;
         }),
+        debugCalcChannelPostsCount: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugReindexFeedChannels', async (ctx, id, log) => {
+                let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + id);
+                let posts = await Store.FeedEvent.fromTopic.findAll(ctx, topic.id);
+                await Store.FeedChannelPostsCount.set(ctx, id, posts.length);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

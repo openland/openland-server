@@ -162,6 +162,9 @@ export default {
         about: src => src.about,
         photo: src => src.image ? buildBaseImageUrl(src.image) : null,
         socialImage: src => src.image ? buildBaseImageUrl(src.socialImage) : null,
+        isGlobal: async (src, args, ctx) => src.isGlobal || false,
+        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id),
+        postsCount: async (src, args, ctx) => await Store.FeedChannelPostsCount.get(ctx, src.id),
         subscribed: async (src, args, ctx) => {
             let uid = ctx.auth.uid!;
             let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
@@ -183,8 +186,6 @@ export default {
             }
             return 'None';
         },
-        subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id),
-        isGlobal: async (src, args, ctx) => src.isGlobal || false
     },
     FeedSubscription: {
         __resolveType(src: FeedSubscriptionRoot) {

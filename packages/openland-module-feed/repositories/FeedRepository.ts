@@ -187,6 +187,9 @@ export class FeedRepository {
             if (!message) {
                 throw new UserError('Message not found');
             }
+            if (message.deleted || feedEvent.deleted) {
+                throw new NotFoundError();
+            }
             message.deleted = true;
             feedEvent.deleted = true;
 
