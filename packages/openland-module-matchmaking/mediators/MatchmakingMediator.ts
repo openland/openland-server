@@ -149,6 +149,11 @@ export class MatchmakingMediator {
         let org = user!.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, user!.primaryOrganization) : null;
         let profile = await this.getRoomProfile(ctx, peerId, peerType, uid);
         let question = profile!.answers ? profile!.answers.find(a => a.question.title === 'Interested in') : null;
+
+        let id: string = '';
+        if (peerType === 'room') {
+            id = IDs.Conversation.serialize(peerId);
+        }
         return {
             type: 'rich_attachment' as any,
             title: await Modules.Users.getUserFullName(ctx, uid),
@@ -164,7 +169,7 @@ export class MatchmakingMediator {
             imagePreview: user!.picture ? await Modules.Media.fetchLowResPreview(ctx, user!.picture.uuid) : null,
             keyboard: {
                 buttons: [[
-                    { title: 'View details', style: 'DEFAULT', url: `https://openland.com/mail/${IDs.User.serialize(uid)}` },
+                    { title: 'View details', style: 'DEFAULT', url: `https://openland.com/group/${id}/user/${IDs.User.serialize(uid)}` },
                 ]],
             },
         };
