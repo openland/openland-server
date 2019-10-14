@@ -27,6 +27,14 @@ export interface FeedChannelInput {
     global?: boolean;
 }
 
+export interface FeedChannelUpdateInput {
+    title?: string;
+    about?: string;
+    image?: ImageRef;
+    socialImage?: ImageRef;
+    global?: boolean;
+}
+
 @injectable()
 export class FeedChannelRepository {
     @lazyInject('FeedRepository')
@@ -62,7 +70,7 @@ export class FeedChannelRepository {
         });
     }
 
-    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
+    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelUpdateInput) {
         return await inTx(parent, async ctx => {
             let channel = await Store.FeedChannel.findById(ctx, channelId);
             if (!channel) {

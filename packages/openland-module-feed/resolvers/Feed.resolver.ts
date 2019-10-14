@@ -234,7 +234,7 @@ export default {
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
-            let globalTopics = await Store.FeedTopic.global.findAll(ctx);
+            let globalTopics = await Store.FeedTopic.fromGlobal.findAll(ctx);
             let topics: FeedTopic[] = [...globalTopics, ...(await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))))] as FeedTopic[];
             topics = topics.filter(t => t.key.startsWith('channel-'));
 
@@ -550,10 +550,10 @@ export default {
                     await Modules.Media.saveFile(ctx, args.socialImageRef.uuid);
                 }
                 return await Modules.Feed.updateFeedChannel(ctx, IDs.FeedChannel.parse(args.id), uid, {
-                    title: args.title,
+                    title: args.title || undefined,
                     about: args.about || undefined,
                     image: args.photoRef || undefined,
-                    global: args.global || undefined
+                    global: (args.global !== null && args.global !== undefined) ? args.global : undefined
                 });
             });
         }),

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '395fafda8320732111004296878601a9';
+export const GQL_SPEC_VERSION = 'adff3bd80b08ce1a2c3cefe9beceb4dc';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1029,6 +1029,7 @@ export namespace GQL {
         debugFixHyperlogEvent: boolean;
         debugReindexFeedChannelAdmins: boolean;
         debugReindexFeedChannels: boolean;
+        debugReindexFeedTopics: boolean;
         debugCalcChannelPostsCount: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
@@ -1914,7 +1915,7 @@ export namespace GQL {
     }
     export interface MutationAlphaFeedUpdateChannelArgs {
         id: string;
-        title: string;
+        title: OptionalNullable<string>;
         about: OptionalNullable<string>;
         photoRef: OptionalNullable<ImageRefInput>;
         socialImageRef: OptionalNullable<ImageRefInput>;

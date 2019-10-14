@@ -1009,7 +1009,8 @@ export default declareSchema(() => {
         field('key', string());
         field('isGlobal', optional(boolean()));
         uniqueIndex('key', ['key']);
-        rangeIndex('global', ['createdAt']);
+        rangeIndex('global', ['createdAt']).withCondition(src => src.isGlobal); // deprecated
+        rangeIndex('fromGlobal', ['createdAt']).withCondition(src => src.isGlobal);
     });
     entity('FeedEvent', () => {
         primaryKey('id', integer());
