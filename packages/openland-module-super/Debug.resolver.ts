@@ -255,6 +255,12 @@ export default {
 
             return true;
         }),
+        debugSerializeId: withPermission('super-admin', async (ctx, args) => {
+            if (!(IDs as any)[args.type]) {
+                throw new NotFoundError();
+            }
+            return (IDs as any)[args.type].serialize(args.id);
+        }),
         debugCreateTestUser: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let id = await Modules.Users.createTestUser(ctx, args.key, args.name);

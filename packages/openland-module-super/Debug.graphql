@@ -88,6 +88,7 @@ enum SuperNotificationType {
 }
 
 extend type Mutation {
+    debugSerializeId(id: Int!, type: String!): ID!
     debugSendEmail(type: DebugEmailType!): Boolean
     debugCreateTestUser(key: String!, name: String!): User!
     debugDeleteUrlInfoCache(url: String!): Boolean
