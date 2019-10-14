@@ -3,7 +3,7 @@ type FeedUpdateContainer {
     state: String!
 }
 
-union FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted
+union FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted | FeedRebuildNeeded
 
 type FeedItemReceived {
     item: FeedItem!
@@ -13,6 +13,9 @@ type FeedItemUpdated {
 }
 type FeedItemDeleted {
     item: FeedItem!
+}
+type FeedRebuildNeeded {
+    homeFeed: FeedItemConnection!
 }
 
 extend type Subscription {

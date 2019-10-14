@@ -13655,6 +13655,35 @@ export class FeedItemDeletedEvent extends BaseEvent {
     get itemId(): number { return this.raw.itemId; }
 }
 
+const feedRebuildEventCodec = c.struct({
+    subscriberId: c.optional(c.integer),
+});
+
+interface FeedRebuildEventShape {
+    subscriberId?: number | null | undefined;
+}
+
+export class FeedRebuildEvent extends BaseEvent {
+
+    static create(data: FeedRebuildEventShape) {
+        return new FeedRebuildEvent(feedRebuildEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new FeedRebuildEvent(feedRebuildEventCodec.decode(data));
+    }
+
+    static encode(event: FeedRebuildEvent) {
+        return feedRebuildEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('feedRebuildEvent', data);
+    }
+
+    get subscriberId(): number | null { return this.raw.subscriberId; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -13990,6 +14019,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedItemReceivedEvent', FeedItemReceivedEvent.encode as any, FeedItemReceivedEvent.decode);
     eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
+    eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);

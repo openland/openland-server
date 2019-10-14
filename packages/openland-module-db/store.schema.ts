@@ -1040,10 +1040,13 @@ export default declareSchema(() => {
         field('subscriberId', optional(integer()));
         field('itemId', integer());
     });
+    event('FeedRebuildEvent', () => {
+        field('subscriberId', optional(integer()));
+    });
+
     eventStore('FeedEventStore', () => {
         primaryKey('subscriberId', integer());
     });
-
     eventStore('FeedGlobalEventStore', () => {
         // Noop
     });
