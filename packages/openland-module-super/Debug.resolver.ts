@@ -1140,6 +1140,14 @@ export default {
             });
             return true;
         }),
+        debugReindexFeedTopics: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.FeedTopic, parent.auth.uid!, 'debugReindexFeedTopics', async (ctx, id, log) => {
+                let topic = await Store.FeedTopic.findById(ctx, id);
+                topic!.invalidate();
+                await topic!.flush(ctx);
+            });
+            return true;
+        }),
         debugCalcChannelPostsCount: withPermission('super-admin', async (parent) => {
             debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugReindexFeedChannels', async (ctx, id, log) => {
                 let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + id);

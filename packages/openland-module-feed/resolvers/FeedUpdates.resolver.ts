@@ -4,7 +4,13 @@ import FeedUpdateRoot = GQLRoots.FeedUpdateRoot;
 import { AppContext } from '../../openland-modules/AppContext';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from '../../openland-module-db/FDB';
-import { FeedItemDeletedEvent, FeedItemReceivedEvent, FeedItemUpdatedEvent } from '../../openland-module-db/store';
+import {
+    FeedEvent,
+    FeedItemDeletedEvent,
+    FeedItemReceivedEvent,
+    FeedItemUpdatedEvent,
+    FeedRebuildEvent, FeedTopic
+} from '../../openland-module-db/store';
 import { IDs } from '../../openland-module-api/IDs';
 import { createIterator } from '../../openland-utils/asyncIterator';
 import { BaseEvent, LiveStreamItem } from '@openland/foundationdb-entity';
@@ -22,6 +28,8 @@ export default {
                 return 'FeedItemUpdated';
             } else if (src instanceof FeedItemDeletedEvent) {
                 return 'FeedItemDeleted';
+            } else if (src instanceof FeedRebuildEvent) {
+                return 'FeedRebuildNeeded';
             } else {
                 throw new Error('unknown feed update: ' + src);
             }
@@ -35,6 +43,28 @@ export default {
     },
     FeedItemDeleted: {
         item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
+    },
+    FeedRebuildNeeded: {
+        homeFeed: async (src, args, ctx) => {
+            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + ctx.auth.uid);
+            let globalTopics = await Store.FeedTopic.fromGlobal.findAll(ctx);
+            let topics: FeedTopic[] = [...globalTopics, ...(await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))))] as FeedTopic[];
+            topics = topics.filter(t => t.key.startsWith('channel-'));
+
+            let allEvents: FeedEvent[] = [];
+            let topicPosts = await Promise.all(topics.map(t => Store.FeedEvent.fromTopic.query(ctx, t.id, {
+                reverse: true,
+                limit: 20
+            })));
+            for (let posts of topicPosts) {
+                allEvents.push(...posts.items);
+            }
+            let items = allEvents.sort((a, b) => b.id - a.id).splice(0, 20);
+            return {
+                items,
+                cursor: items.length > 0 ? IDs.HomeFeedCursor.serialize(items[items.length - 1].id) : undefined
+            };
+        }
     },
     Subscription: {
         homeFeedUpdates: {

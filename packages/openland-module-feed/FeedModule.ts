@@ -8,7 +8,7 @@ import {
 } from '../openland-module-rich-message/repositories/RichMessageRepository';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { FeedDeliveryMediator } from './repositories/FeedDeliveryMediator';
-import { FeedChannelInput } from './repositories/FeedChannelRepository';
+import { FeedChannelInput, FeedChannelUpdateInput } from './repositories/FeedChannelRepository';
 import FeedChannelMediator from './repositories/FeedChannelMediator';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { feedChannelIndexer } from './workers/feedChannelIndexer';
@@ -80,7 +80,7 @@ export class FeedModule {
         return await this.channels.createFeedChannel(parent, uid, input);
     }
 
-    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
+    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelUpdateInput) {
         return await this.channels.updateFeedChannel(parent, channelId, uid, input);
     }
 

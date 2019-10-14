@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { FeedChannelInput, FeedChannelRepository } from './FeedChannelRepository';
+import { FeedChannelInput, FeedChannelRepository, FeedChannelUpdateInput } from './FeedChannelRepository';
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -23,7 +23,7 @@ export default class FeedChannelMediator {
         return this.repo.createFeedChannel(parent, uid, input);
     }
 
-    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
+    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelUpdateInput) {
         return await inTx(parent, async ctx => {
             let role = await this.repo.roleInChannel(ctx, channelId, uid);
             if (role !== 'creator') {

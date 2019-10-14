@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '89c079e1c843ab338bd24c046f6094bb';
+export const GQL_SPEC_VERSION = 'adff3bd80b08ce1a2c3cefe9beceb4dc';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -848,7 +848,7 @@ export namespace GQL {
         updates: FeedUpdate[];
         state: string;
     }
-    export type FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted;
+    export type FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted | FeedRebuildNeeded;
     export interface FeedItemReceived {
         item: FeedItem;
     }
@@ -857,6 +857,9 @@ export namespace GQL {
     }
     export interface FeedItemDeleted {
         item: FeedItem;
+    }
+    export interface FeedRebuildNeeded {
+        homeFeed: FeedItemConnection;
     }
     export interface ICEServer {
         urls: string[];
@@ -1026,6 +1029,7 @@ export namespace GQL {
         debugFixHyperlogEvent: boolean;
         debugReindexFeedChannelAdmins: boolean;
         debugReindexFeedChannels: boolean;
+        debugReindexFeedTopics: boolean;
         debugCalcChannelPostsCount: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
@@ -1911,7 +1915,7 @@ export namespace GQL {
     }
     export interface MutationAlphaFeedUpdateChannelArgs {
         id: string;
-        title: string;
+        title: OptionalNullable<string>;
         about: OptionalNullable<string>;
         photoRef: OptionalNullable<ImageRefInput>;
         socialImageRef: OptionalNullable<ImageRefInput>;
@@ -3520,10 +3524,11 @@ export interface GQLResolver {
     EnvVar?: ComplexTypedResolver<GQL.EnvVar, GQLRoots.EnvVarRoot, {}, {}>;
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, GQLRoots.FeatureFlagRoot, {}, {}>;
     FeedUpdateContainer?: ComplexTypedResolver<GQL.FeedUpdateContainer, GQLRoots.FeedUpdateContainerRoot, {updates: GQLRoots.FeedUpdateRoot[]}, {}>;
-    FeedUpdate?: UnionTypeResolver<GQLRoots.FeedUpdateRoot, 'FeedItemReceived' | 'FeedItemUpdated' | 'FeedItemDeleted'>;
+    FeedUpdate?: UnionTypeResolver<GQLRoots.FeedUpdateRoot, 'FeedItemReceived' | 'FeedItemUpdated' | 'FeedItemDeleted' | 'FeedRebuildNeeded'>;
     FeedItemReceived?: ComplexTypedResolver<GQL.FeedItemReceived, GQLRoots.FeedItemReceivedRoot, {item: GQLRoots.FeedItemRoot}, {}>;
     FeedItemUpdated?: ComplexTypedResolver<GQL.FeedItemUpdated, GQLRoots.FeedItemUpdatedRoot, {item: GQLRoots.FeedItemRoot}, {}>;
     FeedItemDeleted?: ComplexTypedResolver<GQL.FeedItemDeleted, GQLRoots.FeedItemDeletedRoot, {item: GQLRoots.FeedItemRoot}, {}>;
+    FeedRebuildNeeded?: ComplexTypedResolver<GQL.FeedRebuildNeeded, GQLRoots.FeedRebuildNeededRoot, {homeFeed: GQLRoots.FeedItemConnectionRoot}, {}>;
     ICEServer?: ComplexTypedResolver<GQL.ICEServer, GQLRoots.ICEServerRoot, {}, {}>;
     Conference?: ComplexTypedResolver<GQL.Conference, GQLRoots.ConferenceRoot, {peers: GQLRoots.ConferencePeerRoot[], iceServers: GQLRoots.ICEServerRoot[]}, {}>;
     ConferencePeer?: ComplexTypedResolver<GQL.ConferencePeer, GQLRoots.ConferencePeerRoot, {user: GQLRoots.UserRoot, connection: Nullable<GQLRoots.ConferencePeerConnectionRoot>}, {}>;

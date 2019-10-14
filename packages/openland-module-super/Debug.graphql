@@ -137,6 +137,7 @@ extend type Mutation {
     debugFixHyperlogEvent(eventId: String!): Boolean!
     debugReindexFeedChannelAdmins: Boolean!
     debugReindexFeedChannels: Boolean!
+    debugReindexFeedTopics: Boolean!
     debugCalcChannelPostsCount: Boolean!
 }
 

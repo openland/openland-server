@@ -9,6 +9,7 @@ import { FeedRepository } from './FeedRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { FeedDeliveryMediator } from './FeedDeliveryMediator';
 
 /**
  * Channel types
@@ -26,10 +27,21 @@ export interface FeedChannelInput {
     global?: boolean;
 }
 
+export interface FeedChannelUpdateInput {
+    title?: string;
+    about?: string;
+    image?: ImageRef;
+    socialImage?: ImageRef;
+    global?: boolean;
+}
+
 @injectable()
 export class FeedChannelRepository {
     @lazyInject('FeedRepository')
     private readonly feedRepo!: FeedRepository;
+
+    @lazyInject('FeedDeliveryMediator')
+    private readonly delivery!: FeedDeliveryMediator;
 
     async createFeedChannel(parent: Context, uid: number, input: FeedChannelInput) {
         return await inTx(parent, async ctx => {
@@ -51,34 +63,41 @@ export class FeedChannelRepository {
             await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
             await this.subscribeChannel(ctx, uid, channel.id);
             await this.markForIndexing(ctx, channel.id);
+            if (input.global) {
+                await this.delivery.onFeedRebuildNeeded(ctx);
+            }
             return channel;
         });
     }
 
-    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelInput) {
+    async updateFeedChannel(parent: Context, channelId: number, uid: number, input: FeedChannelUpdateInput) {
         return await inTx(parent, async ctx => {
             let channel = await Store.FeedChannel.findById(ctx, channelId);
             if (!channel) {
                 throw new NotFoundError();
             }
+            if (input.global === true && !(await Modules.Super.isSuperAdmin(ctx, uid))) {
+                throw new UserError('Only super-admins can create global channels');
+            }
             if (input.title) {
                 channel.title = input.title;
             }
-            if (input.about) {
+            if (input.about !== undefined) {
                 channel.about = input.about;
             }
-            if (input.image) {
+            if (input.image !== undefined) {
                 channel.image = input.image;
             }
-            if (input.socialImage) {
+            if (input.socialImage !== undefined) {
                 channel.socialImage = input.socialImage;
             }
-            if (input.global) {
+            if (input.global !== undefined) {
                 channel.isGlobal = input.global;
                 let topic = await Store.FeedTopic.key.find(ctx, 'channel-' + channel.id);
                 if (topic) {
                     topic.isGlobal = channel.isGlobal;
                 }
+                await this.delivery.onFeedRebuildNeeded(ctx);
             }
             await this.markForIndexing(ctx, channelId);
             return channel;
@@ -90,6 +109,8 @@ export class FeedChannelRepository {
             if (await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
                 await Store.FeedChannelMembersCount.increment(ctx, channelId);
                 await this.markForIndexing(ctx, channelId);
+                let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
+                await this.delivery.onFeedRebuildNeeded(ctx, subscriber.id);
             }
         });
     }
@@ -99,6 +120,8 @@ export class FeedChannelRepository {
             if (await this.feedRepo.unsubscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
                 await Store.FeedChannelMembersCount.decrement(ctx, channelId);
                 await this.markForIndexing(ctx, channelId);
+                let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
+                await this.delivery.onFeedRebuildNeeded(ctx, subscriber.id);
             }
         });
     }

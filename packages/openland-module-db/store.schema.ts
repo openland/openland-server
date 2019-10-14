@@ -1009,7 +1009,8 @@ export default declareSchema(() => {
         field('key', string());
         field('isGlobal', optional(boolean()));
         uniqueIndex('key', ['key']);
-        rangeIndex('global', ['createdAt']);
+        rangeIndex('global', ['createdAt']).withCondition(src => src.isGlobal); // deprecated
+        rangeIndex('fromGlobal', ['createdAt']).withCondition(src => src.isGlobal);
     });
     entity('FeedEvent', () => {
         primaryKey('id', integer());
@@ -1040,10 +1041,13 @@ export default declareSchema(() => {
         field('subscriberId', optional(integer()));
         field('itemId', integer());
     });
+    event('FeedRebuildEvent', () => {
+        field('subscriberId', optional(integer()));
+    });
+
     eventStore('FeedEventStore', () => {
         primaryKey('subscriberId', integer());
     });
-
     eventStore('FeedGlobalEventStore', () => {
         // Noop
     });

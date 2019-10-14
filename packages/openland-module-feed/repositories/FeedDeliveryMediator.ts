@@ -8,7 +8,7 @@ import {
     FeedEvent,
     FeedItemDeletedEvent,
     FeedItemReceivedEvent,
-    FeedItemUpdatedEvent
+    FeedItemUpdatedEvent, FeedRebuildEvent
 } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
 
@@ -91,6 +91,14 @@ export class FeedDeliveryMediator {
             await Store.FeedGlobalEventStore.post(ctx, FeedItemDeletedEvent.create({ itemId: item.id }));
         } else {
             await this.queue.pushWork(ctx, { itemId: item.id, action: 'delete' });
+        }
+    }
+
+    onFeedRebuildNeeded = async (ctx: Context, subscriberId?: number) => {
+        if (subscriberId) {
+            await Store.FeedEventStore.post(ctx, subscriberId, FeedRebuildEvent.create({ subscriberId }));
+        } else {
+            await Store.FeedGlobalEventStore.post(ctx, FeedRebuildEvent.create({ }));
         }
     }
 

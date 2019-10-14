@@ -8115,7 +8115,8 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         let subspace = await storage.resolveEntityDirectory('feedTopic');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'key'), condition: undefined });
-        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'global'), condition: undefined });
+        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'global'), condition: src => src.isGlobal });
+        secondaryIndexes.push({ name: 'fromGlobal', storageKey: 'fromGlobal', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'fromGlobal'), condition: src => src.isGlobal });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -8162,6 +8163,21 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    readonly fromGlobal = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
         },
     });
 
@@ -13655,6 +13671,35 @@ export class FeedItemDeletedEvent extends BaseEvent {
     get itemId(): number { return this.raw.itemId; }
 }
 
+const feedRebuildEventCodec = c.struct({
+    subscriberId: c.optional(c.integer),
+});
+
+interface FeedRebuildEventShape {
+    subscriberId?: number | null | undefined;
+}
+
+export class FeedRebuildEvent extends BaseEvent {
+
+    static create(data: FeedRebuildEventShape) {
+        return new FeedRebuildEvent(feedRebuildEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new FeedRebuildEvent(feedRebuildEventCodec.decode(data));
+    }
+
+    static encode(event: FeedRebuildEvent) {
+        return feedRebuildEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('feedRebuildEvent', data);
+    }
+
+    get subscriberId(): number | null { return this.raw.subscriberId; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -13990,6 +14035,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedItemReceivedEvent', FeedItemReceivedEvent.encode as any, FeedItemReceivedEvent.decode);
     eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
+    eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
