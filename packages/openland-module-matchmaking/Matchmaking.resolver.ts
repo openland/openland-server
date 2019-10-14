@@ -24,12 +24,12 @@ let resolvePeer = (id: string): { id: number, type: MatchmakingPeerType } | null
 // @ts-ignore
 export default {
     MatchmakingPeer: {
-      __resolveType(obj: MatchmakingPeerRoot) {
-          if (obj instanceof ConversationRoom) {
-              return 'SharedRoom';
-          }
-          throw new Error('Unsupported matchmaking peer type');
-      }
+        __resolveType(obj: MatchmakingPeerRoot) {
+            if (obj instanceof ConversationRoom) {
+                return 'SharedRoom';
+            }
+            throw new Error('Unsupported matchmaking peer type');
+        }
     },
     MatchmakingRoom: {
         enabled: src => src.enabled,
@@ -121,7 +121,7 @@ export default {
             if (!peer) {
                 return null;
             }
-            return await Modules.Matchmaking.getRoom(ctx, peer.id, peer.type);
+            return await Modules.Matchmaking.getRoomProfile(ctx, peer.id, 'room', IDs.User.parse(args.uid));
         })
     },
     Mutation: {
@@ -134,7 +134,7 @@ export default {
                 ...args.input,
                 questions: args.input.questions ?
                     args.input.questions.map(a => ({ ...a, id: a.id ? IDs.MatchmakingQuestion.parse(a.id) : null }))
-                     : null
+                    : null
             };
             return await Modules.Matchmaking.saveRoom(ctx, peer.id, peer.type, uid, args.input);
         }),
