@@ -121,7 +121,7 @@ export default {
             if (!peer) {
                 return null;
             }
-            return await Modules.Matchmaking.getRoomProfile(ctx, peer.id, 'room', IDs.User.parse(args.uid));
+            return await Modules.Matchmaking.getRoomProfile(ctx, peer.id, peer.type, IDs.User.parse(args.uid));
         })
     },
     Mutation: {
