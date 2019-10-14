@@ -234,7 +234,8 @@ export default {
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
-            let topics: FeedTopic[] = await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))) as FeedTopic[];
+            let globalTopics = await Store.FeedTopic.global.findAll(ctx);
+            let topics: FeedTopic[] = [...globalTopics, ...(await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))))] as FeedTopic[];
             topics = topics.filter(t => t.key.startsWith('channel-'));
 
             let allEvents: FeedEvent[] = [];

@@ -46,8 +46,9 @@ export default {
     },
     FeedRebuildNeeded: {
         homeFeed: async (src, args, ctx) => {
-            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + ctx.auth.uid!);
-            let topics: FeedTopic[] = await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))) as FeedTopic[];
+            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + ctx.auth.uid);
+            let globalTopics = await Store.FeedTopic.global.findAll(ctx);
+            let topics: FeedTopic[] = [...globalTopics, ...(await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))))] as FeedTopic[];
             topics = topics.filter(t => t.key.startsWith('channel-'));
 
             let allEvents: FeedEvent[] = [];
