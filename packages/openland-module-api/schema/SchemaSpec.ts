@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'adff3bd80b08ce1a2c3cefe9beceb4dc';
+export const GQL_SPEC_VERSION = '68ce5a6a21182060d00a8f0e300f8c5c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -885,6 +885,7 @@ export namespace GQL {
     export type MediaStreamState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export interface MediaStream {
         id: string;
+        peerId: Nullable<string>;
         state: MediaStreamState;
         sdp: Nullable<string>;
         ice: string[];

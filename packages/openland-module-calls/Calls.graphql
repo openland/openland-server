@@ -33,6 +33,7 @@ enum MediaStreamState {
 
 type MediaStream {
     id: ID!
+    peerId: ID
     state: MediaStreamState!
     sdp: String
     ice: [String!]!
