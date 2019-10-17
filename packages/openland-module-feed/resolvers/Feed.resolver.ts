@@ -283,18 +283,19 @@ export default {
             if (!args.first || args.first <= 0) {
                 return {items: []};
             }
-            let afterExists = afterId && await Store.FeedChannel.findById(ctx, afterId);
-            let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + afterId);
             let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
-            let {items, haveMore} = (await Store.FeedSubscription.subscriber.query(ctx, subscriber.id, {
-                limit: args.first,
-                after: afterExists ? topic.id : undefined
-            }));
+            let items = await Store.FeedSubscription.subscriber.findAll(ctx, subscriber.id);
             let topics: FeedTopic[] = (await Promise.all(items.map(s => Store.FeedTopic.findById(ctx, s.tid)))).filter(t => !!t) as FeedTopic[];
+            topics = topics.filter(t => t.key.startsWith('channel-'));
+            if (afterId) {
+                let after = topics.findIndex(t => t.key === 'channel-' + afterId);
+                topics = topics.splice(after + 1);
 
+            }
+            let res = topics.splice(0, args.first);
             return {
-                items: await Promise.all(topics.filter(t => t.key.startsWith('channel-')).map(t => Store.FeedChannel.findById(ctx, parseInt(t.key.replace('channel-', ''), 10)))),
-                cursor: haveMore ? IDs.FeedChannel.serialize(items[items.length - 1].tid) : undefined
+                items: await Promise.all(res.map(t => Store.FeedChannel.findById(ctx, parseInt(t.key.replace('channel-', ''), 10)))),
+                cursor: topics.length > args.first ? IDs.FeedChannel.serialize(parseInt(res[res.length - 1].key.replace('channel-', ''), 10)) : undefined
             };
         }),
         alphaWritableChannels: withUser(async (ctx, args, uid) => {
