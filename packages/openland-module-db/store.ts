@@ -1146,6 +1146,42 @@ export class UserReactionsGivenFactory extends AtomicIntegerFactory {
     }
 }
 
+export class StatsRecordsFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('statsRecords');
+        return new StatsRecordsFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(metricName: string) {
+        return this._findById([metricName]);
+    }
+
+    get(ctx: Context, metricName: string) {
+        return this._get(ctx, [metricName]);
+    }
+
+    set(ctx: Context, metricName: string, value: number) {
+        return this._set(ctx, [metricName], value);
+    }
+
+    add(ctx: Context, metricName: string, value: number) {
+        return this._add(ctx, [metricName], value);
+    }
+
+    increment(ctx: Context, metricName: string) {
+        return this._increment(ctx, [metricName]);
+    }
+
+    decrement(ctx: Context, metricName: string) {
+        return this._decrement(ctx, [metricName]);
+    }
+}
+
 export class RoomMessagesCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -13908,6 +13944,7 @@ export interface Store extends BaseStore {
     readonly UserHasFilledAbout: UserHasFilledAboutFactory;
     readonly UserReactionsGot: UserReactionsGotFactory;
     readonly UserReactionsGiven: UserReactionsGivenFactory;
+    readonly StatsRecords: StatsRecordsFactory;
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
     readonly User: UserFactory;
@@ -14068,6 +14105,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserHasFilledAboutPromise = UserHasFilledAboutFactory.open(storage);
     let UserReactionsGotPromise = UserReactionsGotFactory.open(storage);
     let UserReactionsGivenPromise = UserReactionsGivenFactory.open(storage);
+    let StatsRecordsPromise = StatsRecordsFactory.open(storage);
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
@@ -14208,6 +14246,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserHasFilledAbout: await UserHasFilledAboutPromise,
         UserReactionsGot: await UserReactionsGotPromise,
         UserReactionsGiven: await UserReactionsGivenPromise,
+        StatsRecords: await StatsRecordsPromise,
         RoomMessagesCounter: await RoomMessagesCounterPromise,
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
         User: await UserPromise,

@@ -1,8 +1,12 @@
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Modules } from '../../openland-modules/Modules';
-import { inTx } from '@openland/foundationdb';
 import { ScheduledQueue } from '../../openland-module-workers/ScheduledQueue';
-import { getOnboardingCounters, getOnboardingReportsChatId, getSuperNotificationsBotId } from './utils';
+import {
+    alertIfRecord, buildDailyRecordAlert,
+    getOnboardingCounters,
+    getOnboardingReportsChatId,
+    getSuperNotificationsBotId,
+} from './utils';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
 
@@ -14,33 +18,81 @@ export function createDailyOnboardingReportWorker() {
     });
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (parent) => {
-            return await inTx(parent, async ctx => {
-                const chatId = await getOnboardingReportsChatId(ctx);
-                const botId = await getSuperNotificationsBotId(ctx);
-                if (!chatId || !botId) {
-                    log.warn(ctx, 'botId or chatId not specified');
-                    return { result: 'rejected' };
-                }
+            const chatId = await getOnboardingReportsChatId(parent);
+            const botId = await getSuperNotificationsBotId(parent);
+            if (!chatId || !botId) {
+                log.warn(parent, 'botId or chatId not specified');
+                return { result: 'rejected' };
+            }
 
-                let counters = await getOnboardingCounters(Date.now() - 24 * 60 * 60 * 1000);
+            let counters = await getOnboardingCounters(Date.now() - 24 * 60 * 60 * 1000);
+            const report = [heading([
+                `Daily`,
+                `🐥 ${counters.newUserEntrances}`,
+                `📱 ${counters.newMobileUsers}`,
+                `➡️ ${counters.newSenders}`,
+                `🙌 ${counters.newInviters}`,
+                `🗣 ${counters.newAboutFillers}`,
+                `❤️ ${counters.newThreeLikeGivers}`,
+                `🙃 ${counters.newThreeLikeGetters}`
+            ].join('   '))];
 
-                const report = [heading([
-                    `Daily`,
-                    `🐥 ${counters.newUserEntrances}`,
-                    `📱 ${counters.newMobileUsers}`,
-                    `➡️ ${counters.newSenders}`,
-                    `🙌 ${counters.newInviters}`,
-                    `🗣 ${counters.newAboutFillers}`,
-                    `❤️ ${counters.newThreeLikeGivers}`,
-                    `🙃 ${counters.newThreeLikeGetters}`
-                ].join('   '))];
-
-                await Modules.Messaging.sendMessage(ctx, chatId!, botId!, {
-                    ...buildMessage(...report), ignoreAugmentation: true,
-                });
-                return { result: 'completed' };
+            await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
+                ...buildMessage(...report), ignoreAugmentation: true,
             });
 
+            // check for records
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-user-entrances',
+                counters.newUserEntrances,
+                buildDailyRecordAlert('New user entrances')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-mobile-users',
+                counters.newMobileUsers,
+                buildDailyRecordAlert('New mobile users')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-senders',
+                counters.newSenders,
+                buildDailyRecordAlert('New senders')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-inviters',
+                counters.newInviters,
+                buildDailyRecordAlert('New inviters')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-about-fillers',
+                counters.newAboutFillers,
+                buildDailyRecordAlert('New about fillers')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-like-givers',
+                counters.newThreeLikeGivers,
+                buildDailyRecordAlert('New three like givers')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'onboarding-daily-like-getters',
+                counters.newThreeLikeGetters,
+                buildDailyRecordAlert('New three like getters')
+            );
+
+            return { result: 'completed' };
         });
     }
     return queue;

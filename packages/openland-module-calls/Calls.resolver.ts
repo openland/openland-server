@@ -112,6 +112,7 @@ export default {
                     }
                     res.push({
                         id: IDs.MediaStream.serialize(id),
+                        peerId: src.peerId === c.peer1 ? (c.peer2 !== null ? IDs.ConferencePeer.serialize(c.peer2) : null) : IDs.ConferencePeer.serialize(c.peer1),
                         state,
                         sdp,
                         ice
