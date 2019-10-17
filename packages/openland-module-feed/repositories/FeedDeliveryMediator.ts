@@ -58,48 +58,26 @@ export class FeedDeliveryMediator {
 
     onNewItem = async (root: Context, item: FeedEvent) => {
         await inTx(root, async ctx => {
-            let topic = await Store.FeedTopic.findById(ctx, item.tid);
-            if (!topic) {
-                throw new Error('Internal inconsistency');
-            }
-            if (topic.isGlobal) {
-                await Store.FeedGlobalEventStore.post(ctx, FeedItemReceivedEvent.create({ itemId: item.id }));
-            } else {
-                await this.queue.pushWork(ctx, { itemId: item.id, action: 'new' });
-            }
+            await this.queue.pushWork(ctx, { itemId: item.id, action: 'new' });
         });
     }
 
-    onItemUpdated = async (ctx: Context, item: FeedEvent) => {
-        let topic = await Store.FeedTopic.findById(ctx, item.tid);
-        if (!topic) {
-            throw new Error('Internal inconsistency');
-        }
-        if (topic.isGlobal) {
-            await Store.FeedGlobalEventStore.post(ctx, FeedItemUpdatedEvent.create({ itemId: item.id }));
-        } else {
-            await this.queue.pushWork(ctx, { itemId: item.id, action: 'update' });
-        }
+    onItemUpdated = async (root: Context, item: FeedEvent) => {
+        await inTx(root, async ctx => {
+            await this.queue.pushWork(ctx, {itemId: item.id, action: 'update'});
+        });
     }
 
-    onItemDeleted = async (ctx: Context, item: FeedEvent) => {
-        let topic = await Store.FeedTopic.findById(ctx, item.tid);
-        if (!topic) {
-            throw new Error('Internal inconsistency');
-        }
-        if (topic.isGlobal) {
-            await Store.FeedGlobalEventStore.post(ctx, FeedItemDeletedEvent.create({ itemId: item.id }));
-        } else {
-            await this.queue.pushWork(ctx, { itemId: item.id, action: 'delete' });
-        }
+    onItemDeleted = async (root: Context, item: FeedEvent) => {
+        await inTx(root, async ctx => {
+            await this.queue.pushWork(ctx, {itemId: item.id, action: 'delete'});
+        });
     }
 
-    onFeedRebuildNeeded = async (ctx: Context, subscriberId?: number) => {
-        if (subscriberId) {
-            await Store.FeedEventStore.post(ctx, subscriberId, FeedRebuildEvent.create({ subscriberId }));
-        } else {
-            await Store.FeedGlobalEventStore.post(ctx, FeedRebuildEvent.create({ }));
-        }
+    onFeedRebuildNeeded = async (root: Context, subscriberId: number) => {
+        await inTx(root, async ctx => {
+            await Store.FeedEventStore.post(ctx, subscriberId, FeedRebuildEvent.create({subscriberId}));
+        });
     }
 
     private async fanOutDelivery(parent: Context, itemId: number, action: 'new' | 'update' | 'delete') {

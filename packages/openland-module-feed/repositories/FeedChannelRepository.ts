@@ -63,9 +63,6 @@ export class FeedChannelRepository {
             await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
             await this.subscribeChannel(ctx, uid, channel.id);
             await this.markForIndexing(ctx, channel.id);
-            if (input.global) {
-                await this.delivery.onFeedRebuildNeeded(ctx);
-            }
             return channel;
         });
     }
@@ -97,7 +94,6 @@ export class FeedChannelRepository {
                 if (topic) {
                     topic.isGlobal = channel.isGlobal;
                 }
-                await this.delivery.onFeedRebuildNeeded(ctx);
             }
             await this.markForIndexing(ctx, channelId);
             return channel;

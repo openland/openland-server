@@ -109,7 +109,6 @@ export class FeedRepository {
 
     async findSubscriptions(parent: Context, subscriber: string) {
         return await inTx(parent, async (ctx) => {
-            await this.subscribe(ctx, subscriber, 'tag-global');
             let s = await this.resolveSubscriber(ctx, subscriber);
             return (await Store.FeedSubscription.subscriber.findAll(ctx, s.id)).map((v) => v.tid);
         });

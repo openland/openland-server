@@ -123,4 +123,8 @@ export class FeedModule {
     async getUserDraftsChannel(parent: Context, uid: number) {
         return this.channels.getUserDraftsChannel(parent, uid);
     }
+
+    async onFeedRebuildNeeded(ctx: Context, subscriberId: number) {
+        return this.delivery.onFeedRebuildNeeded(ctx, subscriberId);
+    }
 }

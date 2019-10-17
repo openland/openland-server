@@ -12,8 +12,6 @@ import {
     FeedRebuildEvent, FeedTopic
 } from '../../openland-module-db/store';
 import { IDs } from '../../openland-module-api/IDs';
-import { createIterator } from '../../openland-utils/asyncIterator';
-import { BaseEvent, LiveStreamItem } from '@openland/foundationdb-entity';
 
 export default {
     FeedUpdateContainer: {
@@ -47,8 +45,7 @@ export default {
     FeedRebuildNeeded: {
         homeFeed: async (src, args, ctx) => {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + ctx.auth.uid);
-            let globalTopics = await Store.FeedTopic.fromGlobal.findAll(ctx);
-            let topics: FeedTopic[] = [...globalTopics, ...(await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))))] as FeedTopic[];
+            let topics: FeedTopic[] = await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid))) as FeedTopic[];
             topics = topics.filter(t => t.key.startsWith('channel-'));
 
             let allEvents: FeedEvent[] = [];
@@ -71,53 +68,18 @@ export default {
             resolve: (msg: any) => msg,
             subscribe: async function (r: any, args: GQL.SubscriptionHomeFeedUpdatesArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid!;
-                await Modules.Feed.subscribe(ctx, 'user-' + uid, 'tag-global');
                 let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
-                let working = true;
 
                 let userCursor: undefined|string;
-                let globalCursor: undefined|string;
-
                 if (args.fromState) {
                     let state = IDs.FeedUpdatesCursor.parse(args.fromState);
                     if (state.includes(':')) {
                         userCursor = state.split(':')[0]!;
-                        globalCursor = state.split(':')[1]!;
                     } else {
                         userCursor = args.fromState;
                     }
                 }
-                let userStream = Store.FeedEventStore.createLiveStream(ctx, subscriber.id, { after: userCursor });
-                let globalStream = Store.FeedGlobalEventStore.createLiveStream(ctx, { after: globalCursor });
-                let iterator = createIterator<LiveStreamItem<BaseEvent>>(() => working = false);
-
-                let lastUserCursor: null|string = userCursor || await Store.FeedEventStore.createStream(subscriber.id, { after: userCursor }).tail(ctx);
-                let lastGlobalCursor: null|string = globalCursor || await Store.FeedGlobalEventStore.createStream({ after: globalCursor }).tail(ctx);
-
-                // tslint:disable-next-line:no-floating-promises
-                (async () => {
-                    for await (let item of userStream) {
-                        lastUserCursor = item.cursor;
-                        item.cursor = lastUserCursor + ':' + lastGlobalCursor;
-                        iterator.push(item);
-                        if (!working) {
-                            return;
-                        }
-                    }
-                })();
-                // tslint:disable-next-line:no-floating-promises
-                (async () => {
-                    for await (let item of globalStream) {
-                        lastGlobalCursor = item.cursor;
-                        item.cursor = lastUserCursor + ':' + lastGlobalCursor;
-                        iterator.push(item);
-                        if (!working) {
-                            return;
-                        }
-                    }
-                })();
-
-                return iterator;
+                return Store.FeedEventStore.createLiveStream(ctx, subscriber.id, { after: userCursor });
             }
         }
     }
