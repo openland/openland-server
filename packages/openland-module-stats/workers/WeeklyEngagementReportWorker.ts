@@ -1,6 +1,12 @@
 import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
-import { getEngagementCounters, getEngagementReportsChatId, getSuperNotificationsBotId } from './utils';
+import {
+    alertIfRecord,
+    buildWeeklyRecordAlert,
+    getEngagementCounters,
+    getEngagementReportsChatId,
+    getSuperNotificationsBotId,
+} from './utils';
 import { createLogger } from '@openland/log';
 import { Modules } from '../../openland-modules/Modules';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
@@ -39,6 +45,43 @@ export function createWeeklyEngagementReportWorker() {
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...report), ignoreAugmentation: true,
             });
+
+            // check for records
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-weekly-actives',
+                counters.actives,
+                buildWeeklyRecordAlert('Actives')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-weekly-senders',
+                counters.senders,
+                buildWeeklyRecordAlert('Senders')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-weekly-messages',
+                counters.messagesSent,
+                buildWeeklyRecordAlert('Sent messages')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-weekly-like-givers',
+                counters.todayLikeGivers,
+                buildWeeklyRecordAlert('Today like givers')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-weekly-like-getters',
+                counters.todayLikeGetters,
+                buildWeeklyRecordAlert('Today like getters')
+            );
 
             return { result: 'completed' };
         });

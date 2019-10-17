@@ -1204,6 +1204,10 @@ export default declareSchema(() => {
     atomicInt('UserReactionsGiven', () => {
         primaryKey('uid', integer());
     });
+
+    atomicInt('StatsRecords', () => {
+        primaryKey('metricName', string());
+    });
     // Global counters END
 
     atomicInt('RoomMessagesCounter', () => {
