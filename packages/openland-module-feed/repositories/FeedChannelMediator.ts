@@ -130,12 +130,14 @@ export default class FeedChannelMediator {
                 return state.draftsChannelId;
             }
             let id = await fetchNextDBSeq(ctx, 'feed-channel');
-            let channel =  await Store.FeedChannel.create(ctx, id, {
+            let channel = await Store.FeedChannel.create(ctx, id, {
                 ownerId: uid,
                 title: `Drafts`,
                 type: 'private',
                 isHidden: true
             });
+            state.draftsChannelId = channel.id;
+            await channel.flush(ctx);
             return channel.id;
         });
     }
