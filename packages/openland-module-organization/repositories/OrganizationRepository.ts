@@ -137,13 +137,13 @@ export class OrganizationRepository {
         });
     }
 
-    async removeUserFromOrganization(parent: Context, uid: number, oid: number) {
+    async removeUserFromOrganization(parent: Context, uid: number, oid: number, skipAccessCheck: boolean = false) {
         return await inTx(parent, async (ctx) => {
             let org = await Store.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
-            if (await this.isUserOwner(ctx, uid, oid)) {
+            if (!skipAccessCheck && await this.isUserOwner(ctx, uid, oid)) {
                 throw Error('Unable to remove owner');
             }
 
@@ -217,7 +217,7 @@ export class OrganizationRepository {
                 throw new NotFoundError();
             }
 
-            await this.removeUserFromOrganization(ctx, uid, oid);
+            await this.removeUserFromOrganization(ctx, uid, oid, true);
 
             // Change primary organization to other one
             userProfile.primaryOrganization = userOrganizations.filter(o => o !== oid)[0];
