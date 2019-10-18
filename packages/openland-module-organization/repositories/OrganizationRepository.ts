@@ -217,6 +217,8 @@ export class OrganizationRepository {
                 throw new NotFoundError();
             }
 
+            await this.removeUserFromOrganization(ctx, uid, oid);
+
             // Change primary organization to other one
             userProfile.primaryOrganization = userOrganizations.filter(o => o !== oid)[0];
 
