@@ -59,6 +59,7 @@ type DialogMessageDeleted {
 
 type DialogMessageRead {
     cid: ID!
+    mid: ID
     unread: Int!
     globalUnread: Int!
     haveMention: Boolean!

@@ -41,7 +41,7 @@ export default {
     },
     DialogUpdateSingle: {
         seq: src => 1,
-        state: src => IDs.DialogsUpdatesCursor.serialize(src.cursor || '') ,
+        state: src => IDs.DialogsUpdatesCursor.serialize(src.cursor || ''),
         update: src => src.items[0],
     },
     /*
@@ -108,6 +108,7 @@ export default {
     },
     DialogMessageRead: {
         cid: (src) => IDs.Conversation.serialize(src.cid!),
+        mid: (src) => src.mid && IDs.Message.serialize(src.mid),
         unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
         haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
@@ -181,60 +182,61 @@ export default {
                         }
                         let converted = oldEvents
                             .map(event => {
-                            if (event.kind === 'message_received') {
-                                return UserDialogMessageReceivedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                    mid: event.mid!,
-                                });
-                            } else if (event.kind === 'message_updated') {
-                                return UserDialogMessageUpdatedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                    mid: event.mid!
-                                });
-                            } else if (event.kind === 'message_deleted') {
-                                return UserDialogMessageDeletedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                    mid: event.mid!
-                                });
-                            } else if (event.kind === 'message_read') {
-                                return UserDialogMessageReadEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                });
-                            } else if (event.kind === 'title_updated') {
-                                return UserDialogTitleUpdatedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                    title: event.title!
-                                });
-                            } else if (event.kind === 'dialog_deleted') {
-                                return UserDialogDeletedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                });
-                            } else if (event.kind === 'dialog_bump') {
-                                return UserDialogBumpEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                });
-                            } else if (event.kind === 'photo_updated') {
-                                return UserDialogPhotoUpdatedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                    photo: event.photo
-                                });
-                            } else if (event.kind === 'dialog_mute_changed') {
-                                return UserDialogMuteChangedEvent.create({
-                                    uid: event.uid,
-                                    cid: event.cid!,
-                                    mute: event.mute!
-                                });
-                            }
-                            return null;
-                        })
+                                if (event.kind === 'message_received') {
+                                    return UserDialogMessageReceivedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        mid: event.mid!,
+                                    });
+                                } else if (event.kind === 'message_updated') {
+                                    return UserDialogMessageUpdatedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        mid: event.mid!
+                                    });
+                                } else if (event.kind === 'message_deleted') {
+                                    return UserDialogMessageDeletedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        mid: event.mid!
+                                    });
+                                } else if (event.kind === 'message_read') {
+                                    return UserDialogMessageReadEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        mid: event.mid
+                                    });
+                                } else if (event.kind === 'title_updated') {
+                                    return UserDialogTitleUpdatedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        title: event.title!
+                                    });
+                                } else if (event.kind === 'dialog_deleted') {
+                                    return UserDialogDeletedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                    });
+                                } else if (event.kind === 'dialog_bump') {
+                                    return UserDialogBumpEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                    });
+                                } else if (event.kind === 'photo_updated') {
+                                    return UserDialogPhotoUpdatedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        photo: event.photo
+                                    });
+                                } else if (event.kind === 'dialog_mute_changed') {
+                                    return UserDialogMuteChangedEvent.create({
+                                        uid: event.uid,
+                                        cid: event.cid!,
+                                        mute: event.mute!
+                                    });
+                                }
+                                return null;
+                            })
                             .filter(event => !!event);
 
                         yield { items: converted, cursor: '' };
