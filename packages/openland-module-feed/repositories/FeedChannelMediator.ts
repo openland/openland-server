@@ -50,7 +50,7 @@ export default class FeedChannelMediator {
                 });
             }
         }
-    };
+    }
 
     async createFeedChannel(parent: Context, uid: number, input: FeedChannelInput) {
         return this.repo.createFeedChannel(parent, uid, input);
