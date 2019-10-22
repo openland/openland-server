@@ -139,6 +139,7 @@ extend type Mutation {
     debugReindexFeedChannels: Boolean!
     debugReindexFeedTopics: Boolean!
     debugCalcChannelPostsCount: Boolean!
+    debugCalcChannelsSubscribersCount: Boolean!
 }
 
 extend type Subscription {

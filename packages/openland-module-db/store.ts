@@ -8892,6 +8892,127 @@ export class UserFeedStateFactory extends EntityFactory<UserFeedStateShape, User
     }
 }
 
+export interface FeedChannelAutoSubscriptionShape {
+    channelId: number;
+    peerType: string;
+    peerId: number;
+    uid: number;
+    enabled: boolean;
+}
+
+export interface FeedChannelAutoSubscriptionCreateShape {
+    uid: number;
+    enabled: boolean;
+}
+
+export class FeedChannelAutoSubscription extends Entity<FeedChannelAutoSubscriptionShape> {
+    get channelId(): number { return this._rawValue.channelId; }
+    get peerType(): string { return this._rawValue.peerType; }
+    get peerId(): number { return this._rawValue.peerId; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class FeedChannelAutoSubscriptionFactory extends EntityFactory<FeedChannelAutoSubscriptionShape, FeedChannelAutoSubscription> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('feedChannelAutoSubscription');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'fromPeer', storageKey: 'fromPeer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAutoSubscription', 'fromPeer'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'fromChannel', storageKey: 'fromChannel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAutoSubscription', 'fromChannel'), condition: src => src.enabled });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'channelId', type: 'integer' });
+        primaryKeys.push({ name: 'peerType', type: 'string' });
+        primaryKeys.push({ name: 'peerId', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            channelId: c.integer,
+            peerType: c.string,
+            peerId: c.integer,
+            uid: c.integer,
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<FeedChannelAutoSubscriptionShape> = {
+            name: 'FeedChannelAutoSubscription',
+            storageKey: 'feedChannelAutoSubscription',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new FeedChannelAutoSubscriptionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<FeedChannelAutoSubscriptionShape>) {
+        super(descriptor);
+    }
+
+    readonly fromPeer = Object.freeze({
+        findAll: async (ctx: Context, peerType: string, peerId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
+        },
+        query: (ctx: Context, peerType: string, peerId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (peerType: string, peerId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
+        },
+        liveStream: (ctx: Context, peerType: string, peerId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
+        },
+    });
+
+    readonly fromChannel = Object.freeze({
+        findAll: async (ctx: Context, channelId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [channelId])).items;
+        },
+        query: (ctx: Context, channelId: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [channelId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (channelId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [channelId], opts);
+        },
+        liveStream: (ctx: Context, channelId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [channelId], opts);
+        },
+    });
+
+    create(ctx: Context, channelId: number, peerType: string, peerId: number, src: FeedChannelAutoSubscriptionCreateShape): Promise<FeedChannelAutoSubscription> {
+        return this._create(ctx, [channelId, peerType, peerId], this.descriptor.codec.normalize({ channelId, peerType, peerId, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, channelId: number, peerType: string, peerId: number, src: FeedChannelAutoSubscriptionCreateShape): FeedChannelAutoSubscription {
+        return this._create_UNSAFE(ctx, [channelId, peerType, peerId], this.descriptor.codec.normalize({ channelId, peerType, peerId, ...src }));
+    }
+
+    findById(ctx: Context, channelId: number, peerType: string, peerId: number): Promise<FeedChannelAutoSubscription | null> {
+        return this._findById(ctx, [channelId, peerType, peerId]);
+    }
+
+    watch(ctx: Context, channelId: number, peerType: string, peerId: number): Watch {
+        return this._watch(ctx, [channelId, peerType, peerId]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelAutoSubscriptionShape>): FeedChannelAutoSubscription {
+        return new FeedChannelAutoSubscription([value.channelId, value.peerType, value.peerId], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface ChatAudienceCalculatingQueueShape {
     id: number;
     active: boolean;
@@ -14006,6 +14127,7 @@ export interface Store extends BaseStore {
     readonly FeedChannelAdmin: FeedChannelAdminFactory;
     readonly FeedChannelIndexingQueue: FeedChannelIndexingQueueFactory;
     readonly UserFeedState: UserFeedStateFactory;
+    readonly FeedChannelAutoSubscription: FeedChannelAutoSubscriptionFactory;
     readonly ChatAudienceCalculatingQueue: ChatAudienceCalculatingQueueFactory;
     readonly ChannelLink: ChannelLinkFactory;
     readonly AppInviteLink: AppInviteLinkFactory;
@@ -14167,6 +14289,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedChannelAdminPromise = FeedChannelAdminFactory.open(storage);
     let FeedChannelIndexingQueuePromise = FeedChannelIndexingQueueFactory.open(storage);
     let UserFeedStatePromise = UserFeedStateFactory.open(storage);
+    let FeedChannelAutoSubscriptionPromise = FeedChannelAutoSubscriptionFactory.open(storage);
     let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
     let ChannelLinkPromise = ChannelLinkFactory.open(storage);
     let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
@@ -14308,6 +14431,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedChannelAdmin: await FeedChannelAdminPromise,
         FeedChannelIndexingQueue: await FeedChannelIndexingQueuePromise,
         UserFeedState: await UserFeedStatePromise,
+        FeedChannelAutoSubscription: await FeedChannelAutoSubscriptionPromise,
         ChatAudienceCalculatingQueue: await ChatAudienceCalculatingQueuePromise,
         ChannelLink: await ChannelLinkPromise,
         AppInviteLink: await AppInviteLinkPromise,

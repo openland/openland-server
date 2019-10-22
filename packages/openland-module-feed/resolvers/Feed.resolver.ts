@@ -26,6 +26,7 @@ import FeedPostSourceRoot = GQLRoots.FeedPostSourceRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
+import { UserError } from '../../openland-errors/UserError';
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -231,6 +232,19 @@ export default {
         }
     },
 
+    Organization: {
+        linkedFeedChannels: async (src, args, ctx) => {
+            let autoSubscriptions = await Store.FeedChannelAutoSubscription.fromPeer.findAll(ctx, 'organization', src.id);
+            return await Promise.all(autoSubscriptions.map(s => Store.FeedChannel.findById(ctx, s.channelId)));
+        }
+    },
+    SharedRoom: {
+        linkedFeedChannels: async (src, args, ctx) => {
+            let autoSubscriptions = await Store.FeedChannelAutoSubscription.fromPeer.findAll(ctx, 'room', typeof src === 'number' ? src : src.id);
+            return await Promise.all(autoSubscriptions.map(s => Store.FeedChannel.findById(ctx, s.channelId)));
+        }
+    },
+
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
             // Subscribe to global topics
@@ -238,10 +252,13 @@ export default {
             let globalTopics = await Store.FeedTopic.fromGlobal.findAll(ctx);
             let subscribed = false;
             for (let globalTopic of globalTopics) {
+                if (!globalTopic.key.startsWith('channel-')) {
+                    continue;
+                }
                 let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, globalTopic.id);
                 if (!subscription) {
                     subscribed = true;
-                    await Modules.Feed.subscribe(ctx, 'user-' + uid, globalTopic.key);
+                    await Modules.Feed.subscribeChannel(ctx, uid, parseInt(globalTopic.key.replace('channel-', ''), 10), true);
                 }
             }
             if (subscribed) {
@@ -588,6 +605,38 @@ export default {
         }),
         alphaFeedChannelRemoveEditor: withUser(async (ctx, args, uid) => {
             await Modules.Feed.removeEditor(ctx, IDs.FeedChannel.parse(args.id), IDs.User.parse(args.userId), uid);
+            return true;
+        }),
+
+        alphaFeedChannelEnableRoomAutoSubscription: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.enableChannelAutoSubscription(ctx, uid, IDs.FeedChannel.parse(args.channelId), 'room', IDs.Conversation.parse(args.roomId));
+            return true;
+        }),
+        alphaFeedChannelDisableRoomAutoSubscription: withUser(async (ctx, args, uid) => {
+            await Modules.Feed.disableAutoSubscription(ctx, uid, IDs.FeedChannel.parse(args.channelId), 'room', IDs.Conversation.parse(args.roomId));
+            return true;
+        }),
+
+        alphaFeedChannelEnableCommunityAutoSubscription: withUser(async (ctx, args, uid) => {
+            let org = await Store.Organization.findById(ctx, IDs.Organization.parse(args.roomId));
+            if (!org) {
+                throw new NotFoundError();
+            }
+            if (org.kind !== 'community') {
+                throw new UserError('Only communities are supported');
+            }
+            await Modules.Feed.enableChannelAutoSubscription(ctx, uid, IDs.FeedChannel.parse(args.channelId), 'organization', IDs.Organization.parse(args.roomId));
+            return true;
+        }),
+        alphaFeedChannelDisableCommunityAutoSubscription: withUser(async (ctx, args, uid) => {
+            let org = await Store.Organization.findById(ctx, IDs.Organization.parse(args.roomId));
+            if (!org) {
+                throw new NotFoundError();
+            }
+            if (org.kind !== 'community') {
+                throw new UserError('Only communities are supported');
+            }
+            await Modules.Feed.disableAutoSubscription(ctx, uid, IDs.FeedChannel.parse(args.channelId), 'organization', IDs.Organization.parse(args.roomId));
             return true;
         }),
     }

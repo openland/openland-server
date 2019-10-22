@@ -132,6 +132,7 @@ export class OrganizationRepository {
             } else {
                 await Store.OrganizationMember.create(ctx, oid, uid, { status: 'joined', role: 'member', invitedBy: by });
                 await this.incrementOrganizationMembersCount(ctx, oid);
+                await Modules.Hooks.onOrgJoin(ctx, oid, uid);
                 return true;
             }
         });

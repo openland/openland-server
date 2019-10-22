@@ -27,6 +27,7 @@ export class FeedModule {
 
     start = () => {
         this.delivery.start();
+        this.channels.start();
         if (serverRoleEnabled('workers')) {
             feedChannelIndexer();
         }
@@ -84,7 +85,7 @@ export class FeedModule {
         return await this.channels.updateFeedChannel(parent, channelId, uid, input);
     }
 
-    async subscribeChannel(parent: Context, uid: number, channelId: number) {
+    async subscribeChannel(parent: Context, uid: number, channelId: number, dontSendEvent: boolean = false) {
         return await this.channels.subscribeChannel(parent, uid, channelId);
     }
 
@@ -126,5 +127,17 @@ export class FeedModule {
 
     async onFeedRebuildNeeded(ctx: Context, subscriberId: number) {
         return this.delivery.onFeedRebuildNeeded(ctx, subscriberId);
+    }
+
+    async enableChannelAutoSubscription(parent: Context, uid: number, channelId: number, peerType: 'room' | 'organization', peerId: number) {
+        return this.channels.enableChannelAutoSubscription(parent, uid, channelId, peerType, peerId);
+    }
+
+    async disableAutoSubscription(parent: Context, uid: number, channelId: number, peerType: 'room' | 'organization', peerId: number) {
+        return this.channels.disableAutoSubscription(parent, uid, channelId, peerType, peerId);
+    }
+
+    async onAutoSubscriptionPeerNewMember(parent: Context, uid: number, peerType: 'room' | 'organization', peerId: number) {
+        return this.channels.onAutoSubscriptionPeerNewMember(parent, uid, peerType, peerId);
     }
 }

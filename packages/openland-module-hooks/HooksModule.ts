@@ -211,5 +211,11 @@ export class HooksModule {
         let addedByUser = uid !== by;
 
         Modules.Metrics.onChatJoined(ctx, uid, addedByUser);
+
+        await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'room', cid);
+    }
+
+    onOrgJoin = async (ctx: Context, oid: number, uid: number) => {
+        await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'organization', oid);
     }
 }

@@ -100,13 +100,15 @@ export class FeedChannelRepository {
         });
     }
 
-    async subscribeChannel(parent: Context, uid: number, channelId: number) {
+    async subscribeChannel(parent: Context, uid: number, channelId: number, dontSendEvent: boolean = false) {
         return await inTx(parent, async ctx => {
             if (await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
                 await Store.FeedChannelMembersCount.increment(ctx, channelId);
                 await this.markForIndexing(ctx, channelId);
                 let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
-                await this.delivery.onFeedRebuildNeeded(ctx, subscriber.id);
+                if (!dontSendEvent) {
+                    await this.delivery.onFeedRebuildNeeded(ctx, subscriber.id);
+                }
             }
         });
     }
@@ -195,6 +197,20 @@ export class FeedChannelRepository {
                 return existing;
             }
             return await Store.UserFeedState.create(ctx, uid, { });
+        });
+    }
+
+    async createAutoSubscription(parent: Context, uid: number, channelId: number, peerType: 'room' | 'organization', peerId: number) {
+        return inTx(parent, async ctx => {
+            let existing = await Store.FeedChannelAutoSubscription.findById(ctx, channelId, peerType, peerId);
+            if (existing) {
+                return false;
+            }
+            await Store.FeedChannelAutoSubscription.create(ctx, channelId, peerType, peerId, {
+                uid,
+                enabled: true
+            });
+            return true;
         });
     }
 }

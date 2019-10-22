@@ -1096,6 +1096,16 @@ export default declareSchema(() => {
         field('draftsChannelId', optional(integer()));
     });
 
+    entity('FeedChannelAutoSubscription', () => {
+        primaryKey('channelId', integer());
+        primaryKey('peerType', string());
+        primaryKey('peerId', integer());
+        field('uid', integer());
+        field('enabled', boolean());
+        rangeIndex('fromPeer', ['peerType', 'peerId', 'createdAt']).withCondition(src => src.enabled);
+        rangeIndex('fromChannel', ['channelId', 'createdAt']).withCondition(src => src.enabled);
+    });
+
     //
     // Counters
     //

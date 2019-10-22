@@ -69,14 +69,18 @@ export class HooksModuleMock {
     }
 
     onEmailSent = async (ctx: Context, uid: number) => {
-        // nothing to do
+        // Nothing to do
     }
 
     onRoomLeave = async (ctx: Context, cid: number, uid: number, wasKicked: boolean) => {
-        // nothing to do
+        // Nothing to do
     }
 
     onRoomJoin = async (ctx: Context, cid: number, uid: number, by: number) => {
-        // nothing to do
+        // Nothing to do
+    }
+
+    onOrgJoin = async (ctx: Context, oid: number, uid: number) => {
+        // Nothing to do
     }
 }

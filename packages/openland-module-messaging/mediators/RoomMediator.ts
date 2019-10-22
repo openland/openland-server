@@ -345,6 +345,16 @@ export class RoomMediator {
         });
     }
 
+    async userHaveAdminPermissionsInRoom(parent: Context, uid: number, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                return false;
+            }
+            return this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
+        });
+    }
+
     async checkCanEditChat(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             if (!await this.canEditRoom(ctx, cid, uid)) {

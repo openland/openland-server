@@ -10,6 +10,10 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
+import { WorkQueue } from '../../openland-module-workers/WorkQueue';
+import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
+import { Modules } from '../../openland-modules/Modules';
+import { batch } from '../../openland-utils/batch';
 
 @injectable()
 export default class FeedChannelMediator {
@@ -18,6 +22,35 @@ export default class FeedChannelMediator {
 
     @lazyInject('FeedRepository')
     private readonly feedRepo!: FeedRepository;
+
+    private readonly autoSubscriptionQueue = new WorkQueue<{ channelId: number, peerType: 'room' | 'organization', peerId: number }, { result: string }>('feed_channel_auto_subscription');
+    private readonly autoSubscriptionQueueMultiple = new WorkQueue<{ channelId: number, uids: number[] }, { result: string }>('feed_channel_auto_subscription_multiple');
+
+    start = () => {
+        if (serverRoleEnabled('delivery')) {
+            for (let i = 0; i < 10; i++) {
+                this.autoSubscriptionQueue.addWorker(async (item, parent) => {
+                    await this.fanOutSubscription(parent, item.channelId, item.peerType, item.peerId);
+                    return {result: 'ok'};
+                });
+            }
+            for (let i = 0; i < 10; i++) {
+                this.autoSubscriptionQueueMultiple.addWorker(async (item, parent) => {
+                    await inTx(parent, async ctx => {
+                        let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + item.channelId);
+                        for (let uid of item.uids) {
+                            let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
+                            let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
+                            if (!subscription) {
+                                await this.subscribeChannel(ctx, uid, item.channelId);
+                            }
+                        }
+                    });
+                    return {result: 'ok'};
+                });
+            }
+        }
+    };
 
     async createFeedChannel(parent: Context, uid: number, input: FeedChannelInput) {
         return this.repo.createFeedChannel(parent, uid, input);
@@ -139,6 +172,75 @@ export default class FeedChannelMediator {
             state.draftsChannelId = channel.id;
             await channel.flush(ctx);
             return channel.id;
+        });
+    }
+
+    async enableChannelAutoSubscription(parent: Context, uid: number, channelId: number, peerType: 'room' | 'organization', peerId: number) {
+        return inTx(parent, async ctx => {
+            if (peerType === 'room') {
+                if (!await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, peerId)) {
+                    throw new AccessDeniedError();
+                }
+            } else if (peerType === 'organization') {
+                if (!await Modules.Orgs.isUserAdmin(ctx, uid, peerId)) {
+                    throw new AccessDeniedError();
+                }
+            }
+            if (await this.repo.createAutoSubscription(parent, uid, channelId, peerType, peerId)) {
+                await this.autoSubscriptionQueue.pushWork(ctx, {channelId, peerType, peerId});
+            }
+        });
+    }
+
+    async disableAutoSubscription(parent: Context, uid: number, channelId: number, peerType: 'room' | 'organization', peerId: number) {
+        return inTx(parent, async ctx => {
+            if (peerType === 'room') {
+                if (!await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, peerId)) {
+                    throw new AccessDeniedError();
+                }
+            } else if (peerType === 'organization') {
+                if (!await Modules.Orgs.isUserAdmin(ctx, uid, peerId)) {
+                    throw new AccessDeniedError();
+                }
+            }
+            let existing = await Store.FeedChannelAutoSubscription.findById(ctx, channelId, peerType, peerId);
+            if (existing) {
+                existing.enabled = false;
+                await existing.flush(ctx);
+            }
+        });
+    }
+
+    async onAutoSubscriptionPeerNewMember(parent: Context, uid: number, peerType: 'room' | 'organization', peerId: number) {
+        return inTx(parent, async ctx => {
+            let autoSubscriptions = await Store.FeedChannelAutoSubscription.fromPeer.findAll(ctx, peerType, peerId);
+            for (let autoSubscription of autoSubscriptions) {
+                let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + autoSubscription.channelId);
+                let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
+                let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
+                if (!subscription) {
+                    await this.subscribeChannel(ctx, uid, autoSubscription.channelId);
+                }
+            }
+        });
+    }
+
+    private async fanOutSubscription(parent: Context, channelId: number, peerType: 'room' | 'organization', peerId: number) {
+        return inTx(parent, async ctx => {
+            let uids: number[] = [];
+            if (peerType === 'room') {
+                uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, peerId));
+            } else if (peerType === 'organization') {
+                uids.push(...(await Store.OrganizationMember.organization.findAll(ctx, 'joined', peerId)).map(m => m.uid));
+            }
+            if (uids.length > 0) {
+                let batches = batch(uids, 20);
+                let tasks = batches.map(b => this.autoSubscriptionQueueMultiple.pushWork(ctx, {
+                    channelId,
+                    uids: b
+                }));
+                await Promise.all(tasks);
+            }
         });
     }
 }

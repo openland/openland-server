@@ -132,6 +132,10 @@ type FeedChannelSubscriberConnection {
     pageInfo: PageInfo!
 }
 
+extend type Organization {
+    linkedFeedChannels: [FeedChannel!]!
+}
+
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
     alphaFeedItem(id: ID!): FeedItem
@@ -165,4 +169,10 @@ extend type Mutation {
 
     alphaFeedChannelAddEditor(id: ID!, userId: ID!): Boolean!
     alphaFeedChannelRemoveEditor(id: ID!, userId: ID!): Boolean!
+
+    alphaFeedChannelEnableRoomAutoSubscription(channelId: ID!, roomId: ID!): Boolean!
+    alphaFeedChannelDisableRoomAutoSubscription(channelId: ID!, roomId: ID!): Boolean!
+
+    alphaFeedChannelEnableCommunityAutoSubscription(channelId: ID!, roomId: ID!): Boolean!
+    alphaFeedChannelDisableCommunityAutoSubscription(channelId: ID!, roomId: ID!): Boolean!
 }

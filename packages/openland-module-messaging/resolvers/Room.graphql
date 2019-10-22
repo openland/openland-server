@@ -61,6 +61,7 @@ type SharedRoom {
     archived: Boolean!
     myBadge: UserBadge
     matchmaking: MatchmakingRoom
+    linkedFeedChannels: [FeedChannel!]!
 }
 
 type RoomSuper {
