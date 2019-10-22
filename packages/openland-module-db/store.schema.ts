@@ -711,6 +711,7 @@ export default declareSchema(() => {
     event('UserDialogMessageReadEvent', () => {
         field('uid', integer());
         field('cid', integer());
+        field('mid', optional(integer()));
     });
     event('UserDialogTitleUpdatedEvent', () => {
         field('uid', integer());
@@ -1391,33 +1392,33 @@ export default declareSchema(() => {
     //
 
     entity('StickerPack', () => {
-       primaryKey('id', integer());
-       field('title', string());
-       field('uid', integer());
-       field('published', boolean());
-       field('usesCount', integer());
-       field('emojis', array(struct({
-           emoji: string(),
-           stickerId: string()
-       })));
+        primaryKey('id', integer());
+        field('title', string());
+        field('uid', integer());
+        field('published', boolean());
+        field('usesCount', integer());
+        field('emojis', array(struct({
+            emoji: string(),
+            stickerId: string()
+        })));
 
-       rangeIndex('author', ['uid', 'id']);
+        rangeIndex('author', ['uid', 'id']);
     });
 
     entity('UserStickersState', () => {
-       primaryKey('uid', integer());
-       field('packIds', array(integer()));
-       field('favoriteIds', array(string()));
+        primaryKey('uid', integer());
+        field('packIds', array(integer()));
+        field('favoriteIds', array(string()));
     });
 
     entity('Sticker', () => {
-       primaryKey('id', string());
-       field('image', ImageRef);
-       field('deleted', boolean());
-       field('emoji', string());
-       field('packId', integer());
-       rangeIndex('pack', ['packId', 'createdAt']);
-       rangeIndex('packActive', ['packId', 'createdAt']).withCondition((src) => !src.deleted);
+        primaryKey('id', string());
+        field('image', ImageRef);
+        field('deleted', boolean());
+        field('emoji', string());
+        field('packId', integer());
+        rangeIndex('pack', ['packId', 'createdAt']);
+        rangeIndex('packActive', ['packId', 'createdAt']).withCondition((src) => !src.deleted);
     });
 
     //

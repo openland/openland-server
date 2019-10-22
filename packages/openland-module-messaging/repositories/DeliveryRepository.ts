@@ -155,6 +155,7 @@ export class DeliveryRepository {
             Store.UserDialogEventStore.post(ctx, uid, UserDialogMessageReadEvent.create({
                 uid,
                 cid: msg.cid,
+                mid
             }));
         });
     }

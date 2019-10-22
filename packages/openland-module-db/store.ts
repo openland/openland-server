@@ -13502,11 +13502,13 @@ export class UserDialogMessageDeletedEvent extends BaseEvent {
 const userDialogMessageReadEventCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
+    mid: c.optional(c.integer),
 });
 
 interface UserDialogMessageReadEventShape {
     uid: number;
     cid: number;
+    mid?: number | null | undefined;
 }
 
 export class UserDialogMessageReadEvent extends BaseEvent {
@@ -13529,6 +13531,7 @@ export class UserDialogMessageReadEvent extends BaseEvent {
 
     get uid(): number { return this.raw.uid; }
     get cid(): number { return this.raw.cid; }
+    get mid(): number | null { return this.raw.mid; }
 }
 
 const userDialogTitleUpdatedEventCodec = c.struct({
