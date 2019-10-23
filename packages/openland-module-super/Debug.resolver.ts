@@ -1157,7 +1157,7 @@ export default {
             return true;
         }),
         debugCalcChannelsSubscribersCount: withPermission('super-admin', async (parent) => {
-            debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugReindexFeedChannels', async (ctx, id, log) => {
+            debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugCalcChannelsSubscribersCount', async (ctx, id, log) => {
                 let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + id);
                 let subscribers = await Store.FeedSubscription.topic.findAll(ctx, topic.id);
                 await Store.FeedChannelMembersCount.set(ctx, id, subscribers.filter(s => s.enabled).length);

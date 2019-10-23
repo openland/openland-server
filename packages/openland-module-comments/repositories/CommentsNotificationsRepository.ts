@@ -9,19 +9,23 @@ import { MessageSpan } from '../../openland-module-messaging/MessageInput';
 @injectable()
 export class CommentsNotificationsRepository {
 
-    async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct') {
+    async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct', sendEvent: boolean = true) {
         return await inTx(parent, async (ctx) => {
             let existing = await Store.CommentsSubscription.findById(ctx, peerType, peerId, uid);
             if (existing) {
                 if (existing.status !== 'active' || existing.kind !== type) {
                     existing.status = 'active';
                     existing.kind = type;
-                    await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
+                    if (sendEvent) {
+                        await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
+                    }
                 }
                 return true;
             }
             await Store.CommentsSubscription.create(ctx, peerType, peerId, uid, { kind: type, status: 'active' });
-            await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
+            if (sendEvent) {
+                await Modules.NotificationCenter.onCommentPeerUpdatedForUser(ctx, uid, peerType, peerId, null);
+            }
             return true;
         });
     }
@@ -112,7 +116,7 @@ export class CommentsNotificationsRepository {
     async onNewPeer(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, mentions: MessageSpan[] = []) {
         return await inTx(parent, async ctx => {
             // Subscribe to comments
-            await Modules.Comments.subscribeToComments(ctx, peerType, peerId, uid, 'all');
+            await this.subscribeToComments(ctx, peerType, peerId, uid, 'all', false);
 
             // Subscribe user to comments if he was mentioned
             mentions = mentions.filter(s => s.type === 'user_mention');
@@ -121,7 +125,7 @@ export class CommentsNotificationsRepository {
                     continue;
                 }
                 if (!(await Store.CommentsSubscription.findById(ctx, peerType, peerId, mention.user))) {
-                    await await Modules.Comments.subscribeToComments(ctx, peerType, peerId, mention.user, 'all');
+                    await this.subscribeToComments(ctx, peerType, peerId, mention.user, 'all', false);
                 }
             }
         });
