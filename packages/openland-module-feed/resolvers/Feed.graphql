@@ -136,6 +136,10 @@ extend type Organization {
     linkedFeedChannels: [FeedChannel!]!
 }
 
+extend type SharedRoom {
+    linkedFeedChannels: [FeedChannel!]!
+}
+
 extend type Query {
     alphaHomeFeed(first: Int!, after: String): FeedItemConnection!
     alphaFeedItem(id: ID!): FeedItem
