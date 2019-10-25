@@ -253,10 +253,18 @@ type MessageSpanRoomMention implements MessageSpan {
     room: Room!
 }
 
+type MessageSpanOrganizationMention implements MessageSpan {
+    offset: Int!
+    length: Int!
+    organization: Organization!
+}
+
+
 input MentionInput {
     chatId: ID
     userId: ID
     userIds: [ID!]
+    orgId: ID
     all: Boolean
     offset: Int!
     length: Int!

@@ -767,6 +767,8 @@ export default {
                 return 'MessageSpanDate';
             } else if (src.type === 'all_mention') {
                 return 'MessageSpanAllMention';
+            } else if (src.type === 'organization_mention') {
+                return 'MessageSpanOrganizationMention';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -786,6 +788,11 @@ export default {
         offset: src => src.offset,
         length: src => src.length,
         room: src => src.room
+    },
+    MessageSpanOrganizationMention: {
+        offset: src => src.offset,
+        length: src => src.length,
+        organization: (src, _, ctx) => Store.Organization.findById(ctx, src.organization),
     },
     MessageSpanLink: {
         offset: src => src.offset,
@@ -1029,6 +1036,13 @@ export default {
                             type: 'all_mention',
                             offset: mention.offset,
                             length: mention.length,
+                        });
+                    } else if (mention.orgId) {
+                        mentions.push({
+                            type: 'organization_mention',
+                            offset: mention.offset,
+                            length: mention.length,
+                            organization: IDs.Organization.parse(mention.orgId)
                         });
                     }
                 }

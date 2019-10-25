@@ -22,6 +22,7 @@ type BasicSpan<T> = { type: T, offset: number, length: number };
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
 export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number, length: number, users: number[] };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
+export type OrganizationMentionSpan = { type: 'organization_mention', offset: number, length: number, organization: number };
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
 export type BoldTextSpan = BasicSpan<'bold_text'>;
 export type ItalicTextSpan = BasicSpan<'italic_text'>;
@@ -48,7 +49,8 @@ export type MessageSpan =
     LoudTextSpan |
     RotatingTextSpan |
     DateTextSpan |
-    AllMentionSpan;
+    AllMentionSpan |
+    OrganizationMentionSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,
