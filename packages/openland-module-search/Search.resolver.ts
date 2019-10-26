@@ -374,6 +374,9 @@ export default {
         }),
         chatMentionSearch: withAccount(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.cid);
+            let thisConvOrg = await Store.ConversationRoom.findById(ctx, cid);
+            let chatOid = thisConvOrg ? thisConvOrg.oid : null;
+
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
             let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
 
@@ -481,17 +484,32 @@ export default {
 
             let dataPromises = [
                     ...uids.map((v) => Store.User.findById(ctx, v)),
-                ...allHits.map(hit => {
+                ...allHits.map(async hit => {
                 if (hit._type === 'user_profile') {
-                    return Store.User.findById(ctx, parseInt(hit._id, 10));
+                    return await Store.User.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'organization') {
-                    return Store.Organization.findById(ctx, parseInt(hit._id, 10));
+                    return await Store.Organization.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'room') {
                     let roomCid = (hit._source as any).cid;
                     if (!roomCid) {
                         return null;
                     }
-                    return Store.Conversation.findById(ctx, roomCid);
+
+                    let conv = await Store.Conversation.findById(ctx, roomCid);
+                    let convRoom = await Store.ConversationRoom.findById(ctx, roomCid);
+
+                    if (convRoom && convRoom.kind !== 'public') {
+                        return null;
+                    }
+
+                    if (convRoom && convRoom.oid) {
+                        let o = await Store.Organization.findById(ctx, convRoom.oid);
+                        if (o && (o.kind === 'organization' || o.private) && chatOid !== convRoom.oid) {
+                            return null;
+                        }
+                    }
+
+                    return conv;
                 } else {
                     return null;
                 }
@@ -526,6 +544,7 @@ export default {
                 if (!item) {
                     return false;
                 }
+
                 if (item instanceof Conversation) {
                     return item.kind !== 'private';
                 }
