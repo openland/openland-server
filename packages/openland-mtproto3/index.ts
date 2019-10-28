@@ -45,6 +45,8 @@ class FuckApolloSession {
     public socket: WebSocket;
     public protocolVersion = 1;
     public lastPingAck: number = Date.now();
+    public pingCounter = 0;
+    public pingAckCounter = 0;
 
     constructor(socket: WebSocket) {
         this.socket = socket;
@@ -60,7 +62,10 @@ class FuckApolloSession {
 
     sendKeepAlive = () => this.send({ type: 'ka' });
 
-    sendPing = () => this.send({ type: 'ping' });
+    sendPing = () => {
+        this.send({ type: 'ping' });
+        this.pingCounter++;
+    }
 
     sendPingAck = () => this.send({ type: 'pong' });
 
@@ -130,13 +135,19 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             });
             if (session.protocolVersion === 2) {
                 asyncRun(async () => {
+                    let timeout: NodeJS.Timeout|null = null;
                     while (session.isConnected()) {
-                        session.sendPing();
-                        setTimeout(() => {
-                            if (session.isConnected() && Date.now() - session.lastPingAck > 1000 * 10) {
+                        if (session.pingCounter !== session.pingAckCounter) {
+                            await delay(1000 * 30);
+                        }
+                        if (timeout) {
+                            clearTimeout(timeout);
+                        }
+                        timeout = setTimeout(() => {
+                            if (session.isConnected() && Date.now() - session.lastPingAck > 1000 * 60 * 5) {
                                 session.close();
                             }
-                        }, 1000 * 10);
+                        }, 1000 * 60 * 5);
                         await delay(1000 * 30);
                     }
                 });
@@ -207,6 +218,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             session.sendPingAck();
         } else if (message.type && message.type === 'pong' && session.protocolVersion === 2) {
             session.lastPingAck = Date.now();
+            session.pingAckCounter++;
         }
     }
 }
