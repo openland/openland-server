@@ -64,17 +64,16 @@ export default {
             // User dialog rooms
             //
 
-            let functions: any[] = [];
             let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
                 Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
                 Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
             ]);
             // Boost top dialogs
-            topPrivateDialogs.items.forEach(dialog => functions.push({
+            let privateDialogsFilter = topPrivateDialogs.items.map(dialog => ({
                 filter: {match: {uid2: dialog.uid2}},
                 weight: dialog.weight || 1
             }));
-            topGroupDialogs.items.forEach(dialog => functions.push({
+            let groupDialogsFilter = topGroupDialogs.items.map(dialog => ({
                 filter: {match: {cid: dialog.cid}},
                 weight: dialog.weight || 1
             }));
@@ -88,7 +87,7 @@ export default {
                                     must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
                                 },
                             },
-                            functions: functions,
+                            functions: [...privateDialogsFilter, ...groupDialogsFilter],
                             boost_mode: 'multiply'
                         }
                     }
@@ -102,8 +101,14 @@ export default {
                 index: 'room', type: 'room', size: 10, body: {
                     sort: [{membersCount: {'order': 'desc'}}],
                     query: {
-                        bool: {
-                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
+                                }
+                            },
+                            functions: groupDialogsFilter,
+                            boost_mode: 'multiply'
                         }
                     },
                 },
@@ -116,18 +121,25 @@ export default {
             let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
             let orgRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
+                    sort: [{membersCount: {'order': 'desc'}}],
                     query: {
-                        bool: {
-                            must: [
-                                ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
-                                {term: {listed: false}},
-                                {
-                                    bool: {
-                                        should: orgChatFilters
-                                    }
-                                }
-                            ],
-                        },
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [
+                                        ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
+                                        {term: {listed: false}},
+                                        {
+                                            bool: {
+                                                should: orgChatFilters
+                                            }
+                                        }
+                                    ],
+                                },
+                            },
+                            functions: groupDialogsFilter,
+                            boost_mode: 'multiply'
+                        }
                     },
                 },
             });
