@@ -54,7 +54,7 @@ import {
     MessageMention, MessageRichAttachment,
     MessageSpan,
     MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
-    UserMentionSpan
+    UserMentionSpan, OrganizationMentionSpan,
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
@@ -260,6 +260,7 @@ export namespace GQLRoots {
     export type MessageSpanUserMentionRoot = UserMentionSpan;
     export type MessageSpanMultiUserMentionRoot = MultiUserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
+    export type MessageSpanOrganizationMentionRoot = OrganizationMentionSpan;
     export type MessageSpanLinkRoot = LinkSpan;
     export type MessageSpanBoldRoot = BoldTextSpan;
     export type MessageSpanItalicRoot = ItalicTextSpan;
