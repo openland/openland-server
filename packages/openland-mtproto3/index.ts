@@ -137,6 +137,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 asyncRun(async () => {
                     let timeout: NodeJS.Timeout|null = null;
                     while (session.isConnected()) {
+                        // Send ping only if previous one was acknowledged
                         if (session.pingCounter !== session.pingAckCounter) {
                             await delay(1000 * 30);
                         }
