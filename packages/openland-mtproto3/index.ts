@@ -140,6 +140,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         if (session.pingCounter !== session.pingAckCounter) {
                             await delay(1000 * 30);
                         }
+                        session.sendPing();
                         if (timeout) {
                             clearTimeout(timeout);
                         }
