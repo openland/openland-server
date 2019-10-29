@@ -246,7 +246,9 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     if (iconURL) {
         let cached = await inTx(rootCtx, async ctx => await faviconCache.read(ctx, hostname || ''));
         let creationTime = await inTx(rootCtx, async ctx => await faviconCache.getCreationTime(ctx, hostname || ''));
-        if (cached && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
+        let freshnessThreshold = await inTx(rootCtx, async ctx => await Modules.Super.getEnvVar(ctx, 'url-info-freshness-threshold'));
+
+        if (cached && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now() && (creationTime ? creationTime! >= freshnessThreshold! : true)) {
             iconRef = cached.iconRef;
             iconInfo = cached.iconInfo;
         } else {
@@ -254,7 +256,12 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
                 let { file } = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
                 iconRef = { uuid: file, crop: null };
                 iconInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
-                await inTx(rootCtx, async ctx => await faviconCache.write(ctx, hostname || '', { iconRef, iconInfo }));
+                if (!iconInfo.isImage) {
+                    iconRef = null;
+                    iconInfo = null;
+                } else {
+                    await inTx(rootCtx, async ctx => await faviconCache.write(ctx, hostname || '', { iconRef, iconInfo }));
+                }
             } catch (e) {
                 logger.warn(rootCtx, 'Cant fetch image ' + iconURL);
             }

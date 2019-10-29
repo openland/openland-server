@@ -1164,6 +1164,10 @@ export default {
             });
             return true;
         }),
+        debugResetUrlInfoFreshness: withPermission('super-admin', async (parent) => {
+            await Modules.Super.setEnvVar(parent, 'url-info-freshness-threshold', Date.now());
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

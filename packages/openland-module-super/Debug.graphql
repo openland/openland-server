@@ -140,6 +140,7 @@ extend type Mutation {
     debugReindexFeedTopics: Boolean!
     debugCalcChannelPostsCount: Boolean!
     debugCalcChannelsSubscribersCount: Boolean!
+    debugResetUrlInfoFreshness: Boolean!
 }
 
 extend type Subscription {

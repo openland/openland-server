@@ -42,8 +42,9 @@ export class UrlInfoService {
         let ctx = rootCtx;
         let existing = await this.cache.read(ctx, url);
         let creationTime = await this.cache.getCreationTime(ctx, url);
+        let freshnessThreshold = await Modules.Super.getEnvVar(ctx, 'url-info-freshness-threshold');
 
-        if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
+        if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now() && (creationTime ? creationTime! >= freshnessThreshold! : true)) {
             return existing;
         }
 
