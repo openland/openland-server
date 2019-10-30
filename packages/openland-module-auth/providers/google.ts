@@ -6,11 +6,11 @@ import { createNamedContext } from '@openland/context';
 import { OAuth2Client } from 'google-auth-library';
 
 const rootCtx = createNamedContext('auth-email');
-const client = new OAuth2Client();
+var client: OAuth2Client;
 
 const Errors = {
-    no_id_token: 'idToken not provided',
-    no_email_scope: 'Google auth should include email scope',
+    no_id_token: 'An unexpected error occurred. Please try again.',
+    no_email_scope: 'An unexpected error occurred. Please try again.',
     server_error: 'An unexpected error occurred. Please try again.',
 };
 
@@ -33,11 +33,15 @@ export async function getAccessToken(req: express.Request, response: express.Res
         return;
     }
 
-    await Modules.Super.getEnvVar<number>(rootCtx, 'auth-google-android-client-id-debug');
+    const clientIdWeb = await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id') || '';
+    if (!client) {
+        client = new OAuth2Client(clientIdWeb);
+    }
 
     const ticket = await client.verifyIdToken({
         idToken,
         audience: [
+            clientIdWeb,
             await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-android-client-id-debug') || '',
             await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-android-client-id') || '',
             // TODO: add ios client_id
@@ -51,7 +55,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 sendError(response, 'no_email_scope');
                 return;
             }
-            const email = payload.email.toLocaleLowerCase();
+            const email = payload.email.toLowerCase();
             let existing = await Store.User.email.find(ctx, email);
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
