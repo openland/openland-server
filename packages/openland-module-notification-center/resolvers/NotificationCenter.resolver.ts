@@ -53,7 +53,8 @@ export default {
             return await Modules.Matchmaking.getRoom(ctx, src.peerId, src.peerType);
         },
         profiles: async (src, args, ctx) => {
-            return await Promise.all(src.uids.map(a => Modules.Matchmaking.getRoomProfile(ctx, src.peerId, src.peerType, a)));
+            let res = await Promise.all(src.uids.map(a => Modules.Matchmaking.getRoomProfile(ctx, src.peerId, src.peerType, a)));
+            return res.filter(r => !!r);
         }
     },
 
