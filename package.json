@@ -81,6 +81,7 @@
     "firebase-admin": "^6.0.0",
     "form-data": "^2.3.2",
     "globby": "^9.2.0",
+    "google-auth-library": "^5.5.1",
     "graphql": "^0.13.2",
     "graphql-import": "^0.4.5",
     "graphql-playground-middleware-express": "^1.7.8",

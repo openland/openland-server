@@ -4,6 +4,7 @@ import cors from 'cors';
 // import morgan from 'morgan';
 import * as Auth2 from '../openland-module-auth/authV2';
 import * as Auth from '../openland-module-auth/providers/email';
+import * as AuthGoogle from '../openland-module-auth/providers/google';
 import { Schema } from './schema/Schema';
 import { fetchWebSocketParameters, buildWebSocketContext } from './handlers/websocket';
 import { errorHandler, QueryInfo } from '../openland-errors';
@@ -87,6 +88,7 @@ export async function initApi(isTest: boolean) {
     app.post('/auth/sendCode', bodyParser.json(), withAudit(Auth.sendCode));
     app.post('/auth/checkCode', bodyParser.json(), withAudit(Auth.checkCode));
     app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
+    app.post('/auth/google/getAccessToken', bodyParser.json(), withAudit(AuthGoogle.getAccessToken));
 
     //
     //  Safari push
@@ -199,15 +201,15 @@ export async function initApi(isTest: boolean) {
             onAuth: async (params, req) => {
                 const start = currentRunningTime();
                 try {
-                     if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
-                         let cookies = parseCookies(req.headers.cookie || '');
-                         return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
-                     }
-                     return await fetchWebSocketParameters(params, null);
-                 } finally {
-                     const delta = currentRunningTime() - start;
-                     authMetric.add(authMetricCtx, delta);
-                 }
+                    if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
+                        let cookies = parseCookies(req.headers.cookie || '');
+                        return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
+                    }
+                    return await fetchWebSocketParameters(params, null);
+                } finally {
+                    const delta = currentRunningTime() - start;
+                    authMetric.add(authMetricCtx, delta);
+                }
             },
             context: async (params, operation) => {
                 let opId = uuid();
