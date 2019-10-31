@@ -34,7 +34,12 @@ async function checkAuth(req: express.Request, res: express.Response, next: expr
     });
 }
 
-export async function initIFTTT(app: Express) {
+export function initIFTTT(app: Express) {
+    // tslint:disable-next-line:no-floating-promises
+    initIFTTInternal(app);
+}
+
+async function initIFTTInternal(app: Express) {
     let config = await Modules.IFTTT.getConfig(rootCtx);
     while (!config) {
         log.log(rootCtx, 'config is not set');
