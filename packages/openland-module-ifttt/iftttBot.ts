@@ -5,7 +5,8 @@ import { Modules } from '../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 import { buildMessage, link } from '../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
-import { delay, forever } from '../openland-utils/timer';
+import { delay, foreverBreakable } from '../openland-utils/timer';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const rootCtx = createNamedContext('IFTTT-bot');
 const log = createLogger('IFTTT-bot');
@@ -31,9 +32,13 @@ export async function startIFTTTBot() {
         await delay(5000);
         config = await Modules.IFTTT.getConfig(rootCtx);
     }
-    forever(rootCtx, async () => {
+    let {stop} = foreverBreakable(rootCtx, async () => {
         config = await Modules.IFTTT.getConfig(rootCtx);
         await delay(5000);
+    });
+    Shutdown.registerWork({
+        name: 'IFTT-config',
+        shutdown: stop
     });
 
     let stream = botEventsStream(rootCtx, config.BotId);

@@ -7,7 +7,8 @@ import { Store } from '../openland-module-db/FDB';
 import * as bodyParser from 'body-parser';
 import { Modules } from '../openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
-import { delay, forever } from '../openland-utils/timer';
+import { delay, foreverBreakable } from '../openland-utils/timer';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const log = createLogger('IFTTT');
 const rootCtx = createNamedContext('IFTTT');
@@ -40,9 +41,13 @@ export async function initIFTTT(app: Express) {
         await delay(5000);
         config = await Modules.IFTTT.getConfig(rootCtx);
     }
-    forever(rootCtx, async () => {
+    let {stop} = foreverBreakable(rootCtx, async () => {
         config = await Modules.IFTTT.getConfig(rootCtx);
         await delay(5000);
+    });
+    Shutdown.registerWork({
+        name: 'IFTT-config',
+        shutdown: stop
     });
 
     let projectUrl = (await Modules.Super.getEnvVar<string>(rootCtx, 'project-url')) || 'https://openland.com';
