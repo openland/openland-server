@@ -4,9 +4,6 @@ import express from 'express';
 import { Modules } from '../../openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { OAuth2Client } from 'google-auth-library';
-import { createLogger } from '@openland/log';
-
-const logger = createLogger('google-auth');
 
 const rootCtx = createNamedContext('auth-email');
 var client: OAuth2Client;
@@ -26,11 +23,6 @@ const sendError = (response: express.Response, error: ErrorsEnum) => {
     response.json({ ok: false, errorCode: error, errorText: Errors[error] });
 };
 
-// temp just for debug
-function decodeBase64StringUtf8(base64: string): string {
-    return Buffer.from(base64, 'base64').toString('utf-8');
-}
-
 export async function getAccessToken(req: express.Request, response: express.Response) {
     let {
         idToken
@@ -41,22 +33,17 @@ export async function getAccessToken(req: express.Request, response: express.Res
         return;
     }
 
-    const clientIdWeb = await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id') || '';
+    const clientIdWeb = (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id'))!;
     if (!client) {
         client = new OAuth2Client(clientIdWeb);
     }
 
     const audience = [
         clientIdWeb,
-        await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-android-client-id-debug') || '',
-        await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-android-client-id') || '',
+        (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-android-client-id-debug'))!,
+        (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-android-client-id'))!,
         // TODO: add ios client_id
     ];
-
-    // debug aud
-    const segments = idToken!.split('.');
-    logger.debug(rootCtx, 'payload', decodeBase64StringUtf8(segments[1]));
-    logger.debug(rootCtx, 'audience', audience);
 
     const ticket = await client.verifyIdToken({
         idToken,
