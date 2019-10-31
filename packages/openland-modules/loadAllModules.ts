@@ -57,6 +57,7 @@ import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringM
 import { loadStickersModule } from '../openland-module-stickers/Stickers.container';
 import { loadMatchmakingModule } from '../openland-module-matchmaking/Matchmaking.container';
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
+import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 
 const logger = createLogger('starting');
 
@@ -112,6 +113,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(DiscoverModule).toSelf().inSingletonScope();
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
+    container.bind(IFTTTModule).toSelf().inSingletonScope();
 
     loadCallsModule();
     loadFeedModule();
@@ -152,4 +154,5 @@ export async function startAllModules() {
     await container.get(StatsModule).start();
     await container.get<MonitoringModule>('MonitoringModule').start();
     await container.get(MatchmakingModule).start();
+    await container.get(IFTTTModule).start();
 }

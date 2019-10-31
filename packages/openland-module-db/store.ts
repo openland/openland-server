@@ -13234,6 +13234,262 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+export interface IftttAuthShape {
+    id: string;
+    state: string;
+    redirectUrl: string;
+    code: string;
+    enabled: boolean;
+    uid: number | null;
+}
+
+export interface IftttAuthCreateShape {
+    state: string;
+    redirectUrl: string;
+    code: string;
+    enabled: boolean;
+    uid?: number | null | undefined;
+}
+
+export class IftttAuth extends Entity<IftttAuthShape> {
+    get id(): string { return this._rawValue.id; }
+    get state(): string { return this._rawValue.state; }
+    set state(value: string) {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get redirectUrl(): string { return this._rawValue.redirectUrl; }
+    set redirectUrl(value: string) {
+        let normalized = this.descriptor.codec.fields.redirectUrl.normalize(value);
+        if (this._rawValue.redirectUrl !== normalized) {
+            this._rawValue.redirectUrl = normalized;
+            this._updatedValues.redirectUrl = normalized;
+            this.invalidate();
+        }
+    }
+    get code(): string { return this._rawValue.code; }
+    set code(value: string) {
+        let normalized = this.descriptor.codec.fields.code.normalize(value);
+        if (this._rawValue.code !== normalized) {
+            this._rawValue.code = normalized;
+            this._updatedValues.code = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number | null { return this._rawValue.uid; }
+    set uid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class IftttAuthFactory extends EntityFactory<IftttAuthShape, IftttAuth> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('iftttAuth');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'fromCode', storageKey: 'fromCode', type: { type: 'unique', fields: [{ name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('iftttAuth', 'fromCode'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'state', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'redirectUrl', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'code', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            state: c.string,
+            redirectUrl: c.string,
+            code: c.string,
+            enabled: c.boolean,
+            uid: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<IftttAuthShape> = {
+            name: 'IftttAuth',
+            storageKey: 'iftttAuth',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new IftttAuthFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<IftttAuthShape>) {
+        super(descriptor);
+    }
+
+    readonly fromCode = Object.freeze({
+        find: async (ctx: Context, code: string) => {
+            return this._findFromUniqueIndex(ctx, [code], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: string, src: IftttAuthCreateShape): Promise<IftttAuth> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: IftttAuthCreateShape): IftttAuth {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<IftttAuth | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<IftttAuthShape>): IftttAuth {
+        return new IftttAuth([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface IftttAuthTokenShape {
+    uuid: string;
+    salt: string;
+    uid: number;
+    enabled: boolean | null;
+}
+
+export interface IftttAuthTokenCreateShape {
+    salt: string;
+    uid: number;
+    enabled?: boolean | null | undefined;
+}
+
+export class IftttAuthToken extends Entity<IftttAuthTokenShape> {
+    get uuid(): string { return this._rawValue.uuid; }
+    get salt(): string { return this._rawValue.salt; }
+    set salt(value: string) {
+        let normalized = this.descriptor.codec.fields.salt.normalize(value);
+        if (this._rawValue.salt !== normalized) {
+            this._rawValue.salt = normalized;
+            this._updatedValues.salt = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean | null { return this._rawValue.enabled; }
+    set enabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class IftttAuthTokenFactory extends EntityFactory<IftttAuthTokenShape, IftttAuthToken> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('iftttAuthToken');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('iftttAuthToken', 'salt'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('iftttAuthToken', 'user'), condition: src => src.enabled !== false });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uuid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'salt', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            uuid: c.string,
+            salt: c.string,
+            uid: c.integer,
+            enabled: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<IftttAuthTokenShape> = {
+            name: 'IftttAuthToken',
+            storageKey: 'iftttAuthToken',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new IftttAuthTokenFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<IftttAuthTokenShape>) {
+        super(descriptor);
+    }
+
+    readonly salt = Object.freeze({
+        find: async (ctx: Context, salt: string) => {
+            return this._findFromUniqueIndex(ctx, [salt], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uuid: string, src: IftttAuthTokenCreateShape): Promise<IftttAuthToken> {
+        return this._create(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uuid: string, src: IftttAuthTokenCreateShape): IftttAuthToken {
+        return this._create_UNSAFE(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    findById(ctx: Context, uuid: string): Promise<IftttAuthToken | null> {
+        return this._findById(ctx, [uuid]);
+    }
+
+    watch(ctx: Context, uuid: string): Watch {
+        return this._watch(ctx, [uuid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<IftttAuthTokenShape>): IftttAuthToken {
+        return new IftttAuthToken([value.uuid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -14166,6 +14422,8 @@ export interface Store extends BaseStore {
     readonly DelayedTask: DelayedTaskFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly IftttAuth: IftttAuthFactory;
+    readonly IftttAuthToken: IftttAuthTokenFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -14328,6 +14586,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let IftttAuthPromise = IftttAuthFactory.open(storage);
+    let IftttAuthTokenPromise = IftttAuthTokenFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -14470,6 +14730,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DelayedTask: await DelayedTaskPromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        IftttAuth: await IftttAuthPromise,
+        IftttAuthToken: await IftttAuthTokenPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

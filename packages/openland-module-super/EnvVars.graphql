@@ -10,4 +10,7 @@ extend type Query {
 
 extend type Mutation {
     setEnvVar(name: String!, value: String!): Boolean!
+    setEnvVarString(name: String!, value: String!): Boolean!
+    setEnvVarNumber(name: String!, value: Int!): Boolean!
+    setEnvVarBoolean(name: String!, value: Boolean!): Boolean!
 }

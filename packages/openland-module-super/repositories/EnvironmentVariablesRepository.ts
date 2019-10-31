@@ -1,8 +1,9 @@
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
+import { AnyJson } from '../../openland-utils/json';
 
-export type EnvVarValueType = number | string | boolean;
+export type EnvVarValueType = AnyJson;
 
 export class EnvironmentVariablesRepository {
 

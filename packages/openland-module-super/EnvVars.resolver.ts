@@ -23,5 +23,17 @@ export default {
             await Modules.Super.setEnvVar(ctx, args.name, args.value, true);
             return true;
         }),
+        setEnvVarString: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Super.setEnvVar(ctx, args.name, `"${args.value}"`, true);
+            return true;
+        }),
+        setEnvVarBoolean: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Super.setEnvVar(ctx, args.name, args.value.toString(), true);
+            return true;
+        }),
+        setEnvVarNumber: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Super.setEnvVar(ctx, args.name, args.value.toString(), true);
+            return true;
+        }),
     },
 } as GQLResolver;

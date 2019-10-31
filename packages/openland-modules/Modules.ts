@@ -33,6 +33,7 @@ import { StatsModule } from '../openland-module-stats/StatsModule';
 import { MonitoringModule } from 'openland-module-monitoring/MonitoringModule';
 import { StickersModule } from '../openland-module-stickers/StickersModule';
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
+import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 
 class ModulesImpl {
 
@@ -137,6 +138,9 @@ class ModulesImpl {
     }
     get Matchmaking() {
         return container.get(MatchmakingModule);
+    }
+    get IFTTT() {
+        return container.get(IFTTTModule);
     }
 }
 

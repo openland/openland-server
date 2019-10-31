@@ -34,6 +34,7 @@ import { uuid } from '../openland-utils/uuid';
 import { createMetric } from '../openland-module-monitoring/Metric';
 import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
+import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -99,6 +100,9 @@ export async function initApi(isTest: boolean) {
     //  Apps
     //
     initAppHandlers(app);
+
+    // IFTTT api
+    await initIFTTT(app);
 
     //
     // Semaphore bot

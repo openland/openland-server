@@ -49,6 +49,10 @@ export async function getAccessToken(req: express.Request, response: express.Res
         idToken,
         audience
     });
+    if (!ticket) {
+        sendError(response, 'server_error');
+        return;
+    }
     const payload = ticket.getPayload();
 
     await inTx(rootCtx, async (ctx) => {
