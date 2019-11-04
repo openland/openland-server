@@ -21,7 +21,8 @@ export default {
             return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
         gammaNextDiscoverPage: withUser((ctx, args, uid) => {
-            return Modules.Discover.gammaNextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
+            // Sorry universe
+            return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
         betaSuggestedRooms: withUser((ctx, args, uid) => {
             return Modules.Discover.suggestedChats(ctx, uid);
