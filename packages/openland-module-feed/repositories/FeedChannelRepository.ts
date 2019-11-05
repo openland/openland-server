@@ -132,7 +132,7 @@ export class FeedChannelRepository {
                 existing.enabled = true;
                 existing.promoter = by;
             } else {
-                await Store.FeedChannelAdmin.create(ctx, channelId, uid, { role: 'editor', enabled: true, promoter: uid });
+                await Store.FeedChannelAdmin.create(ctx, channelId, uid, { role: 'editor', enabled: true, promoter: by });
             }
         });
     }

@@ -98,7 +98,7 @@ async function initIFTTInternal(app: Express) {
             if (
                 !body.code ||
                 body.client_id !== config!.ClientId ||
-                body.client_secret !== config!.ClientSecret  ||
+                body.client_secret !== config!.ClientSecret ||
                 body.grant_type !== 'authorization_code'
             ) {
                 log.log(ctx, 'invalid params');
@@ -150,8 +150,58 @@ async function initIFTTInternal(app: Express) {
                 return;
             }
             let uid = (req as any).uid;
-            let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, uid);
-            await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: req.body.actionFields.message});
+            let messageWasSent = false;
+            if (req.body.actionFields.chat_id && req.body.actionFields.chat_id !== '$TEST$') {
+                let chatId: number;
+                try {
+                    chatId = IDs.Conversation.parse(req.body.actionFields.chat_id.trim());
+                } catch (e) {
+                    res.status(400).json({errors: [{message: 'Invalid chat id'}]});
+                    return;
+                }
+                let membership = await Store.RoomParticipant.findById(ctx, chatId, config!.BotId);
+                if (membership && membership.status === 'joined' && membership.invitedBy === uid) {
+                    await Modules.Messaging.sendMessage(ctx, chatId, config!.BotId, {message: req.body.actionFields.message});
+                } else {
+                    res.status(400).json({errors: [{message: 'IFTTT bot has no permissions to write to this chat.'}]});
+                    return;
+                }
+                messageWasSent = true;
+            }
+            if (req.body.actionFields.channel_id && req.body.actionFields.channel_id !== '$TEST$') {
+                // noop
+                let channelId: number;
+                try {
+                    channelId = IDs.FeedChannel.parse(req.body.actionFields.channel_id.trim());
+                } catch (e) {
+                    res.status(400).json({errors: [{message: 'Invalid channel id'}]});
+                    return;
+                }
+                let adminShip = await Store.FeedChannelAdmin.findById(ctx, channelId, config!.BotId);
+                if (adminShip && adminShip.enabled && adminShip.promoter === uid) {
+                    await Modules.Feed.createPostInChannel(ctx, channelId, config!.BotId, {
+                        slides: [
+                            {
+                                type: 'text',
+                                text: req.body.actionFields.message,
+                                spans: null,
+                                cover: null,
+                                coverAlign: null,
+                                attachments: null
+                            }
+                        ]
+                    });
+                } else {
+                    res.status(400).json({errors: [{message: 'IFTTT bot has no permissions to write to this channel.'}]});
+                    return;
+                }
+                messageWasSent = true;
+            }
+            if (!messageWasSent) {
+                let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, uid);
+                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: req.body.actionFields.message});
+            }
+
             res.json({
                 data: [
                     {
@@ -172,7 +222,9 @@ async function initIFTTInternal(app: Express) {
                     samples: {
                         actions: {
                             send_message: {
-                                message: 'test'
+                                message: 'test',
+                                chat_id: '$TEST$',
+                                channel_id: '$TEST$'
                             }
                         }
                     }

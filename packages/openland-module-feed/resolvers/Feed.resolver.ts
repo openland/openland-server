@@ -536,12 +536,10 @@ export default {
     },
     Mutation: {
         alphaCreateFeedPost: withUser(async (ctx, args, uid) => {
-            return await Modules.Feed.createPostInChannel(
-                ctx,
-                IDs.FeedChannel.parse(args.channel),
-                uid,
-                {...await resolveRichMessageCreation(ctx, args), repeatKey: args.repeatKey}
-            );
+            return await Modules.Feed.createPostInChannel(ctx, IDs.FeedChannel.parse(args.channel), uid, {
+                ...await resolveRichMessageCreation(ctx, args),
+                repeatKey: args.repeatKey
+            });
         }),
         alphaEditFeedPost: withUser(async (ctx, args, uid) => {
             return await Modules.Feed.editPostInChannel(ctx, uid, IDs.FeedItem.parse(args.feedItemId), await resolveRichMessageCreation(ctx, args));
