@@ -92,11 +92,12 @@ const handleUser = async (_ctx: Context, uid: number) => {
     }
 
     // Scanning updates
-    let cursors = [
-        Buffer.from(state.lastPushCursor || '', 'base64'),
-        Buffer.from(state.lastEmailCursor || '', 'base64')
-    ].sort(Buffer.compare);
-    let after = cursors[cursors.length - 1].toString('base64');
+    // let cursors = [
+    //     Buffer.from(state.lastPushCursor || '', 'base64'),
+    //     Buffer.from(state.lastEmailCursor || '', 'base64')
+    // ].sort(Buffer.compare);
+    // let after = cursors[cursors.length - 1].toString('base64');
+    let after = state.lastPushCursor || '';
 
     let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
     let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
