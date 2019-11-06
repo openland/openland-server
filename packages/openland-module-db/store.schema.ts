@@ -1135,6 +1135,9 @@ export default declareSchema(() => {
     atomicInt('UserMessagesChatsCounter', () => {
         primaryKey('uid', integer());
     });
+    atomicInt('UserMessagesChannelsCounter', () => {
+        primaryKey('uid', integer());
+    });
     atomicInt('UserMessagesDirectChatsCounter', () => {
         primaryKey('uid', integer());
     });

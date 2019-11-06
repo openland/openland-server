@@ -1151,6 +1151,10 @@ export class RoomRepository {
                 //  Join community if not already
                 //
                 this.metrics.onChatCreated(ctx, uid);
+                if (room.isChannel) {
+                    this.metrics.onChannelJoined(ctx, uid);
+                }
+
                 if (org.kind === 'community') {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }

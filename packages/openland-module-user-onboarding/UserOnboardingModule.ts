@@ -296,7 +296,7 @@ export class UserOnboardingModule {
     }
 
     private userIsMemberOfAtLesatOneGroup = async (ctx: Context, uid: number) => {
-        return !!(await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx));
+        return !!(await Store.UserMessagesChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesDirectChatsCounter.byId(uid).get(ctx) - await Store.UserMessagesChannelsCounter.byId(uid).get(ctx));
     }
 
     private getOnboardingState = async (ctx: Context, uid: number) => {
