@@ -334,6 +334,42 @@ export class UserMessagesChatsCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class UserMessagesChannelsCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('userMessagesChannelsCounter');
+        return new UserMessagesChannelsCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserMessagesDirectChatsCounterFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -14301,6 +14337,7 @@ export interface Store extends BaseStore {
     readonly UserMessagesSentInDirectChatTotalCounter: UserMessagesSentInDirectChatTotalCounterFactory;
     readonly UserMessagesReceivedCounter: UserMessagesReceivedCounterFactory;
     readonly UserMessagesChatsCounter: UserMessagesChatsCounterFactory;
+    readonly UserMessagesChannelsCounter: UserMessagesChannelsCounterFactory;
     readonly UserMessagesDirectChatsCounter: UserMessagesDirectChatsCounterFactory;
     readonly UserSuccessfulInvitesCounter: UserSuccessfulInvitesCounterFactory;
     readonly UserSuccessfulInvitesPrevWeekCounter: UserSuccessfulInvitesPrevWeekCounterFactory;
@@ -14465,6 +14502,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserMessagesSentInDirectChatTotalCounterPromise = UserMessagesSentInDirectChatTotalCounterFactory.open(storage);
     let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.open(storage);
     let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
+    let UserMessagesChannelsCounterPromise = UserMessagesChannelsCounterFactory.open(storage);
     let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
     let UserSuccessfulInvitesCounterPromise = UserSuccessfulInvitesCounterFactory.open(storage);
     let UserSuccessfulInvitesPrevWeekCounterPromise = UserSuccessfulInvitesPrevWeekCounterFactory.open(storage);
@@ -14609,6 +14647,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserMessagesSentInDirectChatTotalCounter: await UserMessagesSentInDirectChatTotalCounterPromise,
         UserMessagesReceivedCounter: await UserMessagesReceivedCounterPromise,
         UserMessagesChatsCounter: await UserMessagesChatsCounterPromise,
+        UserMessagesChannelsCounter: await UserMessagesChannelsCounterPromise,
         UserMessagesDirectChatsCounter: await UserMessagesDirectChatsCounterPromise,
         UserSuccessfulInvitesCounter: await UserSuccessfulInvitesCounterPromise,
         UserSuccessfulInvitesPrevWeekCounter: await UserSuccessfulInvitesPrevWeekCounterPromise,

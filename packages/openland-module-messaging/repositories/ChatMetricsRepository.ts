@@ -29,6 +29,14 @@ export class ChatMetricsRepository {
         }
     }
 
+    onChannelJoined = (ctx: Context, uid: number) => {
+        Store.UserMessagesChannelsCounter.byId(uid).increment(ctx);
+    }
+
+    onChannelLeave = (ctx: Context, uid: number) => {
+        Store.UserMessagesChannelsCounter.byId(uid).decrement(ctx);
+    }
+
     onChatCreated = (ctx: Context, uid: number) => {
         Store.UserMessagesChatsCounter.byId(uid).increment(ctx);
     }

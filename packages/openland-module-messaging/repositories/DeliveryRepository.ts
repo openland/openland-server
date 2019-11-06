@@ -132,6 +132,12 @@ export class DeliveryRepository {
             if (chat && chat.kind === 'private') {
                 this.metrics.onDirectChatDeleted(ctx, uid);
             }
+            if (chat && chat.kind === 'room') {
+                let room = await Store.ConversationRoom.findById(ctx, cid);
+                if (room && room.isChannel) {
+                    this.metrics.onChannelLeave(ctx, uid);
+                }
+            }
 
             // Remove dialog
             this.userDialogs.removeDialog(ctx, uid, cid);
