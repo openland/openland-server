@@ -7,6 +7,7 @@ RUN chmod +x /tini
 WORKDIR /
 ADD https://www.foundationdb.org/downloads/6.0.15/ubuntu/installers/foundationdb-clients_6.0.15-1_amd64.deb ./foundationdb-clients_6.0.15-1_amd64.deb
 RUN apt-get update && dpkg -i foundationdb-clients_6.0.15-1_amd64.deb && apt-get install python && rm -rf /var/lib/apt/lists/*
+RUN apt-get install imagemagick
 
 WORKDIR /app
 ADD package.json /app/
