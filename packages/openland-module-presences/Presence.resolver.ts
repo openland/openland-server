@@ -1,10 +1,13 @@
 import { Modules } from 'openland-modules/Modules';
-import { withAny } from 'openland-module-api/Resolvers';
+import { withAccount, withAny } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { CacheRepository } from '../openland-module-cache/CacheRepository';
 // import { createIterator } from '../openland-utils/asyncIterator';
+
+const cache = new CacheRepository<{ at: number }>('user_installed_apps');
 
 export default {
     OnlineEvent: {
@@ -16,6 +19,10 @@ export default {
 
         type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
         user: (src: OnlineEvent) => src.userId,
+    },
+    IsAppInstalledResponse: {
+        installed: src => src.installed,
+        installedAt: src => src.installedAt
     },
     Mutation: {
         presenceReportOnline: async (_, args, ctx) => {
@@ -58,6 +65,30 @@ export default {
             // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
         },
+        alphaSetDesktopInstalled: withAccount(async (parent, args, uid) => {
+            await cache.write(parent, `${uid}_desktop`, { at: args.at.getTime() });
+            return true;
+        }),
+        alphaSetMobileInstalled: withAccount(async (parent, args, uid) => {
+            await cache.write(parent, `${uid}_mobile`, { at: args.at.getTime() });
+            return true;
+        }),
+    },
+    Query: {
+        isDesktopInstalled: withAccount(async (parent, args, uid) => {
+            let val = await cache.read(parent, `${uid}_desktop`);
+            if (!val) {
+                return { installed: false };
+            }
+            return { installed: true, installedAt: val.at };
+        }),
+        isMobileInstalled: withAccount(async (parent, args, uid) => {
+            let val = await cache.read(parent, `${uid}_mobile`);
+            if (!val) {
+                return { installed: false };
+            }
+            return { installed: true, installedAt: val.at };
+        }),
     },
     Subscription: {
         alphaSubscribeChatOnline: {
