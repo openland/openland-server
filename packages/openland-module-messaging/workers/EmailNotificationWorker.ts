@@ -101,10 +101,11 @@ const handleUser = async (ctx: Context, uid: number) => {
             continue;
         }
 
-        // disable email notificaitons for channels
+        // disable email notificaitons for channels and public chats
         let conversation = (await Store.Conversation.findById(ctx, message.cid))!;
         if (conversation.kind === 'room') {
-            if ((await Store.ConversationRoom.findById(ctx, message.cid))!.isChannel) {
+            let room = (await Store.ConversationRoom.findById(ctx, message.cid))!;
+            if (room.isChannel || room.kind === 'public') {
                 log.debug(ctx, tag, 'disable email notificaitons for channels');
                 continue;
             }
