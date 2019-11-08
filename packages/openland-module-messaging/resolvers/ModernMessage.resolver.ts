@@ -1071,6 +1071,8 @@ export default {
                         spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
                         spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
+                    } else if (span.type === 'Link' && span.url) {
+                        spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
                     }
                 }
             }
@@ -1202,6 +1204,8 @@ export default {
                         spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
                         spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
+                    } else if (span.type === 'Link' && span.url) {
+                        spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
                     }
                 }
             }

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '566a89f7ad11b59444dac58c16e01be5';
+export const GQL_SPEC_VERSION = 'dce1dde38e2aa0755bf9b2c74c96c250';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3331,11 +3331,12 @@ export namespace GQL {
         offset: number;
         length: number;
     }
-    export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating';
+    export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link';
     export interface MessageSpanInput {
         offset: number;
         length: number;
         type: MessageSpanType;
+        url: Nullable<string>;
     }
     export type Room = PrivateRoom | SharedRoom;
     export interface PrivateRoom {
