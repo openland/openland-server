@@ -32,6 +32,7 @@ const handleUser = async (ctx: Context, uid: number) => {
     // Ignore active users
     if (isActive) {
         log.debug(ctx, tag, 'Ignore active users');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
 
@@ -45,6 +46,7 @@ const handleUser = async (ctx: Context, uid: number) => {
     // Ignore recently online users
     if (lastSeen === 'online' || (lastSeen > now - 5 * 60 * 1000)) {
         log.debug(ctx, tag, 'Ignore recently online users');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
 
@@ -54,6 +56,7 @@ const handleUser = async (ctx: Context, uid: number) => {
         let comp = Buffer.compare(Buffer.from(state.lastEmailCursor, 'base64'), Buffer.from(eventsTail, 'base64'));
         if (comp >= 0) {
             log.debug(ctx, tag, 'ignore already processed updates');
+            needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
             return;
         }
     }
@@ -62,6 +65,7 @@ const handleUser = async (ctx: Context, uid: number) => {
 
     if (settings.emailFrequency === 'never') {
         log.debug(ctx, tag, 'Ignore emailFrequency=never');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
 
@@ -71,6 +75,7 @@ const handleUser = async (ctx: Context, uid: number) => {
     // Do not send emails more than one in an hour
     if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
         log.debug(ctx, tag, 'Do not send emails more than one in an hour');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
     // Scanning updates
