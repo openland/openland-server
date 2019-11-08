@@ -54,7 +54,7 @@ const handleUser = async (ctx: Context, uid: number) => {
     let eventsTail = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     if (eventsTail && state.lastEmailCursor) {
         let comp = Buffer.compare(Buffer.from(state.lastEmailCursor, 'base64'), Buffer.from(eventsTail, 'base64'));
-        if (comp >= 0) {
+        if (comp === 0) {
             log.debug(ctx, tag, 'ignore already processed updates');
             needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
             return;
