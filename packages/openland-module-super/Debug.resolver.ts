@@ -1174,7 +1174,7 @@ export default {
                 if (!profile.primaryOrganization) {
                     profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
                     if (!profile.primaryOrganization) {
-                        await log(`user[${id}] org not found`);
+                        // await log(`user[${id}] org not found`);
                     }
                 }
             });
