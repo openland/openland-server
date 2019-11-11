@@ -1,4 +1,9 @@
-import { RichMessage, UserBadge } from 'openland-module-db/store';
+import {
+    Organization,
+    RichMessage,
+    UserBadge,
+    UserProfile, ConversationRoom,
+} from 'openland-module-db/store';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
@@ -18,6 +23,7 @@ import { MessageMention } from '../MessageInput';
 import { AppContext } from 'openland-modules/AppContext';
 import { Store } from 'openland-module-db/FDB';
 import MessageSourceRoot = GQLRoots.MessageSourceRoot;
+import MentionPeerRoot = GQLRoots.MentionPeerRoot;
 
 export function hasMention(message: Message|RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -44,7 +50,7 @@ export const REACTIONS_LEGACY = new Map([
 export const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
 const DELETED_TEXT = {
     MESSAGE: 'This message has been deleted',
-    COMMENT: 'This comment has been deleted'
+    COMMENT: 'This comment has been deleted',
 };
 
 const getDeletedText = (src: Message | Comment | RichMessage) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
@@ -81,7 +87,7 @@ export async function prepareLegacyMentionsInput(ctx: Context, messageText: stri
                     type: 'user_mention',
                     offset: index,
                     length: mentionText.length,
-                    user: mention
+                    user: mention,
                 });
             }
         }
@@ -137,7 +143,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
             type: 'multi_user_mention',
             offset: messageText.length - othersText.length,
             length: othersText.length,
-            users: othersMentions.map((v: any) => v.user)
+            users: othersMentions.map((v: any) => v.user),
         });
     }
     let offsets = new Set<number>();
@@ -169,7 +175,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
                 type: 'user_mention',
                 offset: index1,
                 length: userName.length,
-                user: message.serviceMetadata.userId
+                user: message.serviceMetadata.userId,
             });
         }
         let index2 = getOffset(kickerUserName);
@@ -178,7 +184,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
                 type: 'user_mention',
                 offset: index2,
                 length: kickerUserName.length,
-                user: message.serviceMetadata.kickedById
+                user: message.serviceMetadata.kickedById,
             });
         }
     }
@@ -195,7 +201,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
                     type: 'user_mention',
                     offset: index,
                     length: mentionText.length,
-                    user: mention.user
+                    user: mention.user,
                 });
             }
         } else if (mention.type === 'room') {
@@ -209,7 +215,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
                     type: 'room_mention',
                     offset: index,
                     length: mentionText.length,
-                    room: mention.room
+                    room: mention.room,
                 });
             }
         }
@@ -333,7 +339,7 @@ export default {
             } else {
                 return 'GeneralMessage';
             }
-        }
+        },
     },
     ServiceMessage: {
         //
@@ -374,7 +380,7 @@ export default {
                                 type: 'user_mention',
                                 offset: span.offset,
                                 length: span.length,
-                                user: ctx.auth.uid!
+                                user: ctx.auth.uid!,
                             };
                         } else {
                             return span;
@@ -405,7 +411,7 @@ export default {
 
             return null;
         },
-        fallback: src => fetchMessageFallback(src)
+        fallback: src => fetchMessageFallback(src),
     },
     GeneralMessage: {
         //
@@ -475,7 +481,7 @@ export default {
                                 type: 'user_mention',
                                 offset: span.offset,
                                 length: span.length,
-                                user: ctx.auth.uid!
+                                user: ctx.auth.uid!,
                             };
                         } else {
                             return span;
@@ -526,10 +532,10 @@ export default {
                             imageWidth: src.fileMetadata.imageWidth,
                             imageHeight: src.fileMetadata.imageHeight,
                             imageFormat: src.fileMetadata.imageFormat,
-                            size: src.fileMetadata.size
+                            size: src.fileMetadata.size,
                         } : null,
-                        id: src.id + '_legacy_file'
-                    }
+                        id: src.id + '_legacy_file',
+                    },
                 });
             }
             if (src.augmentation) {
@@ -557,8 +563,8 @@ export default {
                         imageInfo: augmentation.imageInfo || null,
                         keyboard: augmentation.keyboard || null,
                         imageFallback: null,
-                        id: src.id + '_legacy_rich'
-                    }
+                        id: src.id + '_legacy_rich',
+                    },
                 });
             }
             if (src.type && src.type === 'POST') {
@@ -578,8 +584,8 @@ export default {
                         imageInfo: null,
                         keyboard: null,
                         imageFallback: null,
-                        id: src.id + '_legacy_post'
-                    }
+                        id: src.id + '_legacy_post',
+                    },
                 });
             }
             if (src.attachments) {
@@ -592,8 +598,8 @@ export default {
                             fileId: attachment.fileId,
                             filePreview: attachment.filePreview || undefined,
                             fileMetadata: attachment.fileMetadata,
-                            id: src.id + '_legacy_file_' + i
-                        }
+                            id: src.id + '_legacy_file_' + i,
+                        },
                     });
                     i++;
                 }
@@ -629,7 +635,7 @@ export default {
             let state = await Store.CommentState.findById(ctx, 'message', src.id);
             return (state && state.commentsCount) || 0;
         },
-        fallback: src => fetchMessageFallback(src)
+        fallback: src => fetchMessageFallback(src),
     },
     StickerMessage: {
         //
@@ -690,7 +696,7 @@ export default {
             let state = await Store.CommentState.findById(ctx, 'message', src.id);
             return (state && state.commentsCount) || 0;
         },
-        fallback: src => fetchMessageFallback(src)
+        fallback: src => fetchMessageFallback(src),
     },
 
     //
@@ -704,10 +710,10 @@ export default {
                 return 'MessageSourceComment';
             }
             throw new Error('Unknown message source: ' + src);
-        }
+        },
     },
     MessageSourceChat: {
-        chat: src => src.cid
+        chat: src => src.cid,
     },
     MessageSourceComment: {
         peer: async (src, args, ctx) => {
@@ -716,7 +722,7 @@ export default {
                 peerType: src.peerType,
                 peerId: src.peerId,
             };
-        }
+        },
     },
 
     ModernMessageReaction: {
@@ -731,7 +737,7 @@ export default {
                 return REACTIONS_LEGACY.get(src.reaction);
             }
             return 'LIKE';
-        }
+        },
     },
 
     //
@@ -772,22 +778,22 @@ export default {
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
-        }
+        },
     },
     MessageSpanUserMention: {
         offset: src => src.offset,
         length: src => src.length,
-        user: src => src.user
+        user: src => src.user,
     },
     MessageSpanMultiUserMention: {
         offset: src => src.offset,
         length: src => src.length,
-        users: src => src.users
+        users: src => src.users,
     },
     MessageSpanRoomMention: {
         offset: src => src.offset,
         length: src => src.length,
-        room: src => src.room
+        room: src => src.room,
     },
     MessageSpanOrganizationMention: {
         offset: src => src.offset,
@@ -809,7 +815,7 @@ export default {
     //
     ImageFallback: {
         photo: src => src.photo,
-        text: src => src.text
+        text: src => src.text,
     },
     Image: {
         url: src => buildBaseImageUrl({ uuid: src.uuid, crop: src.crop || null }),
@@ -822,7 +828,7 @@ export default {
                     imageWidth: src.metadata.imageWidth,
                     imageHeight: src.metadata.imageHeight,
                     imageFormat: src.metadata.imageFormat,
-                    size: src.metadata.size
+                    size: src.metadata.size,
                 };
             }
             return null;
@@ -837,7 +843,7 @@ export default {
             } else {
                 throw new UserError('Unknown message attachment type: ' + (src as any).type);
             }
-        }
+        },
     },
     MessageAttachmentFile: {
         id: src => IDs.MessageAttachment.serialize(src.attachment.id),
@@ -852,14 +858,14 @@ export default {
                     imageWidth: metadata.imageWidth,
                     imageHeight: metadata.imageHeight,
                     imageFormat: metadata.imageFormat,
-                    size: metadata.size
+                    size: metadata.size,
                 };
             } else {
                 return null;
             }
         },
         filePreview: src => src.attachment.filePreview,
-        fallback: src => 'File attachment'
+        fallback: src => 'File attachment',
     },
     MessageRichAttachment: {
         id: src => IDs.MessageAttachment.serialize(src.attachment.id),
@@ -871,13 +877,13 @@ export default {
         icon: src => src.attachment.icon && {
             uuid: src.attachment.icon.uuid,
             metadata: src.attachment.iconInfo,
-            crop: src.attachment.icon.crop
+            crop: src.attachment.icon.crop,
         },
         image: src => src.attachment.image && {
             uuid: src.attachment.image.uuid,
             metadata: src.attachment.imageInfo,
             crop: src.attachment.image.crop,
-            fallback: src.attachment.imageFallback
+            fallback: src.attachment.imageFallback,
         },
         imageFallback: src => src.attachment.imageFallback,
         imagePreview: src => src.attachment.imagePreview,
@@ -896,7 +902,19 @@ export default {
             }
 
             return src.attachment.keyboard;
-        }
+        },
+    },
+    MentionPeer: {
+        __resolveType(obj: MentionPeerRoot) {
+            if (obj instanceof UserProfile) {
+                return 'User';
+            } else if (obj instanceof ConversationRoom) {
+                return 'SharedRoom';
+            } else if (obj instanceof Organization) {
+                return 'Organization';
+            }
+            throw new Error('Obj type is unknown');
+        },
     },
 
     Query: {
@@ -955,7 +973,7 @@ export default {
                 messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
                 haveMoreForward = false;
-                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true, }));
+                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true }));
                 messages = beforeQuery.items;
                 haveMoreBackward = beforeQuery.haveMore;
             }
@@ -963,7 +981,7 @@ export default {
             return {
                 haveMoreForward,
                 haveMoreBackward,
-                messages
+                messages,
             };
         }),
 
@@ -1015,21 +1033,21 @@ export default {
                             type: 'user_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            user: IDs.User.parse(mention.userId!)
+                            user: IDs.User.parse(mention.userId!),
                         });
                     } else if (mention.chatId) {
                         mentions.push({
                             type: 'room_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            room: IDs.Conversation.parse(mention.chatId!)
+                            room: IDs.Conversation.parse(mention.chatId!),
                         });
                     } else if (mention.userIds) {
                         mentions.push({
                             type: 'multi_user_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            users: mention.userIds.map(id => IDs.User.parse(id))
+                            users: mention.userIds.map(id => IDs.User.parse(id)),
                         });
                     } else if (mention.all) {
                         mentions.push({
@@ -1042,7 +1060,7 @@ export default {
                             type: 'organization_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            organization: IDs.Organization.parse(mention.orgId)
+                            organization: IDs.Organization.parse(mention.orgId),
                         });
                     }
                 }
@@ -1092,7 +1110,7 @@ export default {
                         type: 'file_attachment',
                         fileId: fileInput.fileId,
                         fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null
+                        filePreview: filePreview || null,
                     });
                 }
             }
@@ -1108,7 +1126,7 @@ export default {
                 repeatKey: args.repeatKey,
                 attachments,
                 replyMessages,
-                spans
+                spans,
             });
 
             return true;
@@ -1131,7 +1149,7 @@ export default {
                 attachments: [],
                 replyMessages,
                 spans,
-                stickerId: sid
+                stickerId: sid,
             });
 
             return true;
@@ -1153,21 +1171,21 @@ export default {
                             type: 'user_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            user: IDs.User.parse(mention.userId!)
+                            user: IDs.User.parse(mention.userId!),
                         });
                     } else if (mention.chatId) {
                         mentions.push({
                             type: 'room_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            room: IDs.Conversation.parse(mention.chatId!)
+                            room: IDs.Conversation.parse(mention.chatId!),
                         });
                     } else if (mention.userIds) {
                         mentions.push({
                             type: 'multi_user_mention',
                             offset: mention.offset,
                             length: mention.length,
-                            users: mention.userIds.map(id => IDs.User.parse(id))
+                            users: mention.userIds.map(id => IDs.User.parse(id)),
                         });
                     } else if (mention.all) {
                         mentions.push({
@@ -1223,7 +1241,7 @@ export default {
                         type: 'file_attachment',
                         fileId: fileInput.fileId,
                         fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null
+                        filePreview: filePreview || null,
                     });
                 }
             }
@@ -1238,7 +1256,7 @@ export default {
                 message: args.message,
                 attachments,
                 replyMessages,
-                spans
+                spans,
             }, true);
 
             return true;
@@ -1304,5 +1322,5 @@ export default {
             await Modules.Messaging.room.archiveRoom(ctx, cid, uid);
             return true;
         }),
-    }
+    },
 } as GQLResolver;

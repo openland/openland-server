@@ -58,6 +58,7 @@ import { loadStickersModule } from '../openland-module-stickers/Stickers.contain
 import { loadMatchmakingModule } from '../openland-module-matchmaking/Matchmaking.container';
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
 import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
+import { MentionNotificationsMediator } from '../openland-module-messaging/mediators/MentionNotificationsMediator';
 
 const logger = createLogger('starting');
 
@@ -155,4 +156,5 @@ export async function startAllModules() {
     await container.get<MonitoringModule>('MonitoringModule').start();
     await container.get(MatchmakingModule).start();
     await container.get(IFTTTModule).start();
+    await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
 }

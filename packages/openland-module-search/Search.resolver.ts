@@ -399,7 +399,7 @@ export default {
             clauses.push({terms: {userId: members}});
             clauses.push({
                 bool: {
-                    should: query.trim().length > 0 ? [
+                    should: query.length > 0 ? [
                         {match_phrase_prefix: {name: query}},
                         {match_phrase_prefix: {shortName: query}}
                     ] : []
@@ -560,7 +560,7 @@ export default {
                 if (item instanceof Conversation) {
                     return item.kind !== 'private';
                 }
-                return false;
+                return true;
             });
         })
     },
