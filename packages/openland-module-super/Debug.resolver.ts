@@ -1170,13 +1170,18 @@ export default {
         }),
         debugFixUsersPrimaryOrganization: withPermission('super-admin', async (parent) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixUsersPrimaryOrganization', async (ctx, id, log) => {
-                let profile = (await Store.UserProfile.findById(ctx, id))!;
-                if (!profile.primaryOrganization) {
-                    profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
+                try {
+                    let profile = (await Store.UserProfile.findById(ctx, id))!;
                     if (!profile.primaryOrganization) {
-                        // await log(`user[${id}] org not found`);
+                        profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
+                        if (!profile.primaryOrganization) {
+                            await log(`user[${id}] org not found`);
+                        }
                     }
+                } catch (e) {
+                    logger.log(rootCtx, 'debugFixUsersPrimaryOrganization', e);
                 }
+
             });
             return true;
         }),
