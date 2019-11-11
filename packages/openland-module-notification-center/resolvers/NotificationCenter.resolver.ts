@@ -28,6 +28,8 @@ export default {
                 return 'NewCommentNotification';
             } if (src.type === 'new_matchmaking_profiles') {
                 return 'NewMatchmakingProfilesNotification';
+            } if (src.type === 'mention') {
+                return 'MentionNotification';
             } else {
                 throw new Error('Unknown notification content type');
             }
@@ -55,6 +57,18 @@ export default {
         profiles: async (src, args, ctx) => {
             let res = await Promise.all(src.uids.map(a => Modules.Matchmaking.getRoomProfile(ctx, src.peerId, src.peerType, a)));
             return res.filter(r => !!r);
+        }
+    },
+    MentionNotification: {
+        peer: async (src, args, ctx) => {
+            if (src.peerType === 'room') {
+                return await Store.ConversationRoom.findById(ctx, src.peerId);
+            } else if (src.peerType === 'user') {
+                return await Store.UserProfile.findById(ctx, src.peerId);
+            } else if (src.peerType === 'organization') {
+                return await Store.Organization.findById(ctx, src.peerId);
+            }
+            throw new Error(`invalid mention notification peer type: ${src.peerType}`);
         }
     },
 

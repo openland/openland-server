@@ -7,7 +7,7 @@ import { CommentPeerType } from '../../openland-module-comments/repositories/Com
 import { Store } from 'openland-module-db/FDB';
 import { MatchmakingPeerType } from '../../openland-module-matchmaking/repositories/MatchmakingRepository';
 
-export type NotificationContent = NewCommentNotification | NewMatchmakingProfileNotification;
+export type NotificationContent = NewCommentNotification | NewMatchmakingProfileNotification | MentionNotification;
 
 export type NewCommentNotification = {
     type: 'new_comment';
@@ -19,6 +19,12 @@ export type NewMatchmakingProfileNotification = {
     peerId: number;
     peerType: MatchmakingPeerType;
     uids: number[];
+};
+
+export type MentionNotification = {
+    type: 'mention';
+    peerId: number;
+    peerType: 'user' | 'organization' | 'room';
 };
 
 export interface NotificationInput {

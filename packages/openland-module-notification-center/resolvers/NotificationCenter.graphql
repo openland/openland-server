@@ -10,7 +10,7 @@ type Notification {
     content: [NotificationContent!]!
 }
 
-union NotificationContent = NewCommentNotification | NewMatchmakingProfilesNotification
+union NotificationContent = NewCommentNotification | NewMatchmakingProfilesNotification | MentionNotification
 
 type NewCommentNotification {
     peer: CommentsPeer!
@@ -20,6 +20,10 @@ type NewCommentNotification {
 type NewMatchmakingProfilesNotification {
     room: MatchmakingRoom!
     profiles: [MatchmakingProfile!]!
+}
+
+type MentionNotification {
+    peer: MentionPeer
 }
 
 type NotificationConnection {

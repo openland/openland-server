@@ -29,6 +29,15 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
+    async isPublicRoom(ctx: Context, cid: number) {
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        if (!conv) {
+            return false;
+        }
+
+        return conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
+    }
+
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
             if (oid) {

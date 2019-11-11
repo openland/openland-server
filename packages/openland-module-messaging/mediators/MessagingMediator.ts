@@ -15,6 +15,7 @@ import { currentTime } from 'openland-utils/timer';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
 import { Store } from 'openland-module-db/FDB';
+import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -28,6 +29,8 @@ export class MessagingMediator {
     private readonly delivery!: DeliveryMediator;
     @lazyInject('AugmentationMediator')
     private readonly augmentation!: AugmentationMediator;
+    @lazyInject('MentionNotificationsMediator')
+    private readonly mentionNotifications!: MentionNotificationsMediator;
     @lazyInject('RoomMediator')
     private readonly room!: RoomMediator;
 
@@ -115,6 +118,9 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
 
+            // Mentions
+            await this.mentionNotifications.onNewMessage(ctx, res.message);
+
             if (!message.isService) {
                 // Subscribe to comments
                 await Modules.Comments.notificationsMediator.onNewPeer(ctx, 'message', res.message.id, uid, message.spans || []);
@@ -194,6 +200,9 @@ export class MessagingMediator {
 
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
+
+            // Mentions
+            await this.mentionNotifications.onMessageUpdated(ctx, message);
 
             // Send notification center updates
             await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);

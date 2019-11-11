@@ -259,6 +259,7 @@ type MessageSpanOrganizationMention implements MessageSpan {
     organization: Organization!
 }
 
+union MentionPeer = SharedRoom | Organization | User
 
 input MentionInput {
     chatId: ID
