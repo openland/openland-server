@@ -18,11 +18,24 @@ type ChatOnlineEvent {
     onlineMembers: Int!
 }
 
+type IsAppInstalledResponse {
+    installed: Boolean!
+    installedAt: Date
+}
+
 extend type Mutation {
     presenceReportOnline(timeout: Int!, platform: String, active: Boolean): String!
     presenceReportOffline(platform: Platform): String! @withAuth
     
     alphaReportActive(timeout: Int!, platform: Platform): String!
+
+    alphaSetDesktopInstalled(at: Date!): Boolean!
+    alphaSetMobileInstalled(at: Date!): Boolean!
+}
+
+extend type Query {
+    isDesktopInstalled: IsAppInstalledResponse!
+    isMobileInstalled: IsAppInstalledResponse!
 }
 
 extend type Subscription {

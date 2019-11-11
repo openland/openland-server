@@ -9,6 +9,7 @@ import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { CacheRepository } from '../../openland-module-cache/CacheRepository';
 import { inTx } from '@openland/foundationdb';
+import { ico2png } from '../../openland-utils/ico2png';
 
 export interface URLInfo {
     url: string;
@@ -253,7 +254,19 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
             iconInfo = cached.iconInfo;
         } else {
             try {
-                let { file } = await Modules.Media.uploadFromUrl(rootCtx, iconURL);
+                let file: string = '';
+                if (iconURL.endsWith('.ico')) {
+                    let res = await (await fetch(iconURL));
+                    if (res.status !== 200) {
+                        throw new Error('Can\'t download file');
+                    }
+                    let data = await res.buffer();
+                    let png = await ico2png(data);
+                    file = (await Modules.Media.upload(rootCtx, png, '.png')).file;
+                } else {
+                    file = (await Modules.Media.uploadFromUrl(rootCtx, iconURL)).file;
+                }
+
                 iconRef = { uuid: file, crop: null };
                 iconInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
                 if (!iconInfo.isImage) {

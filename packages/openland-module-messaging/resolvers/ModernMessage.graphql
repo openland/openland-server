@@ -340,11 +340,13 @@ enum MessageSpanType {
     CodeBlock,
     Insane,
     Loud,
-    Rotating
+    Rotating,
+    Link
 }
 
 input MessageSpanInput {
     offset: Int!
     length: Int!
     type: MessageSpanType!
+    url: String
 }

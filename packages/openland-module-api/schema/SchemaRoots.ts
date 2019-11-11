@@ -370,6 +370,7 @@ export namespace GQLRoots {
     //
     export type OnlineEventRoot = any;
     export type ChatOnlineEventRoot = any;
+    export type IsAppInstalledResponseRoot = { installed: boolean, installedAt?: string };
 
     //
     // Stats

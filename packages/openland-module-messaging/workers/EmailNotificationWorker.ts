@@ -22,8 +22,8 @@ const log = createLogger('email');
 
 const handleUser = async (ctx: Context, uid: number) => {
     const needNotificationDelivery = Modules.Messaging.needNotificationDelivery;
+
     let now = Date.now();
-    let ustate = await Modules.Messaging.getUserMessagingState(ctx, uid);
     let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
     let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
     let isActive = await Modules.Presence.isActive(ctx, uid);
@@ -31,22 +31,21 @@ const handleUser = async (ctx: Context, uid: number) => {
 
     // Ignore active users
     if (isActive) {
+        log.debug(ctx, tag, 'Ignore active users');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
 
     // Ignore never online
     if (lastSeen === 'never_online') {
+        log.debug(ctx, tag, 'Ignore never online');
         needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
 
     // Ignore recently online users
     if (lastSeen === 'online' || (lastSeen > now - 5 * 60 * 1000)) {
-        return;
-    }
-
-    // Ignore never opened apps
-    if (state.readSeq === null) {
+        log.debug(ctx, tag, 'Ignore recently online users');
         needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
@@ -55,24 +54,18 @@ const handleUser = async (ctx: Context, uid: number) => {
     let eventsTail = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     if (eventsTail && state.lastEmailCursor) {
         let comp = Buffer.compare(Buffer.from(state.lastEmailCursor, 'base64'), Buffer.from(eventsTail, 'base64'));
-        if (comp >= 0) {
-            log.debug(ctx, 'ignore already processed updates');
+        if (comp === 0) {
+            log.debug(ctx, tag, 'ignore already processed updates');
+            needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
             return;
         }
     }
-    // if (state.readSeq === ustate.seq) {
-    //     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
-    //     return;
-    // }
-    //
-    // // Ignore already processed updates
-    // if (state.lastEmailSeq === ustate.seq) {
-    //     return;
-    // }
 
     let settings = await Modules.Users.getUserSettings(ctx, uid);
 
     if (settings.emailFrequency === 'never') {
+        log.debug(ctx, tag, 'Ignore emailFrequency=never');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
 
@@ -81,15 +74,17 @@ const handleUser = async (ctx: Context, uid: number) => {
 
     // Do not send emails more than one in an hour
     if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
+        log.debug(ctx, tag, 'Do not send emails more than one in an hour');
+        needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
         return;
     }
     // Scanning updates
-    let cursors = [
-        Buffer.from(state.lastPushCursor || '', 'base64'),
-        Buffer.from(state.lastEmailCursor || '', 'base64')
-    ].sort(Buffer.compare);
-    let after = cursors[cursors.length - 1].toString('base64');
-
+    // let cursors = [
+    //     Buffer.from(state.lastPushCursor || '', 'base64'),
+    //     Buffer.from(state.lastEmailCursor || '', 'base64')
+    // ].sort(Buffer.compare);
+    // let after = cursors[cursors.length - 1].toString('base64');
+    let after = state.lastEmailCursor || '';
     let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
     let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
 
@@ -106,10 +101,12 @@ const handleUser = async (ctx: Context, uid: number) => {
             continue;
         }
 
-        // disable email notificaitons for channels
+        // disable email notificaitons for channels and public chats
         let conversation = (await Store.Conversation.findById(ctx, message.cid))!;
         if (conversation.kind === 'room') {
-            if ((await Store.ConversationRoom.findById(ctx, message.cid))!.kind === 'public') {
+            let room = (await Store.ConversationRoom.findById(ctx, message.cid))!;
+            if (room.isChannel || room.kind === 'public') {
+                log.debug(ctx, tag, 'disable email notificaitons for channels');
                 continue;
             }
         }
@@ -117,12 +114,14 @@ const handleUser = async (ctx: Context, uid: number) => {
         let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
         // Ignore read messages
         if (readMessageId >= message.id) {
+            log.debug(ctx, tag, 'Ignore read messages');
             continue;
         }
 
         // Ignore service messages for big rooms
         if (message.isService) {
             if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
+                log.debug(ctx, tag, 'Ignore service messages for big rooms');
                 continue;
             }
         }
@@ -149,13 +148,12 @@ const handleUser = async (ctx: Context, uid: number) => {
     }
 
     // Save state
-    state.lastEmailSeq = ustate.seq;
     state.lastEmailCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'email', uid);
 };
 
 export function startEmailNotificationWorker() {
-    singletonWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000, db: Store.storage.db }, async (parent) => {
+    singletonWorker({ name: 'email_notifications', delay: 60 * 1000, startDelay: 3000, db: Store.storage.db }, async (parent) => {
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email'));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length);
