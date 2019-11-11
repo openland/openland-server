@@ -925,7 +925,7 @@ export class RoomRepository {
         } else if (conv.kind === 'room') {
             let member = await Store.RoomParticipant.findById(ctx, cid, uid);
 
-            if (member && member.status === 'kicked') {
+            if (member && (member.status === 'kicked' || member.status === 'left')) {
                 return true;
             } else {
                 return false;
