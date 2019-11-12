@@ -1,4 +1,5 @@
 import {
+    DocumentNode,
     execute,
     GraphQLSchema,
     parse,
@@ -12,6 +13,7 @@ import { gqlSubscribe } from './gqlSubscribe';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
+import { QueryCache } from './queryCache';
 
 const logger = createLogger('apollo');
 
@@ -25,6 +27,7 @@ interface FuckApolloServerParams {
     server?: http.Server | https.Server;
     path: string;
     executableSchema: GraphQLSchema;
+    queryCache?: QueryCache;
 
     onAuth(payload: any, req: http.IncomingMessage): Promise<any>;
 
@@ -159,7 +162,27 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
         await Promise.resolve(session.waitAuth);
 
         if (message.type && message.type === 'start') {
-            let query = parse(message.payload.query);
+            let query: DocumentNode;
+            if (message.payload.query_id && params.queryCache) {
+                let cachedQuery = await params.queryCache.get(message.payload.query_id.trim());
+                if (cachedQuery) {
+                    query = parse(cachedQuery);
+                } else {
+                    session.send({ id: message.id, type: 'need_full_query' });
+                    session.sendComplete(message.id);
+                    return;
+                }
+            } else if (message.payload.query) {
+                query = parse(message.payload.query);
+                if (params.queryCache) {
+                    await params.queryCache.store(message.payload.query);
+                }
+            } else {
+                session.sendComplete(message.id);
+                return;
+            }
+
+            // let query = parse(message.payload.query);
             let isSubscription = isSubscriptionQuery(query, message.payload.operationName);
 
             if (isSubscription) {
