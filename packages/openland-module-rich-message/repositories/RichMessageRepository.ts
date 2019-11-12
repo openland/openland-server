@@ -148,6 +148,7 @@ export class RichMessageRepository {
             if (newMessage.spans) {
                 message.spans = newMessage.spans;
             }
+            return message;
         });
     }
 

@@ -1,8 +1,5 @@
 import {
-    Organization,
-    RichMessage,
-    UserBadge,
-    UserProfile, ConversationRoom,
+    Organization, RichMessage, UserBadge, UserProfile, ConversationRoom, FeedEvent,
 } from 'openland-module-db/store';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
@@ -24,6 +21,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { Store } from 'openland-module-db/FDB';
 import MessageSourceRoot = GQLRoots.MessageSourceRoot;
 import MentionPeerRoot = GQLRoots.MentionPeerRoot;
+import MessageWithMentionRoot = GQLRoots.MessageWithMentionRoot;
 
 export function hasMention(message: Message|RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -915,6 +913,16 @@ export default {
             }
             throw new Error('Obj type is unknown');
         },
+    },
+    MessageWithMention: {
+        __resolveType(obj: MessageWithMentionRoot) {
+            if (obj instanceof Message) {
+                return 'Message';
+            } else if (obj instanceof FeedEvent) {
+                return 'FeedPost';
+            }
+            throw new Error('Obj type is unknown');
+        }
     },
 
     Query: {

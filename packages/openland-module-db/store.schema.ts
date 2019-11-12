@@ -939,7 +939,9 @@ export default declareSchema(() => {
             }),
             'mention': struct({
                 peerId: integer(),
-                peerType: string()
+                peerType: string(),
+                messageId: integer(),
+                messageType: string()
             })
         }))));
 

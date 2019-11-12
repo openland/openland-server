@@ -2,47 +2,49 @@ import { injectable } from 'inversify';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Context } from '@openland/context';
-import { Message } from '../../openland-module-db/store';
+import { FeedEvent, RichMessage } from '../../openland-module-db/store';
 import { Store } from '../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 
 @injectable()
-export class MentionNotificationsMediator {
-    private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_mention_notifications_task');
+export class FeedMentionNotificationsMediator {
+    private readonly queue = new WorkQueue<{ tid: number, messageId: number }, { result: string }>('feed_item_mention_notifications_task');
 
     start = () => {
         if (serverRoleEnabled('workers')) {
             this.queue.addWorker(async (item, root) => {
                 return await inTx(root, async ctx => {
-
-                    let message = await Store.Message.findById(ctx, item.messageId);
+                    let message = await Store.RichMessage.findById(ctx, item.messageId);
                     if (!message || !message.spans) {
                         return { result: 'ok' };
                     }
-                    if (!await Modules.Messaging.room.isPublicRoom(ctx, message.cid)) {
+
+                    let topic = await Store.FeedTopic.findById(ctx, item.tid);
+                    if (!topic || !topic.key.startsWith('channel-')) {
                         return { result: 'ok' };
                     }
 
-                    let room = await Store.RoomProfile.findById(ctx, message.cid);
-                    if (!room) {
+                    let cid = parseInt(topic.key.slice(8), 0);
+                    let channel = await Store.FeedChannel.findById(ctx, cid);
+                    if (!channel) {
                         return { result: 'ok' };
                     }
 
                     for (let span of message.spans) {
                         if (span.type === 'user_mention') {
-                            if (await Modules.Messaging.room.isRoomMember(ctx, span.user, message.cid) || message.uid === span.user) {
+                            if (span.user === message.uid) {
                                 continue;
                             }
 
                             await Modules.NotificationCenter.sendNotification(ctx, span.user, {
-                                text: `${await Modules.Users.getUserFullName(ctx, message.uid)} mentioned you in ${room.title}`,
+                                text: `${await Modules.Users.getUserFullName(ctx, message.uid)} mentioned you in ${channel.title}`,
                                 content: [{
                                     type: 'mention',
                                     peerId: span.user,
                                     peerType: 'user',
-                                    messageId: message.id,
-                                    messageType: 'message',
+                                    messageId: item.tid,
+                                    messageType: 'feed'
                                 }],
                             });
                         }
@@ -57,13 +59,13 @@ export class MentionNotificationsMediator {
                                     continue;
                                 }
                                 await Modules.NotificationCenter.sendNotification(ctx, admin!.uid, {
-                                    text: `${await Modules.Users.getUserFullName(ctx, message.uid)} mentioned your chat in ${room.title}`,
+                                    text: `${await Modules.Users.getUserFullName(ctx, message.uid)} mentioned your chat in ${channel.title}`,
                                     content: [{
                                         type: 'mention',
                                         peerId: span.room,
                                         peerType: 'room',
-                                        messageId: message.id,
-                                        messageType: 'message',
+                                        messageId: item.tid,
+                                        messageType: 'feed'
                                     }],
                                 });
                             }
@@ -76,13 +78,13 @@ export class MentionNotificationsMediator {
                                     continue;
                                 }
                                 await Modules.NotificationCenter.sendNotification(ctx, admin.uid, {
-                                    text: `${await Modules.Users.getUserFullName(ctx, message.uid)} mentioned your organization in ${room.title}`,
+                                    text: `${await Modules.Users.getUserFullName(ctx, message.uid)} mentioned your organization in ${channel.title}`,
                                     content: [{
                                         type: 'mention',
                                         peerId: span.organization,
                                         peerType: 'organization',
-                                        messageId: message.id,
-                                        messageType: 'message',
+                                        messageId: item.tid,
+                                        messageType: 'feed'
                                     }],
                                 });
                             }
@@ -94,23 +96,19 @@ export class MentionNotificationsMediator {
         }
     }
 
-    onNewMessage = async (ctx: Context, message: Message) => {
+    onNewItem = async (ctx: Context, event: FeedEvent, message: RichMessage) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, { messageId: message.id });
+            await this.queue.pushWork(ctx, { messageId: message.id, tid: event.tid });
         }
     }
 
-    onMessageUpdated = async (ctx: Context, message: Message) => {
+    onItemUpdated = async (ctx: Context, event: FeedEvent, message: RichMessage) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, { messageId: message.id });
+            await this.queue.pushWork(ctx, { messageId: message.id, tid: event.tid });
         }
     }
 
-    haveMentions = (message: Message) => {
-        return message.spans && message.spans.find(a =>
-            a.type === 'user_mention' ||
-            a.type === 'multi_user_mention' ||
-            a.type === 'organization_mention' ||
-            a.type === 'room_mention');
+    haveMentions = (message: RichMessage) => {
+        return message.spans && message.spans.find(a => a.type === 'user_mention' || a.type === 'multi_user_mention' || a.type === 'organization_mention' || a.type === 'room_mention');
     }
 }

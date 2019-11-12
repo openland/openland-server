@@ -284,7 +284,8 @@ export namespace GQLRoots {
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
     export type ShowNotificationMessageInfoRoot = { mobile: boolean, desktop: boolean };
     export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
-    export type MentionPeerRoot = UserProfile | Conversation | Organization;
+    export type MentionPeerRoot = UserProfile | ConversationRoom | Organization;
+    export type MessageWithMentionRoot = FeedEvent | Message;
 
     //
     //  Chat updates
@@ -405,7 +406,7 @@ export namespace GQLRoots {
     export type NotificationContentRoot = NotificationContent;
     export type NewCommentNotificationRoot = NewCommentNotification;
     export type NewMatchmakingProfilesNotificationRoot = NewMatchmakingProfileNotification;
-    export type MentionNotificationRoot = { peerId: number, peerType: string };
+    export type MentionNotificationRoot = { peerId: number, peerType: string, messageId: number, messageType: string };
     export type NotificationConnectionRoot = { items: Notification[], cursor?: string };
     export type UserChatWithBadgeRoot = { badge: UserBadge, cid: number };
 

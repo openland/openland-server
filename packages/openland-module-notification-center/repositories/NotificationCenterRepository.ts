@@ -25,6 +25,8 @@ export type MentionNotification = {
     type: 'mention';
     peerId: number;
     peerType: 'user' | 'organization' | 'room';
+    messageId: number;
+    messageType: 'feed' | 'message';
 };
 
 export interface NotificationInput {

@@ -22,8 +22,11 @@ type NewMatchmakingProfilesNotification {
     profiles: [MatchmakingProfile!]!
 }
 
+union MessageWithMention = FeedPost | Message
+
 type MentionNotification {
     peer: MentionPeer
+    message: MessageWithMention
 }
 
 type NotificationConnection {

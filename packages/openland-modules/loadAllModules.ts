@@ -59,6 +59,7 @@ import { loadMatchmakingModule } from '../openland-module-matchmaking/Matchmakin
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
 import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 import { MentionNotificationsMediator } from '../openland-module-messaging/mediators/MentionNotificationsMediator';
+import { FeedMentionNotificationsMediator } from '../openland-module-feed/repositories/FeedMentionNotificationsMediator';
 
 const logger = createLogger('starting');
 
@@ -157,4 +158,5 @@ export async function startAllModules() {
     await container.get(MatchmakingModule).start();
     await container.get(IFTTTModule).start();
     await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
+    await container.get<FeedMentionNotificationsMediator>('FeedMentionNotificationsMediator').start();
 }
