@@ -35,6 +35,7 @@ import { createMetric } from '../openland-module-monitoring/Metric';
 import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
 import { initIFTTT } from '../openland-module-ifttt/http.handlers';
+import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -202,6 +203,7 @@ export async function initApi(isTest: boolean) {
             server: undefined, // httpServer ,
             path: '/api',
             executableSchema: Schema(),
+            queryCache: new InMemoryQueryCache(),
             onAuth: async (params, req) => {
                 const start = currentRunningTime();
                 try {

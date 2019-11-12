@@ -310,6 +310,10 @@ export class OrganizationModule {
         await this.repo.markForUndexing(ctx, oid);
     }
 
+    async findPrimaryOrganizationForUser(ctx: Context, uid: number) {
+        return await this.repo.findPrimaryOrganizationForUser(ctx, uid);
+    }
+
     //
     // Deprecated
     //
