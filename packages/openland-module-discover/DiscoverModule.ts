@@ -30,6 +30,9 @@ export class DiscoverModule {
                     }
                 }
             }
+
+            page.chats = await this.sortChats(page.chats);
+
             return page;
         });
     }
@@ -66,6 +69,7 @@ export class DiscoverModule {
             if (page.chats) {
                 await this.saveSelectedTags(ctx, uid, selectedTags);
             }
+            page.chats = await this.sortChats(page.chats);
             return page;
         });
     }
@@ -73,7 +77,8 @@ export class DiscoverModule {
     suggestedChats = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
             let selected = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
-            return this.data.resolveSuggestedChats(selected.map(s => s.id));
+            let chats = this.data.resolveSuggestedChats(selected.map(s => s.id));
+            return await this.sortChats(chats);
         });
     }
 
@@ -98,9 +103,24 @@ export class DiscoverModule {
             let chats = this.data.resolveSuggestedChats(selectedTags);
             await this.saveSelectedTags(ctx, uid, selectedTags);
             await Modules.Hooks.onDiscoverSkipped(ctx, uid);
+            chats = await this.sortChats(chats);
             return { chats };
         });
     }
+
+    private sortChats = async (chats: number[]): number[] => {
+        let chatRooms = await Promise.all(chats.map(a => Store.RoomProfile.findById(ctx, a)));
+        let roomMembers = new Map<number, number>();
+        for (let room of chatRooms) {
+            if (!room) {
+                continue;
+            }
+            roomMembers.set(room.id, room.activeMembersCount);
+        }
+
+        return chats.sort((a, b) => roomMembers.get(b) - roomMembers.get(a));
+    }
+
     start = () => {
         // Nothing to do
     }
