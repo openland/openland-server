@@ -14,6 +14,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 import { Modules } from '../../openland-modules/Modules';
 import { FeedDeliveryMediator } from './FeedDeliveryMediator';
+import { FeedMentionNotificationsMediator } from './FeedMentionNotificationsMediator';
 
 @injectable()
 export class FeedRepository {
@@ -21,6 +22,8 @@ export class FeedRepository {
     private readonly richMessageRepo!: RichMessageRepository;
     @lazyInject('FeedDeliveryMediator')
     private readonly delivery!: FeedDeliveryMediator;
+    @lazyInject('FeedMentionNotificationsMediator')
+    private readonly mentions!: FeedMentionNotificationsMediator;
 
     //
     // Topics
@@ -138,6 +141,8 @@ export class FeedRepository {
 
             await this.delivery.onNewItem(ctx, event);
 
+            await this.mentions.onNewItem(ctx, event, message);
+
             return event;
         });
     }
@@ -164,10 +169,11 @@ export class FeedRepository {
             //
             // Edit message
             //
-            await this.richMessageRepo.editRichMessage(ctx, uid, feedEvent.content.richMessageId, input, true);
+            message = await this.richMessageRepo.editRichMessage(ctx, uid, feedEvent.content.richMessageId, input, true);
             feedEvent.edited = true;
 
             await this.delivery.onItemUpdated(ctx, feedEvent);
+            await this.mentions.onItemUpdated(ctx, feedEvent, message);
 
             return feedEvent;
         });

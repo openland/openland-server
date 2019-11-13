@@ -29,7 +29,9 @@ export class DiscoverModule {
                         await Store.DiscoverUserPickedTags.create(ctx, uid, tagId, { deleted: false });
                     }
                 }
+                page.chats = await this.sortChats(ctx, page.chats);
             }
+
             return page;
         });
     }
@@ -65,6 +67,7 @@ export class DiscoverModule {
             let page = this.data.next(selectedTags, exludedGroups);
             if (page.chats) {
                 await this.saveSelectedTags(ctx, uid, selectedTags);
+                page.chats = await this.sortChats(ctx, page.chats);
             }
             return page;
         });
@@ -73,7 +76,8 @@ export class DiscoverModule {
     suggestedChats = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
             let selected = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
-            return this.data.resolveSuggestedChats(selected.map(s => s.id));
+            let chats = this.data.resolveSuggestedChats(selected.map(s => s.id));
+            return await this.sortChats(ctx, chats);
         });
     }
 
@@ -98,9 +102,24 @@ export class DiscoverModule {
             let chats = this.data.resolveSuggestedChats(selectedTags);
             await this.saveSelectedTags(ctx, uid, selectedTags);
             await Modules.Hooks.onDiscoverSkipped(ctx, uid);
+            chats = await this.sortChats(ctx, chats);
             return { chats };
         });
     }
+
+    private sortChats = async (ctx: Context, chats: number[]): Promise<number[]> => {
+        let chatRooms = await Promise.all(chats.map(a => Store.RoomProfile.findById(ctx, a)));
+        let roomMembers = new Map<number, number>();
+        for (let room of chatRooms) {
+            if (!room) {
+                continue;
+            }
+            roomMembers.set(room.id, room.activeMembersCount || 0);
+        }
+
+        return chats.sort((a, b) => roomMembers.get(b)! - roomMembers.get(a)!);
+    }
+
     start = () => {
         // Nothing to do
     }

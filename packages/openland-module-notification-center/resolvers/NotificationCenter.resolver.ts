@@ -69,6 +69,14 @@ export default {
                 return await Store.Organization.findById(ctx, src.peerId);
             }
             throw new Error(`invalid mention notification peer type: ${src.peerType}`);
+        },
+        message: async (src, args, ctx) => {
+            if (src.messageType === 'message') {
+                return await Store.Message.findById(ctx, src.messageId);
+            } else if (src.messageType === 'feed') {
+                return await Store.FeedEvent.findById(ctx, src.messageId);
+            }
+            throw new Error(`invalid mention notification message type: ${src.messageType}`);
         }
     },
 

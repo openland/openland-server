@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8d9431ca71dbbed7ee8531a81bb184e1';
+export const GQL_SPEC_VERSION = '0a2f18ff060541cd20a9eb11e7d53a66';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2157,8 +2157,10 @@ export namespace GQL {
         room: MatchmakingRoom;
         profiles: MatchmakingProfile[];
     }
+    export type MessageWithMention = FeedPost | Message;
     export interface MentionNotification {
-        peer: Nullable<MentionPeer>;
+        peer: MentionPeer;
+        message: MessageWithMention;
     }
     export interface NotificationConnection {
         items: Notification[];
@@ -3622,7 +3624,8 @@ export interface GQLResolver {
     NotificationContent?: UnionTypeResolver<GQLRoots.NotificationContentRoot, 'NewCommentNotification' | 'NewMatchmakingProfilesNotification' | 'MentionNotification'>;
     NewCommentNotification?: ComplexTypedResolver<GQL.NewCommentNotification, GQLRoots.NewCommentNotificationRoot, {peer: GQLRoots.CommentsPeerRoot, comment: GQLRoots.CommentEntryRoot}, {}>;
     NewMatchmakingProfilesNotification?: ComplexTypedResolver<GQL.NewMatchmakingProfilesNotification, GQLRoots.NewMatchmakingProfilesNotificationRoot, {room: GQLRoots.MatchmakingRoomRoot, profiles: GQLRoots.MatchmakingProfileRoot[]}, {}>;
-    MentionNotification?: ComplexTypedResolver<GQL.MentionNotification, GQLRoots.MentionNotificationRoot, {peer: Nullable<GQLRoots.MentionPeerRoot>}, {}>;
+    MessageWithMention?: UnionTypeResolver<GQLRoots.MessageWithMentionRoot, 'FeedPost' | 'Message'>;
+    MentionNotification?: ComplexTypedResolver<GQL.MentionNotification, GQLRoots.MentionNotificationRoot, {peer: GQLRoots.MentionPeerRoot, message: GQLRoots.MessageWithMentionRoot}, {}>;
     NotificationConnection?: ComplexTypedResolver<GQL.NotificationConnection, GQLRoots.NotificationConnectionRoot, {items: GQLRoots.NotificationRoot[]}, {}>;
     NotificationCenterUpdatesState?: ComplexTypedResolver<GQL.NotificationCenterUpdatesState, GQLRoots.NotificationCenterUpdatesStateRoot, {}, {}>;
     NotificationCenterUpdateSingle?: ComplexTypedResolver<GQL.NotificationCenterUpdateSingle, GQLRoots.NotificationCenterUpdateSingleRoot, {update: GQLRoots.NotificationCenterUpdateRoot}, {}>;
