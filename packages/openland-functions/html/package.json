@@ -1,0 +1,10 @@
+{
+  "name": "chrome-html",
+  "version": "0.0.1",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^1.2.1",
+    "chrome-aws-lambda": "^1.19.0",
+    "iltorb": "^2.4.3",
+    "puppeteer-core": "^1.19.0"
+  }
+}
