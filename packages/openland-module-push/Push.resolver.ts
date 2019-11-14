@@ -84,7 +84,7 @@ export default {
                     token: token.token
                 });
                 if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                    return false;
+                    continue;
                 }
             }
             return true;
