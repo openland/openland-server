@@ -93,3 +93,26 @@ exports.makeScreenshot = async (req, res) => {
     res.send(screenshot);
   });
 };
+
+exports.fetchHtml = async (req, res) => {
+  await lock.inLock(async () => {
+    if (!page) {
+      page = await getBrowserPage();
+    }
+
+    const url = req.body.url;
+
+    if (!url) {
+      return res.status(400).send('Invalid request');
+    }
+
+    // Load page
+    await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+    await page.goto(url, { waitUntil: 'networkidle2' });
+
+    // load html
+    const html = await page.content();
+    res.set('Content-Type', 'text/html');
+    res.send(html);
+  });
+};
