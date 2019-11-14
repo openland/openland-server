@@ -22,8 +22,10 @@ export class PushModule {
 
     start = () => {
         // Load config
-        const { PushConfig } = require('./PushConfig');
+        require('./PushConfig');
         this.debugAndroidSendDataPush = async (ctx: Context, uid: number, message: string) => {
+            const { PushConfig } = require('./PushConfig');
+
             let firbaseApps: { [pkg$: string]: Firebase.app.App } = {};
             for (let creds of PushConfig.google!) {
                 for (let pkg of creds.packages) {
