@@ -39,15 +39,27 @@ export function createAndroidWorker(repo: PushRepository) {
                     let firebase = firbaseApps[token.packageId];
                     if (firebase) {
                         try {
-                            let res = await firebase.messaging().send({
-                                android: {
-                                    collapseKey: task.collapseKey,
-                                    notification: task.notification,
+                            let res: any;
+                            if (task.isTest) {
+                                res = await firebase.messaging().send({
                                     data: task.data,
-                                    priority: 'high'
-                                },
-                                token: token.token
-                            });
+                                    android: {
+                                        priority: 'high'
+                                    },
+                                    token: token.token
+                                });
+                            } else {
+                                res = await firebase.messaging().send({
+                                    android: {
+                                        collapseKey: task.collapseKey,
+                                        notification: task.notification,
+                                        data: task.data,
+                                        priority: 'high'
+                                    },
+                                    token: token.token
+                                });
+                            }
+
                             log.log(root, 'android_push', token.uid, res);
                             if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
                                 await inTx(root, async (ctx) => {

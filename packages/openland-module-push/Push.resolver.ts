@@ -55,6 +55,7 @@ export default {
                 await Modules.Push.androidWorker.pushWork(ctx, {
                     uid: uid,
                     tokenId: token.id,
+                    isTest: true,
                     data: {
                         ['title']: 'Test data push',
                         ['message']: args.message,

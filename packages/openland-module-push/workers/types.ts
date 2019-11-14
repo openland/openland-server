@@ -27,6 +27,7 @@ export type FirebasePushTask = {
     uid: number;
     tokenId: string;
     collapseKey?: string;
+    isTest?: boolean;
     notification?: {
         title: string;
         body: string;
