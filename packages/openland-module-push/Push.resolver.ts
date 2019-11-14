@@ -50,8 +50,11 @@ export default {
         },
         debugSendAndroidDataPush: withPermission('super-admin',  async (ctx, args) => {
             let uid = IDs.User.parse(args.uid);
-            await Modules.Push.debugAndroidSendDataPush(ctx, uid, args.message);
-            return true;
+            if (Modules.Push.debugAndroidSendDataPush) {
+                await Modules.Push.debugAndroidSendDataPush(ctx, uid, args.message);
+                return true;
+            }
+            return false;
         })
     }
 } as GQLResolver;
