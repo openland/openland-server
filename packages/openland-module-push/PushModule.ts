@@ -7,9 +7,6 @@ import { createWebWorker } from './workers/WebWorker';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Push } from './workers/types';
-import * as Firebase from 'firebase-admin';
-import { PushConfig } from './PushConfig';
-import { Modules } from '../openland-modules/Modules';
 
 @injectable()
 export class PushModule {
@@ -62,40 +59,5 @@ export class PushModule {
 
     async pushWork(ctx: Context, push: Push) {
         await this.worker.pushWork(ctx, push);
-    }
-
-    async debugAndroidSendDataPush(ctx: Context, uid: number, message: string) {
-        let firbaseApps: { [pkg: string]: Firebase.app.App } = {};
-        for (let creds of PushConfig.google!) {
-            for (let pkg of creds.packages) {
-                firbaseApps[pkg] = Firebase.initializeApp({
-                    credential: Firebase.credential.cert({
-                        privateKey: creds.privateKey,
-                        projectId: creds.projectId,
-                        clientEmail: creds.clientEmail
-                    }),
-                    databaseURL: creds.databaseURL
-                }, pkg);
-            }
-        }
-
-        let androidTokens = await Modules.Push.repository.getUserAndroidPushTokens(ctx, uid);
-        for (let token of androidTokens) {
-            let firebase = firbaseApps[token.packageId];
-            let res = await firebase.messaging().send({
-                data: {
-                    ['title']: 'Test data push',
-                    ['message']: message,
-                    ['soundName']: 'default',
-                },
-                android: {
-                    priority: 'high'
-                },
-                token: token.token
-            });
-            if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                continue;
-            }
-        }
     }
 }
