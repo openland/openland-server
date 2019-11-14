@@ -5,7 +5,6 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { createLogger } from '@openland/log';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
-import * as Firebase from 'firebase-admin';
 
 const pushLog = createLogger('push');
 
@@ -50,42 +49,18 @@ export default {
             throw Error('Unknown type: ' + args.type);
         },
         debugSendAndroidDataPush: withPermission('super-admin',  async (ctx, args) => {
-            if (!PushConfig.google) {
-                return false;
-            }
-
-            let firbaseApps: { [pkg: string]: Firebase.app.App } = {};
-            for (let creds of PushConfig.google) {
-                for (let pkg of creds.packages) {
-                    firbaseApps[pkg] = Firebase.initializeApp({
-                        credential: Firebase.credential.cert({
-                            privateKey: creds.privateKey,
-                            projectId: creds.projectId,
-                            clientEmail: creds.clientEmail
-                        }),
-                        databaseURL: creds.databaseURL
-                    }, pkg);
-                }
-            }
-
             let uid = IDs.User.parse(args.uid);
             let androidTokens = await Modules.Push.repository.getUserAndroidPushTokens(ctx, uid);
             for (let token of androidTokens) {
-                let firebase = firbaseApps[token.packageId];
-                let res = await firebase.messaging().send({
+                await Modules.Push.androidWorker.pushWork(ctx, {
+                    uid: uid,
+                    tokenId: token.id,
                     data: {
                         ['title']: 'Test data push',
                         ['message']: args.message,
                         ['soundName']: 'default',
                     },
-                    android: {
-                        priority: 'high'
-                    },
-                    token: token.token
                 });
-                if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                    return false;
-                }
             }
             return true;
         })
