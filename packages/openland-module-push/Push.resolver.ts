@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { PushConfig } from './PushConfig';
+import { PushConfig } from 'openland-module-push/PushConfig';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { createLogger } from '@openland/log';
@@ -50,12 +50,8 @@ export default {
             throw Error('Unknown type: ' + args.type);
         },
         debugSendAndroidDataPush: withPermission('super-admin',  async (ctx, args) => {
-            if (!PushConfig.google) {
-                return false;
-            }
-
             let firbaseApps: { [pkg: string]: Firebase.app.App } = {};
-            for (let creds of PushConfig.google) {
+            for (let creds of PushConfig.google!) {
                 for (let pkg of creds.packages) {
                     firbaseApps[pkg] = Firebase.initializeApp({
                         credential: Firebase.credential.cert({
