@@ -15,6 +15,7 @@ export type Push = {
 export type ApplePushTask = {
     uid: number;
     tokenId: string;
+    isData?: boolean;
     badge?: number;
     expirity?: number;
     sound?: string;
@@ -27,7 +28,7 @@ export type FirebasePushTask = {
     uid: number;
     tokenId: string;
     collapseKey?: string;
-    isTest?: boolean;
+    isData?: boolean;
     notification?: {
         title: string;
         body: string;

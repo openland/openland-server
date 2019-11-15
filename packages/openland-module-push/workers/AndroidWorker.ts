@@ -40,7 +40,7 @@ export function createAndroidWorker(repo: PushRepository) {
                     if (firebase) {
                         try {
                             let res: any;
-                            if (task.isTest) {
+                            if (task.isData) {
                                 res = await firebase.messaging().send({
                                     data: task.data,
                                     android: {

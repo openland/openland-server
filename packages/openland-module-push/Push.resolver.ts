@@ -55,11 +55,26 @@ export default {
                 await Modules.Push.androidWorker.pushWork(ctx, {
                     uid: uid,
                     tokenId: token.id,
-                    isTest: true,
+                    isData: true,
                     data: {
                         ['title']: 'Test data push',
                         ['text']: args.message,
                         ['soundName']: 'default',
+                    },
+                });
+            }
+            return true;
+        }),
+        debugSendAppleDataPush: withPermission('super-admin',  async (ctx, args) => {
+            let uid = IDs.User.parse(args.uid);
+            let androidTokens = await Modules.Push.repository.getUserApplePushTokens(ctx, uid);
+            for (let token of androidTokens) {
+                await Modules.Push.appleWorker.pushWork(ctx, {
+                    uid: uid,
+                    tokenId: token.id,
+                    payload: {
+                        ['title']: 'Test data push',
+                        ['message']: args.message,
                     },
                 });
             }
