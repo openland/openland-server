@@ -58,7 +58,7 @@ export default {
                     isTest: true,
                     data: {
                         ['title']: 'Test data push',
-                        ['message']: args.message,
+                        ['text']: args.message,
                         ['soundName']: 'default',
                     },
                 });
