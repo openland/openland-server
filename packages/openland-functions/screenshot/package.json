@@ -2,8 +2,8 @@
   "name": "chrome-screenshot",
   "version": "0.0.1",
   "dependencies": {
-    "@google-cloud/functions-framework": "^1.2.1",
     "chrome-aws-lambda": "^1.19.0",
+    "express": "^4.17.1",
     "iltorb": "^2.4.3",
     "puppeteer-core": "^1.19.0"
   }
