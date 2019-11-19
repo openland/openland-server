@@ -151,6 +151,7 @@
     "schema:gen": "./node_modules/.bin/ts-node packages/openland-module-api/schema/SchemaGenSpec.ts",
     "schema:gen-watch": "nodemon -w \"./packages\" -e graphql --exec \"yarn schema:gen\"",
     "schema:analyze": "./node_modules/.bin/ts-node packages/openland-module-api/schema/usageAnalyzer.ts",
+    "vostok-schema:gen": "./node_modules/.bin/ts-node packages/openland-mtproto3/schema/genVostokSchema.ts",
     "model": "yarn model:new",
     "model:new": "./node_modules/.bin/ts-node ./node_modules/@openland/foundationdb-compiler/lib/main.js ./packages/openland-module-db/store.schema.ts ./packages/openland-module-db/store.ts ",
     "model:old": "./node_modules/.bin/ts-node packages/openland-module-db/schemaDeclaration.ts",
