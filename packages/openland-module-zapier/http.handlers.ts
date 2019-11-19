@@ -74,8 +74,8 @@ async function initZapierInternal(app: Express) {
                 res.redirect(projectUrl);
                 return;
             }
-            let iftttAuth = await Modules.IFTTT.createAuth(ctx, req.query.state, req.query.redirect_uri);
-            res.redirect(`${projectUrl}/mail/7Y7qRRKLpKFY79Z3B3RmFmWAvx?message=ifttt-auth:${iftttAuth.id}`);
+            let zapierAuth = await Modules.Zapier.createAuth(ctx, req.query.state, req.query.redirect_uri);
+            res.redirect(`${projectUrl}/mail/${IDs.User.serialize(config!.BotId)}?message=zapier-auth:${zapierAuth.id}`);
         });
     });
     app.post('/integrations/zapier/oauth2/token', bodyParser.urlencoded(), async (req, res) => {
@@ -92,7 +92,7 @@ async function initZapierInternal(app: Express) {
                 res.json({errors: [{message: 'Invalid params'}]});
                 return;
             }
-            let auth = await Store.IftttAuth.fromCode.find(ctx, body.code);
+            let auth = await Store.ZapierAuth.fromCode.find(ctx, body.code);
             if (!auth || !auth.enabled || !auth.uid) {
                 log.log(ctx, 'invalid code');
                 res.json({errors: [{message: 'Invalid code'}]});
@@ -104,11 +104,11 @@ async function initZapierInternal(app: Express) {
                 return;
             }
             auth.enabled = false;
-            let token = await Modules.IFTTT.createToken(ctx, auth.uid);
+            let token = await Modules.Zapier.createToken(ctx, auth.uid);
             log.log(ctx, 'token granted');
             res.json({token_type: 'Bearer', access_token: token.salt});
             let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, auth.uid);
-            await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: 'IFTTT connected successfully!'});
+            await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: 'Zapier connected successfully!'});
         });
     });
     app.get('/integrations/zapier/v1/user/info', checkAuth, async (req, res) => {
@@ -129,37 +129,36 @@ async function initZapierInternal(app: Express) {
             log.log(ctx, '/actions/send_message', req.body);
             if (
                 !req.body ||
-                !req.body.actionFields ||
-                !req.body.actionFields.message ||
-                typeof req.body.actionFields.message !== 'string'
+                !req.body.message ||
+                typeof req.body.message !== 'string'
             ) {
                 res.status(400).json({errors: [{message: 'Invalid params'}]});
                 return;
             }
             let uid = (req as any).uid;
             let messageWasSent = false;
-            if (req.body.actionFields.chat_id && req.body.actionFields.chat_id !== '$TEST$') {
+            if (req.body.chat_id && req.body.chat_id !== '$TEST$') {
                 let chatId: number;
                 try {
-                    chatId = IDs.Conversation.parse(req.body.actionFields.chat_id.trim());
+                    chatId = IDs.Conversation.parse(req.body.chat_id.trim());
                 } catch (e) {
                     res.status(400).json({errors: [{message: 'Invalid chat id'}]});
                     return;
                 }
                 let membership = await Store.RoomParticipant.findById(ctx, chatId, config!.BotId);
                 if (membership && membership.status === 'joined' && membership.invitedBy === uid) {
-                    await Modules.Messaging.sendMessage(ctx, chatId, config!.BotId, {message: req.body.actionFields.message});
+                    await Modules.Messaging.sendMessage(ctx, chatId, config!.BotId, {message: req.body.message});
                 } else {
-                    res.status(400).json({errors: [{message: 'IFTTT bot has no permissions to write to this chat.'}]});
+                    res.status(400).json({errors: [{message: 'Zapier bot has no permissions to write to this chat.'}]});
                     return;
                 }
                 messageWasSent = true;
             }
-            if (req.body.actionFields.channel_id && req.body.actionFields.channel_id !== '$TEST$') {
+            if (req.body.channel_id && req.body.channel_id !== '$TEST$') {
                 // noop
                 let channelId: number;
                 try {
-                    channelId = IDs.FeedChannel.parse(req.body.actionFields.channel_id.trim());
+                    channelId = IDs.FeedChannel.parse(req.body.channel_id.trim());
                 } catch (e) {
                     res.status(400).json({errors: [{message: 'Invalid channel id'}]});
                     return;
@@ -170,7 +169,7 @@ async function initZapierInternal(app: Express) {
                         slides: [
                             {
                                 type: 'text',
-                                text: req.body.actionFields.message,
+                                text: req.body.message,
                                 spans: null,
                                 cover: null,
                                 coverAlign: null,
@@ -186,7 +185,7 @@ async function initZapierInternal(app: Express) {
             }
             if (!messageWasSent) {
                 let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, uid);
-                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: req.body.actionFields.message});
+                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: req.body.message});
             }
 
             res.json({

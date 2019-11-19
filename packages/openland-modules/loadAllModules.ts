@@ -159,6 +159,7 @@ export async function startAllModules() {
     await container.get<MonitoringModule>('MonitoringModule').start();
     await container.get(MatchmakingModule).start();
     await container.get(IFTTTModule).start();
+    await container.get(ZapierModule).start();
     await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
     await container.get<FeedMentionNotificationsMediator>('FeedMentionNotificationsMediator').start();
 }

@@ -100,7 +100,7 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
 
     return {
         url,
-        title: user!.firstName + ' ' + user!.lastName,
+        title: user!.lastName ? user!.firstName + ' ' + user!.lastName : user!.firstName,
         subtitle: org ? org.name : null,
         description: user!.about || null,
         imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(rootCtx, user!.picture.uuid) : null,
