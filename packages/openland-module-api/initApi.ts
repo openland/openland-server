@@ -37,6 +37,7 @@ import { withLifetime } from '@openland/lifetime';
 import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initVostok } from '../openland-mtproto3/vostok';
+import { initZapier } from '../openland-module-zapier/http.handlers';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -104,7 +105,10 @@ export async function initApi(isTest: boolean) {
     initAppHandlers(app);
 
     // IFTTT api
-    await initIFTTT(app);
+    initIFTTT(app);
+
+    // Zapier api
+    initZapier(app);
 
     //
     // Semaphore bot

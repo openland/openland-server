@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { PushConfig } from 'openland-module-push/PushConfig';
+import { PushConfig } from './PushConfig';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { createLogger } from '@openland/log';
@@ -50,11 +50,35 @@ export default {
         },
         debugSendAndroidDataPush: withPermission('super-admin',  async (ctx, args) => {
             let uid = IDs.User.parse(args.uid);
-            if (Modules.Push.debugAndroidSendDataPush) {
-                await Modules.Push.debugAndroidSendDataPush(ctx, uid, args.message);
-                return true;
+            let androidTokens = await Modules.Push.repository.getUserAndroidPushTokens(ctx, uid);
+            for (let token of androidTokens) {
+                await Modules.Push.androidWorker.pushWork(ctx, {
+                    uid: uid,
+                    tokenId: token.id,
+                    isData: true,
+                    data: {
+                        ['title']: 'Test data push',
+                        ['text']: args.message,
+                        ['soundName']: 'default',
+                    },
+                });
             }
-            return false;
+            return true;
+        }),
+        debugSendAppleDataPush: withPermission('super-admin',  async (ctx, args) => {
+            let uid = IDs.User.parse(args.uid);
+            let androidTokens = await Modules.Push.repository.getUserApplePushTokens(ctx, uid);
+            for (let token of androidTokens) {
+                await Modules.Push.appleWorker.pushWork(ctx, {
+                    uid: uid,
+                    tokenId: token.id,
+                    payload: {
+                        ['title']: 'Test data push',
+                        ['message']: args.message,
+                    },
+                });
+            }
+            return true;
         })
     }
 } as GQLResolver;

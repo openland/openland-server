@@ -8,7 +8,8 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 WORKDIR /app
-ADD index.js package.json yarn.lock /app/
+ADD package.json yarn.lock /app/
 RUN yarn add puppeteer
 RUN yarn install
-CMD ["/app/node_modules/.bin/functions-framework", "--target=makeScreenshot"]
+ADD index.js /app/
+CMD ["node", "index.js"]

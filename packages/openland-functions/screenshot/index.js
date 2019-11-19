@@ -1,5 +1,6 @@
 const chromium = require('chrome-aws-lambda');
 const puppeteer = require('puppeteer-core');
+const express = require('express');
 
 let page;
 
@@ -60,7 +61,10 @@ class AsyncLock {
 
 const lock = new AsyncLock();
 
-exports.makeScreenshot = async (req, res) => {
+const app = express();
+app.use(express.json());
+
+app.post('/', async (req, res) => {
   await lock.inLock(async () => {
     if (!page) {
       page = await getBrowserPage();
@@ -92,4 +96,33 @@ exports.makeScreenshot = async (req, res) => {
     res.set('Content-Type', 'image/png');
     res.send(screenshot);
   });
-};
+});
+
+
+app.post('/html', async (req, res) => {
+  await lock.inLock(async () => {
+    if (!page) {
+      page = await getBrowserPage();
+    }
+
+    const url = req.body.url;
+
+    if (!url) {
+      return res.status(400).send('Invalid request');
+    }
+
+    // Load page
+    await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+    await page.goto(url, { waitUntil: 'networkidle2' });
+
+    // load html
+    const html = await page.content();
+    res.set('Content-Type', 'text/html');
+    res.send(html);
+  });
+});
+
+
+app.listen(8080, () => {
+  console.log('Server is listening on 8080');
+});

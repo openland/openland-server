@@ -60,6 +60,7 @@ import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingMod
 import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 import { MentionNotificationsMediator } from '../openland-module-messaging/mediators/MentionNotificationsMediator';
 import { FeedMentionNotificationsMediator } from '../openland-module-feed/repositories/FeedMentionNotificationsMediator';
+import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 
 const logger = createLogger('starting');
 
@@ -116,6 +117,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
     container.bind(IFTTTModule).toSelf().inSingletonScope();
+    container.bind(ZapierModule).toSelf().inSingletonScope();
 
     loadCallsModule();
     loadFeedModule();

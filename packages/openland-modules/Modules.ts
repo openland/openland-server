@@ -34,6 +34,7 @@ import { MonitoringModule } from 'openland-module-monitoring/MonitoringModule';
 import { StickersModule } from '../openland-module-stickers/StickersModule';
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
 import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
+import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 
 class ModulesImpl {
 
@@ -141,6 +142,10 @@ class ModulesImpl {
     }
     get IFTTT() {
         return container.get(IFTTTModule);
+    }
+
+    get Zapier() {
+        return container.get(ZapierModule);
     }
 }
 

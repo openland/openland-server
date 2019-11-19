@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { startIFTTTBot } from './iftttBot';
+import { startZapierBot } from './zapierBot';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Store } from '../openland-module-db/FDB';
@@ -9,23 +9,22 @@ import * as base64 from '../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from '../openland-modules/Modules';
 
-type IFTTTConfig = {
+type ZapierConfig = {
     BotId: number;
     ClientId: string;
     ClientSecret: string;
-    ServiceKey: string;
 };
 
 @injectable()
-export class IFTTTModule {
+export class ZapierModule {
     start = () => {
         // tslint:disable-next-line:no-floating-promises
-        startIFTTTBot();
+        startZapierBot();
     }
 
     async createAuth(parent: Context, state: string, redirectUrl: string) {
         return await inTx(parent, async ctx => {
-            let auth = await Store.IftttAuth.create(ctx, randomString(10), {
+            let auth = await Store.ZapierAuth.create(ctx, randomString(10), {
                 state: state,
                 redirectUrl: redirectUrl,
                 code: randomKey(),
@@ -38,7 +37,7 @@ export class IFTTTModule {
 
     async createToken(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            return await Store.IftttAuthToken.create(ctx, uuid(), {
+            return await Store.ZapierAuthToken.create(ctx, uuid(), {
                 uid,
                 salt: base64.encodeBuffer(randomBytes(64)),
                 enabled: true
@@ -46,9 +45,9 @@ export class IFTTTModule {
         });
     }
 
-    async getConfig(parent: Context): Promise<IFTTTConfig | null> {
+    async getConfig(parent: Context): Promise<ZapierConfig | null> {
         return await inTx(parent, async ctx => {
-            return await Modules.Super.getEnvVar<IFTTTConfig>(ctx, 'ifttt-config');
+            return await Modules.Super.getEnvVar<ZapierConfig>(ctx, 'zapier-config');
         });
     }
 }
