@@ -36,6 +36,7 @@ import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
 import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
+import { initVostok } from '../openland-mtproto3/vostok';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -259,7 +260,49 @@ export async function initApi(isTest: boolean) {
                 });
             }
         });
+        let vostok = initVostok({
+            server: undefined, // httpServer ,
+            path: '/api',
+            executableSchema: Schema(),
+            queryCache: new InMemoryQueryCache(),
+            onAuth: async (token) => {
+                return await fetchWebSocketParameters({ 'x-openland-token': token }, null);
+            },
+            context: async (params, operation) => {
+                let opId = uuid();
+                let ctx = buildWebSocketContext(params || {}).ctx;
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
 
+                return new AppContext(ctx);
+            },
+            subscriptionContext: async (params, operation, firstCtx) => {
+                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
+                let ctx = buildWebSocketContext(params || {}).ctx;
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withLifetime(ctx);
+
+                return new AppContext(ctx);
+            },
+            onOperation: async (ctx, operation) => {
+                // noop
+            },
+            formatResponse: async value => {
+                let errors: any[] | undefined;
+                if (value.errors) {
+                    errors = value.errors && value.errors.map((e: any) => formatError(e));
+                }
+                return ({
+                    ...value,
+                    errors: errors,
+                });
+            }
+        });
         httpServer.on('upgrade', (request, socket, head) => {
             const pathname = url.parse(request.url).pathname;
 
@@ -270,6 +313,10 @@ export async function initApi(isTest: boolean) {
             } else if (pathname === '/gql_ws') {
                 fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
                     fuckApolloWS.emit('connection', _ws, request);
+                });
+            } else if (pathname === '/vostok') {
+                vostok.handleUpgrade(request, socket, head, (_ws) => {
+                    vostok.emit('connection', _ws, request);
                 });
             } else {
                 socket.destroy();
