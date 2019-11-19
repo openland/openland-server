@@ -17,10 +17,11 @@ export const VostokSchema = declareSchema(() => {
 
     model('Initialize', () => {
         field('authToken', string());
+        field('sessionId', optional(string()));
     });
 
     model('InitializeAck', () => {
-        //
+        field('sessionId', string());
     });
 
     model('Ping', () => {

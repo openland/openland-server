@@ -22,6 +22,7 @@ import { cancelContext } from '@openland/lifetime';
 import { createLogger } from '@openland/log';
 import Timeout = NodeJS.Timeout;
 import { RotatingMap } from '../openland-utils/FixedSizeMap';
+import { randomKey } from '../openland-utils/random';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -40,7 +41,7 @@ interface Server {
 class VostokConnection {
     protected seq = 1;
     protected socket: WebSocket|null = null;
-    readonly incoming = createIterator<MessageShape>(() => 0);
+    protected incoming = createIterator<MessageShape>(() => 0);
 
     readonly outcomingMessages = new RotatingMap<number, MessageShape>(1024);
     readonly incomingMessages = new RotatingMap<number, MessageShape>(1024);
@@ -73,6 +74,11 @@ class VostokConnection {
 
     close() {
         this.socket!.close();
+    }
+
+    getIterator() {
+        this.incoming = createIterator<MessageShape>(() => 0);
+        return this.incoming;
     }
 
     private sendRaw(data: any) {
@@ -128,6 +134,26 @@ class VostokSession {
     public state: 'init' | 'waiting_auth' | 'connected' = 'init';
     public authParams: any;
     public operations = new Map<string, { destroy(): void }>();
+    public connections: { connection: VostokConnection }[] = [];
+    public sessionId: string;
+    private sessions: Map<string, VostokSession>;
+    readonly incoming = createIterator<{ message: MessageShape, connection: VostokConnection }>(() => 0);
+
+    constructor(sessionId: string, sessions: Map<string, VostokSession>) {
+        this.sessionId = sessionId;
+        this.sessions = sessions;
+        log.log(rootCtx, 'session: ', this.sessionId);
+    }
+
+    switchToSession(sessionId: string) {
+        log.log(rootCtx, 'switch session');
+        this.stopAllOperations();
+        if (this.sessions.has(sessionId)) {
+            this.sessions.get(sessionId)!.addConnection(this.connections[0].connection);
+            this.connections = [];
+        }
+        // handle if session not found
+    }
 
     addOperation = (id: string, destroy: () => void) => {
         this.stopOperation(id);
@@ -147,21 +173,37 @@ class VostokSession {
             this.operations.delete(op[0]);
         }
     }
+
+    addConnection(connection: VostokConnection) {
+        let conn = { connection };
+        this.connections.push(conn);
+        asyncRun(async () => {
+           for await (let message of connection.getIterator()) {
+               this.incoming.push({ message, connection });
+           }
+           this.connections.splice(this.connections.findIndex(c => c === conn), 1);
+        });
+    }
 }
 
-function handleConnect(connect: VostokConnection, params: VostokServerParams) {
+function handleSession(session: VostokSession, params: VostokServerParams) {
     asyncRun(async () => {
-        let session = new VostokSession();
+        for await (let data of session.incoming) {
+            let {message, connection} = data;
 
-        for await (let message of connect.incoming) {
             if (session.state === 'init' && !isInitialize(message.body)) {
-                connect.close();
+                connection.close();
                 session.stopAllOperations();
             } else if (session.state === 'init' && isInitialize(message.body)) {
                 session.state = 'waiting_auth';
                 session.authParams = await params.onAuth(message.body.authToken);
                 session.state = 'connected';
-                connect.send(makeInitializeAck({ }), [message.seq]);
+                if (message.body.sessionId) {
+                    session.switchToSession(message.body.sessionId);
+                    connection.send(makeInitializeAck({ sessionId: message.body.sessionId }), [message.seq]);
+                    return;
+                }
+                connection.send(makeInitializeAck({ sessionId: session.sessionId }), [message.seq]);
             } else if (session.state !== 'connected') {
                 continue; // maybe close connection?
             } else if (isGQLRequest(message.body)) {
@@ -176,9 +218,9 @@ function handleConnect(connect: VostokConnection, params: VostokServerParams) {
                     contextValue: ctx
                 });
 
-                connect.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.seq]);
+                connection.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.seq]);
             } else if (isGQLSubscription(message.body)) {
-                connect.sendAck([message.seq]);
+                connection.sendAck([message.seq]);
                 let working = true;
                 let ctx = await params.subscriptionContext(session.authParams, message.body);
                 asyncRun(async () => {
@@ -198,7 +240,7 @@ function handleConnect(connect: VostokConnection, params: VostokServerParams) {
 
                     if (!isAsyncIterator(iterator)) {
                         // handle error
-                        connect.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(iterator)) }));
+                        connection.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(iterator)) }));
                         return;
                     }
 
@@ -206,9 +248,9 @@ function handleConnect(connect: VostokConnection, params: VostokServerParams) {
                         if (!working) {
                             break;
                         }
-                        connect.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(event)) }));
+                        connection.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(event)) }));
                     }
-                    connect.send(makeGQLSubscriptionComplete({ id: message.body.id }));
+                    connection.send(makeGQLSubscriptionComplete({ id: message.body.id }));
                 });
                 session.addOperation(message.body.id, () => {
                     working = false;
@@ -216,7 +258,7 @@ function handleConnect(connect: VostokConnection, params: VostokServerParams) {
                 });
             } else if (isGQLSubscriptionStop(message.body)) {
                 session.stopOperation(message.body.id);
-                connect.sendAck([message.seq]);
+                connection.sendAck([message.seq]);
             }
         }
         session.stopAllOperations();
@@ -248,9 +290,14 @@ interface VostokServerParams {
 
 export function initVostok(params: VostokServerParams) {
     let server = createWSServer(params.server ? { server: params.server, path: params.path } : { noServer: true });
+    let sessions = new Map<string, VostokSession>();
     asyncRun(async () => {
         for await (let connect of server.incomingConnections) {
-            handleConnect(connect, params);
+            let sessionId = randomKey();
+            let session = new VostokSession(sessionId, sessions);
+            session.addConnection(connect);
+            sessions.set(sessionId, session);
+            handleSession(session, params);
         }
     });
     return server.socket;
