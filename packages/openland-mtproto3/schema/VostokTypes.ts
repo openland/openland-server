@@ -46,10 +46,12 @@ export const decodeMessagesInfoRequest = (src: any) => MessagesInfoRequestCodec.
 export function isMessagesInfoRequest(src: any): src is MessagesInfoRequestShape { return src._type === 'MessagesInfoRequest'; }
 export type InitializeInputShape = {
     authToken: string
+    sessionId: string | null
 };
 export type InitializeShape = InitializeInputShape & { _type: 'Initialize' };
 export const InitializeCodec = codecs.struct('Initialize', {
     authToken: codecs.string,
+    sessionId: codecs.optional(codecs.string),
 });
 KnownCodecs.set('Initialize', InitializeCodec);
 export const makeInitialize = (src: InitializeInputShape) => ({ _type: 'Initialize', ...src }) as InitializeShape;
@@ -57,9 +59,11 @@ export const encodeInitialize = (src: InitializeShape) => InitializeCodec.encode
 export const decodeInitialize = (src: any) => InitializeCodec.decode(src) as InitializeShape;
 export function isInitialize(src: any): src is InitializeShape { return src._type === 'Initialize'; }
 export type InitializeAckInputShape = {
+    sessionId: string
 };
 export type InitializeAckShape = InitializeAckInputShape & { _type: 'InitializeAck' };
 export const InitializeAckCodec = codecs.struct('InitializeAck', {
+    sessionId: codecs.string,
 });
 KnownCodecs.set('InitializeAck', InitializeAckCodec);
 export const makeInitializeAck = (src: InitializeAckInputShape) => ({ _type: 'InitializeAck', ...src }) as InitializeAckShape;
