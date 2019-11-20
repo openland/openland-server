@@ -1,5 +1,5 @@
 import WebSocket = require('ws');
-import { createIteratorCompletable } from '../openland-utils/asyncIterator';
+import { createIterator } from '../openland-utils/asyncIterator';
 import {
     decodeMessage, encodeAckMessages, encodeMessage, encodeMessagesInfoRequest, encodePing, isAckMessages,
     isGQLRequest,
@@ -55,7 +55,7 @@ const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
 
 class VostokConnection {
     protected socket: WebSocket|null = null;
-    protected incoming = createIteratorCompletable<KnownTypes>(() => 0);
+    protected incoming = createIterator<KnownTypes>(() => 0);
 
     protected ackTimer: Timeout|null = null;
 
@@ -106,7 +106,7 @@ class VostokConnection {
     }
 
     getIterator() {
-        this.incoming = createIteratorCompletable<KnownTypes>(() => 0);
+        this.incoming = createIterator<KnownTypes>(() => 0);
         return this.incoming;
     }
 
@@ -144,7 +144,7 @@ class VostokConnection {
 
 export function createWSServer(options: WebSocket.ServerOptions): Server {
     const ws = new WebSocket.Server(options);
-    let iterator = createIteratorCompletable<VostokConnection>(() => 0);
+    let iterator = createIterator<VostokConnection>(() => 0);
 
     ws.on('connection', async (socket, req) => {
         let connection = new VostokConnection();
@@ -165,7 +165,7 @@ class VostokSession {
     public connections: { connection: VostokConnection }[] = [];
     public sessionId: string;
     private sessions: Map<string, VostokSession>;
-    readonly incoming = createIteratorCompletable<{ message: MessageShape, connection: VostokConnection }>(() => 0);
+    readonly incoming = createIterator<{ message: MessageShape, connection: VostokConnection }>(() => 0);
 
     readonly outcomingMessages = new RotatingMap<string, MessageShape>(1024);
     readonly incomingMessages = new RotatingMap<string, MessageShape>(1024);
