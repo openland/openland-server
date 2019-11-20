@@ -42,6 +42,11 @@ interface Server {
 
 const makeMessageId = () => randomBytes(32).toString('hex');
 
+const asyncRun = (handler: () => Promise<any>) => {
+    // tslint:disable-next-line:no-floating-promises
+    handler();
+};
+
 const PING_TIMEOUT = 1000 * 30;
 const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
 
@@ -152,11 +157,6 @@ export function createWSServer(options: WebSocket.ServerOptions): Server {
         incomingConnections: iterator
     };
 }
-
-const asyncRun = (handler: () => Promise<any>) => {
-    // tslint:disable-next-line:no-floating-promises
-    handler();
-};
 
 class VostokSession {
     public state: 'init' | 'waiting_auth' | 'connected' = 'init';
