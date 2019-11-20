@@ -18,7 +18,7 @@ import { QueryCache } from './queryCache';
 import { Context, createNamedContext } from '@openland/context';
 import { gqlSubscribe } from './gqlSubscribe';
 import { isAsyncIterator } from './utils';
-import { cancelContext } from '@openland/lifetime';
+import { cancelContext, forever, withLifetime } from '@openland/lifetime';
 import { createLogger } from '@openland/log';
 import Timeout = NodeJS.Timeout;
 import { RotatingMap } from '../openland-utils/FixedSizeMap';
@@ -55,7 +55,7 @@ const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
 
 class VostokConnection {
     protected socket: WebSocket|null = null;
-    protected incoming = createIterator<KnownTypes>(() => 0);
+    protected incoming = createIterator<any>(() => 0);
 
     protected ackTimer: Timeout|null = null;
 
@@ -66,7 +66,7 @@ class VostokConnection {
     setSocket(socket: WebSocket) {
         this.socket = socket;
         socket.on('message', async data => this.onMessage(socket, data));
-        socket.on('close', () => this.onSocketClose(socket));
+        socket.on('close', () => this.onSocketClose());
 
         asyncRun(async () => {
             let timeout: NodeJS.Timeout|null = null;
@@ -90,19 +90,9 @@ class VostokConnection {
         });
     }
 
-    send(body: KnownTypes, acks?: string[]) {
-        let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
-        log.log(rootCtx, '->', JSON.stringify(message));
-        this.socket!.send(JSON.stringify(encodeMessage(message)));
-        return message;
-    }
-
-    sendAck(ids: string[]) {
-        this.sendRaw(encodeAckMessages(makeAckMessages({ ids })));
-    }
-
     close() {
         this.socket!.close();
+        this.onSocketClose();
     }
 
     getIterator() {
@@ -125,16 +115,15 @@ class VostokConnection {
     private onMessage(socket: WebSocket, data: WebSocket.Data) {
         log.log(rootCtx, '<-', data);
         let msgData = JSON.parse(data.toString());
-        if (isMessage(msgData)) {
-            let message = decodeMessage(msgData);
-            this.incoming.push(message);
-        } else if (isPong(msgData)) {
+        if (isPong(msgData)) {
             this.lastPingAck = Date.now();
             this.pingAckCounter++;
+        } else {
+            this.incoming.push(msgData);
         }
     }
 
-    private onSocketClose(socket: WebSocket) {
+    private onSocketClose() {
         this.incoming.complete();
         if (this.ackTimer) {
             clearInterval(this.ackTimer);
@@ -158,56 +147,84 @@ export function createWSServer(options: WebSocket.ServerOptions): Server {
     };
 }
 
-class VostokSession {
-    public state: 'init' | 'waiting_auth' | 'connected' = 'init';
-    public authParams: any;
+class VostokOperationsManager {
     public operations = new Map<string, { destroy(): void }>();
-    public connections: { connection: VostokConnection }[] = [];
+
+    add = (id: string, destroy: () => void) => {
+        this.stop(id);
+        this.operations.set(id, { destroy });
+    }
+
+    stop = (id: string) => {
+        if (this.operations.has(id)) {
+            this.operations.get(id)!.destroy();
+            this.operations.delete(id);
+        }
+        log.log(rootCtx, 'attempt to stop unknown operation', id);
+    }
+
+    stopAll = () => {
+        for (let op of this.operations.entries())  {
+            op[1].destroy();
+            this.operations.delete(op[0]);
+        }
+    }
+}
+
+class VostokSession {
     public sessionId: string;
-    private sessions: Map<string, VostokSession>;
+    public state: 'init' | 'waiting_auth' | 'connected' | 'closed' = 'init';
+    public authParams: any;
+    public operations = new VostokOperationsManager();
+    public connections: { connection: VostokConnection }[] = [];
+    public noConnectsSince: number|null = null;
+
     readonly incoming = createIterator<{ message: MessageShape, connection: VostokConnection }>(() => 0);
 
-    readonly outcomingMessages = new RotatingMap<string, MessageShape>(1024);
+    readonly waitingDelivery: MessageShape[] = [];
+    readonly outcomingMessages = new RotatingMap<string, { msg: MessageShape, delivered: boolean }>(1024);
     readonly incomingMessages = new RotatingMap<string, MessageShape>(1024);
 
-    protected ackTimer: Timeout|null = null;
+    private sessions: Map<string, VostokSession>;
+    private ctx = withLifetime(createNamedContext('vostok-session'));
 
     constructor(sessionId: string, sessions: Map<string, VostokSession>) {
         this.sessionId = sessionId;
         this.sessions = sessions;
         log.log(rootCtx, 'session: ', this.sessionId);
 
-        this.ackTimer = setInterval(() => {
+        this.setupAckLoop();
+    }
+
+    setupAckLoop() {
+        forever(this.ctx, async () => {
             let ids = [...this.outcomingMessages.keys()];
             if (ids.length > 0) {
                 this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ ids })));
             }
-        }, 5000);
-    }
-
-    switchToSession(sessionId: string) {
-        log.log(rootCtx, 'switch session');
-        this.stopAllOperations();
-        if (this.sessions.has(sessionId)) {
-            this.sessions.get(sessionId)!.addConnection(this.connections[0].connection);
-            this.connections = [];
-        }
-        // handle if session not found
-    }
-
-    freshestConnect() {
-        let connects = this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck);
-        return connects[0];
+            await delay(5000);
+        });
     }
 
     send(body: KnownTypes, acks?: string[]) {
-        if (this.freshestConnect()) {
-            let msg = this.freshestConnect().connection.send(body, acks);
-            this.outcomingMessages.set(msg.id, msg);
+        let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
+        let connect = this.freshestConnect();
+        let delivered = false;
+
+        if (connect && connect.connection.isConnected()) {
+            log.log(rootCtx, '->', JSON.stringify(message));
+            connect.connection.sendRaw(encodeMessage(message));
+            delivered = true;
+        } else {
+            log.log(rootCtx, '?->', JSON.stringify(message));
+            this.waitingDelivery.push(message);
         }
-        // this.outcomingMessages.set(msg.id, msg);
+        this.outcomingMessages.set(message.id, { msg: message, delivered });
+
+        return message;
     }
 
+    // has no delivery guarantee
     sendRaw(data: any) {
         if (this.freshestConnect()) {
             this.freshestConnect().connection.sendRaw(data);
@@ -218,33 +235,20 @@ class VostokSession {
         this.sendRaw(encodeAckMessages(makeAckMessages({ ids })));
     }
 
-    addOperation = (id: string, destroy: () => void) => {
-        this.stopOperation(id);
-        this.operations.set(id, { destroy });
-    }
-
-    stopOperation = (id: string) => {
-        if (this.operations.has(id)) {
-            this.operations.get(id)!.destroy();
-            this.operations.delete(id);
+    deliverQueuedMessages() {
+        let len = this.waitingDelivery.length;
+        for (let msg of this.waitingDelivery) {
+            this.send(msg.body, msg.ackMessages || undefined);
         }
-    }
-
-    stopAllOperations = () => {
-        for (let op of this.operations.entries())  {
-            op[1].destroy();
-            this.operations.delete(op[0]);
-        }
-        if (this.ackTimer) {
-            clearInterval(this.ackTimer);
-        }
-        this.incomingMessages.clear();
-        this.outcomingMessages.clear();
+        this.waitingDelivery.splice(0, len);
     }
 
     addConnection(connection: VostokConnection) {
         let conn = { connection };
         this.connections.push(conn);
+        this.noConnectsSince = null;
+        this.deliverQueuedMessages();
+
         asyncRun(async () => {
            for await (let msgData of connection.getIterator()) {
                if (isMessage(msgData)) {
@@ -252,19 +256,54 @@ class VostokSession {
                    this.incomingMessages.set(message.id, message);
                    this.incoming.push({ message, connection });
                } else if (isAckMessages(msgData)) {
-
                    for (let id of msgData.ids) {
                        this.outcomingMessages.delete(id);
                    }
                }
            }
+
            this.connections.splice(this.connections.findIndex(c => c === conn), 1);
 
-           // if (this.connections.length === 0) {
-           //     // For debug only
-           //     this.stopAllOperations();
-           // }
+           if (this.connections.length === 0) {
+               this.noConnectsSince = Date.now();
+           }
         });
+    }
+
+    switchToSession(messageId: string, sessionId: string) {
+        log.log(rootCtx, 'switch session');
+        let switched = false;
+
+        let target = this.sessions.get(sessionId);
+        if (target) {
+            target.addConnection(this.connections[0].connection);
+            target.send(makeInitializeAck({ sessionId }), [messageId]);
+            this.connections = [];
+            switched = true;
+        }
+        this.destroy();
+        log.log(rootCtx, 'attempt to switch to unknown session');
+        return switched;
+    }
+
+    destroy = () => {
+        if (this.state === 'closed') {
+            return;
+        }
+        this.state = 'closed';
+        cancelContext(this.ctx);
+        this.operations.stopAll();
+        this.incomingMessages.clear();
+        this.outcomingMessages.clear();
+        this.incoming.complete();
+        this.connections.forEach(c => c.connection.close());
+        this.connections = [];
+        this.noConnectsSince = Date.now();
+    }
+
+    private freshestConnect() {
+        let connects = this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck);
+        return connects[0];
     }
 }
 
@@ -275,19 +314,19 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
 
             if (session.state === 'init' && !isInitialize(message.body)) {
                 connection.close();
-                session.stopAllOperations();
+                session.destroy();
             } else if (session.state === 'init' && isInitialize(message.body)) {
                 session.state = 'waiting_auth';
                 session.authParams = await params.onAuth(message.body.authToken);
                 session.state = 'connected';
                 if (message.body.sessionId) {
-                    session.switchToSession(message.body.sessionId);
-                    connection.send(makeInitializeAck({ sessionId: message.body.sessionId }), [message.id]);
-                    return;
+                    if (session.switchToSession(message.id, message.body.sessionId)) {
+                        return;
+                    }
                 }
-                connection.send(makeInitializeAck({ sessionId: session.sessionId }), [message.id]);
+                session.send(makeInitializeAck({ sessionId: session.sessionId }), [message.id]);
             } else if (session.state !== 'connected') {
-                continue; // maybe close connection?
+                session.destroy();
             } else if (isGQLRequest(message.body)) {
                 let ctx = await params.context(session.authParams, message.body);
                 await params.onOperation(ctx, message.body);
@@ -334,16 +373,16 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                     }
                     session.send(makeGQLSubscriptionComplete({ id: message.body.id }));
                 });
-                session.addOperation(message.body.id, () => {
+                session.operations.add(message.body.id, () => {
                     working = false;
                     cancelContext(ctx);
                 });
             } else if (isGQLSubscriptionStop(message.body)) {
-                session.stopOperation(message.body.id);
+                session.operations.stop(message.body.id);
                 session.sendAck([message.id]);
             }
         }
-        session.stopAllOperations();
+        session.destroy();
     });
 }
 
@@ -380,6 +419,18 @@ export function initVostok(params: VostokServerParams) {
             session.addConnection(connect);
             sessions.set(sessionId, session);
             handleSession(session, params);
+        }
+    });
+    asyncRun(async () => {
+        while (true) {
+            for (let session of sessions.values()) {
+                if (session.noConnectsSince && Date.now() - session.noConnectsSince > 1000 * 5) {
+                    log.log(rootCtx, 'drop session', session.sessionId);
+                    session.destroy();
+                    sessions.delete(session.sessionId);
+                }
+            }
+            await delay(1000);
         }
     });
     return server.socket;
