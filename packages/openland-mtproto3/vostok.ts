@@ -1,7 +1,7 @@
 import WebSocket = require('ws');
 import { createIterator } from '../openland-utils/asyncIterator';
 import {
-    decodeMessage, encodeAckMessages, encodeMessage, encodeMessagesInfoRequest, isAckMessages,
+    decodeMessage, encodeAckMessages, encodeMessage, encodeMessagesInfoRequest, encodePing, isAckMessages,
     isGQLRequest,
     isGQLSubscription, isGQLSubscriptionStop,
     isInitialize, isMessage,
@@ -9,7 +9,7 @@ import {
     makeGQLResponse, makeGQLSubscriptionComplete,
     makeGQLSubscriptionResponse,
     makeInitializeAck,
-    makeMessage, makeMessagesInfoRequest, MessageShape,
+    makeMessage, makeMessagesInfoRequest, makePing, MessageShape,
 } from './schema/VostokTypes';
 import * as http from 'http';
 import * as https from 'https';
@@ -24,6 +24,7 @@ import Timeout = NodeJS.Timeout;
 import { RotatingMap } from '../openland-utils/FixedSizeMap';
 import { randomKey } from '../openland-utils/random';
 import { randomBytes } from 'crypto';
+import { delay } from '../openland-utils/timer';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -50,6 +51,10 @@ class VostokConnection {
 
     protected ackTimer: Timeout|null = null;
 
+    public lastPingAck: number = Date.now();
+    public pingCounter = 0;
+    public pingAckCounter = 0;
+
     setSocket(socket: WebSocket) {
         this.socket = socket;
         socket.on('message', async data => this.onMessage(socket, data));
@@ -61,6 +66,26 @@ class VostokConnection {
                 this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ ids })));
             }
         }, 5000);
+
+        asyncRun(async () => {
+            let timeout: NodeJS.Timeout|null = null;
+            while (this.isConnected()) {
+                // Send ping only if previous one was acknowledged
+                if (this.pingCounter !== this.pingAckCounter) {
+                    await delay(1000 * 30);
+                }
+                this.sendPing();
+                if (timeout) {
+                    clearTimeout(timeout);
+                }
+                timeout = setTimeout(() => {
+                    if (this.isConnected() && Date.now() - this.lastPingAck > 1000 * 60 * 5) {
+                        this.socket!.close();
+                    }
+                }, 1000 * 60 * 5);
+                await delay(1000 * 30);
+            }
+        });
     }
 
     send(body: KnownTypes, acks?: string[]) {
@@ -81,6 +106,14 @@ class VostokConnection {
     getIterator() {
         this.incoming = createIterator<MessageShape>(() => 0);
         return this.incoming;
+    }
+
+    isConnected() {
+        return this.socket!.readyState === this.socket!.OPEN;
+    }
+
+    sendPing() {
+        this.sendRaw(encodePing(makePing({ id: ++this.pingAckCounter })));
     }
 
     private sendRaw(data: any) {
