@@ -4,7 +4,7 @@ import {
     decodeMessage, encodeAckMessages, encodeMessage, encodeMessagesInfoRequest, encodePing, isAckMessages,
     isGQLRequest,
     isGQLSubscription, isGQLSubscriptionStop,
-    isInitialize, isMessage,
+    isInitialize, isMessage, isPong,
     KnownTypes, makeAckMessages,
     makeGQLResponse, makeGQLSubscriptionComplete,
     makeGQLSubscriptionResponse,
@@ -42,6 +42,12 @@ interface Server {
 
 const makeMessageId = () => randomBytes(32).toString('hex');
 
+const PING_TIMEOUT = 1000 * 30;
+const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
+
+// const PING_TIMEOUT = 1000;
+// const PING_CLOSE_TIMEOUT = 1000 * 5;
+
 class VostokConnection {
     protected socket: WebSocket|null = null;
     protected incoming = createIterator<MessageShape>(() => 0);
@@ -72,18 +78,19 @@ class VostokConnection {
             while (this.isConnected()) {
                 // Send ping only if previous one was acknowledged
                 if (this.pingCounter !== this.pingAckCounter) {
-                    await delay(1000 * 30);
+                    await delay(PING_TIMEOUT);
+                    continue;
                 }
                 this.sendPing();
                 if (timeout) {
                     clearTimeout(timeout);
                 }
                 timeout = setTimeout(() => {
-                    if (this.isConnected() && Date.now() - this.lastPingAck > 1000 * 60 * 5) {
+                    if (this.isConnected() && Date.now() - this.lastPingAck > PING_CLOSE_TIMEOUT) {
                         this.socket!.close();
                     }
-                }, 1000 * 60 * 5);
-                await delay(1000 * 30);
+                }, PING_CLOSE_TIMEOUT);
+                await delay(PING_TIMEOUT);
             }
         });
     }
@@ -113,7 +120,7 @@ class VostokConnection {
     }
 
     sendPing() {
-        this.sendRaw(encodePing(makePing({ id: ++this.pingAckCounter })));
+        this.sendRaw(encodePing(makePing({ id: ++this.pingCounter })));
     }
 
     private sendRaw(data: any) {
@@ -131,6 +138,9 @@ class VostokConnection {
             for (let id of msgData.ids) {
                 this.outcomingMessages.delete(id);
             }
+        } else if (isPong(msgData)) {
+            this.lastPingAck = Date.now();
+            this.pingAckCounter++;
         }
     }
 
