@@ -124,6 +124,41 @@ async function initZapierInternal(app: Express) {
             });
         });
     });
+
+    app.get('/integrations/zapier/v1/triggers/fetch_chats', checkAuth, bodyParser.json(), async (req, res) => {
+       await inTx(rootCtx, async ctx => {
+          log.log(ctx, '/triggers/fetch_chats', req.body);
+          let uid = (req as any).uid;
+          let userChats = await Store.RoomParticipant.userActive.findAll(ctx, uid);
+          let commonChats = await Promise.all(userChats.map(a => Store.RoomParticipant.findById(ctx, a.cid, config!.BotId)));
+          commonChats = commonChats.filter(a => a && a.status === 'joined' && a.invitedBy === uid);
+
+          res.status(200).json(
+              await Promise.all(commonChats.map(async a => ({
+                  id: IDs.Conversation.serialize(a!.cid),
+                  title: await Modules.Messaging.room.resolveConversationTitle(ctx, a!.cid, config!.BotId)
+              })))
+          );
+       });
+    });
+
+    app.get('/integrations/zapier/v1/triggers/fetch_channels', checkAuth, bodyParser.json(), async (req, res) => {
+        await inTx(rootCtx, async ctx => {
+            log.log(ctx, '/triggers/fetch_channels', req.body);
+            let uid = (req as any).uid;
+
+            let userChannels = await Store.FeedChannelAdmin.fromUser.findAll(ctx, uid);
+            let commonChannels = await Promise.all(userChannels.map(a => Store.FeedChannelAdmin.findById(ctx, a.channelId, config!.BotId)));
+            commonChannels = commonChannels.filter(a => a && a.enabled && a.promoter === uid);
+
+            let channels = await Promise.all(commonChannels.map(a => Store.FeedChannel.findById(ctx, a!.channelId)));
+            res.status(200).json(channels.map(a => ({
+                id: IDs.FeedChannel.serialize(a!.id),
+                title: a!.title
+            })));
+        });
+    });
+
     app.post('/integrations/zapier/v1/actions/send_message', checkAuth, bodyParser.json(), async (req, res) => {
         await inTx(rootCtx, async ctx => {
             log.log(ctx, '/actions/send_message', req.body);
