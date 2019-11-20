@@ -2,17 +2,17 @@ import { anyStruct, array, declareSchema, field, integer, model, optional, strin
 
 export const VostokSchema = declareSchema(() => {
     model('Message', () => {
-        field('seq', integer());
+        field('id', string());
         field('body', anyStruct());
-        field('ackSeqs', optional(array(integer())));
+        field('ackMessages', optional(array(string())));
     });
 
     model('AckMessages', () => {
-        field('seqs', array(integer()));
+        field('ids', array(string()));
     });
 
     model('MessagesInfoRequest', () => {
-        field('seqs', array(integer()));
+        field('ids', array(string()));
     });
 
     model('Initialize', () => {

@@ -23,6 +23,7 @@ import { createLogger } from '@openland/log';
 import Timeout = NodeJS.Timeout;
 import { RotatingMap } from '../openland-utils/FixedSizeMap';
 import { randomKey } from '../openland-utils/random';
+import { randomBytes } from 'crypto';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -38,13 +39,14 @@ interface Server {
     incomingConnections: AsyncIterable<VostokConnection>;
 }
 
+const makeMessageId = () => randomBytes(32).toString('hex');
+
 class VostokConnection {
-    protected seq = 1;
     protected socket: WebSocket|null = null;
     protected incoming = createIterator<MessageShape>(() => 0);
 
-    readonly outcomingMessages = new RotatingMap<number, MessageShape>(1024);
-    readonly incomingMessages = new RotatingMap<number, MessageShape>(1024);
+    readonly outcomingMessages = new RotatingMap<string, MessageShape>(1024);
+    readonly incomingMessages = new RotatingMap<string, MessageShape>(1024);
 
     protected ackTimer: Timeout|null = null;
 
@@ -54,22 +56,22 @@ class VostokConnection {
         socket.on('close', () => this.onSocketClose(socket));
 
         this.ackTimer = setInterval(() => {
-            let seqs = [...this.outcomingMessages.keys()];
-            if (seqs.length > 0) {
-                this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ seqs })));
+            let ids = [...this.outcomingMessages.keys()];
+            if (ids.length > 0) {
+                this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ ids })));
             }
         }, 5000);
     }
 
-    send(body: KnownTypes, acks?: number[]) {
-        let message = makeMessage({ seq: this.seq++, body, ackSeqs: acks || null });
+    send(body: KnownTypes, acks?: string[]) {
+        let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
         log.log(rootCtx, '->', JSON.stringify(message));
-        this.outcomingMessages.set(message.seq, message);
+        this.outcomingMessages.set(message.id, message);
         this.socket!.send(JSON.stringify(encodeMessage(message)));
     }
 
-    sendAck(seqs: number[]) {
-        this.sendRaw(encodeAckMessages(makeAckMessages({ seqs })));
+    sendAck(ids: string[]) {
+        this.sendRaw(encodeAckMessages(makeAckMessages({ ids })));
     }
 
     close() {
@@ -90,11 +92,11 @@ class VostokConnection {
         let msgData = JSON.parse(data.toString());
         if (isMessage(msgData)) {
             let message = decodeMessage(msgData);
-            this.incomingMessages.set(message.seq, message);
+            this.incomingMessages.set(message.id, message);
             this.incoming.push(message);
         } else if (isAckMessages(msgData)) {
-            for (let seq of msgData.seqs) {
-                this.outcomingMessages.delete(seq);
+            for (let id of msgData.ids) {
+                this.outcomingMessages.delete(id);
             }
         }
     }
@@ -200,10 +202,10 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                 session.state = 'connected';
                 if (message.body.sessionId) {
                     session.switchToSession(message.body.sessionId);
-                    connection.send(makeInitializeAck({ sessionId: message.body.sessionId }), [message.seq]);
+                    connection.send(makeInitializeAck({ sessionId: message.body.sessionId }), [message.id]);
                     return;
                 }
-                connection.send(makeInitializeAck({ sessionId: session.sessionId }), [message.seq]);
+                connection.send(makeInitializeAck({ sessionId: session.sessionId }), [message.id]);
             } else if (session.state !== 'connected') {
                 continue; // maybe close connection?
             } else if (isGQLRequest(message.body)) {
@@ -218,9 +220,9 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                     contextValue: ctx
                 });
 
-                connection.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.seq]);
+                connection.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.id]);
             } else if (isGQLSubscription(message.body)) {
-                connection.sendAck([message.seq]);
+                connection.sendAck([message.id]);
                 let working = true;
                 let ctx = await params.subscriptionContext(session.authParams, message.body);
                 asyncRun(async () => {
@@ -258,7 +260,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                 });
             } else if (isGQLSubscriptionStop(message.body)) {
                 session.stopOperation(message.body.id);
-                connection.sendAck([message.seq]);
+                connection.sendAck([message.id]);
             }
         }
         session.stopAllOperations();
