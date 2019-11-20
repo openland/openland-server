@@ -1,5 +1,5 @@
 import WebSocket = require('ws');
-import { createIterator } from '../openland-utils/asyncIterator';
+import { createIteratorCompletable } from '../openland-utils/asyncIterator';
 import {
     decodeMessage, encodeAckMessages, encodeMessage, encodeMessagesInfoRequest, encodePing, isAckMessages,
     isGQLRequest,
@@ -50,10 +50,7 @@ const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
 
 class VostokConnection {
     protected socket: WebSocket|null = null;
-    protected incoming = createIterator<MessageShape>(() => 0);
-
-    readonly outcomingMessages = new RotatingMap<string, MessageShape>(1024);
-    readonly incomingMessages = new RotatingMap<string, MessageShape>(1024);
+    protected incoming = createIteratorCompletable<KnownTypes>(() => 0);
 
     protected ackTimer: Timeout|null = null;
 
@@ -65,13 +62,6 @@ class VostokConnection {
         this.socket = socket;
         socket.on('message', async data => this.onMessage(socket, data));
         socket.on('close', () => this.onSocketClose(socket));
-
-        this.ackTimer = setInterval(() => {
-            let ids = [...this.outcomingMessages.keys()];
-            if (ids.length > 0) {
-                this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ ids })));
-            }
-        }, 5000);
 
         asyncRun(async () => {
             let timeout: NodeJS.Timeout|null = null;
@@ -98,8 +88,8 @@ class VostokConnection {
     send(body: KnownTypes, acks?: string[]) {
         let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
         log.log(rootCtx, '->', JSON.stringify(message));
-        this.outcomingMessages.set(message.id, message);
         this.socket!.send(JSON.stringify(encodeMessage(message)));
+        return message;
     }
 
     sendAck(ids: string[]) {
@@ -111,7 +101,7 @@ class VostokConnection {
     }
 
     getIterator() {
-        this.incoming = createIterator<MessageShape>(() => 0);
+        this.incoming = createIteratorCompletable<KnownTypes>(() => 0);
         return this.incoming;
     }
 
@@ -123,7 +113,7 @@ class VostokConnection {
         this.sendRaw(encodePing(makePing({ id: ++this.pingCounter })));
     }
 
-    private sendRaw(data: any) {
+    sendRaw(data: any) {
         this.socket!.send(JSON.stringify(data));
     }
 
@@ -132,12 +122,7 @@ class VostokConnection {
         let msgData = JSON.parse(data.toString());
         if (isMessage(msgData)) {
             let message = decodeMessage(msgData);
-            this.incomingMessages.set(message.id, message);
             this.incoming.push(message);
-        } else if (isAckMessages(msgData)) {
-            for (let id of msgData.ids) {
-                this.outcomingMessages.delete(id);
-            }
         } else if (isPong(msgData)) {
             this.lastPingAck = Date.now();
             this.pingAckCounter++;
@@ -145,8 +130,6 @@ class VostokConnection {
     }
 
     private onSocketClose(socket: WebSocket) {
-        this.outcomingMessages.clear();
-        this.incomingMessages.clear();
         this.incoming.complete();
         if (this.ackTimer) {
             clearInterval(this.ackTimer);
@@ -156,7 +139,7 @@ class VostokConnection {
 
 export function createWSServer(options: WebSocket.ServerOptions): Server {
     const ws = new WebSocket.Server(options);
-    let iterator = createIterator<VostokConnection>(() => 0);
+    let iterator = createIteratorCompletable<VostokConnection>(() => 0);
 
     ws.on('connection', async (socket, req) => {
         let connection = new VostokConnection();
@@ -182,12 +165,24 @@ class VostokSession {
     public connections: { connection: VostokConnection }[] = [];
     public sessionId: string;
     private sessions: Map<string, VostokSession>;
-    readonly incoming = createIterator<{ message: MessageShape, connection: VostokConnection }>(() => 0);
+    readonly incoming = createIteratorCompletable<{ message: MessageShape, connection: VostokConnection }>(() => 0);
+
+    readonly outcomingMessages = new RotatingMap<string, MessageShape>(1024);
+    readonly incomingMessages = new RotatingMap<string, MessageShape>(1024);
+
+    protected ackTimer: Timeout|null = null;
 
     constructor(sessionId: string, sessions: Map<string, VostokSession>) {
         this.sessionId = sessionId;
         this.sessions = sessions;
         log.log(rootCtx, 'session: ', this.sessionId);
+
+        this.ackTimer = setInterval(() => {
+            let ids = [...this.outcomingMessages.keys()];
+            if (ids.length > 0) {
+                this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ ids })));
+            }
+        }, 5000);
     }
 
     switchToSession(sessionId: string) {
@@ -198,6 +193,29 @@ class VostokSession {
             this.connections = [];
         }
         // handle if session not found
+    }
+
+    freshestConnect() {
+        let connects = this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck);
+        return connects[0];
+    }
+
+    send(body: KnownTypes, acks?: string[]) {
+        if (this.freshestConnect()) {
+            let msg = this.freshestConnect().connection.send(body, acks);
+            this.outcomingMessages.set(msg.id, msg);
+        }
+        // this.outcomingMessages.set(msg.id, msg);
+    }
+
+    sendRaw(data: any) {
+        if (this.freshestConnect()) {
+            this.freshestConnect().connection.sendRaw(data);
+        }
+    }
+
+    sendAck(ids: string[]) {
+        this.sendRaw(encodeAckMessages(makeAckMessages({ ids })));
     }
 
     addOperation = (id: string, destroy: () => void) => {
@@ -217,16 +235,35 @@ class VostokSession {
             op[1].destroy();
             this.operations.delete(op[0]);
         }
+        if (this.ackTimer) {
+            clearInterval(this.ackTimer);
+        }
+        this.incomingMessages.clear();
+        this.outcomingMessages.clear();
     }
 
     addConnection(connection: VostokConnection) {
         let conn = { connection };
         this.connections.push(conn);
         asyncRun(async () => {
-           for await (let message of connection.getIterator()) {
-               this.incoming.push({ message, connection });
+           for await (let msgData of connection.getIterator()) {
+               if (isMessage(msgData)) {
+                   let message = decodeMessage(msgData);
+                   this.incomingMessages.set(message.id, message);
+                   this.incoming.push({ message, connection });
+               } else if (isAckMessages(msgData)) {
+
+                   for (let id of msgData.ids) {
+                       this.outcomingMessages.delete(id);
+                   }
+               }
            }
            this.connections.splice(this.connections.findIndex(c => c === conn), 1);
+
+           // if (this.connections.length === 0) {
+           //     // For debug only
+           //     this.stopAllOperations();
+           // }
         });
     }
 }
@@ -263,9 +300,9 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                     contextValue: ctx
                 });
 
-                connection.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.id]);
+                session.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.id]);
             } else if (isGQLSubscription(message.body)) {
-                connection.sendAck([message.id]);
+                session.sendAck([message.id]);
                 let working = true;
                 let ctx = await params.subscriptionContext(session.authParams, message.body);
                 asyncRun(async () => {
@@ -285,7 +322,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
 
                     if (!isAsyncIterator(iterator)) {
                         // handle error
-                        connection.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(iterator)) }));
+                        session.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(iterator)) }));
                         return;
                     }
 
@@ -293,9 +330,9 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                         if (!working) {
                             break;
                         }
-                        connection.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(event)) }));
+                        session.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(event)) }));
                     }
-                    connection.send(makeGQLSubscriptionComplete({ id: message.body.id }));
+                    session.send(makeGQLSubscriptionComplete({ id: message.body.id }));
                 });
                 session.addOperation(message.body.id, () => {
                     working = false;
@@ -303,7 +340,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                 });
             } else if (isGQLSubscriptionStop(message.body)) {
                 session.stopOperation(message.body.id);
-                connection.sendAck([message.id]);
+                session.sendAck([message.id]);
             }
         }
         session.stopAllOperations();
