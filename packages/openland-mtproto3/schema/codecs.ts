@@ -358,7 +358,7 @@ class AnyCodec implements Codec<any> {
     }
 }
 
-class OptionalCodec<T> implements Codec<T | null | undefined> {
+class OptionalCodec<T> implements Codec<T | null> {
     readonly [typeSymbol]!: T | null;
     private readonly parent: Codec<T>;
 
@@ -370,7 +370,7 @@ class OptionalCodec<T> implements Codec<T | null | undefined> {
         if (src2 !== undefined && src2 !== null) {
             return this.parent.decode(src2);
         }
-        return undefined;
+        return null;
     }
     encode(src2: T | null) {
         if (src2 !== undefined && src2 !== null) {
