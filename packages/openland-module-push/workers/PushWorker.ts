@@ -74,14 +74,14 @@ export function createPushWorker(repo: PushRepository) {
                         }
                     }
                     if (args.mobile) {
+                        let unread = await Modules.Messaging.fetchUserGlobalCounter(ctx, args.uid);
+
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
                         //
                         // iOS
                         //
                         let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
-                            let unread = await Modules.Messaging.fetchUserGlobalCounter(ctx, args.uid);
-
                             if (args.silent) {
                                 await Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
@@ -122,7 +122,15 @@ export function createPushWorker(repo: PushRepository) {
                         let androidTokens = await repo.getUserAndroidPushTokens(ctx, args.uid);
                         for (let token of androidTokens) {
                             if (args.silent) {
-                                // ignore counter pushes for android
+                                await Modules.Push.androidWorker.pushWork(ctx, {
+                                    uid: args.uid,
+                                    isData: true,
+                                    data: {
+                                        ['unread']: unread.toString(),
+                                    },
+                                    tokenId: token.token
+                                });
+
                                 continue;
                             }
                             await Modules.Push.androidWorker.pushWork(ctx, {
@@ -138,6 +146,7 @@ export function createPushWorker(repo: PushRepository) {
                                 data: {
                                     ['title']: args.title,
                                     ['message']: mobileBody,
+                                    ['unread']: unread.toString(),
                                     ['soundName']: args.mobileAlert ? 'default' : 'silence.mp3',
                                     // ['color']: '#4747EC',
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
