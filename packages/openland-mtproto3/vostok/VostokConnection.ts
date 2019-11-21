@@ -1,6 +1,15 @@
 import { createIterator } from '../../openland-utils/asyncIterator';
 import { delay } from '../../openland-utils/timer';
-import { encodePing, isPong, KnownTypes, makePing } from '../vostok-schema/VostokTypes';
+import {
+    decodeAckMessages,
+    decodeMessage, decodeMessagesInfoRequest, decodePing, encodeInvalidMessage,
+    encodePing, encodePong,
+    isAckMessages,
+    isMessage, isMessagesInfoRequest, isPing,
+    isPong,
+    KnownTypes, makeInvalidMessage,
+    makePing, makePong
+} from '../vostok-schema/VostokTypes';
 import { PING_CLOSE_TIMEOUT, PING_TIMEOUT } from './vostok';
 import WebSocket = require('ws');
 import { createNamedContext } from '@openland/context';
@@ -12,7 +21,7 @@ const log = createLogger('vostok');
 
 export class VostokConnection {
     protected socket: WebSocket|null = null;
-    protected incomingData = createIterator<any>(() => 0);
+    protected incomingData = createIterator<KnownTypes>(() => 0);
 
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
@@ -49,12 +58,27 @@ export class VostokConnection {
 
     private onMessage(socket: WebSocket, data: WebSocket.Data) {
         log.log(rootCtx, '<-', data);
-        let msgData = JSON.parse(data.toString());
-        if (isPong(msgData)) {
-            this.lastPingAck = Date.now();
-            this.pingAckCounter++;
-        } else {
-            this.incomingData.push(msgData);
+        try {
+            let msgData = JSON.parse(data.toString());
+            if (isPong(msgData)) {
+                this.lastPingAck = Date.now();
+                this.pingAckCounter++;
+            } else if (isPing(msgData)) {
+                let ping = decodePing(msgData);
+                this.sendRaw(encodePong(makePong({ id: ping.id })));
+            } else if (isMessage(msgData)) {
+                this.incomingData.push(decodeMessage(msgData));
+            } else if (isAckMessages(msgData)) {
+                this.incomingData.push(decodeAckMessages(msgData));
+            } else if (isMessagesInfoRequest(msgData)) {
+                this.incomingData.push(decodeMessagesInfoRequest(msgData));
+            } else {
+                log.log(rootCtx, 'unexpected top level message:', msgData);
+            }
+        } catch (e) {
+            log.log(rootCtx, 'got invalid message from client', data);
+            this.sendRaw(encodeInvalidMessage(makeInvalidMessage({ })));
+            this.close();
         }
     }
 

@@ -1,6 +1,10 @@
 import { anyStruct, anyType, array, declareSchema, field, integer, model, optional, string } from './vschema';
 
 export const VostokSchema = declareSchema(() => {
+    //
+    //  Network level
+    //
+
     model('Message', () => {
         field('id', string());
         field('body', anyStruct());
@@ -24,6 +28,10 @@ export const VostokSchema = declareSchema(() => {
         field('sessionId', string());
     });
 
+    model('InvalidMessage', () => {
+        //
+    });
+
     model('Ping', () => {
         field('id', integer());
     });
@@ -31,6 +39,10 @@ export const VostokSchema = declareSchema(() => {
     model('Pong', () => {
         field('id', integer());
     });
+
+    //
+    // API layer
+    //
 
     model('GQLRequest', () => {
         field('id', string());

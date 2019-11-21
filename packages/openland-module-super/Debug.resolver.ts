@@ -1223,8 +1223,9 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+                let i = 1;
                 while (true) {
-                    let data = 'pong ' + Date.now();
+                    let data = 'pong ' + Date.now() + ' ' + i++;
                     logger.log(ctx, 'send lifecheck', data);
                     yield data;
                     await delay(1000);

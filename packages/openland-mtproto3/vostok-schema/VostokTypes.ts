@@ -2,7 +2,7 @@
 import { Codec, codecs } from './codecs';
 
 export const KnownCodecs = new Map<string, Codec<any>>();
-export type KnownTypes = MessageShape | AckMessagesShape | MessagesInfoRequestShape | InitializeShape | InitializeAckShape | PingShape | PongShape | GQLRequestShape | GQLResponseShape | GQLSubscriptionShape | GQLSubscriptionStopShape | GQLSubscriptionResponseShape | GQLSubscriptionCompleteShape;
+export type KnownTypes = MessageShape | AckMessagesShape | MessagesInfoRequestShape | InitializeShape | InitializeAckShape | InvalidMessageShape | PingShape | PongShape | GQLRequestShape | GQLResponseShape | GQLSubscriptionShape | GQLSubscriptionStopShape | GQLSubscriptionResponseShape | GQLSubscriptionCompleteShape;
 
 export type MessageInputShape = {
     id: string
@@ -70,6 +70,16 @@ export const makeInitializeAck = (src: InitializeAckInputShape) => ({ _type: 'In
 export const encodeInitializeAck = (src: InitializeAckShape) => InitializeAckCodec.encode(src);
 export const decodeInitializeAck = (src: any) => InitializeAckCodec.decode(src) as InitializeAckShape;
 export function isInitializeAck(src: any): src is InitializeAckShape { return src._type === 'InitializeAck'; }
+export type InvalidMessageInputShape = {
+};
+export type InvalidMessageShape = InvalidMessageInputShape & { _type: 'InvalidMessage' };
+export const InvalidMessageCodec = codecs.struct('InvalidMessage', {
+});
+KnownCodecs.set('InvalidMessage', InvalidMessageCodec);
+export const makeInvalidMessage = (src: InvalidMessageInputShape) => ({ _type: 'InvalidMessage', ...src }) as InvalidMessageShape;
+export const encodeInvalidMessage = (src: InvalidMessageShape) => InvalidMessageCodec.encode(src);
+export const decodeInvalidMessage = (src: any) => InvalidMessageCodec.decode(src) as InvalidMessageShape;
+export function isInvalidMessage(src: any): src is InvalidMessageShape { return src._type === 'InvalidMessage'; }
 export type PingInputShape = {
     id: number
 };

@@ -1,10 +1,10 @@
 import WebSocket = require('ws');
 import { createIterator } from '../../openland-utils/asyncIterator';
 import {
-    decodeMessage, encodeMessage,
+    encodeMessage,
     isGQLRequest,
     isGQLSubscription, isGQLSubscriptionStop,
-    isInitialize,
+    isInitialize, isMessage,
     makeGQLResponse, makeGQLSubscriptionComplete,
     makeGQLSubscriptionResponse,
     makeInitializeAck, makeMessage,
@@ -18,8 +18,6 @@ import { gqlSubscribe } from '../gqlSubscribe';
 import { asyncRun, isAsyncIterator, makeMessageId } from '../utils';
 import { cancelContext } from '@openland/lifetime';
 import { createLogger } from '@openland/log';
-import { randomKey } from '../../openland-utils/random';
-import { delay } from '../../openland-utils/timer';
 import { VostokConnection } from './VostokConnection';
 import { VostokSession } from './VostokSession';
 import { VostokSessionsManager } from './VostokSessionsManager';
@@ -63,6 +61,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
             if (session.state !== 'active') {
                 session.destroy();
             } else if (isGQLRequest(message.body)) {
+                session.sendAck([message.id]);
                 let ctx = await params.context(session.authParams, message.body);
                 await params.onOperation(ctx, message.body);
 
@@ -73,8 +72,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                     variableValues: message.body.variables ? JSON.parse(message.body.variables) : undefined,
                     contextValue: ctx
                 });
-
-                session.send(makeGQLResponse({ id: message.body.id, result: await params.formatResponse(result) }), [message.id]);
+                session.send(makeGQLResponse({ id: message.body.id, result: await params.formatResponse(result) }));
             } else if (isGQLSubscription(message.body)) {
                 session.sendAck([message.id]);
                 let working = true;
@@ -121,6 +119,44 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
     });
 }
 
+async function authorizeConnection(serverParams: VostokServerParams, connection: VostokConnection, sessionsManager: VostokSessionsManager) {
+    let state = 'init';
+    for await (let message of connection.getIncomingMessagesIterator()) {
+        if (!isMessage(message)) {
+            continue;
+        }
+
+        if (state === 'init' && !isInitialize(message.body)) {
+            connection.close();
+            return null;
+        } else if (state === 'init' && isInitialize(message.body)) {
+            state = 'waiting_auth';
+            let authParams = await serverParams.onAuth(message.body.authToken);
+            state = 'connected';
+            if (message.body.sessionId) {
+                let target = sessionsManager.get(message.body.sessionId);
+                if (target) {
+                    log.log(rootCtx, 'switch to session #', target.sessionId);
+                    target.addConnection(connection);
+                    connection.sendRaw(encodeMessage(makeMessage({
+                        id: makeMessageId(),
+                        body: makeInitializeAck({ sessionId: target.sessionId }),
+                        ackMessages: [message.id]
+                    })));
+                    return target;
+                }
+            }
+            let session = sessionsManager.newSession();
+            log.log(rootCtx, 'new session #', session.sessionId);
+            session.addConnection(connection);
+            session.authParams = authParams;
+            session.send(makeInitializeAck({ sessionId: session.sessionId }), [message.id]);
+            return session;
+        }
+    }
+    return null;
+}
+
 interface GQlServerOperation {
     operationName: string|null|undefined;
     variables: any;
@@ -142,40 +178,6 @@ interface VostokServerParams {
     formatResponse(response: any): Promise<any>;
 
     onOperation(ctx: Context, operation: GQlServerOperation): Promise<any>;
-}
-
-async function authorizeConnection(serverParams: VostokServerParams, connection: VostokConnection, sessionsManager: VostokSessionsManager) {
-    let state = 'init';
-    for await (let data of connection.getIncomingMessagesIterator()) {
-        let message = decodeMessage(data);
-
-        if (state === 'init' && !isInitialize(message.body)) {
-            connection.close();
-            return null;
-        } else if (state === 'init' && isInitialize(message.body)) {
-            state = 'waiting_auth';
-            let authParams = await serverParams.onAuth(message.body.authToken);
-            state = 'connected';
-            if (message.body.sessionId) {
-                let target = sessionsManager.get(message.body.sessionId);
-                if (target) {
-                    target.addConnection(connection);
-                    connection.sendRaw(encodeMessage(makeMessage({
-                        id: makeMessageId(),
-                        body: makeInitializeAck({ sessionId: target.sessionId }),
-                        ackMessages: [message.id]
-                    })));
-                    return target;
-                }
-            }
-            let session = sessionsManager.newSession();
-            session.addConnection(connection);
-            session.authParams = authParams;
-            session.send(makeInitializeAck({ sessionId: session.sessionId }));
-            return session;
-        }
-    }
-    return null;
 }
 
 export function initVostokServer(params: VostokServerParams) {
