@@ -6,7 +6,7 @@ import {
     encodeAckMessages,
     encodeMessage,
     encodeMessagesInfoRequest, isAckMessages, isMessage,
-    KnownTypes, makeAckMessages, makeInitializeAck, makeMessage,
+    KnownTypes, makeAckMessages, makeMessage,
     makeMessagesInfoRequest,
     MessageShape
 } from '../vostok-schema/VostokTypes';
@@ -22,7 +22,7 @@ const log = createLogger('vostok');
 
 export class VostokSession {
     public sessionId: string;
-    public state: 'init' | 'waiting_auth' | 'connected' | 'closed' = 'init';
+    public state: 'active' | 'closed' = 'active';
     public authParams: any;
     public operations = new VostokOperationsManager();
     public connections: { connection: VostokConnection }[] = [];
@@ -34,12 +34,12 @@ export class VostokSession {
     readonly outcomingMessagesMap = new RotatingMap<string, { msg: MessageShape, delivered: boolean }>(1024);
     readonly incomingMessagesMap = new RotatingMap<string, MessageShape>(1024);
 
-    private sessions: Map<string, VostokSession>;
+    // private sessions: Map<string, VostokSession>;
     private ctx = withLifetime(createNamedContext('vostok-session'));
 
-    constructor(sessionId: string, sessions: Map<string, VostokSession>) {
+    constructor(sessionId: string) {
         this.sessionId = sessionId;
-        this.sessions = sessions;
+        // this.sessions = sessions;
         log.log(rootCtx, 'session: ', this.sessionId);
 
         this.setupAckLoop();
@@ -112,21 +112,21 @@ export class VostokSession {
         });
     }
 
-    switchToSession(messageId: string, sessionId: string) {
-        log.log(rootCtx, 'switch session');
-        let switched = false;
-
-        let target = this.sessions.get(sessionId);
-        if (target) {
-            target.addConnection(this.connections[0].connection);
-            target.send(makeInitializeAck({ sessionId }), [messageId]);
-            this.connections = [];
-            switched = true;
-        }
-        this.destroy();
-        log.log(rootCtx, 'attempt to switch to unknown session');
-        return switched;
-    }
+    // switchToSession(messageId: string, sessionId: string) {
+    //     log.log(rootCtx, 'switch session');
+    //     let switched = false;
+    //
+    //     let target = this.sessions.get(sessionId);
+    //     if (target) {
+    //         target.addConnection(this.connections[0].connection);
+    //         target.send(makeInitializeAck({ sessionId }), [messageId]);
+    //         this.connections = [];
+    //         switched = true;
+    //     }
+    //     this.destroy();
+    //     log.log(rootCtx, 'attempt to switch to unknown session');
+    //     return switched;
+    // }
 
     destroy = () => {
         if (this.state === 'closed') {
