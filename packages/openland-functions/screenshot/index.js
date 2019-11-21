@@ -115,10 +115,19 @@ app.post('/html', async (req, res) => {
     await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
     await page.goto(url, { waitUntil: 'networkidle2' });
 
+    // Capture screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      omitBackground: false,
+      encoding: 'base64'
+    });
+
     // load html
     const html = await page.content();
-    res.set('Content-Type', 'text/html');
-    res.send(html);
+    res.json({
+      html,
+      screenshot
+    });
   });
 });
 
