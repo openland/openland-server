@@ -78,7 +78,7 @@ describe('jsonSchema', () => {
         expect(validateJson(jEnum(jNumber(), jString()), 1)).toEqual(true);
     });
 
-    it('schema declaration should work correctly', async () => {
+    it('vostok-schema declaration should work correctly', async () => {
         let schema = json(() => {
             jField('test', jNumber());
         });

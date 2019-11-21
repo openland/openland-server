@@ -36,7 +36,7 @@ import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
 import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
-import { initVostok } from '../openland-mtproto3/vostok';
+import { initVostokServer } from '../openland-mtproto3/vostok/vostok';
 import { initZapier } from '../openland-module-zapier/http.handlers';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
@@ -264,7 +264,7 @@ export async function initApi(isTest: boolean) {
                 });
             }
         });
-        let vostok = initVostok({
+        let vostok = initVostokServer({
             server: undefined, // httpServer ,
             path: '/api',
             executableSchema: Schema(),

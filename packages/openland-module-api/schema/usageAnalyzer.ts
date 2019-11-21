@@ -17,7 +17,7 @@ const ctx = createNamedContext('analyze');
 
 async function main() {
     if (!process.argv[2]) {
-        logger.log(ctx, 'Usage: yarn schema:analyze /path/to/queries.json');
+        logger.log(ctx, 'Usage: yarn vostok-schema:analyze /path/to/queries.json');
         return;
     }
 

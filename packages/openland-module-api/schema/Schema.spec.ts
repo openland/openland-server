@@ -27,7 +27,7 @@ describe('GQLSchema', () => {
         expect(executableSchema).not.toBeNull();
     });
 
-    it('should match schema spec', () => {
+    it('should match vostok-schema spec', () => {
         expect(GQL_SPEC_VERSION === getSchemeVersion(buildSchema(__dirname + '/../../'))).toEqual(true);
     });
 });

@@ -275,7 +275,7 @@ export function generateJsonSchema(schema: JsonSchema): string {
         return res;
     }
 
-    throw new Error('Can\'t generate schema');
+    throw new Error('Can\'t generate vostok-schema');
 }
 
 export function generateJsonSchemaInterface(schema: JsonSchema): string {
@@ -303,7 +303,7 @@ export function generateJsonSchemaInterface(schema: JsonSchema): string {
         return res;
     }
 
-    throw new Error('Can\'t generate schema');
+    throw new Error('Can\'t generate vostok-schema');
 }
 
 // json(() => {
