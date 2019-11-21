@@ -492,21 +492,6 @@ export const codecs = {
             /** <- */
             >>(src);
     },
-    // merge: <T1, T2>(a: Codec<T1>, b: Codec<T2>) => {
-    //     if (!(a instanceof StructCodec)) {
-    //         throw Error('Union is possible only for struct codecs');
-    //     }
-    //     if (!(b instanceof StructCodec)) {
-    //         throw Error('Union is possible only for struct codecs');
-    //     }
-    //     let fields: { [K in keyof (T1 & T2)]: Codec<any> } = {
-    //         ...a.fields,
-    //         ...b.fields
-    //     } as any;
-    //
-    //     // NiceMerge inline
-    //     return new StructCodec<{ [K in keyof (T1 & T2)]: (T1 & T2)[K] }>(fields) as Codec<{ [K in keyof (T1 & T2)]: (T1 & T2)[K] }>;
-    // },
     default: <T>(src: Codec<T | null>, value: (() => T) | T) => {
         return new DefaultCodec<T>(() => typeof value === 'function' ? src.normalize((value as any)())! : src.normalize(value)!, src) as Codec<T>;
     },

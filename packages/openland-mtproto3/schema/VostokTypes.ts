@@ -5,15 +5,15 @@ export const KnownCodecs = new Map<string, Codec<any>>();
 export type KnownTypes = MessageShape | AckMessagesShape | MessagesInfoRequestShape | InitializeShape | InitializeAckShape | PingShape | PongShape | GQLRequestShape | GQLResponseShape | GQLSubscriptionShape | GQLSubscriptionStopShape | GQLSubscriptionResponseShape | GQLSubscriptionCompleteShape;
 
 export type MessageInputShape = {
-    seq: number
+    id: string
     body: KnownTypes
-    ackSeqs: number[] | null
+    ackMessages: string[] | null
 };
 export type MessageShape = MessageInputShape & { _type: 'Message' };
 export const MessageCodec = codecs.struct('Message', {
-    seq: codecs.integer,
+    id: codecs.string,
     body: codecs.anyStruct(KnownCodecs),
-    ackSeqs: codecs.optional(codecs.array(codecs.integer)),
+    ackMessages: codecs.optional(codecs.array(codecs.string)),
 });
 KnownCodecs.set('Message', MessageCodec);
 export const makeMessage = (src: MessageInputShape) => ({ _type: 'Message', ...src }) as MessageShape;
@@ -21,11 +21,11 @@ export const encodeMessage = (src: MessageShape) => MessageCodec.encode(src);
 export const decodeMessage = (src: any) => MessageCodec.decode(src) as MessageShape;
 export function isMessage(src: any): src is MessageShape { return src._type === 'Message'; }
 export type AckMessagesInputShape = {
-    seqs: number[]
+    ids: string[]
 };
 export type AckMessagesShape = AckMessagesInputShape & { _type: 'AckMessages' };
 export const AckMessagesCodec = codecs.struct('AckMessages', {
-    seqs: codecs.array(codecs.integer),
+    ids: codecs.array(codecs.string),
 });
 KnownCodecs.set('AckMessages', AckMessagesCodec);
 export const makeAckMessages = (src: AckMessagesInputShape) => ({ _type: 'AckMessages', ...src }) as AckMessagesShape;
@@ -33,11 +33,11 @@ export const encodeAckMessages = (src: AckMessagesShape) => AckMessagesCodec.enc
 export const decodeAckMessages = (src: any) => AckMessagesCodec.decode(src) as AckMessagesShape;
 export function isAckMessages(src: any): src is AckMessagesShape { return src._type === 'AckMessages'; }
 export type MessagesInfoRequestInputShape = {
-    seqs: number[]
+    ids: string[]
 };
 export type MessagesInfoRequestShape = MessagesInfoRequestInputShape & { _type: 'MessagesInfoRequest' };
 export const MessagesInfoRequestCodec = codecs.struct('MessagesInfoRequest', {
-    seqs: codecs.array(codecs.integer),
+    ids: codecs.array(codecs.string),
 });
 KnownCodecs.set('MessagesInfoRequest', MessagesInfoRequestCodec);
 export const makeMessagesInfoRequest = (src: MessagesInfoRequestInputShape) => ({ _type: 'MessagesInfoRequest', ...src }) as MessagesInfoRequestShape;
@@ -114,12 +114,12 @@ export const decodeGQLRequest = (src: any) => GQLRequestCodec.decode(src) as GQL
 export function isGQLRequest(src: any): src is GQLRequestShape { return src._type === 'GQLRequest'; }
 export type GQLResponseInputShape = {
     id: string
-    result: string
+    result: any
 };
 export type GQLResponseShape = GQLResponseInputShape & { _type: 'GQLResponse' };
 export const GQLResponseCodec = codecs.struct('GQLResponse', {
     id: codecs.string,
-    result: codecs.string,
+    result: codecs.any,
 });
 KnownCodecs.set('GQLResponse', GQLResponseCodec);
 export const makeGQLResponse = (src: GQLResponseInputShape) => ({ _type: 'GQLResponse', ...src }) as GQLResponseShape;
@@ -158,12 +158,12 @@ export const decodeGQLSubscriptionStop = (src: any) => GQLSubscriptionStopCodec.
 export function isGQLSubscriptionStop(src: any): src is GQLSubscriptionStopShape { return src._type === 'GQLSubscriptionStop'; }
 export type GQLSubscriptionResponseInputShape = {
     id: string
-    result: string
+    result: any
 };
 export type GQLSubscriptionResponseShape = GQLSubscriptionResponseInputShape & { _type: 'GQLSubscriptionResponse' };
 export const GQLSubscriptionResponseCodec = codecs.struct('GQLSubscriptionResponse', {
     id: codecs.string,
-    result: codecs.string,
+    result: codecs.any,
 });
 KnownCodecs.set('GQLSubscriptionResponse', GQLSubscriptionResponseCodec);
 export const makeGQLSubscriptionResponse = (src: GQLSubscriptionResponseInputShape) => ({ _type: 'GQLSubscriptionResponse', ...src }) as GQLSubscriptionResponseShape;

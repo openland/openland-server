@@ -1,18 +1,18 @@
-import { anyStruct, array, declareSchema, field, integer, model, optional, string } from './vschema';
+import { anyStruct, anyType, array, declareSchema, field, integer, model, optional, string } from './vschema';
 
 export const VostokSchema = declareSchema(() => {
     model('Message', () => {
-        field('seq', integer());
+        field('id', string());
         field('body', anyStruct());
-        field('ackSeqs', optional(array(integer())));
+        field('ackMessages', optional(array(string())));
     });
 
     model('AckMessages', () => {
-        field('seqs', array(integer()));
+        field('ids', array(string()));
     });
 
     model('MessagesInfoRequest', () => {
-        field('seqs', array(integer()));
+        field('ids', array(string()));
     });
 
     model('Initialize', () => {
@@ -41,7 +41,7 @@ export const VostokSchema = declareSchema(() => {
 
     model('GQLResponse', () => {
         field('id', string());
-        field('result', string());
+        field('result', anyType());
     });
 
     model('GQLSubscription', () => {
@@ -57,7 +57,7 @@ export const VostokSchema = declareSchema(() => {
 
     model('GQLSubscriptionResponse', () => {
         field('id', string());
-        field('result', string());
+        field('result', anyType());
     });
 
     model('GQLSubscriptionComplete', () => {
