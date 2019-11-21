@@ -22,6 +22,7 @@ export class FieldModel {
 }
 
 export abstract class Type { }
+export class AnyType extends Type { }
 export class IntegerType extends Type { }
 export class FloatType extends Type { }
 export class BooleanType extends Type { }
@@ -48,6 +49,9 @@ export class OptionalType extends Type {
     }
 }
 
+export function anyType() {
+    return new AnyType();
+}
 export function integer() {
     return new IntegerType();
 }

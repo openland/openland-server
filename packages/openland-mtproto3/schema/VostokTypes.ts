@@ -114,12 +114,12 @@ export const decodeGQLRequest = (src: any) => GQLRequestCodec.decode(src) as GQL
 export function isGQLRequest(src: any): src is GQLRequestShape { return src._type === 'GQLRequest'; }
 export type GQLResponseInputShape = {
     id: string
-    result: string
+    result: any
 };
 export type GQLResponseShape = GQLResponseInputShape & { _type: 'GQLResponse' };
 export const GQLResponseCodec = codecs.struct('GQLResponse', {
     id: codecs.string,
-    result: codecs.string,
+    result: codecs.any,
 });
 KnownCodecs.set('GQLResponse', GQLResponseCodec);
 export const makeGQLResponse = (src: GQLResponseInputShape) => ({ _type: 'GQLResponse', ...src }) as GQLResponseShape;
@@ -158,12 +158,12 @@ export const decodeGQLSubscriptionStop = (src: any) => GQLSubscriptionStopCodec.
 export function isGQLSubscriptionStop(src: any): src is GQLSubscriptionStopShape { return src._type === 'GQLSubscriptionStop'; }
 export type GQLSubscriptionResponseInputShape = {
     id: string
-    result: string
+    result: any
 };
 export type GQLSubscriptionResponseShape = GQLSubscriptionResponseInputShape & { _type: 'GQLSubscriptionResponse' };
 export const GQLSubscriptionResponseCodec = codecs.struct('GQLSubscriptionResponse', {
     id: codecs.string,
-    result: codecs.string,
+    result: codecs.any,
 });
 KnownCodecs.set('GQLSubscriptionResponse', GQLSubscriptionResponseCodec);
 export const makeGQLSubscriptionResponse = (src: GQLSubscriptionResponseInputShape) => ({ _type: 'GQLSubscriptionResponse', ...src }) as GQLSubscriptionResponseShape;

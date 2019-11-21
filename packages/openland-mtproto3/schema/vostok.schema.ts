@@ -1,4 +1,4 @@
-import { anyStruct, array, declareSchema, field, integer, model, optional, string } from './vschema';
+import { anyStruct, anyType, array, declareSchema, field, integer, model, optional, string } from './vschema';
 
 export const VostokSchema = declareSchema(() => {
     model('Message', () => {
@@ -41,7 +41,7 @@ export const VostokSchema = declareSchema(() => {
 
     model('GQLResponse', () => {
         field('id', string());
-        field('result', string());
+        field('result', anyType());
     });
 
     model('GQLSubscription', () => {
@@ -57,7 +57,7 @@ export const VostokSchema = declareSchema(() => {
 
     model('GQLSubscriptionResponse', () => {
         field('id', string());
-        field('result', string());
+        field('result', anyType());
     });
 
     model('GQLSubscriptionComplete', () => {

@@ -358,7 +358,7 @@ class AnyCodec implements Codec<any> {
     }
 }
 
-class OptionalCodec<T> implements Codec<T | null> {
+class OptionalCodec<T> implements Codec<T | null | undefined> {
     readonly [typeSymbol]!: T | null;
     private readonly parent: Codec<T>;
 
@@ -370,7 +370,7 @@ class OptionalCodec<T> implements Codec<T | null> {
         if (src2 !== undefined && src2 !== null) {
             return this.parent.decode(src2);
         }
-        return null;
+        return undefined;
     }
     encode(src2: T | null) {
         if (src2 !== undefined && src2 !== null) {
@@ -492,21 +492,6 @@ export const codecs = {
             /** <- */
             >>(src);
     },
-    // merge: <T1, T2>(a: Codec<T1>, b: Codec<T2>) => {
-    //     if (!(a instanceof StructCodec)) {
-    //         throw Error('Union is possible only for struct codecs');
-    //     }
-    //     if (!(b instanceof StructCodec)) {
-    //         throw Error('Union is possible only for struct codecs');
-    //     }
-    //     let fields: { [K in keyof (T1 & T2)]: Codec<any> } = {
-    //         ...a.fields,
-    //         ...b.fields
-    //     } as any;
-    //
-    //     // NiceMerge inline
-    //     return new StructCodec<{ [K in keyof (T1 & T2)]: (T1 & T2)[K] }>(fields) as Codec<{ [K in keyof (T1 & T2)]: (T1 & T2)[K] }>;
-    // },
     default: <T>(src: Codec<T | null>, value: (() => T) | T) => {
         return new DefaultCodec<T>(() => typeof value === 'function' ? src.normalize((value as any)())! : src.normalize(value)!, src) as Codec<T>;
     },

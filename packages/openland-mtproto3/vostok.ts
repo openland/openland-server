@@ -29,12 +29,6 @@ import { delay } from '../openland-utils/timer';
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
-// TODO
-// Pings
-// Multiply sockets in VostokConnection
-// Sticky sessions
-// Send events to connection with latest pong
-
 interface Server {
     socket: WebSocket.Server;
     incomingConnections: AsyncIterable<VostokConnection>;
@@ -339,7 +333,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                     contextValue: ctx
                 });
 
-                session.send(makeGQLResponse({ id: message.body.id, result: JSON.stringify(result) }), [message.id]);
+                session.send(makeGQLResponse({ id: message.body.id, result: await params.formatResponse(result) }), [message.id]);
             } else if (isGQLSubscription(message.body)) {
                 session.sendAck([message.id]);
                 let working = true;
@@ -369,7 +363,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
                         if (!working) {
                             break;
                         }
-                        session.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(event)) }));
+                        session.send(makeGQLSubscriptionResponse({ id: message.body.id, result: await params.formatResponse(event) }));
                     }
                     session.send(makeGQLSubscriptionComplete({ id: message.body.id }));
                 });
@@ -409,6 +403,8 @@ interface VostokServerParams {
     onOperation(ctx: Context, operation: GQlServerOperation): Promise<any>;
 }
 
+const EMPTY_SESSION_TTL = 1000 * 5;
+
 export function initVostok(params: VostokServerParams) {
     let server = createWSServer(params.server ? { server: params.server, path: params.path } : { noServer: true });
     let sessions = new Map<string, VostokSession>();
@@ -424,7 +420,7 @@ export function initVostok(params: VostokServerParams) {
     asyncRun(async () => {
         while (true) {
             for (let session of sessions.values()) {
-                if (session.noConnectsSince && Date.now() - session.noConnectsSince > 1000 * 5) {
+                if (session.noConnectsSince && Date.now() - session.noConnectsSince > EMPTY_SESSION_TTL) {
                     log.log(rootCtx, 'drop session', session.sessionId);
                     session.destroy();
                     sessions.delete(session.sessionId);

@@ -7,7 +7,7 @@ import {
     Type,
     TypeSchema,
     StringType,
-    OptionalType, ArrayType
+    OptionalType, ArrayType, AnyType
 } from './vschema';
 
 class StringBuilder {
@@ -76,7 +76,9 @@ export function generateSchema(schema: TypeSchema) {
 }
 
 function genType(type: Type): string {
-    if (type instanceof IntegerType) {
+    if (type instanceof AnyType) {
+        return 'any';
+    } else if (type instanceof IntegerType) {
         return 'number';
     } else if (type instanceof FloatType) {
         return 'number';
@@ -102,7 +104,9 @@ function genType(type: Type): string {
 }
 
 function genCodecType(type: Type): string {
-    if (type instanceof IntegerType) {
+    if (type instanceof AnyType) {
+        return 'codecs.any';
+    } else if (type instanceof IntegerType) {
         return 'codecs.integer';
     } else if (type instanceof FloatType) {
         return 'codecs.float';
