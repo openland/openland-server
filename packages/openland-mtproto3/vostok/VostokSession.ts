@@ -21,6 +21,7 @@ import { delay } from '../../openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { asyncRun, makeMessageId } from '../utils';
 import { RotatingSet } from '../../openland-utils/RotatingSet';
+import { MESSAGE_INFO_REQ_TIMEOUT } from './vostokServer';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -64,7 +65,13 @@ export class VostokSession {
     setupAckLoop() {
         // send requests only for delivered messages and after some timeout
         forever(this.ctx, async () => {
-            let ids = [...this.outcomingMessagesMap.keys()];
+            let ids: string[] = [];
+
+            for (let entry of this.outcomingMessagesMap.entries()) {
+                if (entry[1].delivered && ((Date.now() - entry[1].deliveredAt!) > MESSAGE_INFO_REQ_TIMEOUT)) {
+                    ids.push(entry[1].msg.id);
+                }
+            }
             if (ids.length > 0) {
                 this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ messageIds: ids })));
             }
@@ -89,7 +96,9 @@ export class VostokSession {
         if (connect && connect.connection.isConnected()) {
             log.log(rootCtx, '->', JSON.stringify(message));
             connect.connection.sendRaw(encodeMessage(message));
-            this.outcomingMessagesMap.get(message.id)!.delivered = true;
+            let msg = this.outcomingMessagesMap.get(message.id)!;
+            msg.delivered = true;
+            msg.deliveredAt = Date.now();
         }
 
         return message;

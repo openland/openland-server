@@ -16,6 +16,7 @@ const log = createLogger('vostok');
 export const PING_TIMEOUT = 1000 * 30;
 export const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
 export const EMPTY_SESSION_TTL = 1000 * 5;
+export const MESSAGE_INFO_REQ_TIMEOUT = 1000 * 5;
 
 function handleSession(session: VostokSession, params: VostokServerParams) {
     asyncRun(async () => {

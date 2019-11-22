@@ -16,7 +16,7 @@ export class VostokSessionsManager {
         asyncRun(async () => {
             while (true) {
                 for (let session of this.sessions.values()) {
-                    if (session.noConnectsSince && Date.now() - session.noConnectsSince > EMPTY_SESSION_TTL) {
+                    if (session.noConnectsSince && ((Date.now() - session.noConnectsSince) > EMPTY_SESSION_TTL)) {
                         log.log(rootCtx, 'drop session', session.sessionId);
                         session.destroy();
                         this.sessions.delete(session.sessionId);

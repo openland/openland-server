@@ -27,6 +27,10 @@ export class RotatingMap<K, V> {
         this.data.delete(key);
     }
 
+    entries() {
+        return this.data.entries();
+    }
+
     has(key: K): boolean {
         return this.data.has(key);
     }
