@@ -1262,7 +1262,7 @@ export default {
                 }
             },
         },
-        debugServerId:{
+        debugServerId: {
             resolve: async msg => {
                 return msg;
             },
