@@ -147,5 +147,6 @@ extend type Mutation {
 
 extend type Subscription {
     debugEvents(fromState: String, eventsCount: Int!, randomDelays: Boolean!, seed: String!): DebugEvent!
-    debugReaderState(reader: String!): String!
+    debugReaderState(reader: String!): String
+    debugServerId: String!
 }

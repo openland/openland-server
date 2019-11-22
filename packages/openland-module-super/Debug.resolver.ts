@@ -1262,5 +1262,16 @@ export default {
                 }
             },
         },
+        debugServerId:{
+            resolve: async msg => {
+                return msg;
+            },
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+                while (true) {
+                    yield ServerId;
+                    await delay(1000);
+                }
+            },
+        },
     },
 } as GQLResolver;
