@@ -21,7 +21,7 @@ export async function authorizeConnection(serverParams: VostokServerParams, conn
             return null;
         } else if (state === 'init' && isInitialize(message.body)) {
             state = 'waiting_auth';
-            let authParams = await serverParams.onAuth(message.body.authToken);
+            let authParams = await serverParams.onAuth(message.body.authToken || '');
             state = 'connected';
             if (message.body.sessionId) {
                 let target = sessionsManager.get(message.body.sessionId);

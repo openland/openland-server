@@ -51,7 +51,7 @@ export class VostokSession {
      */
     readonly incomingMessages = createIterator<{ message: MessageShape, connection: VostokConnection }>(() => 0);
 
-    readonly outcomingMessagesMap = new RotatingMap<string, OutMessage>(1024);
+    readonly outgoingMessagesMap = new RotatingMap<string, OutMessage>(1024);
     readonly incomingMessagesMap = new RotatingMap<string, InMessage>(1024);
     readonly acknowledgedIncomingMessages = new RotatingSet<string>(1024);
 
@@ -67,7 +67,7 @@ export class VostokSession {
         forever(this.ctx, async () => {
             let ids: string[] = [];
 
-            for (let entry of this.outcomingMessagesMap.entries()) {
+            for (let entry of this.outgoingMessagesMap.entries()) {
                 if (entry[1].delivered && ((Date.now() - entry[1].deliveredAt!) > MESSAGE_INFO_REQ_TIMEOUT)) {
                     ids.push(entry[1].msg.id);
                 }
@@ -84,7 +84,7 @@ export class VostokSession {
         let connect = this.freshestConnect();
 
         // Store
-        this.outcomingMessagesMap.set(message.id, { msg: message, delivered: false, answerToMessage });
+        this.outgoingMessagesMap.set(message.id, { msg: message, delivered: false, answerToMessage });
         if (answerToMessage) {
             let reqMessage = this.incomingMessagesMap.get(answerToMessage);
             if (reqMessage) {
@@ -96,7 +96,7 @@ export class VostokSession {
         if (connect && connect.connection.isConnected()) {
             log.log(rootCtx, '->', JSON.stringify(message));
             connect.connection.sendRaw(encodeMessage(message));
-            let msg = this.outcomingMessagesMap.get(message.id)!;
+            let msg = this.outgoingMessagesMap.get(message.id)!;
             msg.delivered = true;
             msg.deliveredAt = Date.now();
         }
@@ -153,7 +153,7 @@ export class VostokSession {
         cancelContext(this.ctx);
         this.operations.stopAll();
         this.incomingMessagesMap.clear();
-        this.outcomingMessagesMap.clear();
+        this.outgoingMessagesMap.clear();
         this.incomingMessages.complete();
         this.connections.forEach(c => c.connection.close());
         this.connections = [];
@@ -176,8 +176,8 @@ export class VostokSession {
 
     private handleResendMessageAnswerRequest(req: ResendMessageAnswerRequestShape) {
         let incomingMessage = this.incomingMessagesMap.get(req.messageId);
-        if (incomingMessage && incomingMessage.responseMessage && this.outcomingMessagesMap.has(incomingMessage.responseMessage)) {
-            this.sendRaw(this.outcomingMessagesMap.get(incomingMessage.responseMessage));
+        if (incomingMessage && incomingMessage.responseMessage && this.outgoingMessagesMap.has(incomingMessage.responseMessage)) {
+            this.sendRaw(this.outgoingMessagesMap.get(incomingMessage.responseMessage));
             return;
         } else if (incomingMessage) {
             this.sendRaw(encodeMessageIsProcessingResponse(makeMessageIsProcessingResponse({ messageId: req.messageId })));
@@ -206,7 +206,7 @@ export class VostokSession {
 
     private handleMessageAcks(ids: string[]) {
         for (let id of ids) {
-            let message = this.outcomingMessagesMap.get(id);
+            let message = this.outgoingMessagesMap.get(id);
             if (!message) {
                 log.log(rootCtx, 'attempt to ack unknown message', id);
                 continue;
@@ -214,16 +214,16 @@ export class VostokSession {
             if (message.answerToMessage) {
                 this.incomingMessagesMap.delete(message.answerToMessage);
             }
-            this.outcomingMessagesMap.delete(id);
+            this.outgoingMessagesMap.delete(id);
         }
     }
 
     private deliverMessages() {
-        for (let msgId of this.outcomingMessagesMap.keys()) {
-            let msg = this.outcomingMessagesMap.get(msgId)!;
+        for (let msgId of this.outgoingMessagesMap.keys()) {
+            let msg = this.outgoingMessagesMap.get(msgId)!;
             if (!msg.delivered) {
                 this.send(msg.msg.body, msg.msg.ackMessages || undefined);
-                this.outcomingMessagesMap.delete(msgId);
+                this.outgoingMessagesMap.delete(msgId);
             }
         }
     }

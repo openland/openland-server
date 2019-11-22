@@ -36,7 +36,7 @@ export const VostokSchema = declareSchema(() => {
     });
 
     model('Initialize', () => {
-        field('authToken', string());
+        field('authToken', optional(string()));
         field('sessionId', optional(string()));
     });
 

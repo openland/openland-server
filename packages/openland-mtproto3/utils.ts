@@ -1,5 +1,5 @@
 import { DocumentNode, getOperationAST } from 'graphql';
-import { randomBytes } from "crypto";
+import { randomBytes } from 'crypto';
 
 export function isAsyncIterator(iterator: any): iterator is AsyncIterable<any> {
     return !!iterator[Symbol.asyncIterator];
