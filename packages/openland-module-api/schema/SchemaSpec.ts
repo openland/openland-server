@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e52f31cdca66ab9661cf8d595b38a977';
+export const GQL_SPEC_VERSION = '543c0caa1f93a2993f7d4df90f9dd789';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2823,7 +2823,8 @@ export namespace GQL {
         lifecheck: Nullable<string>;
         commentUpdatesGlobal: Nullable<CommentGlobalUpdateContainer>;
         debugEvents: DebugEvent;
-        debugReaderState: string;
+        debugReaderState: Nullable<string>;
+        debugServerId: string;
         settingsWatch: Settings;
         watchSettings: Settings;
         alphaSubscribeChatOnline: OnlineEvent;
