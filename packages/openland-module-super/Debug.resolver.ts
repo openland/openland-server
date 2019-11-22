@@ -1242,6 +1242,12 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+
+                if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+                    throw new AccessDeniedError();
+                }
+
                 let state = await Store.ReaderState.findById(ctx, args.reader);
                 let prev = '';
                 if (!state) {
@@ -1267,6 +1273,12 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+
+                if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+                    throw new AccessDeniedError();
+                }
+
                 while (true) {
                     yield ServerId;
                     await delay(1000);
