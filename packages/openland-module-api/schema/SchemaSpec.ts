@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f980d437fcd91da4cb15c3a3c7a52d25';
+export const GQL_SPEC_VERSION = 'e52f31cdca66ab9661cf8d595b38a977';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2374,6 +2374,7 @@ export namespace GQL {
         debug2WayDirectChatsCounter: number;
         debugUserMetrics: DebugUserMetrics;
         debugGlobalCounters: DebugGlobalCounters;
+        debugServerId: string;
         dialogs: DialogsConnection;
         settings: Settings;
         alphaOrganizationMembers: OrganizationMember[];

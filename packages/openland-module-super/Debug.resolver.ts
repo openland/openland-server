@@ -15,7 +15,7 @@ import { inTx, encoders } from '@openland/foundationdb';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
-import { randomInt } from '../openland-utils/random';
+import { randomInt, randomKey } from '../openland-utils/random';
 import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -54,6 +54,8 @@ const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
     }
     return false;
 };
+
+const ServerId = randomKey();
 
 export default {
     DebugUserPresence: {
@@ -171,6 +173,9 @@ export default {
                 allUnreadChats: await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid),
                 unreadChatsWithoutMuted: await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid),
             };
+        }),
+        debugServerId: withUser(async (ctx, args, uid) => {
+            return ServerId;
         }),
     },
     Mutation: {

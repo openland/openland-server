@@ -77,6 +77,7 @@ extend type Query {
     debug2WayDirectChatsCounter: Int!
     debugUserMetrics(id: ID!): DebugUserMetrics!
     debugGlobalCounters: DebugGlobalCounters!
+    debugServerId: String!
 }
 
 enum SuperNotificationType {
