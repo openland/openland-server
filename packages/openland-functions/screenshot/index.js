@@ -106,19 +106,31 @@ app.post('/html', async (req, res) => {
     }
 
     const url = req.body.url;
+    const width = req.body.width || 640;
+    const height = req.body.height || 320;
+    const scale = req.body.scale || 1;
 
     if (!url) {
       return res.status(400).send('Invalid request');
     }
 
     // Load page
-    await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+    await page.setViewport({ width, height, deviceScaleFactor: scale });
     await page.goto(url, { waitUntil: 'networkidle2' });
+
+    // Capture screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      omitBackground: false,
+      encoding: 'base64'
+    });
 
     // load html
     const html = await page.content();
-    res.set('Content-Type', 'text/html');
-    res.send(html);
+    res.json({
+      html,
+      screenshot
+    });
   });
 });
 
