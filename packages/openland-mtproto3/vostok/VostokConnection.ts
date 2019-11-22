@@ -2,15 +2,23 @@ import { createIterator } from '../../openland-utils/asyncIterator';
 import { delay } from '../../openland-utils/timer';
 import {
     decodeAckMessages,
-    decodeMessage, decodeMessagesInfoRequest, decodePing, encodeInvalidMessage,
-    encodePing, encodePong,
+    decodeMessage, decodeMessagesContainer,
+    decodeMessagesInfoRequest,
+    decodePing, decodeResendMessageAnswerRequest,
+    encodeInvalidMessage,
+    encodePing,
+    encodePong,
     isAckMessages,
-    isMessage, isMessagesInfoRequest, isPing,
-    isPong,
-    KnownTypes, makeInvalidMessage,
-    makePing, makePong
+    isMessage, isMessagesContainer,
+    isMessagesInfoRequest,
+    isPing,
+    isPong, isResendMessageAnswerRequest,
+    KnownTypes,
+    makeInvalidMessage,
+    makePing,
+    makePong
 } from '../vostok-schema/VostokTypes';
-import { PING_CLOSE_TIMEOUT, PING_TIMEOUT } from './vostok';
+import { PING_CLOSE_TIMEOUT, PING_TIMEOUT } from './vostokServer';
 import WebSocket = require('ws');
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -72,6 +80,10 @@ export class VostokConnection {
                 this.incomingData.push(decodeAckMessages(msgData));
             } else if (isMessagesInfoRequest(msgData)) {
                 this.incomingData.push(decodeMessagesInfoRequest(msgData));
+            } else if (isMessagesContainer(msgData)) {
+                decodeMessagesContainer(msgData).messages.forEach(msg => this.incomingData.push(msg));
+            } else if (isResendMessageAnswerRequest(msgData)) {
+                this.incomingData.push(decodeResendMessageAnswerRequest(msgData));
             } else {
                 log.log(rootCtx, 'unexpected top level message:', msgData);
             }

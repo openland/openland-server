@@ -2,7 +2,7 @@
 import { Codec, codecs } from './codecs';
 
 export const KnownCodecs = new Map<string, Codec<any>>();
-export type KnownTypes = MessageShape | AckMessagesShape | MessagesInfoRequestShape | InitializeShape | InitializeAckShape | InvalidMessageShape | PingShape | PongShape | GQLRequestShape | GQLResponseShape | GQLSubscriptionShape | GQLSubscriptionStopShape | GQLSubscriptionResponseShape | GQLSubscriptionCompleteShape;
+export type KnownTypes = MessageShape | MessagesContainerShape | AckMessagesShape | MessagesInfoRequestShape | ResendMessageAnswerRequestShape | MessageNotFoundResponseShape | MessageIsProcessingResponseShape | InitializeShape | InitializeAckShape | InvalidMessageShape | PingShape | PongShape | GQLRequestShape | GQLResponseShape | GQLSubscriptionShape | GQLSubscriptionStopShape | GQLSubscriptionResponseShape | GQLSubscriptionCompleteShape;
 
 export type MessageInputShape = {
     id: string
@@ -20,6 +20,18 @@ export const makeMessage = (src: MessageInputShape) => ({ _type: 'Message', ...s
 export const encodeMessage = (src: MessageShape) => MessageCodec.encode(src);
 export const decodeMessage = (src: any) => MessageCodec.decode(src) as MessageShape;
 export function isMessage(src: any): src is MessageShape { return src._type === 'Message'; }
+export type MessagesContainerInputShape = {
+    messages: KnownTypes[]
+};
+export type MessagesContainerShape = MessagesContainerInputShape & { _type: 'MessagesContainer' };
+export const MessagesContainerCodec = codecs.struct('MessagesContainer', {
+    messages: codecs.array(codecs.anyStruct(KnownCodecs)),
+});
+KnownCodecs.set('MessagesContainer', MessagesContainerCodec);
+export const makeMessagesContainer = (src: MessagesContainerInputShape) => ({ _type: 'MessagesContainer', ...src }) as MessagesContainerShape;
+export const encodeMessagesContainer = (src: MessagesContainerShape) => MessagesContainerCodec.encode(src);
+export const decodeMessagesContainer = (src: any) => MessagesContainerCodec.decode(src) as MessagesContainerShape;
+export function isMessagesContainer(src: any): src is MessagesContainerShape { return src._type === 'MessagesContainer'; }
 export type AckMessagesInputShape = {
     ids: string[]
 };
@@ -33,17 +45,53 @@ export const encodeAckMessages = (src: AckMessagesShape) => AckMessagesCodec.enc
 export const decodeAckMessages = (src: any) => AckMessagesCodec.decode(src) as AckMessagesShape;
 export function isAckMessages(src: any): src is AckMessagesShape { return src._type === 'AckMessages'; }
 export type MessagesInfoRequestInputShape = {
-    ids: string[]
+    messageIds: string[]
 };
 export type MessagesInfoRequestShape = MessagesInfoRequestInputShape & { _type: 'MessagesInfoRequest' };
 export const MessagesInfoRequestCodec = codecs.struct('MessagesInfoRequest', {
-    ids: codecs.array(codecs.string),
+    messageIds: codecs.array(codecs.string),
 });
 KnownCodecs.set('MessagesInfoRequest', MessagesInfoRequestCodec);
 export const makeMessagesInfoRequest = (src: MessagesInfoRequestInputShape) => ({ _type: 'MessagesInfoRequest', ...src }) as MessagesInfoRequestShape;
 export const encodeMessagesInfoRequest = (src: MessagesInfoRequestShape) => MessagesInfoRequestCodec.encode(src);
 export const decodeMessagesInfoRequest = (src: any) => MessagesInfoRequestCodec.decode(src) as MessagesInfoRequestShape;
 export function isMessagesInfoRequest(src: any): src is MessagesInfoRequestShape { return src._type === 'MessagesInfoRequest'; }
+export type ResendMessageAnswerRequestInputShape = {
+    messageId: string
+};
+export type ResendMessageAnswerRequestShape = ResendMessageAnswerRequestInputShape & { _type: 'ResendMessageAnswerRequest' };
+export const ResendMessageAnswerRequestCodec = codecs.struct('ResendMessageAnswerRequest', {
+    messageId: codecs.string,
+});
+KnownCodecs.set('ResendMessageAnswerRequest', ResendMessageAnswerRequestCodec);
+export const makeResendMessageAnswerRequest = (src: ResendMessageAnswerRequestInputShape) => ({ _type: 'ResendMessageAnswerRequest', ...src }) as ResendMessageAnswerRequestShape;
+export const encodeResendMessageAnswerRequest = (src: ResendMessageAnswerRequestShape) => ResendMessageAnswerRequestCodec.encode(src);
+export const decodeResendMessageAnswerRequest = (src: any) => ResendMessageAnswerRequestCodec.decode(src) as ResendMessageAnswerRequestShape;
+export function isResendMessageAnswerRequest(src: any): src is ResendMessageAnswerRequestShape { return src._type === 'ResendMessageAnswerRequest'; }
+export type MessageNotFoundResponseInputShape = {
+    messageId: string
+};
+export type MessageNotFoundResponseShape = MessageNotFoundResponseInputShape & { _type: 'MessageNotFoundResponse' };
+export const MessageNotFoundResponseCodec = codecs.struct('MessageNotFoundResponse', {
+    messageId: codecs.string,
+});
+KnownCodecs.set('MessageNotFoundResponse', MessageNotFoundResponseCodec);
+export const makeMessageNotFoundResponse = (src: MessageNotFoundResponseInputShape) => ({ _type: 'MessageNotFoundResponse', ...src }) as MessageNotFoundResponseShape;
+export const encodeMessageNotFoundResponse = (src: MessageNotFoundResponseShape) => MessageNotFoundResponseCodec.encode(src);
+export const decodeMessageNotFoundResponse = (src: any) => MessageNotFoundResponseCodec.decode(src) as MessageNotFoundResponseShape;
+export function isMessageNotFoundResponse(src: any): src is MessageNotFoundResponseShape { return src._type === 'MessageNotFoundResponse'; }
+export type MessageIsProcessingResponseInputShape = {
+    messageId: string
+};
+export type MessageIsProcessingResponseShape = MessageIsProcessingResponseInputShape & { _type: 'MessageIsProcessingResponse' };
+export const MessageIsProcessingResponseCodec = codecs.struct('MessageIsProcessingResponse', {
+    messageId: codecs.string,
+});
+KnownCodecs.set('MessageIsProcessingResponse', MessageIsProcessingResponseCodec);
+export const makeMessageIsProcessingResponse = (src: MessageIsProcessingResponseInputShape) => ({ _type: 'MessageIsProcessingResponse', ...src }) as MessageIsProcessingResponseShape;
+export const encodeMessageIsProcessingResponse = (src: MessageIsProcessingResponseShape) => MessageIsProcessingResponseCodec.encode(src);
+export const decodeMessageIsProcessingResponse = (src: any) => MessageIsProcessingResponseCodec.decode(src) as MessageIsProcessingResponseShape;
+export function isMessageIsProcessingResponse(src: any): src is MessageIsProcessingResponseShape { return src._type === 'MessageIsProcessingResponse'; }
 export type InitializeInputShape = {
     authToken: string
     sessionId: string | null

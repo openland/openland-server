@@ -1,7 +1,7 @@
 import { VostokSession } from './VostokSession';
 import { asyncRun } from '../utils';
 import { delay } from '../../openland-utils/timer';
-import { EMPTY_SESSION_TTL } from './vostok';
+import { EMPTY_SESSION_TTL } from './vostokServer';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { randomKey } from '../../openland-utils/random';

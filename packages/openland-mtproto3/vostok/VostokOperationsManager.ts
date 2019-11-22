@@ -4,6 +4,9 @@ import { createLogger } from '@openland/log';
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
+/**
+ * Manages operations like subscriptions, etc. inside one session
+ */
 export class VostokOperationsManager {
     public operations = new Map<string, { destroy(): void }>();
 

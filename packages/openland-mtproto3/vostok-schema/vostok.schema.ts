@@ -11,12 +11,28 @@ export const VostokSchema = declareSchema(() => {
         field('ackMessages', optional(array(string())));
     });
 
+    model('MessagesContainer', () => {
+        field('messages', array(anyStruct()));
+    });
+
     model('AckMessages', () => {
         field('ids', array(string()));
     });
 
     model('MessagesInfoRequest', () => {
-        field('ids', array(string()));
+        field('messageIds', array(string()));
+    });
+
+    model('ResendMessageAnswerRequest', () => {
+        field('messageId', string());
+    });
+
+    model('MessageNotFoundResponse', () => {
+        field('messageId', string());
+    });
+
+    model('MessageIsProcessingResponse', () => {
+        field('messageId', string());
     });
 
     model('Initialize', () => {
