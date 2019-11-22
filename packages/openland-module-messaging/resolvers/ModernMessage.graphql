@@ -98,11 +98,19 @@ type GammaMessagesBatch {
     haveMoreBackward: Boolean
 }
 
+enum SharedMediaType {
+    LINK,
+    IMAGE,
+    DOCUMENT,
+    VIDEO
+}
+
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
     gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
+    chatSharedMedia(chatId: ID!, mediaType: SharedMediaType!, first: Int!, after: String): MessageConnection!
 }
 
 extend type Mutation {

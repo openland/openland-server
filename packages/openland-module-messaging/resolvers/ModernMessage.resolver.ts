@@ -23,7 +23,7 @@ import MessageSourceRoot = GQLRoots.MessageSourceRoot;
 import MentionPeerRoot = GQLRoots.MentionPeerRoot;
 import MessageWithMentionRoot = GQLRoots.MessageWithMentionRoot;
 
-export function hasMention(message: Message|RichMessage, uid: number) {
+export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
         return true;
     } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
@@ -109,7 +109,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     //
     if (message.mentions) {
         for (let m of message.mentions) {
-            intermediateMentions.push({ type: 'user', user: m });
+            intermediateMentions.push({type: 'user', user: m});
         }
     }
 
@@ -119,9 +119,9 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     if (message.complexMentions) {
         for (let m of message.complexMentions) {
             if (m.type === 'User') {
-                intermediateMentions.push({ type: 'user', user: m.id });
+                intermediateMentions.push({type: 'user', user: m.id});
             } else if (m.type === 'SharedRoom') {
-                intermediateMentions.push({ type: 'room', room: m.id });
+                intermediateMentions.push({type: 'room', room: m.id});
             } else {
                 throw new Error('Unknown mention type: ' + m.type);
             }
@@ -510,7 +510,7 @@ export default {
                 return [];
             }
             if (src instanceof Comment || src instanceof RichMessage) {
-                return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
+                return src.attachments ? src.attachments.map(a => ({message: src, attachment: a})) : [];
             }
 
             let attachments: { attachment: MessageAttachment, message: Message }[] = [];
@@ -603,7 +603,7 @@ export default {
                 }
             }
             if (src.attachmentsModern) {
-                attachments.push(...(src.attachmentsModern.map(a => ({ message: src, attachment: a }))));
+                attachments.push(...(src.attachmentsModern.map(a => ({message: src, attachment: a}))));
             }
 
             return attachments;
@@ -816,7 +816,7 @@ export default {
         text: src => src.text,
     },
     Image: {
-        url: src => buildBaseImageUrl({ uuid: src.uuid, crop: src.crop || null }),
+        url: src => buildBaseImageUrl({uuid: src.uuid, crop: src.crop || null}),
         metadata: src => {
             if (src.metadata) {
                 return {
@@ -934,9 +934,13 @@ export default {
                 return [];
             }
             if (args.before && await Store.Message.findById(ctx, beforeId!)) {
-                return (await Store.Message.chat.query(ctx, roomId, { after: beforeId!, limit: args.first!, reverse: true })).items;
+                return (await Store.Message.chat.query(ctx, roomId, {
+                    after: beforeId!,
+                    limit: args.first!,
+                    reverse: true
+                })).items;
             }
-            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
+            return (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true})).items;
         }),
 
         gammaMessages: withUser(async (ctx, args, uid) => {
@@ -964,12 +968,19 @@ export default {
                 let after: Message[] = [];
 
                 if (beforeId && await Store.Message.findById(ctx, beforeId)) {
-                    let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { after: beforeId, limit: args.first!, reverse: true }));
+                    let beforeQuery = (await Store.Message.chat.query(ctx, roomId, {
+                        after: beforeId,
+                        limit: args.first!,
+                        reverse: true
+                    }));
                     before = beforeQuery.items;
                     haveMoreBackward = beforeQuery.haveMore;
                 }
                 if (afterId && await Store.Message.findById(ctx, afterId)) {
-                    let afterQuery = (await Store.Message.chat.query(ctx, roomId, { after: afterId, limit: args.first! }));
+                    let afterQuery = (await Store.Message.chat.query(ctx, roomId, {
+                        after: afterId,
+                        limit: args.first!
+                    }));
                     after = afterQuery.items.reverse();
                     haveMoreForward = afterQuery.haveMore;
                 }
@@ -981,7 +992,7 @@ export default {
                 messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
                 haveMoreForward = false;
-                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true }));
+                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true}));
                 messages = beforeQuery.items;
                 haveMoreBackward = beforeQuery.haveMore;
             }
@@ -1010,7 +1021,11 @@ export default {
             let msg = (readMessageId !== 0) && await Store.Message.findById(ctx, readMessageId);
 
             if (msg && msg.deleted) {
-                let msgs = (await Store.Message.chat.query(ctx, chatId, { after: readMessageId, limit: 1, reverse: true })).items;
+                let msgs = (await Store.Message.chat.query(ctx, chatId, {
+                    after: readMessageId,
+                    limit: 1,
+                    reverse: true
+                })).items;
                 msg = msgs[msgs.length - 1];
             }
 
@@ -1020,6 +1035,59 @@ export default {
 
             await Modules.Messaging.room.checkAccess(ctx, uid, msg.cid);
             return msg;
+        }),
+
+        chatSharedMedia: withUser(async (ctx, args, uid) => {
+            let chatId = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
+
+            let terms: any[] = [{term: {cid: chatId}}];
+
+            if (args.mediaType === 'LINK') {
+                terms.push({term: {haveLinkAttachment: true}});
+            } else if (args.mediaType === 'IMAGE') {
+                terms.push({term: {haveImageAttachment: true}});
+            } else if (args.mediaType === 'DOCUMENT') {
+                terms.push({term: {haveDocumentAttachment: true}});
+            } else if (args.mediaType === 'VIDEO') {
+                terms.push({term: {haveVideoAttachment: true}});
+            }
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'message',
+                type: 'message',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : 0,
+                body: {
+                    sort: [{createdAt: 'desc'}],
+                    query: {bool: {must: terms}},
+                },
+            });
+
+            let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: messages.filter(m => !!m).map((p, i) => {
+                    return {
+                        node: {
+                            message: p, chat: p!.cid,
+                        }, cursor: (i + 1 + offset).toString(),
+                    };
+                }), pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true,
+                },
+            };
         }),
     },
 
@@ -1082,23 +1150,23 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
                     } else if (span.type === 'Italic') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
                     } else if (span.type === 'InlineCode') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
                     } else if (span.type === 'Irony') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
                     } else if (span.type === 'Insane') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
                     } else if (span.type === 'Loud') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
                     } else if (span.type === 'Rotating') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
                     } else if (span.type === 'Link' && span.url) {
-                        spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
+                        spans.push({offset: span.offset, length: span.length, type: 'link', url: span.url});
                     }
                 }
             }
@@ -1215,23 +1283,23 @@ export default {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
                     } else if (span.type === 'Italic') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
                     } else if (span.type === 'InlineCode') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
                     } else if (span.type === 'Irony') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
                     } else if (span.type === 'Insane') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
                     } else if (span.type === 'Loud') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
                     } else if (span.type === 'Rotating') {
-                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
+                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
                     } else if (span.type === 'Link' && span.url) {
-                        spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
+                        spans.push({offset: span.offset, length: span.length, type: 'link', url: span.url});
                     }
                 }
             }

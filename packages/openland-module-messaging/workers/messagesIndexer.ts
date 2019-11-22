@@ -4,7 +4,7 @@ import { Store } from 'openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 8, 'message', Store.Message.updated.stream({ batchSize: 200 }))
+    declareSearchIndexer('message-index', 9, 'message', Store.Message.updated.stream({ batchSize: 200 }))
         .withProperties({
             id: {
                 type: 'integer'
@@ -33,6 +33,18 @@ export function messagesIndexer() {
             text: {
                 type: 'text'
             },
+            haveLinkAttachment: {
+                type: 'boolean'
+            },
+            haveImageAttachment: {
+                type: 'boolean'
+            },
+            haveDocumentAttachment: {
+                type: 'boolean'
+            },
+            haveVideoAttachment: {
+                type: 'boolean'
+            },
             createdAt: {
                 type: 'date'
             },
@@ -44,6 +56,50 @@ export function messagesIndexer() {
             return await inTx(parent, async (ctx) => {
                 let room = await Store.Conversation.findById(ctx, item.cid);
                 let userName = await Modules.Users.getUserFullName(ctx, item.uid);
+
+                let haveLinkAttachment = false;
+                let haveImageAttachment = false;
+                let haveDocumentAttachment = false;
+                let haveVideoAttachment = false;
+
+                if (item.augmentation) {
+                    haveLinkAttachment = true;
+                }
+
+                if (item.fileId) {
+                    if (item.fileMetadata && item.fileMetadata.isImage) {
+                        haveImageAttachment = true;
+                    } else if (item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+                        haveVideoAttachment = true;
+                    } else if (item.fileId) {
+                        haveDocumentAttachment = true;
+                    }
+                } else if (item.attachments) {
+                    for (let attach of item.attachments) {
+                        if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                            haveImageAttachment = true;
+                        } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                            haveVideoAttachment = true;
+                        } else if (attach.fileId) {
+                            haveDocumentAttachment = true;
+                        }
+                    }
+                } else if (item.attachmentsModern) {
+                    for (let attach of item.attachmentsModern) {
+                        if (attach.type === 'file_attachment') {
+                            if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                                haveImageAttachment = true;
+                            } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                                haveVideoAttachment = true;
+                            } else if (attach.fileId) {
+                                haveDocumentAttachment = true;
+                            }
+                        } else if (attach.type === 'rich_attachment') {
+                            haveLinkAttachment = true;
+                        }
+                    }
+                }
+
                 return {
                     id: item.id,
                     doc: {
@@ -58,6 +114,10 @@ export function messagesIndexer() {
                         text: item.text || undefined,
                         createdAt: item.metadata.createdAt,
                         updatedAt: item.metadata.updatedAt,
+                        haveLinkAttachment,
+                        haveImageAttachment,
+                        haveDocumentAttachment,
+                        haveVideoAttachment
                     }
                 };
             });
