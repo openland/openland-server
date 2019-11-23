@@ -95,6 +95,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     }
 
     let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
+    log.log(ctx, 'message settings', messageSettings);
     let sendMobile = messageSettings.mobile.showNotification;
     let sendDesktop = messageSettings.desktop.showNotification;
 
@@ -121,6 +122,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     }
 
     let pushBody = await fetchMessageFallback(message);
+    log.log(ctx, pushBody);
 
     let push = {
         uid: uid,
