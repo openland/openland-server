@@ -134,6 +134,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
         let conversation = await Store.Conversation.findById(ctx, message.cid);
 
         if (!sender || !receiver || !conversation) {
+            log.debug(ctx, 'no sender or receiver or conversation');
             continue;
         }
 
@@ -195,6 +196,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
     if (hasPush) {
         state.lastPushNotification = Date.now();
     } else {
+        log.debug(ctx, 'send counter');
         await Modules.Push.sendCounterPush(ctx, uid);
     }
 
