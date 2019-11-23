@@ -74,8 +74,6 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
-    log.debug(ctx, 'msg', message.id);
-
     // Ignore current user
     if (message.uid === uid) {
         log.debug(ctx, 'Ignore current user');
@@ -90,8 +88,6 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
-    log.debug(ctx, '1');
-
     let sender = await Modules.Users.profileById(ctx, message.uid);
     let receiver = await Modules.Users.profileById(ctx, uid);
     let conversation = await Store.Conversation.findById(ctx, message.cid);
@@ -101,10 +97,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
-    log.debug(ctx, '2');
-
     let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
-    log.log(ctx, 'message settings', messageSettings);
     let sendMobile = messageSettings.mobile.showNotification;
     let sendDesktop = messageSettings.desktop.showNotification;
 
@@ -112,8 +105,6 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         log.debug(ctx, 'Ignore disabled pushes');
         return false;
     }
-
-    log.debug(ctx, '3');
 
     let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
 
@@ -132,10 +123,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         pushTitle = chatTitle;
     }
 
-    log.debug(ctx, '4');
-
     let pushBody = await fetchMessageFallback(message);
-    log.log(ctx, pushBody);
 
     let push = {
         uid: uid,
@@ -211,7 +199,6 @@ const handleUser = async (uid: number) => {
 
             let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
 
-            log.log(ctx, 'unread:', unreadCounter);
             // Handling unread messages
             let hasPush = false;
             await Promise.all(messages.map(async m => {
