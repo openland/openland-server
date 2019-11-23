@@ -73,6 +73,8 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
+    log.debug(ctx, 'msg', message.id);
+
     // Ignore current user
     if (message.uid === uid) {
         log.debug(ctx, 'Ignore current user');
@@ -80,6 +82,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     }
 
     let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
+    log.debug(ctx, 'readMessageId', readMessageId);
     // Ignore read messages
     if (readMessageId >= message.id) {
         log.debug(ctx, 'Ignore read messages');
