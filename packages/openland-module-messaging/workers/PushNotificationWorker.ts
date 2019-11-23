@@ -155,72 +155,68 @@ const handleUser = async (uid: number) => {
     return await inTx(rootCtx, async _ctx => {
         let ctx = withLogPath(_ctx, 'user ' + uid);
 
-        try {
-            log.debug(ctx, 'handle');
+        log.debug(ctx, 'handle');
 
-            // Loading user's settings and state
-            let [settings, state, lastSeen, isActive] = await Promise.all([
-                Modules.Users.getUserSettings(ctx, uid),
-                Modules.Messaging.getUserNotificationState(ctx, uid),
-                Modules.Presence.getLastSeen(ctx, uid),
-                await Modules.Presence.isActive(ctx, uid)
-            ]);
+        // Loading user's settings and state
+        let [settings, state, lastSeen, isActive] = await Promise.all([
+            Modules.Users.getUserSettings(ctx, uid),
+            Modules.Messaging.getUserNotificationState(ctx, uid),
+            Modules.Presence.getLastSeen(ctx, uid),
+            await Modules.Presence.isActive(ctx, uid)
+        ]);
 
-            const user = {
-                uid,
-                lastSeen,
-                isActive,
-                notificationsDelay: settings.notificationsDelay,
-                lastPushCursor: state.lastPushCursor,
-                eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
-                mobileNotifications: settings.mobileNotifications,
-                desktopNotifications: settings.desktopNotifications,
-            };
+        const user = {
+            uid,
+            lastSeen,
+            isActive,
+            notificationsDelay: settings.notificationsDelay,
+            lastPushCursor: state.lastPushCursor,
+            eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
+            mobileNotifications: settings.mobileNotifications,
+            desktopNotifications: settings.desktopNotifications,
+        };
 
-            if (shouldIgnoreUser(ctx, user)) {
-                log.debug(ctx, 'ignored');
-                await Modules.Push.sendCounterPush(ctx, uid);
-                Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-                state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-                return;
-            }
-
-            // Scanning updates
-            // let cursors = [
-            //     Buffer.from(state.lastPushCursor || '', 'base64'),
-            //     Buffer.from(state.lastEmailCursor || '', 'base64')
-            // ].sort(Buffer.compare);
-            // let after = cursors[cursors.length - 1].toString('base64');
-            let after = state.lastPushCursor || '';
-
-            let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
-            let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
-            log.log(ctx, messages.length, 'messages found');
-
-            let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
-
-            // Handling unread messages
-            let hasPush = false;
-            await Promise.all(messages.map(async m => {
-                let res = await handleMessage(ctx, uid, unreadCounter, settings, m);
-                if (res) {
-                    hasPush = true;
-                }
-            }));
-
-            // Save state
-            if (hasPush) {
-                state.lastPushNotification = Date.now();
-            } else {
-                log.debug(ctx, 'send counter');
-                await Modules.Push.sendCounterPush(ctx, uid);
-            }
-
-            state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+        if (shouldIgnoreUser(ctx, user)) {
+            log.debug(ctx, 'ignored');
+            await Modules.Push.sendCounterPush(ctx, uid);
             Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-        } catch (e) {
-            log.log(ctx, 'push_error', e);
+            state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+            return;
         }
+
+        // Scanning updates
+        // let cursors = [
+        //     Buffer.from(state.lastPushCursor || '', 'base64'),
+        //     Buffer.from(state.lastEmailCursor || '', 'base64')
+        // ].sort(Buffer.compare);
+        // let after = cursors[cursors.length - 1].toString('base64');
+        let after = state.lastPushCursor || '';
+
+        let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+        let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
+        log.log(ctx, messages.length, 'messages found');
+
+        let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
+
+        // Handling unread messages
+        let hasPush = false;
+        await Promise.all(messages.map(async m => {
+            let res = await handleMessage(ctx, uid, unreadCounter, settings, m);
+            if (res) {
+                hasPush = true;
+            }
+        }));
+
+        // Save state
+        if (hasPush) {
+            state.lastPushNotification = Date.now();
+        } else {
+            log.debug(ctx, 'send counter');
+            await Modules.Push.sendCounterPush(ctx, uid);
+        }
+
+        state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
     });
 };
 
