@@ -23,6 +23,13 @@ export class NeedNotificationDeliveryRepository {
             .clear(ctx, [kind, uid]);
     }
 
+    resetNeedNotificationDeliveryForAllUsers = (ctx: Context, kind: 'email' | 'push') => {
+        Store.NeedNotificationFlagDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean)
+            .clear(ctx, [kind]);
+    }
+
     findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push') => {
         return (await Store.NeedNotificationFlagDirectory
             .withKeyEncoding(encoders.tuple)

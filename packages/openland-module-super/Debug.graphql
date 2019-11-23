@@ -143,6 +143,7 @@ extend type Mutation {
     debugCalcChannelsSubscribersCount: Boolean!
     debugResetUrlInfoFreshness: Boolean!
     debugFixUsersPrimaryOrganization: Boolean!
+    debugResetPushDelivery: Boolean!
 }
 
 extend type Subscription {

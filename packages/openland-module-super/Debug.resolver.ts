@@ -1185,6 +1185,12 @@ export default {
             });
             return true;
         }),
+        debugResetPushDelivery: withPermission('super-admin', async (parent) => {
+            return inTx(parent, async ctx => {
+                await Modules.Messaging.needNotificationDelivery.resetNeedNotificationDeliveryForAllUsers(ctx, 'push');
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {
