@@ -69,6 +69,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     let messageId = m.mid!;
     let message = await Store.Message.findById(ctx, messageId);
     if (!message) {
+        log.debug(ctx, 'Message not found');
         return false;
     }
 
@@ -85,6 +86,8 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
+    log.debug(ctx, '1');
+
     let sender = await Modules.Users.profileById(ctx, message.uid);
     let receiver = await Modules.Users.profileById(ctx, uid);
     let conversation = await Store.Conversation.findById(ctx, message.cid);
@@ -93,6 +96,8 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         log.debug(ctx, 'no sender or receiver or conversation');
         return false;
     }
+
+    log.debug(ctx, '2');
 
     let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
     log.log(ctx, 'message settings', messageSettings);
@@ -103,6 +108,8 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         log.debug(ctx, 'Ignore disabled pushes');
         return false;
     }
+
+    log.debug(ctx, '3');
 
     let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
 
@@ -120,6 +127,8 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     if (message.isService) {
         pushTitle = chatTitle;
     }
+
+    log.debug(ctx, '4');
 
     let pushBody = await fetchMessageFallback(message);
     log.log(ctx, pushBody);
