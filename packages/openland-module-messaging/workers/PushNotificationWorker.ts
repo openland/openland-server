@@ -195,10 +195,11 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
         let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
 
+        log.log(ctx, 'unread:', unreadCounter);
         // Handling unread messages
         let hasPush = false;
         await Promise.all(messages.map(async m => {
-            let res = await handleMessage(_ctx, uid, unreadCounter, settings, m);
+            let res = await handleMessage(ctx, uid, unreadCounter, settings, m);
             if (res) {
                 hasPush = true;
             }
