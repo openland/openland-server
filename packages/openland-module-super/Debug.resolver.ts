@@ -1187,7 +1187,8 @@ export default {
         }),
         debugResetPushDelivery: withPermission('super-admin', async (parent) => {
             return inTx(parent, async ctx => {
-                await Modules.Messaging.needNotificationDelivery.resetNeedNotificationDeliveryForAllUsers(ctx, 'push');
+                let unreadUsers = await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push');
+                await Promise.all(unreadUsers.map(u => Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', u)));
                 return true;
             });
         }),
