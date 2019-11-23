@@ -67,141 +67,145 @@ export const shouldIgnoreUser = (ctx: Context, user: {
 const handleUser = async (_ctx: Context, uid: number) => {
     let ctx = withLogPath(_ctx, 'user ' + uid);
 
-    log.debug(ctx, 'handle');
+    try {
+        log.debug(ctx, 'handle');
 
-    // Loading user's settings and state
-    let settings = await Modules.Users.getUserSettings(ctx, uid);
-    let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
-    let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
-    let isActive = await Modules.Presence.isActive(ctx, uid);
+        // Loading user's settings and state
+        let settings = await Modules.Users.getUserSettings(ctx, uid);
+        let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
+        let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
+        let isActive = await Modules.Presence.isActive(ctx, uid);
 
-    const user = {
-        uid,
-        lastSeen,
-        isActive,
-        notificationsDelay: settings.notificationsDelay,
-        lastPushCursor: state.lastPushCursor,
-        eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
-        mobileNotifications: settings.mobileNotifications,
-        desktopNotifications: settings.desktopNotifications,
-    };
-
-    if (shouldIgnoreUser(ctx, user)) {
-        log.debug(ctx, 'ignored');
-        await Modules.Push.sendCounterPush(ctx, uid);
-        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-        state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-        return;
-    }
-
-    // Scanning updates
-    // let cursors = [
-    //     Buffer.from(state.lastPushCursor || '', 'base64'),
-    //     Buffer.from(state.lastEmailCursor || '', 'base64')
-    // ].sort(Buffer.compare);
-    // let after = cursors[cursors.length - 1].toString('base64');
-    let after = state.lastPushCursor || '';
-
-    let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
-    let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
-
-    let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
-
-    // Handling unread messages
-    let hasPush = false;
-    for (let m of messages) {
-        let messageId = m.mid!;
-        let message = await Store.Message.findById(ctx, messageId);
-        if (!message) {
-            continue;
-        }
-
-        // Ignore current user
-        if (message.uid === uid) {
-            log.debug(ctx, 'Ignore current user');
-            continue;
-        }
-
-        let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
-        // Ignore read messages
-        if (readMessageId >= message.id) {
-            log.debug(ctx, 'Ignore read messages');
-            continue;
-        }
-
-        let sender = await Modules.Users.profileById(ctx, message.uid);
-        let receiver = await Modules.Users.profileById(ctx, uid);
-        let conversation = await Store.Conversation.findById(ctx, message.cid);
-
-        if (!sender || !receiver || !conversation) {
-            log.debug(ctx, 'no sender or receiver or conversation');
-            continue;
-        }
-
-        let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
-        let sendMobile = messageSettings.mobile.showNotification;
-        let sendDesktop = messageSettings.desktop.showNotification;
-
-        if (!sendMobile && !sendDesktop) {
-            log.debug(ctx, 'Ignore disabled pushes');
-            continue;
-        }
-
-        let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
-
-        if (chatTitle.startsWith('@')) {
-            chatTitle = chatTitle.slice(1);
-        }
-
-        hasPush = true;
-        let senderName = await Modules.Users.getUserFullName(ctx, sender.id);
-        let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({senderName, chatTitle});
-
-        if (conversation.kind === 'private') {
-            pushTitle = chatTitle;
-        }
-
-        if (message.isService) {
-            pushTitle = chatTitle;
-        }
-
-        let pushBody = await fetchMessageFallback(message);
-
-        let push = {
-            uid: uid,
-            title: pushTitle,
-            body: pushBody,
-            picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
-            counter: unreadCounter,
-            conversationId: conversation.id,
-            mobile: sendMobile,
-            desktop: sendDesktop,
-            mobileAlert: messageSettings.mobile.sound,
-            mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
-            silent: null,
+        const user = {
+            uid,
+            lastSeen,
+            isActive,
+            notificationsDelay: settings.notificationsDelay,
+            lastPushCursor: state.lastPushCursor,
+            eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
+            mobileNotifications: settings.mobileNotifications,
+            desktopNotifications: settings.desktopNotifications,
         };
 
-        if (sendMobile) {
-            Modules.Hooks.onMobilePushSent(ctx, uid);
+        if (shouldIgnoreUser(ctx, user)) {
+            log.debug(ctx, 'ignored');
+            await Modules.Push.sendCounterPush(ctx, uid);
+            Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+            state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+            return;
         }
-        if (sendDesktop) {
-            Modules.Hooks.onDesktopPushSent(ctx, uid);
+
+        // Scanning updates
+        // let cursors = [
+        //     Buffer.from(state.lastPushCursor || '', 'base64'),
+        //     Buffer.from(state.lastEmailCursor || '', 'base64')
+        // ].sort(Buffer.compare);
+        // let after = cursors[cursors.length - 1].toString('base64');
+        let after = state.lastPushCursor || '';
+
+        let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+        let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
+
+        let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
+
+        // Handling unread messages
+        let hasPush = false;
+        for (let m of messages) {
+            let messageId = m.mid!;
+            let message = await Store.Message.findById(ctx, messageId);
+            if (!message) {
+                continue;
+            }
+
+            // Ignore current user
+            if (message.uid === uid) {
+                log.debug(ctx, 'Ignore current user');
+                continue;
+            }
+
+            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
+            // Ignore read messages
+            if (readMessageId >= message.id) {
+                log.debug(ctx, 'Ignore read messages');
+                continue;
+            }
+
+            let sender = await Modules.Users.profileById(ctx, message.uid);
+            let receiver = await Modules.Users.profileById(ctx, uid);
+            let conversation = await Store.Conversation.findById(ctx, message.cid);
+
+            if (!sender || !receiver || !conversation) {
+                log.debug(ctx, 'no sender or receiver or conversation');
+                continue;
+            }
+
+            let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
+            let sendMobile = messageSettings.mobile.showNotification;
+            let sendDesktop = messageSettings.desktop.showNotification;
+
+            if (!sendMobile && !sendDesktop) {
+                log.debug(ctx, 'Ignore disabled pushes');
+                continue;
+            }
+
+            let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
+
+            if (chatTitle.startsWith('@')) {
+                chatTitle = chatTitle.slice(1);
+            }
+
+            hasPush = true;
+            let senderName = await Modules.Users.getUserFullName(ctx, sender.id);
+            let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({senderName, chatTitle});
+
+            if (conversation.kind === 'private') {
+                pushTitle = chatTitle;
+            }
+
+            if (message.isService) {
+                pushTitle = chatTitle;
+            }
+
+            let pushBody = await fetchMessageFallback(message);
+
+            let push = {
+                uid: uid,
+                title: pushTitle,
+                body: pushBody,
+                picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
+                counter: unreadCounter,
+                conversationId: conversation.id,
+                mobile: sendMobile,
+                desktop: sendDesktop,
+                mobileAlert: messageSettings.mobile.sound,
+                mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
+                silent: null,
+            };
+
+            if (sendMobile) {
+                Modules.Hooks.onMobilePushSent(ctx, uid);
+            }
+            if (sendDesktop) {
+                Modules.Hooks.onDesktopPushSent(ctx, uid);
+            }
+
+            log.debug(ctx, 'new_push', JSON.stringify(push));
+            await Modules.Push.pushWork(ctx, push);
         }
 
-        log.debug(ctx, 'new_push', JSON.stringify(push));
-        await Modules.Push.pushWork(ctx, push);
-    }
+        // Save state
+        if (hasPush) {
+            state.lastPushNotification = Date.now();
+        } else {
+            log.debug(ctx, 'send counter');
+            await Modules.Push.sendCounterPush(ctx, uid);
+        }
 
-    // Save state
-    if (hasPush) {
-        state.lastPushNotification = Date.now();
-    } else {
-        log.debug(ctx, 'send counter');
-        await Modules.Push.sendCounterPush(ctx, uid);
+        state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+    } catch (e) {
+        log.log(ctx, 'push_error', e);
     }
-
-    state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-    Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
 };
 
 export function startPushNotificationWorker() {
