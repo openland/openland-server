@@ -67,6 +67,8 @@ export const shouldIgnoreUser = (ctx: Context, user: {
 const handleUser = async (_ctx: Context, uid: number) => {
     let ctx = withLogPath(_ctx, 'user ' + uid);
 
+    log.debug(ctx, 'handle');
+
     // Loading user's settings and state
     let settings = await Modules.Users.getUserSettings(ctx, uid);
     let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
@@ -85,6 +87,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
     };
 
     if (shouldIgnoreUser(ctx, user)) {
+        log.debug(ctx, 'ignored');
         await Modules.Push.sendCounterPush(ctx, uid);
         Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
         state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
@@ -115,12 +118,14 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
         // Ignore current user
         if (message.uid === uid) {
+            log.debug(ctx, 'Ignore current user');
             continue;
         }
 
         let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
         // Ignore read messages
         if (readMessageId >= message.id) {
+            log.debug(ctx, 'Ignore read messages');
             continue;
         }
 
@@ -137,6 +142,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
         let sendDesktop = messageSettings.desktop.showNotification;
 
         if (!sendMobile && !sendDesktop) {
+            log.debug(ctx, 'Ignore disabled pushes');
             continue;
         }
 
