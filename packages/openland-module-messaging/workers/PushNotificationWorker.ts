@@ -64,6 +64,8 @@ export const shouldIgnoreUser = (ctx: Context, user: {
 };
 
 const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, settings: UserSettings, m: UserDialogMessageReceivedEvent) => {
+    log.log(ctx, 'handle message', m.mid);
+
     let messageId = m.mid!;
     let message = await Store.Message.findById(ctx, messageId);
     if (!message) {
