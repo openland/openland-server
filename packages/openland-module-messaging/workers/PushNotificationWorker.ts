@@ -8,9 +8,8 @@ import { createLogger, withLogPath } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
 import { Context } from '@openland/context';
-import { batch } from '../../openland-utils/batch';
 import { eventsFind } from '../../openland-module-db/eventsFind';
-import { UserDialogMessageReceivedEvent } from '../../openland-module-db/store';
+import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
 
 const Delays = {
     'none': 10 * 1000,
@@ -64,6 +63,89 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     return false;
 };
 
+const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, settings: UserSettings, m: UserDialogMessageReceivedEvent) => {
+    let messageId = m.mid!;
+    let message = await Store.Message.findById(ctx, messageId);
+    if (!message) {
+        return false;
+    }
+
+    // Ignore current user
+    if (message.uid === uid) {
+        log.debug(ctx, 'Ignore current user');
+        return false;
+    }
+
+    let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
+    // Ignore read messages
+    if (readMessageId >= message.id) {
+        log.debug(ctx, 'Ignore read messages');
+        return false;
+    }
+
+    let sender = await Modules.Users.profileById(ctx, message.uid);
+    let receiver = await Modules.Users.profileById(ctx, uid);
+    let conversation = await Store.Conversation.findById(ctx, message.cid);
+
+    if (!sender || !receiver || !conversation) {
+        log.debug(ctx, 'no sender or receiver or conversation');
+        return false;
+    }
+
+    let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
+    let sendMobile = messageSettings.mobile.showNotification;
+    let sendDesktop = messageSettings.desktop.showNotification;
+
+    if (!sendMobile && !sendDesktop) {
+        log.debug(ctx, 'Ignore disabled pushes');
+        return false;
+    }
+
+    let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
+
+    if (chatTitle.startsWith('@')) {
+        chatTitle = chatTitle.slice(1);
+    }
+
+    let senderName = await Modules.Users.getUserFullName(ctx, sender.id);
+    let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({senderName, chatTitle});
+
+    if (conversation.kind === 'private') {
+        pushTitle = chatTitle;
+    }
+
+    if (message.isService) {
+        pushTitle = chatTitle;
+    }
+
+    let pushBody = await fetchMessageFallback(message);
+
+    let push = {
+        uid: uid,
+        title: pushTitle,
+        body: pushBody,
+        picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
+        counter: unreadCounter,
+        conversationId: conversation.id,
+        mobile: sendMobile,
+        desktop: sendDesktop,
+        mobileAlert: messageSettings.mobile.sound,
+        mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
+        silent: null,
+    };
+
+    if (sendMobile) {
+        Modules.Hooks.onMobilePushSent(ctx, uid);
+    }
+    if (sendDesktop) {
+        Modules.Hooks.onDesktopPushSent(ctx, uid);
+    }
+
+    log.debug(ctx, 'new_push', JSON.stringify(push));
+    await Modules.Push.pushWork(ctx, push);
+    return true;
+};
+
 const handleUser = async (_ctx: Context, uid: number) => {
     let ctx = withLogPath(_ctx, 'user ' + uid);
 
@@ -71,10 +153,12 @@ const handleUser = async (_ctx: Context, uid: number) => {
         log.debug(ctx, 'handle');
 
         // Loading user's settings and state
-        let settings = await Modules.Users.getUserSettings(ctx, uid);
-        let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
-        let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
-        let isActive = await Modules.Presence.isActive(ctx, uid);
+        let [settings, state, lastSeen, isActive] = await Promise.all([
+            Modules.Users.getUserSettings(ctx, uid),
+            Modules.Messaging.getUserNotificationState(ctx, uid),
+            Modules.Presence.getLastSeen(ctx, uid),
+            await Modules.Presence.isActive(ctx, uid)
+        ]);
 
         const user = {
             uid,
@@ -110,88 +194,12 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
         // Handling unread messages
         let hasPush = false;
-        for (let m of messages) {
-            let messageId = m.mid!;
-            let message = await Store.Message.findById(ctx, messageId);
-            if (!message) {
-                continue;
+        await Promise.all(messages.map(async m => {
+            let res = await handleMessage(_ctx, uid, unreadCounter, settings, m);
+            if (res) {
+                hasPush = true;
             }
-
-            // Ignore current user
-            if (message.uid === uid) {
-                log.debug(ctx, 'Ignore current user');
-                continue;
-            }
-
-            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
-            // Ignore read messages
-            if (readMessageId >= message.id) {
-                log.debug(ctx, 'Ignore read messages');
-                continue;
-            }
-
-            let sender = await Modules.Users.profileById(ctx, message.uid);
-            let receiver = await Modules.Users.profileById(ctx, uid);
-            let conversation = await Store.Conversation.findById(ctx, message.cid);
-
-            if (!sender || !receiver || !conversation) {
-                log.debug(ctx, 'no sender or receiver or conversation');
-                continue;
-            }
-
-            let messageSettings = await Modules.Messaging.getSettingsForMessage(ctx, uid, m.mid);
-            let sendMobile = messageSettings.mobile.showNotification;
-            let sendDesktop = messageSettings.desktop.showNotification;
-
-            if (!sendMobile && !sendDesktop) {
-                log.debug(ctx, 'Ignore disabled pushes');
-                continue;
-            }
-
-            let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid);
-
-            if (chatTitle.startsWith('@')) {
-                chatTitle = chatTitle.slice(1);
-            }
-
-            hasPush = true;
-            let senderName = await Modules.Users.getUserFullName(ctx, sender.id);
-            let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({senderName, chatTitle});
-
-            if (conversation.kind === 'private') {
-                pushTitle = chatTitle;
-            }
-
-            if (message.isService) {
-                pushTitle = chatTitle;
-            }
-
-            let pushBody = await fetchMessageFallback(message);
-
-            let push = {
-                uid: uid,
-                title: pushTitle,
-                body: pushBody,
-                picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
-                counter: unreadCounter,
-                conversationId: conversation.id,
-                mobile: sendMobile,
-                desktop: sendDesktop,
-                mobileAlert: messageSettings.mobile.sound,
-                mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
-                silent: null,
-            };
-
-            if (sendMobile) {
-                Modules.Hooks.onMobilePushSent(ctx, uid);
-            }
-            if (sendDesktop) {
-                Modules.Hooks.onDesktopPushSent(ctx, uid);
-            }
-
-            log.debug(ctx, 'new_push', JSON.stringify(push));
-            await Modules.Push.pushWork(ctx, push);
-        }
+        }));
 
         // Save state
         if (hasPush) {
@@ -224,9 +232,11 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        let batches = batch(unreadUsers, 1);
-        await Promise.all(batches.map(b => inTx(parent, async (c) => {
-            await Promise.all(b.map(uid => handleUser(c, uid)));
-        })));
+        await Promise.all(unreadUsers.map(uid => inTx(parent, async (ctx) => handleUser(ctx, uid))));
+
+        // let batches = batch(unreadUsers, 1);
+        // await Promise.all(batches.map(b => inTx(parent, async (c) => {
+        //     await Promise.all(b.map(uid => handleUser(c, uid)));
+        // })));
     });
 }
