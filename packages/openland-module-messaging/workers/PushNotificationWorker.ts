@@ -189,6 +189,7 @@ const handleUser = async (_ctx: Context, uid: number) => {
 
         let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
         let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
+        log.log(ctx, messages.length, 'messages found');
 
         let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
 
