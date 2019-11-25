@@ -1,0 +1,28 @@
+enum OauthScope {
+    All,
+    Zapier
+}
+
+type OauthApp {
+    title: String!
+    clientId: String!
+    clientSecret: String!
+    scopes: [OauthScope!]!
+    owner: User!
+}
+
+type OauthContext {
+    app: OauthApp!
+    state: String!
+    redirectUrl: String!
+    code: String!
+}
+
+extend type Query {
+    myOauthApps: [OauthApp!]!
+    oauthContext(code: String!): OauthContext
+}
+
+extend type Mutation {
+    createOauthApp(title: String!, scopes: [OauthScope!]): OauthApp!
+}

@@ -34,10 +34,11 @@ import { uuid } from '../openland-utils/uuid';
 import { createMetric } from '../openland-module-monitoring/Metric';
 import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
-import { initIFTTT } from '../openland-module-ifttt/http.handlers';
+// import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
 import { initVostokApiServer } from '../openland-mtproto3/vostok/vostokApiServer';
+import { initOauth2 } from '../openland-module-oauth/http.handlers';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -105,10 +106,13 @@ export async function initApi(isTest: boolean) {
     initAppHandlers(app);
 
     // IFTTT api
-    initIFTTT(app);
+    // initIFTTT(app);
 
     // Zapier api
     initZapier(app);
+
+    // Ouath2 api
+    initOauth2(app);
 
     //
     // Semaphore bot

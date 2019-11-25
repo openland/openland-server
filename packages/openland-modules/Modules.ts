@@ -35,6 +35,7 @@ import { StickersModule } from '../openland-module-stickers/StickersModule';
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
 import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
+import { OauthModule } from '../openland-module-oauth/OauthModule';
 
 class ModulesImpl {
 
@@ -146,6 +147,10 @@ class ModulesImpl {
 
     get Zapier() {
         return container.get(ZapierModule);
+    }
+
+    get Oauth() {
+        return container.get(OauthModule);
     }
 }
 
