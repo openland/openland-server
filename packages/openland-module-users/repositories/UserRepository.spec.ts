@@ -3,10 +3,14 @@ import { container } from 'openland-modules/Modules.container';
 import { UserRepository } from './UserRepository';
 import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
+import { AuthModule } from '../../openland-module-auth/AuthModule';
+import { TokenRepository } from '../../openland-module-auth/repositories/TokenRepository';
 
 describe('UserRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('users');
+        container.bind('TokenRepository').to(TokenRepository);
+        container.bind(AuthModule).to(AuthModule);
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
     });
     afterAll( async () => {
