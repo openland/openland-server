@@ -151,7 +151,7 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
     let json = await res.json();
     let doc = cheerio.load(json.html);
 
-    if (!!doc('body>img') && doc('body').children.length === 1) {
+    if (!!doc('body>img')[0] && doc('body').children.length === 1) {
         return { info: { url, imageURL: url } };
     }
 
