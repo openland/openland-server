@@ -61,6 +61,7 @@ import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 import { MentionNotificationsMediator } from '../openland-module-messaging/mediators/MentionNotificationsMediator';
 import { FeedMentionNotificationsMediator } from '../openland-module-feed/repositories/FeedMentionNotificationsMediator';
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
+import { OauthModule } from '../openland-module-oauth/OauthModule';
 
 const logger = createLogger('starting');
 
@@ -69,7 +70,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     if (loadDb) {
         let start = currentTime();
         let db = await openDatabase();
-        logger.log(ctx, 'Datbase opened in ' + (currentTime() - start) + ' ms');
+        logger.log(ctx, 'Database opened in ' + (currentTime() - start) + ' ms');
 
         // New entity
         let storage = new EntityStorage(db);
@@ -118,6 +119,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(StatsModule).toSelf().inSingletonScope();
     container.bind(IFTTTModule).toSelf().inSingletonScope();
     container.bind(ZapierModule).toSelf().inSingletonScope();
+    container.bind(OauthModule).toSelf().inSingletonScope();
 
     loadCallsModule();
     loadFeedModule();
@@ -158,8 +160,9 @@ export async function startAllModules() {
     await container.get(StatsModule).start();
     await container.get<MonitoringModule>('MonitoringModule').start();
     await container.get(MatchmakingModule).start();
-    await container.get(IFTTTModule).start();
+    // await container.get(IFTTTModule).start();
     await container.get(ZapierModule).start();
     await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
     await container.get<FeedMentionNotificationsMediator>('FeedMentionNotificationsMediator').start();
+    await container.get(OauthModule).start();
 }

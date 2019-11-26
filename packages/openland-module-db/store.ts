@@ -13782,6 +13782,466 @@ export class ZapierAuthTokenFactory extends EntityFactory<ZapierAuthTokenShape, 
     }
 }
 
+export interface OauthApplicationShape {
+    clientId: string;
+    uid: number;
+    clientSecret: string;
+    title: string;
+    allowedScopes: (string)[];
+    enabled: boolean;
+}
+
+export interface OauthApplicationCreateShape {
+    uid: number;
+    clientSecret: string;
+    title: string;
+    allowedScopes: (string)[];
+    enabled: boolean;
+}
+
+export class OauthApplication extends Entity<OauthApplicationShape> {
+    get clientId(): string { return this._rawValue.clientId; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get clientSecret(): string { return this._rawValue.clientSecret; }
+    set clientSecret(value: string) {
+        let normalized = this.descriptor.codec.fields.clientSecret.normalize(value);
+        if (this._rawValue.clientSecret !== normalized) {
+            this._rawValue.clientSecret = normalized;
+            this._updatedValues.clientSecret = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get allowedScopes(): (string)[] { return this._rawValue.allowedScopes; }
+    set allowedScopes(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.allowedScopes.normalize(value);
+        if (this._rawValue.allowedScopes !== normalized) {
+            this._rawValue.allowedScopes = normalized;
+            this._updatedValues.allowedScopes = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape, OauthApplication> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('oauthApplication');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'user'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'clientId', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'clientSecret', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'allowedScopes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            clientId: c.string,
+            uid: c.integer,
+            clientSecret: c.string,
+            title: c.string,
+            allowedScopes: c.array(c.string),
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<OauthApplicationShape> = {
+            name: 'OauthApplication',
+            storageKey: 'oauthApplication',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OauthApplicationFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OauthApplicationShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, clientId: string, src: OauthApplicationCreateShape): Promise<OauthApplication> {
+        return this._create(ctx, [clientId], this.descriptor.codec.normalize({ clientId, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, clientId: string, src: OauthApplicationCreateShape): OauthApplication {
+        return this._create_UNSAFE(ctx, [clientId], this.descriptor.codec.normalize({ clientId, ...src }));
+    }
+
+    findById(ctx: Context, clientId: string): Promise<OauthApplication | null> {
+        return this._findById(ctx, [clientId]);
+    }
+
+    watch(ctx: Context, clientId: string): Watch {
+        return this._watch(ctx, [clientId]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthApplicationShape>): OauthApplication {
+        return new OauthApplication([value.clientId], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OauthContextShape {
+    id: string;
+    clientId: string;
+    state: string;
+    redirectUrl: string;
+    code: string;
+    scopes: (string)[];
+    enabled: boolean;
+    uid: number | null;
+}
+
+export interface OauthContextCreateShape {
+    clientId: string;
+    state: string;
+    redirectUrl: string;
+    code: string;
+    scopes: (string)[];
+    enabled: boolean;
+    uid?: number | null | undefined;
+}
+
+export class OauthContext extends Entity<OauthContextShape> {
+    get id(): string { return this._rawValue.id; }
+    get clientId(): string { return this._rawValue.clientId; }
+    set clientId(value: string) {
+        let normalized = this.descriptor.codec.fields.clientId.normalize(value);
+        if (this._rawValue.clientId !== normalized) {
+            this._rawValue.clientId = normalized;
+            this._updatedValues.clientId = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): string { return this._rawValue.state; }
+    set state(value: string) {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get redirectUrl(): string { return this._rawValue.redirectUrl; }
+    set redirectUrl(value: string) {
+        let normalized = this.descriptor.codec.fields.redirectUrl.normalize(value);
+        if (this._rawValue.redirectUrl !== normalized) {
+            this._rawValue.redirectUrl = normalized;
+            this._updatedValues.redirectUrl = normalized;
+            this.invalidate();
+        }
+    }
+    get code(): string { return this._rawValue.code; }
+    set code(value: string) {
+        let normalized = this.descriptor.codec.fields.code.normalize(value);
+        if (this._rawValue.code !== normalized) {
+            this._rawValue.code = normalized;
+            this._updatedValues.code = normalized;
+            this.invalidate();
+        }
+    }
+    get scopes(): (string)[] { return this._rawValue.scopes; }
+    set scopes(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.scopes.normalize(value);
+        if (this._rawValue.scopes !== normalized) {
+            this._rawValue.scopes = normalized;
+            this._updatedValues.scopes = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number | null { return this._rawValue.uid; }
+    set uid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OauthContextFactory extends EntityFactory<OauthContextShape, OauthContext> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('oauthContext');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'fromCode', storageKey: 'fromCode', type: { type: 'unique', fields: [{ name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthContext', 'fromCode'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'clientId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'redirectUrl', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'code', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'scopes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            clientId: c.string,
+            state: c.string,
+            redirectUrl: c.string,
+            code: c.string,
+            scopes: c.array(c.string),
+            enabled: c.boolean,
+            uid: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<OauthContextShape> = {
+            name: 'OauthContext',
+            storageKey: 'oauthContext',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OauthContextFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OauthContextShape>) {
+        super(descriptor);
+    }
+
+    readonly fromCode = Object.freeze({
+        find: async (ctx: Context, code: string) => {
+            return this._findFromUniqueIndex(ctx, [code], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: string, src: OauthContextCreateShape): Promise<OauthContext> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: OauthContextCreateShape): OauthContext {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<OauthContext | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthContextShape>): OauthContext {
+        return new OauthContext([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface OauthTokenShape {
+    uuid: string;
+    salt: string;
+    uid: number;
+    clientId: string;
+    enabled: boolean | null;
+    scopes: (string)[] | null;
+}
+
+export interface OauthTokenCreateShape {
+    salt: string;
+    uid: number;
+    clientId: string;
+    enabled?: boolean | null | undefined;
+    scopes?: (string)[] | null | undefined;
+}
+
+export class OauthToken extends Entity<OauthTokenShape> {
+    get uuid(): string { return this._rawValue.uuid; }
+    get salt(): string { return this._rawValue.salt; }
+    set salt(value: string) {
+        let normalized = this.descriptor.codec.fields.salt.normalize(value);
+        if (this._rawValue.salt !== normalized) {
+            this._rawValue.salt = normalized;
+            this._updatedValues.salt = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get clientId(): string { return this._rawValue.clientId; }
+    set clientId(value: string) {
+        let normalized = this.descriptor.codec.fields.clientId.normalize(value);
+        if (this._rawValue.clientId !== normalized) {
+            this._rawValue.clientId = normalized;
+            this._updatedValues.clientId = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean | null { return this._rawValue.enabled; }
+    set enabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+    get scopes(): (string)[] | null { return this._rawValue.scopes; }
+    set scopes(value: (string)[] | null) {
+        let normalized = this.descriptor.codec.fields.scopes.normalize(value);
+        if (this._rawValue.scopes !== normalized) {
+            this._rawValue.scopes = normalized;
+            this._updatedValues.scopes = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('oauthToken');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthToken', 'salt'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthToken', 'user'), condition: src => src.enabled !== false });
+        secondaryIndexes.push({ name: 'app', storageKey: 'app', type: { type: 'range', fields: [{ name: 'clientId', type: 'string' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthToken', 'app'), condition: src => src.enabled !== false });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uuid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'salt', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'clientId', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'scopes', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
+        let codec = c.struct({
+            uuid: c.string,
+            salt: c.string,
+            uid: c.integer,
+            clientId: c.string,
+            enabled: c.optional(c.boolean),
+            scopes: c.optional(c.array(c.string)),
+        });
+        let descriptor: EntityDescriptor<OauthTokenShape> = {
+            name: 'OauthToken',
+            storageKey: 'oauthToken',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OauthTokenFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OauthTokenShape>) {
+        super(descriptor);
+    }
+
+    readonly salt = Object.freeze({
+        find: async (ctx: Context, salt: string) => {
+            return this._findFromUniqueIndex(ctx, [salt], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+    });
+
+    readonly app = Object.freeze({
+        findAll: async (ctx: Context, clientId: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [clientId])).items;
+        },
+        query: (ctx: Context, clientId: string, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [clientId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (clientId: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [clientId], opts);
+        },
+        liveStream: (ctx: Context, clientId: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [clientId], opts);
+        },
+    });
+
+    create(ctx: Context, uuid: string, src: OauthTokenCreateShape): Promise<OauthToken> {
+        return this._create(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uuid: string, src: OauthTokenCreateShape): OauthToken {
+        return this._create_UNSAFE(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
+    }
+
+    findById(ctx: Context, uuid: string): Promise<OauthToken | null> {
+        return this._findById(ctx, [uuid]);
+    }
+
+    watch(ctx: Context, uuid: string): Watch {
+        return this._watch(ctx, [uuid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthTokenShape>): OauthToken {
+        return new OauthToken([value.uuid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -14719,6 +15179,9 @@ export interface Store extends BaseStore {
     readonly IftttAuthToken: IftttAuthTokenFactory;
     readonly ZapierAuth: ZapierAuthFactory;
     readonly ZapierAuthToken: ZapierAuthTokenFactory;
+    readonly OauthApplication: OauthApplicationFactory;
+    readonly OauthContext: OauthContextFactory;
+    readonly OauthToken: OauthTokenFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -14886,6 +15349,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let IftttAuthTokenPromise = IftttAuthTokenFactory.open(storage);
     let ZapierAuthPromise = ZapierAuthFactory.open(storage);
     let ZapierAuthTokenPromise = ZapierAuthTokenFactory.open(storage);
+    let OauthApplicationPromise = OauthApplicationFactory.open(storage);
+    let OauthContextPromise = OauthContextFactory.open(storage);
+    let OauthTokenPromise = OauthTokenFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -15033,6 +15499,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         IftttAuthToken: await IftttAuthTokenPromise,
         ZapierAuth: await ZapierAuthPromise,
         ZapierAuthToken: await ZapierAuthTokenPromise,
+        OauthApplication: await OauthApplicationPromise,
+        OauthContext: await OauthContextPromise,
+        OauthToken: await OauthTokenPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

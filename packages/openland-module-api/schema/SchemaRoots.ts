@@ -45,7 +45,12 @@ import {
     FeedItemReceivedEvent,
     FeedItemUpdatedEvent,
     FeedItemDeletedEvent,
-    MatchmakingRoom, MatchmakingProfile, FeedChannel, FeedChannelAdmin, FeedRebuildEvent,
+    MatchmakingRoom,
+    MatchmakingProfile,
+    FeedChannel,
+    FeedChannelAdmin,
+    FeedRebuildEvent,
+    OauthApplication, OauthContext,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -428,4 +433,10 @@ export namespace GQLRoots {
     //  Shortnames
     //
     export type ShortNameDestinationRoot = User | Organization | FeedChannel;
+
+    //
+    // Oauth
+    //
+    export type OauthAppRoot = OauthApplication;
+    export type OauthContextRoot = OauthContext;
 }
