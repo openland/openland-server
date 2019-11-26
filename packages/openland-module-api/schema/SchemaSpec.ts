@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd08fed215b12ca16c4908db287264e79';
+export const GQL_SPEC_VERSION = '7eb27a9b163e683ca0c235545ef2360b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1172,6 +1172,7 @@ export namespace GQL {
         typingCancel: string;
         alphaSetTyping: string;
         reportContent: Nullable<boolean>;
+        deleteMyAccount: boolean;
         superBadgeCreateToRoom: UserBadge;
         superBadgeUnsetToRoom: boolean;
         badgeCreate: User;

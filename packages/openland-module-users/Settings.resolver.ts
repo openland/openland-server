@@ -6,6 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
     return await inTx(parent, async (ctx) => {
@@ -254,6 +255,9 @@ export default {
                 return msg;
             },
             subscribe: async (_: any, args, ctx) => {
+                if (!ctx.auth.uid) {
+                    throw new AccessDeniedError();
+                }
                 let ended = false;
                 return {
                     ...(async function* func() {
@@ -275,6 +279,9 @@ export default {
                 return msg;
             },
             subscribe: async (r, args, ctx) => {
+                if (!ctx.auth.uid) {
+                    throw new AccessDeniedError();
+                }
                 let ended = false;
                 return {
                     ...(async function* func() {

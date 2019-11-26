@@ -19,6 +19,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export default {
     /* 
@@ -167,6 +168,9 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
+                if (!ctx.auth.uid) {
+                    throw new AccessDeniedError();
+                }
                 let fromState: string | undefined = undefined;
                 let isOldCursor = false;
                 if (args.fromState) {

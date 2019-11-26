@@ -10,13 +10,16 @@ const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
 export class VostokSessionsManager {
-    private sessions = new Map<string, VostokSession>();
+    readonly sessions = new Map<string, VostokSession>();
 
     constructor() {
         asyncRun(async () => {
             while (true) {
                 for (let session of this.sessions.values()) {
-                    if (session.noConnectsSince && ((Date.now() - session.noConnectsSince) > EMPTY_SESSION_TTL)) {
+                    if (
+                        session.state === 'closed' ||
+                        (session.noConnectsSince && ((Date.now() - session.noConnectsSince) > EMPTY_SESSION_TTL))
+                    ) {
                         log.log(rootCtx, 'drop session', session.sessionId);
                         session.destroy();
                         this.sessions.delete(session.sessionId);

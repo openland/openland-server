@@ -239,6 +239,10 @@ export class OrganizationModule {
         });
     }
 
+    async removeUserFromOrganiaztionWithoutAccessChecks(parent: Context, uid: number, oid: number) {
+        return this.repo.removeUserFromOrganization(parent, uid, oid, true);
+    }
+
     async deleteOrganization(parent: Context, uid: number, oid: number) {
         return await this.repo.deleteOrganization(parent, uid, oid);
     }

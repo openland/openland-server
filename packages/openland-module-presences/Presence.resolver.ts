@@ -5,6 +5,8 @@ import { OnlineEvent } from './PresenceModule';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
+import { UserError } from '../openland-errors/UserError';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 // import { createIterator } from '../openland-utils/asyncIterator';
 
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
@@ -27,13 +29,13 @@ export default {
     Mutation: {
         presenceReportOnline: async (_, args, ctx) => {
             if (!ctx.auth.uid) {
-                throw Error('Not authorized');
+                throw new UserError('Not authorized');
             }
             if (args.timeout <= 0) {
-                throw Error('Invalid input');
+                throw new UserError('Invalid input');
             }
             if (args.timeout > 5000) {
-                throw Error('Invalid input');
+                throw new UserError('Invalid input');
             }
             let active = (args.active !== undefined && args.active !== null) ? args.active! : true;
 
@@ -96,6 +98,9 @@ export default {
                 return msg;
             },
             subscribe: async (r, args, ctx) => {
+                if (!ctx.auth.uid) {
+                    throw new AccessDeniedError();
+                }
                 let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
                 if (!ctx.auth.uid) {
@@ -121,7 +126,7 @@ export default {
             },
             subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
+                    throw new AccessDeniedError();
                 }
                 let userIds = args.users.filter(c => {
                     try {
@@ -145,7 +150,7 @@ export default {
             },
             subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
+                    throw new AccessDeniedError();
                 }
                 // return createIterator(() => {
                 //     // do nothing

@@ -60,5 +60,5 @@ export function initVostokServer(params: VostokServerParams) {
             });
         }
     });
-    return server.socket;
+    return { ws: server.socket, sessions: sessionsManager };
 }
