@@ -14083,7 +14083,7 @@ export interface OauthTokenShape {
     uid: number;
     clientId: string;
     enabled: boolean | null;
-    scopes: (string)[] | null;
+    scopes: (string)[];
 }
 
 export interface OauthTokenCreateShape {
@@ -14091,7 +14091,7 @@ export interface OauthTokenCreateShape {
     uid: number;
     clientId: string;
     enabled?: boolean | null | undefined;
-    scopes?: (string)[] | null | undefined;
+    scopes: (string)[];
 }
 
 export class OauthToken extends Entity<OauthTokenShape> {
@@ -14132,8 +14132,8 @@ export class OauthToken extends Entity<OauthTokenShape> {
             this.invalidate();
         }
     }
-    get scopes(): (string)[] | null { return this._rawValue.scopes; }
-    set scopes(value: (string)[] | null) {
+    get scopes(): (string)[] { return this._rawValue.scopes; }
+    set scopes(value: (string)[]) {
         let normalized = this.descriptor.codec.fields.scopes.normalize(value);
         if (this._rawValue.scopes !== normalized) {
             this._rawValue.scopes = normalized;
@@ -14158,14 +14158,14 @@ export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'clientId', type: { type: 'string' }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'scopes', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
+        fields.push({ name: 'scopes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             uuid: c.string,
             salt: c.string,
             uid: c.integer,
             clientId: c.string,
             enabled: c.optional(c.boolean),
-            scopes: c.optional(c.array(c.string)),
+            scopes: c.array(c.string),
         });
         let descriptor: EntityDescriptor<OauthTokenShape> = {
             name: 'OauthToken',

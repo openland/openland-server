@@ -8,10 +8,12 @@ import { Modules } from '../openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
 import { delay, foreverBreakable } from '../openland-utils/timer';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { checkAuth } from '../openland-module-oauth/http.handlers';
+import { useOauth } from '../openland-module-oauth/http.handlers';
 
 const log = createLogger('zapier');
 const rootCtx = createNamedContext('zapier');
+
+const checkAuth = useOauth('zapier');
 
 export function initZapier(app: Express) {
     // tslint:disable-next-line:no-floating-promises

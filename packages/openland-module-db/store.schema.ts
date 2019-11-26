@@ -1723,7 +1723,7 @@ export default declareSchema(() => {
         field('uid', integer());
         field('clientId', string());
         field('enabled', optional(boolean()));
-        field('scopes', optional(array(string())));
+        field('scopes', array(string()));
         uniqueIndex('salt', ['salt']);
         rangeIndex('user', ['uid', 'uuid'])
             .withCondition(src => src.enabled !== false);
