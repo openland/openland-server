@@ -25,7 +25,7 @@ export interface URLInfo {
     keyboard?: MessageKeyboard;
 }
 
-type RawURLInfo = { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null };
+type RawURLInfo = { url: string, title?: string | null, description?: string | null, imageURL?: string | null, iconURL?: string | null, image?: Buffer };
 
 const FetchParams = {
     timeout: 5000,
@@ -131,20 +131,29 @@ function createURLInfoFetcher() {
 async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: CheerioStatic } | null> {
     let { hostname } = URL.parse(url);
 
-    let res = await fetch(encodeURI(url), FetchParams);
+    let res = await fetch('https://screenshot.openland.io/html', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            url: encodeURI(url),
+            width: 1280,
+            height: 720
+        })
+    });
 
     if (res.status !== 200) {
         return null;
     }
 
-    let contentType = res.headers.get('content-type');
+    let json = await res.json();
+    let doc = cheerio.load(json.html);
 
-    if (contentType && contentType.startsWith('image')) {
+    if (!!doc('body>img') && doc('body').children.length === 1) {
         return { info: { url, imageURL: url } };
     }
-
-    let text = await res.text();
-    let doc = cheerio.load(text);
 
     let title =
         getMeta(doc, 'og:title') ||
@@ -184,9 +193,10 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
             title,
             description,
             imageURL,
-            iconURL
+            iconURL,
+            image: new Buffer(json.screenshot, 'base64')
         },
-        doc
+        doc,
     };
 }
 
@@ -203,7 +213,7 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
         title,
         description,
         imageURL,
-        iconURL
+        iconURL,
     } = params;
 
     let { hostname } = URL.parse(url);
@@ -221,20 +231,26 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
             logger.warn(rootCtx, 'Cant fetch image ' + imageURL);
         }
     } else {
-        let image = await fetch('https://screenshot.openland.io', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                url: encodeURI(url),
-                width: 1280,
-                height: 720
-            })
-        });
+        let imageBuffer: Buffer;
+        if (!params.image) {
+            let loadedImage = await fetch('https://screenshot.openland.io', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    url: encodeURI(url),
+                    width: 1280,
+                    height: 720
+                })
+            });
+            imageBuffer = await loadedImage.buffer();
+        } else {
+            imageBuffer = params.image;
+        }
         try {
-            let { file } = await Modules.Media.upload(rootCtx, await image.buffer(), '.png');
+            let { file } = await Modules.Media.upload(rootCtx, imageBuffer, '.png');
             imageRef = { uuid: file, crop: null };
             imageInfo = await Modules.Media.fetchFileInfo(rootCtx, file);
         } catch (e) {
