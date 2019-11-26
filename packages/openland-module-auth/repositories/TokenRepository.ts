@@ -7,6 +7,7 @@ import * as base64 from 'openland-utils/base64';
 import { injectable } from 'inversify';
 import { Context, createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
+import { EventBus } from '../../openland-module-pubsub/EventBus';
 
 const rootCtx = createNamedContext('token-loader');
 
@@ -47,8 +48,18 @@ export class TokenRepository {
 
             if (authToken) {
                 authToken.enabled = false;
+                await EventBus.publish('auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
             }
             this.loader.clear(token);
+        });
+    }
+
+    async revokeUserTokens(parent: Context, uid: number) {
+        await inTx(parent, async ctx => {
+            let tokens = await Store.AuthToken.user.findAll(ctx, uid);
+            tokens.forEach(t => t.enabled = false);
+            tokens.forEach(t => this.loader.clear(t.salt));
+            await EventBus.publish('auth_token_revoke', { tokens: tokens.map(t => ({ uuid: t.uuid, salt: t.salt})) });
         });
     }
 }

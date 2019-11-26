@@ -6,6 +6,7 @@ import { TypingEvent } from './TypingEvent';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export default {
     TypingType: {
@@ -47,7 +48,7 @@ export default {
             },
             subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
+                    throw new AccessDeniedError();
                 }
 
                 return Modules.Typings.createTypingStream(ctx.auth.uid);
@@ -61,7 +62,7 @@ export default {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
                 if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
+                    throw new AccessDeniedError();
                 }
 
                 return Modules.Typings.createTypingStream(ctx.auth.uid, conversationId);
@@ -73,7 +74,7 @@ export default {
             },
             subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
+                    throw new AccessDeniedError();
                 }
 
                 return Modules.Typings.createTypingStream(ctx.auth.uid);
@@ -87,7 +88,7 @@ export default {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
                 if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
+                    throw new AccessDeniedError();
                 }
 
                 return Modules.Typings.createTypingStream(ctx.auth.uid, conversationId);

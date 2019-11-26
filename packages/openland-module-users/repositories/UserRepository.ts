@@ -88,9 +88,23 @@ export class UserRepository {
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
+
+            // Delete user
             user.status = 'deleted';
             await user.flush(ctx);
             await this.markForUndexing(ctx, uid);
+
+            // Revoke tokens
+            await Modules.Auth.revokeUserTokens(ctx, uid);
+
+            // Leave organizations
+            let membership = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
+            await Promise.all(membership.map(m => Modules.Orgs.removeUserFromOrganiaztionWithoutAccessChecks(ctx, uid, m.oid)));
+
+            // Leave chats
+            let participates = await Store.RoomParticipant.userActive.findAll(ctx, uid);
+            await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid)));
+
             return user;
         });
     }

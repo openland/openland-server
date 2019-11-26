@@ -185,6 +185,10 @@ export default {
                 await Modules.Messaging.sendMessage(ctx, reportChatId, superBotId, buildMessage(...message));
             }
             return true;
-        })
+        }),
+        deleteMyAccount: withAccount(async (ctx, args, uid) => {
+            await Modules.Users.deleteUser(ctx, uid);
+            return true;
+        }),
     }
 } as GQLResolver;

@@ -14,6 +14,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
+import { randomKey } from '../openland-utils/random';
 
 const logger = createLogger('apollo');
 
@@ -41,6 +42,7 @@ interface FuckApolloServerParams {
 }
 
 class FuckApolloSession {
+    public id = randomKey();
     public state: 'INIT' | 'WAITING_CONNECT' | 'CONNECTED' = 'INIT';
     public authParams: any;
     public operations: { [operationId: string]: { destroy(): void } } = {};
@@ -248,8 +250,9 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
     }
 }
 
-async function handleConnection(params: FuckApolloServerParams, socket: WebSocket, req: http.IncomingMessage) {
+async function handleConnection(params: FuckApolloServerParams, sessions: Map<string, FuckApolloSession>, socket: WebSocket, req: http.IncomingMessage) {
     let session = new FuckApolloSession(socket);
+    sessions.set(session.id, session);
 
     socket.on('message', async data => {
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
@@ -257,6 +260,7 @@ async function handleConnection(params: FuckApolloServerParams, socket: WebSocke
     socket.on('close', (code, reason) => {
         logger.log(createNamedContext('apollo'), 'close connection', code, reason);
         session.stopAllOperations();
+        sessions.delete(session.id);
     });
     socket.on('error', (err) => {
         logger.log(createNamedContext('apollo'), 'connection error', err);
@@ -265,9 +269,10 @@ async function handleConnection(params: FuckApolloServerParams, socket: WebSocke
 }
 
 export async function createFuckApolloWSServer(params: FuckApolloServerParams) {
+    let sessions = new Map<string, FuckApolloSession>();
     const ws = new WebSocket.Server(params.server ? { server: params.server, path: params.path } : { noServer: true });
     ws.on('connection', async (socket, req) => {
-        await handleConnection(params, socket, req);
+        await handleConnection(params, sessions, socket, req);
     });
-    return ws;
+    return { ws, sessions };
 }

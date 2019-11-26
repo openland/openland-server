@@ -38,6 +38,7 @@ import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
 import { initVostokApiServer } from '../openland-mtproto3/vostok/vostokApiServer';
+import { EventBus } from '../openland-module-pubsub/EventBus';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -122,7 +123,7 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
-                await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
+                await Modules.Messaging.sendMessage(ctx, chatId, botId, {message: text});
             }
         });
     }));
@@ -141,7 +142,7 @@ export async function initApi(isTest: boolean) {
             let data = req.body;
 
             let text = data.title + '\n' + data.message + (data.imageUrl ? '\n' + data.imageUrl : '') + (data.state === 'ok' ? '\nОтпустило кажется' : '');
-            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, {message: text});
         });
     }));
 
@@ -200,8 +201,8 @@ export async function initApi(isTest: boolean) {
         // Starting server
         const httpServer = http.createServer(app);
 
-        Server.applyMiddleware({ app, path: '/graphql' });
-        Server.applyMiddleware({ app, path: '/api' });
+        Server.applyMiddleware({app, path: '/graphql'});
+        Server.applyMiddleware({app, path: '/api'});
 
         // const wsCtx = createNamedContext('ws-gql');
         let fuckApolloWS = await createFuckApolloWSServer({
@@ -214,7 +215,7 @@ export async function initApi(isTest: boolean) {
                 try {
                     if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
                         let cookies = parseCookies(req.headers.cookie || '');
-                        return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
+                        return await fetchWebSocketParameters({'x-openland-token': cookies['x-openland-token']}, null);
                     }
                     return await fetchWebSocketParameters(params, null);
                 } finally {
@@ -270,7 +271,7 @@ export async function initApi(isTest: boolean) {
             executableSchema: Schema(),
             queryCache: new InMemoryQueryCache(),
             onAuth: async (token) => {
-                return await fetchWebSocketParameters({ 'x-openland-token': token }, null);
+                return await fetchWebSocketParameters({'x-openland-token': token}, null);
             },
             context: async (params, operation) => {
                 let opId = uuid();
@@ -307,20 +308,40 @@ export async function initApi(isTest: boolean) {
                 });
             }
         });
+
+        EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
+            for (let token of data.tokens) {
+                for (let entry of fuckApolloWS.sessions.entries()) {
+                    let [, session] = entry;
+                    if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
+                        session.close();
+                        session.stopAllOperations();
+                    }
+                }
+
+                for (let entry of vostok.sessions.sessions.entries()) {
+                    let [, session] = entry;
+                    if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
+                        session.destroy();
+                    }
+                }
+            }
+        });
+
         httpServer.on('upgrade', (request, socket, head) => {
             const pathname = url.parse(request.url).pathname;
 
             if (pathname === '/api') {
-                fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
-                    fuckApolloWS.emit('connection', _ws, request);
+                fuckApolloWS.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    fuckApolloWS.ws.emit('connection', _ws, request);
                 });
             } else if (pathname === '/gql_ws') {
-                fuckApolloWS.handleUpgrade(request, socket, head, (_ws) => {
-                    fuckApolloWS.emit('connection', _ws, request);
+                fuckApolloWS.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    fuckApolloWS.ws.emit('connection', _ws, request);
                 });
             } else if (pathname === '/vostok') {
-                vostok.handleUpgrade(request, socket, head, (_ws) => {
-                    vostok.emit('connection', _ws, request);
+                vostok.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    vostok.ws.emit('connection', _ws, request);
                 });
             } else {
                 socket.destroy();

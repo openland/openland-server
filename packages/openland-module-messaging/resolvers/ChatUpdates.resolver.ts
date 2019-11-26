@@ -98,6 +98,9 @@ export default {
                 return msg;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: AppContext) {
+                if (!ctx.auth.uid) {
+                    throw new AccessDeniedError();
+                }
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
