@@ -1,5 +1,4 @@
 import { Express } from 'express';
-import express from 'express';
 import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
@@ -9,30 +8,12 @@ import { Modules } from '../openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
 import { delay, foreverBreakable } from '../openland-utils/timer';
 import { Shutdown } from '../openland-utils/Shutdown';
+import { useOauth } from '../openland-module-oauth/http.handlers';
 
 const log = createLogger('zapier');
 const rootCtx = createNamedContext('zapier');
 
-async function checkAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-    await inTx(rootCtx, async ctx => {
-        if (!req.headers.authorization) {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
-            return;
-        }
-        let [bearer, token] = req.headers.authorization.split(' ');
-        if (bearer !== 'Bearer') {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
-            return;
-        }
-        let authToken = await Store.ZapierAuthToken.salt.find(ctx, token);
-        if (!authToken || !authToken.enabled) {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
-            return;
-        }
-        (req as any).uid = authToken.uid;
-        next();
-    });
-}
+const checkAuth = useOauth('zapier');
 
 export function initZapier(app: Express) {
     // tslint:disable-next-line:no-floating-promises
@@ -52,78 +33,10 @@ async function initZapierInternal(app: Express) {
     });
     Shutdown.registerWork({
         name: 'zapier-handlers-config',
-        shutdown: stop
+        shutdown: stop,
     });
 
     let projectUrl = (await Modules.Super.getEnvVar<string>(rootCtx, 'project-url')) || 'https://openland.com';
-
-    app.get('/integrations/zapier/oauth2/authorize', async (req, res) => {
-        await inTx(rootCtx, async ctx => {
-            log.log(ctx, '/oauth2/authorize', req.query);
-            if (
-                !req.query ||
-                req.query.client_id !== config!.ClientId ||
-                !req.query.state ||
-                typeof req.query.state !== 'string' ||
-                req.query.state.trim().length === 0 ||
-                !req.query.redirect_uri ||
-                typeof req.query.redirect_uri !== 'string' ||
-                req.query.redirect_uri.trim().length === 0 ||
-                req.query.response_type !== 'code'
-            ) {
-                res.redirect(projectUrl);
-                return;
-            }
-            let zapierAuth = await Modules.Zapier.createAuth(ctx, req.query.state, req.query.redirect_uri);
-            res.redirect(`${projectUrl}/mail/${IDs.User.serialize(config!.BotId)}?message=zapier-auth:${zapierAuth.id}`);
-        });
-    });
-    app.post('/integrations/zapier/oauth2/token', bodyParser.urlencoded(), async (req, res) => {
-        await inTx(rootCtx, async ctx => {
-            log.log(ctx, '/oauth2/token', req.body);
-            let body = req.body;
-            if (
-                !body.code ||
-                body.client_id !== config!.ClientId ||
-                body.client_secret !== config!.ClientSecret ||
-                body.grant_type !== 'authorization_code'
-            ) {
-                log.log(ctx, 'invalid params');
-                res.json({errors: [{message: 'Invalid params'}]});
-                return;
-            }
-            let auth = await Store.ZapierAuth.fromCode.find(ctx, body.code);
-            if (!auth || !auth.enabled || !auth.uid) {
-                log.log(ctx, 'invalid code');
-                res.json({errors: [{message: 'Invalid code'}]});
-                return;
-            }
-            if (body.redirect_uri !== auth.redirectUrl) {
-                log.log(ctx, 'invalid redirect_uri');
-                res.json({errors: [{message: 'Invalid redirect_uri'}]});
-                return;
-            }
-            auth.enabled = false;
-            let token = await Modules.Zapier.createToken(ctx, auth.uid);
-            log.log(ctx, 'token granted');
-            res.json({token_type: 'Bearer', access_token: token.salt});
-            let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, auth.uid);
-            await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: 'Zapier connected successfully!'});
-        });
-    });
-    app.get('/integrations/zapier/v1/user/info', checkAuth, async (req, res) => {
-        await inTx(rootCtx, async ctx => {
-            let uid = (req as any).uid;
-            log.log(ctx, '/user/info', 'uid:', uid);
-            res.json({
-                data: {
-                    name: await Modules.Users.getUserFullName(ctx, uid),
-                    id: IDs.User.serialize(uid),
-                    url: projectUrl + '/' + IDs.User.serialize(uid)
-                }
-            });
-        });
-    });
 
     app.get('/integrations/zapier/v1/triggers/fetch_chats', checkAuth, bodyParser.json(), async (req, res) => {
        await inTx(rootCtx, async ctx => {
@@ -136,8 +49,8 @@ async function initZapierInternal(app: Express) {
           res.status(200).json(
               await Promise.all(commonChats.map(async a => ({
                   id: IDs.Conversation.serialize(a!.cid),
-                  title: await Modules.Messaging.room.resolveConversationTitle(ctx, a!.cid, config!.BotId)
-              })))
+                  title: await Modules.Messaging.room.resolveConversationTitle(ctx, a!.cid, config!.BotId),
+              }))),
           );
        });
     });
@@ -154,7 +67,7 @@ async function initZapierInternal(app: Express) {
             let channels = await Promise.all(commonChannels.map(a => Store.FeedChannel.findById(ctx, a!.channelId)));
             res.status(200).json(channels.map(a => ({
                 id: IDs.FeedChannel.serialize(a!.id),
-                title: a!.title
+                title: a!.title,
             })));
         });
     });
@@ -208,9 +121,9 @@ async function initZapierInternal(app: Express) {
                                 spans: null,
                                 cover: null,
                                 coverAlign: null,
-                                attachments: null
-                            }
-                        ]
+                                attachments: null,
+                            },
+                        ],
                     });
                 } else {
                     res.status(400).json({errors: [{message: 'Zapier bot has no permissions to write to this channel.'}]});
@@ -227,9 +140,9 @@ async function initZapierInternal(app: Express) {
                 data: [
                     {
                         id: Date.now(),
-                        url: projectUrl + '/' + IDs.User.serialize(config!.BotId)
-                    }
-                ]
+                        url: projectUrl + '/' + IDs.User.serialize(config!.BotId),
+                    },
+                ],
             });
         });
     });

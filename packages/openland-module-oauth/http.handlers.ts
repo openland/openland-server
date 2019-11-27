@@ -7,11 +7,12 @@ import { Store } from '../openland-module-db/FDB';
 import * as bodyParser from 'body-parser';
 import { Modules } from '../openland-modules/Modules';
 import { OauthScope } from './OauthModule';
+import { IDs } from 'openland-module-api/IDs';
 
 const log = createLogger('oauth');
 const rootCtx = createNamedContext('oauth');
 
-export async function checkAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+export const useOauth = (scope?: string) => async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await inTx(rootCtx, async ctx => {
         if (!req.headers.authorization) {
             res.status(401).json({errors: [{message: 'Invalid auth'}]});
@@ -27,11 +28,15 @@ export async function checkAuth(req: express.Request, res: express.Response, nex
             res.status(401).json({errors: [{message: 'Invalid auth'}]});
             return;
         }
+        if (scope && !authToken.scopes.includes(scope)) {
+            res.status(401).json({errors: [{message: 'Invalid auth'}]});
+            return;
+        }
+
         (req as any).uid = authToken.uid;
         next();
     });
-}
-
+};
 export function initOauth2(app: Express) {
     // tslint:disable-next-line:no-floating-promises
     initOauth2Internal(app);
@@ -104,7 +109,9 @@ async function initOauth2Internal(app: Express) {
         });
     });
 
-    app.get('/ouath2/test', checkAuth, async (req, res) => {
-       res.send(200);
+    app.get('/ouath2/test', useOauth(), async (req, res) => {
+       res.json({
+           uid: IDs.User.serialize((req as any).uid),
+       });
     });
 }
