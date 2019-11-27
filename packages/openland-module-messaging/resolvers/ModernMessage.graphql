@@ -110,7 +110,7 @@ extend type Query {
     gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
-    chatSharedMedia(chatId: ID!, mediaType: SharedMediaType!, first: Int!, after: String): MessageConnection!
+    chatSharedMedia(chatId: ID!, mediaType: [SharedMediaType!]!, first: Int!, after: String): MessageConnection!
 }
 
 extend type Mutation {
