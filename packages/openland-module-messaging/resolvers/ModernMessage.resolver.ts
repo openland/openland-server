@@ -1041,17 +1041,16 @@ export default {
             let chatId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
 
-            let terms: any[] = [{term: {cid: chatId}}];
+            const idTerm = {term: {cid: chatId}};
 
-            if (args.mediaType === 'LINK') {
-                terms.push({term: {haveLinkAttachment: true}});
-            } else if (args.mediaType === 'IMAGE') {
-                terms.push({term: {haveImageAttachment: true}});
-            } else if (args.mediaType === 'DOCUMENT') {
-                terms.push({term: {haveDocumentAttachment: true}});
-            } else if (args.mediaType === 'VIDEO') {
-                terms.push({term: {haveVideoAttachment: true}});
-            }
+            const termByType = {
+                LINK: {haveLinkAttachment: true},
+                IMAGE: {haveImageAttachment: true},
+                DOCUMENT: {haveDocumentAttachment: true},
+                VIDEO: {haveVideoAttachment: true},
+            };
+
+            const mediaTypeTerms = args.mediaType.map(type => ({term: termByType[type]}));
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'message',
@@ -1060,7 +1059,7 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: [{createdAt: 'desc'}],
-                    query: {bool: {must: terms}},
+                    query: {bool: {must: idTerm, should: mediaTypeTerms}},
                 },
             });
 
