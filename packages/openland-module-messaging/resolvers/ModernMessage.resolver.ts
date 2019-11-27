@@ -1050,7 +1050,7 @@ export default {
                 VIDEO: {haveVideoAttachment: true},
             };
 
-            const mediaTypeTerms = args.mediaType.map(type => ({term: termByType[type]}));
+            const mediaTypesTerms = args.mediaTypes.map(type => ({term: termByType[type]}));
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'message',
@@ -1059,7 +1059,7 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: [{createdAt: 'desc'}],
-                    query: {bool: {must: idTerm, should: mediaTypeTerms}},
+                    query: {bool: {must: idTerm, should: mediaTypesTerms}},
                 },
             });
 

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f522fb65e345d2a95c89459ac5b3ad08';
+export const GQL_SPEC_VERSION = '1158d796bd95a6c5bdc470844974046a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2786,7 +2786,7 @@ export namespace GQL {
     }
     export interface QueryChatSharedMediaArgs {
         chatId: string;
-        mediaType: SharedMediaType[];
+        mediaTypes: SharedMediaType[];
         first: number;
         after: OptionalNullable<string>;
     }
