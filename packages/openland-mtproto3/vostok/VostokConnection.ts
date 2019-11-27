@@ -2,14 +2,14 @@ import { createIterator } from '../../openland-utils/asyncIterator';
 import { delay } from '../../openland-utils/timer';
 import {
     decodeAckMessages,
-    decodeMessage, decodeMessagesContainer,
+    decodeMessage, decodeMessageNotFoundResponse, decodeMessagesContainer,
     decodeMessagesInfoRequest,
     decodePing, decodeResendMessageAnswerRequest,
     encodeInvalidMessage,
     encodePing,
     encodePong,
     isAckMessages,
-    isMessage, isMessagesContainer,
+    isMessage, isMessageNotFoundResponse, isMessagesContainer,
     isMessagesInfoRequest,
     isPing,
     isPong, isResendMessageAnswerRequest,
@@ -84,6 +84,8 @@ export class VostokConnection {
                 decodeMessagesContainer(msgData).messages.forEach(msg => this.incomingData.push(msg));
             } else if (isResendMessageAnswerRequest(msgData)) {
                 this.incomingData.push(decodeResendMessageAnswerRequest(msgData));
+            } else if (isMessageNotFoundResponse(msgData)) {
+                this.incomingData.push(decodeMessageNotFoundResponse(msgData));
             } else {
                 log.log(rootCtx, 'unexpected top level message:', msgData);
             }
