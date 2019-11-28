@@ -1041,8 +1041,6 @@ export default {
             let chatId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
 
-            const idTerm = {term: {cid: chatId}};
-
             const termByType = {
                 LINK: {haveLinkAttachment: true},
                 IMAGE: {haveImageAttachment: true},
@@ -1052,6 +1050,12 @@ export default {
 
             const mediaTypesTerms = args.mediaTypes.map(type => ({term: termByType[type]}));
 
+            const clauses = [
+                {term: {cid: chatId}},
+                {bool: {should: mediaTypesTerms}},
+                {term: {deleted: false}}
+            ];
+
             let hits = await Modules.Search.elastic.client.search({
                 index: 'message',
                 type: 'message',
@@ -1059,7 +1063,7 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: [{createdAt: 'desc'}],
-                    query: {bool: {must: [idTerm, mediaTypesTerms]}},
+                    query: {bool: {must: clauses}},
                 },
             });
 
