@@ -1059,7 +1059,10 @@ export default {
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
                     sort: [{createdAt: 'desc'}],
-                    query: {bool: {must: idTerm, should: mediaTypesTerms}},
+                    query: {bool: {must: [
+                        idTerm, 
+                        {bool: {should: mediaTypesTerms}}
+                    ]}},
                 },
             });
 
