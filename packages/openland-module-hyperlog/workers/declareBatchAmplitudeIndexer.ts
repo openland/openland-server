@@ -56,7 +56,7 @@ function toAmplitudeEvent(event: InternalTrackEvent, userProps?: AmplitudeUserPr
     return {
         user_id: userId,
         device_id: deviceId,
-        event_type: event.name,
+        event_type: event.name.trim().length > 0 ? event.name : 'unknown',
         event_properties: eventProperties,
         insert_id: event.id,
         platform: event.platform,

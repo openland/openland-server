@@ -46,6 +46,9 @@ export default {
                             throw new UserError('params should be map');
                         }
                     }
+                    if (i.event.trim().length === 0) {
+                        throw new UserError('Event should be string');
+                    }
                     trackEvent.event(ctx2, {
                         did: args.did,
                         id: i.id,
