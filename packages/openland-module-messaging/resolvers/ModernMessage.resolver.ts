@@ -1100,7 +1100,7 @@ export default {
                 index: 'message',
                 type: 'message',
                 size: 0,
-                body: {query: {bool: {must: [{term: {cid: chatId}}, {term}]}}},
+                body: {query: {bool: {must: [{term: {cid: chatId}}, {term: {deleted: false}}, {term}]}}},
             });
 
             let [
