@@ -10,6 +10,7 @@ import { delay } from '@openland/foundationdb/lib/utils';
 import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
+import { batch } from '../../openland-utils/batch';
 
 const Delays = {
     'none': 10 * 1000,
@@ -151,9 +152,9 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     return true;
 };
 
-const handleUser = async (uid: number) => {
+const handleUser = async (root: Context, uid: number) => {
     try {
-        return await inTx(rootCtx, async _ctx => {
+        return await inTx(root, async _ctx => {
             let ctx = withLogPath(_ctx, 'user ' + uid);
 
             log.debug(ctx, 'handle');
@@ -240,6 +241,12 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        await Promise.all(unreadUsers.map(uid => handleUser(uid)));
+        let batches = batch(unreadUsers, 10);
+
+        for (let b of batches) {
+            await inTx(rootCtx, async ctx => {
+                await Promise.all(b.map(uid => handleUser(ctx, uid)));
+            });
+        }
     });
 }
