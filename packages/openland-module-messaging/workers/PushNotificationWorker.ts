@@ -10,6 +10,7 @@ import { delay } from '@openland/foundationdb/lib/utils';
 import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
+import { batch } from '../../openland-utils/batch';
 
 const Delays = {
     'none': 10 * 1000,
@@ -151,73 +152,77 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     return true;
 };
 
-const handleUser = async (uid: number) => {
-    return await inTx(rootCtx, async _ctx => {
-        let ctx = withLogPath(_ctx, 'user ' + uid);
+const handleUser = async (root: Context, uid: number) => {
+    try {
+        return await inTx(root, async _ctx => {
+            let ctx = withLogPath(_ctx, 'user ' + uid);
 
-        log.debug(ctx, 'handle');
+            log.debug(ctx, 'handle');
 
-        // Loading user's settings and state
-        let [settings, state, lastSeen, isActive] = await Promise.all([
-            Modules.Users.getUserSettings(ctx, uid),
-            Modules.Messaging.getUserNotificationState(ctx, uid),
-            Modules.Presence.getLastSeen(ctx, uid),
-            await Modules.Presence.isActive(ctx, uid)
-        ]);
+            // Loading user's settings and state
+            let [settings, state, lastSeen, isActive] = await Promise.all([
+                Modules.Users.getUserSettings(ctx, uid),
+                Modules.Messaging.getUserNotificationState(ctx, uid),
+                Modules.Presence.getLastSeen(ctx, uid),
+                await Modules.Presence.isActive(ctx, uid)
+            ]);
 
-        const user = {
-            uid,
-            lastSeen,
-            isActive,
-            notificationsDelay: settings.notificationsDelay,
-            lastPushCursor: state.lastPushCursor,
-            eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
-            mobileNotifications: settings.mobileNotifications,
-            desktopNotifications: settings.desktopNotifications,
-        };
+            const user = {
+                uid,
+                lastSeen,
+                isActive,
+                notificationsDelay: settings.notificationsDelay,
+                lastPushCursor: state.lastPushCursor,
+                eventsTail: await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx),
+                mobileNotifications: settings.mobileNotifications,
+                desktopNotifications: settings.desktopNotifications,
+            };
 
-        if (shouldIgnoreUser(ctx, user)) {
-            log.debug(ctx, 'ignored');
-            await Modules.Push.sendCounterPush(ctx, uid);
-            Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-            state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-            return;
-        }
-
-        // Scanning updates
-        // let cursors = [
-        //     Buffer.from(state.lastPushCursor || '', 'base64'),
-        //     Buffer.from(state.lastEmailCursor || '', 'base64')
-        // ].sort(Buffer.compare);
-        // let after = cursors[cursors.length - 1].toString('base64');
-        let after = state.lastPushCursor || '';
-
-        let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
-        let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
-        log.log(ctx, messages.length, 'messages found');
-
-        let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
-
-        // Handling unread messages
-        let hasPush = false;
-        await Promise.all(messages.map(async m => {
-            let res = await handleMessage(ctx, uid, unreadCounter, settings, m);
-            if (res) {
-                hasPush = true;
+            if (shouldIgnoreUser(ctx, user)) {
+                log.debug(ctx, 'ignored');
+                await Modules.Push.sendCounterPush(ctx, uid);
+                Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+                state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+                return;
             }
-        }));
 
-        // Save state
-        if (hasPush) {
-            state.lastPushNotification = Date.now();
-        } else {
-            log.debug(ctx, 'send counter');
-            await Modules.Push.sendCounterPush(ctx, uid);
-        }
+            // Scanning updates
+            // let cursors = [
+            //     Buffer.from(state.lastPushCursor || '', 'base64'),
+            //     Buffer.from(state.lastEmailCursor || '', 'base64')
+            // ].sort(Buffer.compare);
+            // let after = cursors[cursors.length - 1].toString('base64');
+            let after = state.lastPushCursor || '';
 
-        state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-    });
+            let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+            let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
+            log.log(ctx, messages.length, 'messages found');
+
+            let unreadCounter: number = await Modules.Messaging.fetchUserGlobalCounter(ctx, uid);
+
+            // Handling unread messages
+            let hasPush = false;
+            await Promise.all(messages.map(async m => {
+                let res = await handleMessage(ctx, uid, unreadCounter, settings, m);
+                if (res) {
+                    hasPush = true;
+                }
+            }));
+
+            // Save state
+            if (hasPush) {
+                state.lastPushNotification = Date.now();
+            } else {
+                log.debug(ctx, 'send counter');
+                await Modules.Push.sendCounterPush(ctx, uid);
+            }
+
+            state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
+            Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+        });
+    } catch (e) {
+        log.log(rootCtx, 'push_error', e);
+    }
 };
 
 export function startPushNotificationWorker() {
@@ -236,6 +241,12 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        await Promise.all(unreadUsers.map(uid => handleUser(uid)));
+        let batches = batch(unreadUsers, 10);
+
+        for (let b of batches) {
+            await inTx(rootCtx, async ctx => {
+                await Promise.all(b.map(uid => handleUser(ctx, uid)));
+            });
+        }
     });
 }

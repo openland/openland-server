@@ -291,6 +291,7 @@ export namespace GQLRoots {
     export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
     export type MentionPeerRoot = UserProfile | ConversationRoom | Organization;
     export type MessageWithMentionRoot = FeedEvent | Message;
+    export type SharedMediaCountersRoot = GQL.SharedMediaCounters;
 
     //
     //  Chat updates

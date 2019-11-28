@@ -105,12 +105,20 @@ enum SharedMediaType {
     VIDEO
 }
 
+type SharedMediaCounters {
+    links: Int!
+    images: Int!
+    documents: Int!
+    videos: Int!
+}
+
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
     gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
     chatSharedMedia(chatId: ID!, mediaTypes: [SharedMediaType!]!, first: Int!, after: String): MessageConnection!
+    chatSharedMediaCounters(chatId: ID!): SharedMediaCounters!
 }
 
 extend type Mutation {

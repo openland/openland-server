@@ -6,12 +6,12 @@ import {
     encodeMessage, encodeMessageIsProcessingResponse, encodeMessageNotFoundResponse,
     encodeMessagesContainer, encodeMessagesInfoRequest,
     isAckMessages,
-    isMessage,
+    isMessage, isMessageNotFoundResponse,
     isMessagesInfoRequest, isResendMessageAnswerRequest,
     KnownTypes,
     makeAckMessages,
     makeMessage, makeMessageIsProcessingResponse,
-    makeMessageNotFoundResponse, makeMessagesContainer, makeMessagesInfoRequest,
+    makeMessageNotFoundResponse, makeMessagesContainer, makeMessagesInfoRequest, MessageNotFoundResponseShape,
     MessageShape, MessagesInfoRequestShape, ResendMessageAnswerRequestShape
 } from '../vostok-schema/VostokTypes';
 import { RotatingMap } from '../../openland-utils/RotatingSizeMap';
@@ -63,7 +63,6 @@ export class VostokSession {
     }
 
     setupAckLoop() {
-        // send requests only for delivered messages and after some timeout
         forever(this.ctx, async () => {
             let ids: string[] = [];
 
@@ -134,6 +133,8 @@ export class VostokSession {
                     this.handleMessagesInfoRequest(msgData);
                 } else if (isResendMessageAnswerRequest(msgData)) {
                     this.handleResendMessageAnswerRequest(msgData);
+                } else if (isMessageNotFoundResponse(msgData)) {
+                    this.handleMessageNotFoundResponse(msgData);
                 }
             }
 
@@ -177,7 +178,7 @@ export class VostokSession {
     private handleResendMessageAnswerRequest(req: ResendMessageAnswerRequestShape) {
         let incomingMessage = this.incomingMessagesMap.get(req.messageId);
         if (incomingMessage && incomingMessage.responseMessage && this.outgoingMessagesMap.has(incomingMessage.responseMessage)) {
-            this.sendRaw(this.outgoingMessagesMap.get(incomingMessage.responseMessage));
+            this.sendRaw(encodeMessage(this.outgoingMessagesMap.get(incomingMessage.responseMessage)!.msg));
             return;
         } else if (incomingMessage) {
             this.sendRaw(encodeMessageIsProcessingResponse(makeMessageIsProcessingResponse({ messageId: req.messageId })));
@@ -188,11 +189,20 @@ export class VostokSession {
     }
 
     /**
-     * Returns connect which sent Pong last
+     * Most likely server receives this as a response to MessagesInfoRequest request
+     * and sends this message again if it has not been forgotten already
+     */
+    private handleMessageNotFoundResponse(res: MessageNotFoundResponseShape) {
+        if (this.outgoingMessagesMap.has(res.messageId)) {
+            this.sendRaw(encodeMessage(this.outgoingMessagesMap.get(res.messageId)!.msg));
+        }
+    }
+
+    /**
+     * Returns connection from which the last `Pong` came
      */
     private freshestConnect() {
-        let connects = this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck);
-        return connects[0];
+        return this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck)[0];
     }
 
     /**
