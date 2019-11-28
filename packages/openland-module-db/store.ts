@@ -13788,6 +13788,7 @@ export interface OauthApplicationShape {
     clientSecret: string;
     title: string;
     allowedScopes: (string)[];
+    allowedRedirectUrls: (string)[] | null;
     enabled: boolean;
 }
 
@@ -13796,6 +13797,7 @@ export interface OauthApplicationCreateShape {
     clientSecret: string;
     title: string;
     allowedScopes: (string)[];
+    allowedRedirectUrls?: (string)[] | null | undefined;
     enabled: boolean;
 }
 
@@ -13837,6 +13839,15 @@ export class OauthApplication extends Entity<OauthApplicationShape> {
             this.invalidate();
         }
     }
+    get allowedRedirectUrls(): (string)[] | null { return this._rawValue.allowedRedirectUrls; }
+    set allowedRedirectUrls(value: (string)[] | null) {
+        let normalized = this.descriptor.codec.fields.allowedRedirectUrls.normalize(value);
+        if (this._rawValue.allowedRedirectUrls !== normalized) {
+            this._rawValue.allowedRedirectUrls = normalized;
+            this._updatedValues.allowedRedirectUrls = normalized;
+            this.invalidate();
+        }
+    }
     get enabled(): boolean { return this._rawValue.enabled; }
     set enabled(value: boolean) {
         let normalized = this.descriptor.codec.fields.enabled.normalize(value);
@@ -13861,6 +13872,7 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         fields.push({ name: 'clientSecret', type: { type: 'string' }, secure: false });
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
         fields.push({ name: 'allowedScopes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'allowedRedirectUrls', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             clientId: c.string,
@@ -13868,6 +13880,7 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
             clientSecret: c.string,
             title: c.string,
             allowedScopes: c.array(c.string),
+            allowedRedirectUrls: c.optional(c.array(c.string)),
             enabled: c.boolean,
         });
         let descriptor: EntityDescriptor<OauthApplicationShape> = {

@@ -1690,12 +1690,17 @@ export default declareSchema(() => {
             .withCondition(src => src.enabled !== false);
     });
 
+    //
+    // Oauth
+    //
+
     entity('OauthApplication', () => {
         primaryKey('clientId', string());
         field('uid', integer());
         field('clientSecret', string());
         field('title', string());
         field('allowedScopes', array(string()));
+        field('allowedRedirectUrls', optional(array(string())));
         field('enabled', boolean());
 
         rangeIndex('user', ['uid', 'createdAt']);
