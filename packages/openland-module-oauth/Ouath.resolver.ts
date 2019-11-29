@@ -5,6 +5,7 @@ import { AuthContext } from '../openland-module-auth/AuthContext';
 import { OauthScope } from './OauthModule';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
+import { InvalidInputError } from '../openland-errors/InvalidInputError';
 
 export default {
     OauthApp: {
@@ -12,6 +13,7 @@ export default {
         clientSecret: root => root.clientSecret,
         owner: (root, args, ctx) => Store.UserProfile.findById(ctx, root.uid),
         scopes: root => root.allowedScopes,
+        redirectUrls: root => root.allowedRedirectUrls,
         title: root => root.title,
     },
     OauthContext: {
@@ -45,7 +47,26 @@ export default {
         createOauthApp: withPermission('super-admin', async (ctx, args) => {
             let user = AuthContext.get(ctx);
 
-            return await Modules.Oauth.createApp(ctx, user.uid!, args.title, args.scopes as (OauthScope[] | null));
+            if (!args.input.title) {
+                throw new InvalidInputError([{ key: 'input', message: 'Title is not defined' }]);
+            }
+
+            return await Modules.Oauth.createApp(
+                ctx,
+                user.uid!,
+                args.input.title,
+                args.input.scopes as (OauthScope[] | null),
+                args.input.redirectUrls
+            );
         }),
+        updateOuathApp: withPermission('super-admin', async (ctx, args) => {
+            return await Modules.Oauth.updateApp(
+                ctx,
+                args.clientId,
+                args.input.title,
+                args.input.scopes as (OauthScope[] | null),
+                args.input.redirectUrls
+            );
+        })
     },
 } as GQLResolver;

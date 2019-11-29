@@ -9,6 +9,7 @@ type OauthApp {
     clientSecret: String!
     scopes: [OauthScope!]!
     owner: User!
+    redirectUrls: [String!]
 }
 
 type OauthContext {
@@ -18,11 +19,19 @@ type OauthContext {
     code: String!
 }
 
+input OauthAppInput {
+    title: String
+    scopes: [OauthScope!]
+    redirectUrls: [String!]
+}
+
+
 extend type Query {
     myOauthApps: [OauthApp!]!
     oauthContext(code: String!): OauthContext
 }
 
 extend type Mutation {
-    createOauthApp(title: String!, scopes: [OauthScope!]): OauthApp!
+    createOauthApp(input: OauthAppInput!): OauthApp!
+    updateOuathApp(clientId: String!, input: OauthAppInput!): OauthApp!
 }
