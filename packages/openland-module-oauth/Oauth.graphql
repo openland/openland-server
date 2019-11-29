@@ -33,5 +33,5 @@ extend type Query {
 
 extend type Mutation {
     createOauthApp(input: OauthAppInput!): OauthApp!
-    updateOuathApp(clientId: String!, input: OauthAppInput!): OauthApp!
+    updateOauthApp(clientId: String!, input: OauthAppInput!): OauthApp!
 }

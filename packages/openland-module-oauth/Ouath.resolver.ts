@@ -59,7 +59,7 @@ export default {
                 args.input.redirectUrls
             );
         }),
-        updateOuathApp: withPermission('super-admin', async (ctx, args) => {
+        updateOauthApp: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Oauth.updateApp(
                 ctx,
                 args.clientId,
