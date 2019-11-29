@@ -12,11 +12,11 @@ import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
 
-const Delays = {
-    'none': 10 * 1000,
-    '1min': 60 * 1000,
-    '15min': 15 * 60 * 1000,
-};
+// const Delays = {
+//     'none': 10 * 1000,
+//     '1min': 60 * 1000,
+//     '15min': 15 * 60 * 1000,
+// };
 
 const log = createLogger('push');
 const rootCtx = createNamedContext('push');
@@ -41,12 +41,12 @@ export const shouldIgnoreUser = (ctx: Context, user: {
         return true;
     }
 
-    let now = Date.now();
+    // let now = Date.now();
     // Pause notifications till 1 minute passes from last active timeout
-    if (user.lastSeen > (now - Delays[user.notificationsDelay || 'none'])) {
-        log.debug(ctx, 'skip delay');
-        return true;
-    }
+    // if (user.lastSeen > (now - Delays[user.notificationsDelay || 'none'])) {
+    //     log.debug(ctx, 'skip delay');
+    //     return true;
+    // }
 
     // Ignore user's with disabled notifications
     if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
