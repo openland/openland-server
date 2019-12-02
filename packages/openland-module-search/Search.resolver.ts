@@ -430,7 +430,7 @@ export default {
             }
 
             let hits = await Modules.Search.elastic.client.search({
-                index: 'user_profile,organization,room', type: '_all',
+                index: 'user_profile,organization,room',
                 from: from,
                 size: args.first,
                 body: {
