@@ -105,6 +105,7 @@
     "node-fetch": "^1.7.1",
     "nodemon": "^1.11.0",
     "pino": "^5.13.1",
+    "protobufjs": "^6.8.8",
     "query-string": "^6.0.0",
     "redis": "^2.8.0",
     "reflect-metadata": "^0.1.10",

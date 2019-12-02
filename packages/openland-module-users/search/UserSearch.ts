@@ -79,8 +79,7 @@ export class UserSearch {
 
     async searchForUsers(parent: Context, query: string, options?: UserSearchOptions) {
         return await tracer.trace(parent, 'search', async (ctx) => {
-            let mainQuery = this.buildUsersQuery(ctx, query, options);
-
+            let mainQuery = await this.buildUsersQuery(ctx, query, options);
             return await tracer.trace(ctx, 'elastic', async () => {
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'user_profile',
