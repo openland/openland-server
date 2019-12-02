@@ -4,75 +4,82 @@ import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
 
 const tracer = createTracer('user-search');
+
+type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[] };
+type UserSearchOptions = UserSearchQueryOptions & { limit?: number, after?: string, page?: number };
 export class UserSearch {
-    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean, uids?: number[] }) {
-        return await tracer.trace(parent, 'search', async (ctx) => {
+    async buildUsersQuery(ctx: Context, query: string, options?: UserSearchQueryOptions) {
+        let normalized = query.trim();
 
-            let normalized = query.trim();
+        let mainQuery: any = {
+            bool: {
+                should: normalized.length > 0 ? [
+                    { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
+                    { match_phrase_prefix: { shortName: query } },
+                ] : [],
+                must_not: options && options.uid ? [
+                    // { match: { _id: options.uid } },
+                    { match: { status: 'deleted' } },
+                    { match: { status: 'suspended' } },
+                    { match: { status: 'pending' } },
+                ] : [],
+            },
+        };
+        if (options && options.uids) {
+            mainQuery.bool.must = [{terms: {userId: options.uids}}];
+        }
 
-            let mainQuery: any = {
-                bool: {
-                    should: normalized.length > 0 ? [
-                        { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
-                        { match_phrase_prefix: { shortName: query } }
-                    ] : [],
-                    must_not: options && options.uid ? [
-                        // { match: { _id: options.uid } },
-                        { match: { status: 'deleted' } },
-                        { match: { status: 'suspended' } },
-                        { match: { status: 'pending' } },
-                    ] : [],
-                }
-            };
+        if (options && options.uid) {
+            let profilePromise = Store.UserProfile.findById(ctx, options.uid);
+            let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
+            let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, options.uid, { limit: 300, reverse: true });
+            let profile = await profilePromise;
+            let organizations = await organizationsPromise;
+            let functions: any[] = [];
 
-            if (options && options.uids) {
-                mainQuery.bool.must = [{terms: {userId: options.uids}}];
+            // Huge boost if primary organization same
+            if (profile && profile.primaryOrganization) {
+                functions.push({
+                    filter: { match: { primaryOrganization: profile.primaryOrganization } },
+                    weight: 8
+                });
             }
 
-            if (options && options.uid) {
-                let profilePromise = Store.UserProfile.findById(ctx, options.uid);
-                let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
-                let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, options.uid, { limit: 300, reverse: true });
-                let profile = await profilePromise;
-                let organizations = await organizationsPromise;
-                let functions: any[] = [];
-
-                // Huge boost if primary organization same
-                if (profile && profile.primaryOrganization) {
+            // Boost if have common organizations (more common organizations - more boost)
+            if (organizations.length > 0) {
+                for (let o of organizations) {
                     functions.push({
-                        filter: { match: { primaryOrganization: profile.primaryOrganization } },
-                        weight: 8
+                        filter: { match: { organizations: o } },
+                        weight: 2
                     });
                 }
+            }
 
-                // Boost if have common organizations (more common organizations - more boost)
-                if (organizations.length > 0) {
-                    for (let o of organizations) {
-                        functions.push({
-                            filter: { match: { organizations: o } },
-                            weight: 2
-                        });
+            // Boost top dialogs
+            for (let dialog of topDialogs.items) {
+                functions.push({
+                    filter: { match: { userId: dialog.uid2 } },
+                    weight: dialog.weight || 1 // temporary hack for not breaking search when reindexing user edges
+                });
+            }
+
+            if (functions.length > 0) {
+                mainQuery = {
+                    function_score: {
+                        query: mainQuery,
+                        functions: functions,
+                        boost_mode: 'multiply'
                     }
-                }
-
-                // Boost top dialogs
-                for (let dialog of topDialogs.items) {
-                    functions.push({
-                        filter: { match: { userId: dialog.uid2 } },
-                        weight: dialog.weight || 1 // temporary hack for not breaking search when reindexing user edges
-                    });
-                }
-
-                if (functions.length > 0) {
-                    mainQuery = {
-                        function_score: {
-                            query: mainQuery,
-                            functions: functions,
-                            boost_mode: 'multiply'
-                        }
-                    };
-                }
+                };
             }
+        }
+
+        return mainQuery;
+    }
+
+    async searchForUsers(parent: Context, query: string, options?: UserSearchOptions) {
+        return await tracer.trace(parent, 'search', async (ctx) => {
+            let mainQuery = this.buildUsersQuery(ctx, query, options);
 
             return await tracer.trace(ctx, 'elastic', async () => {
                 let hits = await Modules.Search.elastic.client.search({

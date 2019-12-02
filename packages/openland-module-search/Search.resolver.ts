@@ -29,11 +29,9 @@ export default {
 
             throw new Error('Unknown search entry' + obj);
         },
-    },
-    MessageWithChat: {
+    }, MessageWithChat: {
         message: src => src.message, chat: src => src.chat,
-    },
-    Query: {
+    }, Query: {
         alphaGlobalSearch: withAccount(async (ctx, args, uid, oid) => {
             let query = args.query.trim();
 
@@ -45,9 +43,9 @@ export default {
                 index: 'organization', type: 'organization', size: 10, body: {
                     query: {
                         function_score: {
-                            query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
+                            query: { bool: { must: [{ match_phrase_prefix: { name: query } }] } },
                             functions: userOrgs.map(_oid => ({
-                                filter: {match: {_id: _oid}}, weight: 2,
+                                filter: { match: { _id: _oid } }, weight: 2,
                             })),
                             boost_mode: 'multiply',
                         },
@@ -58,24 +56,22 @@ export default {
             //
             // Users
             //
-            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: true, limit: 10, uid});
+            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, { byName: true, limit: 10, uid });
 
             //
             // User dialog rooms
             //
 
-            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
-                Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
-                Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
-            ]);
+            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([Store.UserEdge.forwardWeight.query(ctx, uid, {
+                limit: 300,
+                reverse: true,
+            }), Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true })]);
             // Boost top dialogs
             let privateDialogsFilter = topPrivateDialogs.items.map(dialog => ({
-                filter: {match: {uid2: dialog.uid2}},
-                weight: dialog.weight || 1
+                filter: { match: { uid2: dialog.uid2 } }, weight: dialog.weight || 1,
             }));
             let groupDialogsFilter = topGroupDialogs.items.map(dialog => ({
-                filter: {match: {cid: dialog.cid}},
-                weight: dialog.weight || 1
+                filter: { match: { cid: dialog.cid } }, weight: dialog.weight || 1,
             }));
 
             let localDialogsHitsPromise = Modules.Search.elastic.client.search({
@@ -84,13 +80,11 @@ export default {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
+                                    must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), ...[{ term: { uid: uid } }, { term: { visible: true } }]],
                                 },
-                            },
-                            functions: [...privateDialogsFilter, ...groupDialogsFilter],
-                            boost_mode: 'multiply'
-                        }
-                    }
+                            }, functions: [...privateDialogsFilter, ...groupDialogsFilter], boost_mode: 'multiply',
+                        },
+                    },
                 },
             });
 
@@ -99,17 +93,14 @@ export default {
             //
             let globalRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
-                    sort: [{membersCount: {'order': 'desc'}}],
-                    query: {
+                    sort: [{ membersCount: { 'order': 'desc' } }], query: {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
-                                }
-                            },
-                            functions: groupDialogsFilter,
-                            boost_mode: 'multiply'
-                        }
+                                    must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: true } }],
+                                },
+                            }, functions: groupDialogsFilter, boost_mode: 'multiply',
+                        },
                     },
                 },
             });
@@ -118,45 +109,26 @@ export default {
             // Organization rooms
             //
             let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
-            let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
+            let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
             let orgRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', size: 10, body: {
-                    sort: [{membersCount: {'order': 'desc'}}],
-                    query: {
+                    sort: [{ membersCount: { 'order': 'desc' } }], query: {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [
-                                        ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
-                                        {term: {listed: false}},
-                                        {
-                                            bool: {
-                                                should: orgChatFilters
-                                            }
-                                        }
-                                    ],
+                                    must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: false } }, {
+                                        bool: {
+                                            should: orgChatFilters,
+                                        },
+                                    }],
                                 },
-                            },
-                            functions: groupDialogsFilter,
-                            boost_mode: 'multiply'
-                        }
+                            }, functions: groupDialogsFilter, boost_mode: 'multiply',
+                        },
                     },
                 },
             });
 
-            let [
-                usersHits,
-                localDialogsHits,
-                globalRoomHits,
-                orgRoomHits,
-                orgsHits
-            ] = await Promise.all([
-                usersHitsPromise,
-                localDialogsHitsPromise,
-                globalRoomHitsPromise,
-                orgRoomHitsPromise,
-                orgsHitsPromise
-            ]);
+            let [usersHits, localDialogsHits, globalRoomHits, orgRoomHits, orgsHits] = await Promise.all([usersHitsPromise, localDialogsHitsPromise, globalRoomHitsPromise, orgRoomHitsPromise, orgsHitsPromise]);
 
             let allHits = [...localDialogsHits.hits.hits, ...usersHits.hits.hits.hits, ...orgRoomHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
 
@@ -233,20 +205,18 @@ export default {
             });
 
             return data;
-        }),
-        featuredGroups: withAccount(async (ctx, args, uid, oid) => {
+        }), featuredGroups: withAccount(async (ctx, args, uid, oid) => {
             let globalRoomHits = await Modules.Search.elastic.client.search({
                 index: 'room', type: 'room', body: {
-                    query: {bool: {must: [{term: {featured: true}}]}},
+                    query: { bool: { must: [{ term: { featured: true } }] } },
                 },
             });
             return globalRoomHits.hits.hits.map(hit => parseInt(hit._id, 10));
-        }),
-        featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
+        }), featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
                 type: 'organization',
-                body: {query: {bool: {must: [{term: {kind: 'community'}}, {term: {featured: true}}]}}},
+                body: { query: { bool: { must: [{ term: { kind: 'community' } }, { term: { featured: true } }] } } },
             });
             let oids = hits.hits.hits.map(hit => parseInt(hit._id, 10));
             let orgs = oids.map(o => Store.Organization.findById(ctx, o)!);
@@ -274,7 +244,7 @@ export default {
                     sort = parser.parseSort(args.sort);
                 }
 
-                clauses.push({terms: {cid: userDialogs.map(d => d.cid)}});
+                clauses.push({ terms: { cid: userDialogs.map(d => d.cid) } });
 
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'message',
@@ -282,7 +252,7 @@ export default {
                     size: args.first,
                     from: args.after ? parseInt(args.after, 10) : 0,
                     body: {
-                        sort: sort || [{createdAt: 'desc'}], query: {bool: {must: clauses}},
+                        sort: sort || [{ createdAt: 'desc' }], query: { bool: { must: clauses } },
                     },
                 });
 
@@ -313,34 +283,25 @@ export default {
             } catch (e) {
                 log.error(ctx, e);
                 return {
-                    edges: [],
-                    pageInfo: {
-                        hasNextPage: false,
-                        hasPreviousPage: false,
+                    edges: [], pageInfo: {
+                        hasNextPage: false, hasPreviousPage: false,
 
-                        itemsCount: 0,
-                        pagesCount: 0,
-                        currentPage: 0,
-                        openEnded: true,
+                        itemsCount: 0, pagesCount: 0, currentPage: 0, openEnded: true,
                     },
                 };
             }
-        }),
-        chatMembersSearch: withAccount(async (ctx, args, uid, oid) => {
+        }), chatMembersSearch: withAccount(async (ctx, args, uid, oid) => {
             let cid = IDs.Conversation.parse(args.cid);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
             let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
 
             let query = args.query || '';
             let clauses: any[] = [];
-            clauses.push({terms: {userId: members}});
+            clauses.push({ terms: { userId: members } });
             clauses.push({
                 bool: {
-                    should: query.trim().length > 0 ? [
-                        {match_phrase_prefix: {name: query}},
-                        {match_phrase_prefix: {shortName: query}}
-                    ] : []
-                }
+                    should: query.trim().length > 0 ? [{ match_phrase_prefix: { name: query } }, { match_phrase_prefix: { shortName: query } }] : [],
+                },
             });
 
             let hits = await Modules.Search.elastic.client.search({
@@ -348,7 +309,7 @@ export default {
                 type: 'user_profile',
                 size: args.first || 20,
                 body: {
-                    query: {bool: {must: clauses}},
+                    query: { bool: { must: clauses } },
                 },
                 from: args && args.after ? parseInt(args.after, 10) : (args && args.page ? ((args.page - 1) * (args && args.first ? args.first : 20)) : 0),
             });
@@ -383,11 +344,12 @@ export default {
                     openEnded: true
                 },
             };
-        }),
-        chatMentionSearch: withAccount(async (ctx, args, uid) => {
+        }), chatMentionSearch: withAccount(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.cid);
             let thisConvOrg = await Store.ConversationRoom.findById(ctx, cid);
             let chatOid = thisConvOrg ? thisConvOrg.oid : null;
+
+            let from = args.after ? IDs.MentionSearchCursor.parse(args.after) : 0;
 
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
             let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
@@ -396,107 +358,91 @@ export default {
             query = query.trim();
 
             let clauses: any[] = [];
-            clauses.push({terms: {userId: members}});
+
+            // Local users
             clauses.push({
                 bool: {
-                    should: query.length > 0 ? [
-                        {match_phrase_prefix: {name: query}},
-                        {match_phrase_prefix: {shortName: query}}
-                    ] : []
+                    must: [{ terms: { userId: members } }, {
+                        bool: {
+                            should: query.length > 0 ? [{ match_phrase_prefix: { name: query } }, { match_phrase_prefix: { shortName: query } }] : [],
+                        },
+                    }]
                 }
             });
 
-            let hits = await Modules.Search.elastic.client.search({
-                index: 'user_profile',
-                type: 'user_profile',
-                size: 20,
-                body: {
-                    query: {bool: {must: clauses}},
-                },
-            });
+            if (query.length > 0) {
+                //
+                // Organizations
+                //
+                let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+                clauses.push({
+                    function_score: {
+                        query: {
+                            bool: {
+                                must: [{ match_phrase_prefix: { name: query } }],
+                            }
+                        },
+                        functions: userOrgs.map(_oid => ({
+                            filter: { match: { _id: _oid } }, weight: 2,
+                        })),
+                        boost_mode: 'multiply',
+                    },
+                });
 
-            let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
-            if (!query) {
-                return (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
+                //
+                // Users
+                //
+                clauses.push(await Modules.Users.search.buildUsersQuery(ctx, query, {
+                    byName: true,
+                    uid,
+                }));
+
+                //
+                // Global rooms
+                //
+                // let globalRoomHitsPromise = Modules.Search.elastic.client.search({
+                //     index: 'room', type: 'room', size: args.first, body: {
+                //         sort: [{ membersCount: { 'order': 'desc' } }],
+                //         query: {
+                //             bool: {
+                //                 must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: true } }],
+                //             },
+                //         },
+                //     },
+                // });
+                clauses.push({ bool: {
+                        must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: true } }],
+                    }});
+
+                //
+                // Organization rooms
+                //
+                let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
+                let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
+                clauses.push({ bool: {
+                        must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: false } }, {
+                            bool: {
+                                should: orgChatFilters,
+                            },
+                        }],
+                    }},
+                );
             }
 
-            //
-            // Organizations
-            //
-            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-            let orgsHitsPromise = Modules.Search.elastic.client.search({
-                index: 'organization', type: 'organization', size: 10, body: {
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile,organization,room', type: '_all',
+                from: from,
+                size: args.first,
+                body: {
                     query: {
-                        function_score: {
-                            query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
-                            functions: userOrgs.map(_oid => ({
-                                filter: {match: {_id: _oid}}, weight: 2,
-                            })),
-                            boost_mode: 'multiply',
+                        bool: {
+                            should: clauses,
                         },
                     },
                 },
             });
 
-            //
-            // Users
-            //
-            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: true, limit: 10, uid});
-
-            //
-            // Global rooms
-            //
-            let globalRoomHitsPromise = Modules.Search.elastic.client.search({
-                index: 'room', type: 'room', size: 10, body: {
-                    sort: [{membersCount: {'order': 'desc'}}],
-                    query: {
-                        bool: {
-                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
-                        }
-                    },
-                },
-            });
-
-            //
-            // Organization rooms
-            //
-            let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
-            let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
-            let orgRoomHitsPromise = Modules.Search.elastic.client.search({
-                index: 'room', type: 'room', size: 10, body: {
-                    query: {
-                        bool: {
-                            must: [
-                                ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
-                                {term: {listed: false}},
-                                {
-                                    bool: {
-                                        should: orgChatFilters
-                                    }
-                                }
-                            ],
-                        },
-                    },
-                },
-            });
-
-            let [
-                usersHits,
-                globalRoomHits,
-                orgRoomHits,
-                orgsHits
-            ] = await Promise.all([
-                usersHitsPromise,
-                globalRoomHitsPromise,
-                orgRoomHitsPromise,
-                orgsHitsPromise
-            ]);
-
-            let allHits = [...usersHits.hits.hits.hits, ...orgRoomHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
-
-            let dataPromises = [
-                    ...uids.map((v) => Store.User.findById(ctx, v)),
-                ...allHits.map(async hit => {
+            let dataPromises = [...hits.hits.hits.map(async hit => {
                 if (hit._type === 'user_profile') {
                     return await Store.User.findById(ctx, parseInt(hit._id, 10));
                 } else if (hit._type === 'organization') {
@@ -531,37 +477,36 @@ export default {
 
             let rooms = new Set<number>();
             let users = new Set<number>();
-
-            data = data.filter(value => {
+            let localItems: User[] = [];
+            let globalItems: (User | Organization | Conversation)[] = [];
+            for (let value of data) {
+                if (!value) {
+                    continue;
+                }
                 if (value instanceof User) {
                     if (!users.has(value.id)) {
                         users.add(value.id);
-                        return true;
-                    } else {
-                        return false;
+                        if (members.includes(value.id)) {
+                            localItems.push(value);
+                        } else {
+                            globalItems.push(value);
+                        }
                     }
-                }
-                if (value instanceof Conversation) {
-                    if (!rooms.has(value.id)) {
+                } else if (value instanceof Conversation) {
+                    if (!rooms.has(value.id) && value.kind !== 'private') {
                         rooms.add(value.id);
-                        return true;
-                    } else {
-                        return false;
+                        globalItems.push(value);
                     }
+                } else {
+                    globalItems.push(value);
                 }
-                return true;
-            });
+            }
 
-            return data.filter(item => {
-                if (!item) {
-                    return false;
-                }
-
-                if (item instanceof Conversation) {
-                    return item.kind !== 'private';
-                }
-                return true;
-            });
-        })
+            return {
+                globalItems,
+                localItems,
+                cursor: IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length + 1),
+            };
+        }),
     },
 } as GQLResolver;

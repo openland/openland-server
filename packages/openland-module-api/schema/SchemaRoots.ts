@@ -332,6 +332,7 @@ export namespace GQLRoots {
     export type MessageEdgeRoot = { node: MessageWithChatRoot, cursor: string };
     export type MessageConnectionRoot = { edges: MessageEdgeRoot[], pageInfo: PageInfoRoot };
     export type MessageWithChatRoot = { message: Message, chat: RoomRoot };
+    export type GlobalSearchConnectionRoot = { globalItems: GlobalSearchEntryRoot[], localItems: User[], cursor?: string };
 
     //
     //  Debug

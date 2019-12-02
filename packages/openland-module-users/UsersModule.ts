@@ -18,7 +18,7 @@ import { declareUserAudienceCalculator } from './workers/userAudienceCalculator'
 export class UsersModule {
     private readonly repo: UserRepository;
     private readonly audienceCounterRepo: AudienceCounterRepository;
-    private readonly search = new UserSearch();
+    public readonly search = new UserSearch();
 
     constructor(
         @inject('UserRepository') userRepo: UserRepository,

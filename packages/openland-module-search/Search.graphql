@@ -21,6 +21,12 @@ type MessageConnection {
     pageInfo: PageInfo!
 }
 
+type GlobalSearchConnection {
+    globalItems: [GlobalSearchEntry!]!
+    localItems: [User!]!
+    cursor: String
+}
+
 extend type Query {
     alphaGlobalSearch(query: String!, kinds: [GlobalSearchEntryKind!]): [GlobalSearchEntry!]!
     featuredGroups: [SharedRoom!]
@@ -28,5 +34,5 @@ extend type Query {
 
     messagesSearch(query: String!, sort: String, first: Int!, after: String): MessageConnection!
     chatMembersSearch(cid: ID!, query: String, first: Int!, after: String, page: Int): UserConnection!
-    chatMentionSearch(cid: ID!, query: String): [GlobalSearchEntry!]!
+    chatMentionSearch(cid: ID!, query: String, first: Int!, after: String): GlobalSearchConnection!
 }

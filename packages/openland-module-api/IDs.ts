@@ -69,5 +69,6 @@ export const IDs = {
     Slide: IdsFactory.createStringId('Slide'),
     FeedChannel: IdsFactory.createId('FeedChannel'),
 
+    MentionSearchCursor: IdsFactory.createId('MentionSearchCursor')
     // FeedChannelUser: IdsFactory.createId('FeedChannelUser')
 };
