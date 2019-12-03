@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '57af67ad420a01f9c7b61b8462d03ab9';
+export const GQL_SPEC_VERSION = '4778af188ae1083d73561ebe5fbc0ab6';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -515,9 +515,9 @@ export namespace GQL {
     export interface OauthApp {
         id: string;
         title: string;
-        clientId: string;
-        clientSecret: string;
-        scopes: OauthScope[];
+        clientId: Nullable<string>;
+        clientSecret: Nullable<string>;
+        scopes: Nullable<OauthScope[]>;
         owner: User;
         image: Nullable<ImageRef>;
         redirectUrls: Nullable<string[]>;

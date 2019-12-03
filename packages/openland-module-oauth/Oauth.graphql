@@ -6,9 +6,9 @@ enum OauthScope {
 type OauthApp {
     id: ID!
     title: String!
-    clientId: String!
-    clientSecret: String!
-    scopes: [OauthScope!]!
+    clientId: String
+    clientSecret: String
+    scopes: [OauthScope!]
     owner: User!
     image: ImageRef
     redirectUrls: [String!]

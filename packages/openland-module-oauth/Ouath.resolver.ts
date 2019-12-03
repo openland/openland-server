@@ -10,11 +10,11 @@ import { IDs } from 'openland-module-api/IDs';
 
 export default {
     OauthApp: {
-        clientId: root => root.clientId,
-        clientSecret: root => root.clientSecret,
+        clientId: withPermission('super-admin', (ctx, args, root) => root.clientId),
+        clientSecret: withPermission('super-admin', (ctx, args, root) => root.clientSecret),
         owner: (root, args, ctx) => Store.UserProfile.findById(ctx, root.uid),
-        scopes: root => root.allowedScopes,
-        redirectUrls: root => root.allowedRedirectUrls,
+        scopes: withPermission('super-admin', (ctx, args, root) => root.allowedScopes),
+        redirectUrls: withPermission('super-admin', (ctx, args, root) => root.allowedRedirectUrls),
         title: root => root.title,
         image: root => root.image,
         id: root => IDs.OauthApp.serialize(root.id),

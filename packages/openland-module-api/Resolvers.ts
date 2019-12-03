@@ -22,17 +22,17 @@ async function fetchOrganizationId(ctx: AppContext) {
     return ctx.auth.oid;
 }
 
-export function withPermission<T, R>(permission: string | string[], resolver: (ctx: AppContext, args: T) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async function (_: any, args: T, ctx: AppContext) {
+export function withPermission<T, R, F>(permission: string | string[], resolver: (ctx: AppContext, args: T, root: F) => R): (root: F, args: T, ctx: AppContext) => MaybePromise<R> {
+    return async function (root: F, args: T, ctx: AppContext) {
         let permissions = await fetchPermissions(ctx);
         if (Array.isArray(permission)) {
             for (let p of permission) {
                 if (permissions.has(p)) {
-                    return resolver(ctx, args);
+                    return resolver(ctx, args, root);
                 }
             }
         } else if (permissions.has(permission)) {
-            return resolver(ctx, args);
+            return resolver(ctx, args, root);
         } else {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
