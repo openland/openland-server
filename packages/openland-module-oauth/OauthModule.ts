@@ -12,6 +12,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { ImageRef } from '../openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
 import { Sanitizer } from '../openland-utils/Sanitizer';
+import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 
 export enum OauthScope {
     All = 'all',
@@ -43,9 +44,10 @@ export class OauthModule {
                 image = Sanitizer.sanitizeImageRef(image);
             }
 
-            return await Store.OauthApplication.create(ctx, randomBytes(16).toString('hex'), {
+            return await Store.OauthApplication.create(ctx, await fetchNextDBSeq(ctx, 'ouath-app-id'), {
                 uid,
                 clientSecret: randomBytes(32).toString('hex'),
+                clientId: randomBytes(16).toString('hex'),
                 allowedScopes,
                 allowedRedirectUrls,
                 title,
@@ -56,12 +58,12 @@ export class OauthModule {
     }
 
     async updateApp(
-        parent: Context, clientId: string,
+        parent: Context, id: number,
         title?: string | null, scopes?: OauthScope[] | null,
         allowedRedirectUrls?: string[] | null, image?: ImageRef | null) {
         return await inTx(parent, async ctx => {
 
-            let app = await Store.OauthApplication.findById(ctx, clientId);
+            let app = await Store.OauthApplication.findById(ctx, id);
             if (!app) {
                 throw new NotFoundError();
             }
@@ -89,7 +91,7 @@ export class OauthModule {
 
     async createAuth(parent: Context, clientId: string, scopes: OauthScope[], state: string, redirectUrl: string) {
         return await inTx(parent, async ctx => {
-            let oapp = await Store.OauthApplication.findById(ctx, clientId);
+            let oapp = await Store.OauthApplication.byClientId.find(ctx, clientId);
             if (!oapp || !oapp.enabled) {
                 throw new AccessDeniedError();
             }

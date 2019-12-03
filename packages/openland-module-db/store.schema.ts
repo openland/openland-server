@@ -1695,8 +1695,8 @@ export default declareSchema(() => {
     //
 
     entity('OauthApplication', () => {
-        field('id', optional(integer()));
-        primaryKey('clientId', string());
+        primaryKey('id', integer());
+        field('clientId', string());
         field('uid', integer());
         field('clientSecret', string());
         field('title', string());

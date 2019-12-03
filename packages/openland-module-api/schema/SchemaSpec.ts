@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '149ecf3387cd66ec5b3fc87a75e54ebb';
+export const GQL_SPEC_VERSION = '57af67ad420a01f9c7b61b8462d03ab9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1440,7 +1440,7 @@ export namespace GQL {
         input: OauthAppInput;
     }
     export interface MutationUpdateOauthAppArgs {
-        clientId: string;
+        id: string;
         input: OauthAppInput;
     }
     export interface MutationBetaOrganizationMemberRequestApproveArgs {

@@ -13783,8 +13783,8 @@ export class ZapierAuthTokenFactory extends EntityFactory<ZapierAuthTokenShape, 
 }
 
 export interface OauthApplicationShape {
+    id: number;
     clientId: string;
-    id: number | null;
     uid: number;
     clientSecret: string;
     title: string;
@@ -13795,7 +13795,7 @@ export interface OauthApplicationShape {
 }
 
 export interface OauthApplicationCreateShape {
-    id?: number | null | undefined;
+    clientId: string;
     uid: number;
     clientSecret: string;
     title: string;
@@ -13806,13 +13806,13 @@ export interface OauthApplicationCreateShape {
 }
 
 export class OauthApplication extends Entity<OauthApplicationShape> {
+    get id(): number { return this._rawValue.id; }
     get clientId(): string { return this._rawValue.clientId; }
-    get id(): number | null { return this._rawValue.id; }
-    set id(value: number | null) {
-        let normalized = this.descriptor.codec.fields.id.normalize(value);
-        if (this._rawValue.id !== normalized) {
-            this._rawValue.id = normalized;
-            this._updatedValues.id = normalized;
+    set clientId(value: string) {
+        let normalized = this.descriptor.codec.fields.clientId.normalize(value);
+        if (this._rawValue.clientId !== normalized) {
+            this._rawValue.clientId = normalized;
+            this._updatedValues.clientId = normalized;
             this.invalidate();
         }
     }
@@ -13889,9 +13889,9 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'user'), condition: undefined });
         secondaryIndexes.push({ name: 'byClientId', storageKey: 'byClientId', type: { type: 'unique', fields: [{ name: 'clientId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'byClientId'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'clientId', type: 'string' });
+        primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'id', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'clientId', type: { type: 'string' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'clientSecret', type: { type: 'string' }, secure: false });
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
@@ -13900,8 +13900,8 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         fields.push({ name: 'allowedRedirectUrls', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
+            id: c.integer,
             clientId: c.string,
-            id: c.optional(c.integer),
             uid: c.integer,
             clientSecret: c.string,
             title: c.string,
@@ -13949,24 +13949,24 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         },
     });
 
-    create(ctx: Context, clientId: string, src: OauthApplicationCreateShape): Promise<OauthApplication> {
-        return this._create(ctx, [clientId], this.descriptor.codec.normalize({ clientId, ...src }));
+    create(ctx: Context, id: number, src: OauthApplicationCreateShape): Promise<OauthApplication> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, clientId: string, src: OauthApplicationCreateShape): OauthApplication {
-        return this._create_UNSAFE(ctx, [clientId], this.descriptor.codec.normalize({ clientId, ...src }));
+    create_UNSAFE(ctx: Context, id: number, src: OauthApplicationCreateShape): OauthApplication {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, clientId: string): Promise<OauthApplication | null> {
-        return this._findById(ctx, [clientId]);
+    findById(ctx: Context, id: number): Promise<OauthApplication | null> {
+        return this._findById(ctx, [id]);
     }
 
-    watch(ctx: Context, clientId: string): Watch {
-        return this._watch(ctx, [clientId]);
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthApplicationShape>): OauthApplication {
-        return new OauthApplication([value.clientId], value, this.descriptor, this._flush, ctx);
+        return new OauthApplication([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 

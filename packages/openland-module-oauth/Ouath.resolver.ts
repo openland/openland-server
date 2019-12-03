@@ -17,10 +17,10 @@ export default {
         redirectUrls: root => root.allowedRedirectUrls,
         title: root => root.title,
         image: root => root.image,
-        id: root => root.id ? IDs.OauthApp.serialize(root.id) : '',
+        id: root => IDs.OauthApp.serialize(root.id),
     },
     OauthContext: {
-        app: (root, args, ctx) => Store.OauthApplication.findById(ctx, root.clientId),
+        app: (root, args, ctx) => Store.OauthApplication.byClientId.find(ctx, root.clientId),
         code: root => root.code,
         redirectUrl: root => root.redirectUrl,
         state: root => root.state,
@@ -64,9 +64,10 @@ export default {
             );
         }),
         updateOauthApp: withPermission('super-admin', async (ctx, args) => {
+            let id = IDs.OauthApp.parse(args.id);
             return await Modules.Oauth.updateApp(
                 ctx,
-                args.clientId,
+                id,
                 args.input.title,
                 args.input.scopes as (OauthScope[] | null),
                 args.input.redirectUrls,
