@@ -116,8 +116,14 @@ export class DiscoverModule {
             }
             roomMembers.set(room.id, room.activeMembersCount || 0);
         }
-
-        return chats.sort((a, b) => roomMembers.get(b)! - roomMembers.get(a)!);
+        let convs = await Promise.all(chats.map(c => Store.Conversation.findById(ctx, c)));
+        let deletedChats = new Set<number>();
+        convs.forEach(c => {
+            if (c && c.deleted) {
+                deletedChats.add(c.id);
+            }
+        });
+        return chats.sort((a, b) => roomMembers.get(b)! - roomMembers.get(a)!).filter(c => !deletedChats.has(c));
     }
 
     start = () => {
