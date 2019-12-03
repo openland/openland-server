@@ -380,6 +380,10 @@ export default declareSchema(() => {
         }))));
         field('stickerId', optional(string()));
 
+        // overrides
+        field('overrideAvatar', optional(ImageRef));
+        field('overrideName', optional(string()));
+
         // deprecated start
         field('fileId', optional(string())).secure();
         field('fileMetadata', optional(struct({
@@ -476,6 +480,10 @@ export default declareSchema(() => {
                 })),
             }),
         }))));
+
+        // overrides
+        field('overrideAvatar', optional(ImageRef));
+        field('overrideName', optional(string()));
 
         field('deleted', optional(boolean()));
         field('edited', optional(boolean()));
@@ -577,6 +585,10 @@ export default declareSchema(() => {
                 })))
             })
         }))));
+
+        // overrides
+        field('overrideAvatar', optional(ImageRef));
+        field('overrideName', optional(string()));
 
         field('edited', optional(boolean()));
         field('deleted', optional(boolean()));

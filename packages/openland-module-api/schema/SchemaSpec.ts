@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4778af188ae1083d73561ebe5fbc0ab6';
+export const GQL_SPEC_VERSION = '0b7c51f22345142ea9ce27c9730175ab';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1603,12 +1603,16 @@ export namespace GQL {
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
         repeatKey: OptionalNullable<string>;
+        overrideAvatar: OptionalNullable<ImageRefInput>;
+        overrideName: OptionalNullable<string>;
     }
     export interface MutationBetaAddStickerCommentArgs {
         peerId: string;
         stickerId: string;
         replyComment: OptionalNullable<string>;
         repeatKey: OptionalNullable<string>;
+        overrideAvatar: OptionalNullable<ImageRefInput>;
+        overrideName: OptionalNullable<string>;
     }
     export interface MutationEditCommentArgs {
         id: string;
@@ -2039,12 +2043,16 @@ export namespace GQL {
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
         repeatKey: OptionalNullable<string>;
+        overrideAvatar: OptionalNullable<ImageRefInput>;
+        overrideName: OptionalNullable<string>;
     }
     export interface MutationSendStickerArgs {
         chatId: string;
         stickerId: string;
         replyMessages: OptionalNullable<string[]>;
         repeatKey: OptionalNullable<string>;
+        overrideAvatar: OptionalNullable<ImageRefInput>;
+        overrideName: OptionalNullable<string>;
     }
     export interface MutationEditMessageArgs {
         messageId: string;
@@ -3227,6 +3235,8 @@ export namespace GQL {
         spans: MessageSpan[];
         serviceMetadata: Nullable<ServiceMetadata>;
         fallback: string;
+        overrideAvatar: Nullable<ImageRef>;
+        overrideName: Nullable<string>;
     }
     export interface GeneralMessage extends ModernMessage {
         id: string;
@@ -3243,6 +3253,8 @@ export namespace GQL {
         quotedMessages: ModernMessage[];
         commentsCount: number;
         fallback: string;
+        overrideAvatar: Nullable<ImageRef>;
+        overrideName: Nullable<string>;
     }
     export interface StickerMessage extends ModernMessage {
         id: string;
@@ -3257,6 +3269,8 @@ export namespace GQL {
         quotedMessages: ModernMessage[];
         commentsCount: number;
         sticker: Sticker;
+        overrideAvatar: Nullable<ImageRef>;
+        overrideName: Nullable<string>;
     }
     export interface GammaMessagesBatch {
         messages: ModernMessage[];
@@ -3775,9 +3789,9 @@ export interface GQLResolver {
     MessageSource?: UnionTypeResolver<GQLRoots.MessageSourceRoot, 'MessageSourceChat' | 'MessageSourceComment'>;
     MessageSourceChat?: ComplexTypedResolver<GQL.MessageSourceChat, GQLRoots.MessageSourceChatRoot, {chat: GQLRoots.RoomRoot}, {}>;
     MessageSourceComment?: ComplexTypedResolver<GQL.MessageSourceComment, GQLRoots.MessageSourceCommentRoot, {peer: GQLRoots.CommentsPeerRoot}, {}>;
-    ServiceMessage?: ComplexTypedResolver<GQL.ServiceMessage, GQLRoots.ServiceMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>}, {}>;
-    GeneralMessage?: ComplexTypedResolver<GQL.GeneralMessage, GQLRoots.GeneralMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, reactions: GQLRoots.ModernMessageReactionRoot[], source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], quotedMessages: GQLRoots.ModernMessageRoot[]}, {}>;
-    StickerMessage?: ComplexTypedResolver<GQL.StickerMessage, GQLRoots.StickerMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], reactions: GQLRoots.ModernMessageReactionRoot[], quotedMessages: GQLRoots.ModernMessageRoot[], sticker: GQLRoots.StickerRoot}, {}>;
+    ServiceMessage?: ComplexTypedResolver<GQL.ServiceMessage, GQLRoots.ServiceMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, overrideAvatar: Nullable<GQLRoots.ImageRefRoot>}, {}>;
+    GeneralMessage?: ComplexTypedResolver<GQL.GeneralMessage, GQLRoots.GeneralMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, reactions: GQLRoots.ModernMessageReactionRoot[], source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], quotedMessages: GQLRoots.ModernMessageRoot[], overrideAvatar: Nullable<GQLRoots.ImageRefRoot>}, {}>;
+    StickerMessage?: ComplexTypedResolver<GQL.StickerMessage, GQLRoots.StickerMessageRoot, {sender: GQLRoots.UserRoot, senderBadge: Nullable<GQLRoots.UserBadgeRoot>, source: Nullable<GQLRoots.MessageSourceRoot>, spans: GQLRoots.MessageSpanRoot[], reactions: GQLRoots.ModernMessageReactionRoot[], quotedMessages: GQLRoots.ModernMessageRoot[], sticker: GQLRoots.StickerRoot, overrideAvatar: Nullable<GQLRoots.ImageRefRoot>}, {}>;
     GammaMessagesBatch?: ComplexTypedResolver<GQL.GammaMessagesBatch, GQLRoots.GammaMessagesBatchRoot, {messages: GQLRoots.ModernMessageRoot[]}, {}>;
     SharedMediaCounters?: ComplexTypedResolver<GQL.SharedMediaCounters, GQLRoots.SharedMediaCountersRoot, {}, {}>;
     ImageFallback?: ComplexTypedResolver<GQL.ImageFallback, GQLRoots.ImageFallbackRoot, {}, {}>;

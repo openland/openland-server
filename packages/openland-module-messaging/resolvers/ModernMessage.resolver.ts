@@ -410,6 +410,8 @@ export default {
             return null;
         },
         fallback: src => fetchMessageFallback(src),
+        overrideAvatar: src => src.overrideAvatar,
+        overrideName: src => src.overrideName,
     },
     GeneralMessage: {
         //
@@ -634,6 +636,8 @@ export default {
             return (state && state.commentsCount) || 0;
         },
         fallback: src => fetchMessageFallback(src),
+        overrideAvatar: src => src.overrideAvatar,
+        overrideName: src => src.overrideName,
     },
     StickerMessage: {
         //
@@ -695,6 +699,8 @@ export default {
             return (state && state.commentsCount) || 0;
         },
         fallback: src => fetchMessageFallback(src),
+        overrideAvatar: src => src.overrideAvatar,
+        overrideName: src => src.overrideName,
     },
 
     //
@@ -1238,6 +1244,8 @@ export default {
                 attachments,
                 replyMessages,
                 spans,
+                overrideAvatar: args.overrideAvatar,
+                overrideName: args.overrideName
             });
 
             return true;
@@ -1261,6 +1269,8 @@ export default {
                 replyMessages,
                 spans,
                 stickerId: sid,
+                overrideName: args.overrideName,
+                overrideAvatar: args.overrideAvatar
             });
 
             return true;
