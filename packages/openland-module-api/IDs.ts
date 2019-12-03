@@ -61,14 +61,13 @@ export const IDs = {
     StickerPack: IdsFactory.createId('StickerPack'),
     Sticker: IdsFactory.createStringId('Sticker'),
     MatchmakingQuestion: IdsFactory.createStringId('MatchmakingQuestion'),
-
     ChatUpdatesCursor: IdsFactory.createStringId('ChatUpdatesCursor'),
     DialogsUpdatesCursor: IdsFactory.createStringId('DialogsUpdatesCursor'),
     HomeFeedCursor: IdsFactory.createId('HomeFeedCursor'),
     FeedUpdatesCursor: IdsFactory.createStringId('FeedUpdatesCursor'),
     Slide: IdsFactory.createStringId('Slide'),
     FeedChannel: IdsFactory.createId('FeedChannel'),
-
-    MentionSearchCursor: IdsFactory.createId('MentionSearchCursor')
+    MentionSearchCursor: IdsFactory.createId('MentionSearchCursor'),
+    OauthApp: IdsFactory.createId('OauthApp')
     // FeedChannelUser: IdsFactory.createId('FeedChannelUser')
 };

@@ -6,6 +6,7 @@ import { OauthScope } from './OauthModule';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { InvalidInputError } from '../openland-errors/InvalidInputError';
+import { IDs } from 'openland-module-api/IDs';
 
 export default {
     OauthApp: {
@@ -15,6 +16,8 @@ export default {
         scopes: root => root.allowedScopes,
         redirectUrls: root => root.allowedRedirectUrls,
         title: root => root.title,
+        image: root => root.image,
+        id: root => root.id ? IDs.OauthApp.serialize(root.id) : '',
     },
     OauthContext: {
         app: (root, args, ctx) => Store.OauthApplication.findById(ctx, root.clientId),
@@ -56,7 +59,8 @@ export default {
                 user.uid!,
                 args.input.title,
                 args.input.scopes as (OauthScope[] | null),
-                args.input.redirectUrls
+                args.input.redirectUrls,
+                args.input.image,
             );
         }),
         updateOauthApp: withPermission('super-admin', async (ctx, args) => {
@@ -65,8 +69,9 @@ export default {
                 args.clientId,
                 args.input.title,
                 args.input.scopes as (OauthScope[] | null),
-                args.input.redirectUrls
+                args.input.redirectUrls,
+                args.input.image,
             );
-        })
+        }),
     },
 } as GQLResolver;

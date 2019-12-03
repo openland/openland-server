@@ -330,4 +330,19 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '114-generate-ids-for-ouath-apps',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+           let items = await Store.OauthApplication.findAll(ctx);
+           for (let item of items) {
+               item.id = await fetchNextDBSeq(ctx, 'oauth-app-id');
+
+               item.invalidate();
+               await item.flush(ctx);
+           }
+        });
+    }
+})
+
 export default migrations;

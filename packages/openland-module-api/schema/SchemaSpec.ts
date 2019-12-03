@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8f3f487f749790f8745967f2f420f883';
+export const GQL_SPEC_VERSION = '149ecf3387cd66ec5b3fc87a75e54ebb';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -513,11 +513,13 @@ export namespace GQL {
     }
     export type OauthScope = 'All' | 'Zapier';
     export interface OauthApp {
+        id: string;
         title: string;
         clientId: string;
         clientSecret: string;
         scopes: OauthScope[];
         owner: User;
+        image: Nullable<ImageRef>;
         redirectUrls: Nullable<string[]>;
     }
     export interface OauthContext {
@@ -530,6 +532,7 @@ export namespace GQL {
         title: Nullable<string>;
         scopes: Nullable<OauthScope[]>;
         redirectUrls: Nullable<string[]>;
+        image: Nullable<ImageRefInput>;
     }
     export type OrganizationMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
     export interface OrganizationMember {
@@ -3610,7 +3613,7 @@ export interface GQLResolver {
     ChatTypeNotificationSettings?: ComplexTypedResolver<GQL.ChatTypeNotificationSettings, GQLRoots.ChatTypeNotificationSettingsRoot, {}, {}>;
     PlatformNotificationSettings?: ComplexTypedResolver<GQL.PlatformNotificationSettings, GQLRoots.PlatformNotificationSettingsRoot, {direct: GQLRoots.ChatTypeNotificationSettingsRoot, secretChat: GQLRoots.ChatTypeNotificationSettingsRoot, organizationChat: GQLRoots.ChatTypeNotificationSettingsRoot, communityChat: GQLRoots.ChatTypeNotificationSettingsRoot, comments: GQLRoots.ChatTypeNotificationSettingsRoot}, {}>;
     Settings?: ComplexTypedResolver<GQL.Settings, GQLRoots.SettingsRoot, {desktop: GQLRoots.PlatformNotificationSettingsRoot, mobile: GQLRoots.PlatformNotificationSettingsRoot}, {}>;
-    OauthApp?: ComplexTypedResolver<GQL.OauthApp, GQLRoots.OauthAppRoot, {owner: GQLRoots.UserRoot}, {}>;
+    OauthApp?: ComplexTypedResolver<GQL.OauthApp, GQLRoots.OauthAppRoot, {owner: GQLRoots.UserRoot, image: Nullable<GQLRoots.ImageRefRoot>}, {}>;
     OauthContext?: ComplexTypedResolver<GQL.OauthContext, GQLRoots.OauthContextRoot, {app: GQLRoots.OauthAppRoot}, {}>;
     OrganizationIvitedMember?: ComplexTypedResolver<GQL.OrganizationIvitedMember, GQLRoots.OrganizationIvitedMemberRoot, {}, {}>;
     OrganizationJoinedMember?: ComplexTypedResolver<GQL.OrganizationJoinedMember, GQLRoots.OrganizationJoinedMemberRoot, {user: GQLRoots.UserRoot}, {}>;

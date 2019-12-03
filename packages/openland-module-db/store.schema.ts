@@ -1695,15 +1695,18 @@ export default declareSchema(() => {
     //
 
     entity('OauthApplication', () => {
+        field('id', optional(integer()));
         primaryKey('clientId', string());
         field('uid', integer());
         field('clientSecret', string());
         field('title', string());
+        field('image', optional(ImageRef));
         field('allowedScopes', array(string()));
         field('allowedRedirectUrls', optional(array(string())));
         field('enabled', boolean());
 
         rangeIndex('user', ['uid', 'createdAt']);
+        uniqueIndex('byClientId', ['clientId']);
     });
 
     entity('OauthContext', () => {

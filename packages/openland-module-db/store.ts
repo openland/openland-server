@@ -13784,18 +13784,22 @@ export class ZapierAuthTokenFactory extends EntityFactory<ZapierAuthTokenShape, 
 
 export interface OauthApplicationShape {
     clientId: string;
+    id: number | null;
     uid: number;
     clientSecret: string;
     title: string;
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
     allowedScopes: (string)[];
     allowedRedirectUrls: (string)[] | null;
     enabled: boolean;
 }
 
 export interface OauthApplicationCreateShape {
+    id?: number | null | undefined;
     uid: number;
     clientSecret: string;
     title: string;
+    image?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
     allowedScopes: (string)[];
     allowedRedirectUrls?: (string)[] | null | undefined;
     enabled: boolean;
@@ -13803,6 +13807,15 @@ export interface OauthApplicationCreateShape {
 
 export class OauthApplication extends Entity<OauthApplicationShape> {
     get clientId(): string { return this._rawValue.clientId; }
+    get id(): number | null { return this._rawValue.id; }
+    set id(value: number | null) {
+        let normalized = this.descriptor.codec.fields.id.normalize(value);
+        if (this._rawValue.id !== normalized) {
+            this._rawValue.id = normalized;
+            this._updatedValues.id = normalized;
+            this.invalidate();
+        }
+    }
     get uid(): number { return this._rawValue.uid; }
     set uid(value: number) {
         let normalized = this.descriptor.codec.fields.uid.normalize(value);
@@ -13827,6 +13840,15 @@ export class OauthApplication extends Entity<OauthApplicationShape> {
         if (this._rawValue.title !== normalized) {
             this._rawValue.title = normalized;
             this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get image(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this._rawValue.image; }
+    set image(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null) {
+        let normalized = this.descriptor.codec.fields.image.normalize(value);
+        if (this._rawValue.image !== normalized) {
+            this._rawValue.image = normalized;
+            this._updatedValues.image = normalized;
             this.invalidate();
         }
     }
@@ -13865,20 +13887,25 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         let subspace = await storage.resolveEntityDirectory('oauthApplication');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'byClientId', storageKey: 'byClientId', type: { type: 'unique', fields: [{ name: 'clientId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'byClientId'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'clientId', type: 'string' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'id', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'clientSecret', type: { type: 'string' }, secure: false });
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'image', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'allowedScopes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'allowedRedirectUrls', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             clientId: c.string,
+            id: c.optional(c.integer),
             uid: c.integer,
             clientSecret: c.string,
             title: c.string,
+            image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
             allowedScopes: c.array(c.string),
             allowedRedirectUrls: c.optional(c.array(c.string)),
             enabled: c.boolean,
@@ -13907,6 +13934,18 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         },
         liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly byClientId = Object.freeze({
+        find: async (ctx: Context, clientId: string) => {
+            return this._findFromUniqueIndex(ctx, [clientId], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
