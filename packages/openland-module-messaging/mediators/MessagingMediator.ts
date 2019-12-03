@@ -56,6 +56,17 @@ export class MessagingMediator {
                 }
             }
 
+            //
+            // Allow overrides only for super admins
+            //
+            if (message.overrideAvatar || message.overrideName) {
+                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid, oid: null });
+                if (!permissions.has('super-admin')) {
+                    message.overrideName = null;
+                    message.overrideAvatar = null;
+                }
+            }
+
             let msg = message;
 
             // /me service message

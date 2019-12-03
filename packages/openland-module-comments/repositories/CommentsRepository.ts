@@ -18,6 +18,8 @@ import * as Chrono from 'chrono-node';
 import { RandomLayer } from '@openland/foundationdb-random';
 import { Store } from 'openland-module-db/FDB';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
+import { GQL } from '../../openland-module-api/schema/SchemaSpec';
+import ImageRefInput = GQL.ImageRefInput;
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -48,6 +50,10 @@ export interface CommentInput {
 
     // appends attachments instead of replacing them in editComment
     appendAttachments?: boolean | null;
+
+    // overrides
+    overrideAvatar?: ImageRefInput | null;
+    overrideName?: string | null;
 }
 
 export type CommentPeerType = 'message' | 'feed_item';

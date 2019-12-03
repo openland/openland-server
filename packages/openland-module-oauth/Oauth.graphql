@@ -4,11 +4,13 @@ enum OauthScope {
 }
 
 type OauthApp {
+    id: ID!
     title: String!
-    clientId: String!
-    clientSecret: String!
-    scopes: [OauthScope!]!
+    clientId: String
+    clientSecret: String
+    scopes: [OauthScope!]
     owner: User!
+    image: ImageRef
     redirectUrls: [String!]
 }
 
@@ -23,6 +25,7 @@ input OauthAppInput {
     title: String
     scopes: [OauthScope!]
     redirectUrls: [String!]
+    image: ImageRefInput
 }
 
 
@@ -33,5 +36,5 @@ extend type Query {
 
 extend type Mutation {
     createOauthApp(input: OauthAppInput!): OauthApp!
-    updateOauthApp(clientId: String!, input: OauthAppInput!): OauthApp!
+    updateOauthApp(id: ID!, input: OauthAppInput!): OauthApp!
 }

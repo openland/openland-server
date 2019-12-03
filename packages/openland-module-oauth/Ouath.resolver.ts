@@ -6,18 +6,21 @@ import { OauthScope } from './OauthModule';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { InvalidInputError } from '../openland-errors/InvalidInputError';
+import { IDs } from 'openland-module-api/IDs';
 
 export default {
     OauthApp: {
-        clientId: root => root.clientId,
-        clientSecret: root => root.clientSecret,
+        clientId: withPermission('super-admin', (ctx, args, root) => root.clientId),
+        clientSecret: withPermission('super-admin', (ctx, args, root) => root.clientSecret),
         owner: (root, args, ctx) => Store.UserProfile.findById(ctx, root.uid),
-        scopes: root => root.allowedScopes,
-        redirectUrls: root => root.allowedRedirectUrls,
+        scopes: withPermission('super-admin', (ctx, args, root) => root.allowedScopes),
+        redirectUrls: withPermission('super-admin', (ctx, args, root) => root.allowedRedirectUrls),
         title: root => root.title,
+        image: root => root.image,
+        id: root => IDs.OauthApp.serialize(root.id),
     },
     OauthContext: {
-        app: (root, args, ctx) => Store.OauthApplication.findById(ctx, root.clientId),
+        app: (root, args, ctx) => Store.OauthApplication.byClientId.find(ctx, root.clientId),
         code: root => root.code,
         redirectUrl: root => root.redirectUrl,
         state: root => root.state,
@@ -56,17 +59,20 @@ export default {
                 user.uid!,
                 args.input.title,
                 args.input.scopes as (OauthScope[] | null),
-                args.input.redirectUrls
+                args.input.redirectUrls,
+                args.input.image,
             );
         }),
         updateOauthApp: withPermission('super-admin', async (ctx, args) => {
+            let id = IDs.OauthApp.parse(args.id);
             return await Modules.Oauth.updateApp(
                 ctx,
-                args.clientId,
+                id,
                 args.input.title,
                 args.input.scopes as (OauthScope[] | null),
-                args.input.redirectUrls
+                args.input.redirectUrls,
+                args.input.image,
             );
-        })
+        }),
     },
 } as GQLResolver;

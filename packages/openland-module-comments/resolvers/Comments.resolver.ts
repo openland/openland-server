@@ -105,6 +105,8 @@ export default {
                     ...(await resolveRichMessageCreation(ctx, args)),
                     replyToComment,
                     repeatKey: args.repeatKey,
+                    overrideAvatar: args.overrideAvatar,
+                    overrideName: args.overrideName,
                 });
             } else {
                 throw new UserError('Unknown peer type');
@@ -138,6 +140,8 @@ export default {
                     replyToComment,
                     stickerId: IDs.Sticker.parse(args.stickerId),
                     repeatKey: args.repeatKey,
+                    overrideAvatar: args.overrideAvatar,
+                    overrideName: args.overrideName,
                 });
             } else {
                 throw new UserError('Unknown peer type');

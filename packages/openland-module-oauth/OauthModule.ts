@@ -9,6 +9,10 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { InvalidInputError } from '../openland-errors/InvalidInputError';
 import { injectable } from 'inversify';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { ImageRef } from '../openland-module-media/ImageRef';
+import { Modules } from 'openland-modules/Modules';
+import { Sanitizer } from '../openland-utils/Sanitizer';
+import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 
 export enum OauthScope {
     All = 'all',
@@ -25,28 +29,41 @@ export class OauthModule {
         // no op
     }
 
-    async createApp(parent: Context, uid: number, title: string, scopes?: OauthScope[] | null, allowedRedirectUrls?: string[] | null) {
+    async createApp(
+        parent: Context, uid: number,
+        title: string, scopes?: OauthScope[] | null,
+        allowedRedirectUrls?: string[] | null, image?: ImageRef | null) {
         return await inTx(parent, async ctx => {
             let allowedScopes = scopes || ['all'];
             if (title.trim().length === 0) {
                 throw new InvalidInputError([{ key: 'title', message: 'Title shouldn\'t be empty' }]);
             }
 
-            return await Store.OauthApplication.create(ctx, randomBytes(16).toString('hex'), {
+            if (image) {
+                await Modules.Media.saveFile(ctx, image.uuid);
+                image = Sanitizer.sanitizeImageRef(image);
+            }
+
+            return await Store.OauthApplication.create(ctx, await fetchNextDBSeq(ctx, 'ouath-app-id'), {
                 uid,
                 clientSecret: randomBytes(32).toString('hex'),
+                clientId: randomBytes(16).toString('hex'),
                 allowedScopes,
                 allowedRedirectUrls,
                 title,
-                enabled: true
+                image,
+                enabled: true,
             });
         });
     }
 
-    async updateApp(parent: Context, clientId: string, title?: string | null, scopes?: OauthScope[] | null, allowedRedirectUrls?: string[] | null) {
+    async updateApp(
+        parent: Context, id: number,
+        title?: string | null, scopes?: OauthScope[] | null,
+        allowedRedirectUrls?: string[] | null, image?: ImageRef | null) {
         return await inTx(parent, async ctx => {
 
-            let app = await Store.OauthApplication.findById(ctx, clientId);
+            let app = await Store.OauthApplication.findById(ctx, id);
             if (!app) {
                 throw new NotFoundError();
             }
@@ -60,6 +77,12 @@ export class OauthModule {
             if (allowedRedirectUrls) {
                 app.allowedRedirectUrls = allowedRedirectUrls;
             }
+            if (image) {
+                await Modules.Media.saveFile(ctx, image.uuid);
+                image = Sanitizer.sanitizeImageRef(image);
+
+                app.image = image;
+            }
 
             await app.flush(ctx);
             return app;
@@ -68,7 +91,7 @@ export class OauthModule {
 
     async createAuth(parent: Context, clientId: string, scopes: OauthScope[], state: string, redirectUrl: string) {
         return await inTx(parent, async ctx => {
-            let oapp = await Store.OauthApplication.findById(ctx, clientId);
+            let oapp = await Store.OauthApplication.byClientId.find(ctx, clientId);
             if (!oapp || !oapp.enabled) {
                 throw new AccessDeniedError();
             }
@@ -91,7 +114,7 @@ export class OauthModule {
                 clientId: clientId,
                 scopes: scopes,
                 code: randomKey(),
-                enabled: true
+                enabled: true,
             });
             await auth.flush(ctx);
             return auth;

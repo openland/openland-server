@@ -16,6 +16,7 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { Sanitizer } from '../../openland-utils/Sanitizer';
 
 @injectable()
 export class MessagingRepository {
@@ -47,8 +48,14 @@ export class MessagingRepository {
             //
             let attachments: MessageAttachment[] = await this.prepareAttachments(ctx, message.attachments || []);
 
-            if (message.stickerId) {
-                // message.sti
+            if (message.overrideAvatar) {
+                await Modules.Media.saveFile(ctx, message.overrideAvatar.uuid);
+                message.overrideAvatar = Sanitizer.sanitizeImageRef(message.overrideAvatar);
+            }
+
+            if (message.overrideName) {
+                message.overrideName = message.overrideName.trim();
+                message.overrideName = message.overrideName.length > 0 ? message.overrideName : null;
             }
 
             //
@@ -68,6 +75,8 @@ export class MessagingRepository {
                 spans: (message.spans && message.spans.length > 0) ? message.spans : null,
                 stickerId: message.stickerId,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
+                overrideAvatar: message.overrideAvatar,
+                overrideName: message.overrideName
             });
 
             //

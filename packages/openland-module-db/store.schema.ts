@@ -380,6 +380,10 @@ export default declareSchema(() => {
         }))));
         field('stickerId', optional(string()));
 
+        // overrides
+        field('overrideAvatar', optional(ImageRef));
+        field('overrideName', optional(string()));
+
         // deprecated start
         field('fileId', optional(string())).secure();
         field('fileMetadata', optional(struct({
@@ -476,6 +480,10 @@ export default declareSchema(() => {
                 })),
             }),
         }))));
+
+        // overrides
+        field('overrideAvatar', optional(ImageRef));
+        field('overrideName', optional(string()));
 
         field('deleted', optional(boolean()));
         field('edited', optional(boolean()));
@@ -577,6 +585,10 @@ export default declareSchema(() => {
                 })))
             })
         }))));
+
+        // overrides
+        field('overrideAvatar', optional(ImageRef));
+        field('overrideName', optional(string()));
 
         field('edited', optional(boolean()));
         field('deleted', optional(boolean()));
@@ -1695,15 +1707,18 @@ export default declareSchema(() => {
     //
 
     entity('OauthApplication', () => {
-        primaryKey('clientId', string());
+        primaryKey('id', integer());
+        field('clientId', string());
         field('uid', integer());
         field('clientSecret', string());
         field('title', string());
+        field('image', optional(ImageRef));
         field('allowedScopes', array(string()));
         field('allowedRedirectUrls', optional(array(string())));
         field('enabled', boolean());
 
         rangeIndex('user', ['uid', 'createdAt']);
+        uniqueIndex('byClientId', ['clientId']);
     });
 
     entity('OauthContext', () => {

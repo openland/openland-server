@@ -137,4 +137,8 @@ export interface MessageInput {
 
     // appends attachments instead of replacing them in editMessage
     appendAttachments?: boolean | null;
+
+    // overrides
+    overrideAvatar?: ImageRef | null;
+    overrideName?: string | null;
 }

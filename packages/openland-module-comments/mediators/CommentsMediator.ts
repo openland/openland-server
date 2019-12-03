@@ -28,6 +28,17 @@ export class CommentsMediator {
             }
 
             //
+            // Allow overrides only for super admins
+            //
+            if (commentInput.overrideAvatar || commentInput.overrideName) {
+                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid, oid: null });
+                if (!permissions.has('super-admin')) {
+                    commentInput.overrideName = null;
+                    commentInput.overrideAvatar = null;
+                }
+            }
+
+            //
             // Create comment
             //
             let res = await this.repo.createComment(ctx, 'message', messageId, uid, commentInput);
@@ -72,6 +83,17 @@ export class CommentsMediator {
             let item = await Store.FeedEvent.findById(ctx, feedItemId);
             if (!item) {
                 throw new NotFoundError();
+            }
+
+            //
+            // Allow overrides only for super admins
+            //
+            if (commentInput.overrideAvatar || commentInput.overrideName) {
+                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid, oid: null });
+                if (!permissions.has('super-admin')) {
+                    commentInput.overrideName = null;
+                    commentInput.overrideAvatar = null;
+                }
             }
 
             //

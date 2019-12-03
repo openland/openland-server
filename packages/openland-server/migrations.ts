@@ -330,4 +330,38 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '114-oauth-app-fix-keys',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            let data = await Store.OauthApplication.findAll(ctx);
+            for (let item of data) {
+                item.invalidate();
+                await item.flush(ctx);
+            }
+        });
+
+        await inTx(parent, async ctx => {
+            let primaryIndexData = await Store.OauthApplication.descriptor.subspace.range(ctx, []);
+            for (let item of primaryIndexData) {
+                if (typeof item.key[0] === 'string') {
+                    await Store.OauthApplication.descriptor.subspace.clear(ctx, item.key);
+                }
+            }
+
+            for (let index of Store.OauthApplication.descriptor.secondaryIndexes) {
+                if (index.name !== 'user') {
+                    continue;
+                }
+                let items = await index.subspace.range(ctx, []);
+                for (let item of items) {
+                    if (typeof item.key[2] === 'string') {
+                        await index.subspace.clear(ctx, item.key);
+                    }
+                }
+            }
+        });
+    }
+});
+
 export default migrations;
