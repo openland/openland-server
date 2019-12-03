@@ -343,6 +343,6 @@ migrations.push({
            }
         });
     }
-})
+});
 
 export default migrations;
