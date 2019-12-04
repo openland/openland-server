@@ -9,6 +9,12 @@ import { IDs } from '../openland-module-api/IDs';
 import { delay, foreverBreakable } from '../openland-utils/timer';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { useOauth } from '../openland-module-oauth/http.handlers';
+import { ImageRef } from 'openland-module-media/ImageRef';
+import fetch from 'node-fetch';
+import { extname } from 'path';
+import { CacheRepository } from '../openland-module-cache/CacheRepository';
+
+const imagesCache = new CacheRepository<ImageRef>('zapier-bot-images');
 
 const log = createLogger('zapier');
 const rootCtx = createNamedContext('zapier');
@@ -131,9 +137,34 @@ async function initZapierInternal(app: Express) {
                 }
                 messageWasSent = true;
             }
+
+            let overrideAvatar: ImageRef | null = null;
+            if (req.body.image) {
+                let cacheEntry = await imagesCache.read(ctx, req.body.image);
+                if (cacheEntry) {
+                    overrideAvatar = cacheEntry;
+                } else {
+                    let image = await fetch(req.body.image);
+                    let contentType = image.headers.get('Content-Type');
+                    if (contentType && contentType.startsWith('image/')) {
+                        let contents = await image.buffer();
+                        let fileData = await Modules.Media.upload(ctx, contents, (extname(req.body.image).length > 0) ? extname(req.body.image) : undefined);
+                        await Modules.Media.saveFile(ctx, fileData.file);
+                        overrideAvatar = {
+                            uuid: fileData.file,
+                            crop: null,
+                        };
+                        await imagesCache.write(ctx, req.body.image, overrideAvatar);
+                    }
+                }
+            }
             if (!messageWasSent) {
                 let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, uid);
-                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {message: req.body.message});
+                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {
+                    message: req.body.message,
+                    overrideName: req.body.name || null,
+                    overrideAvatar,
+                });
             }
 
             res.json({
