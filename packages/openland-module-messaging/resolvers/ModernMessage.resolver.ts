@@ -1244,8 +1244,6 @@ export default {
                 attachments,
                 replyMessages,
                 spans,
-                overrideAvatar: args.overrideAvatar,
-                overrideName: args.overrideName
             });
 
             return true;
@@ -1269,8 +1267,6 @@ export default {
                 replyMessages,
                 spans,
                 stickerId: sid,
-                overrideName: args.overrideName,
-                overrideAvatar: args.overrideAvatar
             });
 
             return true;

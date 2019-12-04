@@ -545,7 +545,7 @@ export default {
             return {
                 globalItems,
                 localItems,
-                cursor: hits.hits.hits.length < args.first ? null : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
+                cursor: (from + args.first >= hits.hits.total) ? null : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
             };
         })
     },

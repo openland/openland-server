@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0b7c51f22345142ea9ce27c9730175ab';
+export const GQL_SPEC_VERSION = '98c7300f8a1c1d2bfc432aa7d78403ac';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1603,16 +1603,12 @@ export namespace GQL {
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
         repeatKey: OptionalNullable<string>;
-        overrideAvatar: OptionalNullable<ImageRefInput>;
-        overrideName: OptionalNullable<string>;
     }
     export interface MutationBetaAddStickerCommentArgs {
         peerId: string;
         stickerId: string;
         replyComment: OptionalNullable<string>;
         repeatKey: OptionalNullable<string>;
-        overrideAvatar: OptionalNullable<ImageRefInput>;
-        overrideName: OptionalNullable<string>;
     }
     export interface MutationEditCommentArgs {
         id: string;
@@ -2043,16 +2039,12 @@ export namespace GQL {
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
         spans: OptionalNullable<MessageSpanInput[]>;
         repeatKey: OptionalNullable<string>;
-        overrideAvatar: OptionalNullable<ImageRefInput>;
-        overrideName: OptionalNullable<string>;
     }
     export interface MutationSendStickerArgs {
         chatId: string;
         stickerId: string;
         replyMessages: OptionalNullable<string[]>;
         repeatKey: OptionalNullable<string>;
-        overrideAvatar: OptionalNullable<ImageRefInput>;
-        overrideName: OptionalNullable<string>;
     }
     export interface MutationEditMessageArgs {
         messageId: string;
