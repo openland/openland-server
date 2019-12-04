@@ -1,20 +1,22 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import * as $protobuf from "protobufjs/minimal";
+"use strict";
+
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
-const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export const vostok = $root.vostok = (() => {
+$root.vostok = (function() {
 
     /**
      * Namespace vostok.
      * @exports vostok
      * @namespace
      */
-    const vostok = {};
+    var vostok = {};
 
     vostok.TopMessage = (function() {
 
@@ -44,7 +46,7 @@ export const vostok = $root.vostok = (() => {
          */
         function TopMessage(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -130,7 +132,7 @@ export const vostok = $root.vostok = (() => {
         TopMessage.prototype.invalidMessage = null;
 
         // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
+        var $oneOfFields;
 
         /**
          * TopMessage body.
@@ -217,9 +219,9 @@ export const vostok = $root.vostok = (() => {
         TopMessage.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.TopMessage();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.TopMessage();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.messagesContainer = $root.vostok.MessagesContainer.decode(reader, reader.uint32());
@@ -286,11 +288,11 @@ export const vostok = $root.vostok = (() => {
         TopMessage.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            let properties = {};
+            var properties = {};
             if (message.messagesContainer != null && message.hasOwnProperty("messagesContainer")) {
                 properties.body = 1;
                 {
-                    let error = $root.vostok.MessagesContainer.verify(message.messagesContainer);
+                    var error = $root.vostok.MessagesContainer.verify(message.messagesContainer);
                     if (error)
                         return "messagesContainer." + error;
                 }
@@ -300,7 +302,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.Message.verify(message.message);
+                    var error = $root.vostok.Message.verify(message.message);
                     if (error)
                         return "message." + error;
                 }
@@ -310,7 +312,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.AckMessages.verify(message.ackMessages);
+                    var error = $root.vostok.AckMessages.verify(message.ackMessages);
                     if (error)
                         return "ackMessages." + error;
                 }
@@ -320,7 +322,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.Ping.verify(message.ping);
+                    var error = $root.vostok.Ping.verify(message.ping);
                     if (error)
                         return "ping." + error;
                 }
@@ -330,7 +332,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.Pong.verify(message.pong);
+                    var error = $root.vostok.Pong.verify(message.pong);
                     if (error)
                         return "pong." + error;
                 }
@@ -340,7 +342,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.MessagesInfoRequest.verify(message.messagesInfoRequest);
+                    var error = $root.vostok.MessagesInfoRequest.verify(message.messagesInfoRequest);
                     if (error)
                         return "messagesInfoRequest." + error;
                 }
@@ -350,7 +352,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.ResendMessageAnswerRequest.verify(message.resendMessageAnswerRequest);
+                    var error = $root.vostok.ResendMessageAnswerRequest.verify(message.resendMessageAnswerRequest);
                     if (error)
                         return "resendMessageAnswerRequest." + error;
                 }
@@ -360,7 +362,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.MessageNotFoundResponse.verify(message.messageNotFoundResponse);
+                    var error = $root.vostok.MessageNotFoundResponse.verify(message.messageNotFoundResponse);
                     if (error)
                         return "messageNotFoundResponse." + error;
                 }
@@ -370,7 +372,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.MessageIsProcessingResponse.verify(message.messageIsProcessingResponse);
+                    var error = $root.vostok.MessageIsProcessingResponse.verify(message.messageIsProcessingResponse);
                     if (error)
                         return "messageIsProcessingResponse." + error;
                 }
@@ -380,7 +382,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.InvalidMessage.verify(message.invalidMessage);
+                    var error = $root.vostok.InvalidMessage.verify(message.invalidMessage);
                     if (error)
                         return "invalidMessage." + error;
                 }
@@ -399,7 +401,7 @@ export const vostok = $root.vostok = (() => {
         TopMessage.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.TopMessage)
                 return object;
-            let message = new $root.vostok.TopMessage();
+            var message = new $root.vostok.TopMessage();
             if (object.messagesContainer != null) {
                 if (typeof object.messagesContainer !== "object")
                     throw TypeError(".vostok.TopMessage.messagesContainer: object expected");
@@ -465,7 +467,7 @@ export const vostok = $root.vostok = (() => {
         TopMessage.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (message.messagesContainer != null && message.hasOwnProperty("messagesContainer")) {
                 object.messagesContainer = $root.vostok.MessagesContainer.toObject(message.messagesContainer, options);
                 if (options.oneofs)
@@ -562,7 +564,7 @@ export const vostok = $root.vostok = (() => {
         function Message(properties) {
             this.ackMessages = [];
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -648,7 +650,7 @@ export const vostok = $root.vostok = (() => {
         Message.prototype.gqlSubscriptionComplete = null;
 
         // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
+        var $oneOfFields;
 
         /**
          * Message body.
@@ -687,7 +689,7 @@ export const vostok = $root.vostok = (() => {
                 writer = $Writer.create();
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.ackMessages != null && message.ackMessages.length)
-                for (let i = 0; i < message.ackMessages.length; ++i)
+                for (var i = 0; i < message.ackMessages.length; ++i)
                     writer.uint32(/* id 2, wireType 2 =*/18).string(message.ackMessages[i]);
             if (message.initialize != null && message.hasOwnProperty("initialize"))
                 $root.vostok.Initialize.encode(message.initialize, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
@@ -735,9 +737,9 @@ export const vostok = $root.vostok = (() => {
         Message.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Message();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Message();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -808,20 +810,20 @@ export const vostok = $root.vostok = (() => {
         Message.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            let properties = {};
+            var properties = {};
             if (!$util.isString(message.id))
                 return "id: string expected";
             if (message.ackMessages != null && message.hasOwnProperty("ackMessages")) {
                 if (!Array.isArray(message.ackMessages))
                     return "ackMessages: array expected";
-                for (let i = 0; i < message.ackMessages.length; ++i)
+                for (var i = 0; i < message.ackMessages.length; ++i)
                     if (!$util.isString(message.ackMessages[i]))
                         return "ackMessages: string[] expected";
             }
             if (message.initialize != null && message.hasOwnProperty("initialize")) {
                 properties.body = 1;
                 {
-                    let error = $root.vostok.Initialize.verify(message.initialize);
+                    var error = $root.vostok.Initialize.verify(message.initialize);
                     if (error)
                         return "initialize." + error;
                 }
@@ -831,7 +833,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.InitializeAck.verify(message.initializeAck);
+                    var error = $root.vostok.InitializeAck.verify(message.initializeAck);
                     if (error)
                         return "initializeAck." + error;
                 }
@@ -841,7 +843,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.GQLRequest.verify(message.gqlRequest);
+                    var error = $root.vostok.GQLRequest.verify(message.gqlRequest);
                     if (error)
                         return "gqlRequest." + error;
                 }
@@ -851,7 +853,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.GQLResponse.verify(message.gqlResponse);
+                    var error = $root.vostok.GQLResponse.verify(message.gqlResponse);
                     if (error)
                         return "gqlResponse." + error;
                 }
@@ -861,7 +863,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.GQLSubscription.verify(message.gqlSubscription);
+                    var error = $root.vostok.GQLSubscription.verify(message.gqlSubscription);
                     if (error)
                         return "gqlSubscription." + error;
                 }
@@ -871,7 +873,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.GQLSubscriptionStop.verify(message.gqlSubscriptionStop);
+                    var error = $root.vostok.GQLSubscriptionStop.verify(message.gqlSubscriptionStop);
                     if (error)
                         return "gqlSubscriptionStop." + error;
                 }
@@ -881,7 +883,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.GQLSubscriptionResponse.verify(message.gqlSubscriptionResponse);
+                    var error = $root.vostok.GQLSubscriptionResponse.verify(message.gqlSubscriptionResponse);
                     if (error)
                         return "gqlSubscriptionResponse." + error;
                 }
@@ -891,7 +893,7 @@ export const vostok = $root.vostok = (() => {
                     return "body: multiple values";
                 properties.body = 1;
                 {
-                    let error = $root.vostok.GQLSubscriptionComplete.verify(message.gqlSubscriptionComplete);
+                    var error = $root.vostok.GQLSubscriptionComplete.verify(message.gqlSubscriptionComplete);
                     if (error)
                         return "gqlSubscriptionComplete." + error;
                 }
@@ -910,14 +912,14 @@ export const vostok = $root.vostok = (() => {
         Message.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.Message)
                 return object;
-            let message = new $root.vostok.Message();
+            var message = new $root.vostok.Message();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.ackMessages) {
                 if (!Array.isArray(object.ackMessages))
                     throw TypeError(".vostok.Message.ackMessages: array expected");
                 message.ackMessages = [];
-                for (let i = 0; i < object.ackMessages.length; ++i)
+                for (var i = 0; i < object.ackMessages.length; ++i)
                     message.ackMessages[i] = String(object.ackMessages[i]);
             }
             if (object.initialize != null) {
@@ -975,7 +977,7 @@ export const vostok = $root.vostok = (() => {
         Message.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.arrays || options.defaults)
                 object.ackMessages = [];
             if (options.defaults)
@@ -984,7 +986,7 @@ export const vostok = $root.vostok = (() => {
                 object.id = message.id;
             if (message.ackMessages && message.ackMessages.length) {
                 object.ackMessages = [];
-                for (let j = 0; j < message.ackMessages.length; ++j)
+                for (var j = 0; j < message.ackMessages.length; ++j)
                     object.ackMessages[j] = message.ackMessages[j];
             }
             if (message.initialize != null && message.hasOwnProperty("initialize")) {
@@ -1064,7 +1066,7 @@ export const vostok = $root.vostok = (() => {
         function MessagesContainer(properties) {
             this.messages = [];
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1102,7 +1104,7 @@ export const vostok = $root.vostok = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.messages != null && message.messages.length)
-                for (let i = 0; i < message.messages.length; ++i)
+                for (var i = 0; i < message.messages.length; ++i)
                     $root.vostok.TopMessage.encode(message.messages[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             return writer;
         };
@@ -1134,9 +1136,9 @@ export const vostok = $root.vostok = (() => {
         MessagesContainer.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessagesContainer();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessagesContainer();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.messages && message.messages.length))
@@ -1181,8 +1183,8 @@ export const vostok = $root.vostok = (() => {
             if (message.messages != null && message.hasOwnProperty("messages")) {
                 if (!Array.isArray(message.messages))
                     return "messages: array expected";
-                for (let i = 0; i < message.messages.length; ++i) {
-                    let error = $root.vostok.TopMessage.verify(message.messages[i]);
+                for (var i = 0; i < message.messages.length; ++i) {
+                    var error = $root.vostok.TopMessage.verify(message.messages[i]);
                     if (error)
                         return "messages." + error;
                 }
@@ -1201,12 +1203,12 @@ export const vostok = $root.vostok = (() => {
         MessagesContainer.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.MessagesContainer)
                 return object;
-            let message = new $root.vostok.MessagesContainer();
+            var message = new $root.vostok.MessagesContainer();
             if (object.messages) {
                 if (!Array.isArray(object.messages))
                     throw TypeError(".vostok.MessagesContainer.messages: array expected");
                 message.messages = [];
-                for (let i = 0; i < object.messages.length; ++i) {
+                for (var i = 0; i < object.messages.length; ++i) {
                     if (typeof object.messages[i] !== "object")
                         throw TypeError(".vostok.MessagesContainer.messages: object expected");
                     message.messages[i] = $root.vostok.TopMessage.fromObject(object.messages[i]);
@@ -1227,12 +1229,12 @@ export const vostok = $root.vostok = (() => {
         MessagesContainer.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.arrays || options.defaults)
                 object.messages = [];
             if (message.messages && message.messages.length) {
                 object.messages = [];
-                for (let j = 0; j < message.messages.length; ++j)
+                for (var j = 0; j < message.messages.length; ++j)
                     object.messages[j] = $root.vostok.TopMessage.toObject(message.messages[j], options);
             }
             return object;
@@ -1272,7 +1274,7 @@ export const vostok = $root.vostok = (() => {
         function AckMessages(properties) {
             this.ids = [];
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1310,7 +1312,7 @@ export const vostok = $root.vostok = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.ids != null && message.ids.length)
-                for (let i = 0; i < message.ids.length; ++i)
+                for (var i = 0; i < message.ids.length; ++i)
                     writer.uint32(/* id 1, wireType 2 =*/10).string(message.ids[i]);
             return writer;
         };
@@ -1342,9 +1344,9 @@ export const vostok = $root.vostok = (() => {
         AckMessages.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.AckMessages();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.AckMessages();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.ids && message.ids.length))
@@ -1389,7 +1391,7 @@ export const vostok = $root.vostok = (() => {
             if (message.ids != null && message.hasOwnProperty("ids")) {
                 if (!Array.isArray(message.ids))
                     return "ids: array expected";
-                for (let i = 0; i < message.ids.length; ++i)
+                for (var i = 0; i < message.ids.length; ++i)
                     if (!$util.isString(message.ids[i]))
                         return "ids: string[] expected";
             }
@@ -1407,12 +1409,12 @@ export const vostok = $root.vostok = (() => {
         AckMessages.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.AckMessages)
                 return object;
-            let message = new $root.vostok.AckMessages();
+            var message = new $root.vostok.AckMessages();
             if (object.ids) {
                 if (!Array.isArray(object.ids))
                     throw TypeError(".vostok.AckMessages.ids: array expected");
                 message.ids = [];
-                for (let i = 0; i < object.ids.length; ++i)
+                for (var i = 0; i < object.ids.length; ++i)
                     message.ids[i] = String(object.ids[i]);
             }
             return message;
@@ -1430,12 +1432,12 @@ export const vostok = $root.vostok = (() => {
         AckMessages.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.arrays || options.defaults)
                 object.ids = [];
             if (message.ids && message.ids.length) {
                 object.ids = [];
-                for (let j = 0; j < message.ids.length; ++j)
+                for (var j = 0; j < message.ids.length; ++j)
                     object.ids[j] = message.ids[j];
             }
             return object;
@@ -1475,7 +1477,7 @@ export const vostok = $root.vostok = (() => {
         function MessagesInfoRequest(properties) {
             this.messageIds = [];
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1513,7 +1515,7 @@ export const vostok = $root.vostok = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.messageIds != null && message.messageIds.length)
-                for (let i = 0; i < message.messageIds.length; ++i)
+                for (var i = 0; i < message.messageIds.length; ++i)
                     writer.uint32(/* id 1, wireType 2 =*/10).string(message.messageIds[i]);
             return writer;
         };
@@ -1545,9 +1547,9 @@ export const vostok = $root.vostok = (() => {
         MessagesInfoRequest.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessagesInfoRequest();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessagesInfoRequest();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     if (!(message.messageIds && message.messageIds.length))
@@ -1592,7 +1594,7 @@ export const vostok = $root.vostok = (() => {
             if (message.messageIds != null && message.hasOwnProperty("messageIds")) {
                 if (!Array.isArray(message.messageIds))
                     return "messageIds: array expected";
-                for (let i = 0; i < message.messageIds.length; ++i)
+                for (var i = 0; i < message.messageIds.length; ++i)
                     if (!$util.isString(message.messageIds[i]))
                         return "messageIds: string[] expected";
             }
@@ -1610,12 +1612,12 @@ export const vostok = $root.vostok = (() => {
         MessagesInfoRequest.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.MessagesInfoRequest)
                 return object;
-            let message = new $root.vostok.MessagesInfoRequest();
+            var message = new $root.vostok.MessagesInfoRequest();
             if (object.messageIds) {
                 if (!Array.isArray(object.messageIds))
                     throw TypeError(".vostok.MessagesInfoRequest.messageIds: array expected");
                 message.messageIds = [];
-                for (let i = 0; i < object.messageIds.length; ++i)
+                for (var i = 0; i < object.messageIds.length; ++i)
                     message.messageIds[i] = String(object.messageIds[i]);
             }
             return message;
@@ -1633,12 +1635,12 @@ export const vostok = $root.vostok = (() => {
         MessagesInfoRequest.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.arrays || options.defaults)
                 object.messageIds = [];
             if (message.messageIds && message.messageIds.length) {
                 object.messageIds = [];
-                for (let j = 0; j < message.messageIds.length; ++j)
+                for (var j = 0; j < message.messageIds.length; ++j)
                     object.messageIds[j] = message.messageIds[j];
             }
             return object;
@@ -1677,7 +1679,7 @@ export const vostok = $root.vostok = (() => {
          */
         function ResendMessageAnswerRequest(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1745,9 +1747,9 @@ export const vostok = $root.vostok = (() => {
         ResendMessageAnswerRequest.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.ResendMessageAnswerRequest();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.ResendMessageAnswerRequest();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.messageId = reader.string();
@@ -1805,7 +1807,7 @@ export const vostok = $root.vostok = (() => {
         ResendMessageAnswerRequest.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.ResendMessageAnswerRequest)
                 return object;
-            let message = new $root.vostok.ResendMessageAnswerRequest();
+            var message = new $root.vostok.ResendMessageAnswerRequest();
             if (object.messageId != null)
                 message.messageId = String(object.messageId);
             return message;
@@ -1823,7 +1825,7 @@ export const vostok = $root.vostok = (() => {
         ResendMessageAnswerRequest.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.messageId = "";
             if (message.messageId != null && message.hasOwnProperty("messageId"))
@@ -1864,7 +1866,7 @@ export const vostok = $root.vostok = (() => {
          */
         function MessageNotFoundResponse(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1932,9 +1934,9 @@ export const vostok = $root.vostok = (() => {
         MessageNotFoundResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessageNotFoundResponse();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessageNotFoundResponse();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.messageId = reader.string();
@@ -1992,7 +1994,7 @@ export const vostok = $root.vostok = (() => {
         MessageNotFoundResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.MessageNotFoundResponse)
                 return object;
-            let message = new $root.vostok.MessageNotFoundResponse();
+            var message = new $root.vostok.MessageNotFoundResponse();
             if (object.messageId != null)
                 message.messageId = String(object.messageId);
             return message;
@@ -2010,7 +2012,7 @@ export const vostok = $root.vostok = (() => {
         MessageNotFoundResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.messageId = "";
             if (message.messageId != null && message.hasOwnProperty("messageId"))
@@ -2051,7 +2053,7 @@ export const vostok = $root.vostok = (() => {
          */
         function MessageIsProcessingResponse(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2119,9 +2121,9 @@ export const vostok = $root.vostok = (() => {
         MessageIsProcessingResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessageIsProcessingResponse();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.MessageIsProcessingResponse();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.messageId = reader.string();
@@ -2179,7 +2181,7 @@ export const vostok = $root.vostok = (() => {
         MessageIsProcessingResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.MessageIsProcessingResponse)
                 return object;
-            let message = new $root.vostok.MessageIsProcessingResponse();
+            var message = new $root.vostok.MessageIsProcessingResponse();
             if (object.messageId != null)
                 message.messageId = String(object.messageId);
             return message;
@@ -2197,7 +2199,7 @@ export const vostok = $root.vostok = (() => {
         MessageIsProcessingResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.messageId = "";
             if (message.messageId != null && message.hasOwnProperty("messageId"))
@@ -2239,7 +2241,7 @@ export const vostok = $root.vostok = (() => {
          */
         function Initialize(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2318,9 +2320,9 @@ export const vostok = $root.vostok = (() => {
         Initialize.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Initialize();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Initialize();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.authToken = reader.string();
@@ -2383,7 +2385,7 @@ export const vostok = $root.vostok = (() => {
         Initialize.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.Initialize)
                 return object;
-            let message = new $root.vostok.Initialize();
+            var message = new $root.vostok.Initialize();
             if (object.authToken != null)
                 message.authToken = String(object.authToken);
             if (object.sessionId != null)
@@ -2403,7 +2405,7 @@ export const vostok = $root.vostok = (() => {
         Initialize.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.authToken = "";
                 object.sessionId = "";
@@ -2448,7 +2450,7 @@ export const vostok = $root.vostok = (() => {
          */
         function InitializeAck(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2516,9 +2518,9 @@ export const vostok = $root.vostok = (() => {
         InitializeAck.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.InitializeAck();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.InitializeAck();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 2:
                     message.sessionId = reader.string();
@@ -2576,7 +2578,7 @@ export const vostok = $root.vostok = (() => {
         InitializeAck.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.InitializeAck)
                 return object;
-            let message = new $root.vostok.InitializeAck();
+            var message = new $root.vostok.InitializeAck();
             if (object.sessionId != null)
                 message.sessionId = String(object.sessionId);
             return message;
@@ -2594,7 +2596,7 @@ export const vostok = $root.vostok = (() => {
         InitializeAck.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.sessionId = "";
             if (message.sessionId != null && message.hasOwnProperty("sessionId"))
@@ -2634,7 +2636,7 @@ export const vostok = $root.vostok = (() => {
          */
         function InvalidMessage(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2693,9 +2695,9 @@ export const vostok = $root.vostok = (() => {
         InvalidMessage.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.InvalidMessage();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.InvalidMessage();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -2795,7 +2797,7 @@ export const vostok = $root.vostok = (() => {
          */
         function Ping(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2863,9 +2865,9 @@ export const vostok = $root.vostok = (() => {
         Ping.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Ping();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Ping();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.int32();
@@ -2923,7 +2925,7 @@ export const vostok = $root.vostok = (() => {
         Ping.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.Ping)
                 return object;
-            let message = new $root.vostok.Ping();
+            var message = new $root.vostok.Ping();
             if (object.id != null)
                 message.id = object.id | 0;
             return message;
@@ -2941,7 +2943,7 @@ export const vostok = $root.vostok = (() => {
         Ping.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.id = 0;
             if (message.id != null && message.hasOwnProperty("id"))
@@ -2982,7 +2984,7 @@ export const vostok = $root.vostok = (() => {
          */
         function Pong(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3050,9 +3052,9 @@ export const vostok = $root.vostok = (() => {
         Pong.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Pong();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.Pong();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.int32();
@@ -3110,7 +3112,7 @@ export const vostok = $root.vostok = (() => {
         Pong.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.Pong)
                 return object;
-            let message = new $root.vostok.Pong();
+            var message = new $root.vostok.Pong();
             if (object.id != null)
                 message.id = object.id | 0;
             return message;
@@ -3128,7 +3130,7 @@ export const vostok = $root.vostok = (() => {
         Pong.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.id = 0;
             if (message.id != null && message.hasOwnProperty("id"))
@@ -3172,7 +3174,7 @@ export const vostok = $root.vostok = (() => {
          */
         function GQLRequest(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3269,9 +3271,9 @@ export const vostok = $root.vostok = (() => {
         GQLRequest.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLRequest();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLRequest();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -3348,7 +3350,7 @@ export const vostok = $root.vostok = (() => {
         GQLRequest.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.GQLRequest)
                 return object;
-            let message = new $root.vostok.GQLRequest();
+            var message = new $root.vostok.GQLRequest();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.operationName != null)
@@ -3372,7 +3374,7 @@ export const vostok = $root.vostok = (() => {
         GQLRequest.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.id = "";
                 object.operationName = "";
@@ -3424,7 +3426,7 @@ export const vostok = $root.vostok = (() => {
          */
         function GQLResponse(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3501,9 +3503,9 @@ export const vostok = $root.vostok = (() => {
         GQLResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLResponse();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLResponse();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -3568,7 +3570,7 @@ export const vostok = $root.vostok = (() => {
         GQLResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.GQLResponse)
                 return object;
-            let message = new $root.vostok.GQLResponse();
+            var message = new $root.vostok.GQLResponse();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.result != null)
@@ -3588,7 +3590,7 @@ export const vostok = $root.vostok = (() => {
         GQLResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.id = "";
                 object.result = "";
@@ -3636,7 +3638,7 @@ export const vostok = $root.vostok = (() => {
          */
         function GQLSubscription(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3733,9 +3735,9 @@ export const vostok = $root.vostok = (() => {
         GQLSubscription.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscription();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscription();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -3812,7 +3814,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscription.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.GQLSubscription)
                 return object;
-            let message = new $root.vostok.GQLSubscription();
+            var message = new $root.vostok.GQLSubscription();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.operationName != null)
@@ -3836,7 +3838,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscription.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.id = "";
                 object.operationName = "";
@@ -3887,7 +3889,7 @@ export const vostok = $root.vostok = (() => {
          */
         function GQLSubscriptionStop(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3955,9 +3957,9 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionStop.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscriptionStop();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscriptionStop();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -4015,7 +4017,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionStop.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.GQLSubscriptionStop)
                 return object;
-            let message = new $root.vostok.GQLSubscriptionStop();
+            var message = new $root.vostok.GQLSubscriptionStop();
             if (object.id != null)
                 message.id = String(object.id);
             return message;
@@ -4033,7 +4035,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionStop.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.id = "";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -4075,7 +4077,7 @@ export const vostok = $root.vostok = (() => {
          */
         function GQLSubscriptionResponse(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -4152,9 +4154,9 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscriptionResponse();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscriptionResponse();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -4219,7 +4221,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.GQLSubscriptionResponse)
                 return object;
-            let message = new $root.vostok.GQLSubscriptionResponse();
+            var message = new $root.vostok.GQLSubscriptionResponse();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.result != null)
@@ -4239,7 +4241,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.id = "";
                 object.result = "";
@@ -4284,7 +4286,7 @@ export const vostok = $root.vostok = (() => {
          */
         function GQLSubscriptionComplete(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -4352,9 +4354,9 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionComplete.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscriptionComplete();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.GQLSubscriptionComplete();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
                     message.id = reader.string();
@@ -4412,7 +4414,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionComplete.fromObject = function fromObject(object) {
             if (object instanceof $root.vostok.GQLSubscriptionComplete)
                 return object;
-            let message = new $root.vostok.GQLSubscriptionComplete();
+            var message = new $root.vostok.GQLSubscriptionComplete();
             if (object.id != null)
                 message.id = String(object.id);
             return message;
@@ -4430,7 +4432,7 @@ export const vostok = $root.vostok = (() => {
         GQLSubscriptionComplete.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.id = "";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -4455,14 +4457,14 @@ export const vostok = $root.vostok = (() => {
     return vostok;
 })();
 
-export const google = $root.google = (() => {
+$root.google = (function() {
 
     /**
      * Namespace google.
      * @exports google
      * @namespace
      */
-    const google = {};
+    var google = {};
 
     google.protobuf = (function() {
 
@@ -4471,7 +4473,7 @@ export const google = $root.google = (() => {
          * @memberof google
          * @namespace
          */
-        const protobuf = {};
+        var protobuf = {};
 
         protobuf.Any = (function() {
 
@@ -4493,7 +4495,7 @@ export const google = $root.google = (() => {
              */
             function Any(properties) {
                 if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
                             this[keys[i]] = properties[keys[i]];
             }
@@ -4572,9 +4574,9 @@ export const google = $root.google = (() => {
             Any.decode = function decode(reader, length) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.protobuf.Any();
+                var end = length === undefined ? reader.len : reader.pos + length, message = new $root.google.protobuf.Any();
                 while (reader.pos < end) {
-                    let tag = reader.uint32();
+                    var tag = reader.uint32();
                     switch (tag >>> 3) {
                     case 1:
                         message.type_url = reader.string();
@@ -4637,7 +4639,7 @@ export const google = $root.google = (() => {
             Any.fromObject = function fromObject(object) {
                 if (object instanceof $root.google.protobuf.Any)
                     return object;
-                let message = new $root.google.protobuf.Any();
+                var message = new $root.google.protobuf.Any();
                 if (object.type_url != null)
                     message.type_url = String(object.type_url);
                 if (object.value != null)
@@ -4660,7 +4662,7 @@ export const google = $root.google = (() => {
             Any.toObject = function toObject(message, options) {
                 if (!options)
                     options = {};
-                let object = {};
+                var object = {};
                 if (options.defaults) {
                     object.type_url = "";
                     if (options.bytes === String)
@@ -4698,4 +4700,4 @@ export const google = $root.google = (() => {
     return google;
 })();
 
-export { $root as default };
+module.exports = $root;

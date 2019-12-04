@@ -121,7 +121,7 @@
   },
   "include": [
     "packages/**/*.ts",
-    "packages/**/*.js",
+//    "packages/**/*.js",
     "packages/**/*.d.ts",
     "packages/**/*.json"
   ]
