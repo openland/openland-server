@@ -42,7 +42,7 @@ export default {
                 allDialogs = allDialogs.filter((a) => !!a.date);
                 allDialogs.sort((a, b) => b.date - a.date);
 
-                return await Promise.all(allDialogs.map(async a => {
+                return (await Promise.all(allDialogs.map(async a => {
                     let conv = await Store.Conversation.findById(ctx, a.cid);
                     if (conv && conv.kind !== 'private') {
                         return conv;
@@ -51,7 +51,7 @@ export default {
                         return await Store.UserProfile.findById(ctx, privateConv!.uid1 === uid ? privateConv!.uid2 : privateConv!.uid1);
                     }
                     return null;
-                }));
+                }))).filter(a => !!a);
             }
 
             //
