@@ -91,6 +91,33 @@ async function initZapierInternal(app: Express) {
             }
             let uid = (req as any).uid;
             let messageWasSent = false;
+
+            let overrideAvatar: ImageRef | null = null;
+            if (req.body.image) {
+                let cacheEntry = await imagesCache.read(ctx, req.body.image);
+                if (cacheEntry) {
+                    overrideAvatar = cacheEntry;
+                } else {
+                    let image = await fetch(req.body.image);
+                    let contentType = image.headers.get('Content-Type');
+                    if (contentType && contentType.startsWith('image/')) {
+                        let contents = await image.buffer();
+                        let fileData = await Modules.Media.upload(ctx, contents, (extname(req.body.image).length > 0) ? extname(req.body.image) : undefined);
+                        await Modules.Media.saveFile(ctx, fileData.file);
+                        overrideAvatar = {
+                            uuid: fileData.file,
+                            crop: null,
+                        };
+                        await imagesCache.write(ctx, req.body.image, overrideAvatar);
+                    }
+                }
+            }
+            let messageOptions = {
+                message: req.body.message,
+                overrideName: req.body.name || null,
+                overrideAvatar,
+            };
+
             if (req.body.chat_id && req.body.chat_id !== '$TEST$') {
                 let chatId: number;
                 try {
@@ -101,7 +128,7 @@ async function initZapierInternal(app: Express) {
                 }
                 let membership = await Store.RoomParticipant.findById(ctx, chatId, config!.BotId);
                 if (membership && membership.status === 'joined' && membership.invitedBy === uid) {
-                    await Modules.Messaging.sendMessage(ctx, chatId, config!.BotId, {message: req.body.message});
+                    await Modules.Messaging.sendMessage(ctx, chatId, config!.BotId, messageOptions);
                 } else {
                     res.status(400).json({errors: [{message: 'Zapier bot has no permissions to write to this chat.'}]});
                     return;
@@ -138,33 +165,9 @@ async function initZapierInternal(app: Express) {
                 messageWasSent = true;
             }
 
-            let overrideAvatar: ImageRef | null = null;
-            if (req.body.image) {
-                let cacheEntry = await imagesCache.read(ctx, req.body.image);
-                if (cacheEntry) {
-                    overrideAvatar = cacheEntry;
-                } else {
-                    let image = await fetch(req.body.image);
-                    let contentType = image.headers.get('Content-Type');
-                    if (contentType && contentType.startsWith('image/')) {
-                        let contents = await image.buffer();
-                        let fileData = await Modules.Media.upload(ctx, contents, (extname(req.body.image).length > 0) ? extname(req.body.image) : undefined);
-                        await Modules.Media.saveFile(ctx, fileData.file);
-                        overrideAvatar = {
-                            uuid: fileData.file,
-                            crop: null,
-                        };
-                        await imagesCache.write(ctx, req.body.image, overrideAvatar);
-                    }
-                }
-            }
             if (!messageWasSent) {
                 let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, config!.BotId, uid);
-                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, {
-                    message: req.body.message,
-                    overrideName: req.body.name || null,
-                    overrideAvatar,
-                });
+                await Modules.Messaging.sendMessage(ctx, chat.id, config!.BotId, messageOptions);
             }
 
             res.json({
