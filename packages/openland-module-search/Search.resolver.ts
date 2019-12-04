@@ -37,6 +37,23 @@ export default {
         alphaGlobalSearch: withAccount(async (ctx, args, uid, oid) => {
             let query = args.query.trim();
 
+            if (query.length === 0) {
+                let allDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                allDialogs = allDialogs.filter((a) => !!a.date);
+                allDialogs.sort((a, b) => b.date - a.date);
+
+                return await Promise.all(allDialogs.map(async a => {
+                    let conv = await Store.Conversation.findById(ctx, a.cid);
+                    if (conv && conv.kind !== 'private') {
+                        return conv;
+                    } else if (conv && conv.kind === 'private') {
+                        let privateConv = await Store.ConversationPrivate.findById(ctx, a.cid);
+                        return await Store.UserProfile.findById(ctx, privateConv!.uid1 === uid ? privateConv!.uid2 : privateConv!.uid1);
+                    }
+                    return null;
+                }));
+            }
+
             //
             // Organizations
             //
