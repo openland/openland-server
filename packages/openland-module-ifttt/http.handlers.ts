@@ -212,7 +212,7 @@ async function initIFTTInternal(app: Express) {
             });
         });
     });
-    app.post('/integrations/ifttt/v1/schema/setup', checkServiceKey, async (req, res) => {
+    app.post('/integrations/ifttt/v1/test/setup', checkServiceKey, async (req, res) => {
         await inTx(rootCtx, async ctx => {
             let token = await Modules.IFTTT.createToken(ctx, config!.BotId);
             log.log(ctx, 'Test token granted');

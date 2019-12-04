@@ -11,9 +11,9 @@ describe('FeedRepository', () => {
 
     it('should resolve subscribers', async () => {
         let repo = container.get(FeedRepository);
-        let s1 = await repo.resolveSubscriber(createNamedContext('test'), 'schema-key-1');
-        let s2 = await repo.resolveSubscriber(createNamedContext('test'), 'schema-key-1');
-        let s3 = await repo.resolveSubscriber(createNamedContext('test'), 'schema-key-2');
+        let s1 = await repo.resolveSubscriber(createNamedContext('test'), 'test-key-1');
+        let s2 = await repo.resolveSubscriber(createNamedContext('test'), 'test-key-1');
+        let s3 = await repo.resolveSubscriber(createNamedContext('test'), 'test-key-2');
         expect(s1.id).toEqual(s2.id);
         expect(s1.key).toEqual(s2.key);
         expect(s1.id).not.toEqual(s3.id);
@@ -22,9 +22,9 @@ describe('FeedRepository', () => {
 
     it('should resolve topics', async () => {
         let repo = container.get(FeedRepository);
-        let s1 = await repo.resolveTopic(createNamedContext('test'), 'schema-topic-1');
-        let s2 = await repo.resolveTopic(createNamedContext('test'), 'schema-topic-1');
-        let s3 = await repo.resolveTopic(createNamedContext('test'), 'schema-topic-2');
+        let s1 = await repo.resolveTopic(createNamedContext('test'), 'test-topic-1');
+        let s2 = await repo.resolveTopic(createNamedContext('test'), 'test-topic-1');
+        let s3 = await repo.resolveTopic(createNamedContext('test'), 'test-topic-2');
         expect(s1.id).toEqual(s2.id);
         expect(s1.key).toEqual(s2.key);
         expect(s1.id).not.toEqual(s3.id);
@@ -42,12 +42,12 @@ describe('FeedRepository', () => {
 
     it('should subscribe and unsubscribe', async () => {
         let repo = container.get(FeedRepository);
-        let t = await repo.resolveTopic(createNamedContext('test'), 'schema-topic-8');
+        let t = await repo.resolveTopic(createNamedContext('test'), 'test-topic-8');
         let subs = await repo.findSubscriptions(createNamedContext('test'), 'sub-key-1');
         for (let s of subs) {
             expect(s).not.toBe(t.id);
         }
-        await repo.subscribe(createNamedContext('test'), 'sub-key-1', 'schema-topic-8');
+        await repo.subscribe(createNamedContext('test'), 'sub-key-1', 'test-topic-8');
         subs = await repo.findSubscriptions(createNamedContext('test'), 'sub-key-1');
         let exists = false;
         for (let s of subs) {
@@ -58,7 +58,7 @@ describe('FeedRepository', () => {
         }
         expect(exists).toBeTruthy();
 
-        await repo.unsubscribe(createNamedContext('test'), 'sub-key-1', 'schema-topic-8');
+        await repo.unsubscribe(createNamedContext('test'), 'sub-key-1', 'test-topic-8');
         subs = await repo.findSubscriptions(createNamedContext('test'), 'sub-key-1');
         for (let s of subs) {
             expect(s).not.toBe(t.id);
@@ -67,9 +67,9 @@ describe('FeedRepository', () => {
 
     it('should subscribe to self on subscriber creation', async () => {
         let repo = container.get(FeedRepository);
-        await repo.resolveSubscriber(createNamedContext('test'), 'schema-key-3');
-        let t1 = await repo.resolveTopic(createNamedContext('test'), 'schema-key-3');
-        let subs = (await repo.findSubscriptions(createNamedContext('test'), 'schema-key-3'));
+        await repo.resolveSubscriber(createNamedContext('test'), 'test-key-3');
+        let t1 = await repo.resolveTopic(createNamedContext('test'), 'test-key-3');
+        let subs = (await repo.findSubscriptions(createNamedContext('test'), 'test-key-3'));
         expect(subs.indexOf(t1.id) > -1).toBeTruthy();
     });
 });

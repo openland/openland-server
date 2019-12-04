@@ -146,7 +146,7 @@ export function declareBatchAmplitudeIndexer() {
             }
 
             let eventsTest = await convertToAmplitudeEvents(ctx, items.filter(i => i.body.isProd === false));
-            log.debug(ctx, 'schema events length: ', eventsTest.length);
+            log.debug(ctx, 'test events length: ', eventsTest.length);
             if (eventsTest.length > 0) {
                 await saveEvents(ctx, eventsTest, API_KEY_TEST);
                 exCount += eventsTest.length;

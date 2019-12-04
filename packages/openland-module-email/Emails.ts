@@ -329,7 +329,7 @@ export const Emails = {
             to: email,
             args: {
                 customText: text || '',
-                inviteLink: 'http://schema.com/',
+                inviteLink: 'http://test.com/',
                 'organizationName': 'Debug',
                 'userWelcome': 'hello'
             }
