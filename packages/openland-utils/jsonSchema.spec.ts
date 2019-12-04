@@ -54,19 +54,19 @@ describe('jsonSchema', () => {
         let schema = json(() => {
             jField('test', jNumber());
         });
-        expect(() => validateJson(schema, { test: true })).toThrow('Field root.test must be number, got: true');
+        expect(() => validateJson(schema, { test: true })).toThrow('Field root.schema must be number, got: true');
         schema = json(() => {
             jField('test', jString());
         });
-        expect(() => validateJson(schema, { test: true })).toThrow('Field root.test must be string, got: true');
+        expect(() => validateJson(schema, { test: true })).toThrow('Field root.schema must be string, got: true');
         schema = json(() => {
             jField('test', jString('test'));
         });
-        expect(() => validateJson(schema, { test: true })).toThrow('Field root.test must be string, got: true');
+        expect(() => validateJson(schema, { test: true })).toThrow('Field root.schema must be string, got: true');
         schema = json(() => {
             jField('test', jBool());
         });
-        expect(() => validateJson(schema, { test: 1 })).toThrow('Field root.test must be boolean, got: 1');
+        expect(() => validateJson(schema, { test: 1 })).toThrow('Field root.schema must be boolean, got: 1');
     });
 
     it('should work with non-object root type', async () => {

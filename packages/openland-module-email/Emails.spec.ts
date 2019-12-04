@@ -246,7 +246,7 @@ describe('Emails', () => {
     //     let {uid, email} = await randomUser(ctx);
     //     let {uid: uid2, email: email2} = await randomUser(ctx);
     //
-    //     let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
+    //     let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'schema' });
     //     await Modules.Orgs.activateOrganization(ctx, org.id, false);
     //
     //     let invite = await Modules.Invites.createOrganizationInvite(ctx, org.id, uid, { email: email2 });

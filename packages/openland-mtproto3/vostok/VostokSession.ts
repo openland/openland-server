@@ -1,19 +1,6 @@
 import { VostokOperationsManager } from './VostokOperationsManager';
 import { VostokConnection } from './VostokConnection';
 import { createIterator } from '../../openland-utils/asyncIterator';
-import {
-    encodeAckMessages,
-    encodeMessage, encodeMessageIsProcessingResponse, encodeMessageNotFoundResponse,
-    encodeMessagesContainer, encodeMessagesInfoRequest,
-    isAckMessages,
-    isMessage, isMessageNotFoundResponse,
-    isMessagesInfoRequest, isResendMessageAnswerRequest,
-    KnownTypes,
-    makeAckMessages,
-    makeMessage, makeMessageIsProcessingResponse,
-    makeMessageNotFoundResponse, makeMessagesContainer, makeMessagesInfoRequest, MessageNotFoundResponseShape,
-    MessageShape, MessagesInfoRequestShape, ResendMessageAnswerRequestShape
-} from '../vostok-schema/VostokTypes';
 import { RotatingMap } from '../../openland-utils/RotatingSizeMap';
 import { cancelContext, forever, withLifetime } from '@openland/lifetime';
 import { createNamedContext } from '@openland/context';
@@ -22,19 +9,20 @@ import { createLogger } from '@openland/log';
 import { asyncRun, makeMessageId } from '../utils';
 import { RotatingSet } from '../../openland-utils/RotatingSet';
 import { MESSAGE_INFO_REQ_TIMEOUT } from './vostokServer';
+import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
 interface OutMessage {
-    msg: MessageShape;
+    msg: vostok.IMessage;
     delivered: boolean;
     deliveredAt?: number;
     answerToMessage?: string;
 }
 
 interface InMessage {
-    msg: MessageShape;
+    msg: vostok.IMessage;
     responseMessage?: string;
 }
 
@@ -49,7 +37,7 @@ export class VostokSession {
     /**
      * Iterator which contains all incoming messages from all active connections
      */
-    readonly incomingMessages = createIterator<{ message: MessageShape, connection: VostokConnection }>(() => 0);
+    readonly incomingMessages = createIterator<{ message: vostok.IMessage, connection: VostokConnection }>(() => 0);
 
     readonly outgoingMessagesMap = new RotatingMap<string, OutMessage>(1024);
     readonly incomingMessagesMap = new RotatingMap<string, InMessage>(1024);
@@ -72,14 +60,17 @@ export class VostokSession {
                 }
             }
             if (ids.length > 0) {
-                this.sendRaw(encodeMessagesInfoRequest(makeMessagesInfoRequest({ messageIds: ids })));
+                this.sendBuff(vostok.TopMessage.encode({ messagesInfoRequest: { messageIds: ids }}).finish());
             }
             await delay(5000);
         });
     }
 
-    send(body: KnownTypes, acks?: string[], answerToMessage?: string) {
-        let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
+    send(message: vostok.IMessage, acks?: string[], answerToMessage?: string) {
+        message.id = makeMessageId();
+        message.ackMessages = acks || [];
+
+        // let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
         let connect = this.freshestConnect();
 
         // Store
@@ -93,8 +84,8 @@ export class VostokSession {
 
         // Try to deliver
         if (connect && connect.connection.isConnected()) {
-            log.log(rootCtx, '->', JSON.stringify(message));
-            connect.connection.sendRaw(encodeMessage(message));
+            log.log(rootCtx, '->', message);
+            connect.connection.sendBuff(vostok.TopMessage.encode({ message }).finish());
             let msg = this.outgoingMessagesMap.get(message.id)!;
             msg.delivered = true;
             msg.deliveredAt = Date.now();
@@ -107,7 +98,7 @@ export class VostokSession {
      * If answerToMessages is passed those messages will be deleted from cache
      */
     sendAck(ids: string[], answerToMessages?: string[]) {
-        this.sendRaw(encodeAckMessages(makeAckMessages({ ids })));
+        this.sendBuff(vostok.TopMessage.encode({ ackMessages: { ids } }).finish());
         ids.forEach(id => this.acknowledgedIncomingMessages.add(id));
         if (answerToMessages) {
             for (let id of answerToMessages) {
@@ -124,16 +115,16 @@ export class VostokSession {
 
         asyncRun(async () => {
             for await (let msgData of connection.getIncomingMessagesIterator()) {
-                if (isMessage(msgData)) {
+                if (msgData instanceof vostok.Message) {
                     this.incomingMessagesMap.set(msgData.id, { msg: msgData });
                     this.incomingMessages.push({ message: msgData, connection });
-                } else if (isAckMessages(msgData)) {
+                } else if (msgData instanceof vostok.AckMessages) {
                     this.handleMessageAcks(msgData.ids);
-                } else if (isMessagesInfoRequest(msgData)) {
+                } else if (msgData instanceof vostok.MessagesInfoRequest) {
                     this.handleMessagesInfoRequest(msgData);
-                } else if (isResendMessageAnswerRequest(msgData)) {
+                } else if (msgData instanceof vostok.ResendMessageAnswerRequest) {
                     this.handleResendMessageAnswerRequest(msgData);
-                } else if (isMessageNotFoundResponse(msgData)) {
+                } else if (msgData instanceof vostok.MessageNotFoundResponse) {
                     this.handleMessageNotFoundResponse(msgData);
                 }
             }
@@ -161,40 +152,42 @@ export class VostokSession {
         this.noConnectsSince = Date.now();
     }
 
-    private handleMessagesInfoRequest(req: MessagesInfoRequestShape) {
-        let response = makeMessagesContainer({ messages: [] });
+    private handleMessagesInfoRequest(req: vostok.MessagesInfoRequest) {
+        // let response = makeMessagesContainer({ messages: [] });
+        let response = vostok.TopMessage.create({ messagesContainer: vostok.MessagesContainer.create({ messages: [] }) });
 
         for (let id of req.messageIds) {
             if (this.incomingMessagesMap.has(id) || this.acknowledgedIncomingMessages.has(id)) {
-                response.messages.push(makeAckMessages({ ids: [id] }));
+                response.messagesContainer!.messages!.push(vostok.TopMessage.create({ ackMessages: { ids: [id] } }));
+
             } else {
-                response.messages.push(makeMessageNotFoundResponse({ messageId: id }));
+                response.messagesContainer!.messages!.push(vostok.TopMessage.create({ messageNotFoundResponse: { messageId: id }}));
             }
         }
 
-        this.sendRaw(encodeMessagesContainer(response));
+        this.sendBuff(vostok.TopMessage.encode(response).finish());
     }
 
-    private handleResendMessageAnswerRequest(req: ResendMessageAnswerRequestShape) {
+    private handleResendMessageAnswerRequest(req: vostok.ResendMessageAnswerRequest) {
         let incomingMessage = this.incomingMessagesMap.get(req.messageId);
         if (incomingMessage && incomingMessage.responseMessage && this.outgoingMessagesMap.has(incomingMessage.responseMessage)) {
-            this.sendRaw(encodeMessage(this.outgoingMessagesMap.get(incomingMessage.responseMessage)!.msg));
+            this.sendBuff(vostok.TopMessage.encode({ message: this.outgoingMessagesMap.get(incomingMessage.responseMessage)!.msg }).finish());
             return;
         } else if (incomingMessage) {
-            this.sendRaw(encodeMessageIsProcessingResponse(makeMessageIsProcessingResponse({ messageId: req.messageId })));
+            this.sendBuff(vostok.TopMessage.encode({ messageIsProcessingResponse: { messageId: req.messageId }}).finish());
             return;
         }
 
-        this.sendRaw(encodeMessageNotFoundResponse(makeMessageNotFoundResponse({ messageId: req.messageId })));
+        this.sendBuff(vostok.TopMessage.encode({ messageNotFoundResponse: { messageId: req.messageId }}).finish());
     }
 
     /**
      * Most likely server receives this as a response to MessagesInfoRequest request
      * and sends this message again if it has not been forgotten already
      */
-    private handleMessageNotFoundResponse(res: MessageNotFoundResponseShape) {
+    private handleMessageNotFoundResponse(res: vostok.MessageNotFoundResponse) {
         if (this.outgoingMessagesMap.has(res.messageId)) {
-            this.sendRaw(encodeMessage(this.outgoingMessagesMap.get(res.messageId)!.msg));
+            this.sendBuff(vostok.TopMessage.encode({ message: this.outgoingMessagesMap.get(res.messageId)!.msg }).finish());
         }
     }
 
@@ -205,12 +198,18 @@ export class VostokSession {
         return this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck)[0];
     }
 
-    /**
-     * Has no delivery guarantee
-     */
-    private sendRaw(data: any) {
+    // /**
+    //  * Has no delivery guarantee
+    //  */
+    // private sendRaw(data: any) {
+    //     if (this.freshestConnect()) {
+    //         this.freshestConnect().connection.sendRaw(data);
+    //     }
+    // }
+
+    private sendBuff(data: Uint8Array) {
         if (this.freshestConnect()) {
-            this.freshestConnect().connection.sendRaw(data);
+            this.freshestConnect().connection.sendBuff(data);
         }
     }
 
@@ -232,7 +231,7 @@ export class VostokSession {
         for (let msgId of this.outgoingMessagesMap.keys()) {
             let msg = this.outgoingMessagesMap.get(msgId)!;
             if (!msg.delivered) {
-                this.send(msg.msg.body, msg.msg.ackMessages || undefined);
+                this.send(msg.msg, msg.msg.ackMessages || undefined);
                 this.outgoingMessagesMap.delete(msgId);
             }
         }

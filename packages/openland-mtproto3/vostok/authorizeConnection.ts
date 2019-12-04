@@ -1,10 +1,10 @@
 import { VostokConnection } from './VostokConnection';
 import { VostokSessionsManager } from './VostokSessionsManager';
-import { encodeMessage, isInitialize, isMessage, makeInitializeAck, makeMessage } from '../vostok-schema/VostokTypes';
 import { makeMessageId } from '../utils';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { VostokServerParams } from './vostokServer';
+import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -12,27 +12,29 @@ const log = createLogger('vostok');
 export async function authorizeConnection(serverParams: VostokServerParams, connection: VostokConnection, sessionsManager: VostokSessionsManager) {
     let state = 'init';
     for await (let message of connection.getIncomingMessagesIterator()) {
-        if (!isMessage(message)) {
+        if (!(message instanceof vostok.Message)) {
             continue;
         }
 
-        if (state === 'init' && !isInitialize(message.body)) {
+        if (state === 'init' && !message.initialize) {
             connection.close();
             return null;
-        } else if (state === 'init' && isInitialize(message.body)) {
+        } else if (state === 'init' && message.initialize) {
             state = 'waiting_auth';
-            let authParams = await serverParams.onAuth(message.body.authToken || '');
+            let authParams = await serverParams.onAuth(message.initialize.authToken || '');
             state = 'connected';
-            if (message.body.sessionId) {
-                let target = sessionsManager.get(message.body.sessionId);
+            if (message.initialize.sessionId) {
+                let target = sessionsManager.get(message.initialize.sessionId);
                 if (target) {
                     log.log(rootCtx, 'switch to session #', target.sessionId);
                     target.addConnection(connection);
-                    connection.sendRaw(encodeMessage(makeMessage({
-                        id: makeMessageId(),
-                        body: makeInitializeAck({ sessionId: target.sessionId }),
-                        ackMessages: [message.id]
-                    })));
+                    connection.sendBuff(vostok.TopMessage.encode({
+                        message: {
+                            id: makeMessageId(),
+                            initializeAck: { sessionId: target.sessionId },
+                            ackMessages: [message.id]
+                        }
+                    }).finish());
                     return target;
                 }
             }
@@ -40,7 +42,13 @@ export async function authorizeConnection(serverParams: VostokServerParams, conn
             log.log(rootCtx, 'new session #', session.sessionId);
             session.addConnection(connection);
             session.authParams = authParams;
-            session.send(makeInitializeAck({ sessionId: session.sessionId }), [message.id]);
+            connection.sendBuff(vostok.TopMessage.encode({
+                message: {
+                    id: makeMessageId(),
+                    initializeAck: { sessionId: session.sessionId },
+                    ackMessages: [message.id]
+                }
+            }).finish());
             return session;
         }
     }

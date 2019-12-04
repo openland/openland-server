@@ -115,7 +115,7 @@ describe('CountersRepository', () => {
     });
 
     // it('should be tolerant to double invoke', async () => {
-    //     let ctx = createNamedContext('test')();
+    //     let ctx = createNamedContext('schema')();
     //     let urepo = container.get<UserStateRepository>('UserStateRepository');
     //     let mrepo = container.get<MessagingRepository>('MessagingRepository');
     //     let repo = container.get<CountersRepository>('CountersRepository');
@@ -228,7 +228,7 @@ describe('CountersRepository', () => {
     });
 
     // it('should not increment global counter for muted chat', async () => {
-    //     await inTx(createNamedContext('test')(), async ctx => {
+    //     await inTx(createNamedContext('schema')(), async ctx => {
     //         let urepo = container.get<UserStateRepository>('UserStateRepository');
     //         let mrepo = container.get<MessagingRepository>('MessagingRepository');
     //         let repo = container.get<CountersRepository>('CountersRepository');
@@ -271,7 +271,7 @@ describe('CountersRepository', () => {
     // });
     //
     // it('should decrease global unread on dialog mute', async () => {
-    //     await inTx(createNamedContext('test')(), async ctx => {
+    //     await inTx(createNamedContext('schema')(), async ctx => {
     //         let urepo = container.get<UserStateRepository>('UserStateRepository');
     //         let mrepo = container.get<MessagingRepository>('MessagingRepository');
     //         let repo = container.get<CountersRepository>('CountersRepository');

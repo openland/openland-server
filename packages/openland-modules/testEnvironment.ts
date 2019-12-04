@@ -30,7 +30,7 @@ export async function testEnvironmentStart(name: string) {
     container.bind('HooksModule').toConstantValue(new HooksModuleMock());
     container.bind(StatsModule).toSelf().inSingletonScope();
 
-    // Prepare test DB connection
+    // Prepare schema DB connection
     let start = currentTime();
     logger.log(ctx, 'Opening database');
     let db = await openTestDatabase();

@@ -1,0 +1,120 @@
+package vostok;
+import "google/protobuf/any.proto";
+
+syntax = "proto3";
+
+//
+//  Network level
+//
+
+message TopMessage {
+    oneof body {
+        MessagesContainer messagesContainer = 1;
+        Message message = 2;
+        AckMessages ackMessages = 3;
+        Ping ping = 4;
+        Pong pong = 5;
+        MessagesInfoRequest messagesInfoRequest = 6;
+        ResendMessageAnswerRequest resendMessageAnswerRequest = 7;
+        MessageNotFoundResponse messageNotFoundResponse = 8;
+        MessageIsProcessingResponse messageIsProcessingResponse = 9;
+        InvalidMessage invalidMessage = 10;
+    }
+}
+
+message Message {
+    required string id = 1;
+    repeated string ackMessages = 2;
+
+    oneof body {
+        Initialize initialize = 3;
+        InitializeAck initializeAck = 4;
+        GQLRequest gqlRequest = 5;
+        GQLResponse gqlResponse = 6;
+        GQLSubscription gqlSubscription = 7;
+        GQLSubscriptionStop gqlSubscriptionStop = 8;
+        GQLSubscriptionResponse gqlSubscriptionResponse = 9;
+        GQLSubscriptionComplete gqlSubscriptionComplete = 10;
+    }
+}
+
+message MessagesContainer {
+    repeated TopMessage messages = 1;
+}
+
+message AckMessages {
+    repeated string ids = 1;
+}
+
+message MessagesInfoRequest {
+    repeated string messageIds = 1;
+}
+
+message ResendMessageAnswerRequest {
+    required string messageId = 1;
+}
+
+message MessageNotFoundResponse {
+    required string messageId = 1;
+}
+
+message MessageIsProcessingResponse {
+    required string messageId = 1;
+}
+
+message Initialize {
+    optional string authToken = 1;
+    optional string sessionId = 2;
+}
+
+message InitializeAck {
+    required string sessionId = 2;
+}
+
+message InvalidMessage {
+
+}
+
+message Ping {
+    required int32 id = 1;
+}
+
+message Pong {
+    required int32 id = 1;
+}
+
+//
+// API layer
+//
+
+message GQLRequest {
+    required string id = 1;
+    optional string operationName = 2;
+    required string query = 3;
+    optional string variables = 4;
+}
+
+message GQLResponse {
+    required string id = 1;
+    required string result = 2;
+}
+
+message GQLSubscription {
+    required string id = 1;
+    optional string operationName = 2;
+    required string query = 3;
+    optional string variables = 4;
+}
+
+message GQLSubscriptionStop {
+    required string id = 1;
+}
+
+message GQLSubscriptionResponse {
+    required string id = 1;
+    required string result = 2;
+}
+
+message GQLSubscriptionComplete {
+    required string id = 1;
+}
