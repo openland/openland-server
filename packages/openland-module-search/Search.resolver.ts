@@ -48,7 +48,9 @@ export default {
                         return conv;
                     } else if (conv && conv.kind === 'private') {
                         let privateConv = await Store.ConversationPrivate.findById(ctx, a.cid);
-                        return await Store.UserProfile.findById(ctx, privateConv!.uid1 === uid ? privateConv!.uid2 : privateConv!.uid1);
+                        if (privateConv) {
+                            return await Store.User.findById(ctx, privateConv!.uid1 === uid ? privateConv!.uid2 : privateConv!.uid1);
+                        }
                     }
                     return null;
                 }))).filter(a => !!a);
