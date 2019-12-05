@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '98c7300f8a1c1d2bfc432aa7d78403ac';
+export const GQL_SPEC_VERSION = 'a31a048f7b38c4f5f952aa19fc86c396';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3454,7 +3454,7 @@ export namespace GQL {
         pinnedMessage: Nullable<ModernMessage>;
         welcomeMessage: Nullable<WelcomeMessage>;
         organization: Nullable<Organization>;
-        membersCount: Nullable<number>;
+        membersCount: number;
         featuredMembersCount: number;
         members: RoomMember[];
         requests: Nullable<RoomMember[]>;

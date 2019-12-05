@@ -47,7 +47,7 @@ type SharedRoom {
     
     organization: Organization
   
-    membersCount: Int
+    membersCount: Int!
     featuredMembersCount: Int!
     members(first: Int, after: ID): [RoomMember!]!
     requests: [RoomMember!]
