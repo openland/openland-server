@@ -3,7 +3,7 @@ import { Express } from 'express';
 import express from 'express';
 import { Modules } from '../openland-modules/Modules';
 import * as bodyParser from 'body-parser';
-import { jBool, jField, json, JsonSchema, jString, validateJson } from '../openland-utils/jsonSchema';
+import { jBool, jField, json, JsonSchema, jString, validateJson, jVec } from '../openland-utils/jsonSchema';
 import { createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 // import { jField, json, jString } from '../openland-utils/jsonSchema';
@@ -37,6 +37,7 @@ const handleChatHook = handler(
     json(() => {
         jField('message', jString());
         jField('ignoreLinkDetection', jBool()).undefinable();
+        jField('fileAttachments', jVec(jString())).undefinable();
         jField('repeatKey', jString()).undefinable();
     }),
     async (req: express.Request, response: express.Response) => {
@@ -58,12 +59,26 @@ const handleChatHook = handler(
             let {
                 message,
                 ignoreLinkDetection,
-                repeatKey
+                repeatKey,
+                fileAttachments
             } = req.body;
 
             let ignoreAugmentation = ignoreLinkDetection !== undefined ? ignoreLinkDetection : true;
 
-            await Modules.Messaging.sendMessage(ctx, hook.chatId, hook.appId, { message, ignoreAugmentation, repeatKey });
+            if (fileAttachments) {
+                await Promise.all(fileAttachments.map((a: string) => Modules.Media.saveFile(ctx, a)));
+            }
+
+            await Modules.Messaging.sendMessage(ctx, hook.chatId, hook.appId, {
+                message,
+                ignoreAugmentation,
+                repeatKey,
+                attachments: fileAttachments ? fileAttachments.map((a: string) => ({
+                    image: {
+                        uuid: a
+                    }
+                })) : []
+            });
 
             response.send({ ok: true });
         });
