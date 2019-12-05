@@ -37,7 +37,7 @@ import { withLifetime } from '@openland/lifetime';
 // import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
-import { initVostokApiServer } from '../openland-mtproto3/vostok/vostokApiServer';
+import { initVostokApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';

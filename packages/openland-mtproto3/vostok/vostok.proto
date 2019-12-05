@@ -25,17 +25,7 @@ message TopMessage {
 message Message {
     required string id = 1;
     repeated string ackMessages = 2;
-
-    oneof body {
-        Initialize initialize = 3;
-        InitializeAck initializeAck = 4;
-        GQLRequest gqlRequest = 5;
-        GQLResponse gqlResponse = 6;
-        GQLSubscription gqlSubscription = 7;
-        GQLSubscriptionStop gqlSubscriptionStop = 8;
-        GQLSubscriptionResponse gqlSubscriptionResponse = 9;
-        GQLSubscriptionComplete gqlSubscriptionComplete = 10;
-    }
+    required google.protobuf.Any body = 3;
 }
 
 message MessagesContainer {
@@ -81,40 +71,4 @@ message Ping {
 
 message Pong {
     required int32 id = 1;
-}
-
-//
-// API layer
-//
-
-message GQLRequest {
-    required string id = 1;
-    optional string operationName = 2;
-    required string query = 3;
-    optional string variables = 4;
-}
-
-message GQLResponse {
-    required string id = 1;
-    required string result = 2;
-}
-
-message GQLSubscription {
-    required string id = 1;
-    optional string operationName = 2;
-    required string query = 3;
-    optional string variables = 4;
-}
-
-message GQLSubscriptionStop {
-    required string id = 1;
-}
-
-message GQLSubscriptionResponse {
-    required string id = 1;
-    required string result = 2;
-}
-
-message GQLSubscriptionComplete {
-    required string id = 1;
 }

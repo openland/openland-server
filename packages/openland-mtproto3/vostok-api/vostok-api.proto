@@ -1,0 +1,40 @@
+package vostok_api;
+import "google/protobuf/any.proto";
+
+syntax = "proto3";
+
+//
+// API layer
+//
+
+message GQLRequest {
+    required string id = 1;
+    optional string operationName = 2;
+    required string query = 3;
+    optional string variables = 4;
+}
+
+message GQLResponse {
+    required string id = 1;
+    required string result = 2;
+}
+
+message GQLSubscription {
+    required string id = 1;
+    optional string operationName = 2;
+    required string query = 3;
+    optional string variables = 4;
+}
+
+message GQLSubscriptionStop {
+    required string id = 1;
+}
+
+message GQLSubscriptionResponse {
+    required string id = 1;
+    required string result = 2;
+}
+
+message GQLSubscriptionComplete {
+    required string id = 1;
+}

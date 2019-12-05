@@ -25,6 +25,11 @@ export type TopLevelMessages =
     vostok.IResendMessageAnswerRequest |
     vostok.IMessageNotFoundResponse;
 
+export const VostokTypeUrls = {
+    Initialize: 'type.googleapis.com/vostok.Initialize',
+    InitializeAck: 'type.googleapis.com/vostok.InitializeAck',
+};
+
 function handleSession(session: VostokSession, params: VostokServerParams) {
     asyncRun(async () => {
         for await (let data of session.incomingMessages) {
@@ -33,7 +38,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
             if (session.state !== 'active') {
                 session.destroy();
             } else {
-                await params.onMessage({ message, connection, session });
+                await params.onMessage({message, connection, session});
             }
         }
         session.destroy();
@@ -52,7 +57,7 @@ export interface VostokServerParams {
 }
 
 export function initVostokServer(params: VostokServerParams) {
-    let server = createWSServer(params.server ? { server: params.server, path: params.path } : { noServer: true });
+    let server = createWSServer(params.server ? {server: params.server, path: params.path} : {noServer: true});
     let sessionsManager = new VostokSessionsManager();
     log.log(rootCtx, 'Lift off!');
 
@@ -67,5 +72,5 @@ export function initVostokServer(params: VostokServerParams) {
             });
         }
     });
-    return { ws: server.socket, sessions: sessionsManager };
+    return {ws: server.socket, sessions: sessionsManager};
 }

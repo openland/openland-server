@@ -34,8 +34,6 @@ export class VostokConnection {
 
     sendPing = () => this.sendBuff(vostok.TopMessage.encode({ ping: { id: ++this.pingCounter }}).finish());
 
-    sendRaw = (data: any) => this.socket!.send(JSON.stringify(data));
-
     sendBuff = (data: Uint8Array) => this.socket!.send(data);
 
     close() {

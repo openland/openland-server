@@ -3,7 +3,7 @@ import { VostokSessionsManager } from './VostokSessionsManager';
 import { makeMessageId } from '../utils';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { VostokServerParams } from './vostokServer';
+import { VostokServerParams, VostokTypeUrls } from './vostokServer';
 import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
@@ -16,22 +16,27 @@ export async function authorizeConnection(serverParams: VostokServerParams, conn
             continue;
         }
 
-        if (state === 'init' && !message.initialize) {
+        if (state === 'init' && message.body.type_url !== VostokTypeUrls.Initialize) {
+            log.log(rootCtx, 'auth error, closing connection');
             connection.close();
             return null;
-        } else if (state === 'init' && message.initialize) {
+        } else if (state === 'init' && message.body.type_url === VostokTypeUrls.Initialize) {
+            let initialize = vostok.Initialize.decode(message.body.value!);
             state = 'waiting_auth';
-            let authParams = await serverParams.onAuth(message.initialize.authToken || '');
+            let authParams = await serverParams.onAuth(initialize.authToken || '');
             state = 'connected';
-            if (message.initialize.sessionId) {
-                let target = sessionsManager.get(message.initialize.sessionId);
+            if (initialize.sessionId) {
+                let target = sessionsManager.get(initialize.sessionId);
                 if (target) {
                     log.log(rootCtx, 'switch to session #', target.sessionId);
                     target.addConnection(connection);
                     connection.sendBuff(vostok.TopMessage.encode({
                         message: {
                             id: makeMessageId(),
-                            initializeAck: { sessionId: target.sessionId },
+                            body: {
+                                type_url: VostokTypeUrls.InitializeAck,
+                                value: vostok.InitializeAck.encode({sessionId: target.sessionId}).finish()
+                            },
                             ackMessages: [message.id]
                         }
                     }).finish());
@@ -45,7 +50,10 @@ export async function authorizeConnection(serverParams: VostokServerParams, conn
             connection.sendBuff(vostok.TopMessage.encode({
                 message: {
                     id: makeMessageId(),
-                    initializeAck: { sessionId: session.sessionId },
+                    body: {
+                        type_url: VostokTypeUrls.InitializeAck,
+                        value: vostok.InitializeAck.encode({sessionId: session.sessionId}).finish()
+                    },
                     ackMessages: [message.id]
                 }
             }).finish());
