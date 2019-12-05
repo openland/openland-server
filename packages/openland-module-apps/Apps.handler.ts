@@ -60,20 +60,24 @@ const handleChatHook = handler(
                 message,
                 ignoreLinkDetection,
                 repeatKey,
-                fileAttachments
+                imageAttachments
             } = req.body;
 
             let ignoreAugmentation = ignoreLinkDetection !== undefined ? ignoreLinkDetection : true;
 
-            if (fileAttachments) {
-                await Promise.all(fileAttachments.map((a: string) => Modules.Media.saveFile(ctx, a)));
+            if (imageAttachments) {
+                await Promise.all(imageAttachments.map((a: string) => Modules.Media.saveFile(ctx, a)));
+            }
+
+            if (!message && (!imageAttachments || imageAttachments.length === 0)) {
+                sendError(response, Errors.message_missing);
             }
 
             await Modules.Messaging.sendMessage(ctx, hook.chatId, hook.appId, {
-                message,
+                message: message || null,
                 ignoreAugmentation,
                 repeatKey,
-                attachments: fileAttachments ? fileAttachments.map((a: string) => ({
+                attachments: imageAttachments ? imageAttachments.map((a: string) => ({
                     image: {
                         uuid: a
                     }
