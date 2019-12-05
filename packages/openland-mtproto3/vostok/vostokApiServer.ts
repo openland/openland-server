@@ -4,19 +4,14 @@ import { execute, GraphQLSchema, parse } from 'graphql';
 import { QueryCache } from '../queryCache';
 import { Context } from '@openland/context';
 import { initVostokServer, VostokIncomingMessage } from './vostokServer';
-import {
-    isGQLRequest,
-    isGQLSubscription, isGQLSubscriptionStop,
-    makeGQLResponse, makeGQLSubscriptionComplete,
-    makeGQLSubscriptionResponse
-} from '../vostok-schema/VostokTypes';
 import { asyncRun, isAsyncIterator } from '../utils';
 import { gqlSubscribe } from '../gqlSubscribe';
 import { cancelContext } from '@openland/lifetime';
+import { vostok } from './schema/schema';
 
 interface GQlOperation {
-    operationName: string|null|undefined;
-    variables: any;
+    operationName?: string | null | undefined;
+    variables?: any;
     query: string;
 }
 
@@ -40,41 +35,50 @@ interface VostokApiServerParams {
 async function handleMessage(params: VostokApiServerParams, msg: VostokIncomingMessage) {
     let {message, session} = msg;
 
-    if (isGQLRequest(message.body)) {
+    if (message.gqlRequest) {
         session.sendAck([message.id]);
-        let ctx = await params.context(session.authParams, message.body);
-        await params.onOperation(ctx, message.body);
+        let ctx = await params.context(session.authParams, message.gqlRequest);
+        await params.onOperation(ctx, message.gqlRequest);
 
         let result = await execute({
             schema: params.executableSchema,
-            document: parse(message.body.query),
-            operationName: message.body.operationName,
-            variableValues: message.body.variables ? JSON.parse(message.body.variables) : undefined,
+            document: parse(message.gqlRequest.query),
+            operationName: message.gqlRequest.operationName,
+            variableValues: message.gqlRequest.variables ? JSON.parse(message.gqlRequest.variables) : undefined,
             contextValue: ctx
         });
-        session.send(makeGQLResponse({ id: message.body.id, result: await params.formatResponse(result) }), [], message.id);
-    } else if (isGQLSubscription(message.body)) {
+        session.send(vostok.Message.create({
+            id: '',
+            gqlResponse: {id: message.gqlRequest.id, result: JSON.stringify(await params.formatResponse(result))}
+        }), [], message.id);
+    } else if (message.gqlSubscription) {
         session.sendAck([message.id], [message.id]);
         let working = true;
-        let ctx = await params.subscriptionContext(session.authParams, message.body);
+        let ctx = await params.subscriptionContext(session.authParams, message.gqlSubscription);
         asyncRun(async () => {
-            if (!isGQLSubscription(message.body)) {
+            if (!message.gqlSubscription) {
                 return;
             }
-            await params.onOperation(ctx, message.body);
+            await params.onOperation(ctx, message.gqlSubscription);
 
             let iterator = await gqlSubscribe({
                 schema: params.executableSchema,
-                document: parse(message.body.query),
-                operationName: message.body.operationName,
-                variableValues: message.body.variables ? JSON.parse(message.body.variables) : undefined,
-                fetchContext: async () => await params.subscriptionContext(session.authParams, message.body as any, ctx),
+                document: parse(message.gqlSubscription.query),
+                operationName: message.gqlSubscription.operationName,
+                variableValues: message.gqlSubscription.variables ? JSON.parse(message.gqlSubscription.variables) : undefined,
+                fetchContext: async () => await params.subscriptionContext(session.authParams, message.gqlSubscription as any, ctx),
                 ctx
             });
 
             if (!isAsyncIterator(iterator)) {
                 // handle error
-                session.send(makeGQLSubscriptionResponse({ id: message.body.id, result: JSON.stringify(await params.formatResponse(iterator)) }));
+                session.send(vostok.Message.create({
+                    id: '',
+                    gqlSubscriptionResponse: {
+                        id: message.gqlSubscription.id,
+                        result: JSON.stringify(await params.formatResponse(iterator))
+                    }
+                }));
                 return;
             }
 
@@ -82,16 +86,22 @@ async function handleMessage(params: VostokApiServerParams, msg: VostokIncomingM
                 if (!working) {
                     break;
                 }
-                session.send(makeGQLSubscriptionResponse({ id: message.body.id, result: await params.formatResponse(event) }));
+                session.send(vostok.Message.create({
+                    id: '',
+                    gqlSubscriptionResponse: {
+                        id: message.gqlSubscription.id,
+                        result: JSON.stringify(await params.formatResponse(event))
+                    }
+                }));
             }
-            session.send(makeGQLSubscriptionComplete({ id: message.body.id }));
+            session.send(vostok.Message.create({ id: '', gqlSubscriptionComplete: { id: message.gqlSubscription.id }}));
         });
-        session.operations.add(message.body.id, () => {
+        session.operations.add(message.gqlSubscription.id, () => {
             working = false;
             cancelContext(ctx);
         });
-    } else if (isGQLSubscriptionStop(message.body)) {
-        session.operations.stop(message.body.id);
+    } else if (message.gqlSubscriptionStop) {
+        session.operations.stop(message.gqlSubscriptionStop.id);
         session.sendAck([message.id], [message.id]);
     }
 }

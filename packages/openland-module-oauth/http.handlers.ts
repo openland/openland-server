@@ -110,8 +110,8 @@ async function initOauth2Internal(app: Express) {
     });
 
     app.get('/ouath2/test', useOauth(), async (req, res) => {
-       res.json({
-           uid: IDs.User.serialize((req as any).uid),
-       });
+        res.json({
+            uid: IDs.User.serialize((req as any).uid),
+        });
     });
 }

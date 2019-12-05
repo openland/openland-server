@@ -1,4 +1,3 @@
-import { MessageShape } from '../vostok-schema/VostokTypes';
 import * as http from 'http';
 import * as https from 'https';
 import { createNamedContext } from '@openland/context';
@@ -9,6 +8,7 @@ import { VostokSession } from './VostokSession';
 import { VostokSessionsManager } from './VostokSessionsManager';
 import { authorizeConnection } from './authorizeConnection';
 import { createWSServer } from './createWSServer';
+import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -17,6 +17,13 @@ export const PING_TIMEOUT = 1000 * 30;
 export const PING_CLOSE_TIMEOUT = 1000 * 60 * 5;
 export const EMPTY_SESSION_TTL = 1000 * 5;
 export const MESSAGE_INFO_REQ_TIMEOUT = 1000 * 5;
+
+export type TopLevelMessages =
+    vostok.IMessage |
+    vostok.IAckMessages |
+    vostok.IMessagesInfoRequest |
+    vostok.IResendMessageAnswerRequest |
+    vostok.IMessageNotFoundResponse;
 
 function handleSession(session: VostokSession, params: VostokServerParams) {
     asyncRun(async () => {
@@ -33,7 +40,7 @@ function handleSession(session: VostokSession, params: VostokServerParams) {
     });
 }
 
-export type VostokIncomingMessage = { message: MessageShape, connection: VostokConnection, session: VostokSession };
+export type VostokIncomingMessage = { message: vostok.IMessage, connection: VostokConnection, session: VostokSession };
 
 export interface VostokServerParams {
     server?: http.Server | https.Server;

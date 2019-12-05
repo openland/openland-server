@@ -1,35 +1,18 @@
 import { createIterator } from '../../openland-utils/asyncIterator';
 import { delay } from '../../openland-utils/timer';
-import {
-    decodeAckMessages,
-    decodeMessage, decodeMessageNotFoundResponse, decodeMessagesContainer,
-    decodeMessagesInfoRequest,
-    decodePing, decodeResendMessageAnswerRequest,
-    encodeInvalidMessage,
-    encodePing,
-    encodePong,
-    isAckMessages,
-    isMessage, isMessageNotFoundResponse, isMessagesContainer,
-    isMessagesInfoRequest,
-    isPing,
-    isPong, isResendMessageAnswerRequest,
-    KnownTypes,
-    makeInvalidMessage,
-    makePing,
-    makePong
-} from '../vostok-schema/VostokTypes';
-import { PING_CLOSE_TIMEOUT, PING_TIMEOUT } from './vostokServer';
+import { PING_CLOSE_TIMEOUT, PING_TIMEOUT, TopLevelMessages } from './vostokServer';
 import WebSocket = require('ws');
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { asyncRun } from '../utils';
+import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
 export class VostokConnection {
     protected socket: WebSocket|null = null;
-    protected incomingData = createIterator<KnownTypes>(() => 0);
+    protected incomingData = createIterator<TopLevelMessages>(() => 0);
 
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
@@ -43,21 +26,17 @@ export class VostokConnection {
     }
 
     getIncomingMessagesIterator() {
-        this.incomingData = createIterator<KnownTypes>(() => 0);
+        this.incomingData = createIterator<TopLevelMessages>(() => 0);
         return this.incomingData;
     }
 
-    isConnected() {
-        return this.socket!.readyState === this.socket!.OPEN;
-    }
+    isConnected = () => this.socket!.readyState === this.socket!.OPEN;
 
-    sendPing() {
-        this.sendRaw(encodePing(makePing({ id: ++this.pingCounter })));
-    }
+    sendPing = () => this.sendBuff(vostok.TopMessage.encode({ ping: { id: ++this.pingCounter }}).finish());
 
-    sendRaw(data: any) {
-        this.socket!.send(JSON.stringify(data));
-    }
+    sendRaw = (data: any) => this.socket!.send(JSON.stringify(data));
+
+    sendBuff = (data: Uint8Array) => this.socket!.send(data);
 
     close() {
         this.socket!.close();
@@ -65,33 +44,53 @@ export class VostokConnection {
     }
 
     private onMessage(socket: WebSocket, data: WebSocket.Data) {
-        log.log(rootCtx, '<-', data);
+        // log.log(rootCtx, '<-', data);
         try {
-            let msgData = JSON.parse(data.toString());
-            if (isPong(msgData)) {
+            if (!(data instanceof Buffer)) {
+                log.log(rootCtx, 'got invalid message from client', data);
+                this.sendBuff(vostok.TopMessage.encode({ invalidMessage: { } }).finish());
+                this.close();
+                return;
+            }
+
+            let msgData = vostok.TopMessage.decode(data);
+            log.log(rootCtx, '<-', msgData);
+
+            if (msgData.pong) {
                 this.lastPingAck = Date.now();
                 this.pingAckCounter++;
-            } else if (isPing(msgData)) {
-                let ping = decodePing(msgData);
-                this.sendRaw(encodePong(makePong({ id: ping.id })));
-            } else if (isMessage(msgData)) {
-                this.incomingData.push(decodeMessage(msgData));
-            } else if (isAckMessages(msgData)) {
-                this.incomingData.push(decodeAckMessages(msgData));
-            } else if (isMessagesInfoRequest(msgData)) {
-                this.incomingData.push(decodeMessagesInfoRequest(msgData));
-            } else if (isMessagesContainer(msgData)) {
-                decodeMessagesContainer(msgData).messages.forEach(msg => this.incomingData.push(msg));
-            } else if (isResendMessageAnswerRequest(msgData)) {
-                this.incomingData.push(decodeResendMessageAnswerRequest(msgData));
-            } else if (isMessageNotFoundResponse(msgData)) {
-                this.incomingData.push(decodeMessageNotFoundResponse(msgData));
+            } else if (msgData.ping) {
+                this.sendBuff(vostok.Pong.encode({ id: 1 }).finish());
+            } else if (msgData.message) {
+                this.incomingData.push(msgData.message);
+            } else if (msgData.ackMessages) {
+                this.incomingData.push(msgData.ackMessages);
+            } else if (msgData.messagesInfoRequest) {
+                this.incomingData.push(msgData.messagesInfoRequest);
+            } else if (msgData.messagesContainer && msgData.messagesContainer.messages) {
+                msgData.messagesContainer.messages.forEach(msg => {
+                    if (msg.message) {
+                        this.incomingData.push(msg.message);
+                    } else if (msg.ackMessages) {
+                        this.incomingData.push(msg.ackMessages);
+                    } else if (msg.messagesInfoRequest) {
+                        this.incomingData.push(msg.messagesInfoRequest);
+                    } else if (msg.resendMessageAnswerRequest) {
+                        this.incomingData.push(msg.resendMessageAnswerRequest);
+                    } else if (msg.messageNotFoundResponse) {
+                        this.incomingData.push(msg.messageNotFoundResponse);
+                    }
+                });
+            } else if (msgData.resendMessageAnswerRequest) {
+                this.incomingData.push(msgData.resendMessageAnswerRequest);
+            } else if (msgData.messageNotFoundResponse) {
+                this.incomingData.push(msgData.messageNotFoundResponse);
             } else {
                 log.log(rootCtx, 'unexpected top level message:', msgData);
             }
         } catch (e) {
             log.log(rootCtx, 'got invalid message from client', data);
-            this.sendRaw(encodeInvalidMessage(makeInvalidMessage({ })));
+            this.sendBuff(vostok.TopMessage.encode({ invalidMessage: { } }).finish());
             this.close();
         }
     }

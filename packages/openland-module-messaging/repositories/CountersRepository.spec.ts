@@ -20,7 +20,7 @@ describe('CountersRepository', () => {
         loadUsersModule();
     });
     afterAll( async () => {
-      await  testEnvironmentEnd();
+        await  testEnvironmentEnd();
     });
     it('should increment counter and decrement', async () => {
         let ctx = createNamedContext('test');
