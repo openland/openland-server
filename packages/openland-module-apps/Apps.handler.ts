@@ -37,7 +37,7 @@ const handleChatHook = handler(
     json(() => {
         jField('message', jString());
         jField('ignoreLinkDetection', jBool()).undefinable();
-        jField('fileAttachments', jVec(jString())).undefinable();
+        jField('imageAttachments', jVec(jString())).undefinable();
         jField('repeatKey', jString()).undefinable();
     }),
     async (req: express.Request, response: express.Response) => {
