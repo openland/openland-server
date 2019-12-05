@@ -6,6 +6,7 @@ import * as bodyParser from 'body-parser';
 import { jBool, jField, json, JsonSchema, jString, validateJson, jVec } from '../openland-utils/jsonSchema';
 import { createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
+import { MessageAttachmentInput } from '../openland-module-messaging/MessageInput';
 // import { jField, json, jString } from '../openland-utils/jsonSchema';
 
 const Errors = {
@@ -37,7 +38,7 @@ const handleChatHook = handler(
     json(() => {
         jField('message', jString());
         jField('ignoreLinkDetection', jBool()).undefinable();
-        jField('imageAttachments', jVec(jString())).undefinable();
+        jField('fileAttachments', jVec(jString())).undefinable();
         jField('repeatKey', jString()).undefinable();
     }),
     async (req: express.Request, response: express.Response) => {
@@ -60,16 +61,31 @@ const handleChatHook = handler(
                 message,
                 ignoreLinkDetection,
                 repeatKey,
-                imageAttachments
+                fileAttachments
             } = req.body;
 
             let ignoreAugmentation = ignoreLinkDetection !== undefined ? ignoreLinkDetection : true;
 
-            if (imageAttachments) {
-                await Promise.all(imageAttachments.map((a: string) => Modules.Media.saveFile(ctx, a)));
+            let attachments: MessageAttachmentInput[] = [];
+            if (fileAttachments) {
+                for (let fileId of fileAttachments) {
+                    let fileMetadata = await Modules.Media.saveFile(ctx, fileId);
+                    let filePreview: string | null = null;
+
+                    if (fileMetadata.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileId);
+                    }
+
+                    attachments.push({
+                        type: 'file_attachment',
+                        fileId: fileId,
+                        fileMetadata: fileMetadata || null,
+                        filePreview: filePreview || null,
+                    });
+                }
             }
 
-            if (!message && (!imageAttachments || imageAttachments.length === 0)) {
+            if (!message && (!fileAttachments || fileAttachments.length === 0)) {
                 sendError(response, Errors.message_missing);
             }
 
@@ -77,11 +93,7 @@ const handleChatHook = handler(
                 message: message || null,
                 ignoreAugmentation,
                 repeatKey,
-                attachments: imageAttachments ? imageAttachments.map((a: string) => ({
-                    image: {
-                        uuid: a
-                    }
-                })) : []
+                attachments
             });
 
             response.send({ ok: true });
