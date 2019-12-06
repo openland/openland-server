@@ -26,9 +26,10 @@ export class VostokConnection {
         this.setupPingLoop();
 
         asyncRun(async () => {
-            for await (let msg of socket.getIterator()) {
+            for await (let msg of socket.getDataIterator()) {
                 this.onMessage(socket, msg);
             }
+            this.onSocketClose();
         });
     }
 
@@ -37,12 +38,9 @@ export class VostokConnection {
         return this.incomingData;
     }
 
-    // isConnected = () => this.socket!.readyState === this.socket!.OPEN;
-    isConnected = () => true;
+    isConnected = () => this.socket!.isConnected();
 
     sendPing = () => this.sendBuff(vostok.TopMessage.encode({ ping: { id: ++this.pingCounter }}).finish());
-
-    // sendBuff = (data: Uint8Array) => this.socket!.send(data);
 
     sendBuff = (data: Uint8Array) => this.socket!.send(data);
 

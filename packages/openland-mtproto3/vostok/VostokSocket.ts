@@ -4,9 +4,10 @@ import { VostokMessageReader } from './VostokMessageReader';
 import WebSocket = require('ws');
 
 export abstract class VostokSocket {
-    abstract getIterator(): AsyncIterable<Buffer>;
+    abstract getDataIterator(): AsyncIterable<Buffer>;
     abstract send(data: Buffer|Uint8Array): void;
     abstract close(): void;
+    abstract isConnected(): boolean;
 }
 
 export class VostokWSSocket extends VostokSocket {
@@ -28,7 +29,7 @@ export class VostokWSSocket extends VostokSocket {
         socket.on('close', () => this.incomingMessages.complete());
     }
 
-    getIterator() {
+    getDataIterator() {
         return this.incomingMessages;
     }
 
@@ -40,10 +41,15 @@ export class VostokWSSocket extends VostokSocket {
         this.socket.close();
         this.incomingMessages.complete();
     }
+
+    isConnected() {
+        return this.socket.readyState === this.socket.OPEN;
+    }
 }
 
 export class VostokRawSocket extends VostokSocket {
     private socket: Net.Socket;
+    private connected = true;
     protected incomingMessages = createIterator<Buffer>(() => 0);
     private reader = new VostokMessageReader((msg) => {
         this.incomingMessages.push(msg);
@@ -53,7 +59,10 @@ export class VostokRawSocket extends VostokSocket {
         super();
 
         this.socket = socket;
-        socket.on('close', () => this.incomingMessages.complete());
+        socket.on('close', () => {
+            this.incomingMessages.complete();
+            this.connected = false;
+        });
         socket.on('data', data => {
             try {
                 this.reader.addChunk(data);
@@ -64,7 +73,7 @@ export class VostokRawSocket extends VostokSocket {
         });
     }
 
-    getIterator() {
+    getDataIterator() {
         return this.incomingMessages;
     }
 
@@ -79,5 +88,9 @@ export class VostokRawSocket extends VostokSocket {
     close() {
         this.socket.end();
         this.incomingMessages.complete();
+    }
+
+    isConnected() {
+        return this.connected;
     }
 }

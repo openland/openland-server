@@ -3,13 +3,13 @@ import { VostokSessionsManager } from './VostokSessionsManager';
 import { makeMessageId } from '../utils';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { VostokServerParams, VostokTypeUrls } from './vostokServer';
+import { BaseVostokServerParams, VostokTypeUrls } from './vostokServer';
 import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
-export async function authorizeConnection(serverParams: VostokServerParams, connection: VostokConnection, sessionsManager: VostokSessionsManager) {
+export async function authorizeConnection(serverParams: BaseVostokServerParams, connection: VostokConnection, sessionsManager: VostokSessionsManager) {
     let state = 'init';
     for await (let message of connection.getIncomingMessagesIterator()) {
         if (!(message instanceof vostok.Message)) {

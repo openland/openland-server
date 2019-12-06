@@ -37,7 +37,7 @@ import { withLifetime } from '@openland/lifetime';
 // import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
-import { initVostokApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
+import { initVostokApiServer, initVostokTCPApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
@@ -272,6 +272,50 @@ export async function initApi(isTest: boolean) {
         let vostok = initVostokApiServer({
             server: undefined, // httpServer ,
             path: '/api',
+            executableSchema: Schema(),
+            queryCache: new InMemoryQueryCache(),
+            onAuth: async (token) => {
+                return await fetchWebSocketParameters({'x-openland-token': token}, null);
+            },
+            context: async (params, operation) => {
+                let opId = uuid();
+                let ctx = buildWebSocketContext(params || {}).ctx;
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
+
+                return new AppContext(ctx);
+            },
+            subscriptionContext: async (params, operation, firstCtx) => {
+                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
+                let ctx = buildWebSocketContext(params || {}).ctx;
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withLifetime(ctx);
+
+                return new AppContext(ctx);
+            },
+            onOperation: async (ctx, operation) => {
+                // noop
+            },
+            formatResponse: async value => {
+                let errors: any[] | undefined;
+                if (value.errors) {
+                    errors = value.errors && value.errors.map((e: any) => formatError(e));
+                }
+                return ({
+                    ...value,
+                    errors: errors,
+                });
+            }
+        });
+
+        initVostokTCPApiServer({
+            hostname: '127.0.0.1', // httpServer ,
+            port: 7777,
             executableSchema: Schema(),
             queryCache: new InMemoryQueryCache(),
             onAuth: async (token) => {
