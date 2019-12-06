@@ -1,6 +1,7 @@
 import { createIterator } from '../../openland-utils/asyncIterator';
 import { VostokConnection } from './VostokConnection';
 import WebSocket = require('ws');
+import { VostokWSSocket } from './VostokSocket';
 
 interface Server {
     socket: WebSocket.Server;
@@ -13,7 +14,7 @@ export function createWSServer(options: WebSocket.ServerOptions): Server {
 
     ws.on('connection', async (socket, req) => {
         let connection = new VostokConnection();
-        connection.setSocket(socket);
+        connection.setSocket(new VostokWSSocket(socket));
         iterator.push(connection);
     });
 
