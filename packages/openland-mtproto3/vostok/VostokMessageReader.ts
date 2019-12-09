@@ -30,7 +30,7 @@ class VostokParsingError extends Error {
 }
 
 export class VostokMessageReader {
-    private onMessage: (message: Buffer) => void;
+    private onMessage: ((message: Buffer) => void) | null;
     private chunks: Buffer[] = [];
     private chunksLen = 0;
     private state: 'waiting_header' | 'waiting_payload' = 'waiting_header';
@@ -44,6 +44,11 @@ export class VostokMessageReader {
         this.chunks.push(chunk);
         this.chunksLen += chunk.length;
         this.parseMessage();
+    }
+
+    destroy() {
+        this.chunks = [];
+        this.onMessage = null;
     }
 
     private parseMessage(): boolean {
@@ -81,7 +86,9 @@ export class VostokMessageReader {
             let message = Buffer.concat(messageChunks);
             let msg = message.slice(0, this.payloadSize + HEADER_SIZE);
 
-            this.onMessage(msg.slice(HEADER_SIZE));
+            if (this.onMessage) {
+                this.onMessage(msg.slice(HEADER_SIZE));
+            }
 
             if (message.length > (this.payloadSize + HEADER_SIZE)) {
                 let firstChunk = message.slice(this.payloadSize + HEADER_SIZE);

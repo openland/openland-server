@@ -20,8 +20,7 @@ export class VostokWSSocket extends VostokSocket {
         this.socket = socket;
         socket.on('message', data => {
             if (!(data instanceof Buffer)) {
-                socket.close();
-                this.incomingMessages.complete();
+                this.close();
                 return;
             }
             this.incomingMessages.push(data);
@@ -40,6 +39,8 @@ export class VostokWSSocket extends VostokSocket {
     close() {
         this.socket.close();
         this.incomingMessages.complete();
+        this.socket.removeAllListeners('close');
+        this.socket.removeAllListeners('data');
     }
 
     isConnected() {
@@ -51,24 +52,18 @@ export class VostokRawSocket extends VostokSocket {
     private socket: Net.Socket;
     private connected = true;
     protected incomingMessages = createIterator<Buffer>(() => 0);
-    private reader = new VostokMessageReader((msg) => {
-        this.incomingMessages.push(msg);
-    });
+    private reader = new VostokMessageReader((msg) => this.incomingMessages.push(msg));
 
     constructor(socket: Net.Socket) {
         super();
 
         this.socket = socket;
-        socket.on('close', () => {
-            this.incomingMessages.complete();
-            this.connected = false;
-        });
+        socket.on('close', () => this.close());
         socket.on('data', data => {
             try {
                 this.reader.addChunk(data);
             } catch (e) {
-                this.incomingMessages.complete();
-                socket.destroy();
+                this.close();
             }
         });
     }
@@ -86,8 +81,12 @@ export class VostokRawSocket extends VostokSocket {
     }
 
     close() {
+        this.connected = false;
         this.socket.end();
         this.incomingMessages.complete();
+        this.reader.destroy();
+        this.socket.removeAllListeners('close');
+        this.socket.removeAllListeners('data');
     }
 
     isConnected() {
