@@ -101,9 +101,7 @@ export class VostokConnection {
         }
     }
 
-    private onSocketClose() {
-        // this.incomingData.complete();
-    }
+    private onSocketClose = () => this.incomingData.complete();
 
     private setupPingLoop() {
         asyncRun(async () => {
