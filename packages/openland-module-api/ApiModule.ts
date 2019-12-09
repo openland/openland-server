@@ -15,6 +15,7 @@ import { Store } from 'openland-module-db/FDB';
 import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { withLogMeta, createLogger } from '@openland/log';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const defaultCtx = createNamedContext('ctx');
 const logger = createLogger('api-module');
@@ -30,10 +31,24 @@ export class ApiModule {
             if (GQL_SPEC_VERSION !== currentSchemeSpecVersion) {
                 throw new Error(`Schema version mismatch expected ${GQL_SPEC_VERSION} got ${currentSchemeSpecVersion}, did you forgot to run yarn schema:gen ?`);
             }
-            await initApi(false);
+            let server = await initApi(false);
+            Shutdown.registerWork({
+                name: 'api-server',
+                shutdown: () => new Promise(resolve => {
+                    server.close(() => resolve());
+                })
+            });
         } else {
             if (!serverRoleEnabled('admin')) {
-                await initHealthcheck();
+                let server = await initHealthcheck();
+                if (server) {
+                    Shutdown.registerWork({
+                        name: 'healthcheck-server',
+                        shutdown: () => new Promise(resolve => {
+                            server!.close(() => resolve());
+                        })
+                    });
+                }
             }
         }
     }
