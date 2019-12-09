@@ -6,23 +6,31 @@ import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { asyncRun } from '../utils';
 import { vostok } from './schema/schema';
+import { VostokSocket } from './VostokSocket';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
 export class VostokConnection {
-    protected socket: WebSocket|null = null;
+    protected socket: VostokSocket|null = null;
     protected incomingData = createIterator<TopLevelMessages>(() => 0);
 
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
     public pingAckCounter = 0;
 
-    setSocket(socket: WebSocket) {
+    setSocket(socket: VostokSocket) {
         this.socket = socket;
-        socket.on('message', async data => this.onMessage(socket, data));
-        socket.on('close', () => this.onSocketClose());
+        // socket.on('message', async data => this.onMessage(socket, data));
+        // socket.on('close', () => this.onSocketClose());
         this.setupPingLoop();
+
+        asyncRun(async () => {
+            for await (let msg of socket.getDataIterator()) {
+                this.onMessage(socket, msg);
+            }
+            this.onSocketClose();
+        });
     }
 
     getIncomingMessagesIterator() {
@@ -30,11 +38,9 @@ export class VostokConnection {
         return this.incomingData;
     }
 
-    isConnected = () => this.socket!.readyState === this.socket!.OPEN;
+    isConnected = () => this.socket!.isConnected();
 
     sendPing = () => this.sendBuff(vostok.TopMessage.encode({ ping: { id: ++this.pingCounter }}).finish());
-
-    sendRaw = (data: any) => this.socket!.send(JSON.stringify(data));
 
     sendBuff = (data: Uint8Array) => this.socket!.send(data);
 
@@ -43,7 +49,7 @@ export class VostokConnection {
         this.onSocketClose();
     }
 
-    private onMessage(socket: WebSocket, data: WebSocket.Data) {
+    private onMessage(socket: VostokSocket, data: WebSocket.Data) {
         // log.log(rootCtx, '<-', data);
         try {
             if (!(data instanceof Buffer)) {
@@ -96,7 +102,7 @@ export class VostokConnection {
     }
 
     private onSocketClose() {
-        this.incomingData.complete();
+        // this.incomingData.complete();
     }
 
     private setupPingLoop() {

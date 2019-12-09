@@ -9,7 +9,7 @@ import { createLogger } from '@openland/log';
 import { asyncRun, makeMessageId } from '../utils';
 import { RotatingSet } from '../../openland-utils/RotatingSet';
 import { MESSAGE_INFO_REQ_TIMEOUT } from './vostokServer';
-import { vostok } from './schema/schema';
+import { google, vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -25,6 +25,14 @@ interface InMessage {
     msg: vostok.IMessage;
     responseMessage?: string;
 }
+
+type MessageInput = {
+    /** Message ackMessages */
+    ackMessages?: (string[]|null);
+
+    /** Message body */
+    body: google.protobuf.IAny;
+};
 
 export class VostokSession {
     public sessionId: string;
@@ -60,18 +68,14 @@ export class VostokSession {
                 }
             }
             if (ids.length > 0) {
-                this.sendBuff(vostok.TopMessage.encode({ messagesInfoRequest: { messageIds: ids }}).finish());
+                this.sendRaw(vostok.TopMessage.encode({ messagesInfoRequest: { messageIds: ids }}).finish());
             }
             await delay(5000);
         });
     }
 
-    send(message: vostok.IMessage, acks?: string[], answerToMessage?: string) {
-        message.id = makeMessageId();
-        message.ackMessages = acks || [];
-
-        // let message = makeMessage({ id: makeMessageId(), body, ackMessages: acks || null });
-        let connect = this.freshestConnect();
+    send(messageInput: MessageInput, acks?: string[], answerToMessage?: string) {
+        let message = vostok.Message.create({ ...messageInput, id: makeMessageId(), ackMessages: acks || [] });
 
         // Store
         this.outgoingMessagesMap.set(message.id, { msg: message, delivered: false, answerToMessage });
@@ -83,13 +87,7 @@ export class VostokSession {
         }
 
         // Try to deliver
-        if (connect && connect.connection.isConnected()) {
-            log.log(rootCtx, '->', message);
-            connect.connection.sendBuff(vostok.TopMessage.encode({ message }).finish());
-            let msg = this.outgoingMessagesMap.get(message.id)!;
-            msg.delivered = true;
-            msg.deliveredAt = Date.now();
-        }
+        this.deliverMessage(message);
 
         return message;
     }
@@ -98,7 +96,7 @@ export class VostokSession {
      * If answerToMessages is passed those messages will be deleted from cache
      */
     sendAck(ids: string[], answerToMessages?: string[]) {
-        this.sendBuff(vostok.TopMessage.encode({ ackMessages: { ids } }).finish());
+        this.sendRaw(vostok.TopMessage.encode({ ackMessages: { ids } }).finish());
         ids.forEach(id => this.acknowledgedIncomingMessages.add(id));
         if (answerToMessages) {
             for (let id of answerToMessages) {
@@ -153,7 +151,6 @@ export class VostokSession {
     }
 
     private handleMessagesInfoRequest(req: vostok.MessagesInfoRequest) {
-        // let response = makeMessagesContainer({ messages: [] });
         let response = vostok.TopMessage.create({ messagesContainer: vostok.MessagesContainer.create({ messages: [] }) });
 
         for (let id of req.messageIds) {
@@ -165,20 +162,20 @@ export class VostokSession {
             }
         }
 
-        this.sendBuff(vostok.TopMessage.encode(response).finish());
+        this.sendRaw(vostok.TopMessage.encode(response).finish());
     }
 
     private handleResendMessageAnswerRequest(req: vostok.ResendMessageAnswerRequest) {
         let incomingMessage = this.incomingMessagesMap.get(req.messageId);
         if (incomingMessage && incomingMessage.responseMessage && this.outgoingMessagesMap.has(incomingMessage.responseMessage)) {
-            this.sendBuff(vostok.TopMessage.encode({ message: this.outgoingMessagesMap.get(incomingMessage.responseMessage)!.msg }).finish());
+            this.sendRaw(vostok.TopMessage.encode({ message: this.outgoingMessagesMap.get(incomingMessage.responseMessage)!.msg }).finish());
             return;
         } else if (incomingMessage) {
-            this.sendBuff(vostok.TopMessage.encode({ messageIsProcessingResponse: { messageId: req.messageId }}).finish());
+            this.sendRaw(vostok.TopMessage.encode({ messageIsProcessingResponse: { messageId: req.messageId }}).finish());
             return;
         }
 
-        this.sendBuff(vostok.TopMessage.encode({ messageNotFoundResponse: { messageId: req.messageId }}).finish());
+        this.sendRaw(vostok.TopMessage.encode({ messageNotFoundResponse: { messageId: req.messageId }}).finish());
     }
 
     /**
@@ -187,7 +184,7 @@ export class VostokSession {
      */
     private handleMessageNotFoundResponse(res: vostok.MessageNotFoundResponse) {
         if (this.outgoingMessagesMap.has(res.messageId)) {
-            this.sendBuff(vostok.TopMessage.encode({ message: this.outgoingMessagesMap.get(res.messageId)!.msg }).finish());
+            this.sendRaw(vostok.TopMessage.encode({ message: this.outgoingMessagesMap.get(res.messageId)!.msg }).finish());
         }
     }
 
@@ -198,16 +195,10 @@ export class VostokSession {
         return this.connections.sort((a, b) => b.connection.lastPingAck - b.connection.lastPingAck)[0];
     }
 
-    // /**
-    //  * Has no delivery guarantee
-    //  */
-    // private sendRaw(data: any) {
-    //     if (this.freshestConnect()) {
-    //         this.freshestConnect().connection.sendRaw(data);
-    //     }
-    // }
-
-    private sendBuff(data: Uint8Array) {
+    /**
+     * Has no delivery guarantee
+     */
+    private sendRaw(data: Uint8Array) {
         if (this.freshestConnect()) {
             this.freshestConnect().connection.sendBuff(data);
         }
@@ -231,9 +222,23 @@ export class VostokSession {
         for (let msgId of this.outgoingMessagesMap.keys()) {
             let msg = this.outgoingMessagesMap.get(msgId)!;
             if (!msg.delivered) {
-                this.send(msg.msg, msg.msg.ackMessages || undefined);
-                this.outgoingMessagesMap.delete(msgId);
+                this.deliverMessage(msg.msg);
             }
         }
+    }
+
+    private deliverMessage(message: vostok.IMessage) {
+        let connect = this.freshestConnect();
+
+        // Try to deliver
+        if (connect && connect.connection.isConnected()) {
+            log.log(rootCtx, '->', message);
+            connect.connection.sendBuff(vostok.TopMessage.encode({ message }).finish());
+            let msg = this.outgoingMessagesMap.get(message.id)!;
+            msg.delivered = true;
+            msg.deliveredAt = Date.now();
+        }
+
+        return message;
     }
 }
