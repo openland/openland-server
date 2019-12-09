@@ -30,7 +30,7 @@ interface InMessage {
 
 type MessageInput = {
     /** Message ackMessages */
-    ackMessages?: (string[]|null);
+    ackMessages?: (Uint8Array[]|null);
 
     /** Message body */
     body: google.protobuf.IAny;
@@ -76,7 +76,7 @@ export class VostokSession {
         });
     }
 
-    send(messageInput: MessageInput, acks?: string[], answerToMessage?: MessageID) {
+    send(messageInput: MessageInput, acks?: Uint8Array[], answerToMessage?: MessageID) {
         let message = vostok.Message.create({ ...messageInput, id: makeMessageId(), ackMessages: acks || [] });
 
         // Store
