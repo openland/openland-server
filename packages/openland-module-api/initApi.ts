@@ -189,6 +189,7 @@ export async function initApi(isTest: boolean) {
         }
     });
 
+    let server: http.Server;
     // Starting Api
     if (dport > 0) {
         logger.log(rootCtx, 'Binding to port ' + dport);
@@ -352,9 +353,11 @@ export async function initApi(isTest: boolean) {
             }
         });
         httpServer.listen(dport);
+
+        server = httpServer;
     } else {
-        await new Promise((resolver) => app.listen(0, () => resolver()));
+        server = await new Promise((resolver) => app.listen(0, () => resolver()));
     }
 
-    return app;
+    return server;
 }

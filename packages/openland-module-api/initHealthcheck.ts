@@ -21,6 +21,7 @@ export async function initHealthcheck() {
     if (dport > 0) {
         logger.log(createNamedContext('api-module'), 'Binding to port ' + dport);
 
-        app.listen(dport);
+        return app.listen(dport);
     }
+    return null;
 }
