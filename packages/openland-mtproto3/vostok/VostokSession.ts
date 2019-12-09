@@ -14,16 +14,18 @@ import { google, vostok } from './schema/schema';
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
+type MessageID = Uint8Array;
+
 interface OutMessage {
     msg: vostok.IMessage;
     delivered: boolean;
     deliveredAt?: number;
-    answerToMessage?: string;
+    answerToMessage?: MessageID;
 }
 
 interface InMessage {
     msg: vostok.IMessage;
-    responseMessage?: string;
+    responseMessage?: MessageID;
 }
 
 type MessageInput = {
@@ -47,9 +49,9 @@ export class VostokSession {
      */
     readonly incomingMessages = createIterator<{ message: vostok.IMessage, connection: VostokConnection }>(() => 0);
 
-    readonly outgoingMessagesMap = new RotatingMap<string, OutMessage>(1024);
-    readonly incomingMessagesMap = new RotatingMap<string, InMessage>(1024);
-    readonly acknowledgedIncomingMessages = new RotatingSet<string>(1024);
+    readonly outgoingMessagesMap = new RotatingMap<MessageID, OutMessage>(1024);
+    readonly incomingMessagesMap = new RotatingMap<MessageID, InMessage>(1024);
+    readonly acknowledgedIncomingMessages = new RotatingSet<MessageID>(1024);
 
     private ctx = withLifetime(createNamedContext('vostok-session'));
 
@@ -60,7 +62,7 @@ export class VostokSession {
 
     setupAckLoop() {
         forever(this.ctx, async () => {
-            let ids: string[] = [];
+            let ids: MessageID[] = [];
 
             for (let entry of this.outgoingMessagesMap.entries()) {
                 if (entry[1].delivered && ((Date.now() - entry[1].deliveredAt!) > MESSAGE_INFO_REQ_TIMEOUT)) {
@@ -74,7 +76,7 @@ export class VostokSession {
         });
     }
 
-    send(messageInput: MessageInput, acks?: string[], answerToMessage?: string) {
+    send(messageInput: MessageInput, acks?: string[], answerToMessage?: MessageID) {
         let message = vostok.Message.create({ ...messageInput, id: makeMessageId(), ackMessages: acks || [] });
 
         // Store
@@ -95,7 +97,7 @@ export class VostokSession {
     /**
      * If answerToMessages is passed those messages will be deleted from cache
      */
-    sendAck(ids: string[], answerToMessages?: string[]) {
+    sendAck(ids: MessageID[], answerToMessages?: MessageID[]) {
         this.sendRaw(vostok.TopMessage.encode({ ackMessages: { ids } }).finish());
         ids.forEach(id => this.acknowledgedIncomingMessages.add(id));
         if (answerToMessages) {
@@ -204,7 +206,7 @@ export class VostokSession {
         }
     }
 
-    private handleMessageAcks(ids: string[]) {
+    private handleMessageAcks(ids: MessageID[]) {
         for (let id of ids) {
             let message = this.outgoingMessagesMap.get(id);
             if (!message) {

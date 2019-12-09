@@ -541,8 +541,8 @@ $root.vostok = (function() {
          * Properties of a Message.
          * @memberof vostok
          * @interface IMessage
-         * @property {string} id Message id
-         * @property {Array.<string>|null} [ackMessages] Message ackMessages
+         * @property {Uint8Array} id Message id
+         * @property {Array.<Uint8Array>|null} [ackMessages] Message ackMessages
          * @property {google.protobuf.IAny} body Message body
          */
 
@@ -564,15 +564,15 @@ $root.vostok = (function() {
 
         /**
          * Message id.
-         * @member {string} id
+         * @member {Uint8Array} id
          * @memberof vostok.Message
          * @instance
          */
-        Message.prototype.id = "";
+        Message.prototype.id = $util.newBuffer([]);
 
         /**
          * Message ackMessages.
-         * @member {Array.<string>} ackMessages
+         * @member {Array.<Uint8Array>} ackMessages
          * @memberof vostok.Message
          * @instance
          */
@@ -610,10 +610,10 @@ $root.vostok = (function() {
         Message.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.id);
             if (message.ackMessages != null && message.ackMessages.length)
                 for (var i = 0; i < message.ackMessages.length; ++i)
-                    writer.uint32(/* id 2, wireType 2 =*/18).string(message.ackMessages[i]);
+                    writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.ackMessages[i]);
             $root.google.protobuf.Any.encode(message.body, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
         };
@@ -650,12 +650,12 @@ $root.vostok = (function() {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.id = reader.string();
+                    message.id = reader.bytes();
                     break;
                 case 2:
                     if (!(message.ackMessages && message.ackMessages.length))
                         message.ackMessages = [];
-                    message.ackMessages.push(reader.string());
+                    message.ackMessages.push(reader.bytes());
                     break;
                 case 3:
                     message.body = $root.google.protobuf.Any.decode(reader, reader.uint32());
@@ -699,14 +699,14 @@ $root.vostok = (function() {
         Message.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (!$util.isString(message.id))
-                return "id: string expected";
+            if (!(message.id && typeof message.id.length === "number" || $util.isString(message.id)))
+                return "id: buffer expected";
             if (message.ackMessages != null && message.hasOwnProperty("ackMessages")) {
                 if (!Array.isArray(message.ackMessages))
                     return "ackMessages: array expected";
                 for (var i = 0; i < message.ackMessages.length; ++i)
-                    if (!$util.isString(message.ackMessages[i]))
-                        return "ackMessages: string[] expected";
+                    if (!(message.ackMessages[i] && typeof message.ackMessages[i].length === "number" || $util.isString(message.ackMessages[i])))
+                        return "ackMessages: buffer[] expected";
             }
             {
                 var error = $root.google.protobuf.Any.verify(message.body);
@@ -729,13 +729,19 @@ $root.vostok = (function() {
                 return object;
             var message = new $root.vostok.Message();
             if (object.id != null)
-                message.id = String(object.id);
+                if (typeof object.id === "string")
+                    $util.base64.decode(object.id, message.id = $util.newBuffer($util.base64.length(object.id)), 0);
+                else if (object.id.length)
+                    message.id = object.id;
             if (object.ackMessages) {
                 if (!Array.isArray(object.ackMessages))
                     throw TypeError(".vostok.Message.ackMessages: array expected");
                 message.ackMessages = [];
                 for (var i = 0; i < object.ackMessages.length; ++i)
-                    message.ackMessages[i] = String(object.ackMessages[i]);
+                    if (typeof object.ackMessages[i] === "string")
+                        $util.base64.decode(object.ackMessages[i], message.ackMessages[i] = $util.newBuffer($util.base64.length(object.ackMessages[i])), 0);
+                    else if (object.ackMessages[i].length)
+                        message.ackMessages[i] = object.ackMessages[i];
             }
             if (object.body != null) {
                 if (typeof object.body !== "object")
@@ -761,15 +767,21 @@ $root.vostok = (function() {
             if (options.arrays || options.defaults)
                 object.ackMessages = [];
             if (options.defaults) {
-                object.id = "";
+                if (options.bytes === String)
+                    object.id = "";
+                else {
+                    object.id = [];
+                    if (options.bytes !== Array)
+                        object.id = $util.newBuffer(object.id);
+                }
                 object.body = null;
             }
             if (message.id != null && message.hasOwnProperty("id"))
-                object.id = message.id;
+                object.id = options.bytes === String ? $util.base64.encode(message.id, 0, message.id.length) : options.bytes === Array ? Array.prototype.slice.call(message.id) : message.id;
             if (message.ackMessages && message.ackMessages.length) {
                 object.ackMessages = [];
                 for (var j = 0; j < message.ackMessages.length; ++j)
-                    object.ackMessages[j] = message.ackMessages[j];
+                    object.ackMessages[j] = options.bytes === String ? $util.base64.encode(message.ackMessages[j], 0, message.ackMessages[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.ackMessages[j]) : message.ackMessages[j];
             }
             if (message.body != null && message.hasOwnProperty("body"))
                 object.body = $root.google.protobuf.Any.toObject(message.body, options);
@@ -1004,7 +1016,7 @@ $root.vostok = (function() {
          * Properties of an AckMessages.
          * @memberof vostok
          * @interface IAckMessages
-         * @property {Array.<string>|null} [ids] AckMessages ids
+         * @property {Array.<Uint8Array>|null} [ids] AckMessages ids
          */
 
         /**
@@ -1025,7 +1037,7 @@ $root.vostok = (function() {
 
         /**
          * AckMessages ids.
-         * @member {Array.<string>} ids
+         * @member {Array.<Uint8Array>} ids
          * @memberof vostok.AckMessages
          * @instance
          */
@@ -1057,7 +1069,7 @@ $root.vostok = (function() {
                 writer = $Writer.create();
             if (message.ids != null && message.ids.length)
                 for (var i = 0; i < message.ids.length; ++i)
-                    writer.uint32(/* id 1, wireType 2 =*/10).string(message.ids[i]);
+                    writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.ids[i]);
             return writer;
         };
 
@@ -1095,7 +1107,7 @@ $root.vostok = (function() {
                 case 1:
                     if (!(message.ids && message.ids.length))
                         message.ids = [];
-                    message.ids.push(reader.string());
+                    message.ids.push(reader.bytes());
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1136,8 +1148,8 @@ $root.vostok = (function() {
                 if (!Array.isArray(message.ids))
                     return "ids: array expected";
                 for (var i = 0; i < message.ids.length; ++i)
-                    if (!$util.isString(message.ids[i]))
-                        return "ids: string[] expected";
+                    if (!(message.ids[i] && typeof message.ids[i].length === "number" || $util.isString(message.ids[i])))
+                        return "ids: buffer[] expected";
             }
             return null;
         };
@@ -1159,7 +1171,10 @@ $root.vostok = (function() {
                     throw TypeError(".vostok.AckMessages.ids: array expected");
                 message.ids = [];
                 for (var i = 0; i < object.ids.length; ++i)
-                    message.ids[i] = String(object.ids[i]);
+                    if (typeof object.ids[i] === "string")
+                        $util.base64.decode(object.ids[i], message.ids[i] = $util.newBuffer($util.base64.length(object.ids[i])), 0);
+                    else if (object.ids[i].length)
+                        message.ids[i] = object.ids[i];
             }
             return message;
         };
@@ -1182,7 +1197,7 @@ $root.vostok = (function() {
             if (message.ids && message.ids.length) {
                 object.ids = [];
                 for (var j = 0; j < message.ids.length; ++j)
-                    object.ids[j] = message.ids[j];
+                    object.ids[j] = options.bytes === String ? $util.base64.encode(message.ids[j], 0, message.ids[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.ids[j]) : message.ids[j];
             }
             return object;
         };
@@ -1207,7 +1222,7 @@ $root.vostok = (function() {
          * Properties of a MessagesInfoRequest.
          * @memberof vostok
          * @interface IMessagesInfoRequest
-         * @property {Array.<string>|null} [messageIds] MessagesInfoRequest messageIds
+         * @property {Array.<Uint8Array>|null} [messageIds] MessagesInfoRequest messageIds
          */
 
         /**
@@ -1228,7 +1243,7 @@ $root.vostok = (function() {
 
         /**
          * MessagesInfoRequest messageIds.
-         * @member {Array.<string>} messageIds
+         * @member {Array.<Uint8Array>} messageIds
          * @memberof vostok.MessagesInfoRequest
          * @instance
          */
@@ -1260,7 +1275,7 @@ $root.vostok = (function() {
                 writer = $Writer.create();
             if (message.messageIds != null && message.messageIds.length)
                 for (var i = 0; i < message.messageIds.length; ++i)
-                    writer.uint32(/* id 1, wireType 2 =*/10).string(message.messageIds[i]);
+                    writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.messageIds[i]);
             return writer;
         };
 
@@ -1298,7 +1313,7 @@ $root.vostok = (function() {
                 case 1:
                     if (!(message.messageIds && message.messageIds.length))
                         message.messageIds = [];
-                    message.messageIds.push(reader.string());
+                    message.messageIds.push(reader.bytes());
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1339,8 +1354,8 @@ $root.vostok = (function() {
                 if (!Array.isArray(message.messageIds))
                     return "messageIds: array expected";
                 for (var i = 0; i < message.messageIds.length; ++i)
-                    if (!$util.isString(message.messageIds[i]))
-                        return "messageIds: string[] expected";
+                    if (!(message.messageIds[i] && typeof message.messageIds[i].length === "number" || $util.isString(message.messageIds[i])))
+                        return "messageIds: buffer[] expected";
             }
             return null;
         };
@@ -1362,7 +1377,10 @@ $root.vostok = (function() {
                     throw TypeError(".vostok.MessagesInfoRequest.messageIds: array expected");
                 message.messageIds = [];
                 for (var i = 0; i < object.messageIds.length; ++i)
-                    message.messageIds[i] = String(object.messageIds[i]);
+                    if (typeof object.messageIds[i] === "string")
+                        $util.base64.decode(object.messageIds[i], message.messageIds[i] = $util.newBuffer($util.base64.length(object.messageIds[i])), 0);
+                    else if (object.messageIds[i].length)
+                        message.messageIds[i] = object.messageIds[i];
             }
             return message;
         };
@@ -1385,7 +1403,7 @@ $root.vostok = (function() {
             if (message.messageIds && message.messageIds.length) {
                 object.messageIds = [];
                 for (var j = 0; j < message.messageIds.length; ++j)
-                    object.messageIds[j] = message.messageIds[j];
+                    object.messageIds[j] = options.bytes === String ? $util.base64.encode(message.messageIds[j], 0, message.messageIds[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.messageIds[j]) : message.messageIds[j];
             }
             return object;
         };
@@ -1410,7 +1428,7 @@ $root.vostok = (function() {
          * Properties of a ResendMessageAnswerRequest.
          * @memberof vostok
          * @interface IResendMessageAnswerRequest
-         * @property {string} messageId ResendMessageAnswerRequest messageId
+         * @property {Uint8Array} messageId ResendMessageAnswerRequest messageId
          */
 
         /**
@@ -1430,11 +1448,11 @@ $root.vostok = (function() {
 
         /**
          * ResendMessageAnswerRequest messageId.
-         * @member {string} messageId
+         * @member {Uint8Array} messageId
          * @memberof vostok.ResendMessageAnswerRequest
          * @instance
          */
-        ResendMessageAnswerRequest.prototype.messageId = "";
+        ResendMessageAnswerRequest.prototype.messageId = $util.newBuffer([]);
 
         /**
          * Creates a new ResendMessageAnswerRequest instance using the specified properties.
@@ -1460,7 +1478,7 @@ $root.vostok = (function() {
         ResendMessageAnswerRequest.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            writer.uint32(/* id 1, wireType 2 =*/10).string(message.messageId);
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.messageId);
             return writer;
         };
 
@@ -1496,7 +1514,7 @@ $root.vostok = (function() {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.messageId = reader.string();
+                    message.messageId = reader.bytes();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1535,8 +1553,8 @@ $root.vostok = (function() {
         ResendMessageAnswerRequest.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (!$util.isString(message.messageId))
-                return "messageId: string expected";
+            if (!(message.messageId && typeof message.messageId.length === "number" || $util.isString(message.messageId)))
+                return "messageId: buffer expected";
             return null;
         };
 
@@ -1553,7 +1571,10 @@ $root.vostok = (function() {
                 return object;
             var message = new $root.vostok.ResendMessageAnswerRequest();
             if (object.messageId != null)
-                message.messageId = String(object.messageId);
+                if (typeof object.messageId === "string")
+                    $util.base64.decode(object.messageId, message.messageId = $util.newBuffer($util.base64.length(object.messageId)), 0);
+                else if (object.messageId.length)
+                    message.messageId = object.messageId;
             return message;
         };
 
@@ -1571,9 +1592,15 @@ $root.vostok = (function() {
                 options = {};
             var object = {};
             if (options.defaults)
-                object.messageId = "";
+                if (options.bytes === String)
+                    object.messageId = "";
+                else {
+                    object.messageId = [];
+                    if (options.bytes !== Array)
+                        object.messageId = $util.newBuffer(object.messageId);
+                }
             if (message.messageId != null && message.hasOwnProperty("messageId"))
-                object.messageId = message.messageId;
+                object.messageId = options.bytes === String ? $util.base64.encode(message.messageId, 0, message.messageId.length) : options.bytes === Array ? Array.prototype.slice.call(message.messageId) : message.messageId;
             return object;
         };
 
@@ -1597,7 +1624,7 @@ $root.vostok = (function() {
          * Properties of a MessageNotFoundResponse.
          * @memberof vostok
          * @interface IMessageNotFoundResponse
-         * @property {string} messageId MessageNotFoundResponse messageId
+         * @property {Uint8Array} messageId MessageNotFoundResponse messageId
          */
 
         /**
@@ -1617,11 +1644,11 @@ $root.vostok = (function() {
 
         /**
          * MessageNotFoundResponse messageId.
-         * @member {string} messageId
+         * @member {Uint8Array} messageId
          * @memberof vostok.MessageNotFoundResponse
          * @instance
          */
-        MessageNotFoundResponse.prototype.messageId = "";
+        MessageNotFoundResponse.prototype.messageId = $util.newBuffer([]);
 
         /**
          * Creates a new MessageNotFoundResponse instance using the specified properties.
@@ -1647,7 +1674,7 @@ $root.vostok = (function() {
         MessageNotFoundResponse.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            writer.uint32(/* id 1, wireType 2 =*/10).string(message.messageId);
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.messageId);
             return writer;
         };
 
@@ -1683,7 +1710,7 @@ $root.vostok = (function() {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.messageId = reader.string();
+                    message.messageId = reader.bytes();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1722,8 +1749,8 @@ $root.vostok = (function() {
         MessageNotFoundResponse.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (!$util.isString(message.messageId))
-                return "messageId: string expected";
+            if (!(message.messageId && typeof message.messageId.length === "number" || $util.isString(message.messageId)))
+                return "messageId: buffer expected";
             return null;
         };
 
@@ -1740,7 +1767,10 @@ $root.vostok = (function() {
                 return object;
             var message = new $root.vostok.MessageNotFoundResponse();
             if (object.messageId != null)
-                message.messageId = String(object.messageId);
+                if (typeof object.messageId === "string")
+                    $util.base64.decode(object.messageId, message.messageId = $util.newBuffer($util.base64.length(object.messageId)), 0);
+                else if (object.messageId.length)
+                    message.messageId = object.messageId;
             return message;
         };
 
@@ -1758,9 +1788,15 @@ $root.vostok = (function() {
                 options = {};
             var object = {};
             if (options.defaults)
-                object.messageId = "";
+                if (options.bytes === String)
+                    object.messageId = "";
+                else {
+                    object.messageId = [];
+                    if (options.bytes !== Array)
+                        object.messageId = $util.newBuffer(object.messageId);
+                }
             if (message.messageId != null && message.hasOwnProperty("messageId"))
-                object.messageId = message.messageId;
+                object.messageId = options.bytes === String ? $util.base64.encode(message.messageId, 0, message.messageId.length) : options.bytes === Array ? Array.prototype.slice.call(message.messageId) : message.messageId;
             return object;
         };
 
@@ -1784,7 +1820,7 @@ $root.vostok = (function() {
          * Properties of a MessageIsProcessingResponse.
          * @memberof vostok
          * @interface IMessageIsProcessingResponse
-         * @property {string} messageId MessageIsProcessingResponse messageId
+         * @property {Uint8Array} messageId MessageIsProcessingResponse messageId
          */
 
         /**
@@ -1804,11 +1840,11 @@ $root.vostok = (function() {
 
         /**
          * MessageIsProcessingResponse messageId.
-         * @member {string} messageId
+         * @member {Uint8Array} messageId
          * @memberof vostok.MessageIsProcessingResponse
          * @instance
          */
-        MessageIsProcessingResponse.prototype.messageId = "";
+        MessageIsProcessingResponse.prototype.messageId = $util.newBuffer([]);
 
         /**
          * Creates a new MessageIsProcessingResponse instance using the specified properties.
@@ -1834,7 +1870,7 @@ $root.vostok = (function() {
         MessageIsProcessingResponse.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            writer.uint32(/* id 1, wireType 2 =*/10).string(message.messageId);
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.messageId);
             return writer;
         };
 
@@ -1870,7 +1906,7 @@ $root.vostok = (function() {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.messageId = reader.string();
+                    message.messageId = reader.bytes();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -1909,8 +1945,8 @@ $root.vostok = (function() {
         MessageIsProcessingResponse.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (!$util.isString(message.messageId))
-                return "messageId: string expected";
+            if (!(message.messageId && typeof message.messageId.length === "number" || $util.isString(message.messageId)))
+                return "messageId: buffer expected";
             return null;
         };
 
@@ -1927,7 +1963,10 @@ $root.vostok = (function() {
                 return object;
             var message = new $root.vostok.MessageIsProcessingResponse();
             if (object.messageId != null)
-                message.messageId = String(object.messageId);
+                if (typeof object.messageId === "string")
+                    $util.base64.decode(object.messageId, message.messageId = $util.newBuffer($util.base64.length(object.messageId)), 0);
+                else if (object.messageId.length)
+                    message.messageId = object.messageId;
             return message;
         };
 
@@ -1945,9 +1984,15 @@ $root.vostok = (function() {
                 options = {};
             var object = {};
             if (options.defaults)
-                object.messageId = "";
+                if (options.bytes === String)
+                    object.messageId = "";
+                else {
+                    object.messageId = [];
+                    if (options.bytes !== Array)
+                        object.messageId = $util.newBuffer(object.messageId);
+                }
             if (message.messageId != null && message.hasOwnProperty("messageId"))
-                object.messageId = message.messageId;
+                object.messageId = options.bytes === String ? $util.base64.encode(message.messageId, 0, message.messageId.length) : options.bytes === Array ? Array.prototype.slice.call(message.messageId) : message.messageId;
             return object;
         };
 

@@ -153,10 +153,10 @@ export namespace vostok {
     interface IMessage {
 
         /** Message id */
-        id: string;
+        id: Uint8Array;
 
         /** Message ackMessages */
-        ackMessages?: (string[]|null);
+        ackMessages?: (Uint8Array[]|null);
 
         /** Message body */
         body: google.protobuf.IAny;
@@ -172,10 +172,10 @@ export namespace vostok {
         constructor(properties?: vostok.IMessage);
 
         /** Message id. */
-        public id: string;
+        public id: Uint8Array;
 
         /** Message ackMessages. */
-        public ackMessages: string[];
+        public ackMessages: Uint8Array[];
 
         /** Message body. */
         public body: google.protobuf.IAny;
@@ -345,7 +345,7 @@ export namespace vostok {
     interface IAckMessages {
 
         /** AckMessages ids */
-        ids?: (string[]|null);
+        ids?: (Uint8Array[]|null);
     }
 
     /** Represents an AckMessages. */
@@ -358,7 +358,7 @@ export namespace vostok {
         constructor(properties?: vostok.IAckMessages);
 
         /** AckMessages ids. */
-        public ids: string[];
+        public ids: Uint8Array[];
 
         /**
          * Creates a new AckMessages instance using the specified properties.
@@ -435,7 +435,7 @@ export namespace vostok {
     interface IMessagesInfoRequest {
 
         /** MessagesInfoRequest messageIds */
-        messageIds?: (string[]|null);
+        messageIds?: (Uint8Array[]|null);
     }
 
     /** Represents a MessagesInfoRequest. */
@@ -448,7 +448,7 @@ export namespace vostok {
         constructor(properties?: vostok.IMessagesInfoRequest);
 
         /** MessagesInfoRequest messageIds. */
-        public messageIds: string[];
+        public messageIds: Uint8Array[];
 
         /**
          * Creates a new MessagesInfoRequest instance using the specified properties.
@@ -525,7 +525,7 @@ export namespace vostok {
     interface IResendMessageAnswerRequest {
 
         /** ResendMessageAnswerRequest messageId */
-        messageId: string;
+        messageId: Uint8Array;
     }
 
     /** Represents a ResendMessageAnswerRequest. */
@@ -538,7 +538,7 @@ export namespace vostok {
         constructor(properties?: vostok.IResendMessageAnswerRequest);
 
         /** ResendMessageAnswerRequest messageId. */
-        public messageId: string;
+        public messageId: Uint8Array;
 
         /**
          * Creates a new ResendMessageAnswerRequest instance using the specified properties.
@@ -615,7 +615,7 @@ export namespace vostok {
     interface IMessageNotFoundResponse {
 
         /** MessageNotFoundResponse messageId */
-        messageId: string;
+        messageId: Uint8Array;
     }
 
     /** Represents a MessageNotFoundResponse. */
@@ -628,7 +628,7 @@ export namespace vostok {
         constructor(properties?: vostok.IMessageNotFoundResponse);
 
         /** MessageNotFoundResponse messageId. */
-        public messageId: string;
+        public messageId: Uint8Array;
 
         /**
          * Creates a new MessageNotFoundResponse instance using the specified properties.
@@ -705,7 +705,7 @@ export namespace vostok {
     interface IMessageIsProcessingResponse {
 
         /** MessageIsProcessingResponse messageId */
-        messageId: string;
+        messageId: Uint8Array;
     }
 
     /** Represents a MessageIsProcessingResponse. */
@@ -718,7 +718,7 @@ export namespace vostok {
         constructor(properties?: vostok.IMessageIsProcessingResponse);
 
         /** MessageIsProcessingResponse messageId. */
-        public messageId: string;
+        public messageId: Uint8Array;
 
         /**
          * Creates a new MessageIsProcessingResponse instance using the specified properties.

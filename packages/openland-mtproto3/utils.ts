@@ -16,4 +16,4 @@ export const asyncRun = (handler: () => Promise<any>) => {
     handler();
 };
 
-export const makeMessageId = () => randomBytes(32).toString('hex');
+export const makeMessageId = () => randomBytes(32);
