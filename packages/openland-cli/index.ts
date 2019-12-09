@@ -100,7 +100,7 @@ yargs
                 for (let i = 1; i <= testUsersCount; i++) {
                     let testUser = await Modules.Users.createUser(ctx, `user-${uuid()}`, `test${uuid()}@maildu.de`);
                     await Modules.Users.createUserProfile(ctx, testUser.id, {
-                        firstName: 'Test', lastName: `${i}`, primaryOrganization: `Test ${i}`,
+                        firstName: 'Test', lastName: `${i}`
                     });
                     await Modules.Users.activateUser(ctx, testUser.id, false, testUser.id);
                     await Modules.Orgs.createOrganization(ctx, testUser.id, { name: `Test organization ${i}` });
