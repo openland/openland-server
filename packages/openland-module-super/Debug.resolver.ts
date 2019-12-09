@@ -663,9 +663,9 @@ export default {
                 return false;
             }
             await inTx(root, async ctx => {
+                await Modules.Users.activateUser(ctx, uid, false);
                 await Modules.Orgs.createOrganization(ctx, uid, {name: 'Openland'});
                 await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
-                await Modules.Users.activateUser(ctx, uid, false);
             });
             return true;
         }),
