@@ -1240,6 +1240,90 @@ export namespace vostok {
          */
         public toJSON(): { [k: string]: any };
     }
+
+    /** Properties of a SessionExpired. */
+    interface ISessionExpired {
+    }
+
+    /** Represents a SessionExpired. */
+    class SessionExpired implements ISessionExpired {
+
+        /**
+         * Constructs a new SessionExpired.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: vostok.ISessionExpired);
+
+        /**
+         * Creates a new SessionExpired instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns SessionExpired instance
+         */
+        public static create(properties?: vostok.ISessionExpired): vostok.SessionExpired;
+
+        /**
+         * Encodes the specified SessionExpired message. Does not implicitly {@link vostok.SessionExpired.verify|verify} messages.
+         * @param message SessionExpired message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: vostok.ISessionExpired, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified SessionExpired message, length delimited. Does not implicitly {@link vostok.SessionExpired.verify|verify} messages.
+         * @param message SessionExpired message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: vostok.ISessionExpired, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a SessionExpired message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns SessionExpired
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vostok.SessionExpired;
+
+        /**
+         * Decodes a SessionExpired message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns SessionExpired
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): vostok.SessionExpired;
+
+        /**
+         * Verifies a SessionExpired message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates a SessionExpired message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns SessionExpired
+         */
+        public static fromObject(object: { [k: string]: any }): vostok.SessionExpired;
+
+        /**
+         * Creates a plain object from a SessionExpired message. Also converts values to other types if specified.
+         * @param message SessionExpired
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: vostok.SessionExpired, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this SessionExpired to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+    }
 }
 
 /** Namespace google. */

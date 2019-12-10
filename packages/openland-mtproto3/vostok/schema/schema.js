@@ -2941,6 +2941,166 @@ $root.vostok = (function() {
         return Pong;
     })();
 
+    vostok.SessionExpired = (function() {
+
+        /**
+         * Properties of a SessionExpired.
+         * @memberof vostok
+         * @interface ISessionExpired
+         */
+
+        /**
+         * Constructs a new SessionExpired.
+         * @memberof vostok
+         * @classdesc Represents a SessionExpired.
+         * @implements ISessionExpired
+         * @constructor
+         * @param {vostok.ISessionExpired=} [properties] Properties to set
+         */
+        function SessionExpired(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Creates a new SessionExpired instance using the specified properties.
+         * @function create
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {vostok.ISessionExpired=} [properties] Properties to set
+         * @returns {vostok.SessionExpired} SessionExpired instance
+         */
+        SessionExpired.create = function create(properties) {
+            return new SessionExpired(properties);
+        };
+
+        /**
+         * Encodes the specified SessionExpired message. Does not implicitly {@link vostok.SessionExpired.verify|verify} messages.
+         * @function encode
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {vostok.ISessionExpired} message SessionExpired message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        SessionExpired.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            return writer;
+        };
+
+        /**
+         * Encodes the specified SessionExpired message, length delimited. Does not implicitly {@link vostok.SessionExpired.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {vostok.ISessionExpired} message SessionExpired message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        SessionExpired.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a SessionExpired message from the specified reader or buffer.
+         * @function decode
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {vostok.SessionExpired} SessionExpired
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        SessionExpired.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok.SessionExpired();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a SessionExpired message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {vostok.SessionExpired} SessionExpired
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        SessionExpired.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a SessionExpired message.
+         * @function verify
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        SessionExpired.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            return null;
+        };
+
+        /**
+         * Creates a SessionExpired message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {vostok.SessionExpired} SessionExpired
+         */
+        SessionExpired.fromObject = function fromObject(object) {
+            if (object instanceof $root.vostok.SessionExpired)
+                return object;
+            return new $root.vostok.SessionExpired();
+        };
+
+        /**
+         * Creates a plain object from a SessionExpired message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof vostok.SessionExpired
+         * @static
+         * @param {vostok.SessionExpired} message SessionExpired
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        SessionExpired.toObject = function toObject() {
+            return {};
+        };
+
+        /**
+         * Converts this SessionExpired to JSON.
+         * @function toJSON
+         * @memberof vostok.SessionExpired
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        SessionExpired.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return SessionExpired;
+    })();
+
     return vostok;
 })();
 

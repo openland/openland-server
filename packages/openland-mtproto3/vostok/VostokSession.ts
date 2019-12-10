@@ -156,6 +156,11 @@ export class VostokSession {
         this.noConnectsSince = Date.now();
     }
 
+    close() {
+        this.sendRaw(vostok.SessionExpired.encode({ }).finish());
+        this.destroy();
+    }
+
     private handleMessagesInfoRequest(req: vostok.MessagesInfoRequest) {
         let response = vostok.TopMessage.create({ messagesContainer: vostok.MessagesContainer.create({ messages: [] }) });
 

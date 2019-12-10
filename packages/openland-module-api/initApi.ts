@@ -371,7 +371,7 @@ export async function initApi(isTest: boolean) {
                 for (let entry of vostok.sessions.sessions.entries()) {
                     let [, session] = entry;
                     if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
-                        session.destroy();
+                        session.close();
                     }
                 }
             }

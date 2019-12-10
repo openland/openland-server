@@ -36,6 +36,7 @@ Incoming and outgoing messages from all connections are cached for some time in 
 Server always sends updates & responses to the connection from which the last `Pong` came.
 Sessions are stored in server memory for quite time, so client can reconnect to session with no need to setup subscriptions, etc.
 Server can close session at any time. Also client should expect that server can forget any incoming/outgoing message at any time.
+Server forgets session it has no connections for 15 minutes.
 
 ## Initialization process
 First message in connection is always `Initialize` service message. 
@@ -52,10 +53,10 @@ Server sends `Ping` every 30 seconds and closes connection after 5 minutes if no
 #### MessagesContainer
 This service message is a simple container for service/regular `TopMessage` messages.
 
-#### AckMessages (service)
+#### AckMessages
 Acknowleges messages
 
-#### MessagesInfoRequest (service)
+#### MessagesInfoRequest
 
 Can be sent from both sides. Typically this message is sent when host did't acknowledged some message.
 Server sends `MessagesInfoRequest` after 5 seconds if outgoing message was not acknowledged.
@@ -65,7 +66,7 @@ Possible responses:
 - AckMessages: the host already processed message, most likely the ack for message was lost
 - MessageNotFoundResponse the host has no info about message or message was forgotten already, in most cases client should resend that message
 
-#### ResendMessageRequest (service)
+#### ResendMessageRequest
 Can be sent from both sides. Typically used by client when server doesn't send answer for some message for some sensible.
 
 Possible responses:
@@ -73,4 +74,5 @@ Possible responses:
 - `MessageNotFoundResponse` response not found or already was forgotten by host
 - `MessageIsProcessingResponse` - request is still in processing phase 
 
-
+#### SessionExpired
+Server sends `SessionExpired` message if authorization expired, etc. All connections in session will be closed.
