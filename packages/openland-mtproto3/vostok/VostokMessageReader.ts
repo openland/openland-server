@@ -64,8 +64,8 @@ export class VostokMessageReader {
 
             let header = Buffer.concat(headerChunks);
 
-            let magic = header.readInt32LE(0);
-            this.payloadSize = header.readInt32LE(4);
+            let magic = header.readInt32BE(0);
+            this.payloadSize = header.readInt32BE(4);
 
             if (magic !== MESSAGE_MAGIC) {
                 throw new VostokParsingError();

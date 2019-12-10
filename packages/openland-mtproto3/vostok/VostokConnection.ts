@@ -36,14 +36,18 @@ export class VostokConnection {
         return this.incomingData;
     }
 
-    isConnected = () => this.socket!.isConnected();
+    isConnected = () => this.socket ? this.socket.isConnected() : false;
 
     sendPing = () => this.sendBuff(vostok.TopMessage.encode({ ping: { id: ++this.pingCounter }}).finish());
 
     sendBuff = (data: Uint8Array) => this.socket!.send(data);
 
     close() {
-        this.socket!.close();
+        if (this.socket) {
+            this.socket.close();
+        } else {
+            log.warn(rootCtx, 'trying to close non-existing socket');
+        }
         this.onSocketClose();
     }
 

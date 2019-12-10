@@ -116,6 +116,10 @@ export class VostokSession {
         asyncRun(async () => {
             for await (let msgData of connection.getIncomingMessagesIterator()) {
                 if (msgData instanceof vostok.Message) {
+                    if (this.acknowledgedIncomingMessages.has(msgData.id) || this.incomingMessagesMap.has(msgData.id)) {
+                        this.sendAck([msgData.id], [msgData.id]);
+                        continue;
+                    }
                     this.incomingMessagesMap.set(msgData.id, { msg: msgData });
                     this.incomingMessages.push({ message: msgData, connection });
                 } else if (msgData instanceof vostok.AckMessages) {

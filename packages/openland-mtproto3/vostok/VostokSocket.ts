@@ -78,8 +78,8 @@ export class VostokRawSocket extends VostokSocket {
 
     send(data: Buffer|Uint8Array) {
         let header = Buffer.alloc(8);
-        header.writeInt32LE(0x77777777, 0);
-        header.writeInt32LE(data.length, 4);
+        header.writeInt32BE(0x77777777, 0);
+        header.writeInt32BE(data.length, 4);
 
         this.socket.write(Buffer.concat([header, data]));
     }
