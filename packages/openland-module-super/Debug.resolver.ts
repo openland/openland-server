@@ -1007,7 +1007,7 @@ export default {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUsersDialogs', async (ctx, uid, log) => {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 for (let dialog of dialogs) {
-                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid: dialog.cid }));
+                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({uid, cid: dialog.cid}));
                 }
             });
             return true;
@@ -1066,7 +1066,7 @@ export default {
 
                 let user = AuthContext.get(ctx);
                 let stickers = await Store.Sticker.pack.findAll(ctx, pid);
-                
+
                 await Promise.all(stickers.map(a => Modules.Stickers.removeSticker(ctx, user.uid!, a.id)));
                 await Promise.all(args.stickers.map(a => Modules.Stickers.addSticker(ctx, user.uid!, pid, a)));
 
@@ -1112,9 +1112,17 @@ export default {
                 if (!event) {
                     return false;
                 }
-                if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args))) {
-                    event.body = { ...event.body, args: undefined };
+                if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args) || Object.keys(event.body.args).length === 0)) {
+                    event.body = {...event.body, args: undefined};
                 }
+
+                for (let key of event.body.args) {
+                    let val = event.body.args[key];
+                    if (typeof val === 'object' && Object.keys(val).length === 0) {
+                        delete event.body.args[key];
+                    }
+                }
+
                 await event.flush(ctx);
                 return true;
             });
@@ -1141,7 +1149,7 @@ export default {
         }),
         debugReindexFeedChannels: withPermission('super-admin', async (parent) => {
             debugTaskForAll(Store.FeedChannel, parent.auth.uid!, 'debugReindexFeedChannels', async (ctx, id, log) => {
-               await Modules.Feed.markChannelForIndexing(ctx, id);
+                await Modules.Feed.markChannelForIndexing(ctx, id);
             });
             return true;
         }),

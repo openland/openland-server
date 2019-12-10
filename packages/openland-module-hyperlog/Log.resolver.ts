@@ -42,8 +42,14 @@ export default {
                 for (let i of args.events) {
                     if (i.params) {
                         let parsed = JSON.parse(i.params);
-                        if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+                        if (typeof parsed !== 'object' || Array.isArray(parsed) || Object.keys(parsed).length === 0) {
                             throw new UserError('params should be map');
+                        }
+                        for (let key of parsed) {
+                            let val = parsed[key];
+                            if (typeof val === 'object' && Object.keys(val).length === 0) {
+                                throw new UserError('params can\'t contain empty maps');
+                            }
                         }
                     }
                     if (i.event.trim().length === 0) {
