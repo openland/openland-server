@@ -19,6 +19,7 @@ import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { hasMention } from './resolvers/ModernMessage.resolver';
+import { inTx } from '@openland/foundationdb';
 
 @injectable()
 export class MessagingModule {
@@ -40,7 +41,7 @@ export class MessagingModule {
         @inject('DeliveryMediator') delivery: DeliveryMediator,
         @inject('RoomMediator') room: RoomMediator,
         @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository,
-        @inject('UserDialogsRepository') userDialogs: UserDialogsRepository
+        @inject('UserDialogsRepository') userDialogs: UserDialogsRepository,
     ) {
         this.delivery = delivery;
         this.userState = userState;
@@ -204,7 +205,7 @@ export class MessagingModule {
                 desktop: {
                     showNotification: false,
                     sound: false,
-                }
+                },
             };
         }
 
@@ -227,7 +228,7 @@ export class MessagingModule {
                     desktop: {
                         showNotification: false,
                         sound: false,
-                    }
+                    },
                 };
             }
         }
@@ -276,7 +277,7 @@ export class MessagingModule {
 
         return {
             mobile: mobileSettings,
-            desktop: desktopSettings
+            desktop: desktopSettings,
         };
     }
 
@@ -285,7 +286,7 @@ export class MessagingModule {
 
         return {
             mobile: messageSettings.mobile.showNotification,
-            desktop: messageSettings.desktop.showNotification
+            desktop: messageSettings.desktop.showNotification,
         };
     }
 
@@ -294,8 +295,23 @@ export class MessagingModule {
 
         return {
             mobile: !messageSettings.mobile.sound,
-            desktop: !messageSettings.desktop.sound
+            desktop: !messageSettings.desktop.sound,
         };
+    }
+
+    async createTestChats(parent: Context, count: number, uids: number[]) {
+        return await inTx(parent, async ctx => {
+            if (uids.length < 1) {
+                throw new Error('Members count is lower than 1');
+            }
+            let testCommunity = await Modules.Orgs.createOrganization(ctx, uids[0], { name: 'Test community' });
+
+            for (let i = 1; i <= count; i++) {
+                await this.room.createRoom(ctx, 'public', testCommunity.id, uids[0], uids, {
+                    title: `Test group ${i}`,
+                });
+            }
+        });
     }
 
     //
