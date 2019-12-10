@@ -7164,21 +7164,21 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
 
 export interface ShortnameReservationShape {
     shortname: string;
-    ownerType: 'org' | 'user' | 'feed_channel';
+    ownerType: 'org' | 'user' | 'feed_channel' | 'room';
     ownerId: number;
     enabled: boolean;
 }
 
 export interface ShortnameReservationCreateShape {
-    ownerType: 'org' | 'user' | 'feed_channel';
+    ownerType: 'org' | 'user' | 'feed_channel' | 'room';
     ownerId: number;
     enabled: boolean;
 }
 
 export class ShortnameReservation extends Entity<ShortnameReservationShape> {
     get shortname(): string { return this._rawValue.shortname; }
-    get ownerType(): 'org' | 'user' | 'feed_channel' { return this._rawValue.ownerType; }
-    set ownerType(value: 'org' | 'user' | 'feed_channel') {
+    get ownerType(): 'org' | 'user' | 'feed_channel' | 'room' { return this._rawValue.ownerType; }
+    set ownerType(value: 'org' | 'user' | 'feed_channel' | 'room') {
         let normalized = this.descriptor.codec.fields.ownerType.normalize(value);
         if (this._rawValue.ownerType !== normalized) {
             this._rawValue.ownerType = normalized;
@@ -7217,12 +7217,12 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'shortname', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'ownerType', type: { type: 'enum', values: ['org', 'user', 'feed_channel'] }, secure: false });
+        fields.push({ name: 'ownerType', type: { type: 'enum', values: ['org', 'user', 'feed_channel', 'room'] }, secure: false });
         fields.push({ name: 'ownerId', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             shortname: c.string,
-            ownerType: c.enum('org', 'user', 'feed_channel'),
+            ownerType: c.enum('org', 'user', 'feed_channel', 'room'),
             ownerId: c.integer,
             enabled: c.boolean,
         });
@@ -7263,13 +7263,13 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
     });
 
     readonly fromOwner = Object.freeze({
-        find: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel', ownerId: number) => {
+        find: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room', ownerId: number) => {
             return this._findFromUniqueIndex(ctx, [ownerType, ownerId], this.descriptor.secondaryIndexes[2]);
         },
-        findAll: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel') => {
+        findAll: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room') => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [ownerType])).items;
         },
-        query: (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel', opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room', opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [ownerType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });

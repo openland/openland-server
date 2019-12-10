@@ -42,8 +42,11 @@ export default {
                 for (let i of args.events) {
                     if (i.params) {
                         let parsed = JSON.parse(i.params);
-                        if (typeof parsed !== 'object' || Array.isArray(parsed) || Object.keys(parsed).length === 0) {
+                        if (typeof parsed !== 'object' || Array.isArray(parsed)) {
                             throw new UserError('params should be map');
+                        }
+                        if (Object.keys(parsed).length === 0) {
+                            i.params = null;
                         }
                         for (let key of Object.keys(parsed)) {
                             let val = parsed[key];
