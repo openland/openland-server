@@ -1115,12 +1115,14 @@ export default {
                 if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args) || Object.keys(event.body.args).length === 0)) {
                     event.body = {...event.body, args: undefined};
                 }
-
-                for (let key of event.body.args) {
+                for (let key of Object.keys(event.body.args)) {
                     let val = event.body.args[key];
                     if (typeof val === 'object' && Object.keys(val).length === 0) {
                         delete event.body.args[key];
                     }
+                }
+                if (event.body && event.body.args && Object.keys(event.body.args).length === 0) {
+                    event.body = {...event.body, args: undefined};
                 }
 
                 await event.flush(ctx);
