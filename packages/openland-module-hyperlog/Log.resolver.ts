@@ -45,6 +45,15 @@ export default {
                         if (typeof parsed !== 'object' || Array.isArray(parsed)) {
                             throw new UserError('params should be map');
                         }
+                        if (Object.keys(parsed).length === 0) {
+                            i.params = null;
+                        }
+                        for (let key of Object.keys(parsed)) {
+                            let val = parsed[key];
+                            if (typeof val === 'object' && Object.keys(val).length === 0) {
+                                throw new UserError('params can\'t contain empty maps');
+                            }
+                        }
                     }
                     if (i.event.trim().length === 0) {
                         throw new UserError('Event should be string');

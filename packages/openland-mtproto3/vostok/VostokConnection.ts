@@ -1,12 +1,12 @@
 import { createIterator } from '../../openland-utils/asyncIterator';
 import { delay } from '../../openland-utils/timer';
 import { PING_CLOSE_TIMEOUT, PING_TIMEOUT, TopLevelMessages } from './vostokServer';
-import WebSocket = require('ws');
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { asyncRun } from '../utils';
 import { vostok } from './schema/schema';
 import { VostokSocket } from './VostokSocket';
+import TopMessage = vostok.TopMessage;
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -21,8 +21,6 @@ export class VostokConnection {
 
     setSocket(socket: VostokSocket) {
         this.socket = socket;
-        // socket.on('message', async data => this.onMessage(socket, data));
-        // socket.on('close', () => this.onSocketClose());
         this.setupPingLoop();
 
         asyncRun(async () => {
@@ -38,72 +36,68 @@ export class VostokConnection {
         return this.incomingData;
     }
 
-    isConnected = () => this.socket!.isConnected();
+    isConnected = () => this.socket ? this.socket.isConnected() : false;
 
     sendPing = () => this.sendBuff(vostok.TopMessage.encode({ ping: { id: ++this.pingCounter }}).finish());
 
     sendBuff = (data: Uint8Array) => this.socket!.send(data);
 
     close() {
-        this.socket!.close();
+        if (this.socket) {
+            this.socket.close();
+        } else {
+            log.warn(rootCtx, 'trying to close non-existing socket');
+        }
         this.onSocketClose();
     }
 
-    private onMessage(socket: VostokSocket, data: WebSocket.Data) {
-        // log.log(rootCtx, '<-', data);
+    private onMessage(socket: VostokSocket, data: Buffer) {
+        let msgData: TopMessage;
         try {
-            if (!(data instanceof Buffer)) {
-                log.log(rootCtx, 'got invalid message from client', data);
-                this.sendBuff(vostok.TopMessage.encode({ invalidMessage: { } }).finish());
-                this.close();
-                return;
-            }
-
-            let msgData = vostok.TopMessage.decode(data);
+            msgData = vostok.TopMessage.decode(data);
             log.log(rootCtx, '<-', msgData);
-
-            if (msgData.pong) {
-                this.lastPingAck = Date.now();
-                this.pingAckCounter++;
-            } else if (msgData.ping) {
-                this.sendBuff(vostok.Pong.encode({ id: 1 }).finish());
-            } else if (msgData.message) {
-                this.incomingData.push(msgData.message);
-            } else if (msgData.ackMessages) {
-                this.incomingData.push(msgData.ackMessages);
-            } else if (msgData.messagesInfoRequest) {
-                this.incomingData.push(msgData.messagesInfoRequest);
-            } else if (msgData.messagesContainer && msgData.messagesContainer.messages) {
-                msgData.messagesContainer.messages.forEach(msg => {
-                    if (msg.message) {
-                        this.incomingData.push(msg.message);
-                    } else if (msg.ackMessages) {
-                        this.incomingData.push(msg.ackMessages);
-                    } else if (msg.messagesInfoRequest) {
-                        this.incomingData.push(msg.messagesInfoRequest);
-                    } else if (msg.resendMessageAnswerRequest) {
-                        this.incomingData.push(msg.resendMessageAnswerRequest);
-                    } else if (msg.messageNotFoundResponse) {
-                        this.incomingData.push(msg.messageNotFoundResponse);
-                    }
-                });
-            } else if (msgData.resendMessageAnswerRequest) {
-                this.incomingData.push(msgData.resendMessageAnswerRequest);
-            } else if (msgData.messageNotFoundResponse) {
-                this.incomingData.push(msgData.messageNotFoundResponse);
-            } else {
-                log.log(rootCtx, 'unexpected top level message:', msgData);
-            }
         } catch (e) {
             log.log(rootCtx, 'got invalid message from client', data);
             this.sendBuff(vostok.TopMessage.encode({ invalidMessage: { } }).finish());
             this.close();
+            return;
+        }
+
+        if (msgData.pong) {
+            this.lastPingAck = Date.now();
+            this.pingAckCounter++;
+        } else if (msgData.ping) {
+            this.sendBuff(vostok.Pong.encode({ id: 1 }).finish());
+        } else if (msgData.message) {
+            this.incomingData.push(msgData.message);
+        } else if (msgData.ackMessages) {
+            this.incomingData.push(msgData.ackMessages);
+        } else if (msgData.messagesInfoRequest) {
+            this.incomingData.push(msgData.messagesInfoRequest);
+        } else if (msgData.messagesContainer && msgData.messagesContainer.messages) {
+            msgData.messagesContainer.messages.forEach(msg => {
+                if (msg.message) {
+                    this.incomingData.push(msg.message);
+                } else if (msg.ackMessages) {
+                    this.incomingData.push(msg.ackMessages);
+                } else if (msg.messagesInfoRequest) {
+                    this.incomingData.push(msg.messagesInfoRequest);
+                } else if (msg.resendMessageAnswerRequest) {
+                    this.incomingData.push(msg.resendMessageAnswerRequest);
+                } else if (msg.messageNotFoundResponse) {
+                    this.incomingData.push(msg.messageNotFoundResponse);
+                }
+            });
+        } else if (msgData.resendMessageAnswerRequest) {
+            this.incomingData.push(msgData.resendMessageAnswerRequest);
+        } else if (msgData.messageNotFoundResponse) {
+            this.incomingData.push(msgData.messageNotFoundResponse);
+        } else {
+            log.log(rootCtx, 'unexpected top level message:', msgData);
         }
     }
 
-    private onSocketClose() {
-        // this.incomingData.complete();
-    }
+    private onSocketClose = () => this.incomingData.complete();
 
     private setupPingLoop() {
         asyncRun(async () => {

@@ -6,7 +6,7 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { withUser } from '../openland-module-users/User.resolver';
-import { User, Organization, FeedChannel } from 'openland-module-db/store';
+import { User, Organization, FeedChannel, ConversationRoom } from 'openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export default {
@@ -18,6 +18,8 @@ export default {
                 return 'Organization';
             } else if (src instanceof FeedChannel) {
                 return 'FeedChannel';
+            } else if (src instanceof ConversationRoom) {
+                return 'SharedRoom';
             }
 
             throw new Error('Unknown shortname type');
@@ -58,6 +60,8 @@ export default {
                 return await Store.Organization.findById(ctx, ownerId);
             } else if (ownerType === 'feed_channel') {
                 return await Store.FeedChannel.findById(ctx, ownerId);
+            } else if (ownerType === 'room') {
+                return await Store.ConversationRoom.findById(ctx, ownerId);
             }
 
             return null;
@@ -86,6 +90,19 @@ export default {
                 throw new AccessDeniedError();
             }
             await Modules.Shortnames.setShortName(ctx, args.shortname, 'feed_channel', channelId, uid);
+            return 'ok';
+        }),
+        alphaSetRoomShortName: withAccount(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.id);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            if (!room || room.kind !== 'public') {
+                throw new UserError(`Shortname can be set only for public rooms`);
+            }
+            let isAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, cid);
+            if (!isAdmin) {
+                throw new AccessDeniedError();
+            }
+            await Modules.Shortnames.setShortName(ctx, args.shortname, 'room', cid, uid);
             return 'ok';
         }),
     },
@@ -117,6 +134,13 @@ export default {
     FeedChannel: {
         shortname: async (src, args, ctx) => {
             let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'feed_channel', src.id);
+            return shortName ? shortName.shortname : null;
+        },
+    },
+    SharedRoom: {
+        shortname: async (src, args, ctx) => {
+
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'room', typeof src === 'number' ? src : src.id);
             return shortName ? shortName.shortname : null;
         },
     }
