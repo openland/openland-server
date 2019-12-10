@@ -2,6 +2,7 @@ import * as Net from 'net';
 import { createIterator } from '../../openland-utils/asyncIterator';
 import { VostokMessageReader } from './VostokMessageReader';
 import WebSocket = require('ws');
+import { vostok } from './schema/schema';
 
 export abstract class VostokSocket {
     abstract getDataIterator(): AsyncIterable<Buffer>;
@@ -9,6 +10,8 @@ export abstract class VostokSocket {
     abstract close(): void;
     abstract isConnected(): boolean;
 }
+
+const InvalidMessage = vostok.TopMessage.encode({ invalidMessage: { } }).finish();
 
 export class VostokWSSocket extends VostokSocket {
     protected incomingMessages = createIterator<Buffer>(() => 0);
@@ -20,6 +23,7 @@ export class VostokWSSocket extends VostokSocket {
         this.socket = socket;
         socket.on('message', data => {
             if (!(data instanceof Buffer)) {
+                this.send(InvalidMessage);
                 this.close();
                 return;
             }
