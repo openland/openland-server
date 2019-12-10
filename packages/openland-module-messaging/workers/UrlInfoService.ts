@@ -68,6 +68,13 @@ export class UrlInfoService {
                 return null;
             }
 
+            if (info.title) {
+                info.title = info.title.replace(/\n/, ' ').trim();
+            }
+            if (info.description) {
+                info.description = info.description.replace(/\n/, ' ').trim();
+            }
+            
             await this.cache.write(ctx, url, { ...info });
 
             return { ...info };
