@@ -21,7 +21,7 @@ Vostok uses ProtoBuf for message encoding.
 `Message` type which contains any user-defined message in `body` field could be sent in `TopMessage`.
 
 ## Message ID
-Message ID is a unique 8 byte length sequence. Message ID is send as `bytes` in ProtoBuf.
+Message ID is a unique uint32 number and encoded as `uint32` in ProtoBuf.
 
 ## Messages
 There is two types of messages: regular ones and service ones.

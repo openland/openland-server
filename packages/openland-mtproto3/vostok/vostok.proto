@@ -23,8 +23,8 @@ message TopMessage {
 }
 
 message Message {
-    required bytes id = 1;
-    repeated bytes ackMessages = 2;
+    required uint32 id = 1;
+    repeated uint32 ackMessages = 2;
     required google.protobuf.Any body = 3;
 }
 
@@ -33,23 +33,23 @@ message MessagesContainer {
 }
 
 message AckMessages {
-    repeated bytes ids = 1;
+    repeated uint32 ids = 1;
 }
 
 message MessagesInfoRequest {
-    repeated bytes messageIds = 1;
+    repeated uint32 messageIds = 1;
 }
 
 message ResendMessageAnswerRequest {
-    required bytes messageId = 1;
+    required uint32 messageId = 1;
 }
 
 message MessageNotFoundResponse {
-    required bytes messageId = 1;
+    required uint32 messageId = 1;
 }
 
 message MessageIsProcessingResponse {
-    required bytes messageId = 1;
+    required uint32 messageId = 1;
 }
 
 message Initialize {
@@ -66,11 +66,11 @@ message InvalidMessage {
 }
 
 message Ping {
-    required int32 id = 1;
+    required uint32 id = 1;
 }
 
 message Pong {
-    required int32 id = 1;
+    required uint32 id = 1;
 }
 
 message SessionExpired {

@@ -16,4 +16,12 @@ export const asyncRun = (handler: () => Promise<any>) => {
     handler();
 };
 
-export const makeMessageId = () => randomBytes(8);
+export const makeMessageId = () => Buffer.from(randomBytes(8)).readUInt32BE(0);
+
+export const messageIdToInt = (messageId: Buffer|Uint8Array) => {
+    if (messageId instanceof Buffer) {
+        return messageId.readInt32BE(0);
+    } else {
+        return Buffer.from(messageId).readInt32BE(0);
+    }
+};
