@@ -47,7 +47,7 @@ class FuckApolloSession {
     public authParams: any;
     public operations: { [operationId: string]: { destroy(): void } } = {};
     public waitAuth: Promise<any> = Promise.resolve();
-    public socket: WebSocket;
+    public socket: WebSocket|null;
     public protocolVersion = 1;
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
@@ -61,7 +61,11 @@ class FuckApolloSession {
 
     setWaitingConnect = () => this.state = 'WAITING_CONNECT';
 
-    send = (data: any) => this.socket.send(JSON.stringify(data));
+    send = (data: any) => {
+        if (this.socket) {
+            this.socket.send(JSON.stringify(data));
+        }
+    }
 
     sendConnectionAck = () => this.send({ type: 'connection_ack' });
 
@@ -99,10 +103,15 @@ class FuckApolloSession {
 
     close = () => {
         this.stopAllOperations();
-        this.socket.close();
+        this.socket!.close();
+        this.socket!.removeAllListeners('message');
+        this.socket!.removeAllListeners('close');
+        this.socket!.removeAllListeners('error');
+        this.socket = null;
+        this.operations = {};
     }
 
-    isConnected = () => this.socket.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
+    isConnected = () => this.socket && this.socket!.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
 }
 
 const asyncRun = (handler: () => Promise<any>) => {
@@ -259,12 +268,12 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
     });
     socket.on('close', (code, reason) => {
         logger.log(createNamedContext('apollo'), 'close connection', code, reason);
-        session.stopAllOperations();
+        session.close();
         sessions.delete(session.id);
     });
     socket.on('error', (err) => {
         logger.log(createNamedContext('apollo'), 'connection error', err);
-        session.stopAllOperations();
+        session.close();
     });
 }
 
