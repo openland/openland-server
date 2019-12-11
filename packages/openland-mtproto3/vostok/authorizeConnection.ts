@@ -1,6 +1,5 @@
 import { VostokConnection } from './VostokConnection';
 import { VostokSessionsManager } from './VostokSessionsManager';
-import { makeMessageId } from '../utils';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { BaseVostokServerParams, VostokTypeUrls } from './vostokServer';
@@ -30,16 +29,15 @@ export async function authorizeConnection(serverParams: BaseVostokServerParams, 
                 if (target) {
                     log.log(rootCtx, 'switch to session #', target.sessionId);
                     target.addConnection(connection);
-                    connection.sendBuff(vostok.TopMessage.encode({
-                        message: {
-                            id: makeMessageId(),
-                            body: {
-                                type_url: VostokTypeUrls.InitializeAck,
-                                value: vostok.InitializeAck.encode({sessionId: target.sessionId}).finish()
-                            },
-                            ackMessages: [message.id]
-                        }
-                    }).finish());
+                    // Force session to send ack to this connection
+                    connection.lastPingAck = Date.now();
+                    target.send({
+                        body: {
+                            type_url: VostokTypeUrls.InitializeAck,
+                            value: vostok.InitializeAck.encode({sessionId: target.sessionId}).finish()
+                        },
+                        ackMessages: [message.id]
+                    });
                     return target;
                 }
             }
@@ -47,16 +45,15 @@ export async function authorizeConnection(serverParams: BaseVostokServerParams, 
             log.log(rootCtx, 'new session #', session.sessionId);
             session.addConnection(connection);
             session.authParams = authParams;
-            connection.sendBuff(vostok.TopMessage.encode({
-                message: {
-                    id: makeMessageId(),
-                    body: {
-                        type_url: VostokTypeUrls.InitializeAck,
-                        value: vostok.InitializeAck.encode({sessionId: session.sessionId}).finish()
-                    },
-                    ackMessages: [message.id]
-                }
-            }).finish());
+            // Force session to send ack to this connection
+            connection.lastPingAck = Date.now();
+            session.send({
+                body: {
+                    type_url: VostokTypeUrls.InitializeAck,
+                    value: vostok.InitializeAck.encode({sessionId: session.sessionId}).finish()
+                },
+                ackMessages: [message.id]
+            });
             return session;
         }
     }

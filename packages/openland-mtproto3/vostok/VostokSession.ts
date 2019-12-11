@@ -14,7 +14,7 @@ import { google, vostok } from './schema/schema';
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
 
-type MessageID = Uint8Array;
+type MessageID = number;
 
 interface OutMessage {
     msg: vostok.IMessage;
@@ -30,7 +30,7 @@ interface InMessage {
 
 type MessageInput = {
     /** Message ackMessages */
-    ackMessages?: (Uint8Array[]|null);
+    ackMessages?: (MessageID[]|null);
 
     /** Message body */
     body: google.protobuf.IAny;
@@ -49,9 +49,9 @@ export class VostokSession {
      */
     readonly incomingMessages = createIterator<{ message: vostok.IMessage, connection: VostokConnection }>(() => 0);
 
-    readonly outgoingMessagesMap = new RotatingMap<MessageID, OutMessage>(1024);
-    readonly incomingMessagesMap = new RotatingMap<MessageID, InMessage>(1024);
-    readonly acknowledgedIncomingMessages = new RotatingSet<MessageID>(1024);
+    readonly outgoingMessagesMap = new RotatingMap<number, OutMessage>(1024);
+    readonly incomingMessagesMap = new RotatingMap<number, InMessage>(1024);
+    readonly acknowledgedIncomingMessages = new RotatingSet<number>(1024);
 
     private ctx = withLifetime(createNamedContext('vostok-session'));
 
@@ -76,7 +76,7 @@ export class VostokSession {
         });
     }
 
-    send(messageInput: MessageInput, acks?: Uint8Array[], answerToMessage?: MessageID) {
+    send(messageInput: MessageInput, acks?: MessageID[], answerToMessage?: MessageID) {
         let message = vostok.Message.create({ ...messageInput, id: makeMessageId(), ackMessages: acks || [] });
 
         // Store
