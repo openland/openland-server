@@ -5,6 +5,7 @@ import { createHyperlogger } from './createHyperlogEvent';
 import { Context } from '@openland/context';
 import { uuid } from '../openland-utils/uuid';
 import { UserError } from '../openland-errors/UserError';
+import { createLogger } from '@openland/log';
 
 export interface InternalTrackEvent {
     id: string;
@@ -22,6 +23,7 @@ export interface InternalTrackEvent {
 
 export const trackEvent = createHyperlogger<InternalTrackEvent>('track');
 
+const log = createLogger('track');
 const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 export function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
@@ -51,7 +53,9 @@ export default {
                         for (let key of Object.keys(parsed)) {
                             let val = parsed[key];
                             if (typeof val === 'object' && Object.keys(val).length === 0) {
-                                throw new UserError('params can\'t contain empty maps');
+                                log.log(ctx2, 'invalid event', i);
+                                i.params = null;
+                                // throw new UserError('params can\'t contain empty maps');
                             }
                         }
                     }
