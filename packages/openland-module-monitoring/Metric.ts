@@ -21,12 +21,12 @@ export function getAllMetrics() {
 }
 
 export class Metric {
-    private readonly mode: 'sum' | 'average';
+    private readonly mode: 'sum' | 'average' | 'exact';
     private _count = 0;
     private _value = 0;
     private _contexts = new Map<string, { count: number, value: number }>();
 
-    constructor(mode: 'sum' | 'average') {
+    constructor(mode: 'sum' | 'average' | 'exact') {
         this.mode = mode;
     }
 
@@ -44,7 +44,7 @@ export class Metric {
                 v.count = 0;
             }
             return result;
-        } else {
+        } else if (this.mode === 'average') {
             if (this._count > 0) {
                 let res = this._value / this._count;
                 this._value = 0;
@@ -63,6 +63,15 @@ export class Metric {
             } else {
                 return null;
             }
+        } else if (this.mode === 'exact') {
+            let res = this._value;
+            let result: any = { global: res, context: {} };
+            for (let e of this._contexts.entries()) {
+                let key = e[0];
+                let v = e[1];
+                result.context[key] = v.value;
+            }
+            return result;
         }
     }
 
@@ -106,7 +115,7 @@ export class Metric {
     }
 }
 
-export function createMetric(name: string, mode: 'sum' | 'average') {
+export function createMetric(name: string, mode: 'sum' | 'average' | 'exact') {
     if (map.has(name)) {
         throw Error('Metric already registered');
     }

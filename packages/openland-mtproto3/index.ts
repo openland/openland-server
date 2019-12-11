@@ -260,7 +260,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
     }
 }
 
-const metric = createMetric('ws-connections', 'sum');
+const metric = createMetric('ws-connections', 'exact');
 const rootCtx = createNamedContext('apollo');
 
 async function handleConnection(params: FuckApolloServerParams, sessions: Map<string, FuckApolloSession>, socket: WebSocket, req: http.IncomingMessage) {
