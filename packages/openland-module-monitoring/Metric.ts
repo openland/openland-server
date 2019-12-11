@@ -79,6 +79,19 @@ export class Metric {
         ctxCounter.value++;
     }
 
+    decrement = (ctx: Context) => {
+        this._count--;
+        this._value--;
+
+        let name = ContextName.get(ctx);
+        if (!this._contexts.has(name)) {
+            this._contexts.set(name, { count: 0, value: 0 });
+        }
+        let ctxCounter = this._contexts.get(name)!!;
+        ctxCounter.count--;
+        ctxCounter.value--;
+    }
+
     add = (ctx: Context, value: number) => {
         this._count++;
         this._value += value;

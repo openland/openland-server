@@ -15,6 +15,7 @@ import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
+import { createMetric } from '../openland-module-monitoring/Metric';
 
 const logger = createLogger('apollo');
 
@@ -259,7 +260,11 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
     }
 }
 
+const metric = createMetric('ws-connections', 'sum');
+const rootCtx = createNamedContext('apollo');
+
 async function handleConnection(params: FuckApolloServerParams, sessions: Map<string, FuckApolloSession>, socket: WebSocket, req: http.IncomingMessage) {
+    metric.increment(rootCtx);
     let session = new FuckApolloSession(socket);
     sessions.set(session.id, session);
 
@@ -267,12 +272,14 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
-        logger.log(createNamedContext('apollo'), 'close connection', code, reason);
+        logger.log(rootCtx, 'close connection', code, reason);
         session.close();
         sessions.delete(session.id);
+        metric.decrement(rootCtx);
     });
     socket.on('error', (err) => {
-        logger.log(createNamedContext('apollo'), 'connection error', err);
+        logger.log(rootCtx, 'connection error', err);
+        metric.decrement(rootCtx);
         session.close();
     });
 }
