@@ -156,6 +156,4 @@ export class UsersModule {
     async onChatMembersCountChange(ctx: Context, cid: number, delta: number) {
         return await this.audienceCounterRepo.addToCalculatingQueue(ctx, cid, delta);
     }
-
-
 }
