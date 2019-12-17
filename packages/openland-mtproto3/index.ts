@@ -15,6 +15,7 @@ import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
+import { createMetric } from '../openland-module-monitoring/Metric';
 
 const logger = createLogger('apollo');
 
@@ -47,7 +48,7 @@ class FuckApolloSession {
     public authParams: any;
     public operations: { [operationId: string]: { destroy(): void } } = {};
     public waitAuth: Promise<any> = Promise.resolve();
-    public socket: WebSocket;
+    public socket: WebSocket|null;
     public protocolVersion = 1;
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
@@ -61,7 +62,11 @@ class FuckApolloSession {
 
     setWaitingConnect = () => this.state = 'WAITING_CONNECT';
 
-    send = (data: any) => this.socket.send(JSON.stringify(data));
+    send = (data: any) => {
+        if (this.socket) {
+            this.socket.send(JSON.stringify(data));
+        }
+    }
 
     sendConnectionAck = () => this.send({ type: 'connection_ack' });
 
@@ -99,10 +104,15 @@ class FuckApolloSession {
 
     close = () => {
         this.stopAllOperations();
-        this.socket.close();
+        this.socket!.close();
+        this.socket!.removeAllListeners('message');
+        this.socket!.removeAllListeners('close');
+        this.socket!.removeAllListeners('error');
+        this.socket = null;
+        this.operations = {};
     }
 
-    isConnected = () => this.socket.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
+    isConnected = () => this.socket && this.socket!.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
 }
 
 const asyncRun = (handler: () => Promise<any>) => {
@@ -250,7 +260,11 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
     }
 }
 
+const metric = createMetric('ws-connections', 'exact');
+const rootCtx = createNamedContext('apollo');
+
 async function handleConnection(params: FuckApolloServerParams, sessions: Map<string, FuckApolloSession>, socket: WebSocket, req: http.IncomingMessage) {
+    metric.increment(rootCtx);
     let session = new FuckApolloSession(socket);
     sessions.set(session.id, session);
 
@@ -258,13 +272,15 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
-        logger.log(createNamedContext('apollo'), 'close connection', code, reason);
-        session.stopAllOperations();
+        logger.log(rootCtx, 'close connection', code, reason);
+        session.close();
         sessions.delete(session.id);
+        metric.decrement(rootCtx);
     });
     socket.on('error', (err) => {
-        logger.log(createNamedContext('apollo'), 'connection error', err);
-        session.stopAllOperations();
+        logger.log(rootCtx, 'connection error', err);
+        metric.decrement(rootCtx);
+        session.close();
     });
 }
 
