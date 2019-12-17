@@ -13,7 +13,6 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Modules } from '../openland-modules/Modules';
 import { AudienceCounterRepository } from './repositories/AudienceCounterRepository';
 import { declareUserAudienceCalculator } from './workers/userAudienceCalculator';
-import { uuid } from '../openland-utils/uuid';
 
 @injectable()
 export class UsersModule {
@@ -158,19 +157,5 @@ export class UsersModule {
         return await this.audienceCounterRepo.addToCalculatingQueue(ctx, cid, delta);
     }
 
-    async createTestUsers(parent: Context, count: number) {
-        return await inTx(parent, async ctx => {
-            let testUsers = [];
-            for (let i = 1; i <= count; i++) {
-                let testUser = await this.createUser(ctx, `user-${uuid()}`, `test${uuid()}@maildu.de`);
-                await this.createUserProfile(ctx, testUser.id, {
-                    firstName: 'Test', lastName: `${i}`
-                });
-                await this.activateUser(ctx, testUser.id, false, testUser.id);
-                await Modules.Orgs.createOrganization(ctx, testUser.id, { name: `Test organization ${i}` });
-                testUsers.push(testUser);
-            }
-            return testUsers;
-        });
-    }
+
 }

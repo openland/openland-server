@@ -10,8 +10,8 @@ import yargs from 'yargs';
 import { createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { loadAllModules } from 'openland-modules/loadAllModules';
-import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
+import TestDataFactory from '../openland-server-tests/TestDataFactory';
 // import { openDatabase } from './utils/openDatabase';
 // import { diagnose, calculateCount, removeOldIndexes, diagAll, deleteInvalid } from 'openland-cli/diagnose';
 
@@ -93,16 +93,17 @@ yargs
                 uid = user.id;
             }
 
+            let testDataFactory = new TestDataFactory();
             await inTx(parent, async ctx => {
                 let testUsersCount = args.chats ? (args.users || 1) : 0;
-                let testUsers = await Modules.Users.createTestUsers(ctx, testUsersCount);
+                let testUsers = await testDataFactory.createTestUsers(ctx, testUsersCount);
 
                 if (args.chats) {
                     let userIds = testUsers.map(a => a.id);
                     if (args.addToChats && uid > 0) {
                         userIds.push(uid);
                     }
-                    await Modules.Messaging.createTestChats(ctx, 10, userIds);
+                    await testDataFactory.createTestChats(ctx, 10, userIds);
                 }
             });
 

@@ -19,7 +19,6 @@ import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { hasMention } from './resolvers/ModernMessage.resolver';
-import { inTx } from '@openland/foundationdb';
 
 @injectable()
 export class MessagingModule {
@@ -297,21 +296,6 @@ export class MessagingModule {
             mobile: !messageSettings.mobile.sound,
             desktop: !messageSettings.desktop.sound,
         };
-    }
-
-    async createTestChats(parent: Context, count: number, uids: number[]) {
-        return await inTx(parent, async ctx => {
-            if (uids.length < 1) {
-                throw new Error('Members count is lower than 1');
-            }
-            let testCommunity = await Modules.Orgs.createOrganization(ctx, uids[0], { name: 'Test community' });
-
-            for (let i = 1; i <= count; i++) {
-                await this.room.createRoom(ctx, 'public', testCommunity.id, uids[0], uids, {
-                    title: `Test group ${i}`,
-                });
-            }
-        });
     }
 
     //
