@@ -45,5 +45,8 @@ async function onExit() {
     process.exit();
 }
 
+process.stdin.resume();
+
+process.on('exit', onExit);
 process.on('SIGTERM', onExit);
 process.on('SIGINT', onExit);
