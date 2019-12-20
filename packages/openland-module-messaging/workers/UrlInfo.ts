@@ -11,6 +11,9 @@ import { CacheRepository } from '../../openland-module-cache/CacheRepository';
 import { inTx } from '@openland/foundationdb';
 import { ico2png } from '../../openland-utils/ico2png';
 
+const rootCtx = createNamedContext('url-info');
+const logger = createLogger('url-info');
+
 export interface URLInfo {
     url: string;
     title: string | null;
@@ -145,6 +148,7 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
         })
     });
 
+    logger.log(rootCtx, 'augmentation fetch status', res.status, url);
     if (res.status !== 200) {
         return null;
     }
@@ -201,8 +205,6 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
     };
 }
 
-const rootCtx = createNamedContext('url-info');
-const logger = createLogger('url-info');
 const faviconCache = new CacheRepository<{ iconRef: ImageRef | null, iconInfo: FileInfo | null}>('url_info_favicon');
 
 async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
