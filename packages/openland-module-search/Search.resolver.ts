@@ -356,8 +356,8 @@ export default {
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
-                        {match_phrase_prefix: {name: query}},
-                        {match_phrase_prefix: {shortName: query}}
+                        {match_phrase_prefix: {name: {query, max_expansions: 1000}}},
+                        {match_phrase_prefix: {shortName: {query, max_expansions: 1000}}}
                     ] : []
                 }
             });
