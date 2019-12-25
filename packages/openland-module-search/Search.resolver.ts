@@ -419,13 +419,58 @@ export default {
             let clauses: any[] = [];
 
             // Local users
+            let localUsersQuery = [
+                {
+                    function_score: {
+                        query: {
+                            bool: {
+                                should: [
+                                    {
+                                        match_phrase_prefix: {
+                                            name: {
+                                                max_expansions: 1000,
+                                                query: query
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        boost: 1000,
+                        boost_mode: 'multiply'
+                    }
+                },
+                {
+                    function_score: {
+                        query: {
+                            bool: {
+                                should: [
+                                    {
+                                        match_phrase_prefix: {
+                                            shortName: {
+                                                max_expansions: 1000,
+                                                query: query
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        boost: 1000,
+                        boost_mode: 'multiply'
+                    }
+                }
+            ];
             clauses.push({
                 bool: {
-                    must: [{terms: {userId: members}}, {
-                        bool: {
-                            should: query.length > 0 ? [{match_phrase_prefix: {name: { query, max_expansions: 1000 }}}, {match_phrase_prefix: {shortName: { query, max_expansions: 1000 }}}] : [],
-                        },
-                    }]
+                    must: [
+                        {terms: {userId: members}},
+                        {
+                            bool: {
+                                should: query.length > 0 ? localUsersQuery : [],
+                            }
+                        }
+                    ]
                 }
             });
 
@@ -491,6 +536,14 @@ export default {
                     },
                 );
             }
+
+            console.dir(JSON.stringify({
+                query: {
+                    bool: {
+                        should: clauses,
+                    },
+                }
+            }), {depth: null});
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'user_profile,organization,room',
