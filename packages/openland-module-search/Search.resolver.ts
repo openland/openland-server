@@ -423,7 +423,7 @@ export default {
                 bool: {
                     must: [{terms: {userId: members}}, {
                         bool: {
-                            should: query.length > 0 ? [{match_phrase_prefix: {name: query}}, {match_phrase_prefix: {shortName: { query, max_expansions: 1000 }}}] : [],
+                            should: query.length > 0 ? [{match_phrase_prefix: {name: { query, max_expansions: 1000 }}}, {match_phrase_prefix: {shortName: { query, max_expansions: 1000 }}}] : [],
                         },
                     }]
                 }
