@@ -364,4 +364,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '115-stickers-populate-related-emojis',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+           let stickers = await Store.Sticker.findAll(ctx);
+           for (let sticker of stickers) {
+               sticker.relatedEmojis = [sticker.emoji];
+           }
+        });
+    }
+})
+
 export default migrations;

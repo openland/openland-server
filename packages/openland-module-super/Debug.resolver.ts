@@ -1202,6 +1202,16 @@ export default {
                 return true;
             });
         }),
+        debugAddStickerPackToAll: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let pid = IDs.StickerPack.parse(args.packId);
+                let users = await Store.User.findAll(ctx);
+                for (let user of users) {
+                    await Modules.Stickers.addToCollection(ctx, user.id, pid);
+                }
+                return true;
+            });
+        })
     },
     Subscription: {
         debugEvents: {

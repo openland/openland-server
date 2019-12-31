@@ -84,6 +84,7 @@ export class StickersRepository {
             let id = Store.storage.db.get(RandomLayer).nextRandomId();
             let sticker = await Store.Sticker.create(ctx, id, {
                 emoji: input.emoji,
+                relatedEmojis: [input.emoji],
                 packId: pid,
                 image: imageRef!,
                 deleted: false

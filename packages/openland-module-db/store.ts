@@ -11253,6 +11253,7 @@ export interface StickerShape {
     image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null };
     deleted: boolean;
     emoji: string;
+    relatedEmojis: (string)[] | null;
     packId: number;
 }
 
@@ -11260,6 +11261,7 @@ export interface StickerCreateShape {
     image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined };
     deleted: boolean;
     emoji: string;
+    relatedEmojis?: (string)[] | null | undefined;
     packId: number;
 }
 
@@ -11292,6 +11294,15 @@ export class Sticker extends Entity<StickerShape> {
             this.invalidate();
         }
     }
+    get relatedEmojis(): (string)[] | null { return this._rawValue.relatedEmojis; }
+    set relatedEmojis(value: (string)[] | null) {
+        let normalized = this.descriptor.codec.fields.relatedEmojis.normalize(value);
+        if (this._rawValue.relatedEmojis !== normalized) {
+            this._rawValue.relatedEmojis = normalized;
+            this._updatedValues.relatedEmojis = normalized;
+            this.invalidate();
+        }
+    }
     get packId(): number { return this._rawValue.packId; }
     set packId(value: number) {
         let normalized = this.descriptor.codec.fields.packId.normalize(value);
@@ -11316,12 +11327,14 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         fields.push({ name: 'image', type: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, secure: false });
         fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'emoji', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'relatedEmojis', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
         fields.push({ name: 'packId', type: { type: 'integer' }, secure: false });
         let codec = c.struct({
             id: c.string,
             image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }),
             deleted: c.boolean,
             emoji: c.string,
+            relatedEmojis: c.optional(c.array(c.string)),
             packId: c.integer,
         });
         let descriptor: EntityDescriptor<StickerShape> = {

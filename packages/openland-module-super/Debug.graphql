@@ -144,6 +144,7 @@ extend type Mutation {
     debugResetUrlInfoFreshness: Boolean!
     debugFixUsersPrimaryOrganization: Boolean!
     debugResetPushDelivery: Boolean!
+    debugAddStickerPackToAll(packId: ID!): Boolean!
 }
 
 extend type Subscription {

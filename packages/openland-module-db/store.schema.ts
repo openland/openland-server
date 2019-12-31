@@ -1443,6 +1443,7 @@ export default declareSchema(() => {
         field('image', ImageRef);
         field('deleted', boolean());
         field('emoji', string());
+        field('relatedEmojis', optional(array(string())));
         field('packId', integer());
         rangeIndex('pack', ['packId', 'createdAt']);
         rangeIndex('packActive', ['packId', 'createdAt']).withCondition((src) => !src.deleted);
