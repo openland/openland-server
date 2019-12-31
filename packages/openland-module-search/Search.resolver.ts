@@ -356,8 +356,8 @@ export default {
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
-                        {match_phrase_prefix: {name: query}},
-                        {match_phrase_prefix: {shortName: query}}
+                        {match_phrase_prefix: {name: {query, max_expansions: 1000}}},
+                        {match_phrase_prefix: {shortName: {query, max_expansions: 1000}}}
                     ] : []
                 }
             });
@@ -419,13 +419,58 @@ export default {
             let clauses: any[] = [];
 
             // Local users
+            let localUsersQuery = [
+                {
+                    function_score: {
+                        query: {
+                            bool: {
+                                should: [
+                                    {
+                                        match_phrase_prefix: {
+                                            name: {
+                                                max_expansions: 1000,
+                                                query: query
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        boost: 1000,
+                        boost_mode: 'multiply'
+                    }
+                },
+                {
+                    function_score: {
+                        query: {
+                            bool: {
+                                should: [
+                                    {
+                                        match_phrase_prefix: {
+                                            shortName: {
+                                                max_expansions: 1000,
+                                                query: query
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        boost: 1000,
+                        boost_mode: 'multiply'
+                    }
+                }
+            ];
             clauses.push({
                 bool: {
-                    must: [{ terms: { userId: members } }, {
-                        bool: {
-                            should: query.length > 0 ? [{ match_phrase_prefix: { name: query } }, { match_phrase_prefix: { shortName: query } }] : [],
-                        },
-                    }]
+                    must: [
+                        {terms: {userId: members}},
+                        {
+                            bool: {
+                                should: query.length > 0 ? localUsersQuery : [],
+                            }
+                        }
+                    ]
                 }
             });
 
@@ -438,11 +483,11 @@ export default {
                     function_score: {
                         query: {
                             bool: {
-                                must: [{ match_phrase_prefix: { name: query } }],
+                                must: [{match_phrase_prefix: {name: query}}],
                             }
                         },
                         functions: userOrgs.map(_oid => ({
-                            filter: { match: { _id: _oid } }, weight: 2,
+                            filter: {match: {_id: _oid}}, weight: 2,
                         })),
                         boost_mode: 'multiply',
                     },
@@ -469,24 +514,36 @@ export default {
                 //         },
                 //     },
                 // });
-                clauses.push({ bool: {
-                        must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: true } }],
-                    }});
+                clauses.push({
+                    bool: {
+                        must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}],
+                    }
+                });
 
                 //
                 // Organization rooms
                 //
                 let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
-                let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
-                clauses.push({ bool: {
-                        must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: false } }, {
-                            bool: {
-                                should: orgChatFilters,
-                            },
-                        }],
-                    }},
+                let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
+                clauses.push({
+                        bool: {
+                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: false}}, {
+                                bool: {
+                                    should: orgChatFilters,
+                                },
+                            }],
+                        }
+                    },
                 );
             }
+
+            console.dir(JSON.stringify({
+                query: {
+                    bool: {
+                        should: clauses,
+                    },
+                }
+            }), {depth: null});
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'user_profile,organization,room',
