@@ -1208,6 +1208,17 @@ export default {
                 await Modules.Stickers.addToCollection(ctx, id, pid);
             });
             return true;
+        }),
+        debugReplaceCommunityForChat: withPermission('super-admin', async (parent, args) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            let oid = IDs.Organization.parse(args.newCommunityId);
+
+            return inTx(parent, async ctx => {
+               let conv = await Store.ConversationRoom.findById(ctx, cid);
+               conv!.oid = oid;
+               await conv!.flush(ctx);
+               return true;
+            });
         })
     },
     Subscription: {
