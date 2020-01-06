@@ -44,10 +44,6 @@ function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T)
     };
 }
 
-const UNICORN_PACK_ID = 21;
-
-const isProd = process.env.APP_ENVIRONMENT === 'production';
-
 export default {
     Sticker: {
         __resolveType() {
@@ -76,9 +72,6 @@ export default {
     },
     Query: {
         myStickers: withActivatedUser(async (ctx, args, id) => {
-            if (isProd) {
-                await Modules.Stickers.addToCollection(ctx, id, UNICORN_PACK_ID);
-            }
             return await Modules.Stickers.getUserStickers(ctx, id);
         }),
         stickersByEmoji: withActivatedUser((ctx, args, id) => {

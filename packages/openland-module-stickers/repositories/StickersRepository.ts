@@ -20,6 +20,9 @@ export interface StickerInput {
     emoji: string;
 }
 
+const isProd = process.env.APP_ENVIRONMENT === 'production';
+const DEFAULT_PACK_IDS = [21, 22, 23, 24, 25];
+
 @injectable()
 export class StickersRepository {
     createPack = (parent: Context, uid: number, title: string) => {
@@ -238,8 +241,12 @@ export class StickersRepository {
         return inTx(parent,  async ctx => {
             let state = await Store.UserStickersState.findById(ctx, uid);
             if (!state) {
+                let packIds: number[] = [];
+                if (isProd) {
+                    packIds = DEFAULT_PACK_IDS;
+                }
                 state = await Store.UserStickersState.create(ctx, uid, {
-                    favoriteIds: [], packIds: [],
+                    favoriteIds: [], packIds,
                 });
             }
             return state;
