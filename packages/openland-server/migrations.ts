@@ -383,10 +383,11 @@ migrations.push({
         for (let cursor = 0; cursor < data.length; cursor += 100) {
             let batch = data.slice(cursor, cursor + 100);
             await inTx(parent, async ctx => {
-                for (let item of batch) {
-                    item.packIds = item.packIds.filter((a) => a !== 21);
-                    item.packIds = [21, ...item.packIds];
-                    await item.flush(ctx);
+                for (let key of batch) {
+                    let item = await Store.UserStickersState.findById(ctx, key.uid);
+                    item!.packIds = item!.packIds.filter((a) => a !== 21);
+                    item!.packIds = [21, ...item!.packIds];
+                    await item!.flush(ctx);
                 }
             });
         }
