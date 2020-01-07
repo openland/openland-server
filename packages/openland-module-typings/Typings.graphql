@@ -9,7 +9,9 @@ type TypingEvent {
 enum TypingType {
     TEXT,
     PHOTO,
-    FILE
+    FILE,
+    STICKER,
+    VIDEO,
 }
 
 extend type Mutation {

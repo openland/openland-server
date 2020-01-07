@@ -8,12 +8,18 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
+const TypingType = {
+    TEXT: 'text',
+    PHOTO: 'photo',
+    FILE: 'file',
+    VIDEO: 'video',
+    STICKER: 'sticker'
+};
+
+const TypingTypeValues = Object.values(TypingType);
+
 export default {
-    TypingType: {
-        TEXT: 'text',
-        PHOTO: 'photo',
-        FILE: 'file'
-    },
+    TypingType,
     TypingEvent: {
         type: (src: TypingEvent) => src.type,
         cancel: (src: TypingEvent) => src.cancel,
@@ -23,13 +29,13 @@ export default {
     },
     Mutation: {
         alphaSetTyping: withUser(async (ctx, args, uid) => {
-            await validate({ type: optional(enumString(['text', 'photo'])) }, args);
+            await validate({ type: optional(enumString(TypingTypeValues)) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
         typingSend: withUser(async (ctx, args, uid) => {
-            await validate({ type: optional(enumString(['text', 'photo'])) }, args);
+            await validate({ type: optional(enumString(TypingTypeValues)) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';

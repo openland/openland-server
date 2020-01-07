@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '55da066329cbf84c442098be1195d555';
+export const GQL_SPEC_VERSION = '88b31176ed1813d9966470b4b9124524';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3038,7 +3038,7 @@ export namespace GQL {
         type: TypingType;
         cancel: boolean;
     }
-    export type TypingType = 'TEXT' | 'PHOTO' | 'FILE';
+    export type TypingType = 'TEXT' | 'PHOTO' | 'FILE' | 'STICKER' | 'VIDEO';
     export interface User {
         id: string;
         isYou: boolean;
