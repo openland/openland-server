@@ -75,7 +75,7 @@ async function initOauth2Internal(app: Express) {
                 res.send(403);
                 return;
             }
-            let oapp = await Store.OauthApplication.findById(ctx, body.client_id);
+            let oapp = await Store.OauthApplication.byClientId.find(ctx, body.client_id);
             if (!oapp) {
                 res.send(403);
                 return;
@@ -110,8 +110,15 @@ async function initOauth2Internal(app: Express) {
     });
 
     app.get('/ouath2/test', useOauth(), async (req, res) => {
+        let user = await inTx(rootCtx, async ctx => Store.UserProfile.findById(ctx, (req as any).uid));
+        if (!user) {
+            res.send(500);
+            return;
+        }
         res.json({
-            uid: IDs.User.serialize((req as any).uid),
+            id: IDs.User.serialize(user.id),
+            firstName: user.firstName,
+            lastName: user.lastName
         });
     });
 }
