@@ -18,8 +18,8 @@ export default {
     },
     Query: {
         myLocation: withActivatedUser((ctx, args, uid) => Modules.Geo.getUserGeo(ctx, uid)),
-        roomLocations: withActivatedUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.roomId);
+        chatLocations: withActivatedUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.id);
             let conv = Store.Conversation.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
@@ -48,7 +48,7 @@ export default {
                 return obj;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionChatLocationUpdatesArgs, ctx: Context) {
-                let cid = IDs.Conversation.parse(args.chatId);
+                let cid = IDs.Conversation.parse(args.id);
                 let auth = AuthContext.get(ctx);
                 let chatMembers = await Modules.Messaging.room.findConversationMembers(ctx, cid);
                 if (!auth.uid || !chatMembers.includes(auth.uid!)) {

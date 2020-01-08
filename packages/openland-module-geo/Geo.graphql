@@ -17,7 +17,7 @@ input GeoLocationInput {
 
 extend type Query {
     myLocation: UserLocation!
-    roomLocations(roomId: ID!): [UserLocation!]!
+    chatLocations(id: ID!): [UserLocation!]!
 }
 
 extend type Mutation {
@@ -26,5 +26,5 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    chatLocationUpdates(chatId: ID!): UserLocation!
+    chatLocationUpdates(id: ID!): UserLocation!
 }
