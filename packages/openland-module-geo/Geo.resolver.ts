@@ -13,6 +13,7 @@ export default {
     UserLocation: {
         id: root => IDs.User.serialize(root.uid),
         user: root => root.uid,
+        isSharing: root => !!root.isSharing,
         lastLocations: root => root.lastLocations.map(a => a.location)
     },
     Query: {
