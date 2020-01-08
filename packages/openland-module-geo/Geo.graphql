@@ -1,0 +1,30 @@
+type GeoLocation {
+    long: Float!
+    lat: Float!
+}
+
+type UserLocation {
+    user: User!
+    lastLocations: [GeoLocation!]!
+}
+
+input GeoLocationInput {
+    long: Float!
+    lat: Float!
+}
+
+extend type Query {
+    myLocation: UserLocation!
+}
+
+extend type SharedRoom {
+    memberLocations: [UserLocation!]!
+}
+
+extend type Mutation {
+    reportLocation(location: GeoLocationInput!): Boolean!
+}
+
+extend type Subscription {
+    chatLocationUpdates(chatId: ID!): UserLocation!
+}

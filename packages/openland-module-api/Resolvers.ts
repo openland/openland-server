@@ -54,8 +54,8 @@ export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: numb
     };
 }
 
-export function withActivatedUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async function (_: any, args: T, ctx: AppContext) {
+export function withActivatedUser<T, R, P>(resolver: (ctx: AppContext, args: T, uid: number, parent: P) => R): (parent: P, args: T, ctx: AppContext) => MaybePromise<R> {
+    return async function (parent: P, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
@@ -63,7 +63,7 @@ export function withActivatedUser<T, R>(resolver: (ctx: AppContext, args: T, uid
         if (!user || user.status !== 'activated') {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        return resolver(ctx, args, ctx.auth.uid);
+        return resolver(ctx, args, ctx.auth.uid, parent);
     };
 }
 

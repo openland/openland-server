@@ -57,11 +57,11 @@ import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringM
 import { loadStickersModule } from '../openland-module-stickers/Stickers.container';
 import { loadMatchmakingModule } from '../openland-module-matchmaking/Matchmaking.container';
 import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingModule';
-import { IFTTTModule } from '../openland-module-ifttt/IFTTTModule';
 import { MentionNotificationsMediator } from '../openland-module-messaging/mediators/MentionNotificationsMediator';
 import { FeedMentionNotificationsMediator } from '../openland-module-feed/repositories/FeedMentionNotificationsMediator';
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
+import { loadGeoModule } from '../openland-module-geo/GeoModule.container';
 
 const logger = createLogger('starting');
 
@@ -117,7 +117,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(DiscoverModule).toSelf().inSingletonScope();
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
-    container.bind(IFTTTModule).toSelf().inSingletonScope();
     container.bind(ZapierModule).toSelf().inSingletonScope();
     container.bind(OauthModule).toSelf().inSingletonScope();
 
@@ -125,6 +124,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadFeedModule();
     loadStickersModule();
     loadMatchmakingModule();
+    loadGeoModule();
 }
 
 export async function startAllModules() {
@@ -160,7 +160,6 @@ export async function startAllModules() {
     await container.get(StatsModule).start();
     await container.get<MonitoringModule>('MonitoringModule').start();
     await container.get(MatchmakingModule).start();
-    // await container.get(IFTTTModule).start();
     await container.get(ZapierModule).start();
     await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
     await container.get<FeedMentionNotificationsMediator>('FeedMentionNotificationsMediator').start();
