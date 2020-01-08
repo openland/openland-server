@@ -30,7 +30,7 @@ export default {
            if (!members.includes(uid)) {
                return [];
            }
-           return members.filter(a => a !== uid);
+           return members;
        })
        }
     ,
@@ -55,10 +55,6 @@ export default {
 
                 let iterators = [];
                 for (let member of chatMembers) {
-                    if (member === auth.uid) {
-                        continue;
-                    }
-
                     iterators.push(Store.UserLocationEventStore.createLiveStream(ctx, member, { batchSize: 1 })[Symbol.asyncIterator]());
                 }
                 for await (let event of combineAsyncIterators(...iterators)) {
