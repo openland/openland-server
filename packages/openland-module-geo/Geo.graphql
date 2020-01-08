@@ -4,6 +4,8 @@ type GeoLocation {
 }
 
 type UserLocation {
+    id: ID!
+    isSharing: Boolean!
     user: User!
     lastLocations: [GeoLocation!]!
 }
@@ -15,14 +17,12 @@ input GeoLocationInput {
 
 extend type Query {
     myLocation: UserLocation!
-}
-
-extend type SharedRoom {
-    memberLocations: [UserLocation!]!
+    roomLocations(roomId: ID!): [UserLocation!]!
 }
 
 extend type Mutation {
-    reportLocation(location: GeoLocationInput!): Boolean!
+    shareLocation(location: GeoLocationInput!): Boolean!
+    stopSharingLocation: Boolean!
 }
 
 extend type Subscription {

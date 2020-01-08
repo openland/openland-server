@@ -1553,6 +1553,7 @@ export default declareSchema(() => {
 
     entity('UserLocation', () => {
         primaryKey('uid', integer());
+        field('isSharing', optional(boolean()));
         field('lastLocations', array(struct({
             date: integer(),
             location: Geolocation
@@ -1562,6 +1563,10 @@ export default declareSchema(() => {
     event('UserLocationUpdatedEvent', () => {
         field('uid', integer());
         field('date', integer());
+    });
+
+    event('UserLocationStopSharingEvent', () => {
+        field('uid', integer());
     });
 
     eventStore('UserLocationEventStore', () => {

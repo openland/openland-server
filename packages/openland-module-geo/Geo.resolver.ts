@@ -7,43 +7,44 @@ import { IDs } from '../openland-module-api/IDs';
 import { combineAsyncIterators } from '../openland-utils/combineAsyncIterators';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 export default {
     UserLocation: {
-        user: uid => uid,
-        lastLocations:  async (uid, args, ctx) => {
-            let geo = await Modules.Geo.getUserGeo(ctx, uid);
-            return geo.lastLocations.map(a => a.location);
-        },
+        id: root => IDs.User.serialize(root.uid),
+        user: root => root.uid,
+        lastLocations: root => root.lastLocations.map(a => a.location)
     },
     Query: {
-        myLocation: withActivatedUser((ctx, args, uid) => uid),
+        myLocation: withActivatedUser((ctx, args, uid) => Modules.Geo.getUserGeo(ctx, uid)),
+        roomLocations: withActivatedUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.roomId);
+            let conv = Store.Conversation.findById(ctx, cid);
+            if (!conv) {
+                throw new NotFoundError();
+            }
+            let members: number[] = await Modules.Messaging.room.findConversationMembers(ctx, cid);
+            if (!members.includes(uid)) {
+                throw new AccessDeniedError();
+            }
+
+            return await Promise.all(members.map(a => Modules.Geo.getUserGeo(ctx, a)));
+        })
     },
-    SharedRoom: {
-       memberLocations: withActivatedUser(async (ctx, args, uid, root) => {
-           let members: number[] = [];
-           if (typeof root === 'number') {
-               members = await Modules.Messaging.room.findConversationMembers(ctx, root);
-           } else {
-               members = await Modules.Messaging.room.findConversationMembers(ctx, root.id);
-           }
-           if (!members.includes(uid)) {
-               return [];
-           }
-           return members;
-       })
-       }
-    ,
     Mutation: {
-        reportLocation: withActivatedUser( async (ctx, args, uid) => {
+        shareLocation: withActivatedUser( async (ctx, args, uid) => {
             await Modules.Geo.reportGeo(ctx, uid, args.location);
             return true;
         }),
+        stopSharingLocation: withActivatedUser(async (ctx, args, uid) => {
+            await Modules.Geo.stopSharingGeo(ctx, uid);
+            return true;
+        })
     },
     Subscription: {
         chatLocationUpdates: {
             resolve: async (obj) => {
-                return obj.uid;
+                return obj;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionChatLocationUpdatesArgs, ctx: Context) {
                 let cid = IDs.Conversation.parse(args.chatId);
@@ -58,7 +59,7 @@ export default {
                     iterators.push(Store.UserLocationEventStore.createLiveStream(ctx, member, { batchSize: 1 })[Symbol.asyncIterator]());
                 }
                 for await (let event of combineAsyncIterators(...iterators)) {
-                    yield event.items[0];
+                    yield await Modules.Geo.getUserGeo(ctx, (event.items[0] as any).uid);
                 }
             },
         },

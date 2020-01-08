@@ -51,7 +51,7 @@ import {
     FeedChannelAdmin,
     FeedRebuildEvent,
     OauthApplication,
-    OauthContext,
+    OauthContext, UserLocation,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -447,5 +447,5 @@ export namespace GQLRoots {
     // Geo location
     //
     export type GeoLocationRoot = { long: number; lat: number; };
-    export type UserLocationRoot = number;
+    export type UserLocationRoot = UserLocation;
 }

@@ -12091,15 +12091,26 @@ export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken
 
 export interface UserLocationShape {
     uid: number;
+    isSharing: boolean | null;
     lastLocations: ({ date: number, location: { lat: number, long: number } })[];
 }
 
 export interface UserLocationCreateShape {
+    isSharing?: boolean | null | undefined;
     lastLocations: ({ date: number, location: { lat: number, long: number } })[];
 }
 
 export class UserLocation extends Entity<UserLocationShape> {
     get uid(): number { return this._rawValue.uid; }
+    get isSharing(): boolean | null { return this._rawValue.isSharing; }
+    set isSharing(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isSharing.normalize(value);
+        if (this._rawValue.isSharing !== normalized) {
+            this._rawValue.isSharing = normalized;
+            this._updatedValues.isSharing = normalized;
+            this.invalidate();
+        }
+    }
     get lastLocations(): ({ date: number, location: { lat: number, long: number } })[] { return this._rawValue.lastLocations; }
     set lastLocations(value: ({ date: number, location: { lat: number, long: number } })[]) {
         let normalized = this.descriptor.codec.fields.lastLocations.normalize(value);
@@ -12119,9 +12130,11 @@ export class UserLocationFactory extends EntityFactory<UserLocationShape, UserLo
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'isSharing', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'lastLocations', type: { type: 'array', inner: { type: 'struct', fields: { date: { type: 'integer' }, location: { type: 'struct', fields: { lat: { type: 'float' }, long: { type: 'float' } } } } } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
+            isSharing: c.optional(c.boolean),
             lastLocations: c.array(c.struct({ date: c.integer, location: c.struct({ lat: c.float, long: c.float }) })),
         });
         let descriptor: EntityDescriptor<UserLocationShape> = {
@@ -14599,6 +14612,35 @@ export class UserLocationUpdatedEvent extends BaseEvent {
     get date(): number { return this.raw.date; }
 }
 
+const userLocationStopSharingEventCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UserLocationStopSharingEventShape {
+    uid: number;
+}
+
+export class UserLocationStopSharingEvent extends BaseEvent {
+
+    static create(data: UserLocationStopSharingEventShape) {
+        return new UserLocationStopSharingEvent(userLocationStopSharingEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserLocationStopSharingEvent(userLocationStopSharingEventCodec.decode(data));
+    }
+
+    static encode(event: UserLocationStopSharingEvent) {
+        return userLocationStopSharingEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userLocationStopSharingEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -14979,6 +15021,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
+    eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);

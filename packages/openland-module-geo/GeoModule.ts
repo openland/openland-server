@@ -14,4 +14,8 @@ export class GeoModule {
     public getUserGeo(parent: Context, uid: number) {
         return this.repo.getUserGeo(parent, uid);
     }
+
+    public stopSharingGeo(parent: Context, uid: number) {
+        return this.repo.stopSharingGeo(parent, uid);
+    }
 }

@@ -2,7 +2,7 @@ import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import { injectable } from 'inversify';
-import { UserLocationUpdatedEvent } from '../openland-module-db/store';
+import { UserLocationStopSharingEvent, UserLocationUpdatedEvent } from '../openland-module-db/store';
 
 export type GeoLocation = {
     long: number;
@@ -18,12 +18,30 @@ export class GeoRepository {
                 date: Date.now(),
                 location
             });
+            geo.isSharing = true;
+
             geo.invalidate();
             await geo.flush(ctx);
 
             Store.UserLocationEventStore.post(ctx, uid, UserLocationUpdatedEvent.create({
                 date: Date.now(),
-                uid: uid
+                uid
+            }));
+        });
+    }
+
+    public stopSharingGeo(parent: Context, uid: number) {
+        return inTx(parent, async ctx => {
+            let geo = await this.getUserGeo(ctx, uid);
+            if (!geo.isSharing) {
+                return;
+            }
+
+            geo.isSharing = false;
+            await geo.flush(ctx);
+
+            Store.UserLocationEventStore.post(ctx, uid, UserLocationStopSharingEvent.create({
+                uid
             }));
         });
     }
@@ -33,7 +51,8 @@ export class GeoRepository {
             let geo = await Store.UserLocation.findById(ctx, uid);
             if (!geo) {
                 geo = await Store.UserLocation.create(ctx, uid, {
-                    lastLocations: []
+                    lastLocations: [],
+                    isSharing: false
                 });
             }
             if (geo.lastLocations.length > 0) {
