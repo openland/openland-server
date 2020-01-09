@@ -114,9 +114,9 @@ export type MessageRichAttachmentInput = {
     imageInfo: FileInfo | null,
     titleLinkHostname: string | null,
     keyboard: MessageKeyboard | null,
-    socialImage?: ImageRef | null,
-    socialImagePreview?: string | null,
-    socialImageInfo?: FileInfo | null,
+    socialImage: ImageRef | null,
+    socialImagePreview: string | null,
+    socialImageInfo: FileInfo | null,
 };
 
 export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;

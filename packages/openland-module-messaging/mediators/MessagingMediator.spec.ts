@@ -120,7 +120,10 @@ describe('MessagingMediator', () => {
             imageInfo: urlInfo.imageInfo || null,
             imagePreview: urlInfo.photoPreview || null,
             keyboard: urlInfo.keyboard || null,
-            imageFallback: urlInfo.photoFallback || null
+            imageFallback: urlInfo.photoFallback || null,
+            socialImagePreview: null,
+            socialImageInfo: null,
+            socialImage: null
         };
 
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', attachments: [richAttachment] })).id;

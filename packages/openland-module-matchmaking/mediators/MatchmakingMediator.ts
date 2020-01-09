@@ -172,6 +172,9 @@ export class MatchmakingMediator {
                     { title: 'View details', style: 'DEFAULT', url: `https://openland.com/group/${id}/user/${IDs.User.serialize(uid)}` },
                 ]],
             },
+            socialImage: null,
+            socialImageInfo: null,
+            socialImagePreview: null,
         };
     }
 

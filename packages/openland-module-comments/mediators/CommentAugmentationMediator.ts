@@ -64,6 +64,9 @@ export class CommentAugmentationMediator {
                         imageInfo: urlInfo.imageInfo || null,
                         imageFallback: urlInfo.photoFallback || null,
                         keyboard: urlInfo.keyboard || null,
+                        socialImagePreview: urlInfo.socialImagePreview || null,
+                        socialImageInfo: urlInfo.socialImageInfo || null,
+                        socialImage: urlInfo.socialImage || null
                     };
 
                     await this.comments.editComment(
