@@ -569,6 +569,9 @@ export default declareSchema(() => {
                         title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
                     }))),
                 })),
+                socialImage: optional(ImageRef),
+                socialImagePreview: optional(string()),
+                socialImageInfo: optional(FileInfo)
             }),
         }))));
         field('slides', optional(array(union({
