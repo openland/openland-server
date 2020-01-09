@@ -1583,6 +1583,31 @@ export default declareSchema(() => {
     });
 
     //
+    // PowerUps
+    //
+    entity('Powerup', () => {
+        primaryKey('id', integer());
+        field('name', string());
+        field('permissions', array(string()));
+        field('image', optional(ImageRef));
+        field('imagePreview', optional(string()));
+        field('imageInfo', optional(FileInfo));
+        field('description', optional(string()));
+        field('deleted', boolean());
+    });
+
+    entity('ChatPowerup', () => {
+        primaryKey('pid', integer());
+        primaryKey('cid', integer());
+
+        field('enabled', boolean());
+        field('userSettings', json());
+
+        rangeIndex('byPid', ['pid', 'createdAt']);
+        rangeIndex('byCid', ['cid', 'createdAt']);
+    });
+
+    //
     // User Storage
     //
 

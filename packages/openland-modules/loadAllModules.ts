@@ -62,6 +62,9 @@ import { FeedMentionNotificationsMediator } from '../openland-module-feed/reposi
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { loadGeoModule } from '../openland-module-geo/GeoModule.container';
+import { loadPowerupsModule } from '../openland-module-powerups/PowerupsModule.container';
+import { GeoModule } from '../openland-module-geo/GeoModule';
+import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 
 const logger = createLogger('starting');
 
@@ -125,6 +128,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadStickersModule();
     loadMatchmakingModule();
     loadGeoModule();
+    loadPowerupsModule();
 }
 
 export async function startAllModules() {
@@ -164,4 +168,6 @@ export async function startAllModules() {
     await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
     await container.get<FeedMentionNotificationsMediator>('FeedMentionNotificationsMediator').start();
     await container.get(OauthModule).start();
+    await container.get(GeoModule).start();
+    await container.get(PowerupsModule).start();
 }

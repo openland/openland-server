@@ -36,6 +36,7 @@ import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingMod
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { GeoModule } from '../openland-module-geo/GeoModule';
+import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 
 class ModulesImpl {
 
@@ -149,6 +150,9 @@ class ModulesImpl {
     }
     get Geo() {
         return container.get(GeoModule);
+    }
+    get Powerups() {
+        return container.get(PowerupsModule);
     }
 }
 

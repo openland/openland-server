@@ -1065,6 +1065,13 @@ export class RoomRepository {
         });
     }
 
+    markConversationAsUpdated(ctx: Context, cid: number, uid: number) {
+        Store.ConversationEventStore.post(ctx, cid, ChatUpdatedEvent.create({
+            cid,
+            uid
+        }));
+    }
+
     //
     // Internals
     //

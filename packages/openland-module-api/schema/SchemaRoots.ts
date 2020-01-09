@@ -51,7 +51,8 @@ import {
     FeedChannelAdmin,
     FeedRebuildEvent,
     OauthApplication,
-    OauthContext, UserLocation,
+    OauthContext,
+    UserLocation, ChatPowerup, Powerup,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -71,6 +72,7 @@ import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
+import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 
 //
 //  Root types
@@ -448,4 +450,11 @@ export namespace GQLRoots {
     //
     export type GeoLocationRoot = { long: number; lat: number; };
     export type UserLocationRoot = UserLocation;
+
+    //
+    // Powerups
+    //
+    export type RoomPowerupRoot = ChatPowerup;
+    export type PowerupRoot = Powerup;
+    export type PowerupUserSettingsRoot = PowerupChatUserSettings;
 }

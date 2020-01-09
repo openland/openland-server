@@ -18,6 +18,7 @@ input GeoLocationInput {
 extend type Query {
     myLocation: UserLocation!
     chatLocations(id: ID!): [UserLocation!]!
+    shouldShareLocation: Boolean!
 }
 
 extend type Mutation {

@@ -1,4 +1,4 @@
-import { ConversationRoom } from 'openland-module-db/store';
+import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -716,6 +716,13 @@ export class RoomMediator {
             let name = await Modules.Users.getUserFullName(parent, uids[0]);
             return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]), ' along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
         }
+    }
+
+    markConversationAsUpdated(ctx: Context, cid: number, uid: number) {
+        Store.ConversationEventStore.post(ctx, cid, ChatUpdatedEvent.create({
+            cid,
+            uid
+        }));
     }
 
     private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null, isUpdate: boolean = false): Promise<MessageInput> {

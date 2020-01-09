@@ -8,6 +8,8 @@ import { combineAsyncIterators } from '../openland-utils/combineAsyncIterators';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { EventBus } from '../openland-module-pubsub/EventBus';
+import { PowerupChatUserSettings } from '../openland-module-powerups/PowerupsRepository';
 
 export default {
     UserLocation: {
@@ -24,13 +26,25 @@ export default {
             if (!conv) {
                 throw new NotFoundError();
             }
+            let pid = await Modules.Geo.getGeoPowerupId(ctx);
+            if (!pid) {
+                throw new AccessDeniedError();
+            }
+
+            if (!await Modules.Powerups.hasPowerup(ctx, cid, pid)) {
+                throw new AccessDeniedError();
+            }
+
+            let membersSettings = await Modules.Powerups.getPowerupUsersSettingsInChat(ctx, pid, cid);
             let members: number[] = await Modules.Messaging.room.findConversationMembers(ctx, cid);
             if (!members.includes(uid)) {
                 throw new AccessDeniedError();
             }
+            members = members.filter(a => membersSettings[a].enabled);
 
             return await Promise.all(members.map(a => Modules.Geo.getUserGeo(ctx, a)));
-        })
+        }),
+        shouldShareLocation: withActivatedUser((ctx, args, uid) => Modules.Geo.shouldShareLocation(ctx, uid))
     },
     Mutation: {
         shareLocation: withActivatedUser( async (ctx, args, uid) => {
@@ -51,7 +65,8 @@ export default {
                 let cid = IDs.Conversation.parse(args.id);
                 let auth = AuthContext.get(ctx);
                 let chatMembers = await Modules.Messaging.room.findConversationMembers(ctx, cid);
-                if (!auth.uid || !chatMembers.includes(auth.uid!)) {
+                let pid = await Modules.Geo.getGeoPowerupId(ctx);
+                if (!auth.uid || !chatMembers.includes(auth.uid!) || !pid) {
                     throw new AccessDeniedError();
                 }
 
@@ -59,8 +74,16 @@ export default {
                 for (let member of chatMembers) {
                     iterators.push(Store.UserLocationEventStore.createLiveStream(ctx, member, { batchSize: 1 })[Symbol.asyncIterator]());
                 }
+
+                let membersSettings = await Modules.Powerups.getPowerupUsersSettingsInChat(ctx, pid, cid);
+                EventBus.subscribe(`powerup_settings_change_${pid}_${cid}`, (data: { uid: number, settings: PowerupChatUserSettings }) => {
+                    membersSettings[data.uid] = data.settings;
+                });
                 for await (let event of combineAsyncIterators(...iterators)) {
-                    yield await Modules.Geo.getUserGeo(ctx, (event.items[0] as any).uid);
+                    let uid = (event.items[0] as any).uid;
+                    if (membersSettings[uid].enabled) {
+                        yield await Modules.Geo.getUserGeo(ctx, uid);
+                    }
                 }
             },
         },
