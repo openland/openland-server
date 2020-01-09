@@ -14,7 +14,7 @@ type Powerup {
     name: String!
     description: String!
     permissions: [PowerupPermission!]!
-    image: Image
+    image: ImageRef
     imagePreview: String
     imageInfo: FileMetadata
 }
