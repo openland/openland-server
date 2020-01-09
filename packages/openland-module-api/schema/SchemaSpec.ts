@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0be1dd9b8a02537e69a97c3b911f294d';
+export const GQL_SPEC_VERSION = '317bd6468950e594421984eb0b9aec9b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3341,6 +3341,8 @@ export namespace GQL {
         image: Nullable<Image>;
         imagePreview: Nullable<string>;
         imageFallback: Nullable<ImageFallback>;
+        socialImage: Nullable<Image>;
+        socialImagePreview: Nullable<string>;
         keyboard: Nullable<MessageKeyboard>;
         fallback: string;
     }
@@ -3833,7 +3835,7 @@ export interface GQLResolver {
     SharedMediaCounters?: ComplexTypedResolver<GQL.SharedMediaCounters, GQLRoots.SharedMediaCountersRoot, {}, {}>;
     ImageFallback?: ComplexTypedResolver<GQL.ImageFallback, GQLRoots.ImageFallbackRoot, {}, {}>;
     Image?: ComplexTypedResolver<GQL.Image, GQLRoots.ImageRoot, {metadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
-    MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {icon: Nullable<GQLRoots.ImageRoot>, image: Nullable<GQLRoots.ImageRoot>, imageFallback: Nullable<GQLRoots.ImageFallbackRoot>, keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
+    MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {icon: Nullable<GQLRoots.ImageRoot>, image: Nullable<GQLRoots.ImageRoot>, imageFallback: Nullable<GQLRoots.ImageFallbackRoot>, socialImage: Nullable<GQLRoots.ImageRoot>, keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
     MessageAttachmentFile?: ComplexTypedResolver<GQL.MessageAttachmentFile, GQLRoots.MessageAttachmentFileRoot, {fileMetadata: GQLRoots.FileMetadataRoot}, {}>;
     MessageAttachmentPost?: ComplexTypedResolver<GQL.MessageAttachmentPost, GQLRoots.MessageAttachmentPostRoot, {post: GQLRoots.FeedItemRoot}, {}>;
     MessageKeyboard?: ComplexTypedResolver<GQL.MessageKeyboard, GQLRoots.MessageKeyboardRoot, {buttons: Nullable<GQLRoots.ModernMessageButtonRoot[]>[]}, {}>;

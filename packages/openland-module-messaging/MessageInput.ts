@@ -81,6 +81,9 @@ export type MessageRichAttachment = {
     image: ImageRef | null,
     imagePreview: string | null,
     imageFallback: { photo: string, text: string } | null,
+    socialImage: ImageRef | null;
+    socialImagePreview: string | null;
+    socialImageInfo: FileInfo | null;
     iconInfo: FileInfo | null,
     imageInfo: FileInfo | null,
     titleLinkHostname: string | null,
@@ -110,7 +113,10 @@ export type MessageRichAttachmentInput = {
     iconInfo: FileInfo | null,
     imageInfo: FileInfo | null,
     titleLinkHostname: string | null,
-    keyboard: MessageKeyboard | null
+    keyboard: MessageKeyboard | null,
+    socialImage?: ImageRef | null,
+    socialImagePreview?: string | null,
+    socialImageInfo?: FileInfo | null,
 };
 
 export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;

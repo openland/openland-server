@@ -563,6 +563,9 @@ export default {
                         imageInfo: augmentation.imageInfo || null,
                         keyboard: augmentation.keyboard || null,
                         imageFallback: null,
+                        socialImage: null,
+                        socialImagePreview: null,
+                        socialImageInfo: null,
                         id: src.id + '_legacy_rich',
                     },
                 });
@@ -584,6 +587,9 @@ export default {
                         imageInfo: null,
                         keyboard: null,
                         imageFallback: null,
+                        socialImage: null,
+                        socialImagePreview: null,
+                        socialImageInfo: null,
                         id: src.id + '_legacy_post',
                     },
                 });
@@ -891,6 +897,12 @@ export default {
         },
         imageFallback: src => src.attachment.imageFallback,
         imagePreview: src => src.attachment.imagePreview,
+        socialImage: src => src.attachment.socialImage && {
+            uuid: src.attachment.socialImage.uuid,
+            metadata: src.attachment.socialImageInfo,
+            crop: src.attachment.socialImage.crop,
+        },
+        socialImagePreview: src => src.attachment.socialImagePreview,
         fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
         keyboard: src => {
             if (!src.attachment.keyboard) {

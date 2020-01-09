@@ -190,6 +190,8 @@ type MessageRichAttachment implements ModernMessageAttachment {
     image: Image
     imagePreview: String
     imageFallback: ImageFallback
+    socialImage: Image
+    socialImagePreview: String
     keyboard: MessageKeyboard
     fallback: String!
 }

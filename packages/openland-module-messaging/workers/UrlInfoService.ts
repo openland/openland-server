@@ -31,6 +31,9 @@ export interface URLAugmentation {
     keyboard?: MessageKeyboard;
     dynamic?: boolean;
     internal?: boolean;
+    socialImage?: ImageRef | null;
+    socialImagePreview?: string | null;
+    socialImageInfo?: FileInfo | null;
 }
 
 export class UrlInfoService {
@@ -230,7 +233,10 @@ export function createUrlInfoService() {
                     ]]
                 },
                 photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
-                dynamic: true
+                dynamic: true,
+                socialImage: profile!.socialImage,
+                socialImagePreview: profile!.socialImage ? await Modules.Media.fetchLowResPreview(ctx, profile!.socialImage.uuid) : null,
+                socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null
             };
         })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(.*)/, false, async (url, data) => {

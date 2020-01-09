@@ -74,6 +74,9 @@ export class AugmentationMediator {
                             imageFallback: urlInfo.photoFallback || null,
                             imagePreview: urlInfo.photoPreview || null,
                             keyboard: urlInfo.keyboard || null,
+                            socialImage: urlInfo.socialImage || null,
+                            socialImageInfo: urlInfo.socialImageInfo || null,
+                            socialImagePreview: urlInfo.socialImagePreview || null
                         };
 
                         await this.messaging.editMessage(
