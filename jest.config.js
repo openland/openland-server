@@ -66,6 +66,8 @@ module.exports = {
         'openland-module-feed': '<rootDir>/packages/openland-module-feed',
         'openland-module-hooks/(.*)': '<rootDir>/packages/openland-module-hooks/$1',
         'openland-module-hooks': '<rootDir>/packages/openland-module-hooks',
+        'openland-module-billing/(.*)': '<rootDir>/packages/openland-module-billing/$1',
+        'openland-module-billing': '<rootDir>/packages/openland-module-billing',
         'openland-repositories/(.*)': '<rootDir>/packages/openland-repositories/$1',
         'openland-repositories': '<rootDir>/packages/openland-repositories',
         'openland-utils/(.*)': '<rootDir>/packages/openland-utils/$1',

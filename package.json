@@ -207,6 +207,7 @@
     "openland-graphql": "build/openland-graphql",
     "openland-errors": "build/openland-errors",
     "openland-cli": "build/openland-cli",
-    "openland-module-video": "build/openland-module-video"
+    "openland-module-video": "build/openland-module-video",
+    "openland-module-billing": "build/openland-module-billing"
   }
 }

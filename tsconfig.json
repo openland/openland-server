@@ -111,6 +111,9 @@
       "openland-module-video": [
         "openland-module-video"
       ],
+      "openland-module-billing": [
+        "openland-module-billing"
+      ],
       "openland-errors": [
         "openland-errors"
       ],
