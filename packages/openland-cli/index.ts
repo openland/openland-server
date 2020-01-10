@@ -2,8 +2,6 @@
 // tslint:disable:no-console
 // Register Modules
 
-import { Shutdown } from '../openland-utils/Shutdown';
-
 require('module-alias/register');
 
 import yargs from 'yargs';
@@ -12,6 +10,7 @@ import { Store } from 'openland-module-db/FDB';
 import { loadAllModules } from 'openland-modules/loadAllModules';
 import { inTx } from '@openland/foundationdb';
 import TestDataFactory from '../openland-server-tests/TestDataFactory';
+import { Shutdown } from '../openland-utils/Shutdown';
 // import { openDatabase } from './utils/openDatabase';
 // import { diagnose, calculateCount, removeOldIndexes, diagAll, deleteInvalid } from 'openland-cli/diagnose';
 
@@ -78,22 +77,29 @@ yargs
                 .positional('email', { type: 'string', describe: 'Email of the primary user' })
                 .option('users', { alias: 'u', type: 'number', describe: 'Count of test users and organizations' })
                 .option('chats', { alias: 'c', type: 'number', describe: 'Count of test chats' })
-                .option('addToChats', { alias: '-a', type: 'boolean', describe: 'Is set if super admin should be added to chats' });
+                .option('firstName', { alias: 'fn', type: 'string', describe: 'First name of superadmin' })
+                .option('lastName', { alias: 'ln', type: 'string', describe: 'Last name of superadmin' })
+                .option('addToChats', { alias: 'a', type: 'boolean', describe: 'Is set if super admin should be added to chats' });
             },
         async (args) => {
             let parent = createNamedContext('console');
             await loadAllModules(parent);
 
+            let testDataFactory = new TestDataFactory();
+
             let uid = 0;
             if (args.email) {
                 let user = await Store.User.email.find(parent, args.email);
                 if (!user) {
-                    throw new Error('Email invalid');
+                    if (!args.firstName || !args.lastName) {
+                        throw new Error('You should specify firstName and lastName if user is not created');
+                    }
+                    user = await testDataFactory.createSuperAdmin(parent, args.email, args.firstName, args.lastName);
+                    console.log(`Created new super admin -> ${args.email}`);
                 }
                 uid = user.id;
             }
 
-            let testDataFactory = new TestDataFactory();
             await inTx(parent, async ctx => {
                 let testUsersCount = args.chats ? (args.users || 1) : 0;
                 let testUsers = await testDataFactory.createTestUsers(ctx, testUsersCount);
@@ -103,7 +109,7 @@ yargs
                     if (args.addToChats && uid > 0) {
                         userIds.push(uid);
                     }
-                    await testDataFactory.createTestChats(ctx, 10, userIds);
+                    await testDataFactory.createTestChats(ctx, args.chats || 1, userIds);
                 }
             });
 

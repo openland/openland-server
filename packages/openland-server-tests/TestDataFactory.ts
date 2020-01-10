@@ -3,9 +3,23 @@ import { inTx } from '@openland/foundationdb';
 import { uuid } from 'openland-utils/uuid';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
+import { User } from '../openland-module-db/store';
 
 @injectable()
 export default class TestDataFactory {
+    async createSuperAdmin(parent: Context, email: string, firstName: string, lastName: string): Promise<User> {
+        return await inTx(parent, async ctx => {
+            let user = await Modules.Users.createUser(ctx, `user-${uuid()}`, email);
+            await Modules.Users.createUserProfile(ctx, user.id, {
+                firstName: firstName, lastName: lastName
+            });
+            await Modules.Users.activateUser(ctx, user.id, false, user.id);
+            await Modules.Orgs.createOrganization(ctx, user.id, { name: `Openland` });
+            await Modules.Super.makeSuperAdmin(ctx, user.id, 'super-admin');
+            return user;
+        });
+    }
+
     async createTestUsers(parent: Context, count: number) {
         return await inTx(parent, async ctx => {
             let testUsers = [];
