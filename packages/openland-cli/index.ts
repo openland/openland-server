@@ -109,7 +109,7 @@ yargs
                     if (args.addToChats && uid > 0) {
                         userIds.push(uid);
                     }
-                    await testDataFactory.createTestChats(ctx, args.chats || 1, userIds);
+                    await testDataFactory.createTestChats(ctx, args.chats, userIds);
                 }
             });
 
