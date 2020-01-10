@@ -33,6 +33,9 @@ export function startCustomerExportWorker(queue: WorkQueue<{ uid: number, idempo
         // worst case is having double accounts for users, but only one will be used and 
         // nothing bad is possible except multiple accounts.
         //
+        // Also idempotency (retry) key is valid for at least 24 hours and will work just fine for 
+        // restarting transaction or worker task. So chance of double accounts is very very small.
+        //
         let stripeCustomer = await stripe.customers.create({
             email: user.email,
             name: (profile.firstName + ' ' + (profile.lastName || '')).trim(),
