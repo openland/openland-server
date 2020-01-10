@@ -38,6 +38,7 @@ import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { GeoModule } from '../openland-module-geo/GeoModule';
 import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
+import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 
 class ModulesImpl {
 
@@ -157,6 +158,9 @@ class ModulesImpl {
     }
     get Billing() {
         return container.get(BillingModule);
+    }
+    get Permissions() {
+        return container.get(PermissionsModule);
     }
 }
 
