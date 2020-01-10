@@ -57,7 +57,7 @@ const testEmailCode = (email: string) => {
 
     let [, num] = TEST_EMAIL_REGEX.exec(email)!;
 
-    return num[num.length - 1].repeat(5);
+    return num[num.length - 1].repeat(CODE_LEN);
 };
 
 const checkEmail = (email: any) => emailValidator(email, '') === true;
