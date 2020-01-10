@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '09ed4b697d5cbb4ac793f17a6037556c';
+export const GQL_SPEC_VERSION = 'd6080904e9766f05d351284234bfdc5d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -595,7 +595,7 @@ export namespace GQL {
         name: string;
         description: string;
         permissions: PowerupPermission[];
-        image: Nullable<Image>;
+        image: Nullable<ImageRef>;
         imagePreview: Nullable<string>;
         imageInfo: Nullable<FileMetadata>;
     }
@@ -3731,7 +3731,7 @@ export interface GQLResolver {
     OnlineEvent?: ComplexTypedResolver<GQL.OnlineEvent, GQLRoots.OnlineEventRoot, {user: GQLRoots.UserRoot}, {}>;
     ChatOnlineEvent?: ComplexTypedResolver<GQL.ChatOnlineEvent, GQLRoots.ChatOnlineEventRoot, {}, {}>;
     IsAppInstalledResponse?: ComplexTypedResolver<GQL.IsAppInstalledResponse, GQLRoots.IsAppInstalledResponseRoot, {}, {}>;
-    Powerup?: ComplexTypedResolver<GQL.Powerup, GQLRoots.PowerupRoot, {image: Nullable<GQLRoots.ImageRoot>, imageInfo: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
+    Powerup?: ComplexTypedResolver<GQL.Powerup, GQLRoots.PowerupRoot, {image: Nullable<GQLRoots.ImageRefRoot>, imageInfo: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
     PowerupUserSettings?: ComplexTypedResolver<GQL.PowerupUserSettings, GQLRoots.PowerupUserSettingsRoot, {}, {}>;
     RoomPowerup?: ComplexTypedResolver<GQL.RoomPowerup, GQLRoots.RoomPowerupRoot, {powerup: GQLRoots.PowerupRoot, userSettings: GQLRoots.PowerupUserSettingsRoot}, {}>;
     SuperAccount?: ComplexTypedResolver<GQL.SuperAccount, GQLRoots.SuperAccountRoot, {members: GQLRoots.UserRoot[], features: GQLRoots.FeatureFlagRoot[], createdBy: Nullable<GQLRoots.UserRoot>}, {}>;
