@@ -1,3 +1,4 @@
+import { BillingModule } from './../openland-module-billing/BillingModule';
 import { MonitoringModule } from './../openland-module-monitoring/MonitoringModule';
 import { Store } from './../openland-module-db/store';
 import 'reflect-metadata';
@@ -122,6 +123,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(StatsModule).toSelf().inSingletonScope();
     container.bind(ZapierModule).toSelf().inSingletonScope();
     container.bind(OauthModule).toSelf().inSingletonScope();
+    container.bind(BillingModule).toSelf().inSingletonScope();
 
     loadCallsModule();
     loadFeedModule();
@@ -170,4 +172,5 @@ export async function startAllModules() {
     await container.get(OauthModule).start();
     await container.get(GeoModule).start();
     await container.get(PowerupsModule).start();
+    await container.get(BillingModule).start();
 }

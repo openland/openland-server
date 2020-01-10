@@ -1,3 +1,4 @@
+import { BillingModule } from './../openland-module-billing/BillingModule';
 import { PushModule } from 'openland-module-push/PushModule';
 import { WorkerModule } from 'openland-module-workers/WorkerModule';
 import { DBModule } from 'openland-module-db/DBModule';
@@ -153,6 +154,9 @@ class ModulesImpl {
     }
     get Powerups() {
         return container.get(PowerupsModule);
+    }
+    get Billing() {
+        return container.get(BillingModule);
     }
 }
 
