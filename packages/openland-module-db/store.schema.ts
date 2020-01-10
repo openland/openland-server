@@ -524,7 +524,7 @@ export default declareSchema(() => {
                 offset: integer(), length: integer(), room: integer(),
             }),
             organization_mention: struct({
-               offset: integer(), length: integer(), organization: integer(),
+                offset: integer(), length: integer(), organization: integer(),
             }),
             link: struct({
                 offset: integer(), length: integer(), url: string(),
@@ -1624,6 +1624,16 @@ export default declareSchema(() => {
         field('key', string());
         field('value', optional(string()));
         uniqueIndex('key', ['uid', 'ns', 'key']);
+    });
+
+    //
+    // Billing
+    //
+
+    entity('UserStripeCustomer', () => {
+        primaryKey('uid', integer());
+        field('stripeId', optional(string()));
+        uniqueIndex('stripe', ['stripeId']).withCondition((s) => !!s.stripeId);
     });
 
     //

@@ -12625,6 +12625,87 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
     }
 }
 
+export interface UserStripeCustomerShape {
+    uid: number;
+    stripeId: string | null;
+}
+
+export interface UserStripeCustomerCreateShape {
+    stripeId?: string | null | undefined;
+}
+
+export class UserStripeCustomer extends Entity<UserStripeCustomerShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get stripeId(): string | null { return this._rawValue.stripeId; }
+    set stripeId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.stripeId.normalize(value);
+        if (this._rawValue.stripeId !== normalized) {
+            this._rawValue.stripeId = normalized;
+            this._updatedValues.stripeId = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerShape, UserStripeCustomer> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userStripeCustomer');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'stripe', storageKey: 'stripe', type: { type: 'unique', fields: [{ name: 'stripeId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCustomer', 'stripe'), condition: (s) => !!s.stripeId });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'stripeId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            stripeId: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<UserStripeCustomerShape> = {
+            name: 'UserStripeCustomer',
+            storageKey: 'userStripeCustomer',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserStripeCustomerFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserStripeCustomerShape>) {
+        super(descriptor);
+    }
+
+    readonly stripe = Object.freeze({
+        find: async (ctx: Context, stripeId: string | null) => {
+            return this._findFromUniqueIndex(ctx, [stripeId], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, uid: number, src: UserStripeCustomerCreateShape): Promise<UserStripeCustomer> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserStripeCustomerCreateShape): UserStripeCustomer {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserStripeCustomer | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStripeCustomerShape>): UserStripeCustomer {
+        return new UserStripeCustomer([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface SequenceShape {
     sequence: string;
     value: number;
@@ -15237,6 +15318,7 @@ export interface Store extends BaseStore {
     readonly ChatPowerup: ChatPowerupFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
+    readonly UserStripeCustomer: UserStripeCustomerFactory;
     readonly Sequence: SequenceFactory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
@@ -15409,6 +15491,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ChatPowerupPromise = ChatPowerupFactory.open(storage);
     let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
+    let UserStripeCustomerPromise = UserStripeCustomerFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
@@ -15559,6 +15642,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ChatPowerup: await ChatPowerupPromise,
         UserStorageNamespace: await UserStorageNamespacePromise,
         UserStorageRecord: await UserStorageRecordPromise,
+        UserStripeCustomer: await UserStripeCustomerPromise,
         Sequence: await SequencePromise,
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,

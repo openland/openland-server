@@ -110,6 +110,7 @@
     "redis": "^2.8.0",
     "reflect-metadata": "^0.1.10",
     "request": "^2.87.0",
+    "stripe": "^8.0.1",
     "subscriptions-transport-ws": "^0.9.11",
     "telesignsdk": "^2.2.0",
     "tlds": "^1.203.1",

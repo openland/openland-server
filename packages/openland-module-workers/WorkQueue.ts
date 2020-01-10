@@ -24,10 +24,12 @@ const workerPick = createMetric('worker-pick', 'average');
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
     private pubSubTopic: string;
+    private maxFailureCount: number;
 
-    constructor(taskType: string) {
+    constructor(taskType: string, maxFailureCount: number = 5) {
         this.taskType = taskType;
         this.pubSubTopic = 'modern_work_added' + this.taskType;
+        this.maxFailureCount = maxFailureCount;
     }
 
     pushWork = async (parent: Context, work: ARGS, startAt?: number) => {
@@ -147,8 +149,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                                     res2.taskFailureCount = 1;
                                     res2.taskFailureTime = Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
                                 } else {
-                                    if (res2.taskFailureCount === 4) {
-                                        res2.taskFailureCount = 5;
+                                    if (this.maxFailureCount >= 0 && res2.taskFailureCount === this.maxFailureCount - 1) {
+                                        res2.taskFailureCount = this.maxFailureCount;
                                         res2.taskStatus = 'failed';
                                     } else {
                                         res2.taskFailureCount++;
