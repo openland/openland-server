@@ -1632,6 +1632,7 @@ export default declareSchema(() => {
 
     entity('UserStripeCustomer', () => {
         primaryKey('uid', integer());
+        field('uniqueKey', string());
         field('stripeId', optional(string()));
         uniqueIndex('stripe', ['stripeId']).withCondition((s) => !!s.stripeId);
     });

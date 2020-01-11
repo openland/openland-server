@@ -12627,15 +12627,26 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
 
 export interface UserStripeCustomerShape {
     uid: number;
+    uniqueKey: string;
     stripeId: string | null;
 }
 
 export interface UserStripeCustomerCreateShape {
+    uniqueKey: string;
     stripeId?: string | null | undefined;
 }
 
 export class UserStripeCustomer extends Entity<UserStripeCustomerShape> {
     get uid(): number { return this._rawValue.uid; }
+    get uniqueKey(): string { return this._rawValue.uniqueKey; }
+    set uniqueKey(value: string) {
+        let normalized = this.descriptor.codec.fields.uniqueKey.normalize(value);
+        if (this._rawValue.uniqueKey !== normalized) {
+            this._rawValue.uniqueKey = normalized;
+            this._updatedValues.uniqueKey = normalized;
+            this.invalidate();
+        }
+    }
     get stripeId(): string | null { return this._rawValue.stripeId; }
     set stripeId(value: string | null) {
         let normalized = this.descriptor.codec.fields.stripeId.normalize(value);
@@ -12656,9 +12667,11 @@ export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerS
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uniqueKey', type: { type: 'string' }, secure: false });
         fields.push({ name: 'stripeId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
+            uniqueKey: c.string,
             stripeId: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<UserStripeCustomerShape> = {

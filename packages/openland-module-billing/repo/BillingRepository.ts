@@ -5,12 +5,13 @@ import { Context } from '@openland/context';
 import { Store } from './../../openland-module-db/store';
 
 export class BillingRepository {
+
     private readonly store: Store;
+    readonly createCustomerQueue: WorkQueue<{ uid: number }, { result: string }>;
 
-    readonly createCustomerQueue = new WorkQueue<{ uid: number, idempotencyKey: string }, { result: string }>('stripe-customer-export-task', -1);
-
-    constructor(store: Store) {
+    constructor(store: Store, createCustomerQueue: WorkQueue<{ uid: number }, { result: string }>) {
         this.store = store;
+        this.createCustomerQueue = createCustomerQueue;
     }
 
     enableBilling = async (parent: Context, uid: number) => {
@@ -35,10 +36,10 @@ export class BillingRepository {
             }
 
             // Create Customer
-            await this.store.UserStripeCustomer.create(ctx, uid, {});
+            await this.store.UserStripeCustomer.create(ctx, uid, { uniqueKey: uuid() });
 
             // Schedule work to register customer
-            await this.createCustomerQueue.pushWork(ctx, { uid, idempotencyKey: uuid() });
+            await this.createCustomerQueue.pushWork(ctx, { uid });
         });
     }
 }

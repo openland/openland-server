@@ -1,3 +1,5 @@
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { StripeMediator } from './mediators/StripeMediator';
 import { Store } from 'openland-module-db/FDB';
 import { BillingRepository } from './repo/BillingRepository';
 import { Context } from '@openland/context';
@@ -8,15 +10,21 @@ import { startCustomerExportWorker } from './workers/CustomerExportWorker';
 @injectable()
 export class BillingModule {
 
-    readonly createCustomerQueue = new WorkQueue<{ uid: number, idempotencyKey: string }, { result: string }>('stripe-customer-export-task', -1);
-    readonly repo: BillingRepository = new BillingRepository(Store);
+    readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
+    readonly repo: BillingRepository = new BillingRepository(Store, this.createCustomerQueue);
+    readonly stripeMediator: StripeMediator = new StripeMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */, this.repo);
 
     start = async () => {
-        // Start Workers
-        startCustomerExportWorker(this.createCustomerQueue, 'sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */);
+        if (serverRoleEnabled('workers')) {
+            startCustomerExportWorker(this.createCustomerQueue, this.stripeMediator);
+        }
     }
 
     enableBilling = async (parent: Context, uid: number) => {
         return await this.repo.enableBilling(parent, uid);
+    }
+
+    enableBillingAndAwait = async (parent: Context, uid: number) => {
+        return await this.stripeMediator.enableBillingAndAwait(parent, uid);
     }
 }
