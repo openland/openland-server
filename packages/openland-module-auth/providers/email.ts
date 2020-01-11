@@ -125,12 +125,10 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
             let isTest = isTestEmail(email);
+            let existing = !!(await Store.User.findAll(ctx)).find((v) => v.email === email || v.authId === 'email|' + email as any);
 
             if (!isTest) {
-                let existing = (await Store.User.findAll(ctx))
-                    .find((v) => v.email === email || v.authId === 'email|' + email as any);
-
-                await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
+                await Emails.sendActivationCodeEmail(ctx, email, code, existing);
             } else {
                 code = testEmailCode(email);
             }
@@ -141,7 +139,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 authSession.code = code;
             }
 
-            response.json({ ok: true, session: authSession!.uid });
+            response.json({ ok: true, session: authSession!.uid, isExistingUser: existing });
             return;
         } else {
             sendError(response, 'server_error');

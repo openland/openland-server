@@ -65,7 +65,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
             let existing = await Store.User.email.find(ctx, email);
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
-                response.json({ ok: true, accessToken: token.salt });
+                response.json({ ok: true, accessToken: token.salt, isExistingUser: !!existing });
                 return;
             } else {
                 let user = await Modules.Users.createUser(ctx, payload.sub, email as string);
@@ -78,7 +78,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
                 await Modules.Hooks.onSignUp(ctx, user.id);
                 let token = await Modules.Auth.createToken(ctx, user.id!);
-                response.json({ ok: true, accessToken: token.salt });
+                response.json({ ok: true, accessToken: token.salt, isExistingUser: !!existing });
                 return;
             }
         } else {
