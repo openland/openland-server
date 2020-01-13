@@ -139,7 +139,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 authSession.code = code;
             }
 
-            response.json({ ok: true, session: authSession!.uid, isExistingUser: existing });
+            response.json({ ok: true, session: authSession!.uid });
             return;
         } else {
             sendError(response, 'server_error');
