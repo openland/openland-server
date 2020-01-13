@@ -21,6 +21,7 @@ export const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
 export const TEMPLATE_UNREAD_MESSAGE = 'd3c583e1-9418-48ba-b719-4230e1e1d43d';
 export const TEMPLATE_SIGNUP_CODE = '69496416-42cc-441d-912f-a918b968e34a';
 export const TEMPLATE_SIGIN_CODE = '89aa70e4-5ac2-449f-b3ee-35df0df86cbe';
+export const TEMPLATE_SIGNUP_CODE_MAGIC_BUTTON = 'e238b7ab-b8a1-48bd-b4c3-31f018ad4d97';
 export const TEMPLATE_SIGIN_CODE_MAGIC_BUTTON = 'b03c2013-eac6-459e-a7b7-b5c1405d73fc';
 export const TEMPLATE_ROOM_INVITE = '3650c0cb-af99-403d-ad30-0b68af21f5ef';
 export const TEMPLATE_PRIVATE_ROOM_INVITE = 'e988e7dd-ad37-4adc-9de9-cd55e012720f';
@@ -337,26 +338,17 @@ export const Emails = {
         });
     },
     async sendActivationCodeEmail(ctx: Context, email: string, code: string, existingAccount: boolean) {
-        if (email === 'gleb@openland.com') {
-            await Modules.Email.enqueueEmail(ctx, {
-                subject: `Activation code: ` + code,
-                templateId: TEMPLATE_SIGIN_CODE_MAGIC_BUTTON,
-                to: email,
-                args: {
-                    code,
-                    link: `https://next.openland.com/authorization/magic/${code}`
-                }
-            });
-        } else {
-            await Modules.Email.enqueueEmail(ctx, {
-                subject: `Activation code: ` + code,
-                templateId: existingAccount ? TEMPLATE_SIGIN_CODE : TEMPLATE_SIGNUP_CODE,
-                to: email,
-                args: {
-                    code
-                }
-            });
-        }
+        // TODO: use new templates after frontend release
+        await Modules.Email.enqueueEmail(ctx, {
+            subject: `Activation code: ` + code,
+            templateId: existingAccount ? TEMPLATE_SIGIN_CODE : TEMPLATE_SIGNUP_CODE,
+            // templateId: existingAccount ? TEMPLATE_SIGIN_CODE_MAGIC_BUTTON : TEMPLATE_SIGNUP_CODE_MAGIC_BUTTON,
+            to: email,
+            args: {
+                code
+                // link: `https://openland.com/authorization/magic/${code}`
+            }
+        });
     },
     async sendRoomInviteEmail(ctx: Context, uid: number, email: string, roomId: number, invite: ChannelInvitation) {
         let avatar = await genAvatar(ctx, uid);
