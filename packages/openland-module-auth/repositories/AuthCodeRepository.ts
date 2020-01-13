@@ -19,7 +19,7 @@ export class AuthCodeRepository {
         return await inTx(parent, async (ctx) => {
             return Store.AuthCodeSession.create(ctx, base64.encodeBuffer(randomBytes(64)), {
                 code,
-                expires: Date.now() + 1000 * 60 * 5 /* 5 Minutes */,
+                expires: Date.now() + 1000 * 60 * 10 /* 10 Minutes */,
                 email,
                 enabled: true,
                 tokenId: null
