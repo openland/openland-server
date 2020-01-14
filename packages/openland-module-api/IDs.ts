@@ -69,6 +69,7 @@ export const IDs = {
     FeedChannel: IdsFactory.createId('FeedChannel'),
     MentionSearchCursor: IdsFactory.createId('MentionSearchCursor'),
     OauthApp: IdsFactory.createId('OauthApp'),
-    Powerup: IdsFactory.createId('Powerup')
+    Powerup: IdsFactory.createId('Powerup'),
+    CreditCard: IdsFactory.createStringId('CreditCard')
     // FeedChannelUser: IdsFactory.createId('FeedChannelUser')
 };

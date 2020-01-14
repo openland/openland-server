@@ -1,0 +1,11 @@
+type CreditCard {
+    id: ID!
+    brand: String!
+    last4: String!
+    expMonth: Int!
+    expYear: Int!
+}
+
+extend type Query {
+    myCards: [CreditCard!]!
+}

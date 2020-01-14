@@ -52,7 +52,7 @@ import {
     FeedRebuildEvent,
     OauthApplication,
     OauthContext,
-    UserLocation, ChatPowerup, Powerup,
+    UserLocation, ChatPowerup, Powerup, UserStripeCard,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -457,4 +457,9 @@ export namespace GQLRoots {
     export type RoomPowerupRoot = ChatPowerup;
     export type PowerupRoot = Powerup;
     export type PowerupUserSettingsRoot = PowerupChatUserSettings;
+
+    //
+    // Billing
+    //
+    export type CreditCardRoot = UserStripeCard;
 }
