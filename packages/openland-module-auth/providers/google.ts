@@ -33,7 +33,8 @@ export async function getAccessToken(req: express.Request, response: express.Res
         return;
     }
 
-    const clientIdWeb = (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id'))!;
+    const clientIdWeb = process.env.APP_ENVIRONMENT === 'production' ? (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id'))! : '1095846783035-rpgtqd3cbbbagg3ik0rc609olqfnt6ah.apps.googleusercontent.com';
+
     if (!client) {
         client = new OAuth2Client(clientIdWeb);
     }
