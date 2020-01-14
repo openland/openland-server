@@ -236,7 +236,7 @@ export async function initApi(isTest: boolean) {
                 ctx = withGqlQueryId(ctx, opId);
                 ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
                 let ctx2 = new AppContext(ctx);
-                return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
+                return new AppContext(withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2)));
             },
             subscriptionContext: async (params, operation, firstCtx) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
@@ -247,7 +247,7 @@ export async function initApi(isTest: boolean) {
                 ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withLifetime(ctx);
                 let ctx2 = new AppContext(ctx);
-                return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
+                return new AppContext(withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2)));
             },
             onOperation: async (ctx, operation) => {
                 // if (!isTest) {
