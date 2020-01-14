@@ -19,7 +19,7 @@ let devTeamEmails = [
     'nabovyan@bk.ru',
     'steve+kite@openland.com',
     'steve+k@openland.com',
-    'egoarka@openland.com'
+    'bot@openland.com'
 ];
 
 const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
@@ -32,6 +32,7 @@ export function createEmailWorker() {
     let isTesting = process.env.TESTING === 'true';
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (args, ctx) => {
+            console.log('------------' + process.env.TESTING + '--------');
             if (!isTesting) {
                 // Filter for non-production envrionments
                 if (process.env.APP_ENVIRONMENT !== 'production') {
@@ -41,7 +42,7 @@ export function createEmailWorker() {
                         };
                     }
                 }
-
+                log.debug(ctx, 'email to', args.to);
                 try {
                     let res = await SendGrid.send({
                         to: args.to,
@@ -54,6 +55,7 @@ export function createEmailWorker() {
                     let statusCode = res[0].statusCode;
                     log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
                 } catch (e) {
+                    log.error(ctx, 'email to', args.to);
                     await inTx(ctx, async (ctx2) => {
                         emailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
                     });
