@@ -32,7 +32,6 @@ export function createEmailWorker() {
     let isTesting = process.env.TESTING === 'true';
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (args, ctx) => {
-            console.log('------------' + process.env.TESTING + '--------');
             if (!isTesting) {
                 // Filter for non-production envrionments
                 if (process.env.APP_ENVIRONMENT !== 'production') {
@@ -42,7 +41,6 @@ export function createEmailWorker() {
                         };
                     }
                 }
-                log.debug(ctx, 'email to', args.to);
                 try {
                     let res = await SendGrid.send({
                         to: args.to,
