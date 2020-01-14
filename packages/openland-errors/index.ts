@@ -33,7 +33,7 @@ const logger = createLogger('error-formatter');
 
 const handleUnexpectedError = (uuid: string, error: { message: string, originalError: any }, info?: QueryInfo) => {
     // Raven.captureException(error.originalError);
-    logger.warn(ctx, error.originalError, 'unexpected_error', uuid, error);
+    logger.warn(ctx, error.originalError, 'unexpected_error', uuid, error, info);
 
     // tslint:disable:no-floating-promises
     (async () => {

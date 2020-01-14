@@ -45,7 +45,7 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
                 type_url: VostokApiTypeUrls.GQLResponse,
                 value: vostok_api.GQLResponse.encode({
                     id: request.id,
-                    result: JSON.stringify(await params.formatResponse(result))
+                    result: JSON.stringify(await params.formatResponse(result, request, ctx))
                 }).finish()
             }
         }, [], message.id);
@@ -76,7 +76,7 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
                         type_url: VostokApiTypeUrls.GQLSubscriptionResponse,
                         value: vostok_api.GQLSubscriptionResponse.encode({
                             id: request.id,
-                            result: JSON.stringify(await params.formatResponse(iterator))
+                            result: JSON.stringify(await params.formatResponse(iterator, request, ctx))
                         }).finish()
                     }
                 });
@@ -92,7 +92,7 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
                         type_url: VostokApiTypeUrls.GQLSubscriptionResponse,
                         value: vostok_api.GQLSubscriptionResponse.encode({
                             id: request.id,
-                            result: JSON.stringify(await params.formatResponse(event))
+                            result: JSON.stringify(await params.formatResponse(event, request, ctx))
                         }).finish()
                     }
                 });
@@ -125,7 +125,7 @@ interface BaseVostokApiServerParams {
 
     subscriptionContext(params: any, operation: GQlOperation, firstCtx?: Context): Promise<Context>;
 
-    formatResponse(response: any): Promise<any>;
+    formatResponse(response: any, operation: GQlOperation, context: Context): Promise<any>;
 
     onOperation(ctx: Context, operation: GQlOperation): Promise<any>;
 }

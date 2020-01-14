@@ -37,7 +37,7 @@ interface FuckApolloServerParams {
 
     subscriptionContext(params: any, operation: GQlServerOperation, firstCtx?: Context): Promise<Context>;
 
-    formatResponse(response: any): Promise<any>;
+    formatResponse(response: any, operation: GQlServerOperation, context: Context): Promise<any>;
 
     onOperation(ctx: Context, operation: GQlServerOperation): Promise<any>;
 }
@@ -214,7 +214,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
                     if (!isAsyncIterator(iterator)) {
                         // handle error
-                        session.sendData(message.id, await params.formatResponse(iterator));
+                        session.sendData(message.id, await params.formatResponse(iterator, message.payload, ctx));
                         session.sendComplete(message.id);
                         session.stopOperation(message.id);
                         return;
@@ -224,7 +224,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         if (!working) {
                             break;
                         }
-                        session.sendData(message.id, await params.formatResponse(event));
+                        session.sendData(message.id, await params.formatResponse(event, message.payload, ctx));
                     }
                     session.sendComplete(message.id);
                 });
@@ -243,7 +243,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                     variableValues: message.payload.variables,
                     contextValue: ctx
                 });
-                session.sendData(message.id, await params.formatResponse(result));
+                session.sendData(message.id, await params.formatResponse(result, message.payload, ctx));
                 session.sendComplete(message.id);
             }
         } else if (message.type && message.type === 'stop') {
