@@ -9,6 +9,7 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 // } from '@openland/foundationdb-entity/lib/tracing';
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 import { createMetric } from 'openland-module-monitoring/Metric';
+import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -49,7 +50,7 @@ export function setupFdbTracing() {
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
             opRead.increment(ctx);
-            return handler();
+            return getConcurrencyPool(ctx).run(handler);
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
         set: (ctx, key, value, handler) => {
@@ -60,7 +61,7 @@ export function setupFdbTracing() {
         range: async (ctx, key, opts, handler) => {
             // return await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             opRead.increment(ctx);
-            let res = await handler();
+            let res = await getConcurrencyPool(ctx).run(handler);
             if (res.length > 0) {
                 opRead.add(ctx, res.length);
             } else {
