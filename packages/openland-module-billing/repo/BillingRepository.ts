@@ -8,10 +8,15 @@ export class BillingRepository {
 
     private readonly store: Store;
     readonly createCustomerQueue: WorkQueue<{ uid: number }, { result: string }>;
+    readonly syncCardQueue: WorkQueue<{ uid: number, pmid: string }, { result: string }>;
 
-    constructor(store: Store, createCustomerQueue: WorkQueue<{ uid: number }, { result: string }>) {
+    constructor(store: Store,
+        createCustomerQueue: WorkQueue<{ uid: number }, { result: string }>,
+        syncCardQueue: WorkQueue<{ uid: number, pmid: string }, { result: string }>
+    ) {
         this.store = store;
         this.createCustomerQueue = createCustomerQueue;
+        this.syncCardQueue = syncCardQueue;
     }
 
     enableBilling = async (parent: Context, uid: number) => {

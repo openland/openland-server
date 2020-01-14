@@ -1637,6 +1637,35 @@ export default declareSchema(() => {
         uniqueIndex('stripe', ['stripeId']).withCondition((s) => !!s.stripeId);
     });
 
+    entity('UserStripeCard', () => {
+        primaryKey('uid', integer());
+        primaryKey('pmid', string());
+
+        // If Card is default payment method
+        field('default', boolean());
+        field('deleted', boolean());
+
+        // Fields
+        field('brand', string());
+        field('country', string());
+        field('exp_month', integer());
+        field('exp_year', integer());
+        field('last4', string());
+
+        // Stripe Export
+        field('stripeAttached', boolean());
+        field('stripeDetached', boolean());
+
+        // Make only one card default
+        uniqueIndex('default', ['uid']).withCondition((s) => s.default);
+
+        // Unique payment method id
+        uniqueIndex('pmid', ['pmid']);
+
+        // Range Index
+        rangeIndex('users', ['uid', 'pmid']).withCondition((s) => !s.deleted);
+    });
+
     //
     // System
     //

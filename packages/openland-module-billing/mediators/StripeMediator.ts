@@ -131,4 +131,90 @@ export class StripeMediator {
             await this.exportCustomer(parent, uid);
         }
     }
+
+    registerCard = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+
+        let data = await this.stripe.paymentMethods.retrieve(pmid);
+
+        await inTx(parent, async (ctx) => {
+            let isFirstOne = (await Store.UserStripeCard.users.findAll(ctx, uid)).length === 0;
+            await Store.UserStripeCard.create(ctx, uid, pmid, {
+                default: isFirstOne,
+                deleted: false,
+                brand: data.card!.brand,
+                country: data.card!.country!,
+                exp_month: data.card!.exp_month,
+                exp_year: data.card!.exp_year,
+                last4: data.card!.last4,
+                stripeAttached: false,
+                stripeDetached: false
+            });
+            await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
+        });
+    }
+
+    //
+    // Card Sync
+    //
+
+    syncCard = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+        await this.attachCardIfNeeded(parent, uid, pmid);
+        await this.detachCardIfNeeded(parent, uid, pmid);
+    }
+
+    private attachCardIfNeeded = async (parent: Context, uid: number, pmid: string) => {
+        let src = await inTx(parent, async (ctx) => {
+            let user = (await Store.UserStripeCustomer.findById(ctx, uid))!;
+            if (!user || !user.stripeId) {
+                throw Error('Missing Stripe ID');
+            }
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Unable to find target card');
+            }
+            return { attached: card.stripeAttached, customerId: user.stripeId! };
+        });
+
+        if (!src.attached) {
+            await this.stripe.paymentMethods.attach(pmid, { customer: src.customerId }, {
+                idempotencyKey: 'attach-' + pmid
+            });
+
+            await inTx(parent, async (ctx) => {
+                let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+                if (!card!.stripeAttached) {
+                    card!.stripeAttached = true;
+                }
+            });
+        }
+    }
+
+    private detachCardIfNeeded = async (parent: Context, uid: number, pmid: string) => {
+        let src = await inTx(parent, async (ctx) => {
+            let user = (await Store.UserStripeCustomer.findById(ctx, uid))!;
+            if (!user || !user.stripeId) {
+                throw Error('Missing Stripe ID');
+            }
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Unable to find target card');
+            }
+            return { deleted: card.deleted, detached: card.stripeDetached, customerId: user.stripeId! };
+        });
+
+        if (src.deleted && !src.detached) {
+            await this.stripe.paymentMethods.detach(pmid, {}, {
+                idempotencyKey: 'detach-' + pmid
+            });
+
+            await inTx(parent, async (ctx) => {
+                let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+                if (!card!.stripeDetached) {
+                    card!.stripeDetached = true;
+                }
+            });
+        }
+    }
 }

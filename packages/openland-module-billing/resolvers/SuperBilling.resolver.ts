@@ -8,6 +8,10 @@ export default {
         superEnableBilling: withPermission('super-admin', async (ctx, args) => {
             await Modules.Billing.enableBilling(ctx, IDs.User.parse(args.uid));
             return true;
+        }),
+        superRegisterCard: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Billing.registerCard(ctx, IDs.User.parse(args.uid), args.pmid);
+            return true;
         })
     }
 } as GQLResolver;

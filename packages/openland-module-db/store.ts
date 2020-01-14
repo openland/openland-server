@@ -12719,6 +12719,224 @@ export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerS
     }
 }
 
+export interface UserStripeCardShape {
+    uid: number;
+    pmid: string;
+    default: boolean;
+    deleted: boolean;
+    brand: string;
+    country: string;
+    exp_month: number;
+    exp_year: number;
+    last4: string;
+    stripeAttached: boolean;
+    stripeDetached: boolean;
+}
+
+export interface UserStripeCardCreateShape {
+    default: boolean;
+    deleted: boolean;
+    brand: string;
+    country: string;
+    exp_month: number;
+    exp_year: number;
+    last4: string;
+    stripeAttached: boolean;
+    stripeDetached: boolean;
+}
+
+export class UserStripeCard extends Entity<UserStripeCardShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get pmid(): string { return this._rawValue.pmid; }
+    get default(): boolean { return this._rawValue.default; }
+    set default(value: boolean) {
+        let normalized = this.descriptor.codec.fields.default.normalize(value);
+        if (this._rawValue.default !== normalized) {
+            this._rawValue.default = normalized;
+            this._updatedValues.default = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean { return this._rawValue.deleted; }
+    set deleted(value: boolean) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+    get brand(): string { return this._rawValue.brand; }
+    set brand(value: string) {
+        let normalized = this.descriptor.codec.fields.brand.normalize(value);
+        if (this._rawValue.brand !== normalized) {
+            this._rawValue.brand = normalized;
+            this._updatedValues.brand = normalized;
+            this.invalidate();
+        }
+    }
+    get country(): string { return this._rawValue.country; }
+    set country(value: string) {
+        let normalized = this.descriptor.codec.fields.country.normalize(value);
+        if (this._rawValue.country !== normalized) {
+            this._rawValue.country = normalized;
+            this._updatedValues.country = normalized;
+            this.invalidate();
+        }
+    }
+    get exp_month(): number { return this._rawValue.exp_month; }
+    set exp_month(value: number) {
+        let normalized = this.descriptor.codec.fields.exp_month.normalize(value);
+        if (this._rawValue.exp_month !== normalized) {
+            this._rawValue.exp_month = normalized;
+            this._updatedValues.exp_month = normalized;
+            this.invalidate();
+        }
+    }
+    get exp_year(): number { return this._rawValue.exp_year; }
+    set exp_year(value: number) {
+        let normalized = this.descriptor.codec.fields.exp_year.normalize(value);
+        if (this._rawValue.exp_year !== normalized) {
+            this._rawValue.exp_year = normalized;
+            this._updatedValues.exp_year = normalized;
+            this.invalidate();
+        }
+    }
+    get last4(): string { return this._rawValue.last4; }
+    set last4(value: string) {
+        let normalized = this.descriptor.codec.fields.last4.normalize(value);
+        if (this._rawValue.last4 !== normalized) {
+            this._rawValue.last4 = normalized;
+            this._updatedValues.last4 = normalized;
+            this.invalidate();
+        }
+    }
+    get stripeAttached(): boolean { return this._rawValue.stripeAttached; }
+    set stripeAttached(value: boolean) {
+        let normalized = this.descriptor.codec.fields.stripeAttached.normalize(value);
+        if (this._rawValue.stripeAttached !== normalized) {
+            this._rawValue.stripeAttached = normalized;
+            this._updatedValues.stripeAttached = normalized;
+            this.invalidate();
+        }
+    }
+    get stripeDetached(): boolean { return this._rawValue.stripeDetached; }
+    set stripeDetached(value: boolean) {
+        let normalized = this.descriptor.codec.fields.stripeDetached.normalize(value);
+        if (this._rawValue.stripeDetached !== normalized) {
+            this._rawValue.stripeDetached = normalized;
+            this._updatedValues.stripeDetached = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, UserStripeCard> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userStripeCard');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'default', storageKey: 'default', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCard', 'default'), condition: (s) => s.default });
+        secondaryIndexes.push({ name: 'pmid', storageKey: 'pmid', type: { type: 'unique', fields: [{ name: 'pmid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCard', 'pmid'), condition: undefined });
+        secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'pmid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCard', 'users'), condition: (s) => !s.deleted });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'pmid', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'default', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'brand', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'country', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'exp_month', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'exp_year', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'last4', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'stripeAttached', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'stripeDetached', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            pmid: c.string,
+            default: c.boolean,
+            deleted: c.boolean,
+            brand: c.string,
+            country: c.string,
+            exp_month: c.integer,
+            exp_year: c.integer,
+            last4: c.string,
+            stripeAttached: c.boolean,
+            stripeDetached: c.boolean,
+        });
+        let descriptor: EntityDescriptor<UserStripeCardShape> = {
+            name: 'UserStripeCard',
+            storageKey: 'userStripeCard',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserStripeCardFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserStripeCardShape>) {
+        super(descriptor);
+    }
+
+    readonly default = Object.freeze({
+        find: async (ctx: Context, uid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly pmid = Object.freeze({
+        find: async (ctx: Context, pmid: string) => {
+            return this._findFromUniqueIndex(ctx, [pmid], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly users = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, pmid: string, src: UserStripeCardCreateShape): Promise<UserStripeCard> {
+        return this._create(ctx, [uid, pmid], this.descriptor.codec.normalize({ uid, pmid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, pmid: string, src: UserStripeCardCreateShape): UserStripeCard {
+        return this._create_UNSAFE(ctx, [uid, pmid], this.descriptor.codec.normalize({ uid, pmid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, pmid: string): Promise<UserStripeCard | null> {
+        return this._findById(ctx, [uid, pmid]);
+    }
+
+    watch(ctx: Context, uid: number, pmid: string): Watch {
+        return this._watch(ctx, [uid, pmid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStripeCardShape>): UserStripeCard {
+        return new UserStripeCard([value.uid, value.pmid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface SequenceShape {
     sequence: string;
     value: number;
@@ -15332,6 +15550,7 @@ export interface Store extends BaseStore {
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly UserStripeCustomer: UserStripeCustomerFactory;
+    readonly UserStripeCard: UserStripeCardFactory;
     readonly Sequence: SequenceFactory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
@@ -15505,6 +15724,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
     let UserStripeCustomerPromise = UserStripeCustomerFactory.open(storage);
+    let UserStripeCardPromise = UserStripeCardFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
@@ -15656,6 +15876,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserStorageNamespace: await UserStorageNamespacePromise,
         UserStorageRecord: await UserStorageRecordPromise,
         UserStripeCustomer: await UserStripeCustomerPromise,
+        UserStripeCard: await UserStripeCardPromise,
         Sequence: await SequencePromise,
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,
