@@ -6,6 +6,16 @@ type CreditCard {
     expYear: Int!
 }
 
+type CardSetupIntent {
+    id: ID!
+    clientSecret: String!
+}
+
 extend type Query {
     myCards: [CreditCard!]!
+}
+
+extend type Mutation {
+    cardCreateSetupIntent(retryKey: String!): CardSetupIntent!
+    cardCommitSetupIntent(id: ID!, pmid: ID!): CreditCard!
 }

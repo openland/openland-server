@@ -73,6 +73,7 @@ import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
+import Stripe from 'stripe';
 
 //
 //  Root types
@@ -462,4 +463,5 @@ export namespace GQLRoots {
     // Billing
     //
     export type CreditCardRoot = UserStripeCard;
+    export type CardSetupIntentRoot = Stripe.SetupIntent;
 }

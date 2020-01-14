@@ -70,6 +70,7 @@ export const IDs = {
     MentionSearchCursor: IdsFactory.createId('MentionSearchCursor'),
     OauthApp: IdsFactory.createId('OauthApp'),
     Powerup: IdsFactory.createId('Powerup'),
-    CreditCard: IdsFactory.createStringId('CreditCard')
+    CreditCard: IdsFactory.createStringId('CreditCard'),
+    CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent')
     // FeedChannelUser: IdsFactory.createId('FeedChannelUser')
 };

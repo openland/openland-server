@@ -137,9 +137,9 @@ export class StripeMediator {
 
         let data = await this.stripe.paymentMethods.retrieve(pmid);
 
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let isFirstOne = (await Store.UserStripeCard.users.findAll(ctx, uid)).length === 0;
-            await Store.UserStripeCard.create(ctx, uid, pmid, {
+            let res = await Store.UserStripeCard.create(ctx, uid, pmid, {
                 default: isFirstOne,
                 deleted: false,
                 brand: data.card!.brand,
@@ -151,6 +151,7 @@ export class StripeMediator {
                 stripeDetached: false
             });
             await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
+            return res;
         });
     }
 
@@ -216,5 +217,25 @@ export class StripeMediator {
                 }
             });
         }
+    }
+
+    //
+    // Create Card Intent
+    //
+
+    createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+        let customerId = await inTx(parent, async (ctx: Context) => {
+            let res = (await Store.UserStripeCustomer.findById(ctx, uid))!.stripeId;
+            if (!res) {
+                throw Error('Internal error');
+            }
+            return res;
+        });
+        let intent = await this.stripe.setupIntents.create({
+            customer: customerId,
+            usage: 'off_session'
+        }, { idempotencyKey: retryKey });
+        return intent;
     }
 }
