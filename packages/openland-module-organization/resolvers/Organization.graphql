@@ -47,4 +47,5 @@ extend type Query {
     myOrganization: Organization
     myOrganizations: [Organization!]!
     organization(id: ID!): Organization!
+    organizationPublicRooms(id: ID!, first: Int!, after: ID): SharedRoomConnection!
 }

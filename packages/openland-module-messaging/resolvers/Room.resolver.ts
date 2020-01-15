@@ -306,6 +306,11 @@ export default {
         sharedRoom: (src, _, ctx) => Store.ConversationRoom.findById(ctx, src.id)
     },
 
+    SharedRoomConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor
+    },
+
     Query: {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
