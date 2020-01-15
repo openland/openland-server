@@ -39,7 +39,7 @@ export class UserRepository {
                 authId: authId,
                 email: email.toLowerCase(),
                 isBot: false,
-                status: 'pending',
+                status: 'activated',
                 invitedBy: null,
                 isSuperBot: null,
                 botOwner: null,
