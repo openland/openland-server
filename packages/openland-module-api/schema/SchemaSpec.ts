@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5796ec575382c153765894729e22e0d4';
+export const GQL_SPEC_VERSION = 'fa129ce19c52beacdee7a0e748ec8493';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2380,6 +2380,7 @@ export namespace GQL {
     export interface Organization {
         id: string;
         isMine: boolean;
+        isDeleted: boolean;
         name: string;
         photo: Nullable<string>;
         website: Nullable<string>;
@@ -3164,6 +3165,7 @@ export namespace GQL {
         id: string;
         isYou: boolean;
         isBot: boolean;
+        isDeleted: boolean;
         name: string;
         firstName: string;
         lastName: Nullable<string>;
@@ -3276,6 +3278,7 @@ export namespace GQL {
         subscribersCount: number;
         postsCount: number;
         isGlobal: boolean;
+        isHidden: boolean;
         subscribed: boolean;
         myRole: FeedChannelSubscriberRole;
         shortname: Nullable<string>;
