@@ -28,6 +28,7 @@ export default {
             return await Modules.Billing.createSetupIntent(ctx, uid, args.retryKey);
         }),
         cardCommitSetupIntent: withAccount(async (ctx, args, uid) => {
+            // TODO: Validate Setup Intent
             return await Modules.Billing.registerCard(ctx, uid, args.pmid);
         })
     }

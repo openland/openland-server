@@ -1667,6 +1667,40 @@ export default declareSchema(() => {
     });
 
     //
+    // Accounting
+    //
+
+    entity('Account', () => {
+        primaryKey('id', string());
+        field('balance', integer());
+    });
+    entity('AccountTransaction', () => {
+        primaryKey('aid', string());
+        primaryKey('txid', string());
+        field('amount', integer());
+        field('processed', boolean());
+        rangeIndex('fromAccount', ['aid', 'createdAt']);
+    });
+    entity('Transaction', () => {
+        primaryKey('id', string());
+        field('secId', string());
+        field('kind', enumString('deposit', 'withdraw', 'transfer'));
+        field('fromAccount', optional(string()));
+        field('toAccount', optional(string()));
+        field('amount', integer());
+        field('status', enumString('pending', 'processed', 'failing', 'canceled'));
+    });
+
+    //
+    // User's Personal Account
+    //
+
+    entity('UserAccount', () => {
+        primaryKey('uid', integer());
+        field('aid', string());
+    });
+
+    //
     // System
     //
 
