@@ -33,6 +33,7 @@ export default {
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
         isMine: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, src.id) : false,
+        isDeleted: (src: Organization) => src.status === 'deleted',
 
         name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
         photo: async (src: Organization, args: {}, ctx: AppContext) => buildBaseImageUrl(((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo),

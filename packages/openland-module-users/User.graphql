@@ -2,6 +2,7 @@ type User {
     id: ID!
     isYou: Boolean!
     isBot: Boolean!
+    isDeleted: Boolean!
     name: String!
     firstName: String!
     lastName: String

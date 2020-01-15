@@ -69,6 +69,7 @@ export default {
         id: withUser((ctx, src) => IDs.User.serialize(src.id)),
         isBot: withUser((ctx, src) => src.isBot || false),
         isYou: withUser((ctx, src) => src.id === ctx.auth.uid),
+        isDeleted: withUser((ctx, src) => src.status === 'deleted'),
 
         name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
         firstName: withProfile((ctx, src, profile) => profile ? profile.firstName : src.email),
