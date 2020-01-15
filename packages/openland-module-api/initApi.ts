@@ -40,6 +40,7 @@ import { initZapier } from '../openland-module-zapier/http.handlers';
 import { initVostokApiServer, initVostokTCPApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
+import { AuthContext } from '../openland-module-auth/AuthContext';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -195,7 +196,7 @@ export async function initApi(isTest: boolean) {
         logger.log(rootCtx, 'Binding to port ' + dport);
 
         let formatError = (err: any, info?: QueryInfo) => {
-            logger.warn(rootCtx, err);
+            logger.warn(rootCtx, 'api_error', err, info);
             return {
                 ...errorHandler(err, info),
                 locations: err.locations,
@@ -259,10 +260,21 @@ export async function initApi(isTest: boolean) {
                 //     }
                 // }
             },
-            formatResponse: async value => {
+            formatResponse: async (value, operation, ctx) => {
+                let auth = AuthContext.get(ctx);
+                let uid = auth.uid;
+                let oid = auth.oid;
+
+                let queryInfo: QueryInfo = {
+                    uid,
+                    oid,
+                    transport: 'ws',
+                    query: JSON.stringify(operation)
+                };
+
                 let errors: any[] | undefined;
                 if (value.errors) {
-                    errors = value.errors && value.errors.map((e: any) => formatError(e));
+                    errors = value.errors && value.errors.map((e: any) => formatError(e, queryInfo));
                 }
                 return ({
                     ...value,
@@ -302,10 +314,21 @@ export async function initApi(isTest: boolean) {
             onOperation: async (ctx, operation) => {
                 // noop
             },
-            formatResponse: async value => {
+            formatResponse: async (value, operation, ctx) => {
+                let auth = AuthContext.get(ctx);
+                let uid = auth.uid;
+                let oid = auth.oid;
+
+                let queryInfo: QueryInfo = {
+                    uid,
+                    oid,
+                    transport: 'ws',
+                    query: JSON.stringify(operation)
+                };
+
                 let errors: any[] | undefined;
                 if (value.errors) {
-                    errors = value.errors && value.errors.map((e: any) => formatError(e));
+                    errors = value.errors && value.errors.map((e: any) => formatError(e, queryInfo));
                 }
                 return ({
                     ...value,

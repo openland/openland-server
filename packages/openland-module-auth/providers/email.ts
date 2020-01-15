@@ -6,7 +6,7 @@ import { Emails } from '../../openland-module-email/Emails';
 import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
-import { AuthCodeSession } from 'openland-module-db/store';
+import { AuthCodeSession, UserProfile } from 'openland-module-db/store';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
 import { createNamedContext } from '@openland/context';
@@ -125,10 +125,10 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
             let isTest = isTestEmail(email);
-            let existing = !!(await Store.User.findAll(ctx)).find((v) => v.email === email || v.authId === 'email|' + email as any);
+            let existing = (await Store.User.findAll(ctx)).find((v) => v.email === email || v.authId === 'email|' + email as any);
 
             if (!isTest) {
-                await Emails.sendActivationCodeEmail(ctx, email, code, existing);
+                await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
             } else {
                 code = testEmailCode(email);
             }
@@ -139,7 +139,14 @@ export async function sendCode(req: express.Request, response: express.Response)
                 authSession.code = code;
             }
 
-            response.json({ ok: true, session: authSession!.uid });
+            let pictureId: string | undefined;
+            let profile: UserProfile | null | undefined;
+            if (existing) {
+                profile = await Store.UserProfile.findById(ctx, existing.id);
+                pictureId = profile && profile.picture && profile.picture.uuid;
+            }
+
+            response.json({ ok: true, session: authSession!.uid, pictureId, profileExists: !!profile });
             return;
         } else {
             sendError(response, 'server_error');

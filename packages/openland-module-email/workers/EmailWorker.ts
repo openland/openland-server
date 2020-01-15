@@ -19,7 +19,7 @@ let devTeamEmails = [
     'nabovyan@bk.ru',
     'steve+kite@openland.com',
     'steve+k@openland.com',
-    'egoarka@openland.com'
+    'bot@openland.com'
 ];
 
 const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
@@ -41,7 +41,6 @@ export function createEmailWorker() {
                         };
                     }
                 }
-
                 try {
                     let res = await SendGrid.send({
                         to: args.to,
@@ -54,6 +53,7 @@ export function createEmailWorker() {
                     let statusCode = res[0].statusCode;
                     log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
                 } catch (e) {
+                    log.error(ctx, 'email to', args.to);
                     await inTx(ctx, async (ctx2) => {
                         emailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
                     });

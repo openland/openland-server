@@ -163,6 +163,7 @@ export default {
         photo: src => src.image ? buildBaseImageUrl(src.image) : null,
         socialImage: src => src.image ? buildBaseImageUrl(src.socialImage) : null,
         isGlobal: async (src, args, ctx) => src.isGlobal || false,
+        isHidden: async (src) => src.isHidden || false,
         subscribersCount: async (src, args, ctx) => await Store.FeedChannelMembersCount.get(ctx, src.id),
         postsCount: async (src, args, ctx) => await Store.FeedChannelPostsCount.get(ctx, src.id),
         subscribed: async (src, args, ctx) => {

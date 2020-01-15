@@ -226,6 +226,7 @@ export namespace GQLRoots {
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
+    export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string };
     export type UserBadgeRoot = UserBadge;
 
     export type RoomMemberRoot = any;
