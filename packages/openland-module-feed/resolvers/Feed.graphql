@@ -79,6 +79,7 @@ type FeedChannel {
     subscribersCount: Int!
     postsCount: Int!
     isGlobal: Boolean!
+    isHidden: Boolean!
     subscribed: Boolean!
     myRole: FeedChannelSubscriberRole!
 }

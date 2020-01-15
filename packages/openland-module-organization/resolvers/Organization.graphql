@@ -12,6 +12,7 @@ type OrganizationContact {
 type Organization {
     id: ID!
     isMine: Boolean!
+    isDeleted: Boolean!
     name: String!
     photo: String
     website: String
