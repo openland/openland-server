@@ -28,7 +28,7 @@ export class OrganizationModule {
         return inTx(parent, async (ctx) => {
 
             // 1. Resolve user status
-            let status: 'activated' | 'pending' = 'activated';
+            let status: 'activated' | 'pending' = 'pending';
             let user = await Store.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
