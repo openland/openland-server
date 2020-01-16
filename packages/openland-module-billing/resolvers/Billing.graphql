@@ -11,8 +11,27 @@ type CardSetupIntent {
     clientSecret: String!
 }
 
+type WalletAccount {
+    id: ID!
+    balance: Int!
+}
+
+type WalletTransaction {
+    id: ID!
+    amount: Int!
+    state: String!
+    readableState: String!
+}
+
+type WalletTransactionConnection {
+    items: [WalletTransaction!]!
+    cursor: String
+}
+
 extend type Query {
     myCards: [CreditCard!]!
+    myAccount: WalletAccount!
+    walletTransactions(id: ID!, first: Int!, after: String): WalletTransactionConnection!
 }
 
 extend type Mutation {

@@ -94,14 +94,14 @@ export class BillingRepository {
             // Create Transaction References
             if (fromAccount) {
                 fromAccount.balance -= amount;
-                await this.store.AccountTransaction.create(ctx, fromAccount.id, tx.id, { amount: -amount, processed: true });
+                await this.store.AccountTransaction.create(ctx, uuid(), { aid: fromAccount.id, txid: tx.id, amount: -amount, processed: true });
             }
             if (toAccount) {
                 // Internal transfers are instant
                 if (kind === 'transfer') {
                     toAccount.balance += amount;
                 }
-                await this.store.AccountTransaction.create(ctx, toAccount.id, tx.id, { amount: amount, processed: kind === 'transfer' });
+                await this.store.AccountTransaction.create(ctx, uuid(), { aid: toAccount.id, txid: tx.id, amount: amount, processed: kind === 'transfer' });
             }
 
             return tx;
@@ -125,7 +125,7 @@ export class BillingRepository {
             if (tx.toAccount) {
 
                 // Update Transaction
-                let atx = await this.store.AccountTransaction.findById(ctx, tx.toAccount, txid);
+                let atx = await this.store.AccountTransaction.fromTransaction.find(ctx, tx.toAccount, txid);
                 if (!atx) {
                     throw Error('Internal error');
                 }
@@ -162,7 +162,7 @@ export class BillingRepository {
             if (tx.fromAccount) {
 
                 // Update Transaction
-                let atx = await this.store.AccountTransaction.findById(ctx, tx.fromAccount, txid);
+                let atx = await this.store.AccountTransaction.fromTransaction.find(ctx, tx.fromAccount, txid);
                 if (!atx) {
                     throw Error('Internal error');
                 }

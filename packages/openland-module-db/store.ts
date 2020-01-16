@@ -13006,6 +13006,7 @@ export class AccountFactory extends EntityFactory<AccountShape, Account> {
 }
 
 export interface AccountTransactionShape {
+    id: string;
     aid: string;
     txid: string;
     amount: number;
@@ -13013,13 +13014,32 @@ export interface AccountTransactionShape {
 }
 
 export interface AccountTransactionCreateShape {
+    aid: string;
+    txid: string;
     amount: number;
     processed: boolean;
 }
 
 export class AccountTransaction extends Entity<AccountTransactionShape> {
+    get id(): string { return this._rawValue.id; }
     get aid(): string { return this._rawValue.aid; }
+    set aid(value: string) {
+        let normalized = this.descriptor.codec.fields.aid.normalize(value);
+        if (this._rawValue.aid !== normalized) {
+            this._rawValue.aid = normalized;
+            this._updatedValues.aid = normalized;
+            this.invalidate();
+        }
+    }
     get txid(): string { return this._rawValue.txid; }
+    set txid(value: string) {
+        let normalized = this.descriptor.codec.fields.txid.normalize(value);
+        if (this._rawValue.txid !== normalized) {
+            this._rawValue.txid = normalized;
+            this._updatedValues.txid = normalized;
+            this.invalidate();
+        }
+    }
     get amount(): number { return this._rawValue.amount; }
     set amount(value: number) {
         let normalized = this.descriptor.codec.fields.amount.normalize(value);
@@ -13046,13 +13066,16 @@ export class AccountTransactionFactory extends EntityFactory<AccountTransactionS
         let subspace = await storage.resolveEntityDirectory('accountTransaction');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'fromAccount', storageKey: 'fromAccount', type: { type: 'range', fields: [{ name: 'aid', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('accountTransaction', 'fromAccount'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromTransaction', storageKey: 'fromTransaction', type: { type: 'unique', fields: [{ name: 'aid', type: 'string' }, { name: 'txid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('accountTransaction', 'fromTransaction'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'aid', type: 'string' });
-        primaryKeys.push({ name: 'txid', type: 'string' });
+        primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'aid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'txid', type: { type: 'string' }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'processed', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
+            id: c.string,
             aid: c.string,
             txid: c.string,
             amount: c.integer,
@@ -13085,24 +13108,36 @@ export class AccountTransactionFactory extends EntityFactory<AccountTransactionS
         },
     });
 
-    create(ctx: Context, aid: string, txid: string, src: AccountTransactionCreateShape): Promise<AccountTransaction> {
-        return this._create(ctx, [aid, txid], this.descriptor.codec.normalize({ aid, txid, ...src }));
+    readonly fromTransaction = Object.freeze({
+        find: async (ctx: Context, aid: string, txid: string) => {
+            return this._findFromUniqueIndex(ctx, [aid, txid], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, aid: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [aid])).items;
+        },
+        query: (ctx: Context, aid: string, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [aid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: string, src: AccountTransactionCreateShape): Promise<AccountTransaction> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, aid: string, txid: string, src: AccountTransactionCreateShape): AccountTransaction {
-        return this._create_UNSAFE(ctx, [aid, txid], this.descriptor.codec.normalize({ aid, txid, ...src }));
+    create_UNSAFE(ctx: Context, id: string, src: AccountTransactionCreateShape): AccountTransaction {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, aid: string, txid: string): Promise<AccountTransaction | null> {
-        return this._findById(ctx, [aid, txid]);
+    findById(ctx: Context, id: string): Promise<AccountTransaction | null> {
+        return this._findById(ctx, [id]);
     }
 
-    watch(ctx: Context, aid: string, txid: string): Watch {
-        return this._watch(ctx, [aid, txid]);
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AccountTransactionShape>): AccountTransaction {
-        return new AccountTransaction([value.aid, value.txid], value, this.descriptor, this._flush, ctx);
+        return new AccountTransaction([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 

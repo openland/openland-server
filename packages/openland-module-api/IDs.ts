@@ -71,6 +71,7 @@ export const IDs = {
     OauthApp: IdsFactory.createId('OauthApp'),
     Powerup: IdsFactory.createId('Powerup'),
     CreditCard: IdsFactory.createStringId('CreditCard'),
-    CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent')
-    // FeedChannelUser: IdsFactory.createId('FeedChannelUser')
+    CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
+    WalletAccount: IdsFactory.createStringId('WalletAccount'),
+    WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
 };

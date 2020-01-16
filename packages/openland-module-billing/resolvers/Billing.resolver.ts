@@ -16,11 +16,38 @@ export default {
         id: (src) => IDs.CreditCardSetupIntent.serialize(src.id),
         clientSecret: (src) => src.client_secret
     },
+
+    WalletAccount: {
+        id: (src) => IDs.WalletAccount.serialize(src.id),
+        balance: (src) => src.balance
+    },
+    WalletTransaction: {
+        id: (src) => IDs.WalletTransaction.serialize(src.id),
+        amount: (src) => src.amount,
+        state: (src) => src.processed ? 'processed' : 'pending',
+        readableState: (src) => src.processed ? 'Processed' : 'Pending'
+    },
+    WalletTransactionConnection: {
+        items: (src) => src.items,
+        cursor: (src) => src.cursor
+    },
+
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
             let res = await Store.UserStripeCard.users.findAll(ctx, uid);
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
+        }),
+        myAccount: withAccount(async (ctx, args, uid) => {
+            return await Modules.Billing.repo.getUserAccount(ctx, uid);
+        }),
+        walletTransactions: withAccount(async (ctx, args, uid) => {
+            let account = await Modules.Billing.repo.getUserAccount(ctx, uid);
+            let txs = await Store.AccountTransaction.fromAccount.findAll(ctx, account.id);
+            return {
+                items: txs,
+                cursor: undefined
+            };
         })
     },
     Mutation: {

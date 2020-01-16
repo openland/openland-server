@@ -1675,11 +1675,13 @@ export default declareSchema(() => {
         field('balance', integer());
     });
     entity('AccountTransaction', () => {
-        primaryKey('aid', string());
-        primaryKey('txid', string());
+        primaryKey('id', string());
+        field('aid', string());
+        field('txid', string());
         field('amount', integer());
         field('processed', boolean());
         rangeIndex('fromAccount', ['aid', 'createdAt']);
+        uniqueIndex('fromTransaction', ['aid', 'txid']);
     });
     entity('Transaction', () => {
         primaryKey('id', string());
