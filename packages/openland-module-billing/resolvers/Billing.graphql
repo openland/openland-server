@@ -1,3 +1,7 @@
+#
+# Credit Cards
+#
+
 type CreditCard {
     id: ID!
     brand: String!
@@ -10,6 +14,19 @@ type CardSetupIntent {
     id: ID!
     clientSecret: String!
 }
+
+#
+# Payment Intent
+#
+
+type PaymentIntent {
+    id: ID!
+    clientSecret: String!
+}
+
+#
+# Wallet
+#
 
 type WalletAccount {
     id: ID!
@@ -37,4 +54,7 @@ extend type Query {
 extend type Mutation {
     cardCreateSetupIntent(retryKey: String!): CardSetupIntent!
     cardCommitSetupIntent(id: ID!, pmid: ID!): CreditCard!
+    
+    cardDepositIntent(id: ID!, amount: Int!, retryKey: String!): PaymentIntent!
+    cardDepositIntentCommit(id: ID!): Boolean!
 }

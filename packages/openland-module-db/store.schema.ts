@@ -1693,6 +1693,17 @@ export default declareSchema(() => {
         field('status', enumString('pending', 'processed', 'failing', 'canceled'));
     });
 
+    entity('PaymentIntent', () => {
+        primaryKey('id', string());
+        field('state', enumString('pending', 'success', 'failed', 'canceled'));
+        field('amount', integer());
+        field('operation', union({
+            'deposit': struct({
+                uid: integer()
+            })
+        }));
+    });
+
     //
     // User's Personal Account
     //

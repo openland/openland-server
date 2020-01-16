@@ -35,4 +35,12 @@ export class BillingModule {
     createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {
         return await this.stripeMediator.createSetupIntent(parent, uid, retryKey);
     }
+
+    createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
+        return await this.stripeMediator.createDepositIntent(parent, uid, pmid, amount, retryKey);
+    }
+
+    updatePaymentIntent = async (parent: Context, id: string) => {
+        return await this.stripeMediator.updatePaymentIntent(parent, id);
+    }
 }

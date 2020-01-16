@@ -72,6 +72,9 @@ export const IDs = {
     Powerup: IdsFactory.createId('Powerup'),
     CreditCard: IdsFactory.createStringId('CreditCard'),
     CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
+    
     WalletAccount: IdsFactory.createStringId('WalletAccount'),
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
+
+    PaymentIntent: IdsFactory.createStringId('PaymentIntent'),
 };

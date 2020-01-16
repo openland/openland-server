@@ -465,7 +465,10 @@ export namespace GQLRoots {
     //
     export type CreditCardRoot = UserStripeCard;
     export type CardSetupIntentRoot = Stripe.SetupIntent;
+
     export type WalletAccountRoot = Account;
     export type WalletTransactionRoot = AccountTransaction;
     export type WalletTransactionConnectionRoot = { items: AccountTransaction[], cursor?: string };
+
+    export type PaymentIntentRoot = Stripe.PaymentIntent;
 }

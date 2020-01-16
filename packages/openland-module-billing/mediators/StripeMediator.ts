@@ -235,7 +235,84 @@ export class StripeMediator {
         let intent = await this.stripe.setupIntents.create({
             customer: customerId,
             usage: 'off_session'
-        }, { idempotencyKey: retryKey });
+        }, { idempotencyKey: 'si-' + uid + '-' + retryKey });
         return intent;
+    }
+
+    //
+    // Create Deposit Intent
+    //
+
+    createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
+
+        // await this.enableBillingAndAwait(parent, uid); // No need since sync card do the same
+        await this.syncCard(parent, uid, pmid);
+
+        // Load CustomerID
+        let customerId = await inTx(parent, async (ctx: Context) => {
+            let res = (await Store.UserStripeCustomer.findById(ctx, uid))!.stripeId;
+            if (!res) {
+                throw Error('Internal error');
+            }
+            return res;
+        });
+
+        let intent = await this.stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd',
+            customer: customerId,
+            payment_method: pmid
+        }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
+
+        await inTx(parent, async (ctx) => {
+            await Store.PaymentIntent.create(ctx, intent.id, {
+                amount: amount,
+                state: 'pending',
+                operation: {
+                    type: 'deposit',
+                    uid: uid
+                }
+            });
+        });
+
+        return intent;
+    }
+
+    updatePaymentIntent = async (parent: Context, id: string) => {
+        let dp = await this.stripe.paymentIntents.retrieve(id);
+        await inTx(parent, async (ctx) => {
+            let intent = await Store.PaymentIntent.findById(ctx, id);
+            if (!intent) {
+                return;
+            }
+
+            if (dp.status === 'succeeded') {
+                if (intent.state === 'success' || intent.state === 'failed' || intent.state === 'canceled') {
+                    return;
+                }
+                intent.state = 'success';
+
+                if (intent.operation.type === 'deposit') {
+                    // Create and confirm transaction
+                    let tx = await this.repo.createTransaction(
+                        ctx, null, intent.operation.uid, 'deposit', intent.amount
+                    );
+                    await this.repo.confirmTransaction(ctx, tx.id);
+                } else {
+                    throw Error('Invalid intent');
+                }
+            } else if (dp.status === 'canceled') {
+                if (intent.state === 'success' || intent.state === 'failed' || intent.state === 'canceled') {
+                    return;
+                }
+                intent.state = 'canceled';
+
+                if (intent.operation.type === 'deposit') {
+                    // TODO?
+                } else {
+                    throw Error('Invalid intent');
+                }
+            }
+        });
     }
 }
