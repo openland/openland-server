@@ -265,17 +265,21 @@ export async function initApi(isTest: boolean) {
             },
             onOperationFinish: async (ctx, operation, duration) => {
                 if (operation.operationName) {
-                    await onGqlQuery.event(rootCtx, {
-                        operationName: operation.operationName,
-                        duration
+                    await inTx(rootCtx, async _ctx => {
+                        await onGqlQuery.event(_ctx, {
+                            operationName: operation.operationName!,
+                            duration
+                        });
                     });
                 }
             },
             onEventResolveFinish: async (ctx, operation, duration) => {
                 if (operation.operationName) {
-                    await onGqlQuery.event(rootCtx, {
-                        operationName: 'Event: ' + operation.operationName,
-                        duration
+                    await inTx(rootCtx, async _ctx => {
+                        await onGqlQuery.event(_ctx, {
+                            operationName: 'Event: ' + operation.operationName,
+                            duration
+                        });
                     });
                 }
             },
