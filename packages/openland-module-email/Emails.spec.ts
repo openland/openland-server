@@ -1,7 +1,7 @@
 import { testEnvironmentEnd, testEnvironmentStart } from '../openland-modules/testEnvironment';
 import {
     Emails,
-    TEMPLATE_ACTIVATEED,
+    // TEMPLATE_ACTIVATEED,
     TEMPLATE_DEACTIVATED,
     TEMPLATE_INVITE,
     // TEMPLATE_MEMBER_JOINED,
