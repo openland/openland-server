@@ -16,11 +16,42 @@ export default {
         id: (src) => IDs.CreditCardSetupIntent.serialize(src.id),
         clientSecret: (src) => src.client_secret
     },
+    PaymentIntent: {
+        id: (src) => IDs.PaymentIntent.serialize(src.id),
+        clientSecret: (src) => src.client_secret
+    },
+
+    WalletAccount: {
+        id: (src) => IDs.WalletAccount.serialize(src.id),
+        balance: (src) => src.balance
+    },
+    WalletTransaction: {
+        id: (src) => IDs.WalletTransaction.serialize(src.id),
+        amount: (src) => src.amount,
+        state: (src) => src.processed ? 'processed' : 'pending',
+        readableState: (src) => src.processed ? 'Processed' : 'Pending'
+    },
+    WalletTransactionConnection: {
+        items: (src) => src.items,
+        cursor: (src) => src.cursor
+    },
+
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
             let res = await Store.UserStripeCard.users.findAll(ctx, uid);
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
+        }),
+        myAccount: withAccount(async (ctx, args, uid) => {
+            return await Modules.Billing.repo.getUserAccount(ctx, uid);
+        }),
+        walletTransactions: withAccount(async (ctx, args, uid) => {
+            let account = await Modules.Billing.repo.getUserAccount(ctx, uid);
+            let txs = await Store.AccountTransaction.fromAccount.findAll(ctx, account.id);
+            return {
+                items: txs,
+                cursor: undefined
+            };
         })
     },
     Mutation: {
@@ -28,7 +59,16 @@ export default {
             return await Modules.Billing.createSetupIntent(ctx, uid, args.retryKey);
         }),
         cardCommitSetupIntent: withAccount(async (ctx, args, uid) => {
+            // TODO: Validate Setup Intent
             return await Modules.Billing.registerCard(ctx, uid, args.pmid);
+        }),
+
+        cardDepositIntent: withAccount(async (ctx, args, uid) => {
+            return await Modules.Billing.createDepositIntent(ctx, uid, IDs.CreditCard.parse(args.id), args.amount, args.retryKey);
+        }),
+        cardDepositIntentCommit: withAccount(async (ctx, args, uid) => {
+            await Modules.Billing.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
+            return true;
         })
     }
 } as GQLResolver;

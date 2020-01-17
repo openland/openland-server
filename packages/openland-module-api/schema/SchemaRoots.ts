@@ -52,7 +52,7 @@ import {
     FeedRebuildEvent,
     OauthApplication,
     OauthContext,
-    UserLocation, ChatPowerup, Powerup, UserStripeCard,
+    UserLocation, ChatPowerup, Powerup, UserStripeCard, Account, AccountTransaction,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -226,6 +226,7 @@ export namespace GQLRoots {
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
+    export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string };
     export type UserBadgeRoot = UserBadge;
 
     export type RoomMemberRoot = any;
@@ -281,11 +282,11 @@ export namespace GQLRoots {
     export type MessageSpanRotatingRoot = RotatingTextSpan;
     export type MessageSpanDateRoot = DateTextSpan;
     export type MessageSpanAllMentionRoot = DateTextSpan;
-    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message|RichMessage };
+    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | RichMessage };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
-    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number }  };
+    export type ImageRoot = { uuid: string, metadata?: FileInfo, crop?: { x: number, y: number, w: number, h: number } };
     export type ImageFallbackRoot = { photo: string, text: string };
     export type MessageSourceRoot = Message | Comment;
     export type MessageSourceChatRoot = Message;
@@ -464,4 +465,10 @@ export namespace GQLRoots {
     //
     export type CreditCardRoot = UserStripeCard;
     export type CardSetupIntentRoot = Stripe.SetupIntent;
+
+    export type WalletAccountRoot = Account;
+    export type WalletTransactionRoot = AccountTransaction;
+    export type WalletTransactionConnectionRoot = { items: AccountTransaction[], cursor?: string };
+
+    export type PaymentIntentRoot = Stripe.PaymentIntent;
 }

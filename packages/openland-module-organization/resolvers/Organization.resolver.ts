@@ -2,7 +2,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
-import { withAny } from 'openland-module-api/Resolvers';
+import { withAny, withUser } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
@@ -99,5 +99,45 @@ export default {
             }
             return res;
         }),
+        organizationPublicRooms: withUser(async (ctx, args, uid) => {
+            let orgId = IDs.Organization.parse(args.id);
+            let org = await Store.Organization.findById(ctx, orgId);
+            if (!org) {
+                throw new NotFoundError();
+            }
+
+            let haveAccess = org.kind === 'community' ? true : await Modules.Orgs.isUserMember(ctx, uid, org.id);
+            if (!haveAccess) {
+                return [];
+            }
+
+            let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, org.id);
+
+            if (args.after) {
+                let afterId = IDs.Conversation.parse(args.after);
+                let after = rooms.findIndex(r => r.id === afterId);
+                rooms = rooms.splice(after + 1);
+            }
+            let roomsFull = await Promise.all(rooms.map(async room => {
+                let conv = await Store.Conversation.findById(ctx, room.id);
+                if (conv && (conv.deleted || conv.archived)) {
+                    return null;
+                }
+                return { room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) };
+            }));
+
+            let haveMore = roomsFull.length > args.first;
+
+            roomsFull
+                .filter(r => r !== null)
+                .sort((a, b) => b!.membersCount - a!.membersCount);
+
+            roomsFull = roomsFull.splice(0, args.first);
+
+            return {
+                items: roomsFull.map(r => r!.room),
+                cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : undefined
+            };
+        })
     }
 } as GQLResolver;

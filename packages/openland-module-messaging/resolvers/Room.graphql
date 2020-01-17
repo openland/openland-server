@@ -44,9 +44,9 @@ type SharedRoom {
     description: String
     pinnedMessage: ModernMessage
     welcomeMessage: WelcomeMessage
-    
+
     organization: Organization
-  
+
     membersCount: Int!
     featuredMembersCount: Int!
     members(first: Int, after: ID): [RoomMember!]!
@@ -153,6 +153,11 @@ type RoomConnection {
     pageInfo: PageInfo!
 }
 
+type SharedRoomConnection {
+    items: [SharedRoom!]!
+    cursor: String
+}
+
 extend type Query {
     room(id: ID!): Room
     rooms(ids: [ID!]!): [Room!]!
@@ -173,7 +178,7 @@ extend type Query {
     betaAvailableRooms: [SharedRoom!]!
     betaUserRooms(limit: Int, after: ID): [SharedRoom!]!
     betaUserAvailableRooms(isChannel: Boolean, limit: Int, after: ID): [SharedRoom!]!
-    
+
 }
 
 type RoomInvite {
@@ -187,7 +192,7 @@ extend type Mutation {
     betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID, channel: Boolean): SharedRoom!
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     betaRoomMove(roomId: ID!, toOrg: ID!): Room!
-    
+
     # Members mgmt
     betaRoomInvite(roomId: ID!, invites: [RoomInviteInput!]!): Room!
     alphaRoomInvite(roomId: ID!, invites: [RoomInviteInput!]!): [RoomMember!]!
@@ -205,7 +210,7 @@ extend type Mutation {
 
     # User settings
     betaRoomUpdateUserNotificationSettings(settings: RoomUserNotificaionSettingsInput!, roomId: ID!): RoomUserNotificaionSettings!
-    
+
     # Admin tools
     betaRoomsInviteUser(userId: ID!, roomIds: [ID!]!): [Room!]!
     betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): RoomSuper!

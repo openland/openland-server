@@ -175,19 +175,35 @@ function genResolverInterface(ast: DocumentNode, enumNames: Set<string>) {
     for (let def of ast.definitions) {
         if (isObjectTypeDefinitionNode(def)) {
 
-            let returnTypesMap = (def.fields || [])
-                .filter(f => !isPrimitiveType(f.type, enumNames))
-                .map(f => `${f.name.value}: ${fetchType(f.type)}`)
-                .join(', ');
+            let returnTypesMapCode = new CodeBuilder();
+            for (let field of (def.fields || []).filter(f => !isPrimitiveType(f.type, enumNames))) {
+                returnTypesMapCode.add(`${field.name.value}: ${fetchType(field.type)},`);
+            }
 
-            let argsMap = (def.fields || [])
-                .map(f => f.arguments && f.arguments.length > 0 ? `${f.name.value}: GQL.${argumentsInterfaceName(def as any, f)}` : undefined)
-                .filter(d => !!d)
-                .join(', ');
-
+            let argsMapCode = new CodeBuilder();
+            for (let field of (def.fields || [])) {
+                if (field.arguments && field.arguments.length > 0) {
+                    argsMapCode.add(`${field.name.value}: GQL.${argumentsInterfaceName(def as any, field)},`);
+                }
+            }
             let isSubscription = def.name.value === 'Subscription';
 
-            code.add(`${def.name.value}?: ${isSubscription ? 'ComplexTypedSubscriptionResolver' : 'ComplexTypedResolver'}<GQL.${def.name.value}, GQLRoots.${def.name.value}Root, {${returnTypesMap}}, {${argsMap}}>;`);
+            code.add(`${def.name.value}?: ${isSubscription ? 'ComplexTypedSubscriptionResolver' : 'ComplexTypedResolver'}<`);
+            code.tab();
+            code.add(`GQL.${def.name.value},`);
+            code.add(`GQLRoots.${def.name.value}Root,`);
+            code.add(`{`);
+            code.tab();
+            code.addCode(returnTypesMapCode);
+            code.unTab();
+            code.add(`},`);
+            code.add(`{`);
+            code.tab();
+            code.addCode(argsMapCode);
+            code.unTab();
+            code.add(`}`);
+            code.unTab();
+            code.add(`>;`);
         } else if (isUnionTypeDefinition(def)) {
             let returnTypes = ((def.types && def.types.map(t => t.name.value)) || []).map(n => `'${n}'`);
             code.add(`${def.name.value}?: UnionTypeResolver<GQLRoots.${def.name.value}Root, ${returnTypes.join(' | ')}>;`);
