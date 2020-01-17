@@ -47,6 +47,10 @@ interface FuckApolloServerParams {
     formatResponse(response: any, operation: GQlServerOperation, context: Context): Promise<any>;
 
     onOperation(ctx: Context, operation: GQlServerOperation): Promise<any>;
+
+    onOperationFinish(ctx: Context, operation: GQlServerOperation, duration: number): Promise<any>;
+
+    onEventResolveFinish(ctx: Context, operation: GQlServerOperation, duration: number): Promise<any>;
 }
 
 class FuckApolloSession {
@@ -217,7 +221,8 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         operationName: operation.operationName,
                         variableValues: operation.variables,
                         fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx),
-                        ctx
+                        ctx,
+                        onEventResolveFinish: duration => params.onEventResolveFinish(ctx, operation, duration)
                     });
 
                     if (!isAsyncIterator(iterator)) {
@@ -243,7 +248,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             } else {
                 let ctx = await params.context(session.authParams, operation);
                 await params.onOperation(ctx, operation);
-
+                let opStartTime = Date.now();
                 let result = await execute({
                     schema: params.executableSchema,
                     document: query,
@@ -253,6 +258,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 });
                 session.sendData(message.id, await params.formatResponse(result, operation, ctx));
                 session.sendComplete(message.id);
+                await params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
             }
         } else if (message.type && message.type === 'stop') {
             session.stopOperation(message.id);

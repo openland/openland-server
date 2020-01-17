@@ -12,7 +12,8 @@ export async function* gqlSubscribe(
         operationName,
         fieldResolver,
         subscribeFieldResolver,
-        ctx
+        ctx,
+        onEventResolveFinish
     }: {
         schema: GraphQLSchema;
         document: DocumentNode;
@@ -23,6 +24,7 @@ export async function* gqlSubscribe(
         operationName?: Maybe<string>;
         fieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
         subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
+        onEventResolveFinish: (duration: number) => void
     }) {
 
     const sourcePromise = createSourceEventStream(
@@ -50,7 +52,10 @@ export async function* gqlSubscribe(
     if (isAsyncIterator(res)) {
         try {
             for await (let data of res) {
-                yield await mapSourceToResponse(data);
+                let resolveStart = Date.now();
+                let event = await mapSourceToResponse(data);
+                onEventResolveFinish(Date.now() - resolveStart);
+                yield event;
             }
         } catch (e) {
             yield {errors: [e]};
