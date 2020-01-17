@@ -25,6 +25,13 @@ interface GQlServerOperation {
     query: string;
 }
 
+// For compatibility reasons
+const fetchGQlServerOperation = (src: any) => ({
+    operationName: src.operationName || src.name || undefined,
+    variables: src.variables,
+    query: src.query
+});
+
 interface FuckApolloServerParams {
     server?: http.Server | https.Server;
     path: string;
@@ -174,6 +181,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
         await Promise.resolve(session.waitAuth);
 
         if (message.type && message.type === 'start') {
+            let operation = fetchGQlServerOperation(message.payload);
             let query: DocumentNode;
             if (message.payload.query_id && params.queryCache) {
                 let cachedQuery = await params.queryCache.get(message.payload.query_id.trim());
@@ -184,10 +192,10 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                     session.sendComplete(message.id);
                     return;
                 }
-            } else if (message.payload.query) {
+            } else if (operation.query) {
                 query = parse(message.payload.query);
                 if (params.queryCache) {
-                    await params.queryCache.store(message.payload.query);
+                    await params.queryCache.store(operation.query);
                 }
             } else {
                 session.sendComplete(message.id);
@@ -195,26 +203,26 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             }
 
             // let query = parse(message.payload.query);
-            let isSubscription = isSubscriptionQuery(query, message.payload.operationName);
+            let isSubscription = isSubscriptionQuery(query, operation.operationName);
 
             if (isSubscription) {
                 let working = true;
                 let ctx = await params.subscriptionContext(session.authParams, message.payload);
                 asyncRun(async () => {
-                    await params.onOperation(ctx, message.payload);
+                    await params.onOperation(ctx, operation);
 
                     let iterator = await gqlSubscribe({
                         schema: params.executableSchema,
                         document: query,
-                        operationName: message.payload.operationName,
-                        variableValues: message.payload.variables,
-                        fetchContext: async () => await params.subscriptionContext(session.authParams, message.payload, ctx),
+                        operationName: operation.operationName,
+                        variableValues: operation.variables,
+                        fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx),
                         ctx
                     });
 
                     if (!isAsyncIterator(iterator)) {
                         // handle error
-                        session.sendData(message.id, await params.formatResponse(iterator, message.payload, ctx));
+                        session.sendData(message.id, await params.formatResponse(iterator, operation, ctx));
                         session.sendComplete(message.id);
                         session.stopOperation(message.id);
                         return;
@@ -224,7 +232,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         if (!working) {
                             break;
                         }
-                        session.sendData(message.id, await params.formatResponse(event, message.payload, ctx));
+                        session.sendData(message.id, await params.formatResponse(event, operation, ctx));
                     }
                     session.sendComplete(message.id);
                 });
@@ -233,17 +241,17 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                     cancelContext(ctx);
                 });
             } else {
-                let ctx = await params.context(session.authParams, message.payload);
-                await params.onOperation(ctx, message.payload);
+                let ctx = await params.context(session.authParams, operation);
+                await params.onOperation(ctx, operation);
 
                 let result = await execute({
                     schema: params.executableSchema,
                     document: query,
-                    operationName: message.payload.operationName,
-                    variableValues: message.payload.variables,
+                    operationName: operation.operationName,
+                    variableValues: operation.variables,
                     contextValue: ctx
                 });
-                session.sendData(message.id, await params.formatResponse(result, message.payload, ctx));
+                session.sendData(message.id, await params.formatResponse(result, operation, ctx));
                 session.sendComplete(message.id);
             }
         } else if (message.type && message.type === 'stop') {
