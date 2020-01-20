@@ -49,7 +49,7 @@ export default {
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!auth.oid ? await Store.Organization.findById(ctx, auth.oid) : null;
+            let organization = (profile && profile.primaryOrganization) ? await Store.Organization.findById(ctx, profile.primaryOrganization) : null;
             let isOrganizationPicked = organization !== null;
             let orgsIDs = auth.uid ? await Modules.Orgs.findUserOrganizations(ctx, auth.uid) : [];
             let isOrganizationExists = orgsIDs.length > 0;
