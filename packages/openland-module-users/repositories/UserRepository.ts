@@ -58,7 +58,7 @@ export class UserRepository {
             }
             if (user.status !== 'activated') {
                 user.status = 'activated';
-                user.invitedBy = invitedBy;
+                user.invitedBy = user.invitedBy || invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
                 userActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
