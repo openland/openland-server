@@ -161,6 +161,19 @@ export class UserRepository {
         });
     }
 
+    async bindInvitedBy(parent: Context, uid: number, inviteKey: string) {
+        await inTx(parent, async ctx => {
+            let user = (await Store.User.findById(ctx, uid));
+            if (!user) {
+                throw new NotFoundError('Unable to find user');
+            }
+            let invite = await Modules.Invites.resolveInvite(ctx, inviteKey);
+            if (invite) {
+                user.invitedBy = invite.creatorId;
+            }
+        });
+    }
+
     /*
      * Bots
      */

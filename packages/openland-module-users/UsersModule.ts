@@ -76,6 +76,10 @@ export class UsersModule {
         return await this.repo.createUserProfile(ctx, uid, input);
     }
 
+    async userBindInvitedBy(ctx: Context, uid: number, inviteKey: string) {
+       return await this.repo.bindInvitedBy(ctx, uid, inviteKey);
+    }
+
     async findProfilePrefill(ctx: Context, uid: number) {
         return this.repo.findProfilePrefill(ctx, uid);
     }
