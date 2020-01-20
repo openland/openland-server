@@ -39,6 +39,7 @@ type Organization {
     alphaIsPrivate: Boolean!
 
     betaPublicRooms: [SharedRoom!]!
+    betaPublicRoomsCount: Int!
     status: String!
     membersCount: Int!
     personal: Boolean!

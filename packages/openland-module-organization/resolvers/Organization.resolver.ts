@@ -71,6 +71,7 @@ export default {
         alphaIsPrivate: (src: Organization) => src.private || false,
 
         betaPublicRooms: resolveOrganizationRooms,
+        betaPublicRoomsCount: async (src, args, ctx) => (await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id)).length,
         status: async (src: Organization) => src.status,
         membersCount: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
         personal: async (src: Organization) => src.personal || false,
