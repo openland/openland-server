@@ -146,7 +146,13 @@ export async function sendCode(req: express.Request, response: express.Response)
                 pictureId = profile && profile.picture && profile.picture.uuid;
             }
 
-            response.json({ ok: true, session: authSession!.uid, pictureId, profileExists: !!profile });
+            response.json({
+                ok: true,
+                session: authSession!.uid,
+                profileExists: !!profile,
+                pictureId,
+                pictureCrop: profile && profile.picture && profile.picture.crop
+            });
             return;
         } else {
             sendError(response, 'server_error');
