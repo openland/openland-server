@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '57f4928145803ce5f1e020941ee6ea6c';
+export const GQL_SPEC_VERSION = 'a8f846b578358e8bfe477cc7f6cd302c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -326,6 +326,7 @@ export namespace GQL {
         last4: string;
         expMonth: number;
         expYear: number;
+        default: boolean;
     }
     export interface CardSetupIntent {
         id: string;
