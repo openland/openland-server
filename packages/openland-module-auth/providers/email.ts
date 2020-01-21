@@ -27,6 +27,7 @@ const Errors = {
     invalid_auth_token: 'An unexpected error occurred. Please try again.',
     session_expired: 'An unexpected error occurred. Please try again.',
     wrong_code_length: 'The code you entered is incorrect. Please check the code in the email and try again.',
+    too_many_attempts: 'You had too much attempts to login lately. Please try again later'
 };
 
 type ErrorsEnum = keyof typeof Errors;
@@ -103,6 +104,7 @@ async function findUserByEmail(ctx: Context, email: string) {
         return null;
     }
 }
+
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
@@ -135,14 +137,22 @@ export async function sendCode(req: express.Request, response: express.Response)
         if (email) {
             if (!checkEmail(email)) {
                 sendError(response, 'invalid_email');
+                return;
             }
 
             email = (email as string).toLowerCase().trim();
+
+            if (!(await Modules.Auth.canSendAuthEmail(ctx, email))) {
+                sendError(response, 'too_many_attempts');
+                return;
+            }
+
             let isTest = isTestEmail(email);
             let existing = await findUserByEmail(ctx, email);
 
             if (!isTest) {
                 await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
+                await Modules.Auth.onAuthEmailSent(ctx, email);
             } else {
                 code = testEmailCode(email);
             }

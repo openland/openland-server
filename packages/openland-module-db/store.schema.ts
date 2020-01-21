@@ -1764,6 +1764,10 @@ export default declareSchema(() => {
         field('enabled', boolean());
     });
 
+    atomicInt('LastAuthEmailSentTime', () => {
+        primaryKey('uid', string());
+    });
+
     entity('FeatureFlag', () => {
         primaryKey('key', string());
         field('title', string());

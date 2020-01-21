@@ -1290,6 +1290,42 @@ export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactor
     }
 }
 
+export class LastAuthEmailSentTimeFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('lastAuthEmailSentTime');
+        return new LastAuthEmailSentTimeFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: string) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: string) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: string, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: string, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: string) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: string) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export interface UserShape {
     id: number;
     authId: string;
@@ -16198,6 +16234,7 @@ export interface Store extends BaseStore {
     readonly StatsRecords: StatsRecordsFactory;
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
+    readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -16378,6 +16415,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StatsRecordsPromise = StatsRecordsFactory.open(storage);
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
+    let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -16536,6 +16574,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StatsRecords: await StatsRecordsPromise,
         RoomMessagesCounter: await RoomMessagesCounterPromise,
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
+        LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
