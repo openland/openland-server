@@ -8,6 +8,7 @@ type CreditCard {
     last4: String!
     expMonth: Int!
     expYear: Int!
+    isDefault: Boolean!
 }
 
 type CardSetupIntent {
