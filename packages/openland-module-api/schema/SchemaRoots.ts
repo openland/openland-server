@@ -79,6 +79,7 @@ import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfo
 import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
+import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
 
 //
 //  Root types
@@ -481,4 +482,5 @@ export namespace GQLRoots {
     // Permissions
     //
     export type PermissionRequestRoot = PermissionRequest;
+    export type PermissionGroupRoot = PermissionGroup;
 }

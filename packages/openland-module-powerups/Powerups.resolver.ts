@@ -9,14 +9,13 @@ export default {
         id: root => IDs.Powerup.serialize(root.id),
         description: root => root.description,
         image: root => root.image,
-        imageInfo: root => root.imageInfo,
-        imagePreview: root => root.imagePreview,
         name: root => root.name,
     },
     PowerupUserSettings: {
         enabled: root => root.enabled,
     },
     RoomPowerup: {
+        id: (root) => IDs.ChatPowerup.serialize(`${root.pid}_${root.cid}`),
         powerup: (root, args, ctx) => Store.Powerup.findById(ctx, root.pid),
         userSettings: withActivatedUser((ctx, args, uid, root) => {
             return Modules.Powerups.extractSettingsFromChatPowerup(root, uid);
@@ -63,7 +62,7 @@ export default {
         chatPowerups: withActivatedUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
             let powerups = await Modules.Powerups.findPowerupsInChat(ctx, cid);
-            return await Promise.all(powerups.map(a => Store.ChatPowerup.single.find(ctx, a, cid)));
+            return await Promise.all(powerups.map(a => Store.ChatPowerup.findById(ctx, a, cid)));
         })
     }
 } as GQLResolver;

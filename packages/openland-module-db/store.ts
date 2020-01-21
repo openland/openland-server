@@ -12172,27 +12172,36 @@ export class UserLocationFactory extends EntityFactory<UserLocationShape, UserLo
 
 export interface PowerupShape {
     id: number;
+    uid: number | null;
     name: string;
     permissions: (string)[];
     image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
-    imagePreview: string | null;
-    imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null;
+    imageMonochrome: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
     description: string | null;
     deleted: boolean;
 }
 
 export interface PowerupCreateShape {
+    uid?: number | null | undefined;
     name: string;
     permissions: (string)[];
     image?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
-    imagePreview?: string | null | undefined;
-    imageInfo?: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined;
+    imageMonochrome?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
     description?: string | null | undefined;
     deleted: boolean;
 }
 
 export class Powerup extends Entity<PowerupShape> {
     get id(): number { return this._rawValue.id; }
+    get uid(): number | null { return this._rawValue.uid; }
+    set uid(value: number | null) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
     get name(): string { return this._rawValue.name; }
     set name(value: string) {
         let normalized = this.descriptor.codec.fields.name.normalize(value);
@@ -12220,21 +12229,12 @@ export class Powerup extends Entity<PowerupShape> {
             this.invalidate();
         }
     }
-    get imagePreview(): string | null { return this._rawValue.imagePreview; }
-    set imagePreview(value: string | null) {
-        let normalized = this.descriptor.codec.fields.imagePreview.normalize(value);
-        if (this._rawValue.imagePreview !== normalized) {
-            this._rawValue.imagePreview = normalized;
-            this._updatedValues.imagePreview = normalized;
-            this.invalidate();
-        }
-    }
-    get imageInfo(): { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null { return this._rawValue.imageInfo; }
-    set imageInfo(value: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null) {
-        let normalized = this.descriptor.codec.fields.imageInfo.normalize(value);
-        if (this._rawValue.imageInfo !== normalized) {
-            this._rawValue.imageInfo = normalized;
-            this._updatedValues.imageInfo = normalized;
+    get imageMonochrome(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this._rawValue.imageMonochrome; }
+    set imageMonochrome(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null) {
+        let normalized = this.descriptor.codec.fields.imageMonochrome.normalize(value);
+        if (this._rawValue.imageMonochrome !== normalized) {
+            this._rawValue.imageMonochrome = normalized;
+            this._updatedValues.imageMonochrome = normalized;
             this.invalidate();
         }
     }
@@ -12266,20 +12266,20 @@ export class PowerupFactory extends EntityFactory<PowerupShape, Powerup> {
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'name', type: { type: 'string' }, secure: false });
         fields.push({ name: 'permissions', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'image', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
-        fields.push({ name: 'imagePreview', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'imageInfo', type: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'imageMonochrome', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'description', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             id: c.integer,
+            uid: c.optional(c.integer),
             name: c.string,
             permissions: c.array(c.string),
             image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
-            imagePreview: c.optional(c.string),
-            imageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })),
+            imageMonochrome: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
             description: c.optional(c.string),
             deleted: c.boolean,
         });
@@ -12437,20 +12437,20 @@ export interface PermissionRequestShape {
     id: string;
     uid: number;
     gid: number;
+    appType: 'powerup';
     appId: number;
-    appType: string;
+    scopeType: 'global' | 'chat';
     scopeId: number | null;
-    scopeType: string;
     status: 'rejected' | 'waiting' | 'granted';
 }
 
 export interface PermissionRequestCreateShape {
     uid: number;
     gid: number;
+    appType: 'powerup';
     appId: number;
-    appType: string;
+    scopeType: 'global' | 'chat';
     scopeId?: number | null | undefined;
-    scopeType: string;
     status: 'rejected' | 'waiting' | 'granted';
 }
 
@@ -12474,6 +12474,15 @@ export class PermissionRequest extends Entity<PermissionRequestShape> {
             this.invalidate();
         }
     }
+    get appType(): 'powerup' { return this._rawValue.appType; }
+    set appType(value: 'powerup') {
+        let normalized = this.descriptor.codec.fields.appType.normalize(value);
+        if (this._rawValue.appType !== normalized) {
+            this._rawValue.appType = normalized;
+            this._updatedValues.appType = normalized;
+            this.invalidate();
+        }
+    }
     get appId(): number { return this._rawValue.appId; }
     set appId(value: number) {
         let normalized = this.descriptor.codec.fields.appId.normalize(value);
@@ -12483,12 +12492,12 @@ export class PermissionRequest extends Entity<PermissionRequestShape> {
             this.invalidate();
         }
     }
-    get appType(): string { return this._rawValue.appType; }
-    set appType(value: string) {
-        let normalized = this.descriptor.codec.fields.appType.normalize(value);
-        if (this._rawValue.appType !== normalized) {
-            this._rawValue.appType = normalized;
-            this._updatedValues.appType = normalized;
+    get scopeType(): 'global' | 'chat' { return this._rawValue.scopeType; }
+    set scopeType(value: 'global' | 'chat') {
+        let normalized = this.descriptor.codec.fields.scopeType.normalize(value);
+        if (this._rawValue.scopeType !== normalized) {
+            this._rawValue.scopeType = normalized;
+            this._updatedValues.scopeType = normalized;
             this.invalidate();
         }
     }
@@ -12498,15 +12507,6 @@ export class PermissionRequest extends Entity<PermissionRequestShape> {
         if (this._rawValue.scopeId !== normalized) {
             this._rawValue.scopeId = normalized;
             this._updatedValues.scopeId = normalized;
-            this.invalidate();
-        }
-    }
-    get scopeType(): string { return this._rawValue.scopeType; }
-    set scopeType(value: string) {
-        let normalized = this.descriptor.codec.fields.scopeType.normalize(value);
-        if (this._rawValue.scopeType !== normalized) {
-            this._rawValue.scopeType = normalized;
-            this._updatedValues.scopeType = normalized;
             this.invalidate();
         }
     }
@@ -12536,19 +12536,19 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'gid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'appType', type: { type: 'enum', values: ['powerup'] }, secure: false });
         fields.push({ name: 'appId', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'appType', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'scopeType', type: { type: 'enum', values: ['global', 'chat'] }, secure: false });
         fields.push({ name: 'scopeId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'scopeType', type: { type: 'string' }, secure: false });
         fields.push({ name: 'status', type: { type: 'enum', values: ['rejected', 'waiting', 'granted'] }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             gid: c.integer,
+            appType: c.enum('powerup'),
             appId: c.integer,
-            appType: c.string,
+            scopeType: c.enum('global', 'chat'),
             scopeId: c.optional(c.integer),
-            scopeType: c.string,
             status: c.enum('rejected', 'waiting', 'granted'),
         });
         let descriptor: EntityDescriptor<PermissionRequestShape> = {
@@ -12594,43 +12594,43 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
     });
 
     readonly groupApp = Object.freeze({
-        findAll: async (ctx: Context, gid: number, appType: string, appId: number) => {
+        findAll: async (ctx: Context, gid: number, appType: 'powerup', appId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [gid, appType, appId])).items;
         },
-        query: (ctx: Context, gid: number, appType: string, appId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, gid: number, appType: 'powerup', appId: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [gid, appType, appId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (gid: number, appType: string, appId: number, opts?: StreamProps) => {
+        stream: (gid: number, appType: 'powerup', appId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[2], [gid, appType, appId], opts);
         },
-        liveStream: (ctx: Context, gid: number, appType: string, appId: number, opts?: StreamProps) => {
+        liveStream: (ctx: Context, gid: number, appType: 'powerup', appId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [gid, appType, appId], opts);
         },
     });
 
     readonly userApp = Object.freeze({
-        findAll: async (ctx: Context, uid: number, appType: string, appId: number) => {
+        findAll: async (ctx: Context, uid: number, appType: 'powerup', appId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [uid, appType, appId])).items;
         },
-        query: (ctx: Context, uid: number, appType: string, appId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, uid: number, appType: 'powerup', appId: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[3], [uid, appType, appId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (uid: number, appType: string, appId: number, opts?: StreamProps) => {
+        stream: (uid: number, appType: 'powerup', appId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[3], [uid, appType, appId], opts);
         },
-        liveStream: (ctx: Context, uid: number, appType: string, appId: number, opts?: StreamProps) => {
+        liveStream: (ctx: Context, uid: number, appType: 'powerup', appId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [uid, appType, appId], opts);
         },
     });
 
     readonly single = Object.freeze({
-        find: async (ctx: Context, uid: number, gid: number, appType: string, appId: number, scopeType: string, scopeId: number | null) => {
+        find: async (ctx: Context, uid: number, gid: number, appType: 'powerup', appId: number, scopeType: 'global' | 'chat', scopeId: number | null) => {
             return this._findFromUniqueIndex(ctx, [uid, gid, appType, appId, scopeType, scopeId], this.descriptor.secondaryIndexes[4]);
         },
-        findAll: async (ctx: Context, uid: number, gid: number, appType: string, appId: number, scopeType: string) => {
+        findAll: async (ctx: Context, uid: number, gid: number, appType: 'powerup', appId: number, scopeType: 'global' | 'chat') => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [uid, gid, appType, appId, scopeType])).items;
         },
-        query: (ctx: Context, uid: number, gid: number, appType: string, appId: number, scopeType: string, opts?: RangeQueryOptions<number | null>) => {
+        query: (ctx: Context, uid: number, gid: number, appType: 'powerup', appId: number, scopeType: 'global' | 'chat', opts?: RangeQueryOptions<number | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[4], [uid, gid, appType, appId, scopeType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });

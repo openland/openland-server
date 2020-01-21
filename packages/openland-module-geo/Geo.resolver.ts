@@ -2,7 +2,6 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
-import { AppContext } from '../openland-modules/AppContext';
 
 export default {
     UserLocation: {

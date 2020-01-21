@@ -1,8 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { PermissionRequestInfo, PermissionsRepository } from './PermissionsRepository';
-import { inTx } from '@openland/foundationdb';
-import { Store } from '../openland-module-db/FDB';
 
 @injectable()
 export class PermissionsModule {
@@ -25,7 +23,7 @@ export class PermissionsModule {
         return this.repo.updatePermissionStatus(parent, info, status);
     }
 
-    public getGrantedPermissionsForApp(parent: Context, uid: number, appId: number, appType: string) {
+    public getGrantedPermissionsForApp(parent: Context, uid: number, appId: number, appType: 'powerup') {
         return this.repo.getGrantedPermissionsForApp(parent, uid, appId, appType);
     }
 
@@ -37,7 +35,11 @@ export class PermissionsModule {
         return this.repo.getUserPermissions(parent, uid);
     }
 
-    public getPermissionGroups(parent: Context, uid: number) {
-        return t;
+    public getPermissionsForGroup(parent: Context, uid: number, gid: number) {
+        return this.repo.getPermissionsForGroup(parent, uid, gid);
+    }
+
+    public getPermissionGroups(parent: Context) {
+        return this.repo.getPermissionGroups(parent);
     }
 }

@@ -9,8 +9,6 @@ type Powerup {
     name: String!
     description: String!
     image: ImageRef
-    imagePreview: String
-    imageInfo: FileMetadata
 }
 
 input PowerupUserSettingsInput {
@@ -22,6 +20,7 @@ type PowerupUserSettings {
 }
 
 type RoomPowerup {
+    id: ID!
     powerup: Powerup!
     userSettings: PowerupUserSettings!
 }

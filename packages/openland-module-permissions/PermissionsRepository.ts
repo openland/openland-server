@@ -4,7 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { Store } from '../openland-module-db/FDB';
 import uuid from 'uuid';
 
-interface PermissionGroup {
+export interface PermissionGroup {
     id: number;
     name: string;
     description: string;
@@ -25,7 +25,7 @@ export enum Permissions {
 export type PermissionRequestInfo = {
     uid: number;
     gid: number;
-    appType: string;
+    appType: 'powerup';
     appId: number;
     scopeType: 'global' | 'chat';
     scopeId?: number | null;
@@ -76,7 +76,7 @@ export class PermissionsRepository {
         });
     }
 
-    public getGrantedPermissionsForApp(parent: Context, uid: number, appId: number, appType: string) {
+    public getGrantedPermissionsForApp(parent: Context, uid: number, appId: number, appType: 'powerup') {
         return inTx(parent, async ctx => {
            let permissions = await Store.PermissionRequest.userApp.findAll(ctx, uid, appType, appId);
            return permissions.filter(a => a.status === 'granted');
@@ -96,7 +96,13 @@ export class PermissionsRepository {
         });
     }
 
-    public getPermissionGroups(parent: Context, uid: number) {
+    public getPermissionsForGroup(parent: Context, uid: number, gid: number) {
+        return inTx(parent, async ctx => {
+            return await Store.PermissionRequest.userGroup.findAll(ctx, uid, gid);
+        });
+    }
+
+    public getPermissionGroups(parent: Context) {
         return permissionGroups;
     }
 }
