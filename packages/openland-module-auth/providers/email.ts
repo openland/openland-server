@@ -9,7 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AuthCodeSession, UserProfile } from 'openland-module-db/store';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
-import { createNamedContext } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 const rootCtx = createNamedContext('auth-email');
 
@@ -89,6 +89,20 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
     };
 }
 
+async function findUserByEmail(ctx: Context, email: string) {
+    let existing = await Promise.all([
+        Store.User.authId.find(ctx, 'email|' + email),
+        Store.User.email.find(ctx, email)
+    ]);
+
+    if (existing[0]) {
+        return existing[0];
+    } else if (existing[1]) {
+        return existing[1];
+    } else {
+        return null;
+    }
+}
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
@@ -125,7 +139,7 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
             let isTest = isTestEmail(email);
-            let existing = (await Store.User.findAll(ctx)).find((v) => v.email === email || v.authId === 'email|' + email as any);
+            let existing = await findUserByEmail(ctx, email);
 
             if (!isTest) {
                 await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
@@ -273,7 +287,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.email) {
-            let existing = await Store.User.email.find(ctx, authSession.email.toLowerCase());
+            let existing = await findUserByEmail(ctx, authSession.email.toLowerCase());
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });
