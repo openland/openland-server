@@ -102,10 +102,10 @@ describe('Emails', () => {
 
     it('should send unread message email', async () => {
         let ctx = createNamedContext('test');
-        let spy = getSpy();
+
         let {uid, email} = await randomUser(ctx);
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
-        spy.mock.calls = [];
+        let spy = getSpy();
 
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let msg = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
@@ -121,11 +121,11 @@ describe('Emails', () => {
 
     it('should send unread messages email', async () => {
         let ctx = createNamedContext('test');
-        let spy = getSpy();
+
         let {uid, email} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
-        spy.mock.calls = [];
+        let spy = getSpy();
 
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let messages: Message[] = [];
@@ -294,12 +294,11 @@ describe('Emails', () => {
 
     it('should send room invite email', async () => {
         let ctx = createNamedContext('test');
-        let spy = getSpy();
         let {uid} = await randomUser(ctx);
         let {email: email2} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
-        spy.mock.calls = [];
+        let spy = getSpy();
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let chat2 = await Modules.Messaging.room.createRoom(ctx, 'public', org.id, uid, [], { title: '' });
 

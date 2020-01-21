@@ -52,7 +52,12 @@ import {
     FeedRebuildEvent,
     OauthApplication,
     OauthContext,
-    UserLocation, ChatPowerup, Powerup, UserStripeCard, Account, AccountTransaction,
+    UserLocation,
+    ChatPowerup,
+    Powerup,
+    UserStripeCard,
+    Account,
+    AccountTransaction, PermissionRequest,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -471,4 +476,9 @@ export namespace GQLRoots {
     export type WalletTransactionConnectionRoot = { items: AccountTransaction[], cursor?: string };
 
     export type PaymentIntentRoot = Stripe.PaymentIntent;
+
+    //
+    // Permissions
+    //
+    export type PermissionRequestRoot = PermissionRequest;
 }

@@ -1,0 +1,7 @@
+extend type Query  {
+    chatLocations(id: ID!): [UserLocation!]!
+}
+
+extend type Subscription {
+    chatLocationUpdates(id: ID!): UserLocation!
+}

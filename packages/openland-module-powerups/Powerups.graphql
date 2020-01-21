@@ -1,11 +1,6 @@
-enum PowerupPermission {
-    LOCATION
-}
-
 input PowerupInput {
     name: String
     description: String
-    permissions: [PowerupPermission!]
     image: ImageRefInput
 }
 
@@ -13,7 +8,6 @@ type Powerup {
     id: ID!
     name: String!
     description: String!
-    permissions: [PowerupPermission!]!
     image: ImageRef
     imagePreview: String
     imageInfo: FileMetadata
@@ -32,14 +26,6 @@ type RoomPowerup {
     userSettings: PowerupUserSettings!
 }
 
-extend type SharedRoom {
-    powerups: [RoomPowerup!]!
-}
-
-extend type PrivateRoom {
-    powerups: [RoomPowerup!]!
-}
-
 extend type Mutation {
     createPowerup(input: PowerupInput!): Powerup!
     updatePowerup(id: ID!, input: PowerupInput!): Powerup!
@@ -52,4 +38,5 @@ extend type Mutation {
 extend type Query {
     powerups: [Powerup!]!
     chatsWithPowerup(id: ID!): [Room!]!
+    chatPowerups(id: ID!): [RoomPowerup!]!
 }
