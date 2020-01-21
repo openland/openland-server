@@ -52,7 +52,12 @@ import {
     FeedRebuildEvent,
     OauthApplication,
     OauthContext,
-    UserLocation, ChatPowerup, Powerup, UserStripeCard, Account, AccountTransaction,
+    UserLocation,
+    ChatPowerup,
+    Powerup,
+    UserStripeCard,
+    Account,
+    AccountTransaction, PermissionRequest,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -74,6 +79,7 @@ import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfo
 import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
+import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
 
 //
 //  Root types
@@ -471,4 +477,10 @@ export namespace GQLRoots {
     export type WalletTransactionConnectionRoot = { items: AccountTransaction[], cursor?: string };
 
     export type PaymentIntentRoot = Stripe.PaymentIntent;
+
+    //
+    // Permissions
+    //
+    export type PermissionRequestRoot = PermissionRequest;
+    export type PermissionGroupRoot = PermissionGroup;
 }

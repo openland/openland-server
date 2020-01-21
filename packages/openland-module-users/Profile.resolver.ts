@@ -49,8 +49,14 @@ export default {
         },
     },
     Mutation: {
-        profileCreate: withUser(async (ctx, args, uid) => {
-            return await Modules.Users.createUserProfile(ctx, uid, args.input);
+        profileCreate: withUser(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                let res = await Modules.Users.createUserProfile(ctx, uid, args.input);
+                if (args.inviteKey) {
+                    await Modules.Users.userBindInvitedBy(ctx, uid, args.inviteKey);
+                }
+                return res;
+            });
         }),
         profileUpdate: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
@@ -64,6 +70,9 @@ export default {
                 let user = await Store.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
+                }
+                if (args.inviteKey) {
+                    await Modules.Users.userBindInvitedBy(ctx, uid, args.inviteKey);
                 }
                 let profile = await Modules.Users.profileById(ctx, uid);
                 if (!profile) {

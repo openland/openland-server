@@ -60,9 +60,10 @@ export class InvitesMediator {
             if (!inviteData) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
-            // Do nothing if user already activated
+            // Do nothing if chat with inviter created
             let user = (await Store.User.findById(ctx, uid))!;
-            if (user.status === 'activated') {
+            let privateChat = await Store.ConversationPrivate.users.find(ctx, Math.min(user.id, inviteData.uid), Math.max(user.id, inviteData.uid));
+            if (privateChat) {
                 return 'ok';
             }
             await Modules.Metrics.onOpenlandInviteJoin(ctx, uid, inviteData.uid);

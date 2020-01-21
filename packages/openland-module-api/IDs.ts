@@ -70,6 +70,7 @@ export const IDs = {
     MentionSearchCursor: IdsFactory.createId('MentionSearchCursor'),
     OauthApp: IdsFactory.createId('OauthApp'),
     Powerup: IdsFactory.createId('Powerup'),
+    ChatPowerup: IdsFactory.createStringId('ChatPowerup'),
     CreditCard: IdsFactory.createStringId('CreditCard'),
     CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
     
@@ -77,4 +78,7 @@ export const IDs = {
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
 
     PaymentIntent: IdsFactory.createStringId('PaymentIntent'),
+
+    PermissionGroup: IdsFactory.createId('PermissionGroup'),
+    PermissionRequest: IdsFactory.createStringId('PermissionRequest')
 };

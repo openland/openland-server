@@ -58,7 +58,7 @@ export class UserRepository {
             }
             if (user.status !== 'activated') {
                 user.status = 'activated';
-                user.invitedBy = invitedBy;
+                user.invitedBy = user.invitedBy || invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
                 userActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
@@ -158,6 +158,19 @@ export class UserRepository {
             await this.markForUndexing(ctx, uid);
             userProfileCreated.event(ctx, { uid: uid });
             return profile;
+        });
+    }
+
+    async bindInvitedBy(parent: Context, uid: number, inviteKey: string) {
+        await inTx(parent, async ctx => {
+            let user = (await Store.User.findById(ctx, uid));
+            if (!user) {
+                throw new NotFoundError('Unable to find user');
+            }
+            let invite = await Modules.Invites.resolveInvite(ctx, inviteKey);
+            if (invite) {
+                user.invitedBy = invite.creatorId;
+            }
         });
     }
 

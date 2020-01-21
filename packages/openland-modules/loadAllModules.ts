@@ -66,6 +66,8 @@ import { loadGeoModule } from '../openland-module-geo/GeoModule.container';
 import { loadPowerupsModule } from '../openland-module-powerups/PowerupsModule.container';
 import { GeoModule } from '../openland-module-geo/GeoModule';
 import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
+import { loadPermissionsModule } from '../openland-module-permissions/PermissionsModule.container';
+import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 
 const logger = createLogger('starting');
 
@@ -131,6 +133,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadMatchmakingModule();
     loadGeoModule();
     loadPowerupsModule();
+    loadPermissionsModule();
 }
 
 export async function startAllModules() {
@@ -173,4 +176,5 @@ export async function startAllModules() {
     await container.get(GeoModule).start();
     await container.get(PowerupsModule).start();
     await container.get(BillingModule).start();
+    await container.get(PermissionsModule).start();
 }
