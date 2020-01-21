@@ -14253,6 +14253,7 @@ export interface AuthCodeSessionShape {
     uid: string;
     code: string;
     expires: number;
+    attemptsCount: number | null;
     email: string;
     tokenId: string | null;
     enabled: boolean;
@@ -14261,6 +14262,7 @@ export interface AuthCodeSessionShape {
 export interface AuthCodeSessionCreateShape {
     code: string;
     expires: number;
+    attemptsCount?: number | null | undefined;
     email: string;
     tokenId?: string | null | undefined;
     enabled: boolean;
@@ -14283,6 +14285,15 @@ export class AuthCodeSession extends Entity<AuthCodeSessionShape> {
         if (this._rawValue.expires !== normalized) {
             this._rawValue.expires = normalized;
             this._updatedValues.expires = normalized;
+            this.invalidate();
+        }
+    }
+    get attemptsCount(): number | null { return this._rawValue.attemptsCount; }
+    set attemptsCount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.attemptsCount.normalize(value);
+        if (this._rawValue.attemptsCount !== normalized) {
+            this._rawValue.attemptsCount = normalized;
+            this._updatedValues.attemptsCount = normalized;
             this.invalidate();
         }
     }
@@ -14325,6 +14336,7 @@ export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, 
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'code', type: { type: 'string' }, secure: true });
         fields.push({ name: 'expires', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'attemptsCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'email', type: { type: 'string' }, secure: false });
         fields.push({ name: 'tokenId', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
@@ -14332,6 +14344,7 @@ export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, 
             uid: c.string,
             code: c.string,
             expires: c.integer,
+            attemptsCount: c.optional(c.integer),
             email: c.string,
             tokenId: c.optional(c.string),
             enabled: c.boolean,

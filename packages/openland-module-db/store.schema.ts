@@ -1758,6 +1758,7 @@ export default declareSchema(() => {
         primaryKey('uid', string());
         field('code', string()).secure();
         field('expires', integer());
+        field('attemptsCount', optional(integer()));
         field('email', string());
         field('tokenId', optional(string())).secure();
         field('enabled', boolean());

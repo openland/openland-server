@@ -20,6 +20,7 @@ export class AuthCodeRepository {
             return Store.AuthCodeSession.create(ctx, base64.encodeBuffer(randomBytes(64)), {
                 code,
                 expires: Date.now() + 1000 * 60 * 10 /* 10 Minutes */,
+                attemptsCount: 0,
                 email,
                 enabled: true,
                 tokenId: null

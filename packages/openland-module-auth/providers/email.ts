@@ -137,6 +137,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
             } else {
                 authSession.code = code;
+                authSession.attemptsCount = 0;
             }
 
             let pictureId: string | undefined;
@@ -205,8 +206,19 @@ export async function checkCode(req: express.Request, response: express.Response
             return;
         }
 
+        // max 5 attempts
+        if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
+            sendError(response, 'code_expired');
+            return;
+        }
+
         // Wrong code
         if (authSession.code! !== code) {
+            if (authSession.attemptsCount) {
+                authSession.attemptsCount++;
+            } else {
+                authSession.attemptsCount = 1;
+            }
             sendError(response, 'wrong_code');
             return;
         }
