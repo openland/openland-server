@@ -142,10 +142,10 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
 
-            if (!(await Modules.Auth.canSendAuthEmail(ctx, email))) {
-                sendError(response, 'too_many_attempts');
-                return;
-            }
+            // if (!(await Modules.Auth.canSendAuthEmail(ctx, email))) {
+            //     sendError(response, 'too_many_attempts');
+            //     return;
+            // }
 
             let isTest = isTestEmail(email);
             let existing = await findUserByEmail(ctx, email);
@@ -230,11 +230,11 @@ export async function checkCode(req: express.Request, response: express.Response
             return;
         }
 
-        // max 5 attempts
-        if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
-            sendError(response, 'code_expired');
-            return;
-        }
+        // // max 5 attempts
+        // if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
+        //     sendError(response, 'code_expired');
+        //     return;
+        // }
 
         // Wrong code
         if (authSession.code! !== code) {
