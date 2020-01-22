@@ -10,7 +10,8 @@ export default {
         brand: (src) => src.brand,
         last4: (src) => src.last4,
         expMonth: (src) => src.exp_month,
-        expYear: (src) => src.exp_year
+        expYear: (src) => src.exp_year,
+        deleted: (src) => src.deleted
     },
     CardSetupIntent: {
         id: (src) => IDs.CreditCardSetupIntent.serialize(src.id),
@@ -38,7 +39,8 @@ export default {
 
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
-            let res = await Store.UserStripeCard.users.findAll(ctx, uid);
+            let res = (await Store.UserStripeCard.users.findAll(ctx, uid))
+                .filter((v) => !v.deleted);
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
         }),
@@ -69,6 +71,9 @@ export default {
         cardDepositIntentCommit: withAccount(async (ctx, args, uid) => {
             await Modules.Billing.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
             return true;
+        }),
+        cardRemove: withAccount(async (ctx, args, uid) => {
+            return await Modules.Billing.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id));
         })
     }
 } as GQLResolver;

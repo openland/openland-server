@@ -155,6 +155,20 @@ export class StripeMediator {
         });
     }
 
+    deleteCard = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+
+        return await inTx(parent, async (ctx) => {
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Card not found');
+            }
+            card.deleted = true;
+            await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
+            return card;
+        });
+    }
+
     //
     // Card Sync
     //

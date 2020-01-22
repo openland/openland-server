@@ -8,6 +8,7 @@ type CreditCard {
     last4: String!
     expMonth: Int!
     expYear: Int!
+    deleted: Boolean!
 }
 
 type CardSetupIntent {
@@ -57,4 +58,6 @@ extend type Mutation {
     
     cardDepositIntent(id: ID!, amount: Int!, retryKey: String!): PaymentIntent!
     cardDepositIntentCommit(id: ID!): Boolean!
+
+    cardRemove(id: ID!): CreditCard!
 }
