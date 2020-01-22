@@ -6,6 +6,7 @@ import { Context } from '@openland/context';
 import { injectable } from 'inversify';
 import { startCustomerExportWorker } from './workers/CustomerExportWorker';
 import { startCardSyncWorker } from './workers/CardSyncWorker';
+import { startEventsReaderWorker } from './workers/EventsReaderWorker';
 
 @injectable()
 export class BillingModule {
@@ -17,6 +18,7 @@ export class BillingModule {
         if (serverRoleEnabled('workers')) {
             startCustomerExportWorker(this.repo.createCustomerQueue, this.stripeMediator);
             startCardSyncWorker(this.repo.syncCardQueue, this.stripeMediator);
+            startEventsReaderWorker(this.stripeMediator);
         }
     }
 

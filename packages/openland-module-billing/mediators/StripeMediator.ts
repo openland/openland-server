@@ -1,8 +1,11 @@
+import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { BillingRepository } from './../repo/BillingRepository';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
+
+const log = createLogger('stripe');
 
 export class StripeMediator {
 
@@ -328,18 +331,33 @@ export class StripeMediator {
                 } else {
                     throw Error('Invalid intent');
                 }
-            } else if (dp.status === 'canceled') {
-                if (intent.state === 'success' || intent.state === 'failed' || intent.state === 'canceled') {
-                    return;
-                }
-                intent.state = 'canceled';
-
-                if (intent.operation.type === 'deposit') {
-                    // TODO?
-                } else {
-                    throw Error('Invalid intent');
-                }
             }
         });
+    }
+
+    pullEvents = async (parent: Context, key: string) => {
+        let cursor = await Store.StripeEventsCursor.findById(parent, key);
+
+        let events = await this.stripe.events.list({
+            starting_after: cursor ? cursor.cursor : undefined,
+            types: ['payment_intent.succeeded']
+        });
+        for (let event of events.data) {
+            let id = (event.data.object as any).id as string;
+            log.debug(parent, 'Payment Intent success: ' + id);
+            await this.updatePaymentIntent(parent, id);
+        }
+
+        // Update Offset
+        if (events.data.length > 0) {
+            await inTx(parent, async (ctx) => {
+                let ex = await Store.StripeEventsCursor.findById(parent, key);
+                if (!ex) {
+                    await Store.StripeEventsCursor.create(ctx, key, { cursor: events.data[0].id });
+                } else {
+                    ex.cursor = events.data[0].id;
+                }
+            });
+        }
     }
 }

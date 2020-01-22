@@ -13627,6 +13627,74 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
     }
 }
 
+export interface StripeEventsCursorShape {
+    id: string;
+    cursor: string;
+}
+
+export interface StripeEventsCursorCreateShape {
+    cursor: string;
+}
+
+export class StripeEventsCursor extends Entity<StripeEventsCursorShape> {
+    get id(): string { return this._rawValue.id; }
+    get cursor(): string { return this._rawValue.cursor; }
+    set cursor(value: string) {
+        let normalized = this.descriptor.codec.fields.cursor.normalize(value);
+        if (this._rawValue.cursor !== normalized) {
+            this._rawValue.cursor = normalized;
+            this._updatedValues.cursor = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorShape, StripeEventsCursor> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('stripeEventsCursor');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'cursor', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            cursor: c.string,
+        });
+        let descriptor: EntityDescriptor<StripeEventsCursorShape> = {
+            name: 'StripeEventsCursor',
+            storageKey: 'stripeEventsCursor',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StripeEventsCursorFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StripeEventsCursorShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: StripeEventsCursorCreateShape): Promise<StripeEventsCursor> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: StripeEventsCursorCreateShape): StripeEventsCursor {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<StripeEventsCursor | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventsCursorShape>): StripeEventsCursor {
+        return new StripeEventsCursor([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserAccountShape {
     uid: number;
     aid: string;
@@ -16328,6 +16396,7 @@ export interface Store extends BaseStore {
     readonly AccountTransaction: AccountTransactionFactory;
     readonly Transaction: TransactionFactory;
     readonly PaymentIntent: PaymentIntentFactory;
+    readonly StripeEventsCursor: StripeEventsCursorFactory;
     readonly UserAccount: UserAccountFactory;
     readonly Sequence: SequenceFactory;
     readonly Environment: EnvironmentFactory;
@@ -16509,6 +16578,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let AccountTransactionPromise = AccountTransactionFactory.open(storage);
     let TransactionPromise = TransactionFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
+    let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
     let UserAccountPromise = UserAccountFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
@@ -16668,6 +16738,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         AccountTransaction: await AccountTransactionPromise,
         Transaction: await TransactionPromise,
         PaymentIntent: await PaymentIntentPromise,
+        StripeEventsCursor: await StripeEventsCursorPromise,
         UserAccount: await UserAccountPromise,
         Sequence: await SequencePromise,
         Environment: await EnvironmentPromise,

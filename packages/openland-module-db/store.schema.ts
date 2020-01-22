@@ -1596,7 +1596,7 @@ export default declareSchema(() => {
         rangeIndex('userGroup', ['uid', 'gid', 'createdAt']);
         rangeIndex('groupApp', ['gid', 'appType', 'appId', 'createdAt']);
         rangeIndex('userApp', ['uid', 'appType', 'appId', 'createdAt']);
-        uniqueIndex('single', ['uid', 'gid',  'appType', 'appId', 'scopeType', 'scopeId']);
+        uniqueIndex('single', ['uid', 'gid', 'appType', 'appId', 'scopeType', 'scopeId']);
     });
 
     //
@@ -1694,6 +1694,11 @@ export default declareSchema(() => {
                 uid: integer()
             })
         }));
+    });
+
+    entity('StripeEventsCursor', () => {
+        primaryKey('id', string());
+        field('cursor', string());
     });
 
     //
