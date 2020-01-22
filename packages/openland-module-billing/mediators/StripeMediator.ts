@@ -163,8 +163,21 @@ export class StripeMediator {
             if (!card) {
                 throw Error('Card not found');
             }
-            card.deleted = true;
-            await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
+            if (!card.deleted) {
+                card.deleted = true;
+
+                // Update Default
+                if (card.default) {
+                    card.default = false;
+
+                    let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid);
+                    if (ex) {
+                        ex.default = true;
+                    }
+                }
+
+                await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
+            }
             return card;
         });
     }
