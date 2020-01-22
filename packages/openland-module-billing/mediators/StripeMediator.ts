@@ -337,25 +337,26 @@ export class StripeMediator {
 
     pullEvents = async (parent: Context, key: string) => {
         let cursor = await Store.StripeEventsCursor.findById(parent, key);
-
+        log.debug(parent, 'Check events after ' + (cursor ? cursor.cursor : undefined));
         let events = await this.stripe.events.list({
             starting_after: cursor ? cursor.cursor : undefined,
             types: ['payment_intent.succeeded']
         });
         for (let event of events.data) {
             let id = (event.data.object as any).id as string;
-            log.debug(parent, 'Payment Intent success: ' + id);
+            log.debug(parent, '[' + event.id + ']Payment Intent success: ' + id);
             await this.updatePaymentIntent(parent, id);
         }
 
         // Update Offset
         if (events.data.length > 0) {
             await inTx(parent, async (ctx) => {
+                let cr = events.data[0].id;
                 let ex = await Store.StripeEventsCursor.findById(parent, key);
                 if (!ex) {
-                    await Store.StripeEventsCursor.create(ctx, key, { cursor: events.data[0].id });
+                    await Store.StripeEventsCursor.create(ctx, key, { cursor: cr });
                 } else {
-                    ex.cursor = events.data[0].id;
+                    ex.cursor = cr;
                 }
             });
         }
