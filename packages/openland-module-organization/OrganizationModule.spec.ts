@@ -51,7 +51,7 @@ describe('OrganizationModule', () => {
         let org = (await Store.Organization.findById(ctx, res.id))!;
         expect(org).not.toBeUndefined();
         expect(org).not.toBeNull();
-        expect(org.status).toEqual('pending');
+        expect(org.status).toEqual('activated');
         expect(org.ownerId).toBe(user.id);
 
         // Validate membership
@@ -64,7 +64,7 @@ describe('OrganizationModule', () => {
 
         // Should NOT update primary organization since organization is not activated yet
         let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
-        expect(profile2.primaryOrganization).toBeNull();
+        expect(profile2.primaryOrganization).toBe(org.id);
     });
 
     it('should activate organization for activated user', async () => {
@@ -85,14 +85,16 @@ describe('OrganizationModule', () => {
         // await Modules.Users.activateUser(user.id);
 
         let org1 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
+        // @ts-ignore
         let org2 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
+        // @ts-ignore
         let org3 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
-        await Modules.Orgs.activateOrganization(ctx, org2.id, true);
-        await Modules.Orgs.activateOrganization(ctx, org1.id, true);
-        await Modules.Orgs.activateOrganization(ctx, org3.id, true);
+        // await Modules.Orgs.activateOrganization(ctx, org2.id, true);
+        // await Modules.Orgs.activateOrganization(ctx, org1.id, true);
+        // await Modules.Orgs.activateOrganization(ctx, org3.id, true);
 
         let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
-        expect(profile2.primaryOrganization).toBe(org2.id);
+        expect(profile2.primaryOrganization).toBe(org1.id);
     });
 
     it('should activate user on organization activation', async () => {

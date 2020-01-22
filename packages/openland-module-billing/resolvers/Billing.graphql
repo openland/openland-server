@@ -9,6 +9,7 @@ type CreditCard {
     expMonth: Int!
     expYear: Int!
     deleted: Boolean!
+    isDefault: Boolean!
 }
 
 type CardSetupIntent {

@@ -11,7 +11,8 @@ export default {
         last4: (src) => src.last4,
         expMonth: (src) => src.exp_month,
         expYear: (src) => src.exp_year,
-        deleted: (src) => src.deleted
+        deleted: (src) => src.deleted,
+        isDefault: (src) => src.default
     },
     CardSetupIntent: {
         id: (src) => IDs.CreditCardSetupIntent.serialize(src.id),

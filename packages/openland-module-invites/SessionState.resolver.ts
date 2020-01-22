@@ -19,7 +19,7 @@ export default {
                     isAccountExists: false,
                     isCompleted: false,
                     isBlocked: false,
-                    // depricated
+                    // deprecated
                     isAccountPicked: false,
                     isAccountActivated: false,
                 };
@@ -35,7 +35,7 @@ export default {
                     isAccountExists: false,
                     isCompleted: false,
                     isBlocked: false,
-                    // depricated
+                    // deprecated
                     isAccountPicked: false,
                     isAccountActivated: false,
                 };
@@ -49,7 +49,7 @@ export default {
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!auth.oid ? await Store.Organization.findById(ctx, auth.oid) : null;
+            let organization = (profile && profile.primaryOrganization) ? await Store.Organization.findById(ctx, profile.primaryOrganization) : null;
             let isOrganizationPicked = organization !== null;
             let orgsIDs = auth.uid ? await Modules.Orgs.findUserOrganizations(ctx, auth.uid) : [];
             let isOrganizationExists = orgsIDs.length > 0;
@@ -58,7 +58,7 @@ export default {
             let orgs = await Promise.all(orgsIDs.map((v) => Store.Organization.findById(ctx, v)));
             let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o!.status === 'suspended').length === orgs.length;
             let isActivated = orgs.filter(o => o!.status === 'activated').length > 0;
-            // depricated
+            // deprecated
             let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'pending';
 
             let queryResult = {
@@ -68,7 +68,7 @@ export default {
                 isAccountExists: isOrganizationExists,
                 isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isActivated,
                 isBlocked: isAllOrganizationsSuspended,
-                // depricated
+                // deprecated
                 isAccountPicked: isOrganizationPicked,
                 isAccountActivated: isOrganizationActivated,
             };

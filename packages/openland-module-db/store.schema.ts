@@ -17,7 +17,8 @@ import {
     customDirectory,
     array,
     union,
-    event, float,
+    event,
+    float,
 } from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 
@@ -73,8 +74,7 @@ export default declareSchema(() => {
     });
 
     let notificationSettings = struct({
-        showNotification: boolean(),
-        sound: boolean(),
+        showNotification: boolean(), sound: boolean(),
     });
 
     let platformNotificationSettings = struct({
@@ -259,12 +259,8 @@ export default declareSchema(() => {
         offset: integer(), length: integer(),
     });
     const ImageRef = struct({
-        uuid: string(),
-        crop: optional(struct({
-            x: integer(),
-            y: integer(),
-            w: integer(),
-            h: integer(),
+        uuid: string(), crop: optional(struct({
+            x: integer(), y: integer(), w: integer(), h: integer(),
         })),
     });
     const FileInfo = struct({
@@ -278,8 +274,7 @@ export default declareSchema(() => {
         mimeType: string(),
     });
     const Image = struct({
-        image: ImageRef,
-        info: FileInfo
+        image: ImageRef, info: FileInfo,
     });
     const Spans = array(union({
         user_mention: struct({
@@ -378,7 +373,7 @@ export default declareSchema(() => {
                 })),
                 socialImage: optional(ImageRef),
                 socialImagePreview: optional(string()),
-                socialImageInfo: optional(FileInfo)
+                socialImageInfo: optional(FileInfo),
             }),
         }))));
         field('stickerId', optional(string()));
@@ -483,7 +478,7 @@ export default declareSchema(() => {
                 })),
                 socialImage: optional(ImageRef),
                 socialImagePreview: optional(string()),
-                socialImageInfo: optional(FileInfo)
+                socialImageInfo: optional(FileInfo),
             }),
         }))));
 
@@ -544,12 +539,8 @@ export default declareSchema(() => {
         }))));
         field('attachments', optional(array(union({
             file_attachment: struct({
-                id: string(),
-                fileId: string(),
-                filePreview: optional(string()),
-                fileMetadata: optional(FileInfo),
-            }),
-            rich_attachment: struct({
+                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
+            }), rich_attachment: struct({
                 id: string(),
                 title: optional(string()),
                 subTitle: optional(string()),
@@ -571,7 +562,7 @@ export default declareSchema(() => {
                 })),
                 socialImage: optional(ImageRef),
                 socialImagePreview: optional(string()),
-                socialImageInfo: optional(FileInfo)
+                socialImageInfo: optional(FileInfo),
             }),
         }))));
         field('slides', optional(array(union({
@@ -583,16 +574,14 @@ export default declareSchema(() => {
                 coverAlign: optional(enumString('top', 'bottom', 'cover')),
                 attachments: optional(array(union({
                     user: struct({
-                        userId: integer()
+                        userId: integer(),
+                    }), room: struct({
+                        roomId: integer(),
+                    }), organization: struct({
+                        orgId: integer(),
                     }),
-                    room: struct({
-                        roomId: integer()
-                    }),
-                    organization: struct({
-                        orgId: integer()
-                    })
-                })))
-            })
+                }))),
+            }),
         }))));
 
         // overrides
@@ -952,18 +941,11 @@ export default declareSchema(() => {
         field('content', optional(array(union({
             'new_comment': struct({
                 commentId: integer(),
+            }), 'new_matchmaking_profiles': struct({
+                peerId: integer(), uids: array(integer()), peerType: string(),
+            }), 'mention': struct({
+                peerId: integer(), peerType: string(), messageId: integer(), messageType: string(),
             }),
-            'new_matchmaking_profiles': struct({
-                peerId: integer(),
-                uids: array(integer()),
-                peerType: string()
-            }),
-            'mention': struct({
-                peerId: integer(),
-                peerType: string(),
-                messageId: integer(),
-                messageType: string()
-            })
         }))));
 
         rangeIndex('notificationCenter', ['ncid', 'id']).withCondition((src) => !src.deleted);
@@ -1434,8 +1416,7 @@ export default declareSchema(() => {
         field('published', boolean());
         field('usesCount', integer());
         field('emojis', array(struct({
-            emoji: string(),
-            stickerId: string()
+            emoji: string(), stickerId: string(),
         })));
 
         rangeIndex('author', ['uid', 'id']);
@@ -1464,16 +1445,10 @@ export default declareSchema(() => {
 
     let MatchmakingQuestion = union({
         text: struct({
-            id: string(),
-            title: string(),
-            subtitle: optional(string()),
+            id: string(), title: string(), subtitle: optional(string()),
+        }), multiselect: struct({
+            id: string(), title: string(), subtitle: optional(string()), tags: array(string()),
         }),
-        multiselect: struct({
-            id: string(),
-            title: string(),
-            subtitle: optional(string()),
-            tags: array(string())
-        })
     });
 
     entity('MatchmakingRoom', () => {
@@ -1491,13 +1466,10 @@ export default declareSchema(() => {
 
         field('answers', optional(array(union({
             text: struct({
-                question: MatchmakingQuestion,
-                text: string(),
+                question: MatchmakingQuestion, text: string(),
+            }), multiselect: struct({
+                question: MatchmakingQuestion, tags: array(string()),
             }),
-            multiselect: struct({
-                question: MatchmakingQuestion,
-                tags: array(string())
-            })
         }))));
 
         rangeIndex('room', ['peerId', 'peerType', 'createdAt']);
@@ -1556,16 +1528,15 @@ export default declareSchema(() => {
     // Geo Location
     //
     const Geolocation = struct({
-        lat: float(),
-        long: float()
+        lat: float(), long: float(),
     });
 
+    // Store all user locations (with date index)
     entity('UserLocation', () => {
         primaryKey('uid', integer());
         field('isSharing', optional(boolean()));
         field('lastLocations', array(struct({
-            date: integer(),
-            location: Geolocation
+            date: integer(), location: Geolocation,
         })));
     });
 
@@ -1587,11 +1558,11 @@ export default declareSchema(() => {
     //
     entity('Powerup', () => {
         primaryKey('id', integer());
+        field('uid', optional(integer()));
         field('name', string());
         field('permissions', array(string()));
         field('image', optional(ImageRef));
-        field('imagePreview', optional(string()));
-        field('imageInfo', optional(FileInfo));
+        field('imageMonochrome', optional(ImageRef));
         field('description', optional(string()));
         field('deleted', boolean());
     });
@@ -1605,6 +1576,27 @@ export default declareSchema(() => {
 
         rangeIndex('byPid', ['pid', 'createdAt']);
         rangeIndex('byCid', ['cid', 'createdAt']);
+    });
+
+    //
+    // Permissions
+    //
+    entity('PermissionRequest', () => {
+        primaryKey('id', string());
+
+        field('uid', integer());
+        field('gid', integer()); // group id
+        field('appType', enumString('powerup')); // appplicant type
+        field('appId', integer()); // applicant id
+        field('scopeType', enumString('global', 'chat')); // scope type: global, chat, etc.
+        field('scopeId', optional(integer())); // scope id (like chat)
+        field('status', enumString('rejected', 'waiting', 'granted'));
+
+        rangeIndex('user', ['uid', 'createdAt']);
+        rangeIndex('userGroup', ['uid', 'gid', 'createdAt']);
+        rangeIndex('groupApp', ['gid', 'appType', 'appId', 'createdAt']);
+        rangeIndex('userApp', ['uid', 'appType', 'appId', 'createdAt']);
+        uniqueIndex('single', ['uid', 'gid',  'appType', 'appId', 'scopeType', 'scopeId']);
     });
 
     //
@@ -1766,9 +1758,14 @@ export default declareSchema(() => {
         primaryKey('uid', string());
         field('code', string()).secure();
         field('expires', integer());
+        field('attemptsCount', optional(integer()));
         field('email', string());
         field('tokenId', optional(string())).secure();
         field('enabled', boolean());
+    });
+
+    atomicInt('LastAuthEmailSentTime', () => {
+        primaryKey('uid', string());
     });
 
     entity('FeatureFlag', () => {

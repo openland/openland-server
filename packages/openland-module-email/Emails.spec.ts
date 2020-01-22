@@ -1,7 +1,7 @@
 import { testEnvironmentEnd, testEnvironmentStart } from '../openland-modules/testEnvironment';
 import {
     Emails,
-    TEMPLATE_ACTIVATEED,
+    // TEMPLATE_ACTIVATEED,
     TEMPLATE_DEACTIVATED,
     TEMPLATE_INVITE,
     // TEMPLATE_MEMBER_JOINED,
@@ -102,9 +102,11 @@ describe('Emails', () => {
 
     it('should send unread message email', async () => {
         let ctx = createNamedContext('test');
-        let spy = getSpy();
+
         let {uid, email} = await randomUser(ctx);
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let spy = getSpy();
+
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let msg = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
         let message = (await Store.Message.findById(ctx, msg.id))!;
@@ -119,10 +121,12 @@ describe('Emails', () => {
 
     it('should send unread messages email', async () => {
         let ctx = createNamedContext('test');
-        let spy = getSpy();
+
         let {uid, email} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let spy = getSpy();
+
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let messages: Message[] = [];
         let msg = await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: 'test' });
@@ -145,9 +149,9 @@ describe('Emails', () => {
         let {uid: uid2, email: email2} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
-        await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
+        await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid, false, true);
 
-        await Modules.Orgs.activateOrganization(ctx, org.id, true);
+        // await Modules.Orgs.activateOrganization(ctx, org.id, true);
 
         expect(spy.mock.calls.length).toBe(2);
 
@@ -155,11 +159,11 @@ describe('Emails', () => {
         //  Organization Activated emails
         //
         let args: EmailTask = spy.mock.calls[0][1];
-        expect(args.templateId).toBe(TEMPLATE_ACTIVATEED);
+        expect(args.templateId).toBe(TEMPLATE_WELCOME);
         expect(args.to).toBe(email);
 
         let args2: EmailTask = spy.mock.calls[1][1];
-        expect(args2.templateId).toBe(TEMPLATE_ACTIVATEED);
+        expect(args2.templateId).toBe(TEMPLATE_WELCOME);
         expect(args2.to).toBe(email2);
     });
 
@@ -290,11 +294,11 @@ describe('Emails', () => {
 
     it('should send room invite email', async () => {
         let ctx = createNamedContext('test');
-        let spy = getSpy();
         let {uid} = await randomUser(ctx);
         let {email: email2} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
+        let spy = getSpy();
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
         let chat2 = await Modules.Messaging.room.createRoom(ctx, 'public', org.id, uid, [], { title: '' });
 

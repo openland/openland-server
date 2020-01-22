@@ -41,6 +41,7 @@ import { initVostokApiServer, initVostokTCPApiServer } from '../openland-mtproto
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
+import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -49,6 +50,8 @@ const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
 const authMetric = createMetric('auth-metric', 'average');
 const authMetricCtx = createNamedContext('ws');
+
+const onGqlQuery = createHyperlogger<{ operationName: string, duration: number }>('gql_query_tracing');
 
 export async function initApi(isTest: boolean) {
     const rootCtx = createNamedContext('init');
@@ -259,6 +262,26 @@ export async function initApi(isTest: boolean) {
                 //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
                 //     }
                 // }
+            },
+            onOperationFinish: async (ctx, operation, duration) => {
+                if (operation.operationName) {
+                    await inTx(rootCtx, async _ctx => {
+                        await onGqlQuery.event(_ctx, {
+                            operationName: operation.operationName!,
+                            duration
+                        });
+                    });
+                }
+            },
+            onEventResolveFinish: async (ctx, operation, duration) => {
+                if (operation.operationName) {
+                    await inTx(rootCtx, async _ctx => {
+                        await onGqlQuery.event(_ctx, {
+                            operationName: 'Event: ' + operation.operationName,
+                            duration
+                        });
+                    });
+                }
             },
             formatResponse: async (value, operation, ctx) => {
                 let auth = AuthContext.get(ctx);

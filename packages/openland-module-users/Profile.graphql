@@ -88,8 +88,8 @@ type AlphaSignupData{
 }
 
 extend type Mutation {
-    profileCreate(input: ProfileInput!): Profile!
-    profileUpdate(input: ProfileInput!, uid: ID): Profile!
+    profileCreate(input: ProfileInput!, inviteKey: String): Profile!
+    profileUpdate(input: ProfileInput!, uid: ID, inviteKey: String): Profile!
 
 
     # Deprecated

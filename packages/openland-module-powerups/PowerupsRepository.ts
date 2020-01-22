@@ -8,7 +8,6 @@ import { UserError } from 'openland-errors/UserError';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { Modules } from '../openland-modules/Modules';
-import { FileInfo } from '../openland-module-media/FileInfo';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { ChatPowerup } from '../openland-module-db/store';
 
@@ -39,11 +38,8 @@ export class PowerupsRepository {
             }
 
             input.image = Sanitizer.sanitizeImageRef(input.image);
-            let imagePreview: string | null = null;
-            let imageInfo: FileInfo | null = null;
             if (input.image) {
-                imageInfo = await Modules.Media.saveFile(ctx, input.image.uuid);
-                imagePreview = await Modules.Media.fetchLowResPreview(ctx, input.image.uuid);
+                await Modules.Media.saveFile(ctx, input.image.uuid);
             }
 
            return await Store.Powerup.create(ctx, await fetchNextDBSeq(ctx, 'powerup-id'), {
@@ -51,8 +47,6 @@ export class PowerupsRepository {
                permissions: input.permissions,
                description: input.description,
                image: input.image,
-               imageInfo,
-               imagePreview,
                deleted: false,
            });
         });
@@ -73,8 +67,6 @@ export class PowerupsRepository {
             input.image = Sanitizer.sanitizeImageRef(input.image);
             if (input.image) {
                 powerup.image = input.image;
-                powerup.imageInfo = await Modules.Media.saveFile(ctx, input.image.uuid);
-                powerup.imagePreview = await Modules.Media.fetchLowResPreview(ctx, input.image.uuid);
             }
             if (input.description) {
                 powerup.description = input.description;

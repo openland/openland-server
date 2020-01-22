@@ -66,7 +66,10 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
                 operationName: request.operationName,
                 variableValues: request.variables ? JSON.parse(request.variables) : undefined,
                 fetchContext: async () => await params.subscriptionContext(session.authParams, request, ctx),
-                ctx
+                ctx,
+                onEventResolveFinish: duration => {
+                    // noop
+                }
             });
 
             if (!isAsyncIterator(iterator)) {

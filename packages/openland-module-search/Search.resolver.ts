@@ -537,14 +537,6 @@ export default {
                 );
             }
 
-            console.dir(JSON.stringify({
-                query: {
-                    bool: {
-                        should: clauses,
-                    },
-                }
-            }), {depth: null});
-
             let hits = await Modules.Search.elastic.client.search({
                 index: 'user_profile,organization,room',
                 from: from,

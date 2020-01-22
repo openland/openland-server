@@ -7,7 +7,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { Organization, ConversationRoom } from 'openland-module-db/store';
+import { Organization } from 'openland-module-db/store';
 
 const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppContext) => {
     let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
@@ -15,18 +15,19 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
         return [];
     }
 
-    let roomsFull: { room: ConversationRoom, membersCount: number }[] = [];
     let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id);
-    for (let room of rooms) {
+    let roomsFull = await Promise.all(rooms.map(async room => {
         let conv = await Store.Conversation.findById(ctx, room.id);
         if (conv && (conv.deleted || conv.archived)) {
-            continue;
+            return null;
         }
-        roomsFull.push({ room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) });
-    }
-    roomsFull.sort((a, b) => b.membersCount - a.membersCount);
+        return { room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) };
+    }));
 
-    return roomsFull.map(r => r.room);
+    return roomsFull
+        .filter(r => r !== null)
+        .sort((a, b) => b!.membersCount - a!.membersCount)
+        .map(r => r!.room);
 };
 
 export default {
@@ -70,6 +71,7 @@ export default {
         alphaIsPrivate: (src: Organization) => src.private || false,
 
         betaPublicRooms: resolveOrganizationRooms,
+        betaPublicRoomsCount: async (src, args, ctx) => (await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id)).length,
         status: async (src: Organization) => src.status,
         membersCount: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
         personal: async (src: Organization) => src.personal || false,

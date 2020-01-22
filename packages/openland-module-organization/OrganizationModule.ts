@@ -28,13 +28,13 @@ export class OrganizationModule {
         return inTx(parent, async (ctx) => {
 
             // 1. Resolve user status
-            let status: 'activated' | 'pending' = 'pending';
+            let status: 'activated' | 'pending' = 'activated';
             let user = await Store.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }
-            if (user.status === 'activated') {
-                status = 'activated';
+            if (user.status === 'pending') {
+                await Modules.Users.activateUser(parent, uid, true);
             } else if (user.status === 'suspended') {
                 throw Error('User is suspended');
             }
