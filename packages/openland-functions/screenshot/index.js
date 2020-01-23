@@ -71,7 +71,6 @@ function handleAsync(callback) {
   }
 }
 
-
 app.post('/', handleAsync(async (req, res) => {
   await lock.inLock(async () => {
     if (!page) {
