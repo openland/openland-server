@@ -1,16 +1,13 @@
-import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { BillingRepository } from './../repo/BillingRepository';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 
-const log = createLogger('stripe');
-
 export class StripeMediator {
 
     readonly repo: BillingRepository;
-    private readonly stripe: Stripe;
+    readonly stripe: Stripe;
 
     constructor(token: string, repo: BillingRepository) {
         this.repo = repo;
@@ -333,32 +330,5 @@ export class StripeMediator {
                 }
             }
         });
-    }
-
-    pullEvents = async (parent: Context, key: string) => {
-        let cursor = await Store.StripeEventsCursor.findById(parent, key);
-        log.debug(parent, 'Check events after ' + (cursor ? cursor.cursor : undefined));
-        let events = await this.stripe.events.list({
-            ending_before: cursor ? cursor.cursor : undefined,
-            types: ['payment_intent.succeeded']
-        });
-        for (let event of events.data) {
-            let id = (event.data.object as any).id as string;
-            log.debug(parent, '[' + event.id + ']Payment Intent success: ' + id);
-            await this.updatePaymentIntent(parent, id);
-        }
-
-        // Update Offset
-        if (events.data.length > 0) {
-            await inTx(parent, async (ctx) => {
-                let cr = events.data[0].id;
-                let ex = await Store.StripeEventsCursor.findById(ctx, key);
-                if (!ex) {
-                    await Store.StripeEventsCursor.create(ctx, key, { cursor: cr });
-                } else {
-                    ex.cursor = cr;
-                }
-            });
-        }
     }
 }

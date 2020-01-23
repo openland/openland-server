@@ -1696,9 +1696,32 @@ export default declareSchema(() => {
         }));
     });
 
+    //
+    // Stripe Events
+    //
+
     entity('StripeEventsCursor', () => {
         primaryKey('id', string());
         field('cursor', string());
+    });
+
+    entity('StripeEvent', () => {
+        primaryKey('id', string());
+        field('type', string());
+        field('data', json());
+        field('liveMode', boolean());
+    });
+
+    //
+    // Stripe Event Store
+    //
+
+    eventStore('StripeEventStore', () => {
+        primaryKey('liveMode', boolean());
+    });
+
+    event('StripeEventCreated', () => {
+        field('id', string());
     });
 
     //

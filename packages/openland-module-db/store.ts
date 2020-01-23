@@ -13695,6 +13695,100 @@ export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorS
     }
 }
 
+export interface StripeEventShape {
+    id: string;
+    type: string;
+    data: any;
+    liveMode: boolean;
+}
+
+export interface StripeEventCreateShape {
+    type: string;
+    data: any;
+    liveMode: boolean;
+}
+
+export class StripeEvent extends Entity<StripeEventShape> {
+    get id(): string { return this._rawValue.id; }
+    get type(): string { return this._rawValue.type; }
+    set type(value: string) {
+        let normalized = this.descriptor.codec.fields.type.normalize(value);
+        if (this._rawValue.type !== normalized) {
+            this._rawValue.type = normalized;
+            this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+    get data(): any { return this._rawValue.data; }
+    set data(value: any) {
+        let normalized = this.descriptor.codec.fields.data.normalize(value);
+        if (this._rawValue.data !== normalized) {
+            this._rawValue.data = normalized;
+            this._updatedValues.data = normalized;
+            this.invalidate();
+        }
+    }
+    get liveMode(): boolean { return this._rawValue.liveMode; }
+    set liveMode(value: boolean) {
+        let normalized = this.descriptor.codec.fields.liveMode.normalize(value);
+        if (this._rawValue.liveMode !== normalized) {
+            this._rawValue.liveMode = normalized;
+            this._updatedValues.liveMode = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('stripeEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'type', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'data', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'liveMode', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            type: c.string,
+            data: c.any,
+            liveMode: c.boolean,
+        });
+        let descriptor: EntityDescriptor<StripeEventShape> = {
+            name: 'StripeEvent',
+            storageKey: 'stripeEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StripeEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StripeEventShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: StripeEventCreateShape): Promise<StripeEvent> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: StripeEventCreateShape): StripeEvent {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<StripeEvent | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventShape>): StripeEvent {
+        return new StripeEvent([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserAccountShape {
     uid: number;
     aid: string;
@@ -16055,6 +16149,35 @@ export class UserLocationStopSharingEvent extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
+const stripeEventCreatedCodec = c.struct({
+    id: c.string,
+});
+
+interface StripeEventCreatedShape {
+    id: string;
+}
+
+export class StripeEventCreated extends BaseEvent {
+
+    static create(data: StripeEventCreatedShape) {
+        return new StripeEventCreated(stripeEventCreatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new StripeEventCreated(stripeEventCreatedCodec.decode(data));
+    }
+
+    static encode(event: StripeEventCreated) {
+        return stripeEventCreatedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('stripeEventCreated', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -16265,6 +16388,41 @@ export class UserLocationEventStore extends EventStore {
     }
 }
 
+export class StripeEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('stripeEventStore');
+        const descriptor = {
+            name: 'StripeEventStore',
+            storageKey: 'stripeEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new StripeEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, liveMode: boolean, event: BaseEvent) {
+        this._post(ctx, [liveMode], event);
+    }
+
+    async findAll(ctx: Context, liveMode: boolean) {
+        return this._findAll(ctx, [liveMode]);
+    }
+
+    createStream(liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([liveMode], opts);
+    }
+
+    createLiveStream(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [liveMode], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
@@ -16397,6 +16555,7 @@ export interface Store extends BaseStore {
     readonly Transaction: TransactionFactory;
     readonly PaymentIntent: PaymentIntentFactory;
     readonly StripeEventsCursor: StripeEventsCursorFactory;
+    readonly StripeEvent: StripeEventFactory;
     readonly UserAccount: UserAccountFactory;
     readonly Sequence: SequenceFactory;
     readonly Environment: EnvironmentFactory;
@@ -16419,6 +16578,7 @@ export interface Store extends BaseStore {
     readonly FeedEventStore: FeedEventStore;
     readonly FeedGlobalEventStore: FeedGlobalEventStore;
     readonly UserLocationEventStore: UserLocationEventStore;
+    readonly StripeEventStore: StripeEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -16448,6 +16608,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
     eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
+    eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -16579,6 +16740,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let TransactionPromise = TransactionFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
     let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
+    let StripeEventPromise = StripeEventFactory.open(storage);
     let UserAccountPromise = UserAccountFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
@@ -16605,6 +16767,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
+    let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -16739,6 +16902,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Transaction: await TransactionPromise,
         PaymentIntent: await PaymentIntentPromise,
         StripeEventsCursor: await StripeEventsCursorPromise,
+        StripeEvent: await StripeEventPromise,
         UserAccount: await UserAccountPromise,
         Sequence: await SequencePromise,
         Environment: await EnvironmentPromise,
@@ -16765,5 +16929,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedEventStore: await FeedEventStorePromise,
         FeedGlobalEventStore: await FeedGlobalEventStorePromise,
         UserLocationEventStore: await UserLocationEventStorePromise,
+        StripeEventStore: await StripeEventStorePromise,
     };
 }
