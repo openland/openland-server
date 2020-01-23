@@ -116,7 +116,7 @@ app.post('/html', async (req, res) => {
 
     // Load page
     await page.setViewport({ width, height, deviceScaleFactor: scale });
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    let response = await page.goto(url, { waitUntil: 'networkidle2' });
 
     // Capture screenshot
     const screenshot = await page.screenshot({
@@ -129,7 +129,8 @@ app.post('/html', async (req, res) => {
     const html = await page.content();
     res.json({
       html,
-      screenshot
+      screenshot,
+      status: response.status()
     });
   });
 });
