@@ -193,12 +193,12 @@ export class StripeMediator {
                 throw Error('Card not found');
             }
             if (!card.default) {
-                card.default = true;
-
                 let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid && v.default);
                 if (ex) {
                     ex.default = false;
                 }
+
+                card.default = true;
 
                 await card.flush(ctx);
             }
