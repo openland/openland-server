@@ -196,6 +196,8 @@ export class StripeMediator {
                 let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid && v.default);
                 if (ex) {
                     ex.default = false;
+
+                    await ex.flush(ctx);
                 }
 
                 card.default = true;
