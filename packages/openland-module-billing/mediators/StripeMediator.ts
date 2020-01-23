@@ -339,7 +339,7 @@ export class StripeMediator {
         let cursor = await Store.StripeEventsCursor.findById(parent, key);
         log.debug(parent, 'Check events after ' + (cursor ? cursor.cursor : undefined));
         let events = await this.stripe.events.list({
-            starting_after: cursor ? cursor.cursor : undefined,
+            ending_before: cursor ? cursor.cursor : undefined,
             types: ['payment_intent.succeeded']
         });
         for (let event of events.data) {
