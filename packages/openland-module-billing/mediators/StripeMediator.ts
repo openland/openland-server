@@ -358,4 +358,8 @@ export class StripeMediator {
             }
         });
     }
+    
+    transfer = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
+        return this.repo.createTransaction(parent, fromUid, toUid, 'transfer', amount);
+    }
 }

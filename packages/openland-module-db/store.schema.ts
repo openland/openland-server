@@ -217,10 +217,35 @@ export default declareSchema(() => {
         field('featured', optional(boolean()));
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
+        field('isPaid', optional(boolean()));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public');
+    });
+
+    entity('PaidChatSettings', () => {
+        primaryKey('id', integer());
+        field('price', float());
+        field('strategy', enumString('one-time', 'subscription'));
+        field('subscriptionDuration', optional(integer()));
+    });
+
+    entity('PaidChatUserPass', () => {
+        primaryKey('id', string());
+        primaryKey('cid', integer());
+        primaryKey('uid', integer());
+
+        field('paymentIntentId', optional(string()));
+        field('paymentIntentSecret', optional(string()));
+        field('transactionId', optional(string()));
+
+        field('state', enumString('pending', 'failed', 'active'));
+        field('ttl', optional(integer()));
+        field('renew', optional(boolean()));
+        uniqueIndex('userChatPendingPass', ['uid', 'cid']).withCondition((v) => v.state === 'pending');
+        uniqueIndex('userChatActivePass', ['uid', 'cid']).withCondition((v) => v.state === 'active');
+        rangeIndex('userActivePassAll', ['uid']).withCondition((v) => v.state === 'active');
     });
 
     entity('RoomProfile', () => {
