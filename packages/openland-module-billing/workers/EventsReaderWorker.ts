@@ -7,8 +7,6 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import Stripe from 'stripe';
 import { inTx } from '@openland/foundationdb';
 
-const cursorId = 'test-v2';
-const eventTypes: string[] = ['payment_intent.succeeded'];
 const log = createLogger('events');
 
 export function startEventsReaderWorker(mediator: StripeMediator) {
@@ -18,6 +16,7 @@ export function startEventsReaderWorker(mediator: StripeMediator) {
         // Resolve Cursor
         //
 
+        const cursorId = (mediator.liveMode ? 'live' : 'test') + '-v2';
         let cursorRecord = await Store.StripeEventsCursor.findById(parent, cursorId);
         let cursor = cursorRecord ? cursorRecord.cursor : undefined;
 
@@ -27,7 +26,7 @@ export function startEventsReaderWorker(mediator: StripeMediator) {
         let batchEvents: Stripe.Event[] = [];
         let events = await mediator.stripe.events.list({
             ending_before: cursor,
-            types: eventTypes,
+            limit: 100
         });
         for (let e of events.data) {
             batchEvents.unshift(e);
@@ -37,7 +36,7 @@ export function startEventsReaderWorker(mediator: StripeMediator) {
             events = await mediator.stripe.events.list({
                 ending_before: cursor,
                 starting_after: innerOffset,
-                types: eventTypes,
+                limit: 100
             });
             for (let e of events.data) {
                 batchEvents.unshift(e);
@@ -48,6 +47,9 @@ export function startEventsReaderWorker(mediator: StripeMediator) {
         if (batchEvents.length > 0) {
             log.debug(parent, 'Received new events');
             for (let e of batchEvents) {
+                if (e.livemode !== mediator.liveMode) {
+                    throw Error('Invalid live mode');
+                }
                 log.debug(parent, 'Event: ' + e.id);
             }
             for (let e of batch(batchEvents, 20)) {

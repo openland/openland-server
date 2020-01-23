@@ -6,12 +6,14 @@ import Stripe from 'stripe';
 
 export class StripeMediator {
 
+    readonly liveMode: boolean;
     readonly repo: BillingRepository;
     readonly stripe: Stripe;
 
     constructor(token: string, repo: BillingRepository) {
         this.repo = repo;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
+        this.liveMode = !token.startsWith('sk_test');
     }
 
     exportCustomer = async (parent: Context, uid: number) => {
