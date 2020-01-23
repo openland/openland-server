@@ -1723,6 +1723,8 @@ export default declareSchema(() => {
 
     event('StripeEventCreated', () => {
         field('id', string());
+        field('eventType', string());
+        field('eventDate', integer());
     });
 
     //

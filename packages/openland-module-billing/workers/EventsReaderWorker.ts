@@ -60,7 +60,7 @@ export function startEventsReaderWorker(mediator: StripeMediator) {
                             await Store.StripeEvent.create(ctx, e1.id, {
                                 type: e1.type, data: e1.data, liveMode: e1.livemode, date: e1.created
                             });
-                            Store.StripeEventStore.post(ctx, e1.livemode, StripeEventCreated.create({ id: e1.id }));
+                            Store.StripeEventStore.post(ctx, e1.livemode, StripeEventCreated.create({ id: e1.id, eventType: e1.type, eventDate: e1.created }));
                         }
                     }
                 });

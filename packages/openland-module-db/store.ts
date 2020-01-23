@@ -16164,10 +16164,14 @@ export class UserLocationStopSharingEvent extends BaseEvent {
 
 const stripeEventCreatedCodec = c.struct({
     id: c.string,
+    eventType: c.string,
+    eventDate: c.integer,
 });
 
 interface StripeEventCreatedShape {
     id: string;
+    eventType: string;
+    eventDate: number;
 }
 
 export class StripeEventCreated extends BaseEvent {
@@ -16189,6 +16193,8 @@ export class StripeEventCreated extends BaseEvent {
     }
 
     get id(): string { return this.raw.id; }
+    get eventType(): string { return this.raw.eventType; }
+    get eventDate(): number { return this.raw.eventDate; }
 }
 
 export class ConversationEventStore extends EventStore {
