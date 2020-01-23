@@ -352,7 +352,7 @@ export class StripeMediator {
         if (events.data.length > 0) {
             await inTx(parent, async (ctx) => {
                 let cr = events.data[0].id;
-                let ex = await Store.StripeEventsCursor.findById(parent, key);
+                let ex = await Store.StripeEventsCursor.findById(ctx, key);
                 if (!ex) {
                     await Store.StripeEventsCursor.create(ctx, key, { cursor: cr });
                 } else {
