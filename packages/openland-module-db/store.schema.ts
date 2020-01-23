@@ -1687,13 +1687,60 @@ export default declareSchema(() => {
 
     entity('PaymentIntent', () => {
         primaryKey('id', string());
-        field('state', enumString('pending', 'success', 'failed', 'canceled'));
+        field('state', enumString('pending', 'success', 'canceled'));
         field('amount', integer());
         field('operation', union({
             'deposit': struct({
                 uid: integer()
+            }),
+            'subscription': struct({
+                pspid: string()
             })
         }));
+    });
+
+    //
+    // Local Payment Entitites
+    //
+
+    entity('PaidSubscription', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('price', integer());
+        field('state', enumString('enabled', 'canceled'));
+
+        field('startYear', integer());
+        field('startMonth', integer());
+        field('startDay', integer());
+
+        field('interval', enumString('monthly', 'yearly'));
+
+        field('lastPayment', string());
+
+        rangeIndex('user', ['uid', 'createdAt']);
+    });
+
+    entity('PaidSubscriptionPayment', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('sid', string());
+        field('pid', string());
+
+        field('year', integer());
+        field('month', integer());
+        field('day', integer());
+        field('state', enumString('pending', 'success', 'canceled'));
+
+        rangeIndex('user', ['uid', 'createdAt']);
+        rangeIndex('subscription', ['sid', 'createdAt']);
+    });
+
+    entity('Payment', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('piid', string());
+        field('state', enumString('pending', 'success', 'action_required', 'failing', 'canceled'));
+        rangeIndex('user', ['uid', 'createdAt']);
     });
 
     //

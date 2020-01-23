@@ -13535,21 +13535,21 @@ export class TransactionFactory extends EntityFactory<TransactionShape, Transact
 
 export interface PaymentIntentShape {
     id: string;
-    state: 'pending' | 'success' | 'failed' | 'canceled';
+    state: 'pending' | 'success' | 'canceled';
     amount: number;
-    operation: { type: 'deposit', uid: number };
+    operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
 }
 
 export interface PaymentIntentCreateShape {
-    state: 'pending' | 'success' | 'failed' | 'canceled';
+    state: 'pending' | 'success' | 'canceled';
     amount: number;
-    operation: { type: 'deposit', uid: number };
+    operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
 }
 
 export class PaymentIntent extends Entity<PaymentIntentShape> {
     get id(): string { return this._rawValue.id; }
-    get state(): 'pending' | 'success' | 'failed' | 'canceled' { return this._rawValue.state; }
-    set state(value: 'pending' | 'success' | 'failed' | 'canceled') {
+    get state(): 'pending' | 'success' | 'canceled' { return this._rawValue.state; }
+    set state(value: 'pending' | 'success' | 'canceled') {
         let normalized = this.descriptor.codec.fields.state.normalize(value);
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
@@ -13566,8 +13566,8 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number }) {
+    get operation(): { type: 'deposit', uid: number } | { type: 'subscription', pspid: string } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -13585,14 +13585,14 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'failed', 'canceled'] }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } }, subscription: { pspid: { type: 'string' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
-            state: c.enum('pending', 'success', 'failed', 'canceled'),
+            state: c.enum('pending', 'success', 'canceled'),
             amount: c.integer,
-            operation: c.union({ deposit: c.struct({ uid: c.integer }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer }), subscription: c.struct({ pspid: c.string }) }),
         });
         let descriptor: EntityDescriptor<PaymentIntentShape> = {
             name: 'PaymentIntent',
@@ -13624,6 +13624,366 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentIntentShape>): PaymentIntent {
         return new PaymentIntent([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaidSubscriptionShape {
+    id: string;
+    price: number;
+    state: 'enabled' | 'canceled';
+    startYear: number;
+    startMonth: number;
+    startDay: number;
+    interval: 'monthly' | 'yearly';
+    lastPayment: string;
+}
+
+export interface PaidSubscriptionCreateShape {
+    price: number;
+    state: 'enabled' | 'canceled';
+    startYear: number;
+    startMonth: number;
+    startDay: number;
+    interval: 'monthly' | 'yearly';
+    lastPayment: string;
+}
+
+export class PaidSubscription extends Entity<PaidSubscriptionShape> {
+    get id(): string { return this._rawValue.id; }
+    get price(): number { return this._rawValue.price; }
+    set price(value: number) {
+        let normalized = this.descriptor.codec.fields.price.normalize(value);
+        if (this._rawValue.price !== normalized) {
+            this._rawValue.price = normalized;
+            this._updatedValues.price = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'enabled' | 'canceled' { return this._rawValue.state; }
+    set state(value: 'enabled' | 'canceled') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get startYear(): number { return this._rawValue.startYear; }
+    set startYear(value: number) {
+        let normalized = this.descriptor.codec.fields.startYear.normalize(value);
+        if (this._rawValue.startYear !== normalized) {
+            this._rawValue.startYear = normalized;
+            this._updatedValues.startYear = normalized;
+            this.invalidate();
+        }
+    }
+    get startMonth(): number { return this._rawValue.startMonth; }
+    set startMonth(value: number) {
+        let normalized = this.descriptor.codec.fields.startMonth.normalize(value);
+        if (this._rawValue.startMonth !== normalized) {
+            this._rawValue.startMonth = normalized;
+            this._updatedValues.startMonth = normalized;
+            this.invalidate();
+        }
+    }
+    get startDay(): number { return this._rawValue.startDay; }
+    set startDay(value: number) {
+        let normalized = this.descriptor.codec.fields.startDay.normalize(value);
+        if (this._rawValue.startDay !== normalized) {
+            this._rawValue.startDay = normalized;
+            this._updatedValues.startDay = normalized;
+            this.invalidate();
+        }
+    }
+    get interval(): 'monthly' | 'yearly' { return this._rawValue.interval; }
+    set interval(value: 'monthly' | 'yearly') {
+        let normalized = this.descriptor.codec.fields.interval.normalize(value);
+        if (this._rawValue.interval !== normalized) {
+            this._rawValue.interval = normalized;
+            this._updatedValues.interval = normalized;
+            this.invalidate();
+        }
+    }
+    get lastPayment(): string { return this._rawValue.lastPayment; }
+    set lastPayment(value: string) {
+        let normalized = this.descriptor.codec.fields.lastPayment.normalize(value);
+        if (this._rawValue.lastPayment !== normalized) {
+            this._rawValue.lastPayment = normalized;
+            this._updatedValues.lastPayment = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaidSubscriptionFactory extends EntityFactory<PaidSubscriptionShape, PaidSubscription> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paidSubscription');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['enabled', 'canceled'] }, secure: false });
+        fields.push({ name: 'startYear', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'startMonth', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'startDay', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'interval', type: { type: 'enum', values: ['monthly', 'yearly'] }, secure: false });
+        fields.push({ name: 'lastPayment', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            price: c.integer,
+            state: c.enum('enabled', 'canceled'),
+            startYear: c.integer,
+            startMonth: c.integer,
+            startDay: c.integer,
+            interval: c.enum('monthly', 'yearly'),
+            lastPayment: c.string,
+        });
+        let descriptor: EntityDescriptor<PaidSubscriptionShape> = {
+            name: 'PaidSubscription',
+            storageKey: 'paidSubscription',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaidSubscriptionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaidSubscriptionShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: PaidSubscriptionCreateShape): Promise<PaidSubscription> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: PaidSubscriptionCreateShape): PaidSubscription {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PaidSubscription | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidSubscriptionShape>): PaidSubscription {
+        return new PaidSubscription([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaidSubscriptionPaymentShape {
+    id: string;
+    sid: string;
+    pid: string;
+    year: number;
+    month: number;
+    day: number;
+    state: 'pending' | 'success' | 'canceled';
+}
+
+export interface PaidSubscriptionPaymentCreateShape {
+    sid: string;
+    pid: string;
+    year: number;
+    month: number;
+    day: number;
+    state: 'pending' | 'success' | 'canceled';
+}
+
+export class PaidSubscriptionPayment extends Entity<PaidSubscriptionPaymentShape> {
+    get id(): string { return this._rawValue.id; }
+    get sid(): string { return this._rawValue.sid; }
+    set sid(value: string) {
+        let normalized = this.descriptor.codec.fields.sid.normalize(value);
+        if (this._rawValue.sid !== normalized) {
+            this._rawValue.sid = normalized;
+            this._updatedValues.sid = normalized;
+            this.invalidate();
+        }
+    }
+    get pid(): string { return this._rawValue.pid; }
+    set pid(value: string) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
+            this.invalidate();
+        }
+    }
+    get year(): number { return this._rawValue.year; }
+    set year(value: number) {
+        let normalized = this.descriptor.codec.fields.year.normalize(value);
+        if (this._rawValue.year !== normalized) {
+            this._rawValue.year = normalized;
+            this._updatedValues.year = normalized;
+            this.invalidate();
+        }
+    }
+    get month(): number { return this._rawValue.month; }
+    set month(value: number) {
+        let normalized = this.descriptor.codec.fields.month.normalize(value);
+        if (this._rawValue.month !== normalized) {
+            this._rawValue.month = normalized;
+            this._updatedValues.month = normalized;
+            this.invalidate();
+        }
+    }
+    get day(): number { return this._rawValue.day; }
+    set day(value: number) {
+        let normalized = this.descriptor.codec.fields.day.normalize(value);
+        if (this._rawValue.day !== normalized) {
+            this._rawValue.day = normalized;
+            this._updatedValues.day = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'pending' | 'success' | 'canceled' { return this._rawValue.state; }
+    set state(value: 'pending' | 'success' | 'canceled') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaidSubscriptionPaymentFactory extends EntityFactory<PaidSubscriptionPaymentShape, PaidSubscriptionPayment> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paidSubscriptionPayment');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'sid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'year', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'month', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'day', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            sid: c.string,
+            pid: c.string,
+            year: c.integer,
+            month: c.integer,
+            day: c.integer,
+            state: c.enum('pending', 'success', 'canceled'),
+        });
+        let descriptor: EntityDescriptor<PaidSubscriptionPaymentShape> = {
+            name: 'PaidSubscriptionPayment',
+            storageKey: 'paidSubscriptionPayment',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaidSubscriptionPaymentFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaidSubscriptionPaymentShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: PaidSubscriptionPaymentCreateShape): Promise<PaidSubscriptionPayment> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: PaidSubscriptionPaymentCreateShape): PaidSubscriptionPayment {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PaidSubscriptionPayment | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidSubscriptionPaymentShape>): PaidSubscriptionPayment {
+        return new PaidSubscriptionPayment([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaymentShape {
+    id: string;
+    piid: string;
+    state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
+}
+
+export interface PaymentCreateShape {
+    piid: string;
+    state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
+}
+
+export class Payment extends Entity<PaymentShape> {
+    get id(): string { return this._rawValue.id; }
+    get piid(): string { return this._rawValue.piid; }
+    set piid(value: string) {
+        let normalized = this.descriptor.codec.fields.piid.normalize(value);
+        if (this._rawValue.piid !== normalized) {
+            this._rawValue.piid = normalized;
+            this._updatedValues.piid = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'pending' | 'success' | 'action_required' | 'failing' | 'canceled' { return this._rawValue.state; }
+    set state(value: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('payment');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'piid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            piid: c.string,
+            state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
+        });
+        let descriptor: EntityDescriptor<PaymentShape> = {
+            name: 'Payment',
+            storageKey: 'payment',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaymentFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaymentShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: PaymentCreateShape): Promise<Payment> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: PaymentCreateShape): Payment {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<Payment | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentShape>): Payment {
+        return new Payment([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -16573,6 +16933,9 @@ export interface Store extends BaseStore {
     readonly AccountTransaction: AccountTransactionFactory;
     readonly Transaction: TransactionFactory;
     readonly PaymentIntent: PaymentIntentFactory;
+    readonly PaidSubscription: PaidSubscriptionFactory;
+    readonly PaidSubscriptionPayment: PaidSubscriptionPaymentFactory;
+    readonly Payment: PaymentFactory;
     readonly StripeEventsCursor: StripeEventsCursorFactory;
     readonly StripeEvent: StripeEventFactory;
     readonly UserAccount: UserAccountFactory;
@@ -16758,6 +17121,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let AccountTransactionPromise = AccountTransactionFactory.open(storage);
     let TransactionPromise = TransactionFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
+    let PaidSubscriptionPromise = PaidSubscriptionFactory.open(storage);
+    let PaidSubscriptionPaymentPromise = PaidSubscriptionPaymentFactory.open(storage);
+    let PaymentPromise = PaymentFactory.open(storage);
     let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
     let StripeEventPromise = StripeEventFactory.open(storage);
     let UserAccountPromise = UserAccountFactory.open(storage);
@@ -16920,6 +17286,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         AccountTransaction: await AccountTransactionPromise,
         Transaction: await TransactionPromise,
         PaymentIntent: await PaymentIntentPromise,
+        PaidSubscription: await PaidSubscriptionPromise,
+        PaidSubscriptionPayment: await PaidSubscriptionPaymentPromise,
+        Payment: await PaymentPromise,
         StripeEventsCursor: await StripeEventsCursorPromise,
         StripeEvent: await StripeEventPromise,
         UserAccount: await UserAccountPromise,

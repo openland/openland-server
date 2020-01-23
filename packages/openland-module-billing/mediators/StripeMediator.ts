@@ -316,7 +316,7 @@ export class StripeMediator {
             }
 
             if (dp.status === 'succeeded') {
-                if (intent.state === 'success' || intent.state === 'failed' || intent.state === 'canceled') {
+                if (intent.state !== 'pending') {
                     return;
                 }
                 intent.state = 'success';
