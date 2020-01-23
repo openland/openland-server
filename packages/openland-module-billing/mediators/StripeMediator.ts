@@ -184,6 +184,29 @@ export class StripeMediator {
         });
     }
 
+    makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+
+        return await inTx(parent, async (ctx) => {
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Card not found');
+            }
+            if (!card.default) {
+                card.default = true;
+
+                let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid && v.default);
+                if (ex) {
+                    ex.default = false;
+                }
+
+                await card.flush(ctx);
+            }
+
+            return card;
+        });
+    }
+
     //
     // Card Sync
     //
