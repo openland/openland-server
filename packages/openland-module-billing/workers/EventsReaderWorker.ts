@@ -57,7 +57,9 @@ export function startEventsReaderWorker(mediator: StripeMediator) {
                     for (let e1 of e) {
                         let ex = await Store.StripeEvent.findById(ctx, e1.id);
                         if (!ex) {
-                            await Store.StripeEvent.create(ctx, e1.id, { type: e1.type, data: e1.data, liveMode: e1.livemode });
+                            await Store.StripeEvent.create(ctx, e1.id, {
+                                type: e1.type, data: e1.data, liveMode: e1.livemode, date: e1.created
+                            });
                             Store.StripeEventStore.post(ctx, e1.livemode, StripeEventCreated.create({ id: e1.id }));
                         }
                     }

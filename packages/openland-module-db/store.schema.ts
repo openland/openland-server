@@ -1709,6 +1709,7 @@ export default declareSchema(() => {
         primaryKey('id', string());
         field('type', string());
         field('data', json());
+        field('date', integer());
         field('liveMode', boolean());
     });
 

@@ -13699,12 +13699,14 @@ export interface StripeEventShape {
     id: string;
     type: string;
     data: any;
+    date: number;
     liveMode: boolean;
 }
 
 export interface StripeEventCreateShape {
     type: string;
     data: any;
+    date: number;
     liveMode: boolean;
 }
 
@@ -13725,6 +13727,15 @@ export class StripeEvent extends Entity<StripeEventShape> {
         if (this._rawValue.data !== normalized) {
             this._rawValue.data = normalized;
             this._updatedValues.data = normalized;
+            this.invalidate();
+        }
+    }
+    get date(): number { return this._rawValue.date; }
+    set date(value: number) {
+        let normalized = this.descriptor.codec.fields.date.normalize(value);
+        if (this._rawValue.date !== normalized) {
+            this._rawValue.date = normalized;
+            this._updatedValues.date = normalized;
             this.invalidate();
         }
     }
@@ -13749,11 +13760,13 @@ export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEv
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'type', type: { type: 'string' }, secure: false });
         fields.push({ name: 'data', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'date', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'liveMode', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             id: c.string,
             type: c.string,
             data: c.any,
+            date: c.integer,
             liveMode: c.boolean,
         });
         let descriptor: EntityDescriptor<StripeEventShape> = {
