@@ -200,7 +200,7 @@ export class StripeMediator {
                     ex.default = false;
                 }
 
-                card.flush();
+                await card.flush(ctx);
             }
 
             return card;
