@@ -1310,7 +1310,7 @@ export default declareSchema(() => {
     });
 
     //
-    // Onboarding
+    // Discover
     //
 
     entity('DiscoverUserPickedTags', () => {
@@ -1319,6 +1319,15 @@ export default declareSchema(() => {
         field('deleted', boolean());
         uniqueIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
     });
+
+    entity('DiscoverState', () => {
+        primaryKey('uid', integer());
+        field('skipped', boolean());
+    });
+
+    //
+    // Onboarding
+    //
 
     entity('UserOnboardingState', () => {
         primaryKey('uid', integer());

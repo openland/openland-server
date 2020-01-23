@@ -10045,6 +10045,74 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
     }
 }
 
+export interface DiscoverStateShape {
+    uid: number;
+    skipped: boolean;
+}
+
+export interface DiscoverStateCreateShape {
+    skipped: boolean;
+}
+
+export class DiscoverState extends Entity<DiscoverStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get skipped(): boolean { return this._rawValue.skipped; }
+    set skipped(value: boolean) {
+        let normalized = this.descriptor.codec.fields.skipped.normalize(value);
+        if (this._rawValue.skipped !== normalized) {
+            this._rawValue.skipped = normalized;
+            this._updatedValues.skipped = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, DiscoverState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('discoverState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'skipped', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            skipped: c.boolean,
+        });
+        let descriptor: EntityDescriptor<DiscoverStateShape> = {
+            name: 'DiscoverState',
+            storageKey: 'discoverState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DiscoverStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DiscoverStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: DiscoverStateCreateShape): Promise<DiscoverState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: DiscoverStateCreateShape): DiscoverState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<DiscoverState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscoverStateShape>): DiscoverState {
+        return new DiscoverState([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserOnboardingStateShape {
     uid: number;
     wellcomeSent: boolean | null;
@@ -16547,6 +16615,7 @@ export interface Store extends BaseStore {
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ChannelInvitation: ChannelInvitationFactory;
     readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
+    readonly DiscoverState: DiscoverStateFactory;
     readonly UserOnboardingState: UserOnboardingStateFactory;
     readonly PushFirebase: PushFirebaseFactory;
     readonly PushApple: PushAppleFactory;
@@ -16732,6 +16801,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.open(storage);
     let ChannelInvitationPromise = ChannelInvitationFactory.open(storage);
     let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.open(storage);
+    let DiscoverStatePromise = DiscoverStateFactory.open(storage);
     let UserOnboardingStatePromise = UserOnboardingStateFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
     let PushApplePromise = PushAppleFactory.open(storage);
@@ -16894,6 +16964,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OrganizationInviteLink: await OrganizationInviteLinkPromise,
         ChannelInvitation: await ChannelInvitationPromise,
         DiscoverUserPickedTags: await DiscoverUserPickedTagsPromise,
+        DiscoverState: await DiscoverStatePromise,
         UserOnboardingState: await UserOnboardingStatePromise,
         PushFirebase: await PushFirebasePromise,
         PushApple: await PushApplePromise,

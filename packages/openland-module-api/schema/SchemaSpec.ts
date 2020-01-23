@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'eb21709ef51bba890c50992289fac98f';
+export const GQL_SPEC_VERSION = 'aa6cad7721507b1f15cbef01c381de83';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2639,6 +2639,7 @@ export namespace GQL {
         gammaNextDiscoverPage: Nullable<DiscoverPage>;
         betaSuggestedRooms: Room[];
         betaIsDiscoverDone: boolean;
+        isDiscoverSkipped: boolean;
         matchmakingRoom: Nullable<MatchmakingRoom>;
         matchmakingProfile: Nullable<MatchmakingProfile>;
         trendingRoomsByMessages: TrendingRoom[];
