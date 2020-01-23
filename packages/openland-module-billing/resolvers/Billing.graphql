@@ -61,4 +61,5 @@ extend type Mutation {
     cardDepositIntentCommit(id: ID!): Boolean!
 
     cardRemove(id: ID!): CreditCard!
+    cardMakeDefault(id: ID!): CreditCard!
 }
