@@ -9,7 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AuthCodeSession, UserProfile } from 'openland-module-db/store';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
-import { createNamedContext } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 const rootCtx = createNamedContext('auth-email');
 
@@ -27,6 +27,7 @@ const Errors = {
     invalid_auth_token: 'An unexpected error occurred. Please try again.',
     session_expired: 'An unexpected error occurred. Please try again.',
     wrong_code_length: 'The code you entered is incorrect. Please check the code in the email and try again.',
+    too_many_attempts: 'You had too much attempts to login lately. Please try again later'
 };
 
 type ErrorsEnum = keyof typeof Errors;
@@ -89,6 +90,21 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
     };
 }
 
+async function findUserByEmail(ctx: Context, email: string) {
+    let existing = await Promise.all([
+        Store.User.authId.find(ctx, 'email|' + email),
+        Store.User.email.find(ctx, email)
+    ]);
+
+    if (existing[0]) {
+        return existing[0];
+    } else if (existing[1]) {
+        return existing[1];
+    } else {
+        return null;
+    }
+}
+
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
@@ -121,14 +137,22 @@ export async function sendCode(req: express.Request, response: express.Response)
         if (email) {
             if (!checkEmail(email)) {
                 sendError(response, 'invalid_email');
+                return;
             }
 
             email = (email as string).toLowerCase().trim();
+
+            // if (!(await Modules.Auth.canSendAuthEmail(ctx, email))) {
+            //     sendError(response, 'too_many_attempts');
+            //     return;
+            // }
+
             let isTest = isTestEmail(email);
-            let existing = (await Store.User.findAll(ctx)).find((v) => v.email === email || v.authId === 'email|' + email as any);
+            let existing = await findUserByEmail(ctx, email);
 
             if (!isTest) {
                 await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
+                await Modules.Auth.onAuthEmailSent(ctx, email);
             } else {
                 code = testEmailCode(email);
             }
@@ -137,6 +161,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
             } else {
                 authSession.code = code;
+                authSession.attemptsCount = 0;
             }
 
             let pictureId: string | undefined;
@@ -146,7 +171,13 @@ export async function sendCode(req: express.Request, response: express.Response)
                 pictureId = profile && profile.picture && profile.picture.uuid;
             }
 
-            response.json({ ok: true, session: authSession!.uid, pictureId, profileExists: !!profile });
+            response.json({
+                ok: true,
+                session: authSession!.uid,
+                profileExists: !!profile,
+                pictureId,
+                pictureCrop: profile && profile.picture && profile.picture.crop
+            });
             return;
         } else {
             sendError(response, 'server_error');
@@ -199,8 +230,19 @@ export async function checkCode(req: express.Request, response: express.Response
             return;
         }
 
+        // // max 5 attempts
+        // if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
+        //     sendError(response, 'code_expired');
+        //     return;
+        // }
+
         // Wrong code
         if (authSession.code! !== code) {
+            if (authSession.attemptsCount) {
+                authSession.attemptsCount++;
+            } else {
+                authSession.attemptsCount = 1;
+            }
             sendError(response, 'wrong_code');
             return;
         }
@@ -255,7 +297,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.email) {
-            let existing = await Store.User.email.find(ctx, authSession.email.toLowerCase());
+            let existing = await findUserByEmail(ctx, authSession.email.toLowerCase());
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });

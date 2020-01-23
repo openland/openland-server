@@ -1596,7 +1596,7 @@ export default declareSchema(() => {
         rangeIndex('userGroup', ['uid', 'gid', 'createdAt']);
         rangeIndex('groupApp', ['gid', 'appType', 'appId', 'createdAt']);
         rangeIndex('userApp', ['uid', 'appType', 'appId', 'createdAt']);
-        uniqueIndex('single', ['uid', 'gid',  'appType', 'appId', 'scopeType', 'scopeId']);
+        uniqueIndex('single', ['uid', 'gid', 'appType', 'appId', 'scopeType', 'scopeId']);
     });
 
     //
@@ -1697,6 +1697,37 @@ export default declareSchema(() => {
     });
 
     //
+    // Stripe Events
+    //
+
+    entity('StripeEventsCursor', () => {
+        primaryKey('id', string());
+        field('cursor', string());
+    });
+
+    entity('StripeEvent', () => {
+        primaryKey('id', string());
+        field('type', string());
+        field('data', json());
+        field('date', integer());
+        field('liveMode', boolean());
+    });
+
+    //
+    // Stripe Event Store
+    //
+
+    eventStore('StripeEventStore', () => {
+        primaryKey('liveMode', boolean());
+    });
+
+    event('StripeEventCreated', () => {
+        field('id', string());
+        field('eventType', string());
+        field('eventDate', integer());
+    });
+
+    //
     // User's Personal Account
     //
 
@@ -1758,9 +1789,14 @@ export default declareSchema(() => {
         primaryKey('uid', string());
         field('code', string()).secure();
         field('expires', integer());
+        field('attemptsCount', optional(integer()));
         field('email', string());
         field('tokenId', optional(string())).secure();
         field('enabled', boolean());
+    });
+
+    atomicInt('LastAuthEmailSentTime', () => {
+        primaryKey('uid', string());
     });
 
     entity('FeatureFlag', () => {

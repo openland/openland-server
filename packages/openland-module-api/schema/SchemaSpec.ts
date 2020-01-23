@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5a1d189922b87b571ed10ae1090a017a';
+export const GQL_SPEC_VERSION = 'eb21709ef51bba890c50992289fac98f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -326,6 +326,7 @@ export namespace GQL {
         last4: string;
         expMonth: number;
         expYear: number;
+        deleted: boolean;
         isDefault: boolean;
     }
     export interface CardSetupIntent {
@@ -1091,6 +1092,8 @@ export namespace GQL {
         cardCommitSetupIntent: CreditCard;
         cardDepositIntent: PaymentIntent;
         cardDepositIntentCommit: boolean;
+        cardRemove: CreditCard;
+        cardMakeDefault: CreditCard;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -1476,6 +1479,12 @@ export namespace GQL {
         retryKey: string;
     }
     export interface MutationCardDepositIntentCommitArgs {
+        id: string;
+    }
+    export interface MutationCardRemoveArgs {
+        id: string;
+    }
+    export interface MutationCardMakeDefaultArgs {
         id: string;
     }
     export interface MutationAlphaDeleteInviteArgs {
@@ -5126,6 +5135,8 @@ export interface GQLResolver {
             cardCreateSetupIntent: GQLRoots.CardSetupIntentRoot,
             cardCommitSetupIntent: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
+            cardRemove: GQLRoots.CreditCardRoot,
+            cardMakeDefault: GQLRoots.CreditCardRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
@@ -5254,6 +5265,8 @@ export interface GQLResolver {
             cardCommitSetupIntent: GQL.MutationCardCommitSetupIntentArgs,
             cardDepositIntent: GQL.MutationCardDepositIntentArgs,
             cardDepositIntentCommit: GQL.MutationCardDepositIntentCommitArgs,
+            cardRemove: GQL.MutationCardRemoveArgs,
+            cardMakeDefault: GQL.MutationCardMakeDefaultArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
