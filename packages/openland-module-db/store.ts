@@ -3322,6 +3322,7 @@ export interface ConversationRoomShape {
     featured: boolean | null;
     listed: boolean | null;
     isChannel: boolean | null;
+    isPaid: boolean | null;
 }
 
 export interface ConversationRoomCreateShape {
@@ -3331,6 +3332,7 @@ export interface ConversationRoomCreateShape {
     featured?: boolean | null | undefined;
     listed?: boolean | null | undefined;
     isChannel?: boolean | null | undefined;
+    isPaid?: boolean | null | undefined;
 }
 
 export class ConversationRoom extends Entity<ConversationRoomShape> {
@@ -3389,6 +3391,15 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
             this.invalidate();
         }
     }
+    get isPaid(): boolean | null { return this._rawValue.isPaid; }
+    set isPaid(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isPaid.normalize(value);
+        if (this._rawValue.isPaid !== normalized) {
+            this._rawValue.isPaid = normalized;
+            this._updatedValues.isPaid = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
@@ -3407,6 +3418,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         fields.push({ name: 'featured', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'listed', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isPaid', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             kind: c.enum('organization', 'internal', 'public', 'group'),
@@ -3415,6 +3427,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
             featured: c.optional(c.boolean),
             listed: c.optional(c.boolean),
             isChannel: c.optional(c.boolean),
+            isPaid: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',
@@ -3473,6 +3486,283 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationRoomShape>): ConversationRoom {
         return new ConversationRoom([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaidChatSettingsShape {
+    id: number;
+    price: number;
+    strategy: 'one-time' | 'subscription';
+    subscriptionDuration: number | null;
+}
+
+export interface PaidChatSettingsCreateShape {
+    price: number;
+    strategy: 'one-time' | 'subscription';
+    subscriptionDuration?: number | null | undefined;
+}
+
+export class PaidChatSettings extends Entity<PaidChatSettingsShape> {
+    get id(): number { return this._rawValue.id; }
+    get price(): number { return this._rawValue.price; }
+    set price(value: number) {
+        let normalized = this.descriptor.codec.fields.price.normalize(value);
+        if (this._rawValue.price !== normalized) {
+            this._rawValue.price = normalized;
+            this._updatedValues.price = normalized;
+            this.invalidate();
+        }
+    }
+    get strategy(): 'one-time' | 'subscription' { return this._rawValue.strategy; }
+    set strategy(value: 'one-time' | 'subscription') {
+        let normalized = this.descriptor.codec.fields.strategy.normalize(value);
+        if (this._rawValue.strategy !== normalized) {
+            this._rawValue.strategy = normalized;
+            this._updatedValues.strategy = normalized;
+            this.invalidate();
+        }
+    }
+    get subscriptionDuration(): number | null { return this._rawValue.subscriptionDuration; }
+    set subscriptionDuration(value: number | null) {
+        let normalized = this.descriptor.codec.fields.subscriptionDuration.normalize(value);
+        if (this._rawValue.subscriptionDuration !== normalized) {
+            this._rawValue.subscriptionDuration = normalized;
+            this._updatedValues.subscriptionDuration = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape, PaidChatSettings> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paidChatSettings');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'price', type: { type: 'float' }, secure: false });
+        fields.push({ name: 'strategy', type: { type: 'enum', values: ['one-time', 'subscription'] }, secure: false });
+        fields.push({ name: 'subscriptionDuration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            price: c.float,
+            strategy: c.enum('one-time', 'subscription'),
+            subscriptionDuration: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<PaidChatSettingsShape> = {
+            name: 'PaidChatSettings',
+            storageKey: 'paidChatSettings',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaidChatSettingsFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaidChatSettingsShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: PaidChatSettingsCreateShape): Promise<PaidChatSettings> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: PaidChatSettingsCreateShape): PaidChatSettings {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<PaidChatSettings | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidChatSettingsShape>): PaidChatSettings {
+        return new PaidChatSettings([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaidChatUserPassShape {
+    id: string;
+    cid: number;
+    uid: number;
+    paymentIntentId: string | null;
+    paymentIntentSecret: string | null;
+    transactionId: string | null;
+    state: 'pending' | 'failed' | 'active';
+    ttl: number | null;
+    renew: boolean | null;
+}
+
+export interface PaidChatUserPassCreateShape {
+    paymentIntentId?: string | null | undefined;
+    paymentIntentSecret?: string | null | undefined;
+    transactionId?: string | null | undefined;
+    state: 'pending' | 'failed' | 'active';
+    ttl?: number | null | undefined;
+    renew?: boolean | null | undefined;
+}
+
+export class PaidChatUserPass extends Entity<PaidChatUserPassShape> {
+    get id(): string { return this._rawValue.id; }
+    get cid(): number { return this._rawValue.cid; }
+    get uid(): number { return this._rawValue.uid; }
+    get paymentIntentId(): string | null { return this._rawValue.paymentIntentId; }
+    set paymentIntentId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.paymentIntentId.normalize(value);
+        if (this._rawValue.paymentIntentId !== normalized) {
+            this._rawValue.paymentIntentId = normalized;
+            this._updatedValues.paymentIntentId = normalized;
+            this.invalidate();
+        }
+    }
+    get paymentIntentSecret(): string | null { return this._rawValue.paymentIntentSecret; }
+    set paymentIntentSecret(value: string | null) {
+        let normalized = this.descriptor.codec.fields.paymentIntentSecret.normalize(value);
+        if (this._rawValue.paymentIntentSecret !== normalized) {
+            this._rawValue.paymentIntentSecret = normalized;
+            this._updatedValues.paymentIntentSecret = normalized;
+            this.invalidate();
+        }
+    }
+    get transactionId(): string | null { return this._rawValue.transactionId; }
+    set transactionId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.transactionId.normalize(value);
+        if (this._rawValue.transactionId !== normalized) {
+            this._rawValue.transactionId = normalized;
+            this._updatedValues.transactionId = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'pending' | 'failed' | 'active' { return this._rawValue.state; }
+    set state(value: 'pending' | 'failed' | 'active') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get ttl(): number | null { return this._rawValue.ttl; }
+    set ttl(value: number | null) {
+        let normalized = this.descriptor.codec.fields.ttl.normalize(value);
+        if (this._rawValue.ttl !== normalized) {
+            this._rawValue.ttl = normalized;
+            this._updatedValues.ttl = normalized;
+            this.invalidate();
+        }
+    }
+    get renew(): boolean | null { return this._rawValue.renew; }
+    set renew(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.renew.normalize(value);
+        if (this._rawValue.renew !== normalized) {
+            this._rawValue.renew = normalized;
+            this._updatedValues.renew = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaidChatUserPassFactory extends EntityFactory<PaidChatUserPassShape, PaidChatUserPass> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paidChatUserPass');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'userChatPendingPass', storageKey: 'userChatPendingPass', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userChatPendingPass'), condition: (v) => v.state === 'pending' });
+        secondaryIndexes.push({ name: 'userChatActivePass', storageKey: 'userChatActivePass', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userChatActivePass'), condition: (v) => v.state === 'active' });
+        secondaryIndexes.push({ name: 'userActivePassAll', storageKey: 'userActivePassAll', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userActivePassAll'), condition: (v) => v.state === 'active' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'paymentIntentId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'paymentIntentSecret', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'transactionId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failed', 'active'] }, secure: false });
+        fields.push({ name: 'ttl', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'renew', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            cid: c.integer,
+            uid: c.integer,
+            paymentIntentId: c.optional(c.string),
+            paymentIntentSecret: c.optional(c.string),
+            transactionId: c.optional(c.string),
+            state: c.enum('pending', 'failed', 'active'),
+            ttl: c.optional(c.integer),
+            renew: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<PaidChatUserPassShape> = {
+            name: 'PaidChatUserPass',
+            storageKey: 'paidChatUserPass',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaidChatUserPassFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaidChatUserPassShape>) {
+        super(descriptor);
+    }
+
+    readonly userChatPendingPass = Object.freeze({
+        find: async (ctx: Context, uid: number, cid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly userChatActivePass = Object.freeze({
+        find: async (ctx: Context, uid: number, cid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly userActivePassAll = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, cid: number, uid: number, src: PaidChatUserPassCreateShape): Promise<PaidChatUserPass> {
+        return this._create(ctx, [id, cid, uid], this.descriptor.codec.normalize({ id, cid, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, cid: number, uid: number, src: PaidChatUserPassCreateShape): PaidChatUserPass {
+        return this._create_UNSAFE(ctx, [id, cid, uid], this.descriptor.codec.normalize({ id, cid, uid, ...src }));
+    }
+
+    findById(ctx: Context, id: string, cid: number, uid: number): Promise<PaidChatUserPass | null> {
+        return this._findById(ctx, [id, cid, uid]);
+    }
+
+    watch(ctx: Context, id: string, cid: number, uid: number): Watch {
+        return this._watch(ctx, [id, cid, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidChatUserPassShape>): PaidChatUserPass {
+        return new PaidChatUserPass([value.id, value.cid, value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -10042,6 +10332,74 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscoverUserPickedTagsShape>): DiscoverUserPickedTags {
         return new DiscoverUserPickedTags([value.uid, value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface DiscoverStateShape {
+    uid: number;
+    skipped: boolean;
+}
+
+export interface DiscoverStateCreateShape {
+    skipped: boolean;
+}
+
+export class DiscoverState extends Entity<DiscoverStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get skipped(): boolean { return this._rawValue.skipped; }
+    set skipped(value: boolean) {
+        let normalized = this.descriptor.codec.fields.skipped.normalize(value);
+        if (this._rawValue.skipped !== normalized) {
+            this._rawValue.skipped = normalized;
+            this._updatedValues.skipped = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, DiscoverState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('discoverState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'skipped', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            skipped: c.boolean,
+        });
+        let descriptor: EntityDescriptor<DiscoverStateShape> = {
+            name: 'DiscoverState',
+            storageKey: 'discoverState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DiscoverStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DiscoverStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: DiscoverStateCreateShape): Promise<DiscoverState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: DiscoverStateCreateShape): DiscoverState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<DiscoverState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscoverStateShape>): DiscoverState {
+        return new DiscoverState([value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -16856,6 +17214,8 @@ export interface Store extends BaseStore {
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
     readonly ConversationRoom: ConversationRoomFactory;
+    readonly PaidChatSettings: PaidChatSettingsFactory;
+    readonly PaidChatUserPass: PaidChatUserPassFactory;
     readonly RoomProfile: RoomProfileFactory;
     readonly RoomParticipant: RoomParticipantFactory;
     readonly Message: MessageFactory;
@@ -16907,6 +17267,7 @@ export interface Store extends BaseStore {
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ChannelInvitation: ChannelInvitationFactory;
     readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
+    readonly DiscoverState: DiscoverStateFactory;
     readonly UserOnboardingState: UserOnboardingStateFactory;
     readonly PushFirebase: PushFirebaseFactory;
     readonly PushApple: PushAppleFactory;
@@ -17044,6 +17405,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationPrivatePromise = ConversationPrivateFactory.open(storage);
     let ConversationOrganizationPromise = ConversationOrganizationFactory.open(storage);
     let ConversationRoomPromise = ConversationRoomFactory.open(storage);
+    let PaidChatSettingsPromise = PaidChatSettingsFactory.open(storage);
+    let PaidChatUserPassPromise = PaidChatUserPassFactory.open(storage);
     let RoomProfilePromise = RoomProfileFactory.open(storage);
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
@@ -17095,6 +17458,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.open(storage);
     let ChannelInvitationPromise = ChannelInvitationFactory.open(storage);
     let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.open(storage);
+    let DiscoverStatePromise = DiscoverStateFactory.open(storage);
     let UserOnboardingStatePromise = UserOnboardingStateFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
     let PushApplePromise = PushAppleFactory.open(storage);
@@ -17209,6 +17573,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationPrivate: await ConversationPrivatePromise,
         ConversationOrganization: await ConversationOrganizationPromise,
         ConversationRoom: await ConversationRoomPromise,
+        PaidChatSettings: await PaidChatSettingsPromise,
+        PaidChatUserPass: await PaidChatUserPassPromise,
         RoomProfile: await RoomProfilePromise,
         RoomParticipant: await RoomParticipantPromise,
         Message: await MessagePromise,
@@ -17260,6 +17626,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OrganizationInviteLink: await OrganizationInviteLinkPromise,
         ChannelInvitation: await ChannelInvitationPromise,
         DiscoverUserPickedTags: await DiscoverUserPickedTagsPromise,
+        DiscoverState: await DiscoverStatePromise,
         UserOnboardingState: await UserOnboardingStatePromise,
         PushFirebase: await PushFirebasePromise,
         PushApple: await PushApplePromise,

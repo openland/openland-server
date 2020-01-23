@@ -40,6 +40,10 @@ export class BillingModule {
         return await this.stripeMediator.deleteCard(parent, uid, pmid);
     }
 
+    makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
+        return await this.stripeMediator.makeCardDefault(parent, uid, pmid);
+    }
+
     createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {
         return await this.stripeMediator.createSetupIntent(parent, uid, retryKey);
     }

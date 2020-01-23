@@ -75,6 +75,9 @@ export default {
         }),
         cardRemove: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id));
+        }),
+        cardMakeDefault: withAccount(async (ctx, args, uid) => {
+            return await Modules.Billing.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
         })
     }
 } as GQLResolver;

@@ -184,6 +184,31 @@ export class StripeMediator {
         });
     }
 
+    makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+
+        return await inTx(parent, async (ctx) => {
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Card not found');
+            }
+            if (!card.default) {
+                let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid && v.default);
+                if (ex) {
+                    ex.default = false;
+
+                    await ex.flush(ctx);
+                }
+
+                card.default = true;
+
+                await card.flush(ctx);
+            }
+
+            return card;
+        });
+    }
+
     //
     // Card Sync
     //
@@ -332,5 +357,9 @@ export class StripeMediator {
                 }
             }
         });
+    }
+    
+    transfer = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
+        return this.repo.createTransaction(parent, fromUid, toUid, 'transfer', amount);
     }
 }
