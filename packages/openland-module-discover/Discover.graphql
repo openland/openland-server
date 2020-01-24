@@ -21,6 +21,7 @@ extend type Query {
     gammaNextDiscoverPage(selectedTagsIds: [String!]!, excudedGroupsIds: [String!]!): DiscoverPage
     betaSuggestedRooms: [Room!]!
     betaIsDiscoverDone: Boolean!
+    isDiscoverSkipped: Boolean!
 }
 
 extend type Mutation {

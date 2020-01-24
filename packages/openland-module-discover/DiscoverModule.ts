@@ -88,6 +88,15 @@ export class DiscoverModule {
         });
 
     }
+
+    isDiscoverSkipped = async (parent: Context, uid: number) => {
+        return inTx(parent, async (ctx) => {
+            let res = await Store.DiscoverState.findById(ctx, uid);
+            
+            return !!(res && res.skipped);
+        });
+    }
+
     reset = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
             let oldTags = await Store.DiscoverUserPickedTags.user.findAll(ctx, uid);
@@ -102,6 +111,12 @@ export class DiscoverModule {
             let chats = this.data.resolveSuggestedChats(selectedTags);
             await this.saveSelectedTags(ctx, uid, selectedTags);
             await Modules.Hooks.onDiscoverSkipped(ctx, uid);
+            let discoverState = await Store.DiscoverState.findById(ctx, uid);
+            if (discoverState) {
+                discoverState.skipped = true;
+            } else {
+                await Store.DiscoverState.create(ctx, uid, {skipped: true});
+            }
             chats = await this.sortChats(ctx, chats);
             return { chats };
         });

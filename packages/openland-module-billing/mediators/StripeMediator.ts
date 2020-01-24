@@ -6,12 +6,14 @@ import Stripe from 'stripe';
 
 export class StripeMediator {
 
+    readonly liveMode: boolean;
     readonly repo: BillingRepository;
-    private readonly stripe: Stripe;
+    readonly stripe: Stripe;
 
     constructor(token: string, repo: BillingRepository) {
         this.repo = repo;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
+        this.liveMode = !token.startsWith('sk_test');
     }
 
     exportCustomer = async (parent: Context, uid: number) => {
@@ -152,6 +154,58 @@ export class StripeMediator {
             });
             await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
             return res;
+        });
+    }
+
+    deleteCard = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+
+        return await inTx(parent, async (ctx) => {
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Card not found');
+            }
+            if (!card.deleted) {
+                card.deleted = true;
+
+                // Update Default
+                if (card.default) {
+                    card.default = false;
+
+                    let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid);
+                    if (ex) {
+                        ex.default = true;
+                    }
+                }
+
+                await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
+            }
+            return card;
+        });
+    }
+
+    makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
+        await this.enableBillingAndAwait(parent, uid);
+
+        return await inTx(parent, async (ctx) => {
+            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
+            if (!card) {
+                throw Error('Card not found');
+            }
+            if (!card.default) {
+                let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid && v.default);
+                if (ex) {
+                    ex.default = false;
+
+                    await ex.flush(ctx);
+                }
+
+                card.default = true;
+
+                await card.flush(ctx);
+            }
+
+            return card;
         });
     }
 
@@ -301,18 +355,11 @@ export class StripeMediator {
                 } else {
                     throw Error('Invalid intent');
                 }
-            } else if (dp.status === 'canceled') {
-                if (intent.state === 'success' || intent.state === 'failed' || intent.state === 'canceled') {
-                    return;
-                }
-                intent.state = 'canceled';
-
-                if (intent.operation.type === 'deposit') {
-                    // TODO?
-                } else {
-                    throw Error('Invalid intent');
-                }
             }
         });
+    }
+    
+    transfer = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
+        return this.repo.createTransaction(parent, fromUid, toUid, 'transfer', amount);
     }
 }

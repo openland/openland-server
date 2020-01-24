@@ -29,6 +29,9 @@ export default {
         }),
         betaIsDiscoverDone: withUser((ctx, args, uid) => {
             return Modules.Discover.isDiscoverDone(ctx, uid);
+        }),
+        isDiscoverSkipped:  withUser((ctx, args, uid) => {
+            return Modules.Discover.isDiscoverSkipped(ctx, uid);
         })
     },
 

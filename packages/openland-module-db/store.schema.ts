@@ -217,10 +217,35 @@ export default declareSchema(() => {
         field('featured', optional(boolean()));
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
+        field('isPaid', optional(boolean()));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public');
+    });
+
+    entity('PaidChatSettings', () => {
+        primaryKey('id', integer());
+        field('price', float());
+        field('strategy', enumString('one-time', 'subscription'));
+        field('subscriptionDuration', optional(integer()));
+    });
+
+    entity('PaidChatUserPass', () => {
+        primaryKey('id', string());
+        primaryKey('cid', integer());
+        primaryKey('uid', integer());
+
+        field('paymentIntentId', optional(string()));
+        field('paymentIntentSecret', optional(string()));
+        field('transactionId', optional(string()));
+
+        field('state', enumString('pending', 'failed', 'active'));
+        field('ttl', optional(integer()));
+        field('renew', optional(boolean()));
+        uniqueIndex('userChatPendingPass', ['uid', 'cid']).withCondition((v) => v.state === 'pending');
+        uniqueIndex('userChatActivePass', ['uid', 'cid']).withCondition((v) => v.state === 'active');
+        rangeIndex('userActivePassAll', ['uid']).withCondition((v) => v.state === 'active');
     });
 
     entity('RoomProfile', () => {
@@ -1310,7 +1335,7 @@ export default declareSchema(() => {
     });
 
     //
-    // Onboarding
+    // Discover
     //
 
     entity('DiscoverUserPickedTags', () => {
@@ -1319,6 +1344,15 @@ export default declareSchema(() => {
         field('deleted', boolean());
         uniqueIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
     });
+
+    entity('DiscoverState', () => {
+        primaryKey('uid', integer());
+        field('skipped', boolean());
+    });
+
+    //
+    // Onboarding
+    //
 
     entity('UserOnboardingState', () => {
         primaryKey('uid', integer());
@@ -1596,7 +1630,7 @@ export default declareSchema(() => {
         rangeIndex('userGroup', ['uid', 'gid', 'createdAt']);
         rangeIndex('groupApp', ['gid', 'appType', 'appId', 'createdAt']);
         rangeIndex('userApp', ['uid', 'appType', 'appId', 'createdAt']);
-        uniqueIndex('single', ['uid', 'gid',  'appType', 'appId', 'scopeType', 'scopeId']);
+        uniqueIndex('single', ['uid', 'gid', 'appType', 'appId', 'scopeType', 'scopeId']);
     });
 
     //
@@ -1694,6 +1728,37 @@ export default declareSchema(() => {
                 uid: integer()
             })
         }));
+    });
+
+    //
+    // Stripe Events
+    //
+
+    entity('StripeEventsCursor', () => {
+        primaryKey('id', string());
+        field('cursor', string());
+    });
+
+    entity('StripeEvent', () => {
+        primaryKey('id', string());
+        field('type', string());
+        field('data', json());
+        field('date', integer());
+        field('liveMode', boolean());
+    });
+
+    //
+    // Stripe Event Store
+    //
+
+    eventStore('StripeEventStore', () => {
+        primaryKey('liveMode', boolean());
+    });
+
+    event('StripeEventCreated', () => {
+        field('id', string());
+        field('eventType', string());
+        field('eventDate', integer());
     });
 
     //

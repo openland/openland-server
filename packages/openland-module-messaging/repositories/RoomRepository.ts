@@ -1,4 +1,4 @@
-import { RoomParticipantCreateShape, Message, ChatUpdatedEvent } from './../../openland-module-db/store';
+import { RoomParticipantCreateShape, Message, ChatUpdatedEvent, Transaction, PaidChatUserPass } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
@@ -18,6 +18,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { smartSlice } from '../../openland-utils/string';
+import Stripe from 'stripe';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -190,6 +191,43 @@ export class RoomRepository {
                 await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
+        });
+    }
+
+    async buyPaidGroupPass(parent: Context, cid: number, uid: number, pmid: string): Promise<{ pass: PaidChatUserPass, intent?: Stripe.PaymentIntent }> {
+        return await inTx(parent, async (ctx) => {
+            let chat = await Store.ConversationRoom.findById(ctx, cid);
+            if (!chat || !chat.ownerId) {
+                throw new Error('Chat owner not found');
+            }
+            if (!chat.isPaid) {
+                throw new Error('Chat is free to join');
+            }
+            let paidChatSettings = (await Store.PaidChatSettings.findById(ctx, chat.id))!;
+            let tx: Transaction | undefined;
+            let intent: Stripe.PaymentIntent | undefined;
+            if (pmid === 'openland') {
+                tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
+            } else {
+                // TODO: create payment(deposit?) intent in case of card
+                throw new Error('currently openland depsit only');
+            }
+
+            let pass = await Store.PaidChatUserPass.create(ctx, tx ? `tx-${tx.id}` : `intent-${intent!.id}`, cid, uid,
+                {
+                    state: 'pending',
+                    transactionId: tx ? tx.id : undefined,
+                    paymentIntentId: intent ? intent.id : undefined,
+                    paymentIntentSecret: intent ? intent.client_secret : undefined,
+                });
+            // TODO: add worker for pending check
+
+            // openland diposit fast track
+            if (tx && tx.status === 'processed') {
+                pass.state = 'active';
+                await this.joinRoom(ctx, cid, uid, false);
+            }
+            return { pass, intent };
         });
     }
 

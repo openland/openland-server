@@ -6,6 +6,8 @@ import { Context } from '@openland/context';
 import { injectable } from 'inversify';
 import { startCustomerExportWorker } from './workers/CustomerExportWorker';
 import { startCardSyncWorker } from './workers/CardSyncWorker';
+import { startEventsReaderWorker } from './workers/EventsReaderWorker';
+import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
 
 @injectable()
 export class BillingModule {
@@ -17,6 +19,8 @@ export class BillingModule {
         if (serverRoleEnabled('workers')) {
             startCustomerExportWorker(this.repo.createCustomerQueue, this.stripeMediator);
             startCardSyncWorker(this.repo.syncCardQueue, this.stripeMediator);
+            startEventsReaderWorker(this.stripeMediator);
+            startPaymentIntentCommiter(this.stripeMediator);
         }
     }
 
@@ -30,6 +34,14 @@ export class BillingModule {
 
     registerCard = async (parent: Context, uid: number, pmid: string) => {
         return await this.stripeMediator.registerCard(parent, uid, pmid);
+    }
+
+    deleteCard = async (parent: Context, uid: number, pmid: string) => {
+        return await this.stripeMediator.deleteCard(parent, uid, pmid);
+    }
+
+    makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
+        return await this.stripeMediator.makeCardDefault(parent, uid, pmid);
     }
 
     createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {

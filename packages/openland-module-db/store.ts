@@ -3322,6 +3322,7 @@ export interface ConversationRoomShape {
     featured: boolean | null;
     listed: boolean | null;
     isChannel: boolean | null;
+    isPaid: boolean | null;
 }
 
 export interface ConversationRoomCreateShape {
@@ -3331,6 +3332,7 @@ export interface ConversationRoomCreateShape {
     featured?: boolean | null | undefined;
     listed?: boolean | null | undefined;
     isChannel?: boolean | null | undefined;
+    isPaid?: boolean | null | undefined;
 }
 
 export class ConversationRoom extends Entity<ConversationRoomShape> {
@@ -3389,6 +3391,15 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
             this.invalidate();
         }
     }
+    get isPaid(): boolean | null { return this._rawValue.isPaid; }
+    set isPaid(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isPaid.normalize(value);
+        if (this._rawValue.isPaid !== normalized) {
+            this._rawValue.isPaid = normalized;
+            this._updatedValues.isPaid = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
@@ -3407,6 +3418,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         fields.push({ name: 'featured', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'listed', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isPaid', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             kind: c.enum('organization', 'internal', 'public', 'group'),
@@ -3415,6 +3427,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
             featured: c.optional(c.boolean),
             listed: c.optional(c.boolean),
             isChannel: c.optional(c.boolean),
+            isPaid: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',
@@ -3473,6 +3486,283 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationRoomShape>): ConversationRoom {
         return new ConversationRoom([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaidChatSettingsShape {
+    id: number;
+    price: number;
+    strategy: 'one-time' | 'subscription';
+    subscriptionDuration: number | null;
+}
+
+export interface PaidChatSettingsCreateShape {
+    price: number;
+    strategy: 'one-time' | 'subscription';
+    subscriptionDuration?: number | null | undefined;
+}
+
+export class PaidChatSettings extends Entity<PaidChatSettingsShape> {
+    get id(): number { return this._rawValue.id; }
+    get price(): number { return this._rawValue.price; }
+    set price(value: number) {
+        let normalized = this.descriptor.codec.fields.price.normalize(value);
+        if (this._rawValue.price !== normalized) {
+            this._rawValue.price = normalized;
+            this._updatedValues.price = normalized;
+            this.invalidate();
+        }
+    }
+    get strategy(): 'one-time' | 'subscription' { return this._rawValue.strategy; }
+    set strategy(value: 'one-time' | 'subscription') {
+        let normalized = this.descriptor.codec.fields.strategy.normalize(value);
+        if (this._rawValue.strategy !== normalized) {
+            this._rawValue.strategy = normalized;
+            this._updatedValues.strategy = normalized;
+            this.invalidate();
+        }
+    }
+    get subscriptionDuration(): number | null { return this._rawValue.subscriptionDuration; }
+    set subscriptionDuration(value: number | null) {
+        let normalized = this.descriptor.codec.fields.subscriptionDuration.normalize(value);
+        if (this._rawValue.subscriptionDuration !== normalized) {
+            this._rawValue.subscriptionDuration = normalized;
+            this._updatedValues.subscriptionDuration = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape, PaidChatSettings> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paidChatSettings');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'price', type: { type: 'float' }, secure: false });
+        fields.push({ name: 'strategy', type: { type: 'enum', values: ['one-time', 'subscription'] }, secure: false });
+        fields.push({ name: 'subscriptionDuration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            price: c.float,
+            strategy: c.enum('one-time', 'subscription'),
+            subscriptionDuration: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<PaidChatSettingsShape> = {
+            name: 'PaidChatSettings',
+            storageKey: 'paidChatSettings',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaidChatSettingsFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaidChatSettingsShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: number, src: PaidChatSettingsCreateShape): Promise<PaidChatSettings> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: PaidChatSettingsCreateShape): PaidChatSettings {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<PaidChatSettings | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidChatSettingsShape>): PaidChatSettings {
+        return new PaidChatSettings([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaidChatUserPassShape {
+    id: string;
+    cid: number;
+    uid: number;
+    paymentIntentId: string | null;
+    paymentIntentSecret: string | null;
+    transactionId: string | null;
+    state: 'pending' | 'failed' | 'active';
+    ttl: number | null;
+    renew: boolean | null;
+}
+
+export interface PaidChatUserPassCreateShape {
+    paymentIntentId?: string | null | undefined;
+    paymentIntentSecret?: string | null | undefined;
+    transactionId?: string | null | undefined;
+    state: 'pending' | 'failed' | 'active';
+    ttl?: number | null | undefined;
+    renew?: boolean | null | undefined;
+}
+
+export class PaidChatUserPass extends Entity<PaidChatUserPassShape> {
+    get id(): string { return this._rawValue.id; }
+    get cid(): number { return this._rawValue.cid; }
+    get uid(): number { return this._rawValue.uid; }
+    get paymentIntentId(): string | null { return this._rawValue.paymentIntentId; }
+    set paymentIntentId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.paymentIntentId.normalize(value);
+        if (this._rawValue.paymentIntentId !== normalized) {
+            this._rawValue.paymentIntentId = normalized;
+            this._updatedValues.paymentIntentId = normalized;
+            this.invalidate();
+        }
+    }
+    get paymentIntentSecret(): string | null { return this._rawValue.paymentIntentSecret; }
+    set paymentIntentSecret(value: string | null) {
+        let normalized = this.descriptor.codec.fields.paymentIntentSecret.normalize(value);
+        if (this._rawValue.paymentIntentSecret !== normalized) {
+            this._rawValue.paymentIntentSecret = normalized;
+            this._updatedValues.paymentIntentSecret = normalized;
+            this.invalidate();
+        }
+    }
+    get transactionId(): string | null { return this._rawValue.transactionId; }
+    set transactionId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.transactionId.normalize(value);
+        if (this._rawValue.transactionId !== normalized) {
+            this._rawValue.transactionId = normalized;
+            this._updatedValues.transactionId = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'pending' | 'failed' | 'active' { return this._rawValue.state; }
+    set state(value: 'pending' | 'failed' | 'active') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get ttl(): number | null { return this._rawValue.ttl; }
+    set ttl(value: number | null) {
+        let normalized = this.descriptor.codec.fields.ttl.normalize(value);
+        if (this._rawValue.ttl !== normalized) {
+            this._rawValue.ttl = normalized;
+            this._updatedValues.ttl = normalized;
+            this.invalidate();
+        }
+    }
+    get renew(): boolean | null { return this._rawValue.renew; }
+    set renew(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.renew.normalize(value);
+        if (this._rawValue.renew !== normalized) {
+            this._rawValue.renew = normalized;
+            this._updatedValues.renew = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaidChatUserPassFactory extends EntityFactory<PaidChatUserPassShape, PaidChatUserPass> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paidChatUserPass');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'userChatPendingPass', storageKey: 'userChatPendingPass', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userChatPendingPass'), condition: (v) => v.state === 'pending' });
+        secondaryIndexes.push({ name: 'userChatActivePass', storageKey: 'userChatActivePass', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userChatActivePass'), condition: (v) => v.state === 'active' });
+        secondaryIndexes.push({ name: 'userActivePassAll', storageKey: 'userActivePassAll', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userActivePassAll'), condition: (v) => v.state === 'active' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'paymentIntentId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'paymentIntentSecret', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'transactionId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failed', 'active'] }, secure: false });
+        fields.push({ name: 'ttl', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'renew', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            cid: c.integer,
+            uid: c.integer,
+            paymentIntentId: c.optional(c.string),
+            paymentIntentSecret: c.optional(c.string),
+            transactionId: c.optional(c.string),
+            state: c.enum('pending', 'failed', 'active'),
+            ttl: c.optional(c.integer),
+            renew: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<PaidChatUserPassShape> = {
+            name: 'PaidChatUserPass',
+            storageKey: 'paidChatUserPass',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaidChatUserPassFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaidChatUserPassShape>) {
+        super(descriptor);
+    }
+
+    readonly userChatPendingPass = Object.freeze({
+        find: async (ctx: Context, uid: number, cid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly userChatActivePass = Object.freeze({
+        find: async (ctx: Context, uid: number, cid: number) => {
+            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly userActivePassAll = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, cid: number, uid: number, src: PaidChatUserPassCreateShape): Promise<PaidChatUserPass> {
+        return this._create(ctx, [id, cid, uid], this.descriptor.codec.normalize({ id, cid, uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, cid: number, uid: number, src: PaidChatUserPassCreateShape): PaidChatUserPass {
+        return this._create_UNSAFE(ctx, [id, cid, uid], this.descriptor.codec.normalize({ id, cid, uid, ...src }));
+    }
+
+    findById(ctx: Context, id: string, cid: number, uid: number): Promise<PaidChatUserPass | null> {
+        return this._findById(ctx, [id, cid, uid]);
+    }
+
+    watch(ctx: Context, id: string, cid: number, uid: number): Watch {
+        return this._watch(ctx, [id, cid, uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidChatUserPassShape>): PaidChatUserPass {
+        return new PaidChatUserPass([value.id, value.cid, value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -10045,6 +10335,74 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
     }
 }
 
+export interface DiscoverStateShape {
+    uid: number;
+    skipped: boolean;
+}
+
+export interface DiscoverStateCreateShape {
+    skipped: boolean;
+}
+
+export class DiscoverState extends Entity<DiscoverStateShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get skipped(): boolean { return this._rawValue.skipped; }
+    set skipped(value: boolean) {
+        let normalized = this.descriptor.codec.fields.skipped.normalize(value);
+        if (this._rawValue.skipped !== normalized) {
+            this._rawValue.skipped = normalized;
+            this._updatedValues.skipped = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, DiscoverState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('discoverState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'skipped', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            skipped: c.boolean,
+        });
+        let descriptor: EntityDescriptor<DiscoverStateShape> = {
+            name: 'DiscoverState',
+            storageKey: 'discoverState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DiscoverStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DiscoverStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: DiscoverStateCreateShape): Promise<DiscoverState> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: DiscoverStateCreateShape): DiscoverState {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<DiscoverState | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscoverStateShape>): DiscoverState {
+        return new DiscoverState([value.uid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserOnboardingStateShape {
     uid: number;
     wellcomeSent: boolean | null;
@@ -13627,6 +13985,181 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
     }
 }
 
+export interface StripeEventsCursorShape {
+    id: string;
+    cursor: string;
+}
+
+export interface StripeEventsCursorCreateShape {
+    cursor: string;
+}
+
+export class StripeEventsCursor extends Entity<StripeEventsCursorShape> {
+    get id(): string { return this._rawValue.id; }
+    get cursor(): string { return this._rawValue.cursor; }
+    set cursor(value: string) {
+        let normalized = this.descriptor.codec.fields.cursor.normalize(value);
+        if (this._rawValue.cursor !== normalized) {
+            this._rawValue.cursor = normalized;
+            this._updatedValues.cursor = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorShape, StripeEventsCursor> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('stripeEventsCursor');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'cursor', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            cursor: c.string,
+        });
+        let descriptor: EntityDescriptor<StripeEventsCursorShape> = {
+            name: 'StripeEventsCursor',
+            storageKey: 'stripeEventsCursor',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StripeEventsCursorFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StripeEventsCursorShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: StripeEventsCursorCreateShape): Promise<StripeEventsCursor> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: StripeEventsCursorCreateShape): StripeEventsCursor {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<StripeEventsCursor | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventsCursorShape>): StripeEventsCursor {
+        return new StripeEventsCursor([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface StripeEventShape {
+    id: string;
+    type: string;
+    data: any;
+    date: number;
+    liveMode: boolean;
+}
+
+export interface StripeEventCreateShape {
+    type: string;
+    data: any;
+    date: number;
+    liveMode: boolean;
+}
+
+export class StripeEvent extends Entity<StripeEventShape> {
+    get id(): string { return this._rawValue.id; }
+    get type(): string { return this._rawValue.type; }
+    set type(value: string) {
+        let normalized = this.descriptor.codec.fields.type.normalize(value);
+        if (this._rawValue.type !== normalized) {
+            this._rawValue.type = normalized;
+            this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+    get data(): any { return this._rawValue.data; }
+    set data(value: any) {
+        let normalized = this.descriptor.codec.fields.data.normalize(value);
+        if (this._rawValue.data !== normalized) {
+            this._rawValue.data = normalized;
+            this._updatedValues.data = normalized;
+            this.invalidate();
+        }
+    }
+    get date(): number { return this._rawValue.date; }
+    set date(value: number) {
+        let normalized = this.descriptor.codec.fields.date.normalize(value);
+        if (this._rawValue.date !== normalized) {
+            this._rawValue.date = normalized;
+            this._updatedValues.date = normalized;
+            this.invalidate();
+        }
+    }
+    get liveMode(): boolean { return this._rawValue.liveMode; }
+    set liveMode(value: boolean) {
+        let normalized = this.descriptor.codec.fields.liveMode.normalize(value);
+        if (this._rawValue.liveMode !== normalized) {
+            this._rawValue.liveMode = normalized;
+            this._updatedValues.liveMode = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEvent> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('stripeEvent');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'type', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'data', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'date', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'liveMode', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            type: c.string,
+            data: c.any,
+            date: c.integer,
+            liveMode: c.boolean,
+        });
+        let descriptor: EntityDescriptor<StripeEventShape> = {
+            name: 'StripeEvent',
+            storageKey: 'stripeEvent',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new StripeEventFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<StripeEventShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: StripeEventCreateShape): Promise<StripeEvent> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: StripeEventCreateShape): StripeEvent {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<StripeEvent | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventShape>): StripeEvent {
+        return new StripeEvent([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface UserAccountShape {
     uid: number;
     aid: string;
@@ -15987,6 +16520,41 @@ export class UserLocationStopSharingEvent extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
+const stripeEventCreatedCodec = c.struct({
+    id: c.string,
+    eventType: c.string,
+    eventDate: c.integer,
+});
+
+interface StripeEventCreatedShape {
+    id: string;
+    eventType: string;
+    eventDate: number;
+}
+
+export class StripeEventCreated extends BaseEvent {
+
+    static create(data: StripeEventCreatedShape) {
+        return new StripeEventCreated(stripeEventCreatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new StripeEventCreated(stripeEventCreatedCodec.decode(data));
+    }
+
+    static encode(event: StripeEventCreated) {
+        return stripeEventCreatedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('stripeEventCreated', data);
+    }
+
+    get id(): string { return this.raw.id; }
+    get eventType(): string { return this.raw.eventType; }
+    get eventDate(): number { return this.raw.eventDate; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -16197,6 +16765,41 @@ export class UserLocationEventStore extends EventStore {
     }
 }
 
+export class StripeEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('stripeEventStore');
+        const descriptor = {
+            name: 'StripeEventStore',
+            storageKey: 'stripeEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new StripeEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, liveMode: boolean, event: BaseEvent) {
+        this._post(ctx, [liveMode], event);
+    }
+
+    async findAll(ctx: Context, liveMode: boolean) {
+        return this._findAll(ctx, [liveMode]);
+    }
+
+    createStream(liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([liveMode], opts);
+    }
+
+    createLiveStream(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [liveMode], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
@@ -16251,6 +16854,8 @@ export interface Store extends BaseStore {
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
     readonly ConversationRoom: ConversationRoomFactory;
+    readonly PaidChatSettings: PaidChatSettingsFactory;
+    readonly PaidChatUserPass: PaidChatUserPassFactory;
     readonly RoomProfile: RoomProfileFactory;
     readonly RoomParticipant: RoomParticipantFactory;
     readonly Message: MessageFactory;
@@ -16302,6 +16907,7 @@ export interface Store extends BaseStore {
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ChannelInvitation: ChannelInvitationFactory;
     readonly DiscoverUserPickedTags: DiscoverUserPickedTagsFactory;
+    readonly DiscoverState: DiscoverStateFactory;
     readonly UserOnboardingState: UserOnboardingStateFactory;
     readonly PushFirebase: PushFirebaseFactory;
     readonly PushApple: PushAppleFactory;
@@ -16328,6 +16934,8 @@ export interface Store extends BaseStore {
     readonly AccountTransaction: AccountTransactionFactory;
     readonly Transaction: TransactionFactory;
     readonly PaymentIntent: PaymentIntentFactory;
+    readonly StripeEventsCursor: StripeEventsCursorFactory;
+    readonly StripeEvent: StripeEventFactory;
     readonly UserAccount: UserAccountFactory;
     readonly Sequence: SequenceFactory;
     readonly Environment: EnvironmentFactory;
@@ -16350,6 +16958,7 @@ export interface Store extends BaseStore {
     readonly FeedEventStore: FeedEventStore;
     readonly FeedGlobalEventStore: FeedGlobalEventStore;
     readonly UserLocationEventStore: UserLocationEventStore;
+    readonly StripeEventStore: StripeEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -16379,6 +16988,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
     eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
+    eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -16432,6 +17042,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationPrivatePromise = ConversationPrivateFactory.open(storage);
     let ConversationOrganizationPromise = ConversationOrganizationFactory.open(storage);
     let ConversationRoomPromise = ConversationRoomFactory.open(storage);
+    let PaidChatSettingsPromise = PaidChatSettingsFactory.open(storage);
+    let PaidChatUserPassPromise = PaidChatUserPassFactory.open(storage);
     let RoomProfilePromise = RoomProfileFactory.open(storage);
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
@@ -16483,6 +17095,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.open(storage);
     let ChannelInvitationPromise = ChannelInvitationFactory.open(storage);
     let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.open(storage);
+    let DiscoverStatePromise = DiscoverStateFactory.open(storage);
     let UserOnboardingStatePromise = UserOnboardingStateFactory.open(storage);
     let PushFirebasePromise = PushFirebaseFactory.open(storage);
     let PushApplePromise = PushAppleFactory.open(storage);
@@ -16509,6 +17122,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let AccountTransactionPromise = AccountTransactionFactory.open(storage);
     let TransactionPromise = TransactionFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
+    let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
+    let StripeEventPromise = StripeEventFactory.open(storage);
     let UserAccountPromise = UserAccountFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
@@ -16535,6 +17150,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
+    let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -16591,6 +17207,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationPrivate: await ConversationPrivatePromise,
         ConversationOrganization: await ConversationOrganizationPromise,
         ConversationRoom: await ConversationRoomPromise,
+        PaidChatSettings: await PaidChatSettingsPromise,
+        PaidChatUserPass: await PaidChatUserPassPromise,
         RoomProfile: await RoomProfilePromise,
         RoomParticipant: await RoomParticipantPromise,
         Message: await MessagePromise,
@@ -16642,6 +17260,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OrganizationInviteLink: await OrganizationInviteLinkPromise,
         ChannelInvitation: await ChannelInvitationPromise,
         DiscoverUserPickedTags: await DiscoverUserPickedTagsPromise,
+        DiscoverState: await DiscoverStatePromise,
         UserOnboardingState: await UserOnboardingStatePromise,
         PushFirebase: await PushFirebasePromise,
         PushApple: await PushApplePromise,
@@ -16668,6 +17287,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         AccountTransaction: await AccountTransactionPromise,
         Transaction: await TransactionPromise,
         PaymentIntent: await PaymentIntentPromise,
+        StripeEventsCursor: await StripeEventsCursorPromise,
+        StripeEvent: await StripeEventPromise,
         UserAccount: await UserAccountPromise,
         Sequence: await SequencePromise,
         Environment: await EnvironmentPromise,
@@ -16694,5 +17315,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedEventStore: await FeedEventStorePromise,
         FeedGlobalEventStore: await FeedGlobalEventStorePromise,
         UserLocationEventStore: await UserLocationEventStorePromise,
+        StripeEventStore: await StripeEventStorePromise,
     };
 }

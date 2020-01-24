@@ -1,0 +1,26 @@
+import { createLogger } from '@openland/log';
+import { StripeEventCreated } from './../../openland-module-db/store';
+import { Store } from './../../openland-module-db/FDB';
+import { updateReader } from '../../openland-module-workers/updateReader';
+import { StripeMediator } from './../mediators/StripeMediator';
+import { inTx } from '@openland/foundationdb';
+
+const log = createLogger('commiter');
+
+export function startPaymentIntentCommiter(mediator: StripeMediator) {
+    updateReader('stripe-payment-intent-' + (mediator.liveMode ? 'live' : 'test'), 1, Store.StripeEventStore.createStream(mediator.liveMode, { batchSize: 10 }), async (items, first, parent) => {
+        for (let i of items) {
+            let e = (i as StripeEventCreated);
+            if (e.eventType === 'payment_intent.succeeded') {
+                let eventData = await inTx(parent, async (ctx) => {
+                    return (await Store.StripeEvent.findById(ctx, e.id))!.data;
+                });
+                let pid = eventData.object.id as string;
+
+                log.debug(parent, 'Commit Payment: ' + pid);
+
+                await mediator.updatePaymentIntent(parent, pid);
+            }
+        }
+    });
+}

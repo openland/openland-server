@@ -64,7 +64,14 @@ const lock = new AsyncLock();
 const app = express();
 app.use(express.json());
 
-app.post('/', async (req, res) => {
+function handleAsync(callback) {
+  return function (req, res, next) {
+    callback(req, res, next)
+      .catch(next)
+  }
+}
+
+app.post('/', handleAsync(async (req, res) => {
   await lock.inLock(async () => {
     if (!page) {
       page = await getBrowserPage();
@@ -96,10 +103,10 @@ app.post('/', async (req, res) => {
     res.set('Content-Type', 'image/png');
     res.send(screenshot);
   });
-});
+}));
 
 
-app.post('/html', async (req, res) => {
+app.post('/html', handleAsync(async (req, res) => {
   await lock.inLock(async () => {
     if (!page) {
       page = await getBrowserPage();
@@ -116,7 +123,7 @@ app.post('/html', async (req, res) => {
 
     // Load page
     await page.setViewport({ width, height, deviceScaleFactor: scale });
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    let response = await page.goto(url, { waitUntil: 'networkidle2' });
 
     // Capture screenshot
     const screenshot = await page.screenshot({
@@ -129,11 +136,18 @@ app.post('/html', async (req, res) => {
     const html = await page.content();
     res.json({
       html,
-      screenshot
+      screenshot,
+      status: response.status()
     });
   });
-});
+}));
 
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).json({
+    error: err.toString(),
+  });
+});
 
 app.listen(8080, () => {
   console.log('Server is listening on 8080');
