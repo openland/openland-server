@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0b7748d2a251abb50dcd42014414f22b';
+export const GQL_SPEC_VERSION = '20c38939a7ed67934304fcfa1bfd1ecc';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3682,6 +3682,7 @@ export namespace GQL {
         myBadge: Nullable<UserBadge>;
         matchmaking: Nullable<MatchmakingRoom>;
         isPaid: boolean;
+        paidPassIsActive: boolean;
         paymentSettings: Nullable<PaidChatSettings>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;

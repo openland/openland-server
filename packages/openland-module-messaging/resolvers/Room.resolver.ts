@@ -121,6 +121,10 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isPaid);
         }),
+        paidPassIsActive: withConverationId(async (ctx, id) => {
+            let pass = ctx.auth.uid && await Store.PaidChatUserPass.findById(ctx, id, ctx.auth.uid);
+            return !!(pass && pass.isActive);
+        }),
         paymentSettings: withConverationId(async (ctx, id) => {
             let paidChatSettings = await Store.PaidChatSettings.findById(ctx, id);
             return paidChatSettings && { id, price: paidChatSettings.price, strategy: paidChatSettings.strategy === 'one-time' ? 'ONE_TIME' : 'SUBSCRIPTION' };

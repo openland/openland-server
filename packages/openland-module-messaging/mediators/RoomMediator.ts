@@ -80,7 +80,10 @@ export class RoomMediator {
             }
 
             if (conv.isPaid) {
-                throw new UserError('This group is paid');
+                let pass = await Store.PaidChatUserPass.findById(ctx, cid, uid);
+                if (!pass || !pass.isActive) {
+                    throw new UserError(`Can't join paid group without pass`);
+                }
             }
 
             // Any one can join public rooms from community

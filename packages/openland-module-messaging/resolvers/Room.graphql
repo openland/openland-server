@@ -63,6 +63,7 @@ type SharedRoom {
     matchmaking: MatchmakingRoom
 
     isPaid: Boolean!
+    paidPassIsActive: Boolean!
     paymentSettings: PaidChatSettings
 }
 
