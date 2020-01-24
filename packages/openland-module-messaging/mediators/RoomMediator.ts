@@ -79,6 +79,10 @@ export class RoomMediator {
                 throw new UserError('You can\'t join non-public room');
             }
 
+            if (conv.isPaid) {
+                throw new UserError('This group is paid');
+            }
+
             // Any one can join public rooms from community
             // Member of org can join any rooms
             if (isPublic || isMemberOfOrg) {
@@ -126,7 +130,7 @@ export class RoomMediator {
             }
 
             if (!chat.isPaid) {
-                throw new Error('Chat is free to join');
+                throw new UserError('Chat is free to join');
             }
             let paidChatSettings = await Store.PaidChatSettings.findById(ctx, chat.id);
             if (!paidChatSettings) {
