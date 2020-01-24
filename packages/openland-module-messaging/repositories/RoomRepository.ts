@@ -194,40 +194,20 @@ export class RoomRepository {
         });
     }
 
-    async buyPaidGroupPass(parent: Context, cid: number, uid: number, pmid: string): Promise<{ pass: PaidChatUserPass, intent?: Stripe.PaymentIntent }> {
+    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activate: boolean) {
         return await inTx(parent, async (ctx) => {
-            let chat = await Store.ConversationRoom.findById(ctx, cid);
-            if (!chat || !chat.ownerId) {
-                throw new Error('Chat owner not found');
+            let pass = await Store.PaidChatUserPass.findById(ctx, cid, uid);
+            if (!pass) {
+                pass = await Store.PaidChatUserPass.create(ctx, cid, uid, { isActive: activate });
             }
-            if (!chat.isPaid) {
-                throw new Error('Chat is free to join');
-            }
-            let paidChatSettings = (await Store.PaidChatSettings.findById(ctx, chat.id))!;
-            let tx: Transaction | undefined;
-            let intent: Stripe.PaymentIntent | undefined;
-            if (pmid === 'openland') {
-                tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
+            pass.isActive = activate;
+            await pass.flush(ctx);
+
+            if (activate) {
+                return await this.joinRoom(ctx, cid, uid, false);
             } else {
-                // TODO: create payment(deposit?) intent in case of card
-                throw new Error('currently openland depsit only');
+                return await this.kickFromRoom(ctx, cid, uid);
             }
-
-            let pass = await Store.PaidChatUserPass.create(ctx, tx ? `tx-${tx.id}` : `intent-${intent!.id}`, cid, uid,
-                {
-                    state: 'pending',
-                    transactionId: tx ? tx.id : undefined,
-                    paymentIntentId: intent ? intent.id : undefined,
-                    paymentIntentSecret: intent ? intent.client_secret : undefined,
-                });
-            // TODO: add worker for pending check
-
-            // openland diposit fast track
-            if (tx && tx.status === 'processed') {
-                pass.state = 'active';
-                await this.joinRoom(ctx, cid, uid, false);
-            }
-            return { pass, intent };
         });
     }
 

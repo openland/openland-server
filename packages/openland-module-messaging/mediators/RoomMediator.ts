@@ -1,4 +1,4 @@
-import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
+import { ChatUpdatedEvent, ConversationRoom, Transaction } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -115,6 +115,63 @@ export class RoomMediator {
             }
 
             return (await Store.Conversation.findById(ctx, cid))!;
+        });
+    }
+
+    async buyPaidChatPass(parent: Context, cid: number, uid: number, pmid: string) {
+        return await inTx(parent, async (ctx) => {
+            let chat = await Store.ConversationRoom.findById(ctx, cid);
+            if (!chat || !chat.ownerId) {
+                throw new NotFoundError('Chat owner not found');
+            }
+
+            if (!chat.isPaid) {
+                throw new Error('Chat is free to join');
+            }
+            let paidChatSettings = await Store.PaidChatSettings.findById(ctx, chat.id);
+            if (!paidChatSettings) {
+                throw new Error('Inconsistent state - chat is paid, but no payment settings found');
+            }
+            if (paidChatSettings.strategy !== 'one-time') {
+                throw new Error('Unexpected payment strategy - probably you are calling wrong mutation');
+            }
+            let tx: Transaction;
+            if (pmid === 'openland') {
+                tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
+            } else {
+                // TODO: create payment(deposit?) intent in case of card
+                throw new Error('currently openland depsit only');
+            }
+
+            let activate = tx.status === 'processed' || tx.status === 'pending';
+            if (tx.status === 'pending') {
+                // TODO: add worker for failure check
+            }
+            await this.alterPaidChatUserPass(ctx, cid, uid, activate);
+        });
+    }
+
+    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activate: boolean) {
+        return inTx(parent, async (ctx) => {
+            let conv = await Store.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                throw new NotFoundError();
+            }
+
+            let membershipChanged = await this.repo.alterPaidChatUserPass(ctx, cid, uid, activate);
+            if (activate && membershipChanged) {
+                let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+
+                if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                    let uids: number[] = prevMessage.serviceMetadata.userIds;
+                    uids.push(uid);
+
+                    await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, null, true), false);
+                    await this.messaging.bumpDialog(ctx, uid, cid);
+                } else {
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], null));
+                }
+            }
         });
     }
 
