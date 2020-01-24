@@ -252,7 +252,7 @@ export namespace GQLRoots {
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
 
-    export type PaidChatSettings = any;
+    export type PaidChatSettingsRoot = any;
     
     //
     // Apps

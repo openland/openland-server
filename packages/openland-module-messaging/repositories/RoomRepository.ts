@@ -1,4 +1,4 @@
-import { RoomParticipantCreateShape, Message, ChatUpdatedEvent, Transaction, PaidChatUserPass } from './../../openland-module-db/store';
+import { RoomParticipantCreateShape, Message, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx } from '@openland/foundationdb';
@@ -18,7 +18,6 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { smartSlice } from '../../openland-utils/string';
-import Stripe from 'stripe';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
