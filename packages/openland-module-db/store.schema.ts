@@ -226,25 +226,15 @@ export default declareSchema(() => {
 
     entity('PaidChatSettings', () => {
         primaryKey('id', integer());
-        field('price', float());
+        field('price', integer());
         field('strategy', enumString('one-time', 'subscription'));
-        field('subscriptionDuration', optional(integer()));
     });
 
     entity('PaidChatUserPass', () => {
-        primaryKey('id', string());
         primaryKey('cid', integer());
         primaryKey('uid', integer());
-
-        field('paymentIntentId', optional(string()));
-        field('paymentIntentSecret', optional(string()));
-        field('transactionId', optional(string()));
-
-        field('state', enumString('pending', 'failed', 'active'));
-        field('ttl', optional(integer()));
-        field('renew', optional(boolean()));
-        uniqueIndex('userChatPendingPass', ['uid', 'cid']).withCondition((v) => v.state === 'pending');
-        uniqueIndex('userChatActivePass', ['uid', 'cid']).withCondition((v) => v.state === 'active');
+        field('subscriptionId', optional(integer()));
+        field('isActive', boolean());
         rangeIndex('userActivePassAll', ['uid']).withCondition((v) => v.state === 'active');
     });
 
