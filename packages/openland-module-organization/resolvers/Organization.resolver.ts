@@ -130,14 +130,15 @@ export default {
 
             let haveMore = roomsFull.length > args.first;
 
+            roomsFull = roomsFull
+                .filter(r => r !== null)
+                .sort((a, b) => b!.membersCount - a!.membersCount);
+
             if (afterIndex) {
                 roomsFull = roomsFull.splice(afterIndex + 1);
             }
 
-            roomsFull = roomsFull
-                .filter(r => r !== null)
-                .sort((a, b) => b!.membersCount - a!.membersCount)
-                .splice(0, args.first);
+            roomsFull = roomsFull.splice(0, args.first);
 
             return {
                 items: roomsFull.map(r => r!.room),
