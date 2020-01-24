@@ -123,8 +123,6 @@ export default {
                 return { room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) };
             }));
 
-            let haveMore = roomsFull.length > args.first;
-
             roomsFull = roomsFull
                 .filter(r => r !== null)
                 .sort((a, b) => b!.membersCount - a!.membersCount);
@@ -134,6 +132,8 @@ export default {
                 let afterIndex = roomsFull.findIndex(r => r!.room.id === afterId);
                 roomsFull = roomsFull.splice(afterIndex + 1);
             }
+
+            let haveMore = roomsFull.length > args.first;
 
             roomsFull = roomsFull.splice(0, args.first);
 
