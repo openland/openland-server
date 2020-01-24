@@ -30,8 +30,24 @@ export default {
     WalletTransaction: {
         id: (src) => IDs.WalletTransaction.serialize(src.id),
         amount: (src) => src.amount,
+        extraAmount: async (src, args, ctx) => {
+            return (await Store.Transaction.findById(ctx, src.txid))!.extraAmount;
+        },
         state: (src) => src.processed ? 'processed' : 'pending',
-        readableState: (src) => src.processed ? 'Processed' : 'Pending'
+        readableState: (src) => src.processed ? 'Processed' : 'Pending',
+        type: async (src, args, ctx) => {
+            let kind = (await Store.Transaction.findById(ctx, src.txid))!.kind;
+            if (kind === 'deposit') {
+                return 'DEPOSIT';
+            } else if (kind === 'withdraw') {
+                return 'WITHDRAW';
+            } else if (kind === 'transfer') {
+                return 'TRANSFER';
+            } else if (kind === 'purchase') {
+                return 'PURCHASE';
+            }
+            throw Error('Unknown kind ' + kind);
+        }
     },
     WalletTransactionConnection: {
         items: (src) => src.items,
@@ -62,6 +78,7 @@ export default {
         walletTransactions: withAccount(async (ctx, args, uid) => {
             let account = await Modules.Billing.repo.getUserAccount(ctx, uid);
             let txs = await Store.AccountTransaction.fromAccount.findAll(ctx, account.id);
+            txs.sort((a, b) => b.metadata.createdAt - a.metadata.createdAt);
             return {
                 items: txs,
                 cursor: undefined
@@ -91,7 +108,7 @@ export default {
             return await Modules.Billing.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
         }),
         subscriptionCreateDonate: withAccount(async (ctx, args, uid) => {
-            return Modules.Billing.repo.createDonateSubscription(ctx, uid, args.amount, args.retryKey);
+            return Modules.Billing.repo.createDonateSubscription(ctx, uid, 2, args.amount, args.retryKey);
         })
     }
 } as GQLResolver;

@@ -1700,6 +1700,7 @@ export default declareSchema(() => {
         primaryKey('id', string());
         field('balance', integer());
     });
+    
     entity('AccountTransaction', () => {
         primaryKey('id', string());
         field('aid', string());
@@ -1709,13 +1710,15 @@ export default declareSchema(() => {
         rangeIndex('fromAccount', ['aid', 'createdAt']);
         uniqueIndex('fromTransaction', ['aid', 'txid']);
     });
+
     entity('Transaction', () => {
         primaryKey('id', string());
         field('secId', string());
-        field('kind', enumString('deposit', 'withdraw', 'transfer'));
+        field('kind', enumString('deposit', 'withdraw', 'transfer', 'purchase'));
         field('fromAccount', optional(string()));
         field('toAccount', optional(string()));
         field('amount', integer());
+        field('extraAmount', optional(integer()));
         field('status', enumString('pending', 'processed', 'failing', 'canceled'));
     });
 
@@ -1740,6 +1743,7 @@ export default declareSchema(() => {
     entity('PaidSubscription', () => {
         primaryKey('id', string());
         field('uid', integer());
+        field('toUid', integer());
         field('amount', integer());
         field('state', enumString('enabled', 'canceled'));
 
@@ -1767,7 +1771,13 @@ export default declareSchema(() => {
         field('uid', integer());
         field('piid', optional(string()));
         field('amount', integer());
+        field('walletAmount', integer());
         field('state', enumString('pending', 'success', 'action_required', 'failing', 'canceled'));
+        field('operation', union({
+            'subscription': struct({
+                pspid: string()
+            })
+        }));
         rangeIndex('user', ['uid', 'createdAt']);
     });
 

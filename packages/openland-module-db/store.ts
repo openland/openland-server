@@ -13761,19 +13761,21 @@ export class AccountTransactionFactory extends EntityFactory<AccountTransactionS
 export interface TransactionShape {
     id: string;
     secId: string;
-    kind: 'deposit' | 'withdraw' | 'transfer';
+    kind: 'deposit' | 'withdraw' | 'transfer' | 'purchase';
     fromAccount: string | null;
     toAccount: string | null;
     amount: number;
+    extraAmount: number | null;
     status: 'pending' | 'processed' | 'failing' | 'canceled';
 }
 
 export interface TransactionCreateShape {
     secId: string;
-    kind: 'deposit' | 'withdraw' | 'transfer';
+    kind: 'deposit' | 'withdraw' | 'transfer' | 'purchase';
     fromAccount?: string | null | undefined;
     toAccount?: string | null | undefined;
     amount: number;
+    extraAmount?: number | null | undefined;
     status: 'pending' | 'processed' | 'failing' | 'canceled';
 }
 
@@ -13788,8 +13790,8 @@ export class Transaction extends Entity<TransactionShape> {
             this.invalidate();
         }
     }
-    get kind(): 'deposit' | 'withdraw' | 'transfer' { return this._rawValue.kind; }
-    set kind(value: 'deposit' | 'withdraw' | 'transfer') {
+    get kind(): 'deposit' | 'withdraw' | 'transfer' | 'purchase' { return this._rawValue.kind; }
+    set kind(value: 'deposit' | 'withdraw' | 'transfer' | 'purchase') {
         let normalized = this.descriptor.codec.fields.kind.normalize(value);
         if (this._rawValue.kind !== normalized) {
             this._rawValue.kind = normalized;
@@ -13824,6 +13826,15 @@ export class Transaction extends Entity<TransactionShape> {
             this.invalidate();
         }
     }
+    get extraAmount(): number | null { return this._rawValue.extraAmount; }
+    set extraAmount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.extraAmount.normalize(value);
+        if (this._rawValue.extraAmount !== normalized) {
+            this._rawValue.extraAmount = normalized;
+            this._updatedValues.extraAmount = normalized;
+            this.invalidate();
+        }
+    }
     get status(): 'pending' | 'processed' | 'failing' | 'canceled' { return this._rawValue.status; }
     set status(value: 'pending' | 'processed' | 'failing' | 'canceled') {
         let normalized = this.descriptor.codec.fields.status.normalize(value);
@@ -13844,18 +13855,20 @@ export class TransactionFactory extends EntityFactory<TransactionShape, Transact
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'secId', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'enum', values: ['deposit', 'withdraw', 'transfer'] }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['deposit', 'withdraw', 'transfer', 'purchase'] }, secure: false });
         fields.push({ name: 'fromAccount', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'toAccount', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'extraAmount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'processed', 'failing', 'canceled'] }, secure: false });
         let codec = c.struct({
             id: c.string,
             secId: c.string,
-            kind: c.enum('deposit', 'withdraw', 'transfer'),
+            kind: c.enum('deposit', 'withdraw', 'transfer', 'purchase'),
             fromAccount: c.optional(c.string),
             toAccount: c.optional(c.string),
             amount: c.integer,
+            extraAmount: c.optional(c.integer),
             status: c.enum('pending', 'processed', 'failing', 'canceled'),
         });
         let descriptor: EntityDescriptor<TransactionShape> = {
@@ -13988,6 +14001,7 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
 export interface PaidSubscriptionShape {
     id: string;
     uid: number;
+    toUid: number;
     amount: number;
     state: 'enabled' | 'canceled';
     startDate: number;
@@ -13996,6 +14010,7 @@ export interface PaidSubscriptionShape {
 
 export interface PaidSubscriptionCreateShape {
     uid: number;
+    toUid: number;
     amount: number;
     state: 'enabled' | 'canceled';
     startDate: number;
@@ -14010,6 +14025,15 @@ export class PaidSubscription extends Entity<PaidSubscriptionShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get toUid(): number { return this._rawValue.toUid; }
+    set toUid(value: number) {
+        let normalized = this.descriptor.codec.fields.toUid.normalize(value);
+        if (this._rawValue.toUid !== normalized) {
+            this._rawValue.toUid = normalized;
+            this._updatedValues.toUid = normalized;
             this.invalidate();
         }
     }
@@ -14061,6 +14085,7 @@ export class PaidSubscriptionFactory extends EntityFactory<PaidSubscriptionShape
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'toUid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['enabled', 'canceled'] }, secure: false });
         fields.push({ name: 'startDate', type: { type: 'integer' }, secure: false });
@@ -14068,6 +14093,7 @@ export class PaidSubscriptionFactory extends EntityFactory<PaidSubscriptionShape
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
+            toUid: c.integer,
             amount: c.integer,
             state: c.enum('enabled', 'canceled'),
             startDate: c.integer,
@@ -14265,14 +14291,18 @@ export interface PaymentShape {
     uid: number;
     piid: string | null;
     amount: number;
+    walletAmount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
+    operation: { type: 'subscription', pspid: string };
 }
 
 export interface PaymentCreateShape {
     uid: number;
     piid?: string | null | undefined;
     amount: number;
+    walletAmount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
+    operation: { type: 'subscription', pspid: string };
 }
 
 export class Payment extends Entity<PaymentShape> {
@@ -14304,12 +14334,30 @@ export class Payment extends Entity<PaymentShape> {
             this.invalidate();
         }
     }
+    get walletAmount(): number { return this._rawValue.walletAmount; }
+    set walletAmount(value: number) {
+        let normalized = this.descriptor.codec.fields.walletAmount.normalize(value);
+        if (this._rawValue.walletAmount !== normalized) {
+            this._rawValue.walletAmount = normalized;
+            this._updatedValues.walletAmount = normalized;
+            this.invalidate();
+        }
+    }
     get state(): 'pending' | 'success' | 'action_required' | 'failing' | 'canceled' { return this._rawValue.state; }
     set state(value: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled') {
         let normalized = this.descriptor.codec.fields.state.normalize(value);
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
             this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get operation(): { type: 'subscription', pspid: string } { return this._rawValue.operation; }
+    set operation(value: { type: 'subscription', pspid: string }) {
+        let normalized = this.descriptor.codec.fields.operation.normalize(value);
+        if (this._rawValue.operation !== normalized) {
+            this._rawValue.operation = normalized;
+            this._updatedValues.operation = normalized;
             this.invalidate();
         }
     }
@@ -14327,13 +14375,17 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'walletAmount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { subscription: { pspid: { type: 'string' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             piid: c.optional(c.string),
             amount: c.integer,
+            walletAmount: c.integer,
             state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
+            operation: c.union({ subscription: c.struct({ pspid: c.string }) }),
         });
         let descriptor: EntityDescriptor<PaymentShape> = {
             name: 'Payment',

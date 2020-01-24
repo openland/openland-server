@@ -1,3 +1,4 @@
+import { PaymentIntentCreateShape, PaymentIntent } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { BillingRepository } from './../repo/BillingRepository';
@@ -336,8 +337,9 @@ export class StripeMediator {
     // Create Abstract Pay Intent
     //
 
-    doOffSessionPayment = async (parent: Context, uid: number, amount: number, retryKey: string, pmid: string) => {
+    createPaymentIntent = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
 
+        // Await Billing Enable
         await this.enableBillingAndAwait(parent, uid);
 
         // Load CustomerID
@@ -349,14 +351,23 @@ export class StripeMediator {
             return res;
         });
 
-        return await this.stripe.paymentIntents.create({
+        // Create Payment Intent
+        let intent = await this.stripe.paymentIntents.create({
             amount: amount,
             currency: 'usd',
-            customer: customerId,
-            off_session: true,
-            payment_method: pmid,
-            confirm: true
+            customer: customerId
         }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
+
+        // Save Payment Intent id
+        await inTx(parent, async (ctx) => {
+            await Store.PaymentIntent.create(ctx, intent.id, {
+                amount: amount,
+                state: 'pending',
+                operation: operation
+            });
+        });
+
+        return intent;
     }
 
     //
@@ -377,18 +388,34 @@ export class StripeMediator {
                 }
                 intent.state = 'success';
 
-                if (intent.operation.type === 'deposit') {
-                    // Create and confirm transaction
-                    let tx = await this.repo.createTransaction(
-                        ctx, null, intent.operation.uid, 'deposit', intent.amount
-                    );
-                    await this.repo.confirmTransaction(ctx, tx.id);
-                } else {
-                    throw Error('Invalid intent');
-                }
+                await this.routeSuccessfulPayment(ctx, intent);
             }
         });
     }
+
+    //
+    // PaymentIntent Routing
+    //
+
+    routeSuccessfulPayment = async (ctx: Context, intent: PaymentIntent) => {
+
+        if (intent.operation.type === 'deposit') {
+
+            // Create and confirm transaction
+            let tx = await this.repo.createTransaction(
+                ctx, null, intent.operation.uid, 'deposit', intent.amount
+            );
+            await this.repo.confirmTransaction(ctx, tx.id);
+
+        } else if (intent.operation.type === 'subscription') {
+            // TODO: Implement
+            // throw Error('Invalid intent');
+        }
+    }
+
+    //
+    // Inner Transfers
+    //
 
     transfer = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
         return this.repo.createTransaction(parent, fromUid, toUid, 'transfer', amount);

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '511f056fa5fce221ec95db59bdb2ee87';
+export const GQL_SPEC_VERSION = '73e1867920acbc7450a04d859e109ca8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -350,11 +350,14 @@ export namespace GQL {
         id: string;
         balance: number;
     }
+    export type WalletTransactionType = 'DEPOSIT' | 'TRANSFER' | 'WITHDRAW' | 'PURCHASE';
     export interface WalletTransaction {
         id: string;
         amount: number;
+        extraAmount: Nullable<number>;
         state: string;
         readableState: string;
+        type: WalletTransactionType;
     }
     export interface WalletTransactionConnection {
         items: WalletTransaction[];

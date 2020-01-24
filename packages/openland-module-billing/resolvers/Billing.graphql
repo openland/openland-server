@@ -55,11 +55,17 @@ type WalletAccount {
     balance: Int!
 }
 
+enum WalletTransactionType {
+    DEPOSIT, TRANSFER, WITHDRAW, PURCHASE
+}
+
 type WalletTransaction {
     id: ID!
     amount: Int!
+    extraAmount: Int
     state: String!
     readableState: String!
+    type: WalletTransactionType!
 }
 
 type WalletTransactionConnection {

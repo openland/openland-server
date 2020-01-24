@@ -2,7 +2,7 @@ import { uuid } from 'openland-utils/uuid';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, Account } from './../../openland-module-db/store';
+import { Store, Account, PaymentCreateShape } from './../../openland-module-db/store';
 
 export class BillingRepository {
 
@@ -35,12 +35,12 @@ export class BillingRepository {
     createTransaction = async (parent: Context,
         fromUid: number | null,
         toUid: number | null,
-        kind: 'deposit' | 'withdraw' | 'transfer',
+        kind: 'deposit' | 'withdraw' | 'transfer' | 'purchase',
         amount: number
     ) => {
 
         // Arguments check
-        if (amount <= 0) {
+        if (amount < 0 || (amount === 0 && kind !== 'purchase')) {
             throw Error('Amount must be greater than zero');
         }
         if (kind === 'deposit') {
@@ -57,7 +57,7 @@ export class BillingRepository {
             if (toUid !== null) {
                 throw Error('Withdraw can\'t have to uid');
             }
-        } else if (kind === 'transfer') {
+        } else if (kind === 'transfer' || kind === 'purchase') {
             if (fromUid === null) {
                 throw Error('Transfers require from uid');
             }
@@ -217,15 +217,82 @@ export class BillingRepository {
     // Payment
     //
 
-    createPayment = async (parent: Context, uid: number, amount: number) => {
+    createPayment = async (parent: Context, uid: number, toUid: number, amount: number, operation: PaymentCreateShape['operation']) => {
         return await inTx(parent, async (ctx) => {
-            let payment = await this.store.Payment.create(ctx, uuid(), {
-                uid: uid,
-                state: 'pending',
-                amount: amount
-            });
-            await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: payment.id });
-            return payment;
+
+            let fromAccount = await this.getUserAccount(ctx, uid);
+            let toAccount = await this.getUserAccount(ctx, toUid);
+            if (fromAccount.balance >= amount) {
+
+                //
+                // Pay from balance
+                //
+
+                let txId = uuid();
+                await this.store.Transaction.create(ctx, txId, {
+                    secId: uuid(),
+                    fromAccount: fromAccount.id,
+                    toAccount: toAccount.id,
+                    kind: 'purchase',
+                    amount: amount,
+                    status: 'processed'
+                });
+
+                //
+                // Create Transaction References
+                //
+                toAccount.balance += amount;
+                fromAccount.balance -= amount;
+                await this.store.AccountTransaction.create(ctx, uuid(), { aid: fromAccount.id, txid: txId, amount: -amount, processed: true });
+                await this.store.AccountTransaction.create(ctx, uuid(), { aid: toAccount.id, txid: txId, amount: amount, processed: true });
+
+                //
+                // Payment
+                //
+
+                return await this.store.Payment.create(ctx, uuid(), {
+                    uid: uid,
+                    state: 'success',
+                    amount: 0,
+                    walletAmount: amount,
+                    operation: operation
+                });
+            } else {
+
+                let walletAmount = fromAccount.balance;
+                let extraAmount = amount - fromAccount.balance;
+
+                //
+                // Pay from balance
+                //
+
+                let txId = uuid();
+                await this.store.Transaction.create(ctx, txId, {
+                    secId: uuid(),
+                    fromAccount: fromAccount.id,
+                    toAccount: toAccount.id,
+                    kind: 'purchase',
+                    amount: amount,
+                    extraAmount: extraAmount,
+                    status: 'pending'
+                });
+
+                // Adjust basic balance
+                fromAccount.balance -= walletAmount;
+
+                await this.store.AccountTransaction.create(ctx, uuid(), { aid: fromAccount.id, txid: txId, amount: -walletAmount, processed: true });
+                await this.store.AccountTransaction.create(ctx, uuid(), { aid: toAccount.id, txid: txId, amount: amount, processed: false });
+
+                let payment = await this.store.Payment.create(ctx, uuid(), {
+                    uid: uid,
+                    state: 'pending',
+                    walletAmount: walletAmount,
+                    amount: extraAmount,
+                    operation: operation
+                });
+                await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: payment.id });
+                return payment;
+            }
         });
     }
 
@@ -233,7 +300,7 @@ export class BillingRepository {
     // Subscription
     //
 
-    createDonateSubscription = async (parent: Context, uid: number, amount: number, retryKey: string) => {
+    createDonateSubscription = async (parent: Context, uid: number, toUid: number, amount: number, retryKey: string) => {
         return await inTx(parent, async (ctx) => {
 
             let ex = await this.store.UserAccountSubscription.retry.find(ctx, uid, retryKey);
@@ -241,7 +308,7 @@ export class BillingRepository {
                 return ex;
             }
 
-            let subs = this.createSubscription(ctx, uid, amount);
+            let subs = this.createSubscription(ctx, uid, toUid, amount);
             return await this.store.UserAccountSubscription.create(ctx, uid, (await subs).id, {
                 amount: amount,
                 state: 'enabled',
@@ -252,7 +319,7 @@ export class BillingRepository {
         });
     }
 
-    createSubscription = async (parent: Context, uid: number, amount: number) => {
+    createSubscription = async (parent: Context, uid: number, toUid: number, amount: number) => {
         return await inTx(parent, async (ctx) => {
             let date = Date.now();
 
@@ -262,6 +329,7 @@ export class BillingRepository {
 
             let subscription = await this.store.PaidSubscription.create(ctx, uuid(), {
                 uid: uid,
+                toUid: toUid,
                 interval: 'monthly',
                 startDate: date,
                 amount: amount,
@@ -269,36 +337,25 @@ export class BillingRepository {
             });
 
             //
-            // Create First Payment
+            // Register First Payment
             //
 
-            let payment = await this.createPayment(ctx, uid, amount);
-
-            await this.store.PaidSubscriptionPayment.create(ctx, uuid(), {
+            let pspid = uuid();
+            let payment = await this.createPayment(ctx, uid, toUid, amount, { type: 'subscription', pspid: pspid });
+            await this.store.PaidSubscriptionPayment.create(ctx, pspid, {
                 uid: uid,
                 sid: subscription.id,
                 pid: payment.id,
                 date: date
             });
-
             return subscription;
         });
     }
 
     cancelSubscription = async (parent: Context, sid: string) => {
         return await inTx(parent, async (ctx) => {
-
-            // Cancel Subscription
             let subs = (await this.store.PaidSubscription.findById(ctx, sid))!;
             subs.state = 'canceled';
-
-            // TODO: Cancel pending payments
-            // let sp = await this.store.PaidSubscriptionPayment.subscription.findAll(ctx, sid);
-            // for (let s of sp) {
-            //     if (s.state === 'pending') {
-            //         s.state = 'canceled';
-            //     }
-            // }
         });
     }
 }
