@@ -61,6 +61,20 @@ type SharedRoom {
     archived: Boolean!
     myBadge: UserBadge
     matchmaking: MatchmakingRoom
+
+    isPaid: Boolean!
+    paymentSettings: PaidChatSettings
+}
+
+enum PaidChatStrategy {
+    ONE_TIME,
+    SUBSCRIPTION
+}
+
+type PaidChatSettings {
+    id: ID!
+    price: Int!
+    strategy: PaidChatStrategy!
 }
 
 type RoomSuper {
@@ -189,7 +203,7 @@ type RoomInvite {
 
 extend type Mutation {
     # Room mgmt
-    betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID, channel: Boolean): SharedRoom!
+    betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID, channel: Boolean, paid: Boolean): SharedRoom!
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     betaRoomMove(roomId: ID!, toOrg: ID!): Room!
 
@@ -202,6 +216,7 @@ extend type Mutation {
     betaRoomJoin(roomId: ID!): Room!
     betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
+    betaBuyPaidChatPass(chatId: ID!, paymentMethodId: String!): Boolean!
 
     # Invite links
     betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!

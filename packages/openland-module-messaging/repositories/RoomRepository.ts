@@ -44,7 +44,7 @@ export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, paid?: boolean) {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await Store.Conversation.create(ctx, id, { kind: 'room' });
@@ -55,6 +55,7 @@ export class RoomRepository {
                 featured: false,
                 listed: kind === 'public' && listed !== false,
                 isChannel: channel,
+                isPaid: paid
             });
             await Store.RoomProfile.create(ctx, id, {
                 title: profile.title,
@@ -62,6 +63,12 @@ export class RoomRepository {
                 description: profile.description,
                 socialImage: profile.socialImage
             });
+            if (paid) {
+                await Store.PaidChatSettings.create(ctx, id, {
+                    price: 5,
+                    strategy: 'one-time'
+                });
+            }
             await this.createRoomParticipant(ctx, id, uid, {
                 role: 'owner',
                 invitedBy: uid,

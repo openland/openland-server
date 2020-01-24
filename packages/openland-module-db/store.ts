@@ -3493,13 +3493,11 @@ export interface PaidChatSettingsShape {
     id: number;
     price: number;
     strategy: 'one-time' | 'subscription';
-    subscriptionDuration: number | null;
 }
 
 export interface PaidChatSettingsCreateShape {
     price: number;
     strategy: 'one-time' | 'subscription';
-    subscriptionDuration?: number | null | undefined;
 }
 
 export class PaidChatSettings extends Entity<PaidChatSettingsShape> {
@@ -3522,15 +3520,6 @@ export class PaidChatSettings extends Entity<PaidChatSettingsShape> {
             this.invalidate();
         }
     }
-    get subscriptionDuration(): number | null { return this._rawValue.subscriptionDuration; }
-    set subscriptionDuration(value: number | null) {
-        let normalized = this.descriptor.codec.fields.subscriptionDuration.normalize(value);
-        if (this._rawValue.subscriptionDuration !== normalized) {
-            this._rawValue.subscriptionDuration = normalized;
-            this._updatedValues.subscriptionDuration = normalized;
-            this.invalidate();
-        }
-    }
 }
 
 export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape, PaidChatSettings> {
@@ -3543,12 +3532,10 @@ export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'strategy', type: { type: 'enum', values: ['one-time', 'subscription'] }, secure: false });
-        fields.push({ name: 'subscriptionDuration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             price: c.integer,
             strategy: c.enum('one-time', 'subscription'),
-            subscriptionDuration: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<PaidChatSettingsShape> = {
             name: 'PaidChatSettings',

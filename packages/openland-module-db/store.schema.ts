@@ -228,7 +228,6 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('price', integer());
         field('strategy', enumString('one-time', 'subscription'));
-        field('subscriptionDuration', optional(integer()));
     });
 
     entity('PaidChatUserPass', () => {

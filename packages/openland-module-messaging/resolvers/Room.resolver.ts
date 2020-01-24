@@ -117,6 +117,14 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isChannel);
         }),
+        isPaid: withConverationId(async (ctx, id) => {
+            let room = await Store.ConversationRoom.findById(ctx, id);
+            return !!(room && room.isPaid);
+        }),
+        paymentSettings: withConverationId(async (ctx, id) => {
+            let paidChatSettings = await Store.PaidChatSettings.findById(ctx, id);
+            return paidChatSettings && { id, price: paidChatSettings.price, strategy: paidChatSettings.strategy === 'one-time' ? 'ONE_TIME' : 'SUBSCRIPTION' };
+        }),
         canSendMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
         title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'ph://1' : Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
@@ -464,8 +472,8 @@ export default {
                 let room = await Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                     title: args.title!,
                     description: args.description,
-                    image: imageRef
-                }, args.message || '', args.listed || undefined, args.channel || undefined);
+                    image: imageRef,
+                }, args.message || '', args.listed || undefined, args.channel || undefined, args.paid || undefined);
 
                 return room;
             });
@@ -592,7 +600,12 @@ export default {
                 return res;
             });
         }),
-
+        betaBuyPaidChatPass: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                await Modules.Messaging.room.buyPaidChatPass(ctx, IDs.Conversation.parse(args.chatId), uid, args.paymentMethodId);
+                return true;
+            });
+        }),
         // invite links
         betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {
             await validate({

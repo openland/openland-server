@@ -38,7 +38,7 @@ export class RoomMediator {
         return conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
     }
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean, paid?: boolean) {
         return await inTx(parent, async (ctx) => {
             if (oid) {
                 let isMember = await Modules.Orgs.isUserMember(ctx, uid, oid);
@@ -49,7 +49,7 @@ export class RoomMediator {
                 }
             }
             // Create room
-            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel);
+            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel, paid);
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
             let chatTypeString = channel ? 'channel' : 'group';
