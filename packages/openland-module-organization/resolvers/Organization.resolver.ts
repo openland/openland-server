@@ -114,11 +114,11 @@ export default {
             }
 
             let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, org.id);
+            let afterIndex: null|number = null;
 
             if (args.after) {
                 let afterId = IDs.Conversation.parse(args.after);
-                let after = rooms.findIndex(r => r.id === afterId);
-                rooms = rooms.splice(after + 1);
+                afterIndex = rooms.findIndex(r => r.id === afterId);
             }
             let roomsFull = await Promise.all(rooms.map(async room => {
                 let conv = await Store.Conversation.findById(ctx, room.id);
@@ -129,6 +129,10 @@ export default {
             }));
 
             let haveMore = roomsFull.length > args.first;
+
+            if (afterIndex) {
+                roomsFull = roomsFull.splice(afterIndex + 1);
+            }
 
             roomsFull = roomsFull
                 .filter(r => r !== null)
