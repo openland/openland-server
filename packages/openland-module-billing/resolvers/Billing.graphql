@@ -27,6 +27,26 @@ type PaymentIntent {
 }
 
 #
+# Subscriptions
+#
+
+enum PaidSubscriptionInterval {
+    MONTHLY, YEARLY
+}
+
+enum PaidSubscriptionStatus {
+    ACTIVE, CANCELED
+}
+
+type PaidSubscription {
+    id: ID!
+    title: String!
+    amount: Int!
+    interval: PaidSubscriptionInterval!
+    status: PaidSubscriptionStatus!
+}
+
+#
 # Wallet
 #
 
@@ -50,6 +70,8 @@ type WalletTransactionConnection {
 extend type Query {
     myCards: [CreditCard!]!
     myAccount: WalletAccount!
+    mySubscriptions: [PaidSubscription!]!
+    
     walletTransactions(id: ID!, first: Int!, after: String): WalletTransactionConnection!
 }
 
@@ -62,4 +84,6 @@ extend type Mutation {
 
     cardRemove(id: ID!): CreditCard!
     cardMakeDefault(id: ID!): CreditCard!
+
+    subscriptionCreateDonate(amount: Int!, retryKey: String!): PaidSubscription!
 }

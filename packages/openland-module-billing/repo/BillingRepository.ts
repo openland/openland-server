@@ -9,6 +9,7 @@ export class BillingRepository {
     private readonly store: Store;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
+    readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
 
     constructor(store: Store) {
         this.store = store;
@@ -209,6 +210,95 @@ export class BillingRepository {
 
             // Schedule work to register customer
             await this.createCustomerQueue.pushWork(ctx, { uid });
+        });
+    }
+
+    //
+    // Payment
+    //
+
+    createPayment = async (parent: Context, uid: number, amount: number) => {
+        return await inTx(parent, async (ctx) => {
+            let payment = await this.store.Payment.create(ctx, uuid(), {
+                uid: uid,
+                state: 'pending',
+                amount: amount
+            });
+            await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: payment.id });
+            return payment;
+        });
+    }
+
+    //
+    // Subscription
+    //
+
+    createDonateSubscription = async (parent: Context, uid: number, amount: number, retryKey: string) => {
+        return await inTx(parent, async (ctx) => {
+
+            let ex = await this.store.UserAccountSubscription.retry.find(ctx, uid, retryKey);
+            if (ex) {
+                return ex;
+            }
+
+            let subs = this.createSubscription(ctx, uid, amount);
+            return await this.store.UserAccountSubscription.create(ctx, uid, (await subs).id, {
+                amount: amount,
+                state: 'enabled',
+                interval: 'monthly',
+                kind: { type: 'donate' },
+                retryKey: retryKey
+            });
+        });
+    }
+
+    createSubscription = async (parent: Context, uid: number, amount: number) => {
+        return await inTx(parent, async (ctx) => {
+            let date = Date.now();
+
+            //
+            // Create Subscription Object
+            //
+
+            let subscription = await this.store.PaidSubscription.create(ctx, uuid(), {
+                uid: uid,
+                interval: 'monthly',
+                startDate: date,
+                amount: amount,
+                state: 'enabled',
+            });
+
+            //
+            // Create First Payment
+            //
+
+            let payment = await this.createPayment(ctx, uid, amount);
+
+            await this.store.PaidSubscriptionPayment.create(ctx, uuid(), {
+                uid: uid,
+                sid: subscription.id,
+                pid: payment.id,
+                date: date
+            });
+
+            return subscription;
+        });
+    }
+
+    cancelSubscription = async (parent: Context, sid: string) => {
+        return await inTx(parent, async (ctx) => {
+
+            // Cancel Subscription
+            let subs = (await this.store.PaidSubscription.findById(ctx, sid))!;
+            subs.state = 'canceled';
+
+            // TODO: Cancel pending payments
+            // let sp = await this.store.PaidSubscriptionPayment.subscription.findAll(ctx, sid);
+            // for (let s of sp) {
+            //     if (s.state === 'pending') {
+            //         s.state = 'canceled';
+            //     }
+            // }
         });
     }
 }

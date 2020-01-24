@@ -38,6 +38,14 @@ export default {
         cursor: (src) => src.cursor
     },
 
+    PaidSubscription: {
+        id: (src) => IDs.PaidSubscription.serialize(src.psid),
+        title: (src) => 'Test Subscription of ' + src.amount,
+        amount: (src) => src.amount,
+        interval: async (src) => src.interval === 'yearly' ? 'YEARLY' : 'MONTHLY',
+        status: async (src) => src.state === 'enabled' ? 'ACTIVE' : 'CANCELED',
+    },
+
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
             let res = (await Store.UserStripeCard.users.findAll(ctx, uid))
@@ -47,6 +55,9 @@ export default {
         }),
         myAccount: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.repo.getUserAccount(ctx, uid);
+        }),
+        mySubscriptions: withAccount(async (ctx, args, uid) => {
+            return await Store.UserAccountSubscription.findAll(ctx);
         }),
         walletTransactions: withAccount(async (ctx, args, uid) => {
             let account = await Modules.Billing.repo.getUserAccount(ctx, uid);
@@ -78,6 +89,9 @@ export default {
         }),
         cardMakeDefault: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
+        }),
+        subscriptionCreateDonate: withAccount(async (ctx, args, uid) => {
+            return Modules.Billing.repo.createDonateSubscription(ctx, uid, args.amount, args.retryKey);
         })
     }
 } as GQLResolver;

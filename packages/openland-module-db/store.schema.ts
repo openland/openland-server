@@ -1740,16 +1740,12 @@ export default declareSchema(() => {
     entity('PaidSubscription', () => {
         primaryKey('id', string());
         field('uid', integer());
-        field('price', integer());
+        field('amount', integer());
         field('state', enumString('enabled', 'canceled'));
 
-        field('startYear', integer());
-        field('startMonth', integer());
-        field('startDay', integer());
+        field('startDate', integer());
 
         field('interval', enumString('monthly', 'yearly'));
-
-        field('lastPayment', string());
 
         rangeIndex('user', ['uid', 'createdAt']);
     });
@@ -1760,10 +1756,7 @@ export default declareSchema(() => {
         field('sid', string());
         field('pid', string());
 
-        field('year', integer());
-        field('month', integer());
-        field('day', integer());
-        field('state', enumString('pending', 'success', 'canceled'));
+        field('date', integer());
 
         rangeIndex('user', ['uid', 'createdAt']);
         rangeIndex('subscription', ['sid', 'createdAt']);
@@ -1772,7 +1765,8 @@ export default declareSchema(() => {
     entity('Payment', () => {
         primaryKey('id', string());
         field('uid', integer());
-        field('piid', string());
+        field('piid', optional(string()));
+        field('amount', integer());
         field('state', enumString('pending', 'success', 'action_required', 'failing', 'canceled'));
         rangeIndex('user', ['uid', 'createdAt']);
     });
@@ -1815,6 +1809,22 @@ export default declareSchema(() => {
     entity('UserAccount', () => {
         primaryKey('uid', integer());
         field('aid', string());
+    });
+
+    entity('UserAccountSubscription', () => {
+        primaryKey('uid', integer());
+        primaryKey('psid', string());
+        field('retryKey', string());
+
+        field('amount', integer());
+        field('state', enumString('enabled', 'canceled'));
+        field('interval', enumString('monthly', 'yearly'));
+
+        field('kind', union({
+            'donate': struct({})
+        }));
+        rangeIndex('user', ['uid']);
+        uniqueIndex('retry', ['uid', 'retryKey']);
     });
 
     //
@@ -1912,6 +1922,7 @@ export default declareSchema(() => {
         field('startAt', optional(integer()));
         field('taskStatus', enumString('pending', 'executing', 'failing', 'failed', 'completed'));
 
+        field('taskMaxFailureCount', optional(integer()));
         field('taskFailureCount', optional(integer()));
         field('taskFailureTime', optional(integer()));
         field('taskLockSeed', optional(string()));

@@ -332,6 +332,37 @@ export class StripeMediator {
         return intent;
     }
 
+    //
+    // Create Abstract Pay Intent
+    //
+
+    doOffSessionPayment = async (parent: Context, uid: number, amount: number, retryKey: string, pmid: string) => {
+
+        await this.enableBillingAndAwait(parent, uid);
+
+        // Load CustomerID
+        let customerId = await inTx(parent, async (ctx: Context) => {
+            let res = (await Store.UserStripeCustomer.findById(ctx, uid))!.stripeId;
+            if (!res) {
+                throw Error('Internal error');
+            }
+            return res;
+        });
+
+        return await this.stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd',
+            customer: customerId,
+            off_session: true,
+            payment_method: pmid,
+            confirm: true
+        }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
+    }
+
+    //
+    // Handle Payment Intent success
+    //
+
     updatePaymentIntent = async (parent: Context, id: string) => {
         let dp = await this.stripe.paymentIntents.retrieve(id);
         await inTx(parent, async (ctx) => {
@@ -358,7 +389,7 @@ export class StripeMediator {
             }
         });
     }
-    
+
     transfer = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
         return this.repo.createTransaction(parent, fromUid, toUid, 'transfer', amount);
     }

@@ -20,7 +20,11 @@ export class ModernScheduller {
                     let failingTasks = (await Store.Task.executing.query(ctx, { limit: 100 })).items;
                     for (let f of failingTasks) {
                         if ((f.taskLockTimeout === null || f.taskLockTimeout <= now)) {
-                            if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
+                            let maxFailureCount = 5;
+                            if (f.taskMaxFailureCount !== null) {
+                                maxFailureCount = f.taskMaxFailureCount;
+                            }
+                            if (f.taskFailureCount !== null && maxFailureCount >= 0 && f.taskFailureCount >= maxFailureCount) {
                                 f.taskStatus = 'failed';
                             } else {
                                 f.taskStatus = 'failing';
@@ -42,7 +46,11 @@ export class ModernScheduller {
                     let now = Date.now();
                     let failingTasks = (await Store.Task.failing.query(ctx, { limit: 100 })).items;
                     for (let f of failingTasks) {
-                        if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
+                        let maxFailureCount = 5;
+                        if (f.taskMaxFailureCount !== null) {
+                            maxFailureCount = f.taskMaxFailureCount;
+                        }
+                        if (f.taskFailureCount !== null && maxFailureCount >= 0 && f.taskFailureCount >= maxFailureCount) {
                             f.taskStatus = 'failed';
                         } else if (f.taskFailureTime && f.taskFailureTime < now) {
                             f.taskStatus = 'pending';

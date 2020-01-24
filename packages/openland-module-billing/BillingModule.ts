@@ -8,6 +8,7 @@ import { startCustomerExportWorker } from './workers/CustomerExportWorker';
 import { startCardSyncWorker } from './workers/CardSyncWorker';
 import { startEventsReaderWorker } from './workers/EventsReaderWorker';
 import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
+import { startPaymentProcessor } from './workers/startPaymentProcessor';
 
 @injectable()
 export class BillingModule {
@@ -21,6 +22,7 @@ export class BillingModule {
             startCardSyncWorker(this.repo.syncCardQueue, this.stripeMediator);
             startEventsReaderWorker(this.stripeMediator);
             startPaymentIntentCommiter(this.stripeMediator);
+            startPaymentProcessor(this.stripeMediator);
         }
     }
 

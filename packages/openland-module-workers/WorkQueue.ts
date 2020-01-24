@@ -43,6 +43,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             return await Store.Task.create_UNSAFE(ctx, this.taskType, uuid(), {
                 arguments: work,
                 taskStatus: 'pending',
+                taskMaxFailureCount: this.maxFailureCount,
                 taskFailureCount: 0,
                 taskLockTimeout: 0,
                 taskLockSeed: '',
@@ -150,11 +151,14 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                                     res2.taskFailureTime = Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
                                 } else {
                                     if (this.maxFailureCount >= 0 && res2.taskFailureCount === this.maxFailureCount - 1) {
+                                        log.warn(ctx, 'Task Failed');
                                         res2.taskFailureCount = this.maxFailureCount;
                                         res2.taskStatus = 'failed';
                                     } else {
+                                        let delay = exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
+                                        log.warn(ctx, 'Task is Failing: ' + delay);
                                         res2.taskFailureCount++;
-                                        res2.taskFailureTime = Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
+                                        res2.taskFailureTime = Date.now() + delay;
                                     }
                                 }
 
