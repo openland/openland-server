@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'acdb7e9b356c13281b28653455f24f27';
+export const GQL_SPEC_VERSION = '064bf64344ee6d7149b1c70baa9a91af';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1347,6 +1347,7 @@ export namespace GQL {
         betaRoomJoin: Room;
         betaRoomsJoin: Room[];
         betaRoomDeclineJoinRequest: Room;
+        betaBuyPaidChatPass: boolean;
         betaRoomInviteLinkSendEmail: string;
         betaRoomInviteLinkJoin: Room;
         betaRoomInviteLinkRenew: string;
@@ -2272,6 +2273,7 @@ export namespace GQL {
         listed: OptionalNullable<boolean>;
         organizationId: OptionalNullable<string>;
         channel: OptionalNullable<boolean>;
+        paid: OptionalNullable<boolean>;
     }
     export interface MutationBetaRoomUpdateArgs {
         roomId: string;
@@ -2310,6 +2312,10 @@ export namespace GQL {
     export interface MutationBetaRoomDeclineJoinRequestArgs {
         roomId: string;
         userId: string;
+    }
+    export interface MutationBetaBuyPaidChatPassArgs {
+        chatId: string;
+        paymentMethodId: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
         roomId: string;
@@ -3689,12 +3695,21 @@ export namespace GQL {
         archived: boolean;
         myBadge: Nullable<UserBadge>;
         matchmaking: Nullable<MatchmakingRoom>;
+        isPaid: boolean;
+        paidPassIsActive: boolean;
+        paymentSettings: Nullable<PaidChatSettings>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
     export interface SharedRoomMembersArgs {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
+    }
+    export type PaidChatStrategy = 'ONE_TIME' | 'SUBSCRIPTION';
+    export interface PaidChatSettings {
+        id: string;
+        price: number;
+        strategy: PaidChatStrategy;
     }
     export interface RoomSuper {
         id: string;
@@ -5486,6 +5501,7 @@ export interface GQLResolver {
             betaRoomJoin: GQL.MutationBetaRoomJoinArgs,
             betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs,
             betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs,
+            betaBuyPaidChatPass: GQL.MutationBetaBuyPaidChatPassArgs,
             betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs,
             betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs,
             betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs,
@@ -6662,10 +6678,19 @@ export interface GQLResolver {
             settings: GQLRoots.RoomUserNotificaionSettingsRoot,
             myBadge: Nullable<GQLRoots.UserBadgeRoot>,
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
+            paymentSettings: Nullable<GQLRoots.PaidChatSettingsRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
             members: GQL.SharedRoomMembersArgs,
+        }
+    >;
+    PaidChatSettings?: ComplexTypedResolver<
+        GQL.PaidChatSettings,
+        GQLRoots.PaidChatSettingsRoot,
+        {
+        },
+        {
         }
     >;
     RoomSuper?: ComplexTypedResolver<

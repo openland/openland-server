@@ -3493,13 +3493,11 @@ export interface PaidChatSettingsShape {
     id: number;
     price: number;
     strategy: 'one-time' | 'subscription';
-    subscriptionDuration: number | null;
 }
 
 export interface PaidChatSettingsCreateShape {
     price: number;
     strategy: 'one-time' | 'subscription';
-    subscriptionDuration?: number | null | undefined;
 }
 
 export class PaidChatSettings extends Entity<PaidChatSettingsShape> {
@@ -3522,15 +3520,6 @@ export class PaidChatSettings extends Entity<PaidChatSettingsShape> {
             this.invalidate();
         }
     }
-    get subscriptionDuration(): number | null { return this._rawValue.subscriptionDuration; }
-    set subscriptionDuration(value: number | null) {
-        let normalized = this.descriptor.codec.fields.subscriptionDuration.normalize(value);
-        if (this._rawValue.subscriptionDuration !== normalized) {
-            this._rawValue.subscriptionDuration = normalized;
-            this._updatedValues.subscriptionDuration = normalized;
-            this.invalidate();
-        }
-    }
 }
 
 export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape, PaidChatSettings> {
@@ -3541,14 +3530,12 @@ export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'price', type: { type: 'float' }, secure: false });
+        fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'strategy', type: { type: 'enum', values: ['one-time', 'subscription'] }, secure: false });
-        fields.push({ name: 'subscriptionDuration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            price: c.float,
+            price: c.integer,
             strategy: c.enum('one-time', 'subscription'),
-            subscriptionDuration: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<PaidChatSettingsShape> = {
             name: 'PaidChatSettings',
@@ -3584,81 +3571,35 @@ export class PaidChatSettingsFactory extends EntityFactory<PaidChatSettingsShape
 }
 
 export interface PaidChatUserPassShape {
-    id: string;
     cid: number;
     uid: number;
-    paymentIntentId: string | null;
-    paymentIntentSecret: string | null;
-    transactionId: string | null;
-    state: 'pending' | 'failed' | 'active';
-    ttl: number | null;
-    renew: boolean | null;
+    subscriptionId: number | null;
+    isActive: boolean;
 }
 
 export interface PaidChatUserPassCreateShape {
-    paymentIntentId?: string | null | undefined;
-    paymentIntentSecret?: string | null | undefined;
-    transactionId?: string | null | undefined;
-    state: 'pending' | 'failed' | 'active';
-    ttl?: number | null | undefined;
-    renew?: boolean | null | undefined;
+    subscriptionId?: number | null | undefined;
+    isActive: boolean;
 }
 
 export class PaidChatUserPass extends Entity<PaidChatUserPassShape> {
-    get id(): string { return this._rawValue.id; }
     get cid(): number { return this._rawValue.cid; }
     get uid(): number { return this._rawValue.uid; }
-    get paymentIntentId(): string | null { return this._rawValue.paymentIntentId; }
-    set paymentIntentId(value: string | null) {
-        let normalized = this.descriptor.codec.fields.paymentIntentId.normalize(value);
-        if (this._rawValue.paymentIntentId !== normalized) {
-            this._rawValue.paymentIntentId = normalized;
-            this._updatedValues.paymentIntentId = normalized;
+    get subscriptionId(): number | null { return this._rawValue.subscriptionId; }
+    set subscriptionId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.subscriptionId.normalize(value);
+        if (this._rawValue.subscriptionId !== normalized) {
+            this._rawValue.subscriptionId = normalized;
+            this._updatedValues.subscriptionId = normalized;
             this.invalidate();
         }
     }
-    get paymentIntentSecret(): string | null { return this._rawValue.paymentIntentSecret; }
-    set paymentIntentSecret(value: string | null) {
-        let normalized = this.descriptor.codec.fields.paymentIntentSecret.normalize(value);
-        if (this._rawValue.paymentIntentSecret !== normalized) {
-            this._rawValue.paymentIntentSecret = normalized;
-            this._updatedValues.paymentIntentSecret = normalized;
-            this.invalidate();
-        }
-    }
-    get transactionId(): string | null { return this._rawValue.transactionId; }
-    set transactionId(value: string | null) {
-        let normalized = this.descriptor.codec.fields.transactionId.normalize(value);
-        if (this._rawValue.transactionId !== normalized) {
-            this._rawValue.transactionId = normalized;
-            this._updatedValues.transactionId = normalized;
-            this.invalidate();
-        }
-    }
-    get state(): 'pending' | 'failed' | 'active' { return this._rawValue.state; }
-    set state(value: 'pending' | 'failed' | 'active') {
-        let normalized = this.descriptor.codec.fields.state.normalize(value);
-        if (this._rawValue.state !== normalized) {
-            this._rawValue.state = normalized;
-            this._updatedValues.state = normalized;
-            this.invalidate();
-        }
-    }
-    get ttl(): number | null { return this._rawValue.ttl; }
-    set ttl(value: number | null) {
-        let normalized = this.descriptor.codec.fields.ttl.normalize(value);
-        if (this._rawValue.ttl !== normalized) {
-            this._rawValue.ttl = normalized;
-            this._updatedValues.ttl = normalized;
-            this.invalidate();
-        }
-    }
-    get renew(): boolean | null { return this._rawValue.renew; }
-    set renew(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.renew.normalize(value);
-        if (this._rawValue.renew !== normalized) {
-            this._rawValue.renew = normalized;
-            this._updatedValues.renew = normalized;
+    get isActive(): boolean { return this._rawValue.isActive; }
+    set isActive(value: boolean) {
+        let normalized = this.descriptor.codec.fields.isActive.normalize(value);
+        if (this._rawValue.isActive !== normalized) {
+            this._rawValue.isActive = normalized;
+            this._updatedValues.isActive = normalized;
             this.invalidate();
         }
     }
@@ -3669,30 +3610,18 @@ export class PaidChatUserPassFactory extends EntityFactory<PaidChatUserPassShape
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('paidChatUserPass');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'userChatPendingPass', storageKey: 'userChatPendingPass', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userChatPendingPass'), condition: (v) => v.state === 'pending' });
-        secondaryIndexes.push({ name: 'userChatActivePass', storageKey: 'userChatActivePass', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userChatActivePass'), condition: (v) => v.state === 'active' });
         secondaryIndexes.push({ name: 'userActivePassAll', storageKey: 'userActivePassAll', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidChatUserPass', 'userActivePassAll'), condition: (v) => v.state === 'active' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'paymentIntentId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'paymentIntentSecret', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'transactionId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failed', 'active'] }, secure: false });
-        fields.push({ name: 'ttl', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'renew', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'subscriptionId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'isActive', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
-            id: c.string,
             cid: c.integer,
             uid: c.integer,
-            paymentIntentId: c.optional(c.string),
-            paymentIntentSecret: c.optional(c.string),
-            transactionId: c.optional(c.string),
-            state: c.enum('pending', 'failed', 'active'),
-            ttl: c.optional(c.integer),
-            renew: c.optional(c.boolean),
+            subscriptionId: c.optional(c.integer),
+            isActive: c.boolean,
         });
         let descriptor: EntityDescriptor<PaidChatUserPassShape> = {
             name: 'PaidChatUserPass',
@@ -3706,63 +3635,39 @@ export class PaidChatUserPassFactory extends EntityFactory<PaidChatUserPassShape
         super(descriptor);
     }
 
-    readonly userChatPendingPass = Object.freeze({
-        find: async (ctx: Context, uid: number, cid: number) => {
-            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[0]);
-        },
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
-
-    readonly userChatActivePass = Object.freeze({
-        find: async (ctx: Context, uid: number, cid: number) => {
-            return this._findFromUniqueIndex(ctx, [uid, cid], this.descriptor.secondaryIndexes[1]);
-        },
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
-
     readonly userActivePassAll = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
         },
     });
 
-    create(ctx: Context, id: string, cid: number, uid: number, src: PaidChatUserPassCreateShape): Promise<PaidChatUserPass> {
-        return this._create(ctx, [id, cid, uid], this.descriptor.codec.normalize({ id, cid, uid, ...src }));
+    create(ctx: Context, cid: number, uid: number, src: PaidChatUserPassCreateShape): Promise<PaidChatUserPass> {
+        return this._create(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, cid: number, uid: number, src: PaidChatUserPassCreateShape): PaidChatUserPass {
-        return this._create_UNSAFE(ctx, [id, cid, uid], this.descriptor.codec.normalize({ id, cid, uid, ...src }));
+    create_UNSAFE(ctx: Context, cid: number, uid: number, src: PaidChatUserPassCreateShape): PaidChatUserPass {
+        return this._create_UNSAFE(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    findById(ctx: Context, id: string, cid: number, uid: number): Promise<PaidChatUserPass | null> {
-        return this._findById(ctx, [id, cid, uid]);
+    findById(ctx: Context, cid: number, uid: number): Promise<PaidChatUserPass | null> {
+        return this._findById(ctx, [cid, uid]);
     }
 
-    watch(ctx: Context, id: string, cid: number, uid: number): Watch {
-        return this._watch(ctx, [id, cid, uid]);
+    watch(ctx: Context, cid: number, uid: number): Watch {
+        return this._watch(ctx, [cid, uid]);
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidChatUserPassShape>): PaidChatUserPass {
-        return new PaidChatUserPass([value.id, value.cid, value.uid], value, this.descriptor, this._flush, ctx);
+        return new PaidChatUserPass([value.cid, value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 

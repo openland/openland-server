@@ -115,11 +115,6 @@ export default {
 
             let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, org.id);
 
-            if (args.after) {
-                let afterId = IDs.Conversation.parse(args.after);
-                let after = rooms.findIndex(r => r.id === afterId);
-                rooms = rooms.splice(after + 1);
-            }
             let roomsFull = await Promise.all(rooms.map(async room => {
                 let conv = await Store.Conversation.findById(ctx, room.id);
                 if (conv && (conv.deleted || conv.archived)) {
@@ -128,11 +123,17 @@ export default {
                 return { room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) };
             }));
 
-            let haveMore = roomsFull.length > args.first;
-
-            roomsFull
+            roomsFull = roomsFull
                 .filter(r => r !== null)
                 .sort((a, b) => b!.membersCount - a!.membersCount);
+
+            if (args.after) {
+                let afterId = IDs.Conversation.parse(args.after);
+                let afterIndex = roomsFull.findIndex(r => r!.room.id === afterId);
+                roomsFull = roomsFull.splice(afterIndex + 1);
+            }
+
+            let haveMore = roomsFull.length > args.first;
 
             roomsFull = roomsFull.splice(0, args.first);
 
