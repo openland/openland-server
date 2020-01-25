@@ -157,7 +157,7 @@ export class PaymentsRepository {
     // Payment Intents
     //
 
-    registerPaymentIntent = async (parent: Context, id: string, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+    registerPaymentIntent = async (parent: Context, id: string, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
         if (amount <= 0) {
             throw Error('amount must be positive integer');
         }
@@ -165,7 +165,8 @@ export class PaymentsRepository {
             return await this.store.PaymentIntent.create(ctx, id, {
                 amount: amount,
                 state: 'pending',
-                operation: operation
+                operation: operation,
+                pid: pid
             });
         });
     }
@@ -183,12 +184,44 @@ export class PaymentsRepository {
             intent.state = 'success';
 
             //
-            // NOT forwarding PaymentIntent entity to avoid object mutation
+            // Update Payment
             //
 
+            if (intent.pid) {
+                (await this.store.Payment.findById(ctx, intent.pid))!.state = 'success';
+            }
+
+            //
+            // NOT forwarding PaymentIntent entity to avoid object mutation
+            //
             await handler(ctx, intent.amount, intent.operation);
 
             return true;
+        });
+    }
+
+    //
+    // Payments
+    //
+
+    createPayment = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
+        return await inTx(parent, async (ctx) => {
+            let ex = await this.store.Payment.retry.find(ctx, uid, retryKey);
+            if (ex) {
+                return { value: ex, created: false };
+            }
+
+            let res = await this.store.Payment.create(ctx, uuid(), {
+                uid: uid,
+                amount: amount,
+                state: 'pending',
+                operation: operation,
+                retryKey: retryKey
+            });
+
+            // await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: res.id });
+
+            return { value: res, created: true };
         });
     }
 }

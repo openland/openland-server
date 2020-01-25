@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { uuid } from 'openland-utils/uuid';
 import { RoutingRepository } from './../repo/RoutingRepository';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -8,6 +9,8 @@ import { Context } from '@openland/context';
 import { BillingRepository } from '../repo/BillingRepository';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
+
+const log = createLogger('payments');
 
 export class PaymentMediator {
 
@@ -289,7 +292,7 @@ export class PaymentMediator {
         }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
 
         // Register Payment Intent
-        await this.payments.registerPaymentIntent(parent, intent.id, amount, { type: 'deposit', uid: uid });
+        await this.payments.registerPaymentIntent(parent, intent.id, amount, null, { type: 'deposit', uid: uid });
 
         return intent;
     }
@@ -298,7 +301,7 @@ export class PaymentMediator {
     // Create Pay Intent for Off Session usage
     //
 
-    createPaymentIntent = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
+    createPaymentIntent = async (parent: Context, uid: number, pid: string) => {
 
         // Await Billing Enable
         await this.enablePaymentsAndAwait(parent, uid);
@@ -306,15 +309,18 @@ export class PaymentMediator {
         // Load CustomerID
         let customerId = await this.payments.getCustomerId(parent, uid);
 
+        // Load payment
+        let payment = (await Store.Payment.findById(parent, pid))!;
+
         // Create Payment Intent
         let intent = await this.stripe.paymentIntents.create({
-            amount: amount,
+            amount: payment.amount,
             currency: 'usd',
             customer: customerId
-        }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
+        }, { idempotencyKey: 'payment-' + pid, timeout: 5000 });
 
         // Save Payment Intent id
-        await this.payments.registerPaymentIntent(parent, intent.id, amount, operation);
+        await this.payments.registerPaymentIntent(parent, intent.id, payment.amount, pid, payment.operation);
 
         return intent;
     }
@@ -344,6 +350,87 @@ export class PaymentMediator {
 
             return res;
         });
+    }
+
+    //
+    // Payment Execution
+    //
+
+    tryExecutePayment = async (parent: Context, uid: number, pid: string) => {
+
+        //
+        // Retreive Payment
+        //
+
+        let payment = await inTx(parent, async (ctx) => {
+            let res = await Store.Payment.findById(ctx, pid);
+            if (!res) {
+                throw Error('Unknown payment id ' + pid);
+            }
+            if (res.uid !== uid) {
+                throw Error('Invalid payment uid');
+            }
+            return res;
+        });
+
+        //
+        // Create Payment Intent if needed
+        //
+
+        if (!payment.piid) {
+            let intent = await this.createPaymentIntent(parent, uid, payment.id);
+            payment = await inTx(parent, async (ctx) => {
+                let res = (await Store.Payment.findById(ctx, pid))!;
+                if (!res.piid) {
+                    res.piid = intent.id;
+                }
+                return res;
+            });
+        }
+        let piid = payment.piid!!;
+
+        //
+        // Pick Default Card
+        //
+
+        let card = await inTx(parent, async (ctx) => {
+            let cards = await Store.UserStripeCard.findAll(ctx);
+            let dcard = cards.find((v) => v.default);
+            if (!dcard) {
+                throw Error('Unable to find default card');
+            }
+            return dcard;
+        });
+        // Set card to intent
+        await this.stripe.paymentIntents.update(piid, { payment_method: card.pmid }, { timeout: 5000 });
+
+        //
+        // Perform Payment
+        //
+
+        try {
+            await this.stripe.paymentIntents.confirm(piid, { off_session: true }, { timeout: 15000 });
+        } catch (err) {
+
+            if (err.code === 'authentication_required') {
+                // Change Payment Status
+                await inTx(parent, async (ctx) => {
+                    let res = (await Store.Payment.findById(ctx, pid))!;
+                    res.state = 'action_required';
+                });
+            } else if (err.code === 'requires_payment_method' || err.code === 'card_declined') {
+                // Change Payment Status
+                await inTx(parent, async (ctx) => {
+                    let res = (await Store.Payment.findById(ctx, pid))!;
+                    res.state = 'failing';
+                });
+            } else {
+                // Unknown error - throw log exception and rethrow
+                log.warn(parent, err);
+                log.log(parent, 'Error code is: ', err.code);
+                throw err;
+            }
+        }
     }
 
     //

@@ -4,6 +4,7 @@
 
 type CreditCard {
     id: ID!
+    pmid: ID!
     brand: String!
     last4: String!
     expMonth: Int!
@@ -47,6 +48,20 @@ type PaidSubscription {
 }
 
 #
+# Pending Payment
+#
+
+enum PaymentStatus {
+    PENDING, CANCELED, FAILING, ACTION_REQUIRED, SUCCESS
+}
+
+type Payment {
+    id: ID!
+    status: PaymentStatus!
+    intent: PaymentIntent
+}
+
+#
 # Wallet
 #
 
@@ -77,20 +92,36 @@ extend type Query {
     myCards: [CreditCard!]!
     myAccount: WalletAccount!
     mySubscriptions: [PaidSubscription!]!
+    myPendingPayments: [Payment!]!
     
     walletTransactions(id: ID!, first: Int!, after: String): WalletTransactionConnection!
 }
 
 extend type Mutation {
+    
+    #
+    # Payment Method management
+    #
     cardCreateSetupIntent(retryKey: String!): CardSetupIntent!
     cardCommitSetupIntent(id: ID!, pmid: ID!): CreditCard!
-    
-    cardDepositEnqueue(amount: Int!, retryKey: String!): Boolean!
-    cardDepositIntent(id: ID!, amount: Int!, retryKey: String!): PaymentIntent!
-    cardDepositIntentCommit(id: ID!): Boolean!
-
     cardRemove(id: ID!): CreditCard!
     cardMakeDefault(id: ID!): CreditCard!
 
+    #
+    # Deposits
+    #
+
+    cardDepositEnqueue(amount: Int!, retryKey: String!): Boolean!
+    cardDepositIntent(id: ID!, amount: Int!, retryKey: String!): PaymentIntent!
+
+    #
+    # Payment Intent Commit
+    #
+
+    paymentIntentCommit(id: ID!): Boolean!
+
+    #
+    # Test Subscription
+    #
     subscriptionCreateDonate(amount: Int!, retryKey: String!): PaidSubscription!
 }

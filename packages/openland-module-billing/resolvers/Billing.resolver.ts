@@ -7,6 +7,7 @@ import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 export default {
     CreditCard: {
         id: (src) => IDs.CreditCard.serialize(src.pmid),
+        pmid: (src) => src.pmid,
         brand: (src) => src.brand,
         last4: (src) => src.last4,
         expMonth: (src) => src.exp_month,
@@ -62,6 +63,31 @@ export default {
         status: async (src) => src.state === 'enabled' ? 'ACTIVE' : 'CANCELED',
     },
 
+    Payment: {
+        id: (src) => IDs.Payment.serialize(src.id),
+        status: (src) => {
+            if (src.state === 'pending') {
+                return 'PENDING';
+            } else if (src.state === 'canceled') {
+                return 'CANCELED';
+            } else if (src.state === 'failing') {
+                return 'FAILING';
+            } else if (src.state === 'success') {
+                return 'SUCCESS';
+            } else if (src.state === 'action_required') {
+                return 'ACTION_REQUIRED';
+            }
+            return 'PENDING';
+        },
+        intent: async (src, args, ctx) => {
+            if (src.state === 'action_required') {
+                return (await Modules.Billing.paymentsMediator.stripe.paymentIntents.retrieve(src.piid!));
+            }
+
+            return null;
+        }
+    },
+
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
             let res = (await Store.UserStripeCard.users.findAll(ctx, uid))
@@ -74,6 +100,9 @@ export default {
         }),
         mySubscriptions: withAccount(async (ctx, args, uid) => {
             return await Store.UserAccountSubscription.findAll(ctx);
+        }),
+        myPendingPayments: withAccount(async (ctx, args, uid) => {
+            return (await Store.Payment.user.findAll(ctx, uid))/*.filter((v) => v.state !== 'canceled' && v.state !== 'success')*/;
         }),
         walletTransactions: withAccount(async (ctx, args, uid) => {
             let account = await Modules.Billing.repo.getUserAccount(ctx, uid);
@@ -100,10 +129,12 @@ export default {
         cardDepositIntent: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.createDepositIntent(ctx, uid, IDs.CreditCard.parse(args.id), args.amount, args.retryKey);
         }),
-        cardDepositIntentCommit: withAccount(async (ctx, args, uid) => {
+
+        paymentIntentCommit: withAccount(async (ctx, args, uid) => {
             await Modules.Billing.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
             return true;
         }),
+
         cardRemove: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id));
         }),

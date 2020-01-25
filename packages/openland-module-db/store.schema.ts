@@ -1724,6 +1724,7 @@ export default declareSchema(() => {
     entity('PaymentIntent', () => {
         primaryKey('id', string());
         field('state', enumString('pending', 'success', 'canceled'));
+        field('pid', optional(string()));
         field('amount', integer());
         field('operation', PaymentOperation);
     });
@@ -1768,6 +1769,17 @@ export default declareSchema(() => {
         field('retryKey', optional(string()));
         rangeIndex('user', ['uid', 'createdAt']);
         uniqueIndex('retry', ['uid', 'retryKey']).withCondition((s) => !!s.retryKey);
+    });
+
+    eventStore('UserTransactionUpdates', () => {
+        primaryKey('uid', integer());
+    });
+
+    event('PaymentStatusChanged', () => {
+        field('id', string());
+    });
+    event('WalletBalanceChanged', () => {
+        field('id', string());
     });
 
     //

@@ -57,7 +57,7 @@ import {
     Powerup,
     UserStripeCard,
     Account,
-    AccountTransaction, PermissionRequest, UserAccountSubscription
+    AccountTransaction, PermissionRequest, UserAccountSubscription, Payment
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -481,6 +481,7 @@ export namespace GQLRoots {
     export type PaymentIntentRoot = Stripe.PaymentIntent;
 
     export type PaidSubscriptionRoot = UserAccountSubscription;
+    export type PaymentRoot = Payment;
 
     //
     // Permissions

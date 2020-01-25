@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '064bf64344ee6d7149b1c70baa9a91af';
+export const GQL_SPEC_VERSION = '55ca123c1ec69cb25122447c9d337329';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -322,6 +322,7 @@ export namespace GQL {
     }
     export interface CreditCard {
         id: string;
+        pmid: string;
         brand: string;
         last4: string;
         expMonth: number;
@@ -345,6 +346,12 @@ export namespace GQL {
         amount: number;
         interval: PaidSubscriptionInterval;
         status: PaidSubscriptionStatus;
+    }
+    export type PaymentStatus = 'PENDING' | 'CANCELED' | 'FAILING' | 'ACTION_REQUIRED' | 'SUCCESS';
+    export interface Payment {
+        id: string;
+        status: PaymentStatus;
+        intent: Nullable<PaymentIntent>;
     }
     export interface WalletAccount {
         id: string;
@@ -1102,11 +1109,11 @@ export namespace GQL {
         alphaCreateUserProfileAndOrganization: AlphaSignupData;
         cardCreateSetupIntent: CardSetupIntent;
         cardCommitSetupIntent: CreditCard;
-        cardDepositEnqueue: boolean;
-        cardDepositIntent: PaymentIntent;
-        cardDepositIntentCommit: boolean;
         cardRemove: CreditCard;
         cardMakeDefault: CreditCard;
+        cardDepositEnqueue: boolean;
+        cardDepositIntent: PaymentIntent;
+        paymentIntentCommit: boolean;
         subscriptionCreateDonate: PaidSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
@@ -1486,6 +1493,12 @@ export namespace GQL {
         id: string;
         pmid: string;
     }
+    export interface MutationCardRemoveArgs {
+        id: string;
+    }
+    export interface MutationCardMakeDefaultArgs {
+        id: string;
+    }
     export interface MutationCardDepositEnqueueArgs {
         amount: number;
         retryKey: string;
@@ -1495,13 +1508,7 @@ export namespace GQL {
         amount: number;
         retryKey: string;
     }
-    export interface MutationCardDepositIntentCommitArgs {
-        id: string;
-    }
-    export interface MutationCardRemoveArgs {
-        id: string;
-    }
-    export interface MutationCardMakeDefaultArgs {
+    export interface MutationPaymentIntentCommitArgs {
         id: string;
     }
     export interface MutationSubscriptionCreateDonateArgs {
@@ -2576,6 +2583,7 @@ export namespace GQL {
         myCards: CreditCard[];
         myAccount: WalletAccount;
         mySubscriptions: PaidSubscription[];
+        myPendingPayments: Payment[];
         walletTransactions: WalletTransactionConnection;
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
@@ -4167,6 +4175,15 @@ export interface GQLResolver {
         {
         }
     >;
+    Payment?: ComplexTypedResolver<
+        GQL.Payment,
+        GQLRoots.PaymentRoot,
+        {
+            intent: Nullable<GQLRoots.PaymentIntentRoot>,
+        },
+        {
+        }
+    >;
     WalletAccount?: ComplexTypedResolver<
         GQL.WalletAccount,
         GQLRoots.WalletAccountRoot,
@@ -5172,9 +5189,9 @@ export interface GQLResolver {
             alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot,
             cardCreateSetupIntent: GQLRoots.CardSetupIntentRoot,
             cardCommitSetupIntent: GQLRoots.CreditCardRoot,
-            cardDepositIntent: GQLRoots.PaymentIntentRoot,
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
+            cardDepositIntent: GQLRoots.PaymentIntentRoot,
             subscriptionCreateDonate: GQLRoots.PaidSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
@@ -5302,11 +5319,11 @@ export interface GQLResolver {
             alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs,
             cardCreateSetupIntent: GQL.MutationCardCreateSetupIntentArgs,
             cardCommitSetupIntent: GQL.MutationCardCommitSetupIntentArgs,
-            cardDepositEnqueue: GQL.MutationCardDepositEnqueueArgs,
-            cardDepositIntent: GQL.MutationCardDepositIntentArgs,
-            cardDepositIntentCommit: GQL.MutationCardDepositIntentCommitArgs,
             cardRemove: GQL.MutationCardRemoveArgs,
             cardMakeDefault: GQL.MutationCardMakeDefaultArgs,
+            cardDepositEnqueue: GQL.MutationCardDepositEnqueueArgs,
+            cardDepositIntent: GQL.MutationCardDepositIntentArgs,
+            paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             subscriptionCreateDonate: GQL.MutationSubscriptionCreateDonateArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
@@ -5754,6 +5771,7 @@ export interface GQLResolver {
             myCards: GQLRoots.CreditCardRoot[],
             myAccount: GQLRoots.WalletAccountRoot,
             mySubscriptions: GQLRoots.PaidSubscriptionRoot[],
+            myPendingPayments: GQLRoots.PaymentRoot[],
             walletTransactions: GQLRoots.WalletTransactionConnectionRoot,
             alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,

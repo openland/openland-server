@@ -13812,12 +13812,14 @@ export class TransactionFactory extends EntityFactory<TransactionShape, Transact
 export interface PaymentIntentShape {
     id: string;
     state: 'pending' | 'success' | 'canceled';
+    pid: string | null;
     amount: number;
     operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
 }
 
 export interface PaymentIntentCreateShape {
     state: 'pending' | 'success' | 'canceled';
+    pid?: string | null | undefined;
     amount: number;
     operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
 }
@@ -13830,6 +13832,15 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
             this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get pid(): string | null { return this._rawValue.pid; }
+    set pid(value: string | null) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
             this.invalidate();
         }
     }
@@ -13862,11 +13873,13 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } }, subscription: { pspid: { type: 'string' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             state: c.enum('pending', 'success', 'canceled'),
+            pid: c.optional(c.string),
             amount: c.integer,
             operation: c.union({ deposit: c.struct({ uid: c.integer }), subscription: c.struct({ pspid: c.string }) }),
         });
@@ -17054,6 +17067,64 @@ export class UserLocationStopSharingEvent extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
+const paymentStatusChangedCodec = c.struct({
+    id: c.string,
+});
+
+interface PaymentStatusChangedShape {
+    id: string;
+}
+
+export class PaymentStatusChanged extends BaseEvent {
+
+    static create(data: PaymentStatusChangedShape) {
+        return new PaymentStatusChanged(paymentStatusChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new PaymentStatusChanged(paymentStatusChangedCodec.decode(data));
+    }
+
+    static encode(event: PaymentStatusChanged) {
+        return paymentStatusChangedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('paymentStatusChanged', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
+const walletBalanceChangedCodec = c.struct({
+    id: c.string,
+});
+
+interface WalletBalanceChangedShape {
+    id: string;
+}
+
+export class WalletBalanceChanged extends BaseEvent {
+
+    static create(data: WalletBalanceChangedShape) {
+        return new WalletBalanceChanged(walletBalanceChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new WalletBalanceChanged(walletBalanceChangedCodec.decode(data));
+    }
+
+    static encode(event: WalletBalanceChanged) {
+        return walletBalanceChangedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('walletBalanceChanged', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
 const stripeEventCreatedCodec = c.struct({
     id: c.string,
     eventType: c.string,
@@ -17299,6 +17370,41 @@ export class UserLocationEventStore extends EventStore {
     }
 }
 
+export class UserTransactionUpdates extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('userTransactionUpdates');
+        const descriptor = {
+            name: 'UserTransactionUpdates',
+            storageKey: 'userTransactionUpdates',
+            subspace,
+            storage,
+            factory
+        };
+        return new UserTransactionUpdates(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, uid: number, event: BaseEvent) {
+        this._post(ctx, [uid], event);
+    }
+
+    async findAll(ctx: Context, uid: number) {
+        return this._findAll(ctx, [uid]);
+    }
+
+    createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([uid], opts);
+    }
+
+    createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [uid], opts);
+    }
+}
+
 export class StripeEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -17496,6 +17602,7 @@ export interface Store extends BaseStore {
     readonly FeedEventStore: FeedEventStore;
     readonly FeedGlobalEventStore: FeedGlobalEventStore;
     readonly UserLocationEventStore: UserLocationEventStore;
+    readonly UserTransactionUpdates: UserTransactionUpdates;
     readonly StripeEventStore: StripeEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
@@ -17526,6 +17633,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
     eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
+    eventFactory.registerEventType('paymentStatusChanged', PaymentStatusChanged.encode as any, PaymentStatusChanged.decode);
+    eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
@@ -17692,6 +17801,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
+    let UserTransactionUpdatesPromise = UserTransactionUpdates.open(storage, eventFactory);
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     return {
         storage,
@@ -17861,6 +17971,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedEventStore: await FeedEventStorePromise,
         FeedGlobalEventStore: await FeedGlobalEventStorePromise,
         UserLocationEventStore: await UserLocationEventStorePromise,
+        UserTransactionUpdates: await UserTransactionUpdatesPromise,
         StripeEventStore: await StripeEventStorePromise,
     };
 }

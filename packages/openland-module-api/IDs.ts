@@ -80,6 +80,8 @@ export const IDs = {
     PaymentIntent: IdsFactory.createStringId('PaymentIntent'),
     PaidSubscription: IdsFactory.createStringId('PaidSubscription'),
 
+    Payment: IdsFactory.createStringId('Payment'),
+
     PermissionGroup: IdsFactory.createId('PermissionGroup'),
     PermissionRequest: IdsFactory.createStringId('PermissionRequest')
 };

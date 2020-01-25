@@ -1,4 +1,4 @@
-import { ChatUpdatedEvent, ConversationRoom, Transaction } from 'openland-module-db/store';
+import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -142,19 +142,19 @@ export class RoomMediator {
             if (paidChatSettings.strategy !== 'one-time') {
                 throw new Error('Unexpected payment strategy - probably you are calling wrong mutation');
             }
-            let tx: Transaction;
-            if (pmid === 'openland') {
-                tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
-            } else {
-                // TODO: create payment(deposit?) intent in case of card
-                throw new Error('currently openland depsit only');
-            }
+            // let tx: Transaction;
+            // if (pmid === 'openland') {
+            //     tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
+            // } else {
+            //     // TODO: create payment(deposit?) intent in case of card
+            //     throw new Error('currently openland depsit only');
+            // }
 
-            let activate = tx.status === 'processed' || tx.status === 'pending';
-            if (tx.status === 'pending') {
-                // TODO: add worker for failure check
-            }
-            await this.alterPaidChatUserPass(ctx, cid, uid, activate);
+            // let activate = tx.status === 'processed' || tx.status === 'pending';
+            // if (tx.status === 'pending') {
+            //     // TODO: add worker for failure check
+            // }
+            // await this.alterPaidChatUserPass(ctx, cid, uid, activate);
         });
     }
 
