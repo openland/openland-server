@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '73e1867920acbc7450a04d859e109ca8';
+export const GQL_SPEC_VERSION = 'acdb7e9b356c13281b28653455f24f27';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1102,6 +1102,7 @@ export namespace GQL {
         alphaCreateUserProfileAndOrganization: AlphaSignupData;
         cardCreateSetupIntent: CardSetupIntent;
         cardCommitSetupIntent: CreditCard;
+        cardDepositEnqueue: boolean;
         cardDepositIntent: PaymentIntent;
         cardDepositIntentCommit: boolean;
         cardRemove: CreditCard;
@@ -1200,8 +1201,6 @@ export namespace GQL {
         superAdminRemove: string;
         alphaAlterPublished: Organization;
         alphaRenderVideo: string;
-        superEnableBilling: boolean;
-        superRegisterCard: boolean;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
         deliverCountersForAll: boolean;
@@ -1486,6 +1485,10 @@ export namespace GQL {
         id: string;
         pmid: string;
     }
+    export interface MutationCardDepositEnqueueArgs {
+        amount: number;
+        retryKey: string;
+    }
     export interface MutationCardDepositIntentArgs {
         id: string;
         amount: number;
@@ -1694,13 +1697,6 @@ export namespace GQL {
     }
     export interface MutationAlphaRenderVideoArgs {
         name: string;
-    }
-    export interface MutationSuperEnableBillingArgs {
-        uid: string;
-    }
-    export interface MutationSuperRegisterCardArgs {
-        uid: string;
-        pmid: string;
     }
     export interface MutationBetaFixCounterArgs {
         uid: string;
@@ -5291,6 +5287,7 @@ export interface GQLResolver {
             alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs,
             cardCreateSetupIntent: GQL.MutationCardCreateSetupIntentArgs,
             cardCommitSetupIntent: GQL.MutationCardCommitSetupIntentArgs,
+            cardDepositEnqueue: GQL.MutationCardDepositEnqueueArgs,
             cardDepositIntent: GQL.MutationCardDepositIntentArgs,
             cardDepositIntentCommit: GQL.MutationCardDepositIntentCommitArgs,
             cardRemove: GQL.MutationCardRemoveArgs,
@@ -5349,8 +5346,6 @@ export interface GQLResolver {
             superAdminRemove: GQL.MutationSuperAdminRemoveArgs,
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
             alphaRenderVideo: GQL.MutationAlphaRenderVideoArgs,
-            superEnableBilling: GQL.MutationSuperEnableBillingArgs,
-            superRegisterCard: GQL.MutationSuperRegisterCardArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs,

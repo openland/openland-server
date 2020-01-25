@@ -1,5 +1,7 @@
+import { RoutingRepository } from './repo/RoutingRepository';
+import { PaymentsRepository } from './repo/PaymentsRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { StripeMediator } from './mediators/StripeMediator';
+import { PaymentMediator } from './mediators/PaymentMediator';
 import { Store } from 'openland-module-db/FDB';
 import { BillingRepository } from './repo/BillingRepository';
 import { Context } from '@openland/context';
@@ -13,48 +15,50 @@ import { startPaymentProcessor } from './workers/startPaymentProcessor';
 @injectable()
 export class BillingModule {
 
+    readonly payments: PaymentsRepository = new PaymentsRepository(Store);
     readonly repo: BillingRepository = new BillingRepository(Store);
-    readonly stripeMediator: StripeMediator = new StripeMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */, this.repo);
+    readonly routing: RoutingRepository = new RoutingRepository(Store, this.repo);
+    readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
+        this.repo,
+        this.payments,
+        this.routing
+    );
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
-            startCustomerExportWorker(this.repo.createCustomerQueue, this.stripeMediator);
-            startCardSyncWorker(this.repo.syncCardQueue, this.stripeMediator);
-            startEventsReaderWorker(this.stripeMediator);
-            startPaymentIntentCommiter(this.stripeMediator);
-            startPaymentProcessor(this.stripeMediator);
+            startCustomerExportWorker(this.paymentsMediator.createCustomerQueue, this.paymentsMediator);
+            startCardSyncWorker(this.paymentsMediator.syncCardQueue, this.paymentsMediator);
+            startEventsReaderWorker(this.paymentsMediator);
+            startPaymentIntentCommiter(this.paymentsMediator);
+            startPaymentProcessor(this.paymentsMediator);
         }
     }
 
-    enableBilling = async (parent: Context, uid: number) => {
-        return await this.repo.enableBilling(parent, uid);
-    }
-
     enableBillingAndAwait = async (parent: Context, uid: number) => {
-        return await this.stripeMediator.enableBillingAndAwait(parent, uid);
+        return await this.paymentsMediator.enablePaymentsAndAwait(parent, uid);
     }
 
     registerCard = async (parent: Context, uid: number, pmid: string) => {
-        return await this.stripeMediator.registerCard(parent, uid, pmid);
+        return await this.paymentsMediator.addPaymentMethdod(parent, uid, pmid);
     }
 
     deleteCard = async (parent: Context, uid: number, pmid: string) => {
-        return await this.stripeMediator.deleteCard(parent, uid, pmid);
+        return await this.paymentsMediator.removePaymentMethod(parent, uid, pmid);
     }
 
     makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
-        return await this.stripeMediator.makeCardDefault(parent, uid, pmid);
+        return await this.paymentsMediator.makePaymentMethodDefault(parent, uid, pmid);
     }
 
     createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {
-        return await this.stripeMediator.createSetupIntent(parent, uid, retryKey);
+        return await this.paymentsMediator.createSetupIntent(parent, uid, retryKey);
     }
 
     createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
-        return await this.stripeMediator.createDepositIntent(parent, uid, pmid, amount, retryKey);
+        return await this.paymentsMediator.createDepositIntent(parent, uid, pmid, amount, retryKey);
     }
 
     updatePaymentIntent = async (parent: Context, id: string) => {
-        return await this.stripeMediator.updatePaymentIntent(parent, id);
+        return await this.paymentsMediator.updatePaymentIntent(parent, id);
     }
 }

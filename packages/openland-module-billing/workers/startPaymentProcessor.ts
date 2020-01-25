@@ -1,12 +1,12 @@
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
-import { StripeMediator } from './../mediators/StripeMediator';
+import { PaymentMediator } from '../mediators/PaymentMediator';
 import { Store } from 'openland-module-db/FDB';
 
 const log = createLogger('payment-processor');
 
-export function startPaymentProcessor(mediator: StripeMediator) {
-    mediator.repo.paymentProcessorQueue.addWorker(async (item, parent) => {
+export function startPaymentProcessor(mediator: PaymentMediator) {
+    mediator.paymentProcessorQueue.addWorker(async (item, parent) => {
 
         //
         // Load Payment

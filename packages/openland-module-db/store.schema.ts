@@ -1696,11 +1696,20 @@ export default declareSchema(() => {
     // Accounting
     //
 
+    const PaymentOperation = union({
+        'deposit': struct({
+            uid: integer()
+        }),
+        'subscription': struct({
+            pspid: string()
+        })
+    });
+
     entity('Account', () => {
         primaryKey('id', string());
         field('balance', integer());
     });
-    
+
     entity('AccountTransaction', () => {
         primaryKey('id', string());
         field('aid', string());
@@ -1726,14 +1735,7 @@ export default declareSchema(() => {
         primaryKey('id', string());
         field('state', enumString('pending', 'success', 'canceled'));
         field('amount', integer());
-        field('operation', union({
-            'deposit': struct({
-                uid: integer()
-            }),
-            'subscription': struct({
-                pspid: string()
-            })
-        }));
+        field('operation', PaymentOperation);
     });
 
     //
@@ -1771,14 +1773,11 @@ export default declareSchema(() => {
         field('uid', integer());
         field('piid', optional(string()));
         field('amount', integer());
-        field('walletAmount', integer());
         field('state', enumString('pending', 'success', 'action_required', 'failing', 'canceled'));
-        field('operation', union({
-            'subscription': struct({
-                pspid: string()
-            })
-        }));
+        field('operation', PaymentOperation);
+        field('retryKey', optional(string()));
         rangeIndex('user', ['uid', 'createdAt']);
+        uniqueIndex('retry', ['uid', 'retryKey']).withCondition((s) => !!s.retryKey);
     });
 
     //

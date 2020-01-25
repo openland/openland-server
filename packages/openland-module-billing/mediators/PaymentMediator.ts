@@ -1,20 +1,31 @@
-import { PaymentIntentCreateShape, PaymentIntent } from './../../openland-module-db/store';
+import { uuid } from 'openland-utils/uuid';
+import { RoutingRepository } from './../repo/RoutingRepository';
+import { WorkQueue } from 'openland-module-workers/WorkQueue';
+import { PaymentsRepository } from '../repo/PaymentsRepository';
+import { PaymentIntentCreateShape } from '../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { BillingRepository } from './../repo/BillingRepository';
+import { BillingRepository } from '../repo/BillingRepository';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 
-export class StripeMediator {
+export class PaymentMediator {
 
     readonly liveMode: boolean;
     readonly repo: BillingRepository;
+    readonly payments: PaymentsRepository;
+    readonly routing: RoutingRepository;
     readonly stripe: Stripe;
+    readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
+    readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
+    readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
 
-    constructor(token: string, repo: BillingRepository) {
+    constructor(token: string, repo: BillingRepository, payments: PaymentsRepository, routing: RoutingRepository) {
         this.repo = repo;
+        this.payments = payments;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
+        this.routing = routing;
     }
 
     exportCustomer = async (parent: Context, uid: number) => {
@@ -49,9 +60,6 @@ export class StripeMediator {
             }
 
             return { user, profile, customer };
-
-            // Save result
-            // customer.stripeId = stripeCustomer.id;
         });
         if (!src) { // Ignore if customer already exists
             return;
@@ -69,29 +77,26 @@ export class StripeMediator {
         // Also idempotency (retry) key is valid for at least 24 hours and will work just fine for 
         // restarting transaction or worker task. So chance of double accounts is very very small.
         //
+        // NOTE: Since between retries user name could be changed we need to create empty customer and then update 
+        // it's profile values instead. Otherwise stripe will throw error
+        //
+
         let stripeCustomer = await this.stripe.customers.create({
-            email: src.user.email,
-            name: (src.profile.firstName + ' ' + (src.profile.lastName || '')).trim(),
             metadata: { uid: uid }
         }, { idempotencyKey: 'create-' + src.customer.uniqueKey, timeout: 5000 });
+        await this.stripe.customers.update(stripeCustomer.id, {
+            email: src.user.email,
+            name: (src.profile.firstName + ' ' + (src.profile.lastName || '')).trim(),
+        });
 
         //
         // Save Result
         //
 
-        await inTx(parent, async (ctx) => {
-            let customer = await Store.UserStripeCustomer.findById(ctx, uid);
-            if (!customer) {
-                throw Error('Unable to create customer without customer record');
-            }
-            if (customer.stripeId) {
-                return;
-            }
-            customer.stripeId = stripeCustomer.id;
-        });
+        await this.payments.applyCustomerId(parent, uid, stripeCustomer.id);
     }
 
-    enableBillingAndAwait = async (parent: Context, uid: number) => {
+    enablePaymentsAndAwait = async (parent: Context, uid: number) => {
 
         //
         // Check if billing is enabled and enable if it is required
@@ -114,7 +119,8 @@ export class StripeMediator {
             // Customer Record
             let customer = await Store.UserStripeCustomer.findById(ctx, uid);
             if (!customer) {
-                await this.repo.enableBilling(parent, uid);
+                await this.payments.enablePayments(parent, uid);
+                await this.createCustomerQueue.pushWork(ctx, { uid });
                 return false;
             }
 
@@ -135,78 +141,52 @@ export class StripeMediator {
         }
     }
 
-    registerCard = async (parent: Context, uid: number, pmid: string) => {
-        await this.enableBillingAndAwait(parent, uid);
+    //
+    // Cards
+    //
 
-        let data = await this.stripe.paymentMethods.retrieve(pmid);
+    addPaymentMethdod = async (parent: Context, uid: number, pmid: string) => {
 
+        // Enable Billing
+        await this.enablePaymentsAndAwait(parent, uid);
+
+        // Load Payment Method
+        let pm = await this.stripe.paymentMethods.retrieve(pmid);
+
+        // Add Payment Method
         return await inTx(parent, async (ctx) => {
-            let isFirstOne = (await Store.UserStripeCard.users.findAll(ctx, uid)).length === 0;
-            let res = await Store.UserStripeCard.create(ctx, uid, pmid, {
-                default: isFirstOne,
-                deleted: false,
-                brand: data.card!.brand,
-                country: data.card!.country!,
-                exp_month: data.card!.exp_month,
-                exp_year: data.card!.exp_year,
-                last4: data.card!.last4,
-                stripeAttached: false,
-                stripeDetached: false
-            });
-            await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
-            return res;
+            let res = await this.payments.addPaymentMethod(parent, uid, pm);
+            if (res) {
+                await this.syncCardQueue.pushWork(ctx, { uid, pmid });
+            }
+            return await Store.UserStripeCard.findById(ctx, uid, pmid);
         });
     }
 
-    deleteCard = async (parent: Context, uid: number, pmid: string) => {
-        await this.enableBillingAndAwait(parent, uid);
+    removePaymentMethod = async (parent: Context, uid: number, pmid: string) => {
 
+        // Enable Billing
+        await this.enablePaymentsAndAwait(parent, uid);
+
+        // Remove Payment Method
         return await inTx(parent, async (ctx) => {
-            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
-            if (!card) {
-                throw Error('Card not found');
+            let res = await this.payments.removePaymentMethod(parent, uid, pmid);
+            if (res) {
+                await this.syncCardQueue.pushWork(ctx, { uid, pmid });
             }
-            if (!card.deleted) {
-                card.deleted = true;
-
-                // Update Default
-                if (card.default) {
-                    card.default = false;
-
-                    let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid);
-                    if (ex) {
-                        ex.default = true;
-                    }
-                }
-
-                await this.repo.syncCardQueue.pushWork(ctx, { uid, pmid });
-            }
-            return card;
+            return await Store.UserStripeCard.findById(ctx, uid, pmid);
         });
     }
 
-    makeCardDefault = async (parent: Context, uid: number, pmid: string) => {
-        await this.enableBillingAndAwait(parent, uid);
+    makePaymentMethodDefault = async (parent: Context, uid: number, pmid: string) => {
 
+        // Enable Billing
+        await this.enablePaymentsAndAwait(parent, uid);
+
+        // Make Card Default
         return await inTx(parent, async (ctx) => {
-            let card = await Store.UserStripeCard.findById(ctx, uid, pmid);
-            if (!card) {
-                throw Error('Card not found');
-            }
-            if (!card.default) {
-                let ex = (await Store.UserStripeCard.users.findAll(ctx, uid)).find((v) => v.pmid !== card!.pmid && v.default);
-                if (ex) {
-                    ex.default = false;
-
-                    await ex.flush(ctx);
-                }
-
-                card.default = true;
-
-                await card.flush(ctx);
-            }
-
-            return card;
+            await this.payments.makePaymentMethodDefault(ctx, uid, pmid);
+            return await Store.UserStripeCard.findById(ctx, uid, pmid);
         });
     }
 
@@ -215,7 +195,7 @@ export class StripeMediator {
     //
 
     syncCard = async (parent: Context, uid: number, pmid: string) => {
-        await this.enableBillingAndAwait(parent, uid);
+        await this.enablePaymentsAndAwait(parent, uid);
         await this.attachCardIfNeeded(parent, uid, pmid);
         await this.detachCardIfNeeded(parent, uid, pmid);
     }
@@ -279,14 +259,8 @@ export class StripeMediator {
     //
 
     createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {
-        await this.enableBillingAndAwait(parent, uid);
-        let customerId = await inTx(parent, async (ctx: Context) => {
-            let res = (await Store.UserStripeCustomer.findById(ctx, uid))!.stripeId;
-            if (!res) {
-                throw Error('Internal error');
-            }
-            return res;
-        });
+        await this.enablePaymentsAndAwait(parent, uid);
+        let customerId = await this.payments.getCustomerId(parent, uid);
         let intent = await this.stripe.setupIntents.create({
             customer: customerId,
             usage: 'off_session'
@@ -295,7 +269,7 @@ export class StripeMediator {
     }
 
     //
-    // Create Deposit Intent
+    // Create On Session Deposit Intent
     //
 
     createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
@@ -304,14 +278,9 @@ export class StripeMediator {
         await this.syncCard(parent, uid, pmid);
 
         // Load CustomerID
-        let customerId = await inTx(parent, async (ctx: Context) => {
-            let res = (await Store.UserStripeCustomer.findById(ctx, uid))!.stripeId;
-            if (!res) {
-                throw Error('Internal error');
-            }
-            return res;
-        });
+        let customerId = await this.payments.getCustomerId(parent, uid);
 
+        // Create Payment Intent
         let intent = await this.stripe.paymentIntents.create({
             amount: amount,
             currency: 'usd',
@@ -319,37 +288,23 @@ export class StripeMediator {
             payment_method: pmid
         }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
 
-        await inTx(parent, async (ctx) => {
-            await Store.PaymentIntent.create(ctx, intent.id, {
-                amount: amount,
-                state: 'pending',
-                operation: {
-                    type: 'deposit',
-                    uid: uid
-                }
-            });
-        });
+        // Register Payment Intent
+        await this.payments.registerPaymentIntent(parent, intent.id, amount, { type: 'deposit', uid: uid });
 
         return intent;
     }
 
     //
-    // Create Abstract Pay Intent
+    // Create Pay Intent for Off Session usage
     //
 
     createPaymentIntent = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
 
         // Await Billing Enable
-        await this.enableBillingAndAwait(parent, uid);
+        await this.enablePaymentsAndAwait(parent, uid);
 
         // Load CustomerID
-        let customerId = await inTx(parent, async (ctx: Context) => {
-            let res = (await Store.UserStripeCustomer.findById(ctx, uid))!.stripeId;
-            if (!res) {
-                throw Error('Internal error');
-            }
-            return res;
-        });
+        let customerId = await this.payments.getCustomerId(parent, uid);
 
         // Create Payment Intent
         let intent = await this.stripe.paymentIntents.create({
@@ -359,15 +314,36 @@ export class StripeMediator {
         }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
 
         // Save Payment Intent id
-        await inTx(parent, async (ctx) => {
-            await Store.PaymentIntent.create(ctx, intent.id, {
-                amount: amount,
-                state: 'pending',
-                operation: operation
-            });
-        });
+        await this.payments.registerPaymentIntent(parent, intent.id, amount, operation);
 
         return intent;
+    }
+
+    //
+    // Create Payment
+    //
+
+    createPayment = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
+        await this.enablePaymentsAndAwait(parent, uid);
+
+        await inTx(parent, async (ctx) => {
+            let ex = await Store.Payment.retry.find(ctx, uid, retryKey);
+            if (ex) {
+                return ex;
+            }
+
+            let res = await Store.Payment.create(ctx, uuid(), {
+                uid: uid,
+                amount: amount,
+                state: 'pending',
+                operation: operation,
+                retryKey: retryKey
+            });
+
+            await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: res.id });
+
+            return res;
+        });
     }
 
     //
@@ -376,48 +352,10 @@ export class StripeMediator {
 
     updatePaymentIntent = async (parent: Context, id: string) => {
         let dp = await this.stripe.paymentIntents.retrieve(id);
-        await inTx(parent, async (ctx) => {
-            let intent = await Store.PaymentIntent.findById(ctx, id);
-            if (!intent) {
-                return;
-            }
-
-            if (dp.status === 'succeeded') {
-                if (intent.state !== 'pending') {
-                    return;
-                }
-                intent.state = 'success';
-
-                await this.routeSuccessfulPayment(ctx, intent);
-            }
-        });
-    }
-
-    //
-    // PaymentIntent Routing
-    //
-
-    routeSuccessfulPayment = async (ctx: Context, intent: PaymentIntent) => {
-
-        if (intent.operation.type === 'deposit') {
-
-            // Create and confirm transaction
-            let tx = await this.repo.createTransaction(
-                ctx, null, intent.operation.uid, 'deposit', intent.amount
-            );
-            await this.repo.confirmTransaction(ctx, tx.id);
-
-        } else if (intent.operation.type === 'subscription') {
-            // TODO: Implement
-            // throw Error('Invalid intent');
+        if (dp.status === 'succeeded') {
+            await this.payments.paymentIntentSuccess(parent, id, async (ctx, amount, op) => {
+                await this.routing.routeSuccessfulPayment(ctx, amount, op);
+            });
         }
-    }
-
-    //
-    // Inner Transfers
-    //
-
-    transfer = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
-        return this.repo.createTransaction(parent, fromUid, toUid, 'transfer', amount);
     }
 }

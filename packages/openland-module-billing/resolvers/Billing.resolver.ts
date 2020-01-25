@@ -93,7 +93,10 @@ export default {
             // TODO: Validate Setup Intent
             return await Modules.Billing.registerCard(ctx, uid, args.pmid);
         }),
-
+        cardDepositEnqueue: withAccount(async (ctx, args, uid) => {
+            await Modules.Billing.paymentsMediator.createPayment(ctx, uid, args.amount, args.retryKey, { type: 'deposit', uid: uid });
+            return true;
+        }),
         cardDepositIntent: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.createDepositIntent(ctx, uid, IDs.CreditCard.parse(args.id), args.amount, args.retryKey);
         }),
@@ -108,7 +111,8 @@ export default {
             return await Modules.Billing.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
         }),
         subscriptionCreateDonate: withAccount(async (ctx, args, uid) => {
-            return Modules.Billing.repo.createDonateSubscription(ctx, uid, 2, args.amount, args.retryKey);
+            // return Modules.Billing.repo.createDonateSubscription(ctx, uid, 2, args.amount, args.retryKey);
+            throw Error('');
         })
     }
 } as GQLResolver;

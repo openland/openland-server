@@ -2,12 +2,12 @@ import { createLogger } from '@openland/log';
 import { StripeEventCreated } from './../../openland-module-db/store';
 import { Store } from './../../openland-module-db/FDB';
 import { updateReader } from '../../openland-module-workers/updateReader';
-import { StripeMediator } from './../mediators/StripeMediator';
+import { PaymentMediator } from '../mediators/PaymentMediator';
 import { inTx } from '@openland/foundationdb';
 
 const log = createLogger('commiter');
 
-export function startPaymentIntentCommiter(mediator: StripeMediator) {
+export function startPaymentIntentCommiter(mediator: PaymentMediator) {
     updateReader('stripe-payment-intent-' + (mediator.liveMode ? 'live' : 'test'), 1, Store.StripeEventStore.createStream(mediator.liveMode, { batchSize: 10 }), async (items, first, parent) => {
         for (let i of items) {
             let e = (i as StripeEventCreated);

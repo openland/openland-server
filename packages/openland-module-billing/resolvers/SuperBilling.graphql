@@ -1,4 +1,0 @@
-extend type Mutation {
-    superEnableBilling(uid: ID!): Boolean!
-    superRegisterCard(uid: ID!, pmid: String!): Boolean!
-}

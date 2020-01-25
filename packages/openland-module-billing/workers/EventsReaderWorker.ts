@@ -1,7 +1,7 @@
 import { StripeEventCreated } from './../../openland-module-db/store';
 import { batch } from './../../openland-utils/batch';
 import { createLogger } from '@openland/log';
-import { StripeMediator } from './../mediators/StripeMediator';
+import { PaymentMediator } from '../mediators/PaymentMediator';
 import { Store } from './../../openland-module-db/FDB';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import Stripe from 'stripe';
@@ -9,7 +9,7 @@ import { inTx } from '@openland/foundationdb';
 
 const log = createLogger('events');
 
-export function startEventsReaderWorker(mediator: StripeMediator) {
+export function startEventsReaderWorker(mediator: PaymentMediator) {
     singletonWorker({ db: Store.storage.db, name: 'stripe-events', delay: 1000 }, async (parent) => {
 
         //

@@ -85,6 +85,7 @@ extend type Mutation {
     cardCreateSetupIntent(retryKey: String!): CardSetupIntent!
     cardCommitSetupIntent(id: ID!, pmid: ID!): CreditCard!
     
+    cardDepositEnqueue(amount: Int!, retryKey: String!): Boolean!
     cardDepositIntent(id: ID!, amount: Int!, retryKey: String!): PaymentIntent!
     cardDepositIntentCommit(id: ID!): Boolean!
 

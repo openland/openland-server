@@ -203,11 +203,11 @@ export class RoomRepository {
             if (!chat.isPaid) {
                 throw new Error('Chat is free to join');
             }
-            let paidChatSettings = (await Store.PaidChatSettings.findById(ctx, chat.id))!;
+            // let paidChatSettings = (await Store.PaidChatSettings.findById(ctx, chat.id))!;
             let tx: Transaction | undefined;
             let intent: Stripe.PaymentIntent | undefined;
             if (pmid === 'openland') {
-                tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
+                // tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
             } else {
                 // TODO: create payment(deposit?) intent in case of card
                 throw new Error('currently openland depsit only');
