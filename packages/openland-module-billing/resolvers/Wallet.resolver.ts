@@ -209,10 +209,7 @@ export default {
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: AppContext) {
                 let stream = Store.UserWalletUpdates.createLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: IDs.WalletUpdatesCursor.parse(args.fromState) });
-                console.log('stream start');
                 for await (let event of stream) {
-                    console.log('event');
-                    console.log(event);
                     yield event;
                 }
             }
