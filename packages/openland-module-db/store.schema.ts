@@ -1643,7 +1643,7 @@ export default declareSchema(() => {
     });
 
     //
-    // Billing
+    // Payment: Cards
     //
 
     entity('UserStripeCustomer', () => {
@@ -1683,42 +1683,39 @@ export default declareSchema(() => {
     });
 
     //
-    // Accounting
+    // Payments: Wallet
+    //
+
+    entity('Wallet', () => {
+        primaryKey('uid', integer());
+        field('balance', integer());
+    });
+
+    entity('WalletTransaction', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('status', enumString('pending', 'canceling', 'canceled', 'success'));
+
+        field('operation', union({
+            'deposit': struct({
+                amount: integer(),
+                payment: optional(string())
+            })
+        }));
+
+        rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');
+        rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !(s.status === 'pending' || s.status === 'canceling'));
+    });
+
+    //
+    // Payments: Payments
     //
 
     const PaymentOperation = union({
         'deposit': struct({
-            uid: integer()
-        }),
-        'subscription': struct({
-            pspid: string()
+            uid: integer(),
+            txid: optional(string())
         })
-    });
-
-    entity('Account', () => {
-        primaryKey('id', string());
-        field('balance', integer());
-    });
-
-    entity('AccountTransaction', () => {
-        primaryKey('id', string());
-        field('aid', string());
-        field('txid', string());
-        field('amount', integer());
-        field('processed', boolean());
-        rangeIndex('fromAccount', ['aid', 'createdAt']);
-        uniqueIndex('fromTransaction', ['aid', 'txid']);
-    });
-
-    entity('Transaction', () => {
-        primaryKey('id', string());
-        field('secId', string());
-        field('kind', enumString('deposit', 'withdraw', 'transfer', 'purchase'));
-        field('fromAccount', optional(string()));
-        field('toAccount', optional(string()));
-        field('amount', integer());
-        field('extraAmount', optional(integer()));
-        field('status', enumString('pending', 'processed', 'failing', 'canceled'));
     });
 
     entity('PaymentIntent', () => {
@@ -1727,36 +1724,6 @@ export default declareSchema(() => {
         field('pid', optional(string()));
         field('amount', integer());
         field('operation', PaymentOperation);
-    });
-
-    //
-    // Local Payment Entitites
-    //
-
-    entity('PaidSubscription', () => {
-        primaryKey('id', string());
-        field('uid', integer());
-        field('toUid', integer());
-        field('amount', integer());
-        field('state', enumString('enabled', 'canceled'));
-
-        field('startDate', integer());
-
-        field('interval', enumString('monthly', 'yearly'));
-
-        rangeIndex('user', ['uid', 'createdAt']);
-    });
-
-    entity('PaidSubscriptionPayment', () => {
-        primaryKey('id', string());
-        field('uid', integer());
-        field('sid', string());
-        field('pid', string());
-
-        field('date', integer());
-
-        rangeIndex('user', ['uid', 'createdAt']);
-        rangeIndex('subscription', ['sid', 'createdAt']);
     });
 
     entity('Payment', () => {
@@ -1771,19 +1738,29 @@ export default declareSchema(() => {
         uniqueIndex('retry', ['uid', 'retryKey']).withCondition((s) => !!s.retryKey);
     });
 
-    eventStore('UserTransactionUpdates', () => {
+    //
+    // Payments: Updates
+    //
+
+    eventStore('UserWalletUpdates', () => {
         primaryKey('uid', integer());
     });
 
-    event('PaymentStatusChanged', () => {
+    event('WalletTransactionPending', () => {
+        field('id', string());
+    });
+    event('WalletTransactionSuccess', () => {
+        field('id', string());
+    });
+    event('WalletTransactionCanceled', () => {
         field('id', string());
     });
     event('WalletBalanceChanged', () => {
-        field('id', string());
+        field('amount', integer());
     });
 
     //
-    // Stripe Events
+    // Payments: Stripe Events
     //
 
     entity('StripeEventsCursor', () => {
@@ -1800,7 +1777,7 @@ export default declareSchema(() => {
     });
 
     //
-    // Stripe Event Store
+    // Payments: Stripe Event Store
     //
 
     eventStore('StripeEventStore', () => {
@@ -1811,31 +1788,6 @@ export default declareSchema(() => {
         field('id', string());
         field('eventType', string());
         field('eventDate', integer());
-    });
-
-    //
-    // User's Personal Account
-    //
-
-    entity('UserAccount', () => {
-        primaryKey('uid', integer());
-        field('aid', string());
-    });
-
-    entity('UserAccountSubscription', () => {
-        primaryKey('uid', integer());
-        primaryKey('psid', string());
-        field('retryKey', string());
-
-        field('amount', integer());
-        field('state', enumString('enabled', 'canceled'));
-        field('interval', enumString('monthly', 'yearly'));
-
-        field('kind', union({
-            'donate': struct({})
-        }));
-        rangeIndex('user', ['uid']);
-        uniqueIndex('retry', ['uid', 'retryKey']);
     });
 
     //

@@ -3,32 +3,32 @@ import { uuid } from 'openland-utils/uuid';
 import { RoutingRepository } from './../repo/RoutingRepository';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PaymentsRepository } from '../repo/PaymentsRepository';
-import { PaymentIntentCreateShape } from '../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { BillingRepository } from '../repo/BillingRepository';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
+import { WalletRepository } from 'openland-module-billing/repo/WalletRepository';
 
 const log = createLogger('payments');
 
 export class PaymentMediator {
 
     readonly liveMode: boolean;
-    readonly repo: BillingRepository;
     readonly payments: PaymentsRepository;
     readonly routing: RoutingRepository;
+    readonly wallet: WalletRepository;
+
     readonly stripe: Stripe;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
     readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
 
-    constructor(token: string, repo: BillingRepository, payments: PaymentsRepository, routing: RoutingRepository) {
-        this.repo = repo;
+    constructor(token: string, payments: PaymentsRepository, routing: RoutingRepository, wallet: WalletRepository) {
         this.payments = payments;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
         this.routing = routing;
+        this.wallet = wallet;
     }
 
     exportCustomer = async (parent: Context, uid: number) => {
@@ -292,7 +292,7 @@ export class PaymentMediator {
         }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
 
         // Register Payment Intent
-        await this.payments.registerPaymentIntent(parent, intent.id, amount, null, { type: 'deposit', uid: uid });
+        await this.payments.registerPaymentIntent(parent, intent.id, amount, null, { type: 'deposit', txid: null, uid: uid });
 
         return intent;
     }
@@ -329,7 +329,7 @@ export class PaymentMediator {
     // Create Payment
     //
 
-    createPayment = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
+    createDepositPayment = async (parent: Context, uid: number, amount: number, retryKey: string) => {
         await this.enablePaymentsAndAwait(parent, uid);
 
         await inTx(parent, async (ctx) => {
@@ -338,15 +338,21 @@ export class PaymentMediator {
                 return ex;
             }
 
-            let res = await Store.Payment.create(ctx, uuid(), {
+            let pid = uuid();
+            let txid = await this.wallet.depositAsync(ctx, uid, amount, pid);
+            let res = await Store.Payment.create(ctx, pid, {
                 uid: uid,
                 amount: amount,
                 state: 'pending',
-                operation: operation,
+                operation: {
+                    type: 'deposit',
+                    uid: uid,
+                    txid: txid
+                },
                 retryKey: retryKey
             });
 
-            await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: res.id });
+            await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: pid });
 
             return res;
         });
@@ -440,8 +446,8 @@ export class PaymentMediator {
     updatePaymentIntent = async (parent: Context, id: string) => {
         let dp = await this.stripe.paymentIntents.retrieve(id);
         if (dp.status === 'succeeded') {
-            await this.payments.paymentIntentSuccess(parent, id, async (ctx, amount, op) => {
-                await this.routing.routeSuccessfulPayment(ctx, amount, op);
+            await this.payments.paymentIntentSuccess(parent, id, async (ctx, amount, pid, op) => {
+                await this.routing.routeSuccessfulPayment(ctx, amount, pid, op);
             });
         }
     }

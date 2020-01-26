@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '55ca123c1ec69cb25122447c9d337329';
+export const GQL_SPEC_VERSION = '13df22cc428d17234853c1345e809d9e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -338,15 +338,6 @@ export namespace GQL {
         id: string;
         clientSecret: string;
     }
-    export type PaidSubscriptionInterval = 'MONTHLY' | 'YEARLY';
-    export type PaidSubscriptionStatus = 'ACTIVE' | 'CANCELED';
-    export interface PaidSubscription {
-        id: string;
-        title: string;
-        amount: number;
-        interval: PaidSubscriptionInterval;
-        status: PaidSubscriptionStatus;
-    }
     export type PaymentStatus = 'PENDING' | 'CANCELED' | 'FAILING' | 'ACTION_REQUIRED' | 'SUCCESS';
     export interface Payment {
         id: string;
@@ -356,20 +347,41 @@ export namespace GQL {
     export interface WalletAccount {
         id: string;
         balance: number;
+        state: string;
     }
-    export type WalletTransactionType = 'DEPOSIT' | 'TRANSFER' | 'WITHDRAW' | 'PURCHASE';
     export interface WalletTransaction {
         id: string;
+        status: WalletTransactionStatus;
+        operation: WalletTransactionOperation;
+    }
+    export type WalletTransactionStatus = 'PENDING' | 'CANCELING' | 'CANCELED' | 'SUCCESS';
+    export interface WalletTransactionDeposit {
         amount: number;
-        extraAmount: Nullable<number>;
+        payment: Nullable<Payment>;
+    }
+    export type WalletTransactionOperation = WalletTransactionDeposit;
+    export interface WalletUpdateSingle {
         state: string;
-        readableState: string;
-        type: WalletTransactionType;
+        update: WalletUpdate;
     }
-    export interface WalletTransactionConnection {
-        items: WalletTransaction[];
-        cursor: Nullable<string>;
+    export interface WalletUpdateBatch {
+        state: string;
+        updates: WalletUpdate[];
     }
+    export type WalletUpdateContainer = WalletUpdateSingle | WalletUpdateBatch;
+    export interface WalletUpdateBalance {
+        amount: number;
+    }
+    export interface WalletUpdateTransactionSuccess {
+        transaction: WalletTransaction;
+    }
+    export interface WalletUpdateTransactionCanceled {
+        transaction: WalletTransaction;
+    }
+    export interface WalletUpdateTransactionPending {
+        transaction: WalletTransaction;
+    }
+    export type WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending;
     export interface Invite {
         id: string;
         key: string;
@@ -1114,7 +1126,6 @@ export namespace GQL {
         cardDepositEnqueue: boolean;
         cardDepositIntent: PaymentIntent;
         paymentIntentCommit: boolean;
-        subscriptionCreateDonate: PaidSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -1510,10 +1521,6 @@ export namespace GQL {
     }
     export interface MutationPaymentIntentCommitArgs {
         id: string;
-    }
-    export interface MutationSubscriptionCreateDonateArgs {
-        amount: number;
-        retryKey: string;
     }
     export interface MutationAlphaDeleteInviteArgs {
         id: string;
@@ -2581,10 +2588,8 @@ export namespace GQL {
         alphaGroupConversationMembers: GroupConversationMember[];
         myProfile: Nullable<Profile>;
         myCards: CreditCard[];
-        myAccount: WalletAccount;
-        mySubscriptions: PaidSubscription[];
-        myPendingPayments: Payment[];
-        walletTransactions: WalletTransactionConnection;
+        myWallet: WalletAccount;
+        transactionsPending: WalletTransaction[];
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
@@ -2738,11 +2743,6 @@ export namespace GQL {
     }
     export interface QueryAlphaGroupConversationMembersArgs {
         conversationId: string;
-    }
-    export interface QueryWalletTransactionsArgs {
-        id: string;
-        first: number;
-        after: OptionalNullable<string>;
     }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
@@ -3099,6 +3099,7 @@ export namespace GQL {
     }
     export interface Subscription {
         lifecheck: Nullable<string>;
+        walletUpdates: WalletUpdateContainer;
         commentUpdatesGlobal: Nullable<CommentGlobalUpdateContainer>;
         debugEvents: DebugEvent;
         debugReaderState: Nullable<string>;
@@ -3123,6 +3124,9 @@ export namespace GQL {
         conversationTypings: TypingEvent;
         alphaSubscribeTypings: TypingEvent;
         alphaSubscribeChatTypings: TypingEvent;
+    }
+    export interface SubscriptionWalletUpdatesArgs {
+        fromState: string;
     }
     export interface SubscriptionCommentUpdatesGlobalArgs {
         fromState: OptionalNullable<string>;
@@ -4167,14 +4171,6 @@ export interface GQLResolver {
         {
         }
     >;
-    PaidSubscription?: ComplexTypedResolver<
-        GQL.PaidSubscription,
-        GQLRoots.PaidSubscriptionRoot,
-        {
-        },
-        {
-        }
-    >;
     Payment?: ComplexTypedResolver<
         GQL.Payment,
         GQLRoots.PaymentRoot,
@@ -4196,19 +4192,76 @@ export interface GQLResolver {
         GQL.WalletTransaction,
         GQLRoots.WalletTransactionRoot,
         {
+            operation: GQLRoots.WalletTransactionOperationRoot,
         },
         {
         }
     >;
-    WalletTransactionConnection?: ComplexTypedResolver<
-        GQL.WalletTransactionConnection,
-        GQLRoots.WalletTransactionConnectionRoot,
+    WalletTransactionDeposit?: ComplexTypedResolver<
+        GQL.WalletTransactionDeposit,
+        GQLRoots.WalletTransactionDepositRoot,
         {
-            items: GQLRoots.WalletTransactionRoot[],
+            payment: Nullable<GQLRoots.PaymentRoot>,
         },
         {
         }
     >;
+    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit'>;
+    WalletUpdateSingle?: ComplexTypedResolver<
+        GQL.WalletUpdateSingle,
+        GQLRoots.WalletUpdateSingleRoot,
+        {
+            update: GQLRoots.WalletUpdateRoot,
+        },
+        {
+        }
+    >;
+    WalletUpdateBatch?: ComplexTypedResolver<
+        GQL.WalletUpdateBatch,
+        GQLRoots.WalletUpdateBatchRoot,
+        {
+            updates: GQLRoots.WalletUpdateRoot[],
+        },
+        {
+        }
+    >;
+    WalletUpdateContainer?: UnionTypeResolver<GQLRoots.WalletUpdateContainerRoot, 'WalletUpdateSingle' | 'WalletUpdateBatch'>;
+    WalletUpdateBalance?: ComplexTypedResolver<
+        GQL.WalletUpdateBalance,
+        GQLRoots.WalletUpdateBalanceRoot,
+        {
+        },
+        {
+        }
+    >;
+    WalletUpdateTransactionSuccess?: ComplexTypedResolver<
+        GQL.WalletUpdateTransactionSuccess,
+        GQLRoots.WalletUpdateTransactionSuccessRoot,
+        {
+            transaction: GQLRoots.WalletTransactionRoot,
+        },
+        {
+        }
+    >;
+    WalletUpdateTransactionCanceled?: ComplexTypedResolver<
+        GQL.WalletUpdateTransactionCanceled,
+        GQLRoots.WalletUpdateTransactionCanceledRoot,
+        {
+            transaction: GQLRoots.WalletTransactionRoot,
+        },
+        {
+        }
+    >;
+    WalletUpdateTransactionPending?: ComplexTypedResolver<
+        GQL.WalletUpdateTransactionPending,
+        GQLRoots.WalletUpdateTransactionPendingRoot,
+        {
+            transaction: GQLRoots.WalletTransactionRoot,
+        },
+        {
+        }
+    >;
+    WalletUpdate?: UnionTypeResolver<GQLRoots.WalletUpdateRoot, 'WalletUpdateBalance' | 'WalletUpdateTransactionSuccess' | 'WalletUpdateTransactionCanceled' | 'WalletUpdateTransactionPending'>;
     Invite?: ComplexTypedResolver<
         GQL.Invite,
         GQLRoots.InviteRoot,
@@ -5192,7 +5245,6 @@ export interface GQLResolver {
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
-            subscriptionCreateDonate: GQLRoots.PaidSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
@@ -5324,7 +5376,6 @@ export interface GQLResolver {
             cardDepositEnqueue: GQL.MutationCardDepositEnqueueArgs,
             cardDepositIntent: GQL.MutationCardDepositIntentArgs,
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
-            subscriptionCreateDonate: GQL.MutationSubscriptionCreateDonateArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
@@ -5769,10 +5820,8 @@ export interface GQLResolver {
             alphaGroupConversationMembers: GQLRoots.GroupConversationMemberRoot[],
             myProfile: Nullable<GQLRoots.ProfileRoot>,
             myCards: GQLRoots.CreditCardRoot[],
-            myAccount: GQLRoots.WalletAccountRoot,
-            mySubscriptions: GQLRoots.PaidSubscriptionRoot[],
-            myPendingPayments: GQLRoots.PaymentRoot[],
-            walletTransactions: GQLRoots.WalletTransactionConnectionRoot,
+            myWallet: GQLRoots.WalletAccountRoot,
+            transactionsPending: GQLRoots.WalletTransactionRoot[],
             alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
@@ -5898,7 +5947,6 @@ export interface GQLResolver {
             alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs,
             alphaChatSearch: GQL.QueryAlphaChatSearchArgs,
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
-            walletTransactions: GQL.QueryWalletTransactionsArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
@@ -5998,6 +6046,7 @@ export interface GQLResolver {
         GQL.Subscription,
         GQLRoots.SubscriptionRoot,
         {
+            walletUpdates: GQLRoots.WalletUpdateContainerRoot,
             commentUpdatesGlobal: Nullable<GQLRoots.CommentGlobalUpdateContainerRoot>,
             debugEvents: GQLRoots.DebugEventRoot,
             settingsWatch: GQLRoots.SettingsRoot,
@@ -6021,6 +6070,7 @@ export interface GQLResolver {
             alphaSubscribeChatTypings: GQLRoots.TypingEventRoot,
         },
         {
+            walletUpdates: GQL.SubscriptionWalletUpdatesArgs,
             commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs,
             debugEvents: GQL.SubscriptionDebugEventsArgs,
             debugReaderState: GQL.SubscriptionDebugReaderStateArgs,

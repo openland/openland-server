@@ -1,9 +1,9 @@
+import { WalletRepository } from './repo/WalletRepository';
 import { RoutingRepository } from './repo/RoutingRepository';
 import { PaymentsRepository } from './repo/PaymentsRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { PaymentMediator } from './mediators/PaymentMediator';
 import { Store } from 'openland-module-db/FDB';
-import { BillingRepository } from './repo/BillingRepository';
 import { Context } from '@openland/context';
 import { injectable } from 'inversify';
 import { startCustomerExportWorker } from './workers/CustomerExportWorker';
@@ -15,13 +15,13 @@ import { startPaymentProcessor } from './workers/startPaymentProcessor';
 @injectable()
 export class BillingModule {
 
+    readonly wallet: WalletRepository = new WalletRepository(Store);
     readonly payments: PaymentsRepository = new PaymentsRepository(Store);
-    readonly repo: BillingRepository = new BillingRepository(Store);
-    readonly routing: RoutingRepository = new RoutingRepository(Store, this.repo);
+    readonly routing: RoutingRepository = new RoutingRepository(Store, this.wallet);
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
-        this.repo,
         this.payments,
-        this.routing
+        this.routing,
+        this.wallet
     );
 
     start = async () => {

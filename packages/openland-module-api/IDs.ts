@@ -74,8 +74,9 @@ export const IDs = {
     CreditCard: IdsFactory.createStringId('CreditCard'),
     CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
     
-    WalletAccount: IdsFactory.createStringId('WalletAccount'),
+    WalletAccount: IdsFactory.createId('WalletAccount'),
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
+    WalletUpdatesCursor: IdsFactory.createStringId('WalletUpdatesCursor'),
 
     PaymentIntent: IdsFactory.createStringId('PaymentIntent'),
     PaidSubscription: IdsFactory.createStringId('PaidSubscription'),

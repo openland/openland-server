@@ -74,19 +74,19 @@ describe('PaymentsRepository', () => {
         let repo = new PaymentsRepository(Store);
         let ctx = createNamedContext('test');
 
-        let res = await repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1 });
+        let res = await repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1, txid: null });
         expect(res.id).toBe('paymentintent1');
         expect(res.amount).toBe(100);
         expect(res.operation.type).toBe('deposit');
         expect((res.operation as any).uid).toBe(1);
 
         // Same PaymentIntent ID
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1 })).rejects.toThrowError();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
 
         // Float amount
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', 100.1, null, { type: 'deposit', uid: 1 })).rejects.toThrowError('Number 100.1 is not a safe integer');
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', 100.1, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError('Number 100.1 is not a safe integer');
 
         // Negative amount
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', -100, null, { type: 'deposit', uid: 1 })).rejects.toThrowError('amount must be positive integer');
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', -100, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError('amount must be positive integer');
     });
 });

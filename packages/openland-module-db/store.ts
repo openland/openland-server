@@ -13459,17 +13459,17 @@ export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, Us
     }
 }
 
-export interface AccountShape {
-    id: string;
+export interface WalletShape {
+    uid: number;
     balance: number;
 }
 
-export interface AccountCreateShape {
+export interface WalletCreateShape {
     balance: number;
 }
 
-export class Account extends Entity<AccountShape> {
-    get id(): string { return this._rawValue.id; }
+export class Wallet extends Entity<WalletShape> {
+    get uid(): number { return this._rawValue.uid; }
     get balance(): number { return this._rawValue.balance; }
     set balance(value: number) {
         let normalized = this.descriptor.codec.fields.balance.normalize(value);
@@ -13481,267 +13481,78 @@ export class Account extends Entity<AccountShape> {
     }
 }
 
-export class AccountFactory extends EntityFactory<AccountShape, Account> {
+export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('account');
+        let subspace = await storage.resolveEntityDirectory('wallet');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
+        primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'balance', type: { type: 'integer' }, secure: false });
         let codec = c.struct({
-            id: c.string,
+            uid: c.integer,
             balance: c.integer,
         });
-        let descriptor: EntityDescriptor<AccountShape> = {
-            name: 'Account',
-            storageKey: 'account',
+        let descriptor: EntityDescriptor<WalletShape> = {
+            name: 'Wallet',
+            storageKey: 'wallet',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new AccountFactory(descriptor);
+        return new WalletFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<AccountShape>) {
+    private constructor(descriptor: EntityDescriptor<WalletShape>) {
         super(descriptor);
     }
 
-    create(ctx: Context, id: string, src: AccountCreateShape): Promise<Account> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    create(ctx: Context, uid: number, src: WalletCreateShape): Promise<Wallet> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, src: AccountCreateShape): Account {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    create_UNSAFE(ctx: Context, uid: number, src: WalletCreateShape): Wallet {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<Account | null> {
-        return this._findById(ctx, [id]);
+    findById(ctx: Context, uid: number): Promise<Wallet | null> {
+        return this._findById(ctx, [uid]);
     }
 
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AccountShape>): Account {
-        return new Account([value.id], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletShape>): Wallet {
+        return new Wallet([value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
-export interface AccountTransactionShape {
+export interface WalletTransactionShape {
     id: string;
-    aid: string;
-    txid: string;
-    amount: number;
-    processed: boolean;
+    uid: number;
+    status: 'pending' | 'canceling' | 'canceled' | 'success';
+    operation: { type: 'deposit', amount: number, payment: string | null };
 }
 
-export interface AccountTransactionCreateShape {
-    aid: string;
-    txid: string;
-    amount: number;
-    processed: boolean;
+export interface WalletTransactionCreateShape {
+    uid: number;
+    status: 'pending' | 'canceling' | 'canceled' | 'success';
+    operation: { type: 'deposit', amount: number, payment: string | null | undefined };
 }
 
-export class AccountTransaction extends Entity<AccountTransactionShape> {
+export class WalletTransaction extends Entity<WalletTransactionShape> {
     get id(): string { return this._rawValue.id; }
-    get aid(): string { return this._rawValue.aid; }
-    set aid(value: string) {
-        let normalized = this.descriptor.codec.fields.aid.normalize(value);
-        if (this._rawValue.aid !== normalized) {
-            this._rawValue.aid = normalized;
-            this._updatedValues.aid = normalized;
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
             this.invalidate();
         }
     }
-    get txid(): string { return this._rawValue.txid; }
-    set txid(value: string) {
-        let normalized = this.descriptor.codec.fields.txid.normalize(value);
-        if (this._rawValue.txid !== normalized) {
-            this._rawValue.txid = normalized;
-            this._updatedValues.txid = normalized;
-            this.invalidate();
-        }
-    }
-    get amount(): number { return this._rawValue.amount; }
-    set amount(value: number) {
-        let normalized = this.descriptor.codec.fields.amount.normalize(value);
-        if (this._rawValue.amount !== normalized) {
-            this._rawValue.amount = normalized;
-            this._updatedValues.amount = normalized;
-            this.invalidate();
-        }
-    }
-    get processed(): boolean { return this._rawValue.processed; }
-    set processed(value: boolean) {
-        let normalized = this.descriptor.codec.fields.processed.normalize(value);
-        if (this._rawValue.processed !== normalized) {
-            this._rawValue.processed = normalized;
-            this._updatedValues.processed = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class AccountTransactionFactory extends EntityFactory<AccountTransactionShape, AccountTransaction> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('accountTransaction');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'fromAccount', storageKey: 'fromAccount', type: { type: 'range', fields: [{ name: 'aid', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('accountTransaction', 'fromAccount'), condition: undefined });
-        secondaryIndexes.push({ name: 'fromTransaction', storageKey: 'fromTransaction', type: { type: 'unique', fields: [{ name: 'aid', type: 'string' }, { name: 'txid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('accountTransaction', 'fromTransaction'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'aid', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'txid', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'processed', type: { type: 'boolean' }, secure: false });
-        let codec = c.struct({
-            id: c.string,
-            aid: c.string,
-            txid: c.string,
-            amount: c.integer,
-            processed: c.boolean,
-        });
-        let descriptor: EntityDescriptor<AccountTransactionShape> = {
-            name: 'AccountTransaction',
-            storageKey: 'accountTransaction',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new AccountTransactionFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<AccountTransactionShape>) {
-        super(descriptor);
-    }
-
-    readonly fromAccount = Object.freeze({
-        findAll: async (ctx: Context, aid: string) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [aid])).items;
-        },
-        query: (ctx: Context, aid: string, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [aid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (aid: string, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [aid], opts);
-        },
-        liveStream: (ctx: Context, aid: string, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [aid], opts);
-        },
-    });
-
-    readonly fromTransaction = Object.freeze({
-        find: async (ctx: Context, aid: string, txid: string) => {
-            return this._findFromUniqueIndex(ctx, [aid, txid], this.descriptor.secondaryIndexes[1]);
-        },
-        findAll: async (ctx: Context, aid: string) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [aid])).items;
-        },
-        query: (ctx: Context, aid: string, opts?: RangeQueryOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [aid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
-
-    create(ctx: Context, id: string, src: AccountTransactionCreateShape): Promise<AccountTransaction> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: string, src: AccountTransactionCreateShape): AccountTransaction {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: string): Promise<AccountTransaction | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AccountTransactionShape>): AccountTransaction {
-        return new AccountTransaction([value.id], value, this.descriptor, this._flush, ctx);
-    }
-}
-
-export interface TransactionShape {
-    id: string;
-    secId: string;
-    kind: 'deposit' | 'withdraw' | 'transfer' | 'purchase';
-    fromAccount: string | null;
-    toAccount: string | null;
-    amount: number;
-    extraAmount: number | null;
-    status: 'pending' | 'processed' | 'failing' | 'canceled';
-}
-
-export interface TransactionCreateShape {
-    secId: string;
-    kind: 'deposit' | 'withdraw' | 'transfer' | 'purchase';
-    fromAccount?: string | null | undefined;
-    toAccount?: string | null | undefined;
-    amount: number;
-    extraAmount?: number | null | undefined;
-    status: 'pending' | 'processed' | 'failing' | 'canceled';
-}
-
-export class Transaction extends Entity<TransactionShape> {
-    get id(): string { return this._rawValue.id; }
-    get secId(): string { return this._rawValue.secId; }
-    set secId(value: string) {
-        let normalized = this.descriptor.codec.fields.secId.normalize(value);
-        if (this._rawValue.secId !== normalized) {
-            this._rawValue.secId = normalized;
-            this._updatedValues.secId = normalized;
-            this.invalidate();
-        }
-    }
-    get kind(): 'deposit' | 'withdraw' | 'transfer' | 'purchase' { return this._rawValue.kind; }
-    set kind(value: 'deposit' | 'withdraw' | 'transfer' | 'purchase') {
-        let normalized = this.descriptor.codec.fields.kind.normalize(value);
-        if (this._rawValue.kind !== normalized) {
-            this._rawValue.kind = normalized;
-            this._updatedValues.kind = normalized;
-            this.invalidate();
-        }
-    }
-    get fromAccount(): string | null { return this._rawValue.fromAccount; }
-    set fromAccount(value: string | null) {
-        let normalized = this.descriptor.codec.fields.fromAccount.normalize(value);
-        if (this._rawValue.fromAccount !== normalized) {
-            this._rawValue.fromAccount = normalized;
-            this._updatedValues.fromAccount = normalized;
-            this.invalidate();
-        }
-    }
-    get toAccount(): string | null { return this._rawValue.toAccount; }
-    set toAccount(value: string | null) {
-        let normalized = this.descriptor.codec.fields.toAccount.normalize(value);
-        if (this._rawValue.toAccount !== normalized) {
-            this._rawValue.toAccount = normalized;
-            this._updatedValues.toAccount = normalized;
-            this.invalidate();
-        }
-    }
-    get amount(): number { return this._rawValue.amount; }
-    set amount(value: number) {
-        let normalized = this.descriptor.codec.fields.amount.normalize(value);
-        if (this._rawValue.amount !== normalized) {
-            this._rawValue.amount = normalized;
-            this._updatedValues.amount = normalized;
-            this.invalidate();
-        }
-    }
-    get extraAmount(): number | null { return this._rawValue.extraAmount; }
-    set extraAmount(value: number | null) {
-        let normalized = this.descriptor.codec.fields.extraAmount.normalize(value);
-        if (this._rawValue.extraAmount !== normalized) {
-            this._rawValue.extraAmount = normalized;
-            this._updatedValues.extraAmount = normalized;
-            this.invalidate();
-        }
-    }
-    get status(): 'pending' | 'processed' | 'failing' | 'canceled' { return this._rawValue.status; }
-    set status(value: 'pending' | 'processed' | 'failing' | 'canceled') {
+    get status(): 'pending' | 'canceling' | 'canceled' | 'success' { return this._rawValue.status; }
+    set status(value: 'pending' | 'canceling' | 'canceled' | 'success') {
         let normalized = this.descriptor.codec.fields.status.normalize(value);
         if (this._rawValue.status !== normalized) {
             this._rawValue.status = normalized;
@@ -13749,54 +13560,87 @@ export class Transaction extends Entity<TransactionShape> {
             this.invalidate();
         }
     }
+    get operation(): { type: 'deposit', amount: number, payment: string | null } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', amount: number, payment: string | null }) {
+        let normalized = this.descriptor.codec.fields.operation.normalize(value);
+        if (this._rawValue.operation !== normalized) {
+            this._rawValue.operation = normalized;
+            this._updatedValues.operation = normalized;
+            this.invalidate();
+        }
+    }
 }
 
-export class TransactionFactory extends EntityFactory<TransactionShape, Transaction> {
+export class WalletTransactionFactory extends EntityFactory<WalletTransactionShape, WalletTransaction> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('transaction');
+        let subspace = await storage.resolveEntityDirectory('walletTransaction');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletTransaction', 'pending'), condition: (s) => s.status === 'pending' || s.status === 'canceling' });
+        secondaryIndexes.push({ name: 'history', storageKey: 'history', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletTransaction', 'history'), condition: (s) => !(s.status === 'pending' || s.status === 'canceling') });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'secId', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'enum', values: ['deposit', 'withdraw', 'transfer', 'purchase'] }, secure: false });
-        fields.push({ name: 'fromAccount', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'toAccount', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'extraAmount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'processed', 'failing', 'canceled'] }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'canceling', 'canceled', 'success'] }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { amount: { type: 'integer' }, payment: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
-            secId: c.string,
-            kind: c.enum('deposit', 'withdraw', 'transfer', 'purchase'),
-            fromAccount: c.optional(c.string),
-            toAccount: c.optional(c.string),
-            amount: c.integer,
-            extraAmount: c.optional(c.integer),
-            status: c.enum('pending', 'processed', 'failing', 'canceled'),
+            uid: c.integer,
+            status: c.enum('pending', 'canceling', 'canceled', 'success'),
+            operation: c.union({ deposit: c.struct({ amount: c.integer, payment: c.optional(c.string) }) }),
         });
-        let descriptor: EntityDescriptor<TransactionShape> = {
-            name: 'Transaction',
-            storageKey: 'transaction',
+        let descriptor: EntityDescriptor<WalletTransactionShape> = {
+            name: 'WalletTransaction',
+            storageKey: 'walletTransaction',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new TransactionFactory(descriptor);
+        return new WalletTransactionFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<TransactionShape>) {
+    private constructor(descriptor: EntityDescriptor<WalletTransactionShape>) {
         super(descriptor);
     }
 
-    create(ctx: Context, id: string, src: TransactionCreateShape): Promise<Transaction> {
+    readonly pending = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly history = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: WalletTransactionCreateShape): Promise<WalletTransaction> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, src: TransactionCreateShape): Transaction {
+    create_UNSAFE(ctx: Context, id: string, src: WalletTransactionCreateShape): WalletTransaction {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<Transaction | null> {
+    findById(ctx: Context, id: string): Promise<WalletTransaction | null> {
         return this._findById(ctx, [id]);
     }
 
@@ -13804,8 +13648,8 @@ export class TransactionFactory extends EntityFactory<TransactionShape, Transact
         return this._watch(ctx, [id]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<TransactionShape>): Transaction {
-        return new Transaction([value.id], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletTransactionShape>): WalletTransaction {
+        return new WalletTransaction([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -13814,14 +13658,14 @@ export interface PaymentIntentShape {
     state: 'pending' | 'success' | 'canceled';
     pid: string | null;
     amount: number;
-    operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
+    operation: { type: 'deposit', uid: number, txid: string | null };
 }
 
 export interface PaymentIntentCreateShape {
     state: 'pending' | 'success' | 'canceled';
     pid?: string | null | undefined;
     amount: number;
-    operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
+    operation: { type: 'deposit', uid: number, txid: string | null | undefined };
 }
 
 export class PaymentIntent extends Entity<PaymentIntentShape> {
@@ -13853,8 +13697,8 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number } | { type: 'subscription', pspid: string } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string }) {
+    get operation(): { type: 'deposit', uid: number, txid: string | null } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string | null }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -13875,13 +13719,13 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
         fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } }, subscription: { pspid: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             state: c.enum('pending', 'success', 'canceled'),
             pid: c.optional(c.string),
             amount: c.integer,
-            operation: c.union({ deposit: c.struct({ uid: c.integer }), subscription: c.struct({ pspid: c.string }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }) }),
         });
         let descriptor: EntityDescriptor<PaymentIntentShape> = {
             name: 'PaymentIntent',
@@ -13916,301 +13760,13 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
     }
 }
 
-export interface PaidSubscriptionShape {
-    id: string;
-    uid: number;
-    toUid: number;
-    amount: number;
-    state: 'enabled' | 'canceled';
-    startDate: number;
-    interval: 'monthly' | 'yearly';
-}
-
-export interface PaidSubscriptionCreateShape {
-    uid: number;
-    toUid: number;
-    amount: number;
-    state: 'enabled' | 'canceled';
-    startDate: number;
-    interval: 'monthly' | 'yearly';
-}
-
-export class PaidSubscription extends Entity<PaidSubscriptionShape> {
-    get id(): string { return this._rawValue.id; }
-    get uid(): number { return this._rawValue.uid; }
-    set uid(value: number) {
-        let normalized = this.descriptor.codec.fields.uid.normalize(value);
-        if (this._rawValue.uid !== normalized) {
-            this._rawValue.uid = normalized;
-            this._updatedValues.uid = normalized;
-            this.invalidate();
-        }
-    }
-    get toUid(): number { return this._rawValue.toUid; }
-    set toUid(value: number) {
-        let normalized = this.descriptor.codec.fields.toUid.normalize(value);
-        if (this._rawValue.toUid !== normalized) {
-            this._rawValue.toUid = normalized;
-            this._updatedValues.toUid = normalized;
-            this.invalidate();
-        }
-    }
-    get amount(): number { return this._rawValue.amount; }
-    set amount(value: number) {
-        let normalized = this.descriptor.codec.fields.amount.normalize(value);
-        if (this._rawValue.amount !== normalized) {
-            this._rawValue.amount = normalized;
-            this._updatedValues.amount = normalized;
-            this.invalidate();
-        }
-    }
-    get state(): 'enabled' | 'canceled' { return this._rawValue.state; }
-    set state(value: 'enabled' | 'canceled') {
-        let normalized = this.descriptor.codec.fields.state.normalize(value);
-        if (this._rawValue.state !== normalized) {
-            this._rawValue.state = normalized;
-            this._updatedValues.state = normalized;
-            this.invalidate();
-        }
-    }
-    get startDate(): number { return this._rawValue.startDate; }
-    set startDate(value: number) {
-        let normalized = this.descriptor.codec.fields.startDate.normalize(value);
-        if (this._rawValue.startDate !== normalized) {
-            this._rawValue.startDate = normalized;
-            this._updatedValues.startDate = normalized;
-            this.invalidate();
-        }
-    }
-    get interval(): 'monthly' | 'yearly' { return this._rawValue.interval; }
-    set interval(value: 'monthly' | 'yearly') {
-        let normalized = this.descriptor.codec.fields.interval.normalize(value);
-        if (this._rawValue.interval !== normalized) {
-            this._rawValue.interval = normalized;
-            this._updatedValues.interval = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class PaidSubscriptionFactory extends EntityFactory<PaidSubscriptionShape, PaidSubscription> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('paidSubscription');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidSubscription', 'user'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'toUid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['enabled', 'canceled'] }, secure: false });
-        fields.push({ name: 'startDate', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'interval', type: { type: 'enum', values: ['monthly', 'yearly'] }, secure: false });
-        let codec = c.struct({
-            id: c.string,
-            uid: c.integer,
-            toUid: c.integer,
-            amount: c.integer,
-            state: c.enum('enabled', 'canceled'),
-            startDate: c.integer,
-            interval: c.enum('monthly', 'yearly'),
-        });
-        let descriptor: EntityDescriptor<PaidSubscriptionShape> = {
-            name: 'PaidSubscription',
-            storageKey: 'paidSubscription',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new PaidSubscriptionFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<PaidSubscriptionShape>) {
-        super(descriptor);
-    }
-
-    readonly user = Object.freeze({
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (uid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-    });
-
-    create(ctx: Context, id: string, src: PaidSubscriptionCreateShape): Promise<PaidSubscription> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: string, src: PaidSubscriptionCreateShape): PaidSubscription {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: string): Promise<PaidSubscription | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidSubscriptionShape>): PaidSubscription {
-        return new PaidSubscription([value.id], value, this.descriptor, this._flush, ctx);
-    }
-}
-
-export interface PaidSubscriptionPaymentShape {
-    id: string;
-    uid: number;
-    sid: string;
-    pid: string;
-    date: number;
-}
-
-export interface PaidSubscriptionPaymentCreateShape {
-    uid: number;
-    sid: string;
-    pid: string;
-    date: number;
-}
-
-export class PaidSubscriptionPayment extends Entity<PaidSubscriptionPaymentShape> {
-    get id(): string { return this._rawValue.id; }
-    get uid(): number { return this._rawValue.uid; }
-    set uid(value: number) {
-        let normalized = this.descriptor.codec.fields.uid.normalize(value);
-        if (this._rawValue.uid !== normalized) {
-            this._rawValue.uid = normalized;
-            this._updatedValues.uid = normalized;
-            this.invalidate();
-        }
-    }
-    get sid(): string { return this._rawValue.sid; }
-    set sid(value: string) {
-        let normalized = this.descriptor.codec.fields.sid.normalize(value);
-        if (this._rawValue.sid !== normalized) {
-            this._rawValue.sid = normalized;
-            this._updatedValues.sid = normalized;
-            this.invalidate();
-        }
-    }
-    get pid(): string { return this._rawValue.pid; }
-    set pid(value: string) {
-        let normalized = this.descriptor.codec.fields.pid.normalize(value);
-        if (this._rawValue.pid !== normalized) {
-            this._rawValue.pid = normalized;
-            this._updatedValues.pid = normalized;
-            this.invalidate();
-        }
-    }
-    get date(): number { return this._rawValue.date; }
-    set date(value: number) {
-        let normalized = this.descriptor.codec.fields.date.normalize(value);
-        if (this._rawValue.date !== normalized) {
-            this._rawValue.date = normalized;
-            this._updatedValues.date = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class PaidSubscriptionPaymentFactory extends EntityFactory<PaidSubscriptionPaymentShape, PaidSubscriptionPayment> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('paidSubscriptionPayment');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidSubscriptionPayment', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'subscription', storageKey: 'subscription', type: { type: 'range', fields: [{ name: 'sid', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('paidSubscriptionPayment', 'subscription'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'sid', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'pid', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'date', type: { type: 'integer' }, secure: false });
-        let codec = c.struct({
-            id: c.string,
-            uid: c.integer,
-            sid: c.string,
-            pid: c.string,
-            date: c.integer,
-        });
-        let descriptor: EntityDescriptor<PaidSubscriptionPaymentShape> = {
-            name: 'PaidSubscriptionPayment',
-            storageKey: 'paidSubscriptionPayment',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new PaidSubscriptionPaymentFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<PaidSubscriptionPaymentShape>) {
-        super(descriptor);
-    }
-
-    readonly user = Object.freeze({
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (uid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-    });
-
-    readonly subscription = Object.freeze({
-        findAll: async (ctx: Context, sid: string) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [sid])).items;
-        },
-        query: (ctx: Context, sid: string, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [sid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (sid: string, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [sid], opts);
-        },
-        liveStream: (ctx: Context, sid: string, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [sid], opts);
-        },
-    });
-
-    create(ctx: Context, id: string, src: PaidSubscriptionPaymentCreateShape): Promise<PaidSubscriptionPayment> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: string, src: PaidSubscriptionPaymentCreateShape): PaidSubscriptionPayment {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: string): Promise<PaidSubscriptionPayment | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaidSubscriptionPaymentShape>): PaidSubscriptionPayment {
-        return new PaidSubscriptionPayment([value.id], value, this.descriptor, this._flush, ctx);
-    }
-}
-
 export interface PaymentShape {
     id: string;
     uid: number;
     piid: string | null;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
+    operation: { type: 'deposit', uid: number, txid: string | null };
     retryKey: string | null;
 }
 
@@ -14219,7 +13775,7 @@ export interface PaymentCreateShape {
     piid?: string | null | undefined;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string };
+    operation: { type: 'deposit', uid: number, txid: string | null | undefined };
     retryKey?: string | null | undefined;
 }
 
@@ -14261,8 +13817,8 @@ export class Payment extends Entity<PaymentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number } | { type: 'subscription', pspid: string } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number } | { type: 'subscription', pspid: string }) {
+    get operation(): { type: 'deposit', uid: number, txid: string | null } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string | null }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -14295,7 +13851,7 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } }, subscription: { pspid: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
         fields.push({ name: 'retryKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.string,
@@ -14303,7 +13859,7 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
             piid: c.optional(c.string),
             amount: c.integer,
             state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
-            operation: c.union({ deposit: c.struct({ uid: c.integer }), subscription: c.struct({ pspid: c.string }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }) }),
             retryKey: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<PaymentShape> = {
@@ -14538,227 +14094,6 @@ export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEv
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventShape>): StripeEvent {
         return new StripeEvent([value.id], value, this.descriptor, this._flush, ctx);
-    }
-}
-
-export interface UserAccountShape {
-    uid: number;
-    aid: string;
-}
-
-export interface UserAccountCreateShape {
-    aid: string;
-}
-
-export class UserAccount extends Entity<UserAccountShape> {
-    get uid(): number { return this._rawValue.uid; }
-    get aid(): string { return this._rawValue.aid; }
-    set aid(value: string) {
-        let normalized = this.descriptor.codec.fields.aid.normalize(value);
-        if (this._rawValue.aid !== normalized) {
-            this._rawValue.aid = normalized;
-            this._updatedValues.aid = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class UserAccountFactory extends EntityFactory<UserAccountShape, UserAccount> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userAccount');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'uid', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'aid', type: { type: 'string' }, secure: false });
-        let codec = c.struct({
-            uid: c.integer,
-            aid: c.string,
-        });
-        let descriptor: EntityDescriptor<UserAccountShape> = {
-            name: 'UserAccount',
-            storageKey: 'userAccount',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new UserAccountFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<UserAccountShape>) {
-        super(descriptor);
-    }
-
-    create(ctx: Context, uid: number, src: UserAccountCreateShape): Promise<UserAccount> {
-        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, uid: number, src: UserAccountCreateShape): UserAccount {
-        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
-    }
-
-    findById(ctx: Context, uid: number): Promise<UserAccount | null> {
-        return this._findById(ctx, [uid]);
-    }
-
-    watch(ctx: Context, uid: number): Watch {
-        return this._watch(ctx, [uid]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserAccountShape>): UserAccount {
-        return new UserAccount([value.uid], value, this.descriptor, this._flush, ctx);
-    }
-}
-
-export interface UserAccountSubscriptionShape {
-    uid: number;
-    psid: string;
-    retryKey: string;
-    amount: number;
-    state: 'enabled' | 'canceled';
-    interval: 'monthly' | 'yearly';
-    kind: { type: 'donate',  };
-}
-
-export interface UserAccountSubscriptionCreateShape {
-    retryKey: string;
-    amount: number;
-    state: 'enabled' | 'canceled';
-    interval: 'monthly' | 'yearly';
-    kind: { type: 'donate',  };
-}
-
-export class UserAccountSubscription extends Entity<UserAccountSubscriptionShape> {
-    get uid(): number { return this._rawValue.uid; }
-    get psid(): string { return this._rawValue.psid; }
-    get retryKey(): string { return this._rawValue.retryKey; }
-    set retryKey(value: string) {
-        let normalized = this.descriptor.codec.fields.retryKey.normalize(value);
-        if (this._rawValue.retryKey !== normalized) {
-            this._rawValue.retryKey = normalized;
-            this._updatedValues.retryKey = normalized;
-            this.invalidate();
-        }
-    }
-    get amount(): number { return this._rawValue.amount; }
-    set amount(value: number) {
-        let normalized = this.descriptor.codec.fields.amount.normalize(value);
-        if (this._rawValue.amount !== normalized) {
-            this._rawValue.amount = normalized;
-            this._updatedValues.amount = normalized;
-            this.invalidate();
-        }
-    }
-    get state(): 'enabled' | 'canceled' { return this._rawValue.state; }
-    set state(value: 'enabled' | 'canceled') {
-        let normalized = this.descriptor.codec.fields.state.normalize(value);
-        if (this._rawValue.state !== normalized) {
-            this._rawValue.state = normalized;
-            this._updatedValues.state = normalized;
-            this.invalidate();
-        }
-    }
-    get interval(): 'monthly' | 'yearly' { return this._rawValue.interval; }
-    set interval(value: 'monthly' | 'yearly') {
-        let normalized = this.descriptor.codec.fields.interval.normalize(value);
-        if (this._rawValue.interval !== normalized) {
-            this._rawValue.interval = normalized;
-            this._updatedValues.interval = normalized;
-            this.invalidate();
-        }
-    }
-    get kind(): { type: 'donate',  } { return this._rawValue.kind; }
-    set kind(value: { type: 'donate',  }) {
-        let normalized = this.descriptor.codec.fields.kind.normalize(value);
-        if (this._rawValue.kind !== normalized) {
-            this._rawValue.kind = normalized;
-            this._updatedValues.kind = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class UserAccountSubscriptionFactory extends EntityFactory<UserAccountSubscriptionShape, UserAccountSubscription> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userAccountSubscription');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userAccountSubscription', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'retry', storageKey: 'retry', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'retryKey', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userAccountSubscription', 'retry'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'uid', type: 'integer' });
-        primaryKeys.push({ name: 'psid', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'retryKey', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['enabled', 'canceled'] }, secure: false });
-        fields.push({ name: 'interval', type: { type: 'enum', values: ['monthly', 'yearly'] }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'union', types: { donate: {  } } }, secure: false });
-        let codec = c.struct({
-            uid: c.integer,
-            psid: c.string,
-            retryKey: c.string,
-            amount: c.integer,
-            state: c.enum('enabled', 'canceled'),
-            interval: c.enum('monthly', 'yearly'),
-            kind: c.union({ donate: c.struct({  }) }),
-        });
-        let descriptor: EntityDescriptor<UserAccountSubscriptionShape> = {
-            name: 'UserAccountSubscription',
-            storageKey: 'userAccountSubscription',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new UserAccountSubscriptionFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<UserAccountSubscriptionShape>) {
-        super(descriptor);
-    }
-
-    readonly user = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
-        },
-    });
-
-    readonly retry = Object.freeze({
-        find: async (ctx: Context, uid: number, retryKey: string) => {
-            return this._findFromUniqueIndex(ctx, [uid, retryKey], this.descriptor.secondaryIndexes[1]);
-        },
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
-
-    create(ctx: Context, uid: number, psid: string, src: UserAccountSubscriptionCreateShape): Promise<UserAccountSubscription> {
-        return this._create(ctx, [uid, psid], this.descriptor.codec.normalize({ uid, psid, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, uid: number, psid: string, src: UserAccountSubscriptionCreateShape): UserAccountSubscription {
-        return this._create_UNSAFE(ctx, [uid, psid], this.descriptor.codec.normalize({ uid, psid, ...src }));
-    }
-
-    findById(ctx: Context, uid: number, psid: string): Promise<UserAccountSubscription | null> {
-        return this._findById(ctx, [uid, psid]);
-    }
-
-    watch(ctx: Context, uid: number, psid: string): Watch {
-        return this._watch(ctx, [uid, psid]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserAccountSubscriptionShape>): UserAccountSubscription {
-        return new UserAccountSubscription([value.uid, value.psid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -17067,41 +16402,99 @@ export class UserLocationStopSharingEvent extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
-const paymentStatusChangedCodec = c.struct({
+const walletTransactionPendingCodec = c.struct({
     id: c.string,
 });
 
-interface PaymentStatusChangedShape {
+interface WalletTransactionPendingShape {
     id: string;
 }
 
-export class PaymentStatusChanged extends BaseEvent {
+export class WalletTransactionPending extends BaseEvent {
 
-    static create(data: PaymentStatusChangedShape) {
-        return new PaymentStatusChanged(paymentStatusChangedCodec.normalize(data));
+    static create(data: WalletTransactionPendingShape) {
+        return new WalletTransactionPending(walletTransactionPendingCodec.normalize(data));
     }
 
     static decode(data: any) {
-        return new PaymentStatusChanged(paymentStatusChangedCodec.decode(data));
+        return new WalletTransactionPending(walletTransactionPendingCodec.decode(data));
     }
 
-    static encode(event: PaymentStatusChanged) {
-        return paymentStatusChangedCodec.encode(event.raw);
+    static encode(event: WalletTransactionPending) {
+        return walletTransactionPendingCodec.encode(event.raw);
     }
 
     private constructor(data: any) {
-        super('paymentStatusChanged', data);
+        super('walletTransactionPending', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
+const walletTransactionSuccessCodec = c.struct({
+    id: c.string,
+});
+
+interface WalletTransactionSuccessShape {
+    id: string;
+}
+
+export class WalletTransactionSuccess extends BaseEvent {
+
+    static create(data: WalletTransactionSuccessShape) {
+        return new WalletTransactionSuccess(walletTransactionSuccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new WalletTransactionSuccess(walletTransactionSuccessCodec.decode(data));
+    }
+
+    static encode(event: WalletTransactionSuccess) {
+        return walletTransactionSuccessCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('walletTransactionSuccess', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
+const walletTransactionCanceledCodec = c.struct({
+    id: c.string,
+});
+
+interface WalletTransactionCanceledShape {
+    id: string;
+}
+
+export class WalletTransactionCanceled extends BaseEvent {
+
+    static create(data: WalletTransactionCanceledShape) {
+        return new WalletTransactionCanceled(walletTransactionCanceledCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new WalletTransactionCanceled(walletTransactionCanceledCodec.decode(data));
+    }
+
+    static encode(event: WalletTransactionCanceled) {
+        return walletTransactionCanceledCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('walletTransactionCanceled', data);
     }
 
     get id(): string { return this.raw.id; }
 }
 
 const walletBalanceChangedCodec = c.struct({
-    id: c.string,
+    amount: c.integer,
 });
 
 interface WalletBalanceChangedShape {
-    id: string;
+    amount: number;
 }
 
 export class WalletBalanceChanged extends BaseEvent {
@@ -17122,7 +16515,7 @@ export class WalletBalanceChanged extends BaseEvent {
         super('walletBalanceChanged', data);
     }
 
-    get id(): string { return this.raw.id; }
+    get amount(): number { return this.raw.amount; }
 }
 
 const stripeEventCreatedCodec = c.struct({
@@ -17370,18 +16763,18 @@ export class UserLocationEventStore extends EventStore {
     }
 }
 
-export class UserTransactionUpdates extends EventStore {
+export class UserWalletUpdates extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('userTransactionUpdates');
+        let subspace = await storage.resolveEventStoreDirectory('userWalletUpdates');
         const descriptor = {
-            name: 'UserTransactionUpdates',
-            storageKey: 'userTransactionUpdates',
+            name: 'UserWalletUpdates',
+            storageKey: 'userWalletUpdates',
             subspace,
             storage,
             factory
         };
-        return new UserTransactionUpdates(descriptor);
+        return new UserWalletUpdates(descriptor);
     }
 
     private constructor(descriptor: EventStoreDescriptor) {
@@ -17570,17 +16963,12 @@ export interface Store extends BaseStore {
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly UserStripeCustomer: UserStripeCustomerFactory;
     readonly UserStripeCard: UserStripeCardFactory;
-    readonly Account: AccountFactory;
-    readonly AccountTransaction: AccountTransactionFactory;
-    readonly Transaction: TransactionFactory;
+    readonly Wallet: WalletFactory;
+    readonly WalletTransaction: WalletTransactionFactory;
     readonly PaymentIntent: PaymentIntentFactory;
-    readonly PaidSubscription: PaidSubscriptionFactory;
-    readonly PaidSubscriptionPayment: PaidSubscriptionPaymentFactory;
     readonly Payment: PaymentFactory;
     readonly StripeEventsCursor: StripeEventsCursorFactory;
     readonly StripeEvent: StripeEventFactory;
-    readonly UserAccount: UserAccountFactory;
-    readonly UserAccountSubscription: UserAccountSubscriptionFactory;
     readonly Sequence: SequenceFactory;
     readonly Environment: EnvironmentFactory;
     readonly EnvironmentVariable: EnvironmentVariableFactory;
@@ -17602,7 +16990,7 @@ export interface Store extends BaseStore {
     readonly FeedEventStore: FeedEventStore;
     readonly FeedGlobalEventStore: FeedGlobalEventStore;
     readonly UserLocationEventStore: UserLocationEventStore;
-    readonly UserTransactionUpdates: UserTransactionUpdates;
+    readonly UserWalletUpdates: UserWalletUpdates;
     readonly StripeEventStore: StripeEventStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
@@ -17633,7 +17021,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
     eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
-    eventFactory.registerEventType('paymentStatusChanged', PaymentStatusChanged.encode as any, PaymentStatusChanged.decode);
+    eventFactory.registerEventType('walletTransactionPending', WalletTransactionPending.encode as any, WalletTransactionPending.decode);
+    eventFactory.registerEventType('walletTransactionSuccess', WalletTransactionSuccess.encode as any, WalletTransactionSuccess.decode);
+    eventFactory.registerEventType('walletTransactionCanceled', WalletTransactionCanceled.encode as any, WalletTransactionCanceled.decode);
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
@@ -17765,17 +17155,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
     let UserStripeCustomerPromise = UserStripeCustomerFactory.open(storage);
     let UserStripeCardPromise = UserStripeCardFactory.open(storage);
-    let AccountPromise = AccountFactory.open(storage);
-    let AccountTransactionPromise = AccountTransactionFactory.open(storage);
-    let TransactionPromise = TransactionFactory.open(storage);
+    let WalletPromise = WalletFactory.open(storage);
+    let WalletTransactionPromise = WalletTransactionFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
-    let PaidSubscriptionPromise = PaidSubscriptionFactory.open(storage);
-    let PaidSubscriptionPaymentPromise = PaidSubscriptionPaymentFactory.open(storage);
     let PaymentPromise = PaymentFactory.open(storage);
     let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
     let StripeEventPromise = StripeEventFactory.open(storage);
-    let UserAccountPromise = UserAccountFactory.open(storage);
-    let UserAccountSubscriptionPromise = UserAccountSubscriptionFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
     let EnvironmentPromise = EnvironmentFactory.open(storage);
     let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
@@ -17801,7 +17186,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
-    let UserTransactionUpdatesPromise = UserTransactionUpdates.open(storage, eventFactory);
+    let UserWalletUpdatesPromise = UserWalletUpdates.open(storage, eventFactory);
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     return {
         storage,
@@ -17935,17 +17320,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserStorageRecord: await UserStorageRecordPromise,
         UserStripeCustomer: await UserStripeCustomerPromise,
         UserStripeCard: await UserStripeCardPromise,
-        Account: await AccountPromise,
-        AccountTransaction: await AccountTransactionPromise,
-        Transaction: await TransactionPromise,
+        Wallet: await WalletPromise,
+        WalletTransaction: await WalletTransactionPromise,
         PaymentIntent: await PaymentIntentPromise,
-        PaidSubscription: await PaidSubscriptionPromise,
-        PaidSubscriptionPayment: await PaidSubscriptionPaymentPromise,
         Payment: await PaymentPromise,
         StripeEventsCursor: await StripeEventsCursorPromise,
         StripeEvent: await StripeEventPromise,
-        UserAccount: await UserAccountPromise,
-        UserAccountSubscription: await UserAccountSubscriptionPromise,
         Sequence: await SequencePromise,
         Environment: await EnvironmentPromise,
         EnvironmentVariable: await EnvironmentVariablePromise,
@@ -17971,7 +17351,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedEventStore: await FeedEventStorePromise,
         FeedGlobalEventStore: await FeedGlobalEventStorePromise,
         UserLocationEventStore: await UserLocationEventStorePromise,
-        UserTransactionUpdates: await UserTransactionUpdatesPromise,
+        UserWalletUpdates: await UserWalletUpdatesPromise,
         StripeEventStore: await StripeEventStorePromise,
     };
 }

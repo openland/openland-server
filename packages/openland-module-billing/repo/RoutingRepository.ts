@@ -1,29 +1,32 @@
-import { BillingRepository } from './BillingRepository';
+import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
 import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
 
 export class RoutingRepository {
 
-    readonly repo: BillingRepository;
     readonly store: Store;
+    readonly wallet: WalletRepository;
 
-    constructor(store: Store, repo: BillingRepository) {
+    constructor(store: Store, wallet: WalletRepository) {
         this.store = store;
-        this.repo = repo;
+        this.wallet = wallet;
     }
 
-    routeSuccessfulPayment = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+    routeSuccessfulPayment = async (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
 
-            // Create and confirm transaction
-            let tx = await this.repo.createTransaction(
-                ctx, null, operation.uid, 'deposit', amount
-            );
-            await this.repo.confirmTransaction(ctx, tx.id);
+            if (pid) {
+                if (!operation.txid) {
+                    throw Error('Transaction ID is missing');
+                }
 
-        } else if (operation.type === 'subscription') {
-            // TODO: Implement
-            // throw Error('Invalid intent');
+                // Confirm existing transaction
+                await this.wallet.depositAsynCommit(ctx, operation.uid, operation.txid);
+            } else {
+
+                // Deposit instantly
+                await this.wallet.depositInstant(ctx, operation.uid, amount);
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ type CardSetupIntent {
 }
 
 #
-# Payment Intent
+# Payment Intent (Stripe)
 #
 
 type PaymentIntent {
@@ -28,27 +28,7 @@ type PaymentIntent {
 }
 
 #
-# Subscriptions
-#
-
-enum PaidSubscriptionInterval {
-    MONTHLY, YEARLY
-}
-
-enum PaidSubscriptionStatus {
-    ACTIVE, CANCELED
-}
-
-type PaidSubscription {
-    id: ID!
-    title: String!
-    amount: Int!
-    interval: PaidSubscriptionInterval!
-    status: PaidSubscriptionStatus!
-}
-
-#
-# Pending Payment
+# Payment Object
 #
 
 enum PaymentStatus {
@@ -68,33 +48,73 @@ type Payment {
 type WalletAccount {
     id: ID!
     balance: Int!
+    state: String!
 }
 
-enum WalletTransactionType {
-    DEPOSIT, TRANSFER, WITHDRAW, PURCHASE
-}
+#
+# Wallet Transactions
+#
 
 type WalletTransaction {
     id: ID!
-    amount: Int!
-    extraAmount: Int
-    state: String!
-    readableState: String!
-    type: WalletTransactionType!
+    status: WalletTransactionStatus!
+    operation: WalletTransactionOperation!
 }
 
-type WalletTransactionConnection {
-    items: [WalletTransaction!]!
-    cursor: String
+enum WalletTransactionStatus {
+    PENDING, CANCELING, CANCELED, SUCCESS
 }
+
+type WalletTransactionDeposit {
+    amount: Int!
+    payment: Payment
+}
+
+union WalletTransactionOperation = WalletTransactionDeposit
+
+#
+# Wallet Updates
+#
+
+type WalletUpdateSingle {
+    state: String!
+    update: WalletUpdate!
+}
+
+type WalletUpdateBatch {
+    state: String!
+    updates: [WalletUpdate!]!
+}
+
+union WalletUpdateContainer = WalletUpdateSingle | WalletUpdateBatch
+
+type WalletUpdateBalance {
+    amount: Int!
+}
+
+type WalletUpdateTransactionSuccess {
+    transaction: WalletTransaction!
+}
+
+type WalletUpdateTransactionCanceled {
+    transaction: WalletTransaction!
+}
+
+type WalletUpdateTransactionPending {
+    transaction: WalletTransaction!
+}
+
+union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending
+
+#
+# Operations
+#
 
 extend type Query {
     myCards: [CreditCard!]!
-    myAccount: WalletAccount!
-    mySubscriptions: [PaidSubscription!]!
-    myPendingPayments: [Payment!]!
+    myWallet: WalletAccount!
     
-    walletTransactions(id: ID!, first: Int!, after: String): WalletTransactionConnection!
+    transactionsPending: [WalletTransaction!]!
 }
 
 extend type Mutation {
@@ -119,9 +139,8 @@ extend type Mutation {
     #
 
     paymentIntentCommit(id: ID!): Boolean!
+}
 
-    #
-    # Test Subscription
-    #
-    subscriptionCreateDonate(amount: Int!, retryKey: String!): PaidSubscription!
+extend type Subscription {
+    walletUpdates(fromState: String!): WalletUpdateContainer!
 }

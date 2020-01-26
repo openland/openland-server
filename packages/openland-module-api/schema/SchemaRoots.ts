@@ -56,8 +56,7 @@ import {
     ChatPowerup,
     Powerup,
     UserStripeCard,
-    Account,
-    AccountTransaction, PermissionRequest, UserAccountSubscription, Payment
+    PermissionRequest, Payment, Wallet, WalletTransaction, WalletTransactionCreateShape, WalletBalanceChanged, WalletTransactionSuccess, WalletTransactionCanceled, WalletTransactionPending
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -473,14 +472,23 @@ export namespace GQLRoots {
     //
     export type CreditCardRoot = UserStripeCard;
     export type CardSetupIntentRoot = Stripe.SetupIntent;
-
-    export type WalletAccountRoot = Account;
-    export type WalletTransactionRoot = AccountTransaction;
-    export type WalletTransactionConnectionRoot = { items: AccountTransaction[], cursor?: string };
-
     export type PaymentIntentRoot = Stripe.PaymentIntent;
 
-    export type PaidSubscriptionRoot = UserAccountSubscription;
+    export type WalletAccountRoot = Wallet;
+    export type WalletTransactionRoot = WalletTransaction;
+    export type WalletTransactionOperationRoot = WalletTransactionCreateShape['operation'];
+    export type WalletTransactionDepositRoot = WalletTransactionCreateShape['operation'];
+    
+    export type WalletUpdateContainerRoot = LiveStreamItem<BaseEvent>;
+    export type WalletUpdateBatchRoot = LiveStreamItem<BaseEvent>;
+    export type WalletUpdateSingleRoot = LiveStreamItem<BaseEvent>;
+    export type WalletUpdateBalanceRoot = WalletBalanceChanged;
+    export type WalletUpdateTransactionSuccessRoot = WalletTransactionSuccess;
+    export type WalletUpdateTransactionCanceledRoot = WalletTransactionCanceled;
+    export type WalletUpdateTransactionPendingRoot = WalletTransactionPending;
+
+    export type WalletUpdateRoot = BaseEvent;
+
     export type PaymentRoot = Payment;
 
     //
@@ -489,3 +497,4 @@ export namespace GQLRoots {
     export type PermissionRequestRoot = PermissionRequest;
     export type PermissionGroupRoot = PermissionGroup;
 }
+ 

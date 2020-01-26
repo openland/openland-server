@@ -171,7 +171,7 @@ export class PaymentsRepository {
         });
     }
 
-    paymentIntentSuccess = async (parent: Context, id: string, handler: (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => Promise<void>) => {
+    paymentIntentSuccess = async (parent: Context, id: string, handler: (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => Promise<void>) => {
         return await inTx(parent, async (ctx) => {
             let intent = await this.store.PaymentIntent.findById(ctx, id);
             if (!intent) {
@@ -194,7 +194,7 @@ export class PaymentsRepository {
             //
             // NOT forwarding PaymentIntent entity to avoid object mutation
             //
-            await handler(ctx, intent.amount, intent.operation);
+            await handler(ctx, intent.amount, intent.pid, intent.operation);
 
             return true;
         });
