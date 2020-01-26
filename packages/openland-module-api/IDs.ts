@@ -77,6 +77,7 @@ export const IDs = {
     WalletAccount: IdsFactory.createId('WalletAccount'),
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
     WalletUpdatesCursor: IdsFactory.createStringId('WalletUpdatesCursor'),
+    WalletTransactionsCursor: IdsFactory.createStringId('WalletTransactionsCursor'),
 
     PaymentIntent: IdsFactory.createStringId('PaymentIntent'),
     PaidSubscription: IdsFactory.createStringId('PaidSubscription'),

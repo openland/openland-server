@@ -16489,6 +16489,35 @@ export class WalletTransactionCanceled extends BaseEvent {
     get id(): string { return this.raw.id; }
 }
 
+const paymentStatusChangedCodec = c.struct({
+    id: c.string,
+});
+
+interface PaymentStatusChangedShape {
+    id: string;
+}
+
+export class PaymentStatusChanged extends BaseEvent {
+
+    static create(data: PaymentStatusChangedShape) {
+        return new PaymentStatusChanged(paymentStatusChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new PaymentStatusChanged(paymentStatusChangedCodec.decode(data));
+    }
+
+    static encode(event: PaymentStatusChanged) {
+        return paymentStatusChangedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('paymentStatusChanged', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
 const walletBalanceChangedCodec = c.struct({
     amount: c.integer,
 });
@@ -17024,6 +17053,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletTransactionPending', WalletTransactionPending.encode as any, WalletTransactionPending.decode);
     eventFactory.registerEventType('walletTransactionSuccess', WalletTransactionSuccess.encode as any, WalletTransactionSuccess.decode);
     eventFactory.registerEventType('walletTransactionCanceled', WalletTransactionCanceled.encode as any, WalletTransactionCanceled.decode);
+    eventFactory.registerEventType('paymentStatusChanged', PaymentStatusChanged.encode as any, PaymentStatusChanged.decode);
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);

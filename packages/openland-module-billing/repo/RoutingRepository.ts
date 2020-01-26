@@ -29,4 +29,26 @@ export class RoutingRepository {
             }
         }
     }
+
+    routeFailingPayment = async (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
+        if (pid) {
+            if (!operation.txid) {
+                throw Error('Transaction ID is missing');
+            }
+
+            // Change payment status
+            await this.wallet.depositAsynFailing(ctx, operation.uid, operation.txid);
+        }
+    }
+
+    routeActionNeededPayment = async (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
+        if (pid) {
+            if (!operation.txid) {
+                throw Error('Transaction ID is missing');
+            }
+
+            // Change payment status
+            await this.wallet.depositActionNeeded(ctx, operation.uid, operation.txid);
+        }
+    }
 }

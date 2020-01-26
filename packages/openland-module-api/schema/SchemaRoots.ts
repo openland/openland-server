@@ -56,7 +56,7 @@ import {
     ChatPowerup,
     Powerup,
     UserStripeCard,
-    PermissionRequest, Payment, Wallet, WalletTransaction, WalletTransactionCreateShape, WalletBalanceChanged, WalletTransactionSuccess, WalletTransactionCanceled, WalletTransactionPending
+    PermissionRequest, Payment, Wallet, WalletTransaction, WalletTransactionCreateShape, WalletBalanceChanged, WalletTransactionSuccess, WalletTransactionCanceled, WalletTransactionPending, PaymentStatusChanged
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -486,6 +486,8 @@ export namespace GQLRoots {
     export type WalletUpdateTransactionSuccessRoot = WalletTransactionSuccess;
     export type WalletUpdateTransactionCanceledRoot = WalletTransactionCanceled;
     export type WalletUpdateTransactionPendingRoot = WalletTransactionPending;
+    export type WalletUpdatePaymentStatusRoot = PaymentStatusChanged;
+    export type WalletTransactionConnectionRoot = any;
 
     export type WalletUpdateRoot = BaseEvent;
 

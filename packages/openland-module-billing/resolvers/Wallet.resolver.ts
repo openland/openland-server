@@ -5,7 +5,7 @@ import { withAccount } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled } from 'openland-module-db/store';
+import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged } from 'openland-module-db/store';
 
 export default {
     CreditCard: {
@@ -103,8 +103,21 @@ export default {
         myWallet: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.wallet.getWallet(ctx, uid);
         }),
+
+        //
+        // Transactions
+        //
+
         transactionsPending: withAccount(async (ctx, args, uid) => {
             return await Store.WalletTransaction.pending.findAll(ctx, uid);
+        }),
+        transactionsHistory: withAccount(async (ctx, args, uid) => {
+            let after = args.after ? IDs.WalletTransactionsCursor.parse(args.after) : undefined;
+            let res = await Store.WalletTransaction.history.query(ctx, uid, { reverse: true, afterCursor: after, limit: args.first });
+            return {
+                items: res.items,
+                cursor: res.cursor ? IDs.WalletTransactionsCursor.serialize(res.cursor) : null
+            };
         })
     },
     Mutation: {
@@ -117,7 +130,6 @@ export default {
             return await Modules.Billing.createSetupIntent(ctx, uid, args.retryKey);
         }),
         cardCommitSetupIntent: withAccount(async (ctx, args, uid) => {
-            // TODO: Validate Setup Intent
             return await Modules.Billing.registerCard(ctx, uid, args.pmid);
         }),
         cardMakeDefault: withAccount(async (ctx, args, uid) => {
@@ -185,6 +197,8 @@ export default {
                 return 'WalletUpdateTransactionSuccess';
             } else if (obj instanceof WalletTransactionCanceled) {
                 return 'WalletUpdateTransactionCanceled';
+            } else if (obj instanceof PaymentStatusChanged) {
+                return 'WalletUpdatePaymentStatus';
             }
             throw Error('Unknown event type: ' + obj.type);
         }
@@ -200,6 +214,9 @@ export default {
     },
     WalletUpdateTransactionCanceled: {
         transaction: (src, args, ctx) => Store.WalletTransaction.findById(ctx, src.id)
+    },
+    WalletUpdatePaymentStatus: {
+        payment: (src, args, ctx) => Store.Payment.findById(ctx, src.id)
     },
 
     Subscription: {

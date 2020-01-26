@@ -1755,6 +1755,9 @@ export default declareSchema(() => {
     event('WalletTransactionCanceled', () => {
         field('id', string());
     });
+    event('PaymentStatusChanged', () => {
+        field('id', string());
+    });
     event('WalletBalanceChanged', () => {
         field('amount', integer());
     });

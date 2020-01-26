@@ -219,8 +219,6 @@ export class PaymentsRepository {
                 retryKey: retryKey
             });
 
-            // await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: res.id });
-
             return { value: res, created: true };
         });
     }

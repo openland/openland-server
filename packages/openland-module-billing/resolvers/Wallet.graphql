@@ -72,6 +72,11 @@ type WalletTransactionDeposit {
 
 union WalletTransactionOperation = WalletTransactionDeposit
 
+type WalletTransactionConnection {
+    items: [WalletTransaction!]!
+    cursor: String
+}
+
 #
 # Wallet Updates
 #
@@ -104,7 +109,11 @@ type WalletUpdateTransactionPending {
     transaction: WalletTransaction!
 }
 
-union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending
+type WalletUpdatePaymentStatus {
+    payment: Payment!
+}
+
+union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus
 
 #
 # Operations
@@ -115,6 +124,7 @@ extend type Query {
     myWallet: WalletAccount!
     
     transactionsPending: [WalletTransaction!]!
+    transactionsHistory(first: Int!, after: String): WalletTransactionConnection!
 }
 
 extend type Mutation {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '13df22cc428d17234853c1345e809d9e';
+export const GQL_SPEC_VERSION = 'e57552e03c9e8d20e188404843b3c266';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -360,6 +360,10 @@ export namespace GQL {
         payment: Nullable<Payment>;
     }
     export type WalletTransactionOperation = WalletTransactionDeposit;
+    export interface WalletTransactionConnection {
+        items: WalletTransaction[];
+        cursor: Nullable<string>;
+    }
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -381,7 +385,10 @@ export namespace GQL {
     export interface WalletUpdateTransactionPending {
         transaction: WalletTransaction;
     }
-    export type WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending;
+    export interface WalletUpdatePaymentStatus {
+        payment: Payment;
+    }
+    export type WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus;
     export interface Invite {
         id: string;
         key: string;
@@ -2590,6 +2597,7 @@ export namespace GQL {
         myCards: CreditCard[];
         myWallet: WalletAccount;
         transactionsPending: WalletTransaction[];
+        transactionsHistory: WalletTransactionConnection;
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
@@ -2743,6 +2751,10 @@ export namespace GQL {
     }
     export interface QueryAlphaGroupConversationMembersArgs {
         conversationId: string;
+    }
+    export interface QueryTransactionsHistoryArgs {
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
@@ -4207,6 +4219,15 @@ export interface GQLResolver {
         }
     >;
     WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit'>;
+    WalletTransactionConnection?: ComplexTypedResolver<
+        GQL.WalletTransactionConnection,
+        GQLRoots.WalletTransactionConnectionRoot,
+        {
+            items: GQLRoots.WalletTransactionRoot[],
+        },
+        {
+        }
+    >;
     WalletUpdateSingle?: ComplexTypedResolver<
         GQL.WalletUpdateSingle,
         GQLRoots.WalletUpdateSingleRoot,
@@ -4261,7 +4282,16 @@ export interface GQLResolver {
         {
         }
     >;
-    WalletUpdate?: UnionTypeResolver<GQLRoots.WalletUpdateRoot, 'WalletUpdateBalance' | 'WalletUpdateTransactionSuccess' | 'WalletUpdateTransactionCanceled' | 'WalletUpdateTransactionPending'>;
+    WalletUpdatePaymentStatus?: ComplexTypedResolver<
+        GQL.WalletUpdatePaymentStatus,
+        GQLRoots.WalletUpdatePaymentStatusRoot,
+        {
+            payment: GQLRoots.PaymentRoot,
+        },
+        {
+        }
+    >;
+    WalletUpdate?: UnionTypeResolver<GQLRoots.WalletUpdateRoot, 'WalletUpdateBalance' | 'WalletUpdateTransactionSuccess' | 'WalletUpdateTransactionCanceled' | 'WalletUpdateTransactionPending' | 'WalletUpdatePaymentStatus'>;
     Invite?: ComplexTypedResolver<
         GQL.Invite,
         GQLRoots.InviteRoot,
@@ -5822,6 +5852,7 @@ export interface GQLResolver {
             myCards: GQLRoots.CreditCardRoot[],
             myWallet: GQLRoots.WalletAccountRoot,
             transactionsPending: GQLRoots.WalletTransactionRoot[],
+            transactionsHistory: GQLRoots.WalletTransactionConnectionRoot,
             alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
@@ -5947,6 +5978,7 @@ export interface GQLResolver {
             alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs,
             alphaChatSearch: GQL.QueryAlphaChatSearchArgs,
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
+            transactionsHistory: GQL.QueryTransactionsHistoryArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,

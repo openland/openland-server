@@ -396,6 +396,16 @@ export class PaymentMediator {
         let piid = payment.piid!!;
 
         //
+        // Check Payment Intent state
+        //
+        
+        let intentState = await this.stripe.paymentIntents.retrieve(piid);
+        if (intentState.status === 'succeeded' || intentState.status === 'canceled') {
+            // Just exit if intent is in completed state
+            return;
+        }
+
+        //
         // Pick Default Card
         //
 
@@ -407,28 +417,34 @@ export class PaymentMediator {
             }
             return dcard;
         });
-        // Set card to intent
-        await this.stripe.paymentIntents.update(piid, { payment_method: card.pmid }, { timeout: 5000 });
 
         //
         // Perform Payment
         //
 
         try {
-            await this.stripe.paymentIntents.confirm(piid, { off_session: true }, { timeout: 15000 });
+            await this.stripe.paymentIntents.confirm(piid, { payment_method: card.pmid, off_session: true }, { timeout: 15000 });
         } catch (err) {
 
             if (err.code === 'authentication_required') {
                 // Change Payment Status
                 await inTx(parent, async (ctx) => {
                     let res = (await Store.Payment.findById(ctx, pid))!;
-                    res.state = 'action_required';
+                    if (res.state !== 'success' && res.state !== 'canceled' && res.state !== 'action_required') {
+                        res.state = 'action_required';
+
+                        await this.routing.routeActionNeededPayment(ctx, res.amount, res.id, res.operation);
+                    }
                 });
             } else if (err.code === 'requires_payment_method' || err.code === 'card_declined') {
                 // Change Payment Status
                 await inTx(parent, async (ctx) => {
                     let res = (await Store.Payment.findById(ctx, pid))!;
-                    res.state = 'failing';
+                    if (res.state !== 'success' && res.state !== 'canceled' && res.state !== 'failing') {
+                        res.state = 'failing';
+
+                        await this.routing.routeFailingPayment(ctx, res.amount, res.id, res.operation);
+                    }
                 });
             } else {
                 // Unknown error - throw log exception and rethrow
