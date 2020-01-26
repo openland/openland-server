@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '20c38939a7ed67934304fcfa1bfd1ecc';
+export const GQL_SPEC_VERSION = '6320a53b2d99818b5a0aea235ec71ac5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1140,6 +1140,7 @@ export namespace GQL {
         debugReindexUsersDialogs: boolean;
         debugReindexFeedEvents: boolean;
         debugChangeUserEmail: boolean;
+        debugSwapUserEmails: boolean;
         debugFindUsefulCommunities: boolean;
         debugFixStickerPack: Nullable<StickerPack>;
         debugReverseStickers: boolean;
@@ -1546,6 +1547,10 @@ export namespace GQL {
     export interface MutationDebugChangeUserEmailArgs {
         uid: string;
         email: string;
+    }
+    export interface MutationDebugSwapUserEmailsArgs {
+        uid1: string;
+        uid2: string;
     }
     export interface MutationDebugFixStickerPackArgs {
         id: string;
@@ -5300,6 +5305,7 @@ export interface GQLResolver {
             debugFlood: GQL.MutationDebugFloodArgs,
             debugSendPush: GQL.MutationDebugSendPushArgs,
             debugChangeUserEmail: GQL.MutationDebugChangeUserEmailArgs,
+            debugSwapUserEmails: GQL.MutationDebugSwapUserEmailsArgs,
             debugFixStickerPack: GQL.MutationDebugFixStickerPackArgs,
             debugFixHyperlogEvent: GQL.MutationDebugFixHyperlogEventArgs,
             debugAddStickerPackToAll: GQL.MutationDebugAddStickerPackToAllArgs,
