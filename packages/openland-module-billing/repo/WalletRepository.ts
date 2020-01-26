@@ -1,7 +1,7 @@
 import { uuid } from 'openland-utils/uuid';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged } from './../../openland-module-db/store';
+import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged, WalletTransactionCanceled } from './../../openland-module-db/store';
 import { checkMoney } from './utils/checkMoney';
 
 export class WalletRepository {
@@ -72,7 +72,7 @@ export class WalletRepository {
         });
     }
 
-    depositAsynCommit = async (parent: Context, uid: number, txid: string) => {
+    depositAsyncCommit = async (parent: Context, uid: number, txid: string) => {
         await inTx(parent, async (ctx) => {
 
             // Check state
@@ -89,6 +89,9 @@ export class WalletRepository {
             if (tx.uid !== uid) {
                 throw Error('Transaction has invalid user id');
             }
+            if (!tx.operation.payment) {
+                throw Error('Transaction doesnt have payment reference');
+            }
 
             // Update tx status
             tx.status = 'success';
@@ -103,7 +106,36 @@ export class WalletRepository {
         });
     }
 
-    depositAsynFailing = async (parent: Context, uid: number, txid: string) => {
+    depositAsyncCancel = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'deposit') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+            if (!tx.operation.payment) {
+                throw Error('Transaction doesnt have payment reference');
+            }
+
+            // Update tx status
+            tx.status = 'canceled';
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionCanceled.create({ id: txid }));
+        });
+    }
+
+    depositAsyncFailing = async (parent: Context, uid: number, txid: string) => {
         await inTx(parent, async (ctx) => {
 
             // Check state
@@ -128,7 +160,7 @@ export class WalletRepository {
             this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: tx.operation.payment! }));
         });
     }
-    depositActionNeeded = async (parent: Context, uid: number, txid: string) => {
+    depositAsyncActionNeeded = async (parent: Context, uid: number, txid: string) => {
         await inTx(parent, async (ctx) => {
 
             // Check state

@@ -13653,6 +13653,78 @@ export class WalletTransactionFactory extends EntityFactory<WalletTransactionSha
     }
 }
 
+export interface WalletDepositRequestShape {
+    uid: number;
+    retryKey: string;
+    pid: string;
+}
+
+export interface WalletDepositRequestCreateShape {
+    pid: string;
+}
+
+export class WalletDepositRequest extends Entity<WalletDepositRequestShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get retryKey(): string { return this._rawValue.retryKey; }
+    get pid(): string { return this._rawValue.pid; }
+    set pid(value: string) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class WalletDepositRequestFactory extends EntityFactory<WalletDepositRequestShape, WalletDepositRequest> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('walletDepositRequest');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'retryKey', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'pid', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            retryKey: c.string,
+            pid: c.string,
+        });
+        let descriptor: EntityDescriptor<WalletDepositRequestShape> = {
+            name: 'WalletDepositRequest',
+            storageKey: 'walletDepositRequest',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new WalletDepositRequestFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<WalletDepositRequestShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, retryKey: string, src: WalletDepositRequestCreateShape): Promise<WalletDepositRequest> {
+        return this._create(ctx, [uid, retryKey], this.descriptor.codec.normalize({ uid, retryKey, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, retryKey: string, src: WalletDepositRequestCreateShape): WalletDepositRequest {
+        return this._create_UNSAFE(ctx, [uid, retryKey], this.descriptor.codec.normalize({ uid, retryKey, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, retryKey: string): Promise<WalletDepositRequest | null> {
+        return this._findById(ctx, [uid, retryKey]);
+    }
+
+    watch(ctx: Context, uid: number, retryKey: string): Watch {
+        return this._watch(ctx, [uid, retryKey]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletDepositRequestShape>): WalletDepositRequest {
+        return new WalletDepositRequest([value.uid, value.retryKey], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface PaymentIntentShape {
     id: string;
     state: 'pending' | 'success' | 'canceled';
@@ -13763,20 +13835,18 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
 export interface PaymentShape {
     id: string;
     uid: number;
-    piid: string | null;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
     operation: { type: 'deposit', uid: number, txid: string | null };
-    retryKey: string | null;
+    piid: string | null;
 }
 
 export interface PaymentCreateShape {
     uid: number;
-    piid?: string | null | undefined;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
     operation: { type: 'deposit', uid: number, txid: string | null | undefined };
-    retryKey?: string | null | undefined;
+    piid?: string | null | undefined;
 }
 
 export class Payment extends Entity<PaymentShape> {
@@ -13787,15 +13857,6 @@ export class Payment extends Entity<PaymentShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
-            this.invalidate();
-        }
-    }
-    get piid(): string | null { return this._rawValue.piid; }
-    set piid(value: string | null) {
-        let normalized = this.descriptor.codec.fields.piid.normalize(value);
-        if (this._rawValue.piid !== normalized) {
-            this._rawValue.piid = normalized;
-            this._updatedValues.piid = normalized;
             this.invalidate();
         }
     }
@@ -13826,12 +13887,12 @@ export class Payment extends Entity<PaymentShape> {
             this.invalidate();
         }
     }
-    get retryKey(): string | null { return this._rawValue.retryKey; }
-    set retryKey(value: string | null) {
-        let normalized = this.descriptor.codec.fields.retryKey.normalize(value);
-        if (this._rawValue.retryKey !== normalized) {
-            this._rawValue.retryKey = normalized;
-            this._updatedValues.retryKey = normalized;
+    get piid(): string | null { return this._rawValue.piid; }
+    set piid(value: string | null) {
+        let normalized = this.descriptor.codec.fields.piid.normalize(value);
+        if (this._rawValue.piid !== normalized) {
+            this._rawValue.piid = normalized;
+            this._updatedValues.piid = normalized;
             this.invalidate();
         }
     }
@@ -13843,24 +13904,22 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         let subspace = await storage.resolveEntityDirectory('payment');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'retry', storageKey: 'retry', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'retryKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'retry'), condition: (s) => !!s.retryKey });
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'pending'), condition: (s) => s.state === 'pending' || s.state === 'failing' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
         fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
-        fields.push({ name: 'retryKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
-            piid: c.optional(c.string),
             amount: c.integer,
             state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
             operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }) }),
-            retryKey: c.optional(c.string),
+            piid: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<PaymentShape> = {
             name: 'Payment',
@@ -13889,15 +13948,18 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         },
     });
 
-    readonly retry = Object.freeze({
-        find: async (ctx: Context, uid: number, retryKey: string | null) => {
-            return this._findFromUniqueIndex(ctx, [uid, retryKey], this.descriptor.secondaryIndexes[1]);
+    readonly pending = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<string | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -13919,6 +13981,113 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentShape>): Payment {
         return new Payment([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface PaymentSchedulingShape {
+    id: string;
+    attempt: number;
+    failuresCount: number;
+    lastFailureDate: number | null;
+    inProgress: boolean;
+}
+
+export interface PaymentSchedulingCreateShape {
+    attempt: number;
+    failuresCount: number;
+    lastFailureDate?: number | null | undefined;
+    inProgress: boolean;
+}
+
+export class PaymentScheduling extends Entity<PaymentSchedulingShape> {
+    get id(): string { return this._rawValue.id; }
+    get attempt(): number { return this._rawValue.attempt; }
+    set attempt(value: number) {
+        let normalized = this.descriptor.codec.fields.attempt.normalize(value);
+        if (this._rawValue.attempt !== normalized) {
+            this._rawValue.attempt = normalized;
+            this._updatedValues.attempt = normalized;
+            this.invalidate();
+        }
+    }
+    get failuresCount(): number { return this._rawValue.failuresCount; }
+    set failuresCount(value: number) {
+        let normalized = this.descriptor.codec.fields.failuresCount.normalize(value);
+        if (this._rawValue.failuresCount !== normalized) {
+            this._rawValue.failuresCount = normalized;
+            this._updatedValues.failuresCount = normalized;
+            this.invalidate();
+        }
+    }
+    get lastFailureDate(): number | null { return this._rawValue.lastFailureDate; }
+    set lastFailureDate(value: number | null) {
+        let normalized = this.descriptor.codec.fields.lastFailureDate.normalize(value);
+        if (this._rawValue.lastFailureDate !== normalized) {
+            this._rawValue.lastFailureDate = normalized;
+            this._updatedValues.lastFailureDate = normalized;
+            this.invalidate();
+        }
+    }
+    get inProgress(): boolean { return this._rawValue.inProgress; }
+    set inProgress(value: boolean) {
+        let normalized = this.descriptor.codec.fields.inProgress.normalize(value);
+        if (this._rawValue.inProgress !== normalized) {
+            this._rawValue.inProgress = normalized;
+            this._updatedValues.inProgress = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PaymentSchedulingFactory extends EntityFactory<PaymentSchedulingShape, PaymentScheduling> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('paymentScheduling');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'attempt', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'failuresCount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'lastFailureDate', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'inProgress', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            attempt: c.integer,
+            failuresCount: c.integer,
+            lastFailureDate: c.optional(c.integer),
+            inProgress: c.boolean,
+        });
+        let descriptor: EntityDescriptor<PaymentSchedulingShape> = {
+            name: 'PaymentScheduling',
+            storageKey: 'paymentScheduling',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PaymentSchedulingFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PaymentSchedulingShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: PaymentSchedulingCreateShape): Promise<PaymentScheduling> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: PaymentSchedulingCreateShape): PaymentScheduling {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<PaymentScheduling | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentSchedulingShape>): PaymentScheduling {
+        return new PaymentScheduling([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -16994,8 +17163,10 @@ export interface Store extends BaseStore {
     readonly UserStripeCard: UserStripeCardFactory;
     readonly Wallet: WalletFactory;
     readonly WalletTransaction: WalletTransactionFactory;
+    readonly WalletDepositRequest: WalletDepositRequestFactory;
     readonly PaymentIntent: PaymentIntentFactory;
     readonly Payment: PaymentFactory;
+    readonly PaymentScheduling: PaymentSchedulingFactory;
     readonly StripeEventsCursor: StripeEventsCursorFactory;
     readonly StripeEvent: StripeEventFactory;
     readonly Sequence: SequenceFactory;
@@ -17187,8 +17358,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserStripeCardPromise = UserStripeCardFactory.open(storage);
     let WalletPromise = WalletFactory.open(storage);
     let WalletTransactionPromise = WalletTransactionFactory.open(storage);
+    let WalletDepositRequestPromise = WalletDepositRequestFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
     let PaymentPromise = PaymentFactory.open(storage);
+    let PaymentSchedulingPromise = PaymentSchedulingFactory.open(storage);
     let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
     let StripeEventPromise = StripeEventFactory.open(storage);
     let SequencePromise = SequenceFactory.open(storage);
@@ -17352,8 +17525,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserStripeCard: await UserStripeCardPromise,
         Wallet: await WalletPromise,
         WalletTransaction: await WalletTransactionPromise,
+        WalletDepositRequest: await WalletDepositRequestPromise,
         PaymentIntent: await PaymentIntentPromise,
         Payment: await PaymentPromise,
+        PaymentScheduling: await PaymentSchedulingPromise,
         StripeEventsCursor: await StripeEventsCursorPromise,
         StripeEvent: await StripeEventPromise,
         Sequence: await SequencePromise,

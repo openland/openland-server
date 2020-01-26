@@ -10,7 +10,8 @@ import { startCustomerExportWorker } from './workers/CustomerExportWorker';
 import { startCardSyncWorker } from './workers/CardSyncWorker';
 import { startEventsReaderWorker } from './workers/EventsReaderWorker';
 import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
-import { startPaymentProcessor } from './workers/startPaymentProcessor';
+import { PaymentsAsyncRepository } from './repo/PaymentsAsyncRepository';
+import { startPaymentScheduler } from './workers/startPaymentScheduler';
 
 @injectable()
 export class BillingModule {
@@ -18,10 +19,12 @@ export class BillingModule {
     readonly wallet: WalletRepository = new WalletRepository(Store);
     readonly payments: PaymentsRepository = new PaymentsRepository(Store);
     readonly routing: RoutingRepository = new RoutingRepository(Store, this.wallet);
+    readonly paymentsAsync: PaymentsAsyncRepository = new PaymentsAsyncRepository(Store, this.routing);
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
         this.payments,
         this.routing,
-        this.wallet
+        this.wallet,
+        this.paymentsAsync
     );
 
     start = async () => {
@@ -30,7 +33,7 @@ export class BillingModule {
             startCardSyncWorker(this.paymentsMediator.syncCardQueue, this.paymentsMediator);
             startEventsReaderWorker(this.paymentsMediator);
             startPaymentIntentCommiter(this.paymentsMediator);
-            startPaymentProcessor(this.paymentsMediator);
+            startPaymentScheduler(this.paymentsMediator);
         }
     }
 

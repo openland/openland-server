@@ -1707,6 +1707,12 @@ export default declareSchema(() => {
         rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !(s.status === 'pending' || s.status === 'canceling'));
     });
 
+    entity('WalletDepositRequest', () => {
+        primaryKey('uid', integer());
+        primaryKey('retryKey', string());
+        field('pid', string());
+    });
+
     //
     // Payments: Payments
     //
@@ -1729,13 +1735,21 @@ export default declareSchema(() => {
     entity('Payment', () => {
         primaryKey('id', string());
         field('uid', integer());
-        field('piid', optional(string()));
         field('amount', integer());
         field('state', enumString('pending', 'success', 'action_required', 'failing', 'canceled'));
         field('operation', PaymentOperation);
-        field('retryKey', optional(string()));
+
+        field('piid', optional(string()));
         rangeIndex('user', ['uid', 'createdAt']);
-        uniqueIndex('retry', ['uid', 'retryKey']).withCondition((s) => !!s.retryKey);
+        rangeIndex('pending', ['id']).withCondition((s) => s.state === 'pending' || s.state === 'failing');
+    });
+
+    entity('PaymentScheduling', () => {
+        primaryKey('id', string());
+        field('attempt', integer());
+        field('failuresCount', integer());
+        field('lastFailureDate', optional(integer()));
+        field('inProgress', boolean());
     });
 
     //

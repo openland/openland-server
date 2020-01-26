@@ -171,7 +171,7 @@ export class PaymentsRepository {
         });
     }
 
-    paymentIntentSuccess = async (parent: Context, id: string, handler: (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => Promise<void>) => {
+    paymentIntentSuccess = async (parent: Context, id: string) => {
         return await inTx(parent, async (ctx) => {
             let intent = await this.store.PaymentIntent.findById(ctx, id);
             if (!intent) {
@@ -183,43 +183,23 @@ export class PaymentsRepository {
             }
             intent.state = 'success';
 
-            //
-            // Update Payment
-            //
-
-            if (intent.pid) {
-                (await this.store.Payment.findById(ctx, intent.pid))!.state = 'success';
-            }
-
-            //
-            // NOT forwarding PaymentIntent entity to avoid object mutation
-            //
-            await handler(ctx, intent.amount, intent.pid, intent.operation);
-
             return true;
         });
     }
 
-    //
-    // Payments
-    //
-
-    createPayment = async (parent: Context, uid: number, amount: number, retryKey: string, operation: PaymentIntentCreateShape['operation']) => {
+    paymentIntentCancel = async (parent: Context, id: string) => {
         return await inTx(parent, async (ctx) => {
-            let ex = await this.store.Payment.retry.find(ctx, uid, retryKey);
-            if (ex) {
-                return { value: ex, created: false };
+            let intent = await this.store.PaymentIntent.findById(ctx, id);
+            if (!intent) {
+                return false;
             }
 
-            let res = await this.store.Payment.create(ctx, uuid(), {
-                uid: uid,
-                amount: amount,
-                state: 'pending',
-                operation: operation,
-                retryKey: retryKey
-            });
+            if (intent.state !== 'pending') {
+                return false;
+            }
+            intent.state = 'canceled';
 
-            return { value: res, created: true };
+            return true;
         });
     }
 }

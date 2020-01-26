@@ -8,12 +8,14 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 import { WalletRepository } from 'openland-module-billing/repo/WalletRepository';
+import { PaymentsAsyncRepository } from 'openland-module-billing/repo/PaymentsAsyncRepository';
 
 const log = createLogger('payments');
 
 export class PaymentMediator {
 
     readonly liveMode: boolean;
+    readonly paymentsAsync: PaymentsAsyncRepository;
     readonly payments: PaymentsRepository;
     readonly routing: RoutingRepository;
     readonly wallet: WalletRepository;
@@ -21,10 +23,11 @@ export class PaymentMediator {
     readonly stripe: Stripe;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
-    readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
+    // readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
 
-    constructor(token: string, payments: PaymentsRepository, routing: RoutingRepository, wallet: WalletRepository) {
+    constructor(token: string, payments: PaymentsRepository, routing: RoutingRepository, wallet: WalletRepository, paymentsAsync: PaymentsAsyncRepository) {
         this.payments = payments;
+        this.paymentsAsync = paymentsAsync;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
         this.routing = routing;
@@ -258,7 +261,7 @@ export class PaymentMediator {
     }
 
     //
-    // Create Card Intent
+    // Create Card Setup Intent
     //
 
     createSetupIntent = async (parent: Context, uid: number, retryKey: string) => {
@@ -272,7 +275,7 @@ export class PaymentMediator {
     }
 
     //
-    // Create On Session Deposit Intent
+    // Create on-session deposit intent
     //
 
     createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
@@ -298,10 +301,41 @@ export class PaymentMediator {
     }
 
     //
-    // Create Pay Intent for Off Session usage
+    // Create off-session deposit payment
     //
 
-    createPaymentIntent = async (parent: Context, uid: number, pid: string) => {
+    createDepositPayment = async (parent: Context, uid: number, amount: number, retryKey: string) => {
+        await this.enablePaymentsAndAwait(parent, uid);
+
+        await inTx(parent, async (ctx) => {
+
+            // Retry Handling
+            let retry = await Store.WalletDepositRequest.findById(ctx, uid, retryKey);
+            if (retry) {
+                return await Store.Payment.findById(ctx, retry.pid);
+            }
+            let pid = uuid();
+            await Store.WalletDepositRequest.create(ctx, uid, retryKey, { pid: pid });
+
+            // Wallet Transaction
+            let txid = await this.wallet.depositAsync(ctx, uid, amount, pid);
+
+            // Payment
+            let res = await this.paymentsAsync.createPayment(ctx, pid, uid, amount, {
+                type: 'deposit',
+                uid: uid,
+                txid: txid
+            });
+
+            return res;
+        });
+    }
+
+    //
+    // Payment Execution
+    //
+
+    private createPaymentIntent = async (parent: Context, uid: number, pid: string) => {
 
         // Await Billing Enable
         await this.enablePaymentsAndAwait(parent, uid);
@@ -324,43 +358,6 @@ export class PaymentMediator {
 
         return intent;
     }
-
-    //
-    // Create Payment
-    //
-
-    createDepositPayment = async (parent: Context, uid: number, amount: number, retryKey: string) => {
-        await this.enablePaymentsAndAwait(parent, uid);
-
-        await inTx(parent, async (ctx) => {
-            let ex = await Store.Payment.retry.find(ctx, uid, retryKey);
-            if (ex) {
-                return ex;
-            }
-
-            let pid = uuid();
-            let txid = await this.wallet.depositAsync(ctx, uid, amount, pid);
-            let res = await Store.Payment.create(ctx, pid, {
-                uid: uid,
-                amount: amount,
-                state: 'pending',
-                operation: {
-                    type: 'deposit',
-                    uid: uid,
-                    txid: txid
-                },
-                retryKey: retryKey
-            });
-
-            await this.paymentProcessorQueue.pushWork(ctx, { uid: uid, pid: pid });
-
-            return res;
-        });
-    }
-
-    //
-    // Payment Execution
-    //
 
     tryExecutePayment = async (parent: Context, uid: number, pid: string) => {
 
@@ -398,11 +395,16 @@ export class PaymentMediator {
         //
         // Check Payment Intent state
         //
-        
+
         let intentState = await this.stripe.paymentIntents.retrieve(piid);
         if (intentState.status === 'succeeded' || intentState.status === 'canceled') {
-            // Just exit if intent is in completed state
-            return;
+            if (intentState.status === 'canceled') {
+                await this.paymentsAsync.handlePaymentIntentCanceled(parent, payment.id);
+            }
+            if (intentState.status === 'succeeded') {
+                await this.paymentsAsync.handlePaymentIntentCanceled(parent, payment.id);
+            }
+            return true; /* Completed */
         }
 
         //
@@ -424,28 +426,22 @@ export class PaymentMediator {
 
         try {
             await this.stripe.paymentIntents.confirm(piid, { payment_method: card.pmid, off_session: true }, { timeout: 15000 });
+            await this.updatePaymentIntent(parent, piid);
+            return true; /* Completed: Successful */
         } catch (err) {
 
             if (err.code === 'authentication_required') {
-                // Change Payment Status
-                await inTx(parent, async (ctx) => {
-                    let res = (await Store.Payment.findById(ctx, pid))!;
-                    if (res.state !== 'success' && res.state !== 'canceled' && res.state !== 'action_required') {
-                        res.state = 'action_required';
 
-                        await this.routing.routeActionNeededPayment(ctx, res.amount, res.id, res.operation);
-                    }
-                });
+                // Change Payment Status
+                await this.paymentsAsync.handlePaymentActionRequired(parent, payment.id);
+
+                return true; /* Completed: Need user input */
             } else if (err.code === 'requires_payment_method' || err.code === 'card_declined') {
-                // Change Payment Status
-                await inTx(parent, async (ctx) => {
-                    let res = (await Store.Payment.findById(ctx, pid))!;
-                    if (res.state !== 'success' && res.state !== 'canceled' && res.state !== 'failing') {
-                        res.state = 'failing';
 
-                        await this.routing.routeFailingPayment(ctx, res.amount, res.id, res.operation);
-                    }
-                });
+                // Change Payment Status
+                await this.paymentsAsync.handlePaymentFailing(parent, payment.id);
+
+                return false; /* Failed */
             } else {
                 // Unknown error - throw log exception and rethrow
                 log.warn(parent, err);
@@ -460,10 +456,38 @@ export class PaymentMediator {
     //
 
     updatePaymentIntent = async (parent: Context, id: string) => {
+
+        //
+        // There are high chances of race conditions here since this method is synching
+        // state with stripe servers, but they are actually impossible.
+        // We are looking only for two statuses - succeeded and canceled, they are both are 
+        // terminal states and therefore only one single branch could be executed.
+        //
+        // It is possible to have double invoke, but FDB transactions helps here.
+        //
+
         let dp = await this.stripe.paymentIntents.retrieve(id);
         if (dp.status === 'succeeded') {
-            await this.payments.paymentIntentSuccess(parent, id, async (ctx, amount, pid, op) => {
-                await this.routing.routeSuccessfulPayment(ctx, amount, pid, op);
+            await inTx(parent, async (ctx) => {
+                if (await this.payments.paymentIntentSuccess(ctx, id)) {
+                    let intent = (await Store.PaymentIntent.findById(ctx, id))!;
+                    if (intent.pid) {
+                        await this.paymentsAsync.handlePaymentIntentSuccess(ctx, intent.pid);
+                    } else {
+                        await this.routing.routeSuccessfulPaymentIntent(ctx, intent.amount, intent.operation);
+                    }
+                }
+            });
+        } else if (dp.status === 'canceled') {
+            await inTx(parent, async (ctx) => {
+                if (await this.payments.paymentIntentCancel(ctx, id)) {
+                    let intent = (await Store.PaymentIntent.findById(ctx, id))!;
+                    if (intent.pid) {
+                        await this.paymentsAsync.handlePaymentIntentCanceled(ctx, intent.pid);
+                    } else {
+                        // Nothing to do
+                    }
+                }
             });
         }
     }

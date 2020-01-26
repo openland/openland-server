@@ -11,13 +11,17 @@ export function startPaymentIntentCommiter(mediator: PaymentMediator) {
     updateReader('stripe-payment-intent-' + (mediator.liveMode ? 'live' : 'test'), 1, Store.StripeEventStore.createStream(mediator.liveMode, { batchSize: 10 }), async (items, first, parent) => {
         for (let i of items) {
             let e = (i as StripeEventCreated);
-            if (e.eventType === 'payment_intent.succeeded') {
+            if (e.eventType === 'payment_intent.succeeded' || e.eventType === 'payment_intent.canceled') {
                 let eventData = await inTx(parent, async (ctx) => {
                     return (await Store.StripeEvent.findById(ctx, e.id))!.data;
                 });
                 let pid = eventData.object.id as string;
 
-                log.debug(parent, 'Commit Payment: ' + pid);
+                if (e.eventType === 'payment_intent.succeeded') {
+                    log.debug(parent, 'Commit Payment: ' + pid);
+                } else if (e.eventType === 'payment_intent.canceled') {
+                    log.debug(parent, 'Commit Payment: ' + pid);
+                }
 
                 await mediator.updatePaymentIntent(parent, pid);
             }

@@ -12,43 +12,71 @@ export class RoutingRepository {
         this.wallet = wallet;
     }
 
-    routeSuccessfulPayment = async (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
+    //
+    // Off-Session Payments
+    //
+
+    routeSuccessfulPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
-
-            if (pid) {
-                if (!operation.txid) {
-                    throw Error('Transaction ID is missing');
-                }
-
-                // Confirm existing transaction
-                await this.wallet.depositAsynCommit(ctx, operation.uid, operation.txid);
-            } else {
-
-                // Deposit instantly
-                await this.wallet.depositInstant(ctx, operation.uid, amount);
+            if (!operation.txid) {
+                throw Error('Transaction ID is missing');
             }
+
+            // Confirm existing transaction
+            await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
+        } else {
+            throw Error('Unknown operation type');
         }
     }
 
-    routeFailingPayment = async (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
-        if (pid) {
+    routeFailingPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
             if (!operation.txid) {
                 throw Error('Transaction ID is missing');
             }
 
             // Change payment status
-            await this.wallet.depositAsynFailing(ctx, operation.uid, operation.txid);
+            await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
+        } else {
+            throw Error('Unknown operation type');
         }
     }
 
-    routeActionNeededPayment = async (ctx: Context, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
-        if (pid) {
+    routeActionNeededPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
             if (!operation.txid) {
                 throw Error('Transaction ID is missing');
             }
 
             // Change payment status
-            await this.wallet.depositActionNeeded(ctx, operation.uid, operation.txid);
+            await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
+        } else {
+            throw Error('Unknown operation type');
+        }
+    }
+
+    routeCanceledPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => { 
+        if (operation.type === 'deposit') {
+            if (!operation.txid) {
+                throw Error('Transaction ID is missing');
+            }
+
+            // Confirm existing transaction
+            await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
+        } else {
+            throw Error('Unknown operation type');
+        }
+    }
+
+    //
+    // On-Session Payment Intents
+    //
+
+    routeSuccessfulPaymentIntent = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
+            await this.wallet.depositInstant(ctx, operation.uid, amount);
+        } else {
+            throw Error('Unknown operation type');
         }
     }
 }
