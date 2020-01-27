@@ -76,7 +76,7 @@ export default {
     User: {
         id: withUser((ctx, src) => IDs.User.serialize(src.id), true),
         isBot: withUser((ctx, src) => src.isBot || false, true),
-        isYou: withUser((ctx, src, authorized) => authorized ? src.id === ctx.auth.uid : false),
+        isYou: withUser((ctx, src, authorized) => authorized ? src.id === ctx.auth.uid : false, true),
         isDeleted: withUser((ctx, src) => src.status === 'deleted', true),
 
         name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email, true),
@@ -85,7 +85,7 @@ export default {
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
 
-        email: withProfile((ctx, src, profile, authorized) => authorized ? (profile ? (src.isBot ? null : profile.email) : null) : null),
+        email: withProfile((ctx, src, profile, authorized) => authorized ? (profile ? (src.isBot ? null : profile.email) : null) : null, true),
         phone: withProfile((ctx, src, profile) => profile ? profile.phone : null),
         about: withProfile((ctx, src, profile) => profile ? profile.about : null, true),
         website: withProfile((ctx, src, profile) => profile ? profile.website : null),
