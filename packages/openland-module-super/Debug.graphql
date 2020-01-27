@@ -131,6 +131,7 @@ extend type Mutation {
     debugReindexUsersDialogs: Boolean!
     debugReindexFeedEvents: Boolean!
     debugChangeUserEmail(uid: ID!, email: String!): Boolean!
+    debugSwapUserEmails(uid1: ID!, uid2: ID!): Boolean!
     debugFindUsefulCommunities: Boolean!
     debugFixStickerPack(id: ID!, stickers: [StickerInput!]!): StickerPack
     debugReverseStickers: Boolean!

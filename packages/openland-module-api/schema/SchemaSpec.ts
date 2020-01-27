@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'eb21709ef51bba890c50992289fac98f';
+export const GQL_SPEC_VERSION = '0d28c3e048afb496cfe19858b8274e9e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1140,6 +1140,7 @@ export namespace GQL {
         debugReindexUsersDialogs: boolean;
         debugReindexFeedEvents: boolean;
         debugChangeUserEmail: boolean;
+        debugSwapUserEmails: boolean;
         debugFindUsefulCommunities: boolean;
         debugFixStickerPack: Nullable<StickerPack>;
         debugReverseStickers: boolean;
@@ -1335,6 +1336,7 @@ export namespace GQL {
         betaRoomJoin: Room;
         betaRoomsJoin: Room[];
         betaRoomDeclineJoinRequest: Room;
+        betaBuyPaidChatPass: boolean;
         betaRoomInviteLinkSendEmail: string;
         betaRoomInviteLinkJoin: Room;
         betaRoomInviteLinkRenew: string;
@@ -1545,6 +1547,10 @@ export namespace GQL {
     export interface MutationDebugChangeUserEmailArgs {
         uid: string;
         email: string;
+    }
+    export interface MutationDebugSwapUserEmailsArgs {
+        uid1: string;
+        uid2: string;
     }
     export interface MutationDebugFixStickerPackArgs {
         id: string;
@@ -2259,6 +2265,7 @@ export namespace GQL {
         listed: OptionalNullable<boolean>;
         organizationId: OptionalNullable<string>;
         channel: OptionalNullable<boolean>;
+        paid: OptionalNullable<boolean>;
     }
     export interface MutationBetaRoomUpdateArgs {
         roomId: string;
@@ -2297,6 +2304,10 @@ export namespace GQL {
     export interface MutationBetaRoomDeclineJoinRequestArgs {
         roomId: string;
         userId: string;
+    }
+    export interface MutationBetaBuyPaidChatPassArgs {
+        chatId: string;
+        paymentMethodId: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
         roomId: string;
@@ -2560,6 +2571,7 @@ export namespace GQL {
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
+        appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaAppInvite: string;
         alphaAppInviteInfo: Nullable<AppInviteInfo>;
@@ -2639,6 +2651,7 @@ export namespace GQL {
         gammaNextDiscoverPage: Nullable<DiscoverPage>;
         betaSuggestedRooms: Room[];
         betaIsDiscoverDone: boolean;
+        isDiscoverSkipped: boolean;
         matchmakingRoom: Nullable<MatchmakingRoom>;
         matchmakingProfile: Nullable<MatchmakingProfile>;
         trendingRoomsByMessages: TrendingRoom[];
@@ -2717,6 +2730,9 @@ export namespace GQL {
     }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
+    }
+    export interface QueryAppInviteFromUserArgs {
+        shortname: string;
     }
     export interface QueryAppInviteInfoArgs {
         key: string;
@@ -3674,12 +3690,21 @@ export namespace GQL {
         archived: boolean;
         myBadge: Nullable<UserBadge>;
         matchmaking: Nullable<MatchmakingRoom>;
+        isPaid: boolean;
+        paidPassIsActive: boolean;
+        paymentSettings: Nullable<PaidChatSettings>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
     export interface SharedRoomMembersArgs {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
+    }
+    export type PaidChatStrategy = 'ONE_TIME' | 'SUBSCRIPTION';
+    export interface PaidChatSettings {
+        id: string;
+        price: number;
+        strategy: PaidChatStrategy;
     }
     export interface RoomSuper {
         id: string;
@@ -5284,6 +5309,7 @@ export interface GQLResolver {
             debugFlood: GQL.MutationDebugFloodArgs,
             debugSendPush: GQL.MutationDebugSendPushArgs,
             debugChangeUserEmail: GQL.MutationDebugChangeUserEmailArgs,
+            debugSwapUserEmails: GQL.MutationDebugSwapUserEmailsArgs,
             debugFixStickerPack: GQL.MutationDebugFixStickerPackArgs,
             debugFixHyperlogEvent: GQL.MutationDebugFixHyperlogEventArgs,
             debugAddStickerPackToAll: GQL.MutationDebugAddStickerPackToAllArgs,
@@ -5462,6 +5488,7 @@ export interface GQLResolver {
             betaRoomJoin: GQL.MutationBetaRoomJoinArgs,
             betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs,
             betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs,
+            betaBuyPaidChatPass: GQL.MutationBetaBuyPaidChatPassArgs,
             betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs,
             betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs,
             betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs,
@@ -5841,6 +5868,7 @@ export interface GQLResolver {
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
             walletTransactions: GQL.QueryWalletTransactionsArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
+            appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
@@ -6637,10 +6665,19 @@ export interface GQLResolver {
             settings: GQLRoots.RoomUserNotificaionSettingsRoot,
             myBadge: Nullable<GQLRoots.UserBadgeRoot>,
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
+            paymentSettings: Nullable<GQLRoots.PaidChatSettingsRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
             members: GQL.SharedRoomMembersArgs,
+        }
+    >;
+    PaidChatSettings?: ComplexTypedResolver<
+        GQL.PaidChatSettings,
+        GQLRoots.PaidChatSettingsRoot,
+        {
+        },
+        {
         }
     >;
     RoomSuper?: ComplexTypedResolver<

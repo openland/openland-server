@@ -9,11 +9,11 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     User: {
-        primaryOrganization: withProfile((ctx, src, profile) => profile && profile.primaryOrganization ? Store.Organization.findById(ctx, profile.primaryOrganization) : null),
+        primaryOrganization: withProfile((ctx, src, profile, authorized) => authorized ? (profile && profile.primaryOrganization ? Store.Organization.findById(ctx, profile.primaryOrganization) : null) : null, true),
         organizations: withUser(async (ctx, src) => (await Modules.Orgs.findUserOrganizations(ctx, src.id!)).map(async oid => await Store.Organization.findById(ctx, oid))),
 
         // Deprecated
-        alphaPrimaryOrganization: withProfile(async (ctx, src, profile) => profile && profile.primaryOrganization ? Store.Organization.findById(ctx, profile.primaryOrganization) : null),
+        alphaPrimaryOrganization: withProfile(async (ctx, src, profile, authorized) => authorized ? (profile && profile.primaryOrganization ? Store.Organization.findById(ctx, profile.primaryOrganization) : null) : null, true),
     },
     Profile: {
         primaryOrganization: async (src: UserProfile, args: {}, ctx: AppContext) => src.primaryOrganization ? Store.Organization.findById(ctx, src.primaryOrganization) : null,

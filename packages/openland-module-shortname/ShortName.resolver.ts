@@ -111,7 +111,7 @@ export default {
         shortname: withUser(async (ctx, src) => {
             let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', src.id);
             return shortName ? shortName.shortname : null;
-        }),
+        }, true),
     },
     Profile: {
         shortname: withUser(async (ctx, src) => {

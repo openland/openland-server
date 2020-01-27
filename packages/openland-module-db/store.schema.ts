@@ -217,10 +217,25 @@ export default declareSchema(() => {
         field('featured', optional(boolean()));
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
+        field('isPaid', optional(boolean()));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public');
+    });
+
+    entity('PaidChatSettings', () => {
+        primaryKey('id', integer());
+        field('price', integer());
+        field('strategy', enumString('one-time', 'subscription'));
+    });
+
+    entity('PaidChatUserPass', () => {
+        primaryKey('cid', integer());
+        primaryKey('uid', integer());
+        field('subscriptionId', optional(integer()));
+        field('isActive', boolean());
+        rangeIndex('userActivePassAll', ['uid']).withCondition((v) => v.state === 'active');
     });
 
     entity('RoomProfile', () => {
@@ -1310,7 +1325,7 @@ export default declareSchema(() => {
     });
 
     //
-    // Onboarding
+    // Discover
     //
 
     entity('DiscoverUserPickedTags', () => {
@@ -1319,6 +1334,15 @@ export default declareSchema(() => {
         field('deleted', boolean());
         uniqueIndex('user', ['uid', 'id']).withCondition((src) => !src.deleted);
     });
+
+    entity('DiscoverState', () => {
+        primaryKey('uid', integer());
+        field('skipped', boolean());
+    });
+
+    //
+    // Onboarding
+    //
 
     entity('UserOnboardingState', () => {
         primaryKey('uid', integer());
