@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6320a53b2d99818b5a0aea235ec71ac5';
+export const GQL_SPEC_VERSION = '0d28c3e048afb496cfe19858b8274e9e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2571,6 +2571,7 @@ export namespace GQL {
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
+        appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaAppInvite: string;
         alphaAppInviteInfo: Nullable<AppInviteInfo>;
@@ -2729,6 +2730,9 @@ export namespace GQL {
     }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
+    }
+    export interface QueryAppInviteFromUserArgs {
+        shortname: string;
     }
     export interface QueryAppInviteInfoArgs {
         key: string;
@@ -5864,6 +5868,7 @@ export interface GQLResolver {
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
             walletTransactions: GQL.QueryWalletTransactionsArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
+            appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,

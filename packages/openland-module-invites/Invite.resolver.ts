@@ -7,11 +7,12 @@ import {
 import { withUser, withAny, withAccount, withActivatedUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
-import { IDs } from 'openland-module-api/IDs';
+import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Context } from '@openland/context';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 async function resolveOrgInvite(ctx: Context, key: string) {
     let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, key);
@@ -100,6 +101,26 @@ export default {
             };
         }),
         appInvite: withActivatedUser(async (ctx, args, uid) => {
+            return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(ctx, uid);
+        }),
+        appInviteFromUser: withActivatedUser(async (ctx, args) => {
+            let uid: number|undefined;
+            try {
+                let idInfo = IdsFactory.resolve(args.shortname);
+                if (idInfo.type === IDs.User) {
+                    uid = idInfo.id as number;
+                }
+            } catch {
+                let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
+                if (shortname) {
+                    if (shortname.ownerType === 'user') {
+                        uid = shortname.ownerId;
+                    }
+                }
+            }
+            if (!uid) {
+                throw new NotFoundError();
+            }
             return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(ctx, uid);
         }),
         // deperecated
