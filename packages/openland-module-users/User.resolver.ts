@@ -8,6 +8,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -28,8 +29,11 @@ export async function userRootFull(ctx: AppContext, uid: number) {
     return new UserFullRoot(user, profile);
 }
 
-export function withUser(handler: (ctx: AppContext, user: User) => any) {
+export function withUser(handler: (ctx: AppContext, user: User) => any, needAuth: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
+        if (needAuth && !ctx.auth.uid) {
+            throw new AccessDeniedError();
+        }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
             return handler(ctx, user);
@@ -44,9 +48,11 @@ export function withUser(handler: (ctx: AppContext, user: User) => any) {
     };
 }
 
-export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any) {
+export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any, needAuth: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
-
+        if (needAuth && !ctx.auth.uid) {
+            throw new AccessDeniedError();
+        }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
             let profile = (await (Store.UserProfile.findById(ctx, src)))!;
@@ -68,7 +74,7 @@ export default {
     User: {
         id: withUser((ctx, src) => IDs.User.serialize(src.id)),
         isBot: withUser((ctx, src) => src.isBot || false),
-        isYou: withUser((ctx, src) => src.id === ctx.auth.uid),
+        isYou: withUser((ctx, src) => src.id === ctx.auth.uid, true),
         isDeleted: withUser((ctx, src) => src.status === 'deleted'),
 
         name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
@@ -77,30 +83,28 @@ export default {
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
 
-        email: withProfile((ctx, src, profile) => profile ? (src.isBot ? null : profile.email) : null),
-        phone: withProfile((ctx, src, profile) => profile ? profile.phone : null),
+        email: withProfile((ctx, src, profile) => profile ? (src.isBot ? null : profile.email) : null, true),
+        phone: withProfile((ctx, src, profile) => profile ? profile.phone : null, true),
         about: withProfile((ctx, src, profile) => profile ? profile.about : null),
-        website: withProfile((ctx, src, profile) => profile ? profile.website : null),
-        linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
-        instagram: withProfile((ctx, src, profile) => profile && profile.instagram),
-        twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
-        facebook: withProfile((ctx, src, profile) => profile && profile.facebook),
-        location: withProfile((ctx, src, profile) => profile ? profile.location : null),
-        badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),
-        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null),
+        website: withProfile((ctx, src, profile) => profile ? profile.website : null, true),
+        linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin, true),
+        instagram: withProfile((ctx, src, profile) => profile && profile.instagram, true),
+        twitter: withProfile((ctx, src, profile) => profile && profile.twitter, true),
+        facebook: withProfile((ctx, src, profile) => profile && profile.facebook, true),
+        location: withProfile((ctx, src, profile) => profile ? profile.location : null, true),
+        badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id), true),
+        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null, true),
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id)),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         pictureRef: withProfile((ctx, src, profile) => profile && profile.picture),
-        alphaRole: withProfile((ctx, src, profile) => profile && profile.role),
-        alphaLinkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
-        alphaTwitter: withProfile((ctx, src, profile) => profile && profile.twitter),
+        alphaRole: withProfile((ctx, src, profile) => profile && profile.role, true),
+        alphaLinkedin: withProfile((ctx, src, profile) => profile && profile.linkedin, true),
+        alphaTwitter: withProfile((ctx, src, profile) => profile && profile.twitter, true),
 
-        channelsJoined: async (src: User) => {
-            return [];
-        },
-        alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
+        channelsJoined: async (src: User) => [],
+        alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations, true),
         chatsWithBadge: withProfile(async (ctx, src, profile) => {
             let res: { cid: number, badge: UserBadge }[] = [];
 
@@ -127,7 +131,7 @@ export default {
                 res.push({cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))!});
             }
             return res;
-        }),
+        }, true),
     },
     UserChatWithBadge: {
         badge: src => src.badge,
