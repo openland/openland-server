@@ -8,7 +8,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
-// import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -29,42 +29,44 @@ export async function userRootFull(ctx: AppContext, uid: number) {
     return new UserFullRoot(user, profile);
 }
 
-export function withUser(handler: (ctx: AppContext, user: User) => any, needAuth: boolean = false) {
+export function withUser(handler: (ctx: AppContext, user: User, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
-        // if (needAuth && !ctx.auth.uid) {
-        //     throw new AccessDeniedError();
-        // }
+        let authorized = !!ctx.auth.uid;
+        if (!authorized && !noAuthNeeded) {
+            throw new AccessDeniedError();
+        }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
-            return handler(ctx, user);
+            return handler(ctx, user, authorized);
         } else if (src instanceof UserFullRoot) {
-            return handler(ctx, src.user);
+            return handler(ctx, src.user, authorized);
         } else if (src instanceof User) {
-            return handler(ctx, src);
+            return handler(ctx, src, authorized);
         } else {
             let user = (await (Store.User.findById(ctx, src.id)))!;
-            return handler(ctx, user);
+            return handler(ctx, user, authorized);
         }
     };
 }
 
-export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any, needAuth: boolean = false) {
+export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
-        // if (needAuth && !ctx.auth.uid) {
-        //     throw new AccessDeniedError();
-        // }
+        let authorized = !!ctx.auth.uid;
+        if (!authorized && !noAuthNeeded) {
+            throw new AccessDeniedError();
+        }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
             let profile = (await (Store.UserProfile.findById(ctx, src)))!;
-            return handler(ctx, user, profile);
+            return handler(ctx, user, profile, authorized);
         } else if (src instanceof UserFullRoot) {
-            return handler(ctx, src.user, src.profile);
+            return handler(ctx, src.user, src.profile, authorized);
         } else if (src instanceof User) {
             let profile = (await (Store.UserProfile.findById(ctx, src.id)))!;
-            return handler(ctx, src, profile);
+            return handler(ctx, src, profile, authorized);
         } else {
             let user = (await (Store.User.findById(ctx, src.id)))!;
-            return handler(ctx, user, src);
+            return handler(ctx, user, src, authorized);
         }
 
     };
@@ -72,39 +74,39 @@ export function withProfile(handler: (ctx: AppContext, user: User, profile: User
 
 export default {
     User: {
-        id: withUser((ctx, src) => IDs.User.serialize(src.id)),
-        isBot: withUser((ctx, src) => src.isBot || false),
-        isYou: withUser((ctx, src) => src.id === ctx.auth.uid, true),
-        isDeleted: withUser((ctx, src) => src.status === 'deleted'),
+        id: withUser((ctx, src) => IDs.User.serialize(src.id), true),
+        isBot: withUser((ctx, src) => src.isBot || false, true),
+        isYou: withUser((ctx, src, authorized) => authorized ? src.id === ctx.auth.uid : false),
+        isDeleted: withUser((ctx, src) => src.status === 'deleted', true),
 
-        name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
-        firstName: withProfile((ctx, src, profile) => profile ? profile.firstName : src.email),
-        lastName: withProfile((ctx, src, profile) => profile ? profile.lastName : null),
-        photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
-        photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
+        name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email, true),
+        firstName: withProfile((ctx, src, profile) => profile ? profile.firstName : src.email, true),
+        lastName: withProfile((ctx, src, profile) => profile ? profile.lastName : null, true),
+        photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
+        photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
 
-        email: withProfile((ctx, src, profile) => profile ? (src.isBot ? null : profile.email) : null, true),
-        phone: withProfile((ctx, src, profile) => profile ? profile.phone : null, true),
-        about: withProfile((ctx, src, profile) => profile ? profile.about : null),
-        website: withProfile((ctx, src, profile) => profile ? profile.website : null, true),
-        linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin, true),
-        instagram: withProfile((ctx, src, profile) => profile && profile.instagram, true),
-        twitter: withProfile((ctx, src, profile) => profile && profile.twitter, true),
-        facebook: withProfile((ctx, src, profile) => profile && profile.facebook, true),
-        location: withProfile((ctx, src, profile) => profile ? profile.location : null, true),
-        badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id), true),
-        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null, true),
-        audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id)),
+        email: withProfile((ctx, src, profile, authorized) => authorized ? (profile ? (src.isBot ? null : profile.email) : null) : null),
+        phone: withProfile((ctx, src, profile) => profile ? profile.phone : null),
+        about: withProfile((ctx, src, profile) => profile ? profile.about : null, true),
+        website: withProfile((ctx, src, profile) => profile ? profile.website : null),
+        linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
+        instagram: withProfile((ctx, src, profile) => profile && profile.instagram),
+        twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
+        facebook: withProfile((ctx, src, profile) => profile && profile.facebook),
+        location: withProfile((ctx, src, profile) => profile ? profile.location : null),
+        badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),
+        primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null),
+        audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id), true),
 
         // Deprecated
-        picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
-        pictureRef: withProfile((ctx, src, profile) => profile && profile.picture),
-        alphaRole: withProfile((ctx, src, profile) => profile && profile.role, true),
-        alphaLinkedin: withProfile((ctx, src, profile) => profile && profile.linkedin, true),
-        alphaTwitter: withProfile((ctx, src, profile) => profile && profile.twitter, true),
+        picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
+        pictureRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
+        alphaRole: withProfile((ctx, src, profile) => profile && profile.role),
+        alphaLinkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
+        alphaTwitter: withProfile((ctx, src, profile) => profile && profile.twitter),
 
         channelsJoined: async (src: User) => [],
-        alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations, true),
+        alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
         chatsWithBadge: withProfile(async (ctx, src, profile) => {
             let res: { cid: number, badge: UserBadge }[] = [];
 
@@ -131,7 +133,7 @@ export default {
                 res.push({cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))!});
             }
             return res;
-        }, true),
+        })
     },
     UserChatWithBadge: {
         badge: src => src.badge,
