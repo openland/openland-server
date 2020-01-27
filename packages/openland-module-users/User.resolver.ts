@@ -8,7 +8,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
-import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+// import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -31,9 +31,9 @@ export async function userRootFull(ctx: AppContext, uid: number) {
 
 export function withUser(handler: (ctx: AppContext, user: User) => any, needAuth: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
-        if (needAuth && !ctx.auth.uid) {
-            throw new AccessDeniedError();
-        }
+        // if (needAuth && !ctx.auth.uid) {
+        //     throw new AccessDeniedError();
+        // }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
             return handler(ctx, user);
@@ -50,9 +50,9 @@ export function withUser(handler: (ctx: AppContext, user: User) => any, needAuth
 
 export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any, needAuth: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
-        if (needAuth && !ctx.auth.uid) {
-            throw new AccessDeniedError();
-        }
+        // if (needAuth && !ctx.auth.uid) {
+        //     throw new AccessDeniedError();
+        // }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
             let profile = (await (Store.UserProfile.findById(ctx, src)))!;
