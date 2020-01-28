@@ -9,7 +9,7 @@ import { inTx } from '@openland/foundationdb';
 
 //
 //
-// 
+//
 //   /$$$$$$$   /$$$$$$        /$$   /$$  /$$$$$$  /$$$$$$$$       /$$$$$$$$ /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$
 //   | $$__  $$ /$$__  $$      | $$$ | $$ /$$__  $$|__  $$__/      |__  $$__//$$__  $$| $$  | $$ /$$__  $$| $$  | $$
 //   | $$  \ $$| $$  \ $$      | $$$$| $$| $$  \ $$   | $$            | $$  | $$  \ $$| $$  | $$| $$  \__/| $$  | $$
@@ -48,7 +48,6 @@ export function startEventsReaderWorker(mediator: PaymentMediator) {
         while (events.has_more) {
             let innerOffset = events.data[events.data.length - 1].id;
             events = await mediator.stripe.events.list({
-                ending_before: cursor,
                 starting_after: innerOffset,
                 limit: 100
             });
