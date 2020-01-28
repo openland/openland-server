@@ -1,6 +1,13 @@
 import { ChannelInvitation, ChannelLink, UserDialogSettings, Conversation, RoomProfile, RoomParticipant } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { withAccount, withUser, withPermission, withActivatedUser, withAny } from 'openland-module-api/Resolvers';
+import {
+    withAccount,
+    withUser,
+    withPermission,
+    withActivatedUser,
+    withAny,
+    withAuthFallback
+} from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
@@ -121,29 +128,50 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isPaid);
         }),
-        paidPassIsActive: withConverationId(async (ctx, id) => {
+        paidPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
             let pass = ctx.auth.uid && await Store.PaidChatUserPass.findById(ctx, id, ctx.auth.uid);
             return !!(pass && pass.isActive);
-        }),
-        paymentSettings: withConverationId(async (ctx, id) => {
+        }), false),
+        paymentSettings: withAuthFallback(withConverationId(async (ctx, id) => {
             let paidChatSettings = await Store.PaidChatSettings.findById(ctx, id);
             return paidChatSettings && { id, price: paidChatSettings.price, strategy: paidChatSettings.strategy === 'one-time' ? 'ONE_TIME' : 'SUBSCRIPTION' };
-        }),
-        canSendMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
+        }), null),
+        canSendMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))), false),
         title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'ph://1' : Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
         socialImage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
         organization: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.description)),
-        welcomeMessage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, id)),
+        welcomeMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, id)), null),
 
-        pinnedMessage: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))),
+        pinnedMessage: withAuthFallback(withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))), null),
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
-        role: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
+        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()), 'MEMBER'),
         membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
-        members: withConverationId(async (ctx, id, args, showPlaceholder) => {
+        onlineMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => {
+            if (showPlaceholder) {
+                return 0;
+            }
+            let onlineCount = 0;
+            let members = (await Modules.Messaging.room.findConversationMembers(ctx, id));
+            let membersOnline = await Promise.all(members.map(m => Store.Online.findById(ctx, m)));
+            for (let online of membersOnline) {
+                if (online && online.lastSeen > Date.now()) {
+                    onlineCount++;
+                }
+            }
+            return onlineCount;
+        }),
+        previewMembers: withConverationId(async (ctx, id, args, showPlaceholder) => {
+            if (showPlaceholder) {
+                return [];
+            }
+            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 5 })).items;
+            return members.map(m => m.uid);
+        }),
+        members: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
                 return [];
             }
@@ -156,21 +184,21 @@ export default {
             }
 
             return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
-        }),
-        requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
-        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
-        canEdit: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)),
-        archived: withConverationId(async (ctx, id, args) => {
+        }), []),
+        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)), []),
+        settings: withAuthFallback(async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), { cid: 0, mute: true }),
+        canEdit: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)), false),
+        archived: withAuthFallback(withConverationId(async (ctx, id, args) => {
             let conv = await Store.Conversation.findById(ctx, id);
             if (conv && conv.archived) {
                 return true;
             } else {
                 return false;
             }
-        }),
-        myBadge: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)),
-        featuredMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length),
-        matchmaking: withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')),
+        }), false),
+        myBadge: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)), null),
+        featuredMembersCount: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length), 0),
+        matchmaking: withAuthFallback(withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')), null),
     },
     RoomMessage: {
         id: (src: Message) => {

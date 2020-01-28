@@ -48,7 +48,9 @@ type SharedRoom {
     organization: Organization
 
     membersCount: Int!
+    onlineMembersCount: Int!
     featuredMembersCount: Int!
+    previewMembers: [User!]!
     members(first: Int, after: ID): [RoomMember!]!
     requests: [RoomMember!]
 

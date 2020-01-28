@@ -88,6 +88,16 @@ export function resolveUser<T extends { userId: number }>() {
     };
 }
 
+type BasicResolver<Root, Args, Res> = (root: Root, args: Args, ctx: AppContext) =>  MaybePromise<Res>;
+export function withAuthFallback<Root, Args, Res, Fallback>(resolver: BasicResolver<Root, Args, Res>, fallback: Res): BasicResolver<Root, Args, Res> {
+    return async function (src: Root, args: Args, ctx: AppContext) {
+        if (!ctx.auth.uid) {
+            return fallback;
+        }
+        return resolver(src, args, ctx);
+    };
+}
+
 type FieldHandler = (type: GraphQLObjectType, field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
 const defaultContext = createNamedContext('default-resolver');
 export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
