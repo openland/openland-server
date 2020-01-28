@@ -347,7 +347,7 @@ export class PaymentMediator {
     createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string, fromDeposit?: boolean) => {
         await this.enablePaymentsAndAwait(parent, fromUid);
 
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
 
             // Retry Handling
             let retry = await Store.WalletTransferRequest.findById(ctx, fromUid, toUid, retryKey);
@@ -356,6 +356,7 @@ export class PaymentMediator {
             }
             if (fromDeposit) {
                 await this.wallet.transferInstant(ctx, fromUid, toUid, amount, true);
+                return null;
             } else {
                 let pid = uuid();
                 await Store.WalletTransferRequest.create(ctx, fromUid, toUid, retryKey, { pid: pid });
@@ -364,7 +365,7 @@ export class PaymentMediator {
                 let txid = await this.wallet.transferAsync(ctx, fromUid, toUid, amount, pid);
 
                 // Payment
-                await this.paymentsAsync.createPayment(ctx, pid, fromUid, amount, {
+                return await this.paymentsAsync.createPayment(ctx, pid, fromUid, amount, {
                     type: 'transfer',
                     fromUid,
                     toUid,

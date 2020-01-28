@@ -125,36 +125,32 @@ export class RoomMediator {
         });
     }
 
-    async buyPaidChatPass(parent: Context, cid: number, uid: number, pmid: string) {
+    async buyPaidChatPass(parent: Context, cid: number, uid: number, pmid: string, retryKey: string) {
         return await inTx(parent, async (ctx) => {
             let chat = await Store.ConversationRoom.findById(ctx, cid);
             if (!chat || !chat.ownerId) {
                 throw new NotFoundError('Chat owner not found');
             }
-
             if (!chat.isPaid) {
-                throw new UserError('Chat is free to join');
+                throw new Error('Chat is free to join');
             }
             let paidChatSettings = await Store.PaidChatSettings.findById(ctx, chat.id);
             if (!paidChatSettings) {
                 throw new Error('Inconsistent state - chat is paid, but no payment settings found');
             }
             if (paidChatSettings.strategy !== 'one-time') {
-                throw new Error('Unexpected payment strategy - probably you are calling wrong mutation');
+                throw new Error('Unexpected payment strategy');
             }
-            // let tx: Transaction;
-            // if (pmid === 'openland') {
-            //     tx = await Modules.Billing.stripeMediator.transfer(ctx, uid, chat.ownerId, paidChatSettings.price);
-            // } else {
-            //     // TODO: create payment(deposit?) intent in case of card
-            //     throw new Error('currently openland depsit only');
-            // }
-
-            // let activate = tx.status === 'processed' || tx.status === 'pending';
-            // if (tx.status === 'pending') {
-            //     // TODO: add worker for failure check
-            // }
-            // await this.alterPaidChatUserPass(ctx, cid, uid, activate);
+            let userPass = await Store.PaidChatUserPass.findById(ctx, chat.id, uid);
+            if (userPass && userPass.isActive) {
+                // nothing to do, user already have access
+                return;
+            }
+            let payment = await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, chat.ownerId, paidChatSettings.price, retryKey, pmid === 'openland');
+            if (payment) {
+                // TODO: add worker for failure check
+            }
+            await this.alterPaidChatUserPass(ctx, cid, uid, true);
         });
     }
 

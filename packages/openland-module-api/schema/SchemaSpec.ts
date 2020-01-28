@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8b96a8362cf93bc4b8cf7350757ce651';
+export const GQL_SPEC_VERSION = 'd313cf28ada56cccd8788759cbe98191';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2356,6 +2356,7 @@ export namespace GQL {
     export interface MutationBetaBuyPaidChatPassArgs {
         chatId: string;
         paymentMethodId: string;
+        retryKey: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
         roomId: string;
