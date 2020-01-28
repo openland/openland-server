@@ -5,12 +5,25 @@ import { PaymentMediator } from './../mediators/PaymentMediator';
 import { inTx } from '@openland/foundationdb';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
-const log = createLogger('payments-scheduler');
+//
+//
+// 
+//   /$$$$$$$   /$$$$$$        /$$   /$$  /$$$$$$  /$$$$$$$$       /$$$$$$$$ /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$
+//   | $$__  $$ /$$__  $$      | $$$ | $$ /$$__  $$|__  $$__/      |__  $$__//$$__  $$| $$  | $$ /$$__  $$| $$  | $$
+//   | $$  \ $$| $$  \ $$      | $$$$| $$| $$  \ $$   | $$            | $$  | $$  \ $$| $$  | $$| $$  \__/| $$  | $$
+//   | $$  | $$| $$  | $$      | $$ $$ $$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$      | $$$$$$$$
+//   | $$  | $$| $$  | $$      | $$  $$$$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$      | $$__  $$
+//   | $$  | $$| $$  | $$      | $$\  $$$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$    $$| $$  | $$
+//   | $$$$$$$/|  $$$$$$/      | $$ \  $$|  $$$$$$/   | $$            | $$  |  $$$$$$/|  $$$$$$/|  $$$$$$/| $$  | $$
+//  |_______/  \______/       |__/  \__/ \______/    |__/            |__/   \______/  \______/  \______/ |__/  |__/
+//
+//
+//
 
 export function startPaymentScheduler(mediator: PaymentMediator) {
-
+    const log = createLogger('payments-scheduler');
+    
     let queue = new WorkQueue<{ uid: number, pid: string, attempt: number }, { result: string }>('payment-executor-task', -1);
-
     queue.addWorker(async (item, parent) => {
         await inTx(parent, async (ctx) => {
             log.debug(parent, 'Executing: ' + item.pid);
@@ -34,7 +47,7 @@ export function startPaymentScheduler(mediator: PaymentMediator) {
     });
 
     singletonWorker({ db: Store.storage.db, name: 'payment-scheduler', delay: 1000 }, async (parent) => {
-        let pending = await mediator.paymentsAsync.findAllPending(parent);
+        let pending = await Store.Payment.pending.findAll(parent); // TODO: Optimize
 
         log.debug(parent, 'Payments: ' + pending.length);
 

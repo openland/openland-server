@@ -5,9 +5,25 @@ import { updateReader } from '../../openland-module-workers/updateReader';
 import { PaymentMediator } from '../mediators/PaymentMediator';
 import { inTx } from '@openland/foundationdb';
 
-const log = createLogger('commiter');
+//
+//
+// 
+//   /$$$$$$$   /$$$$$$        /$$   /$$  /$$$$$$  /$$$$$$$$       /$$$$$$$$ /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$
+//   | $$__  $$ /$$__  $$      | $$$ | $$ /$$__  $$|__  $$__/      |__  $$__//$$__  $$| $$  | $$ /$$__  $$| $$  | $$
+//   | $$  \ $$| $$  \ $$      | $$$$| $$| $$  \ $$   | $$            | $$  | $$  \ $$| $$  | $$| $$  \__/| $$  | $$
+//   | $$  | $$| $$  | $$      | $$ $$ $$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$      | $$$$$$$$
+//   | $$  | $$| $$  | $$      | $$  $$$$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$      | $$__  $$
+//   | $$  | $$| $$  | $$      | $$\  $$$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$    $$| $$  | $$
+//   | $$$$$$$/|  $$$$$$/      | $$ \  $$|  $$$$$$/   | $$            | $$  |  $$$$$$/|  $$$$$$/|  $$$$$$/| $$  | $$
+//  |_______/  \______/       |__/  \__/ \______/    |__/            |__/   \______/  \______/  \______/ |__/  |__/
+//
+//
+//
 
 export function startPaymentIntentCommiter(mediator: PaymentMediator) {
+    
+    const log = createLogger('commiter');
+    
     updateReader('stripe-payment-intent-' + (mediator.liveMode ? 'live' : 'test'), 1, Store.StripeEventStore.createStream(mediator.liveMode, { batchSize: 10 }), async (items, first, parent) => {
         for (let i of items) {
             let e = (i as StripeEventCreated);

@@ -5,10 +5,25 @@ import { inTx } from '@openland/foundationdb';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createLogger } from '@openland/log';
 
-const log = createLogger('subscriptions-scheduler');
+//
+//
+// 
+//   /$$$$$$$   /$$$$$$        /$$   /$$  /$$$$$$  /$$$$$$$$       /$$$$$$$$ /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$
+//   | $$__  $$ /$$__  $$      | $$$ | $$ /$$__  $$|__  $$__/      |__  $$__//$$__  $$| $$  | $$ /$$__  $$| $$  | $$
+//   | $$  \ $$| $$  \ $$      | $$$$| $$| $$  \ $$   | $$            | $$  | $$  \ $$| $$  | $$| $$  \__/| $$  | $$
+//   | $$  | $$| $$  | $$      | $$ $$ $$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$      | $$$$$$$$
+//   | $$  | $$| $$  | $$      | $$  $$$$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$      | $$__  $$
+//   | $$  | $$| $$  | $$      | $$\  $$$| $$  | $$   | $$            | $$  | $$  | $$| $$  | $$| $$    $$| $$  | $$
+//   | $$$$$$$/|  $$$$$$/      | $$ \  $$|  $$$$$$/   | $$            | $$  |  $$$$$$/|  $$$$$$/|  $$$$$$/| $$  | $$
+//  |_______/  \______/       |__/  \__/ \______/    |__/            |__/   \______/  \______/  \______/ |__/  |__/
+//
+//
+//
 
 export function startSubscriptionsScheduler(mediator: SubscriptionsMediator) {
-
+    
+    const log = createLogger('subscriptions-scheduler');
+    
     let queue = new WorkQueue<{ pid: string, uid: number }, { result: string }>('subscription-cancel-task', -1);
     queue.addWorker(async (item, ctx) => {
         await mediator.payments.tryCancelPaymentIntent(ctx, item.uid, item.pid);

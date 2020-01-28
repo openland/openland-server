@@ -19,6 +19,22 @@ export class PaymentsAsyncRepository {
     }
 
     createPayment = async (parent: Context, pid: string, uid: number, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+
+        // Input Validation
+        if (operation.type === 'deposit') {
+            if (!operation.txid) {
+                throw Error('txid is required for async deposits');
+            }
+            if (operation.uid !== uid) {
+                throw Error('uid mismatch');
+            }
+        } else if (operation.type === 'subscription') {
+            if (operation.uid !== uid) {
+                throw Error('uid mismatch');
+            }
+        }
+
+        // Create Payment
         return await inTx(parent, async (ctx) => {
             return await this.store.Payment.create(ctx, pid, {
                 uid: uid,
@@ -27,10 +43,6 @@ export class PaymentsAsyncRepository {
                 operation: operation
             });
         });
-    }
-
-    findAllPending = async (parent: Context) => {
-        return await this.store.Payment.pending.findAll(parent);
     }
 
     //

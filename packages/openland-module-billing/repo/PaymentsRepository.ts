@@ -4,6 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
 import Stripe from 'stripe';
+import { checkMoney } from './utils/checkMoney';
 
 const log = createLogger('payment-intent');
 
@@ -161,9 +162,7 @@ export class PaymentsRepository {
     //
 
     registerPaymentIntent = async (parent: Context, id: string, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
-        if (amount <= 0) {
-            throw Error('amount must be positive integer');
-        }
+        checkMoney(amount);
         return await inTx(parent, async (ctx) => {
             log.debug(ctx, '[' + id + ']: pending');
             return await this.store.PaymentIntent.create(ctx, id, {

@@ -129,7 +129,7 @@ export class PaymentMediator {
             // Customer Record
             let customer = await Store.UserStripeCustomer.findById(ctx, uid);
             if (!customer) {
-                await this.payments.enablePayments(parent, uid);
+                await this.payments.enablePayments(ctx, uid);
                 await this.createCustomerQueue.pushWork(ctx, { uid });
                 return false;
             }
@@ -206,6 +206,11 @@ export class PaymentMediator {
 
     syncCard = async (parent: Context, uid: number, pmid: string) => {
         await this.enablePaymentsAndAwait(parent, uid);
+
+        //
+        // Do not change order! Detach operation expects card to 
+        // be attached first!
+        //
         await this.attachCardIfNeeded(parent, uid, pmid);
         await this.detachCardIfNeeded(parent, uid, pmid);
     }
@@ -422,6 +427,8 @@ export class PaymentMediator {
             let cards = await Store.UserStripeCard.findAll(ctx);
             let dcard = cards.find((v) => v.default);
             if (!dcard) {
+                // Notify about failing to charge
+                await this.paymentsAsync.handlePaymentFailing(parent, payment.id);
                 throw Error('Unable to find default card');
             }
             return dcard;
@@ -520,6 +527,7 @@ export class PaymentMediator {
             }
 
             if (!res.piid) {
+                await this.paymentsAsync.handlePaymentIntentCanceled(ctx, pid);
                 res.state = 'canceled';
                 return true;
             }
@@ -535,11 +543,15 @@ export class PaymentMediator {
             while (true) {
                 let intentState = await this.stripe.paymentIntents.retrieve(piid);
                 if (intentState.status === 'canceled') {
-                    await this.paymentsAsync.handlePaymentIntentCanceled(parent, pid);
+                    await inTx(parent, async (ctx) => {
+                        await this.paymentsAsync.handlePaymentIntentCanceled(ctx, pid);
+                    });
                     return true;
                 }
                 if (intentState.status === 'succeeded') {
-                    await this.paymentsAsync.handlePaymentIntentSuccess(parent, pid);
+                    await inTx(parent, async (ctx) => {
+                        await this.paymentsAsync.handlePaymentIntentSuccess(ctx, pid);
+                    });
                     return false;
                 }
 
