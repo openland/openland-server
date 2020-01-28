@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ae8034ad60bd4e18f3cb7e34d01c38d7';
+export const GQL_SPEC_VERSION = 'd313cf28ada56cccd8788759cbe98191';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2356,6 +2356,7 @@ export namespace GQL {
     export interface MutationBetaBuyPaidChatPassArgs {
         chatId: string;
         paymentMethodId: string;
+        retryKey: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
         roomId: string;
@@ -3731,9 +3732,7 @@ export namespace GQL {
         welcomeMessage: Nullable<WelcomeMessage>;
         organization: Nullable<Organization>;
         membersCount: number;
-        onlineMembersCount: number;
         featuredMembersCount: number;
-        previewMembers: User[];
         members: RoomMember[];
         requests: Nullable<RoomMember[]>;
         membership: SharedRoomMembershipStatus;
@@ -6811,7 +6810,6 @@ export interface GQLResolver {
             pinnedMessage: Nullable<GQLRoots.ModernMessageRoot>,
             welcomeMessage: Nullable<GQLRoots.WelcomeMessageRoot>,
             organization: Nullable<GQLRoots.OrganizationRoot>,
-            previewMembers: GQLRoots.UserRoot[],
             members: GQLRoots.RoomMemberRoot[],
             requests: Nullable<GQLRoots.RoomMemberRoot[]>,
             settings: GQLRoots.RoomUserNotificaionSettingsRoot,

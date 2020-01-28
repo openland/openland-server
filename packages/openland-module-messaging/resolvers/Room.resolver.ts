@@ -634,7 +634,7 @@ export default {
         }),
         betaBuyPaidChatPass: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
-                await Modules.Messaging.room.buyPaidChatPass(ctx, IDs.Conversation.parse(args.chatId), uid, args.paymentMethodId);
+                await Modules.Messaging.room.buyPaidChatPass(ctx, IDs.Conversation.parse(args.chatId), uid, args.paymentMethodId, args.retryKey);
                 return true;
             });
         }),

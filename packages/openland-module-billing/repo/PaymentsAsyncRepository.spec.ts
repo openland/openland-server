@@ -21,7 +21,7 @@ describe('PaymentsAsyncRepository', () => {
         expect(payment.uid).toBe(1);
         expect(payment.amount).toBe(100);
         expect(payment.operation.type).toBe('deposit');
-        expect(payment.operation.uid).toBe(1);
+        expect(payment.operation.type === 'deposit' && payment.operation.uid).toBe(1);
         expect((payment.operation as any).txid).toBe('txid');
 
         // Double creation

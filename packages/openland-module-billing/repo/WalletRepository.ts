@@ -321,4 +321,188 @@ export class WalletRepository {
             this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionCanceled.create({ id: txid }));
         });
     }
+
+    //
+    // Transfers
+    //
+
+    transferInstant = async (parent: Context, fromUid: number, toUid: number, amount: number, fromBalance?: boolean) => {
+        checkMoney(amount);
+
+        await inTx(parent, async (ctx) => {
+
+            // Update Wallet
+
+            let fromWallet = await this.getWallet(ctx, fromUid);
+            let wallet = await this.getWallet(ctx, toUid);
+            if (fromBalance) {
+                if (fromWallet.balance < amount) {
+                    throw new Error('Insufficient funds');
+                }
+                fromWallet.balance -= amount;
+            }
+            wallet.balance += amount;
+
+            // Create Transaction
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: fromUid,
+                status: 'success',
+                operation: {
+                    type: 'transfer',
+                    toUser: toUid,
+                    amount,
+                    payment: null
+                }
+            });
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, fromUid, WalletTransactionSuccess.create({ id: txid }));
+            if (fromBalance) {
+                this.store.UserWalletUpdates.post(ctx, fromUid, WalletBalanceChanged.create({ amount: fromWallet.balance }));
+            }
+            this.store.UserWalletUpdates.post(ctx, toUid, WalletTransactionSuccess.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, toUid, WalletBalanceChanged.create({ amount: wallet.balance }));
+        });
+    }
+
+    transferAsync = async (parent: Context, fromUid: number, toUid: number, amount: number, pid: string) => {
+        checkMoney(amount);
+
+        return await inTx(parent, async (ctx) => {
+
+            // Create Transaction
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: fromUid,
+                status: 'pending',
+                operation: {
+                    type: 'transfer',
+                    toUser: toUid,
+                    amount,
+                    payment: pid
+                }
+            });
+
+            // Write events           
+            this.store.UserWalletUpdates.post(ctx, fromUid, WalletTransactionPending.create({ id: txid }));
+
+            return txid;
+        });
+    }
+
+    transferAsyncCommit = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'transfer') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+            if (!tx.operation.payment) {
+                throw Error('Transaction doesnt have payment reference');
+            }
+
+            // Update tx status
+            tx.status = 'success';
+
+            // Update Wallet
+            let wallet = await this.getWallet(ctx, tx.operation.toUser);
+            wallet.balance += tx.operation.amount;
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, tx.operation.toUser, WalletTransactionSuccess.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, tx.operation.toUser, WalletBalanceChanged.create({ amount: wallet.balance }));
+        });
+    }
+
+    transferAsyncCancel = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'transfer') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+            if (!tx.operation.payment) {
+                throw Error('Transaction doesnt have payment reference');
+            }
+
+            // Update tx status
+            tx.status = 'canceled';
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionCanceled.create({ id: txid }));
+        });
+    }
+
+    transferAsyncFailing = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'transfer') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+            if (!tx.operation.payment) {
+                throw Error('Transaction doesnt have payment reference');
+            }
+
+            // Write event
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: tx.operation.payment! }));
+        });
+    }
+    transferAsyncActionNeeded = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'transfer') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+            if (!tx.operation.payment) {
+                throw Error('Transaction doesnt have payment reference');
+            }
+
+            // Write event
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: tx.operation.payment! }));
+        });
+    }
 }

@@ -219,7 +219,7 @@ extend type Mutation {
     betaRoomJoin(roomId: ID!): Room!
     betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
-    betaBuyPaidChatPass(chatId: ID!, paymentMethodId: String!): Boolean!
+    betaBuyPaidChatPass(chatId: ID!, paymentMethodId: String!, retryKey: String!): Boolean!
 
     # Invite links
     betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!
