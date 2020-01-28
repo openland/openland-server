@@ -73,15 +73,22 @@ type WalletTransactionDeposit {
 
 type WalletTransactionSubscription {
     amount: Int!
-    payment: Payment!
-}
-
-type WalletTransactionTransfer {
-    amount: Int!
     payment: Payment
 }
 
-union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransfer
+type WalletTransactionTransferOut {
+    walletAmount: Int!
+    chargeAmount: Int!
+    payment: Payment
+    toUser: User!
+}
+
+type WalletTransactionTransferIn {
+    amount: Int!
+    fromUser: User!
+}
+
+union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn
 
 type WalletTransactionConnection {
     items: [WalletTransaction!]!

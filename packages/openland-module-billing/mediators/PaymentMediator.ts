@@ -10,6 +10,7 @@ import Stripe from 'stripe';
 import { WalletRepository } from 'openland-module-billing/repo/WalletRepository';
 import { PaymentsAsyncRepository } from 'openland-module-billing/repo/PaymentsAsyncRepository';
 import { backoff } from 'openland-utils/timer';
+import { paymentAmounts } from 'openland-module-billing/repo/utils/paymentAmounts';
 
 const log = createLogger('payments');
 
@@ -321,7 +322,7 @@ export class PaymentMediator {
             // Retry Handling
             let retry = await Store.WalletDepositRequest.findById(ctx, uid, retryKey);
             if (retry) {
-                return await Store.Payment.findById(ctx, retry.pid);
+                return;
             }
             let pid = uuid();
             await Store.WalletDepositRequest.create(ctx, uid, retryKey, { pid: pid });
@@ -330,13 +331,11 @@ export class PaymentMediator {
             let txid = await this.wallet.depositAsync(ctx, uid, amount, pid);
 
             // Payment
-            let res = await this.paymentsAsync.createPayment(ctx, pid, uid, amount, {
+            await this.paymentsAsync.createPayment(ctx, pid, uid, amount, {
                 type: 'deposit',
                 uid: uid,
                 txid: txid
             });
-
-            return res;
         });
     }
 
@@ -344,32 +343,41 @@ export class PaymentMediator {
     // Create off-session transfer payment
     //
 
-    createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string, fromDeposit?: boolean) => {
+    createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string) => {
         await this.enablePaymentsAndAwait(parent, fromUid);
 
-        return await inTx(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
 
             // Retry Handling
             let retry = await Store.WalletTransferRequest.findById(ctx, fromUid, toUid, retryKey);
             if (retry) {
-                await Store.Payment.findById(ctx, retry.pid);
+                return;
             }
-            if (fromDeposit) {
-                await this.wallet.transferInstant(ctx, fromUid, toUid, amount, true);
-                return null;
+
+            let walletBalance = (await this.wallet.getWallet(ctx, fromUid)).balance;
+
+            let amounts = paymentAmounts(walletBalance, amount);
+
+            if (amounts.charge === 0) {
+                // Retry
+                await Store.WalletTransferRequest.create(ctx, fromUid, toUid, retryKey, { pid: null });
+                // Wallet transfer
+                await this.wallet.transferBalance(ctx, fromUid, toUid, amount);
             } else {
+                // Retry
                 let pid = uuid();
                 await Store.WalletTransferRequest.create(ctx, fromUid, toUid, retryKey, { pid: pid });
 
-                // Wallet Transaction
-                let txid = await this.wallet.transferAsync(ctx, fromUid, toUid, amount, pid);
+                // Transaction
+                let { txOut, txIn } = await this.wallet.transferAsync(ctx, fromUid, toUid, amounts.wallet, amounts.charge, pid);
 
                 // Payment
-                return await this.paymentsAsync.createPayment(ctx, pid, fromUid, amount, {
+                await this.paymentsAsync.createPayment(ctx, pid, fromUid, amount, {
                     type: 'transfer',
                     fromUid,
+                    fromTx: txOut,
                     toUid,
-                    txid: txid
+                    toTx: txIn
                 });
             }
         });

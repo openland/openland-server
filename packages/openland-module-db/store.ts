@@ -13567,13 +13567,13 @@ export interface WalletTransactionShape {
     id: string;
     uid: number;
     status: 'pending' | 'canceling' | 'canceled' | 'success';
-    operation: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer', amount: number, toUser: number, payment: string | null };
+    operation: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number };
 }
 
 export interface WalletTransactionCreateShape {
     uid: number;
     status: 'pending' | 'canceling' | 'canceled' | 'success';
-    operation: { type: 'deposit', amount: number, payment: string | null | undefined } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer', amount: number, toUser: number, payment: string | null | undefined };
+    operation: { type: 'deposit', amount: number, payment: string | null | undefined } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number };
 }
 
 export class WalletTransaction extends Entity<WalletTransactionShape> {
@@ -13596,8 +13596,8 @@ export class WalletTransaction extends Entity<WalletTransactionShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer', amount: number, toUser: number, payment: string | null } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer', amount: number, toUser: number, payment: string | null }) {
+    get operation(): { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -13619,12 +13619,12 @@ export class WalletTransactionFactory extends EntityFactory<WalletTransactionSha
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'canceling', 'canceled', 'success'] }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { amount: { type: 'integer' }, payment: { type: 'optional', inner: { type: 'string' } } }, subscription: { chargeAmount: { type: 'integer' }, walletAmount: { type: 'integer' }, subscription: { type: 'string' }, index: { type: 'integer' } }, transfer: { amount: { type: 'integer' }, toUser: { type: 'integer' }, payment: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { amount: { type: 'integer' }, payment: { type: 'optional', inner: { type: 'string' } } }, subscription: { chargeAmount: { type: 'integer' }, walletAmount: { type: 'integer' }, subscription: { type: 'string' }, index: { type: 'integer' } }, transfer_out: { walletAmount: { type: 'integer' }, chargeAmount: { type: 'integer' }, toUser: { type: 'integer' }, payment: { type: 'union', types: { payment: { id: { type: 'string' } }, paymentIntent: { id: { type: 'string' } }, balance: {  } } } }, transfer_in: { amount: { type: 'integer' }, fromUser: { type: 'integer' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             status: c.enum('pending', 'canceling', 'canceled', 'success'),
-            operation: c.union({ deposit: c.struct({ amount: c.integer, payment: c.optional(c.string) }), subscription: c.struct({ chargeAmount: c.integer, walletAmount: c.integer, subscription: c.string, index: c.integer }), transfer: c.struct({ amount: c.integer, toUser: c.integer, payment: c.optional(c.string) }) }),
+            operation: c.union({ deposit: c.struct({ amount: c.integer, payment: c.optional(c.string) }), subscription: c.struct({ chargeAmount: c.integer, walletAmount: c.integer, subscription: c.string, index: c.integer }), transfer_out: c.struct({ walletAmount: c.integer, chargeAmount: c.integer, toUser: c.integer, payment: c.union({ payment: c.struct({ id: c.string }), paymentIntent: c.struct({ id: c.string }), balance: c.struct({  }) }) }), transfer_in: c.struct({ amount: c.integer, fromUser: c.integer }) }),
         });
         let descriptor: EntityDescriptor<WalletTransactionShape> = {
             name: 'WalletTransaction',
@@ -13765,19 +13765,19 @@ export interface WalletTransferRequestShape {
     fromUid: number;
     toUid: number;
     retryKey: string;
-    pid: string;
+    pid: string | null;
 }
 
 export interface WalletTransferRequestCreateShape {
-    pid: string;
+    pid?: string | null | undefined;
 }
 
 export class WalletTransferRequest extends Entity<WalletTransferRequestShape> {
     get fromUid(): number { return this._rawValue.fromUid; }
     get toUid(): number { return this._rawValue.toUid; }
     get retryKey(): string { return this._rawValue.retryKey; }
-    get pid(): string { return this._rawValue.pid; }
-    set pid(value: string) {
+    get pid(): string | null { return this._rawValue.pid; }
+    set pid(value: string | null) {
         let normalized = this.descriptor.codec.fields.pid.normalize(value);
         if (this._rawValue.pid !== normalized) {
             this._rawValue.pid = normalized;
@@ -13797,12 +13797,12 @@ export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRe
         primaryKeys.push({ name: 'toUid', type: 'integer' });
         primaryKeys.push({ name: 'retryKey', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'pid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             fromUid: c.integer,
             toUid: c.integer,
             retryKey: c.string,
-            pid: c.string,
+            pid: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<WalletTransferRequestShape> = {
             name: 'WalletTransferRequest',
@@ -14157,14 +14157,14 @@ export interface PaymentIntentShape {
     state: 'pending' | 'success' | 'canceled';
     pid: string | null;
     amount: number;
-    operation: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null };
+    operation: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string };
 }
 
 export interface PaymentIntentCreateShape {
     state: 'pending' | 'success' | 'canceled';
     pid?: string | null | undefined;
     amount: number;
-    operation: { type: 'deposit', uid: number, txid: string | null | undefined } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null | undefined };
+    operation: { type: 'deposit', uid: number, txid: string | null | undefined } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string };
 }
 
 export class PaymentIntent extends Entity<PaymentIntentShape> {
@@ -14196,8 +14196,8 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null }) {
+    get operation(): { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -14218,13 +14218,13 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
         fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' }, txid: { type: 'string' } }, transfer: { fromUid: { type: 'integer' }, toUid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' }, txid: { type: 'string' } }, transfer: { fromUid: { type: 'integer' }, fromTx: { type: 'string' }, toUid: { type: 'integer' }, toTx: { type: 'string' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             state: c.enum('pending', 'success', 'canceled'),
             pid: c.optional(c.string),
             amount: c.integer,
-            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer, txid: c.string }), transfer: c.struct({ fromUid: c.integer, toUid: c.integer, txid: c.optional(c.string) }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer, txid: c.string }), transfer: c.struct({ fromUid: c.integer, fromTx: c.string, toUid: c.integer, toTx: c.string }) }),
         });
         let descriptor: EntityDescriptor<PaymentIntentShape> = {
             name: 'PaymentIntent',
@@ -14264,7 +14264,7 @@ export interface PaymentShape {
     uid: number;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null };
+    operation: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string };
     piid: string | null;
 }
 
@@ -14272,7 +14272,7 @@ export interface PaymentCreateShape {
     uid: number;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number, txid: string | null | undefined } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null | undefined };
+    operation: { type: 'deposit', uid: number, txid: string | null | undefined } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string };
     piid?: string | null | undefined;
 }
 
@@ -14305,8 +14305,8 @@ export class Payment extends Entity<PaymentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, toUid: number, txid: string | null }) {
+    get operation(): { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -14338,14 +14338,14 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' }, txid: { type: 'string' } }, transfer: { fromUid: { type: 'integer' }, toUid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' }, txid: { type: 'string' } }, transfer: { fromUid: { type: 'integer' }, fromTx: { type: 'string' }, toUid: { type: 'integer' }, toTx: { type: 'string' } } } }, secure: false });
         fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             amount: c.integer,
             state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
-            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer, txid: c.string }), transfer: c.struct({ fromUid: c.integer, toUid: c.integer, txid: c.optional(c.string) }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer, txid: c.string }), transfer: c.struct({ fromUid: c.integer, fromTx: c.string, toUid: c.integer, toTx: c.string }) }),
             piid: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<PaymentShape> = {

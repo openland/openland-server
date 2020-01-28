@@ -479,7 +479,8 @@ export namespace GQLRoots {
     export type WalletTransactionOperationRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionDepositRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionSubscriptionRoot = WalletTransactionCreateShape['operation'];
-    export type WalletTransactionTransferRoot = WalletTransactionCreateShape['operation'];
+    export type WalletTransactionTransferInRoot = WalletTransactionCreateShape['operation'];
+    export type WalletTransactionTransferOutRoot = WalletTransactionCreateShape['operation'];
     export type WalletUpdateContainerRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateBatchRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateSingleRoot = LiveStreamItem<BaseEvent>;

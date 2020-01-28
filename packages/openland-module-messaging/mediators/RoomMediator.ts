@@ -146,10 +146,7 @@ export class RoomMediator {
                 // nothing to do, user already have access
                 return;
             }
-            let payment = await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, chat.ownerId, paidChatSettings.price, retryKey, pmid === 'openland');
-            if (payment) {
-                // TODO: add worker for failure check
-            }
+            await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, chat.ownerId, paidChatSettings.price, retryKey);
             await this.alterPaidChatUserPass(ctx, cid, uid, true);
         });
     }

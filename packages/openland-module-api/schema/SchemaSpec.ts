@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cc1e0b4a9b24a929b74b624b1a61873a';
+export const GQL_SPEC_VERSION = '9707b4559657b3430565df720e8cfd65';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -362,13 +362,19 @@ export namespace GQL {
     }
     export interface WalletTransactionSubscription {
         amount: number;
-        payment: Payment;
-    }
-    export interface WalletTransactionTransfer {
-        amount: number;
         payment: Nullable<Payment>;
     }
-    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransfer;
+    export interface WalletTransactionTransferOut {
+        walletAmount: number;
+        chargeAmount: number;
+        payment: Nullable<Payment>;
+        toUser: User;
+    }
+    export interface WalletTransactionTransferIn {
+        amount: number;
+        fromUser: User;
+    }
+    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn;
     export interface WalletTransactionConnection {
         items: WalletTransaction[];
         cursor: Nullable<string>;
@@ -4252,21 +4258,31 @@ export interface GQLResolver {
         GQL.WalletTransactionSubscription,
         GQLRoots.WalletTransactionSubscriptionRoot,
         {
-            payment: GQLRoots.PaymentRoot,
-        },
-        {
-        }
-    >;
-    WalletTransactionTransfer?: ComplexTypedResolver<
-        GQL.WalletTransactionTransfer,
-        GQLRoots.WalletTransactionTransferRoot,
-        {
             payment: Nullable<GQLRoots.PaymentRoot>,
         },
         {
         }
     >;
-    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription' | 'WalletTransactionTransfer'>;
+    WalletTransactionTransferOut?: ComplexTypedResolver<
+        GQL.WalletTransactionTransferOut,
+        GQLRoots.WalletTransactionTransferOutRoot,
+        {
+            payment: Nullable<GQLRoots.PaymentRoot>,
+            toUser: GQLRoots.UserRoot,
+        },
+        {
+        }
+    >;
+    WalletTransactionTransferIn?: ComplexTypedResolver<
+        GQL.WalletTransactionTransferIn,
+        GQLRoots.WalletTransactionTransferInRoot,
+        {
+            fromUser: GQLRoots.UserRoot,
+        },
+        {
+        }
+    >;
+    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription' | 'WalletTransactionTransferOut' | 'WalletTransactionTransferIn'>;
     WalletTransactionConnection?: ComplexTypedResolver<
         GQL.WalletTransactionConnection,
         GQLRoots.WalletTransactionConnectionRoot,

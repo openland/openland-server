@@ -6,6 +6,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged } from 'openland-module-db/store';
+import { randomKey } from 'openland-utils/random';
 
 export default {
     CreditCard: {
@@ -61,8 +62,10 @@ export default {
                 return 'WalletTransactionDeposit';
             } else if (src.type === 'subscription') {
                 return 'WalletTransactionSubscription';
-            } else if (src.type === 'transfer') {
-                return 'WalletTransactionTransfer';
+            } else if (src.type === 'transfer_out') {
+                return 'WalletTransactionTransferOut';
+            } else if (src.type === 'transfer_in') {
+                return 'WalletTransactionTransferIn';
             }
 
             throw Error('Unknown operation type: ' + (src as any /* Fuck you, ts */).type);
@@ -81,9 +84,17 @@ export default {
             return Store.Payment.findById(ctx, period.pid);
         }
     },
-    WalletTransactionTransfer: {
+    WalletTransactionTransferIn: {
         amount: (src) => (src as any).amount,
-        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!)
+        fromUser: (src) => (src as any).fromUser
+    },
+    WalletTransactionTransferOut: {
+        walletAmount: (src) => (src as any).walletAmount,
+        chargeAmount: (src) => { 
+            return (src as any).chargeAmount;
+        },
+        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!.id),
+        toUser: (src) => (src as any).toUser
     },
 
     Payment: {
@@ -187,10 +198,11 @@ export default {
         //
 
         donateToUser: withAccount(async (ctx, args, uid) => {
-            await Modules.Billing.createSubscription(ctx, uid, args.amount, 'week', {
-                type: 'donate',
-                uid: IDs.User.parse(args.id)
-            });
+            // await Modules.Billing.createSubscription(ctx, uid, args.amount, 'week', {
+            //     type: 'donate',
+            //     uid: IDs.User.parse(args.id)
+            // });
+            await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
             return true;
         }),
     },

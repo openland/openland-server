@@ -1686,6 +1686,12 @@ export default declareSchema(() => {
     // Payments: Wallet
     //
 
+    const PaymentReference = union({
+        payment: struct({ id: string() }),
+        paymentIntent: struct({ id: string() }),
+        balance: struct({})
+    });
+
     entity('Wallet', () => {
         primaryKey('uid', integer());
         field('balance', integer());
@@ -1707,10 +1713,15 @@ export default declareSchema(() => {
                 subscription: string(),
                 index: integer()
             }),
-            'transfer': struct({
-                amount: integer(),
+            'transfer_out': struct({
+                walletAmount: integer(),
+                chargeAmount: integer(),
                 toUser: integer(),
-                payment: optional(string())
+                payment: PaymentReference
+            }),
+            'transfer_in': struct({
+                amount: integer(),
+                fromUser: integer()
             })
         }));
 
@@ -1728,7 +1739,7 @@ export default declareSchema(() => {
         primaryKey('fromUid', integer());
         primaryKey('toUid', integer());
         primaryKey('retryKey', string());
-        field('pid', string());
+        field('pid', optional(string()));
     });
 
     entity('WalletSubscription', () => {
@@ -1781,8 +1792,9 @@ export default declareSchema(() => {
         }),
         'transfer': struct({
             fromUid: integer(),
+            fromTx: string(),
             toUid: integer(),
-            txid: optional(string())
+            toTx: string(),
         }),
     });
 

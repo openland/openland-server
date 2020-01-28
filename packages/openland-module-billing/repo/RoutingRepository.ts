@@ -36,12 +36,7 @@ export class RoutingRepositoryImpl {
             await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period);
 
         } else if (operation.type === 'transfer') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Confirm existing transaction
-            await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.txid);
+            await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
         } else {
             throw Error('Unknown operation type');
         }
@@ -64,12 +59,7 @@ export class RoutingRepositoryImpl {
             await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
 
         } else if (operation.type === 'transfer') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Change payment status
-            await this.wallet.transferAsyncFailing(ctx, operation.fromUid, operation.txid);
+            await this.wallet.transferAsyncFailing(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
         } else {
             throw Error('Unknown operation type');
         }
@@ -91,12 +81,7 @@ export class RoutingRepositoryImpl {
             // Update subscription
             await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
         } else if (operation.type === 'transfer') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Change payment status
-            await this.wallet.transferAsyncActionNeeded(ctx, operation.fromUid, operation.txid);
+            await this.wallet.transferAsyncActionNeeded(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
         } else {
             throw Error('Unknown operation type');
         }
@@ -118,12 +103,7 @@ export class RoutingRepositoryImpl {
             // Update subscription
             await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period);
         } else if (operation.type === 'transfer') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Confirm existing transaction
-            await this.wallet.transferAsyncCancel(ctx, operation.fromUid, operation.txid);
+            await this.wallet.transferAsyncCancel(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
         } else {
             throw Error('Unknown operation type');
         }
@@ -136,8 +116,6 @@ export class RoutingRepositoryImpl {
     routeSuccessfulPaymentIntent = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositInstant(ctx, operation.uid, amount);
-        } else if (operation.type === 'transfer') {
-            await this.wallet.transferInstant(ctx, operation.fromUid, operation.toUid, amount);
         } else {
             throw Error('Unknown operation type');
         }
