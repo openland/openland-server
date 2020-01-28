@@ -1706,6 +1706,11 @@ export default declareSchema(() => {
                 walletAmount: integer(),
                 subscription: string(),
                 index: integer()
+            }),
+            'transfer': struct({
+                amount: integer(),
+                toUser: integer(),
+                payment: optional(string())
             })
         }));
 
@@ -1715,6 +1720,13 @@ export default declareSchema(() => {
 
     entity('WalletDepositRequest', () => {
         primaryKey('uid', integer());
+        primaryKey('retryKey', string());
+        field('pid', string());
+    });
+
+    entity('WalletTransferRequest', () => {
+        primaryKey('fromUid', integer());
+        primaryKey('toUid', integer());
         primaryKey('retryKey', string());
         field('pid', string());
     });
@@ -1766,7 +1778,12 @@ export default declareSchema(() => {
             subscription: string(),
             period: integer(),
             txid: string()
-        })
+        }),
+        'transfer': struct({
+            fromUid: integer(),
+            toUid: integer(),
+            txid: optional(string())
+        }),
     });
 
     entity('PaymentIntent', () => {
