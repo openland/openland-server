@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2a6553cfeb60e3212398aff3735dfbf7';
+export const GQL_SPEC_VERSION = 'cc1e0b4a9b24a929b74b624b1a61873a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -364,7 +364,11 @@ export namespace GQL {
         amount: number;
         payment: Payment;
     }
-    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription;
+    export interface WalletTransactionTransfer {
+        amount: number;
+        payment: Nullable<Payment>;
+    }
+    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransfer;
     export interface WalletTransactionConnection {
         items: WalletTransaction[];
         cursor: Nullable<string>;
@@ -4253,7 +4257,16 @@ export interface GQLResolver {
         {
         }
     >;
-    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription'>;
+    WalletTransactionTransfer?: ComplexTypedResolver<
+        GQL.WalletTransactionTransfer,
+        GQLRoots.WalletTransactionTransferRoot,
+        {
+            payment: Nullable<GQLRoots.PaymentRoot>,
+        },
+        {
+        }
+    >;
+    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription' | 'WalletTransactionTransfer'>;
     WalletTransactionConnection?: ComplexTypedResolver<
         GQL.WalletTransactionConnection,
         GQLRoots.WalletTransactionConnectionRoot,
