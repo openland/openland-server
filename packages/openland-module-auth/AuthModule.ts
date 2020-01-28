@@ -44,24 +44,35 @@ export class AuthModule {
         return await this.tokenRepo.revokeUserTokens(ctx, uid);
     }
 
-    async canSendAuthEmail(parent: Context, email: string) {
+    async nextAuthEmailTime(parent: Context, email: string) {
         return inTx(parent, async ctx => {
             let lastEmail = await Store.LastAuthEmailSentTime.get(ctx, email);
-            if (!lastEmail) {
-                return true;
+            let emailsSent = await Store.AuthEmailsSentCount.get(ctx, email);
+            if (emailsSent === 0 || lastEmail === 0) {
+                return null;
             }
-
-            if ((Math.floor(Date.now() / 1000) - lastEmail) < 60 * 5) {
-                return false;
+            let timeout = emailsSent * 5;
+            let now = Math.floor(Date.now() / 1000);
+            let nextTime = lastEmail + timeout;
+            if (now > nextTime) {
+                return null;
+            } else {
+                return nextTime;
             }
-
-            return true;
         });
     }
 
     async onAuthEmailSent(parent: Context, email: string) {
         return inTx(parent, async ctx => {
+            Store.AuthEmailsSentCount.increment(ctx, email);
             Store.LastAuthEmailSentTime.set(ctx, email, Math.floor(Date.now() / 1000));
+        });
+    }
+
+    async onAuthCodeUsed(parent: Context, email: string) {
+        return inTx(parent, async ctx => {
+            Store.LastAuthEmailSentTime.set(ctx, email, 0);
+            Store.AuthEmailsSentCount.set(ctx, email, 0);
         });
     }
 }

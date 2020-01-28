@@ -1929,7 +1929,11 @@ export default declareSchema(() => {
     });
 
     atomicInt('LastAuthEmailSentTime', () => {
-        primaryKey('uid', string());
+        primaryKey('email', string());
+    });
+
+    atomicInt('AuthEmailsSentCount', () => {
+        primaryKey('email', string());
     });
 
     entity('FeatureFlag', () => {

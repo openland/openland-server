@@ -34,11 +34,11 @@ type ErrorsEnum = keyof typeof Errors;
 
 const CODE_LEN = 6;
 
-const sendError = (response: express.Response, error: ErrorsEnum) => {
+const sendError = (response: express.Response, error: ErrorsEnum, extra: any = {}) => {
     if (!Errors[error]) {
         response.json({ ok: false, errorCode: 'server_error', errorText: Errors.server_error });
     }
-    response.json({ ok: false, errorCode: error, errorText: Errors[error] });
+    response.json({ ok: false, errorCode: error, errorText: Errors[error], ...extra });
 };
 
 const TEST_EMAIL_REGEX = /^test(\d{4})@openland.com$/;
@@ -142,8 +142,9 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
 
-            // if (!(await Modules.Auth.canSendAuthEmail(ctx, email))) {
-            //     sendError(response, 'too_many_attempts');
+            // let nextEmailTime = await Modules.Auth.nextAuthEmailTime(ctx, email);
+            // if (nextEmailTime) {
+            //     sendError(response, 'too_many_attempts', { can_send_next_email_at: nextEmailTime });
             //     return;
             // }
 
@@ -297,7 +298,9 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.email) {
-            let existing = await findUserByEmail(ctx, authSession.email.toLowerCase());
+            let email = authSession.email.toLowerCase();
+            await Modules.Auth.onAuthCodeUsed(ctx, email);
+            let existing = await findUserByEmail(ctx, email);
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });

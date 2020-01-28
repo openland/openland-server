@@ -1301,28 +1301,64 @@ export class LastAuthEmailSentTimeFactory extends AtomicIntegerFactory {
         super(storage, subspace);
     }
 
-    byId(uid: string) {
-        return this._findById([uid]);
+    byId(email: string) {
+        return this._findById([email]);
     }
 
-    get(ctx: Context, uid: string) {
-        return this._get(ctx, [uid]);
+    get(ctx: Context, email: string) {
+        return this._get(ctx, [email]);
     }
 
-    set(ctx: Context, uid: string, value: number) {
-        return this._set(ctx, [uid], value);
+    set(ctx: Context, email: string, value: number) {
+        return this._set(ctx, [email], value);
     }
 
-    add(ctx: Context, uid: string, value: number) {
-        return this._add(ctx, [uid], value);
+    add(ctx: Context, email: string, value: number) {
+        return this._add(ctx, [email], value);
     }
 
-    increment(ctx: Context, uid: string) {
-        return this._increment(ctx, [uid]);
+    increment(ctx: Context, email: string) {
+        return this._increment(ctx, [email]);
     }
 
-    decrement(ctx: Context, uid: string) {
-        return this._decrement(ctx, [uid]);
+    decrement(ctx: Context, email: string) {
+        return this._decrement(ctx, [email]);
+    }
+}
+
+export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('authEmailsSentCount');
+        return new AuthEmailsSentCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(email: string) {
+        return this._findById([email]);
+    }
+
+    get(ctx: Context, email: string) {
+        return this._get(ctx, [email]);
+    }
+
+    set(ctx: Context, email: string, value: number) {
+        return this._set(ctx, [email], value);
+    }
+
+    add(ctx: Context, email: string, value: number) {
+        return this._add(ctx, [email], value);
+    }
+
+    increment(ctx: Context, email: string) {
+        return this._increment(ctx, [email]);
+    }
+
+    decrement(ctx: Context, email: string) {
+        return this._decrement(ctx, [email]);
     }
 }
 
@@ -17460,6 +17496,7 @@ export interface Store extends BaseStore {
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
+    readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -17659,6 +17696,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
+    let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -17830,6 +17868,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomMessagesCounter: await RoomMessagesCounterPromise,
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
+        AuthEmailsSentCount: await AuthEmailsSentCountPromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
