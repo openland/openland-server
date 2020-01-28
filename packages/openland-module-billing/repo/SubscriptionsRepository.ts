@@ -5,6 +5,7 @@ import { inTx } from '@openland/foundationdb';
 import { PaymentsAsyncRepository } from './PaymentsAsyncRepository';
 import { nextRenewMonthly } from './utils/nextRenewMonthly';
 import { RoutingRepository } from './RoutingRepository';
+import { WalletRepository } from './WalletRepository';
 
 const DAY = 24 * 60 * 60 * 1000; // ms in day
 
@@ -13,11 +14,13 @@ const WEEK = 7 * DAY; // ms in week
 export class SubscriptionsRepository {
     readonly store: Store;
     readonly payments: PaymentsAsyncRepository;
+    readonly wallet: WalletRepository;
     private routing!: RoutingRepository;
 
-    constructor(store: Store, payments: PaymentsAsyncRepository) {
+    constructor(store: Store, payments: PaymentsAsyncRepository, wallet: WalletRepository) {
         this.store = store;
         this.payments = payments;
+        this.wallet = wallet;
     }
 
     setRouting = (routing: RoutingRepository) => {
@@ -189,13 +192,17 @@ export class SubscriptionsRepository {
                 index = 1;
             }
 
+            // Wallet transaction
+            let wallet = await this.wallet.subscriptionPayment(ctx, subscription.uid, subscription.amount, subscription.id, index);
+
             // Create Payment
             let pid = uuid();
             await this.payments.createPayment(ctx, pid, subscription.uid, subscription.amount, {
                 type: 'subscription',
                 uid: subscription.uid,
                 subscription: subscription.id,
-                period: index
+                period: index,
+                txid: wallet
             });
 
             // Create Period

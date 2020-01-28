@@ -71,7 +71,12 @@ type WalletTransactionDeposit {
     payment: Payment
 }
 
-union WalletTransactionOperation = WalletTransactionDeposit
+type WalletTransactionSubscription {
+    amount: Int!
+    payment: Payment!
+}
+
+union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription
 
 type WalletTransactionConnection {
     items: [WalletTransaction!]!
@@ -151,6 +156,12 @@ extend type Mutation {
 
     paymentIntentCommit(id: ID!): Boolean!
     paymentCancel(id: ID!): Boolean!
+
+    #
+    # Donate
+    #
+    
+    donateToUser(amount: Int!, id: ID!): Boolean!
 }
 
 extend type Subscription {

@@ -28,7 +28,7 @@ describe('PaymentsAsyncRepository', () => {
         await expect(repo.createPayment(ctx, 'pid-1', 2, 100, { type: 'deposit', uid: 2, txid: 'txid' })).rejects.toThrowError();
         await expect(repo.createPayment(ctx, 'pid-1', 3, 100, { type: 'deposit', uid: 3, txid: null })).rejects.toThrowError('txid is required for async deposits');
         await expect(repo.createPayment(ctx, 'pid-1', 3, 100, { type: 'deposit', uid: 2, txid: 'txid' })).rejects.toThrowError('uid mismatch');
-        await expect(repo.createPayment(ctx, 'pid-1', 3, 100, { type: 'subscription', uid: 2, subscription: 'subs', period: 1 })).rejects.toThrowError('uid mismatch');
+        await expect(repo.createPayment(ctx, 'pid-1', 3, 100, { type: 'subscription', uid: 2, subscription: 'subs', period: 1, txid: 'txid' })).rejects.toThrowError('uid mismatch');
     });
 
     it('should handle payment states', async () => {

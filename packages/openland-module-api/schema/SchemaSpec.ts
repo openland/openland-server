@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'eab9ce10bf8ac4b45f6b252e67eb4bd0';
+export const GQL_SPEC_VERSION = '4a47ff875f86a5d3ac745277a61e647d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -360,7 +360,11 @@ export namespace GQL {
         amount: number;
         payment: Nullable<Payment>;
     }
-    export type WalletTransactionOperation = WalletTransactionDeposit;
+    export interface WalletTransactionSubscription {
+        amount: number;
+        payment: Payment;
+    }
+    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription;
     export interface WalletTransactionConnection {
         items: WalletTransaction[];
         cursor: Nullable<string>;
@@ -1135,6 +1139,7 @@ export namespace GQL {
         cardDepositIntent: PaymentIntent;
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
+        donateToUser: boolean;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -1532,6 +1537,10 @@ export namespace GQL {
         id: string;
     }
     export interface MutationPaymentCancelArgs {
+        id: string;
+    }
+    export interface MutationDonateToUserArgs {
+        amount: number;
         id: string;
     }
     export interface MutationAlphaDeleteInviteArgs {
@@ -4223,7 +4232,16 @@ export interface GQLResolver {
         {
         }
     >;
-    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit'>;
+    WalletTransactionSubscription?: ComplexTypedResolver<
+        GQL.WalletTransactionSubscription,
+        GQLRoots.WalletTransactionSubscriptionRoot,
+        {
+            payment: GQLRoots.PaymentRoot,
+        },
+        {
+        }
+    >;
+    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription'>;
     WalletTransactionConnection?: ComplexTypedResolver<
         GQL.WalletTransactionConnection,
         GQLRoots.WalletTransactionConnectionRoot,
@@ -5412,6 +5430,7 @@ export interface GQLResolver {
             cardDepositIntent: GQL.MutationCardDepositIntentArgs,
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
+            donateToUser: GQL.MutationDonateToUserArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,

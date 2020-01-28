@@ -252,7 +252,7 @@ export namespace GQLRoots {
     export type PostRespondServiceMetadataRoot = any;
 
     export type PaidChatSettingsRoot = any;
-    
+
     //
     // Apps
     //
@@ -478,7 +478,7 @@ export namespace GQLRoots {
     export type WalletTransactionRoot = WalletTransaction;
     export type WalletTransactionOperationRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionDepositRoot = WalletTransactionCreateShape['operation'];
-    
+    export type WalletTransactionSubscriptionRoot = WalletTransactionCreateShape['operation'];
     export type WalletUpdateContainerRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateBatchRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateSingleRoot = LiveStreamItem<BaseEvent>;
@@ -499,4 +499,3 @@ export namespace GQLRoots {
     export type PermissionRequestRoot = PermissionRequest;
     export type PermissionGroupRoot = PermissionGroup;
 }
- 

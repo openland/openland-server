@@ -24,12 +24,12 @@ export class BillingModule {
     readonly wallet: WalletRepository = new WalletRepository(Store);
     // Low level payments repository
     readonly payments: PaymentsRepository = new PaymentsRepository(Store);
-    // Routing
-    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet);
     // Off-session payments repository
     readonly paymentsAsync: PaymentsAsyncRepository = new PaymentsAsyncRepository(Store);
     // Subscriptions repository
-    readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.paymentsAsync);
+    readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.paymentsAsync, this.wallet);
+    // Routing
+    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.subscriptions);
 
     // Payments Mediator (on/off session)
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,

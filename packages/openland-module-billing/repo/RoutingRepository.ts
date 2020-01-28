@@ -1,15 +1,18 @@
 import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
 import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
+import { SubscriptionsRepository } from './SubscriptionsRepository';
 
 export class RoutingRepositoryImpl {
 
     readonly store: Store;
     readonly wallet: WalletRepository;
+    readonly subscriptions: SubscriptionsRepository;
 
-    constructor(store: Store, wallet: WalletRepository) {
+    constructor(store: Store, wallet: WalletRepository, subscriptions: SubscriptionsRepository) {
         this.store = store;
         this.wallet = wallet;
+        this.subscriptions = subscriptions;
     }
 
     //
@@ -24,6 +27,14 @@ export class RoutingRepositoryImpl {
 
             // Confirm existing transaction
             await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
+        } else if (operation.type === 'subscription') {
+            
+            // Update Wallet
+            await this.wallet.subscriptionPaymentCommit(ctx, operation.uid, operation.txid);
+            
+            // Update Subscription
+            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period);
+
         } else {
             throw Error('Unknown operation type');
         }
@@ -38,7 +49,13 @@ export class RoutingRepositoryImpl {
             // Change payment status
             await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
-            //
+            
+            // Update Wallet
+            await this.wallet.subscriptionPaymentFailing(ctx, operation.uid, operation.txid);
+
+            // Update subscription
+            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
+
         } else {
             throw Error('Unknown operation type');
         }
@@ -52,6 +69,13 @@ export class RoutingRepositoryImpl {
 
             // Change payment status
             await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
+        } else if (operation.type === 'subscription') {
+
+            // Update Wallet
+            await this.wallet.subscriptionPaymentActionNeeded(ctx, operation.uid, operation.txid);
+
+            // Update subscription
+            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
         } else {
             throw Error('Unknown operation type');
         }
@@ -65,6 +89,13 @@ export class RoutingRepositoryImpl {
 
             // Confirm existing transaction
             await this.wallet.depositAsyncCancel(ctx, operation.uid, operation.txid);
+        } else if (operation.type === 'subscription') {
+
+            // Update Wallet
+            await this.wallet.subscriptionPaymentCancel(ctx, operation.uid, operation.txid);
+
+            // Update subscription
+            await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period);
         } else {
             throw Error('Unknown operation type');
         }

@@ -1700,6 +1700,12 @@ export default declareSchema(() => {
             'deposit': struct({
                 amount: integer(),
                 payment: optional(string())
+            }),
+            'subscription': struct({
+                chargeAmount: integer(),
+                walletAmount: integer(),
+                subscription: string(),
+                index: integer()
             })
         }));
 
@@ -1758,7 +1764,8 @@ export default declareSchema(() => {
         'subscription': struct({
             uid: integer(),
             subscription: string(),
-            period: integer()
+            period: integer(),
+            txid: string()
         })
     });
 

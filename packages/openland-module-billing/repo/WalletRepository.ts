@@ -21,6 +21,10 @@ export class WalletRepository {
         });
     }
 
+    //
+    // Deposits
+    //
+
     depositInstant = async (parent: Context, uid: number, amount: number) => {
         checkMoney(amount);
 
@@ -183,6 +187,138 @@ export class WalletRepository {
 
             // Write event
             this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: tx.operation.payment! }));
+        });
+    }
+
+    //
+    // Subscriptions
+    //
+
+    subscriptionPayment = async (parent: Context, uid: number, amount: number, sid: string, index: number) => {
+        checkMoney(amount);
+
+        return await inTx(parent, async (ctx) => {
+
+            // Create Transaction
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: uid,
+                status: 'pending',
+                operation: {
+                    type: 'subscription',
+                    chargeAmount: amount,
+                    walletAmount: 0,
+                    subscription: sid,
+                    index: index
+                }
+            });
+
+            // Write events           
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionPending.create({ id: txid }));
+
+            return txid;
+        });
+    }
+
+    subscriptionPaymentCommit = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'subscription') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+
+            // Update tx status
+            tx.status = 'success';
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
+        });
+    }
+
+    subscriptionPaymentFailing = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'subscription') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+
+            let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, tx.operation.subscription, tx.operation.index))!;
+
+            // Write event
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: period!.pid }));
+        });
+    }
+
+    subscriptionPaymentActionNeeded = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'subscription') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+
+            let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, tx.operation.subscription, tx.operation.index))!;
+
+            // Write event
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: period!.pid }));
+        });
+    }
+
+    subscriptionPaymentCancel = async (parent: Context, uid: number, txid: string) => {
+        await inTx(parent, async (ctx) => {
+
+            // Check state
+            let tx = await this.store.WalletTransaction.findById(ctx, txid);
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'subscription') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('Transaction has invalid user id');
+            }
+
+            // Update tx status
+            tx.status = 'canceled';
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionCanceled.create({ id: txid }));
         });
     }
 }

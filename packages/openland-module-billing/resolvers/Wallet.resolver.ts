@@ -59,14 +59,25 @@ export default {
         __resolveType: (src) => {
             if (src.type === 'deposit') {
                 return 'WalletTransactionDeposit';
+            } else if (src.type === 'subscription') {
+                return 'WalletTransactionSubscription';
             }
 
-            throw Error('Unknown operation type: ' + src.type);
+            throw Error('Unknown operation type: ' + (src as any /* Fuck you, ts */).type);
         }
     },
     WalletTransactionDeposit: {
-        amount: (src) => src.amount,
-        payment: (src, args, ctx) => src.payment && Store.Payment.findById(ctx, src.payment!)
+        amount: (src) => (src as any).amount,
+        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!)
+    },
+    WalletTransactionSubscription: {
+        amount: (src) => (src as any).chargeAmount,
+        payment: async (src, args, ctx) => {
+            let subscription = (src as any).subscription;
+            let index = (src as any).index;
+            let period = (await Store.WalletSubscriptionPeriod.findById(ctx, subscription, index))!;
+            return Store.Payment.findById(ctx, period.pid);
+        }
     },
 
     Payment: {
@@ -163,7 +174,19 @@ export default {
         }),
         paymentCancel: withAccount(async (ctx, args, uid) => {
             return await Modules.Billing.paymentsMediator.tryCancelPaymentIntent(ctx, uid, IDs.Payment.parse(args.id));
-        })
+        }),
+
+        //
+        // Donate
+        //
+
+        donateToUser: withAccount(async (ctx, args, uid) => {
+            await Modules.Billing.createSubscription(ctx, uid, args.amount, 'week', {
+                type: 'donate',
+                uid: IDs.User.parse(args.id)
+            });
+            return true;
+        }),
     },
 
     //

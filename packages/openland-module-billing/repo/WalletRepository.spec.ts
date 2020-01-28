@@ -36,8 +36,8 @@ describe('WalletRepository', () => {
         expect(tx.uid).toBe(2);
         expect(tx.status).toBe('success');
         expect(tx.operation.type).toBe('deposit');
-        expect(tx.operation.payment).toBeNull();
-        expect(tx.operation.amount).toBe(100);
+        expect((tx.operation as any).payment).toBeNull();
+        expect((tx.operation as any).amount).toBe(100);
     });
 
     it('should perform async deposits', async () => {
@@ -65,8 +65,8 @@ describe('WalletRepository', () => {
         expect(tx.uid).toBe(3);
         expect(tx.status).toBe('pending');
         expect(tx.operation.type).toBe('deposit');
-        expect(tx.operation.payment).toBe(pid);
-        expect(tx.operation.amount).toBe(100);
+        expect((tx.operation as any).payment).toBe(pid);
+        expect((tx.operation as any).amount).toBe(100);
 
         //
         // Possible intermiate changes
@@ -99,8 +99,8 @@ describe('WalletRepository', () => {
         expect(tx.uid).toBe(3);
         expect(tx.status).toBe('success');
         expect(tx.operation.type).toBe('deposit');
-        expect(tx.operation.payment).toBe(pid);
-        expect(tx.operation.amount).toBe(100);
+        expect((tx.operation as any).payment).toBe(pid);
+        expect((tx.operation as any).amount).toBe(100);
 
         //
         // Mutations after completion
