@@ -8,10 +8,13 @@ const log = createLogger('payments-async');
 
 export class PaymentsAsyncRepository {
     readonly store: Store;
-    readonly routing: RoutingRepository;
+    private routing!: RoutingRepository;
 
-    constructor(store: Store, routing: RoutingRepository) {
+    constructor(store: Store) {
         this.store = store;
+    }
+
+    setRouting = (routing: RoutingRepository) => {
         this.routing = routing;
     }
 
@@ -54,11 +57,14 @@ export class PaymentsAsyncRepository {
 
             // Handle successful payment
             log.debug(parent, 'Success: Routing');
-            await this.routing.routeSuccessfulPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.routeSuccessfulPayment) {
+                await this.routing.routeSuccessfulPayment(ctx, payment.amount, payment.id, payment.operation);
+            }
         });
     }
 
     handlePaymentIntentCanceled = async (parent: Context, pid: string) => {
+        log.debug(parent, 'canceled');
         await inTx(parent, async (ctx) => {
             let payment = await this.store.Payment.findById(ctx, pid);
             if (!payment) {
@@ -70,7 +76,9 @@ export class PaymentsAsyncRepository {
             payment.state = 'canceled';
 
             // Handle canceled payment
-            await this.routing.routeCanceledPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.routeCanceledPayment) {
+                await this.routing.routeCanceledPayment(ctx, payment.amount, payment.id, payment.operation);
+            }
         });
     }
 
@@ -86,7 +94,9 @@ export class PaymentsAsyncRepository {
             payment.state = 'failing';
 
             // Handle failing state
-            await this.routing.routeFailingPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.routeFailingPayment) {
+                await this.routing.routeFailingPayment(ctx, payment.amount, payment.id, payment.operation);
+            }
         });
     }
 
@@ -102,7 +112,9 @@ export class PaymentsAsyncRepository {
             payment.state = 'action_required';
 
             // Handle action needed state
-            await this.routing.routeActionNeededPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.routeActionNeededPayment) {
+                await this.routing.routeActionNeededPayment(ctx, payment.amount, payment.id, payment.operation);
+            }
         });
     }
 }

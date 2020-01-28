@@ -1,5 +1,8 @@
+import { WalletSubscriptionCreateShape } from './../openland-module-db/store';
+import { SubscriptionsMediator } from './mediators/SubscriptionsMediator';
+import { SubscriptionsRepository } from './repo/SubscriptionsRepository';
 import { WalletRepository } from './repo/WalletRepository';
-import { RoutingRepository } from './repo/RoutingRepository';
+import { RoutingRepository, RoutingRepositoryImpl } from './repo/RoutingRepository';
 import { PaymentsRepository } from './repo/PaymentsRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { PaymentMediator } from './mediators/PaymentMediator';
@@ -12,20 +15,37 @@ import { startEventsReaderWorker } from './workers/EventsReaderWorker';
 import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
 import { PaymentsAsyncRepository } from './repo/PaymentsAsyncRepository';
 import { startPaymentScheduler } from './workers/startPaymentScheduler';
+import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
 
 @injectable()
 export class BillingModule {
 
+    // Wallet Operations
     readonly wallet: WalletRepository = new WalletRepository(Store);
+    // Low level payments repository
     readonly payments: PaymentsRepository = new PaymentsRepository(Store);
-    readonly routing: RoutingRepository = new RoutingRepository(Store, this.wallet);
-    readonly paymentsAsync: PaymentsAsyncRepository = new PaymentsAsyncRepository(Store, this.routing);
+    // Routing
+    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet);
+    // Off-session payments repository
+    readonly paymentsAsync: PaymentsAsyncRepository = new PaymentsAsyncRepository(Store);
+    // Subscriptions repository
+    readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.paymentsAsync);
+
+    // Payments Mediator (on/off session)
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
         this.payments,
-        this.routing,
         this.wallet,
         this.paymentsAsync
     );
+
+    // Subscriptions Mediator
+    readonly subscriptionsMediator: SubscriptionsMediator = new SubscriptionsMediator(this.paymentsMediator, this.subscriptions);
+
+    constructor() {
+        this.paymentsMediator.setRouting(this.routing);
+        this.subscriptions.setRouting(this.routing);
+        this.paymentsAsync.setRouting(this.routing);
+    }
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
@@ -34,6 +54,7 @@ export class BillingModule {
             startEventsReaderWorker(this.paymentsMediator);
             startPaymentIntentCommiter(this.paymentsMediator);
             startPaymentScheduler(this.paymentsMediator);
+            startSubscriptionsScheduler(this.subscriptionsMediator);
         }
     }
 
@@ -63,5 +84,9 @@ export class BillingModule {
 
     updatePaymentIntent = async (parent: Context, id: string) => {
         return await this.paymentsMediator.updatePaymentIntent(parent, id);
+    }
+
+    createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
+        return await this.subscriptionsMediator.createSubscription(parent, uid, amount, interval, product);
     }
 }

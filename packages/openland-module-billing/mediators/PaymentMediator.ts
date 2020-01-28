@@ -9,6 +9,7 @@ import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 import { WalletRepository } from 'openland-module-billing/repo/WalletRepository';
 import { PaymentsAsyncRepository } from 'openland-module-billing/repo/PaymentsAsyncRepository';
+import { backoff } from 'openland-utils/timer';
 
 const log = createLogger('payments');
 
@@ -17,21 +18,24 @@ export class PaymentMediator {
     readonly liveMode: boolean;
     readonly paymentsAsync: PaymentsAsyncRepository;
     readonly payments: PaymentsRepository;
-    readonly routing: RoutingRepository;
     readonly wallet: WalletRepository;
+    private routing!: RoutingRepository;
 
     readonly stripe: Stripe;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
     // readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
 
-    constructor(token: string, payments: PaymentsRepository, routing: RoutingRepository, wallet: WalletRepository, paymentsAsync: PaymentsAsyncRepository) {
+    constructor(token: string, payments: PaymentsRepository, wallet: WalletRepository, paymentsAsync: PaymentsAsyncRepository) {
         this.payments = payments;
         this.paymentsAsync = paymentsAsync;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
-        this.routing = routing;
         this.wallet = wallet;
+    }
+
+    setRouting = (routing: RoutingRepository) => {
+        this.routing = routing;
     }
 
     exportCustomer = async (parent: Context, uid: number) => {
@@ -384,11 +388,14 @@ export class PaymentMediator {
             let intent = await this.createPaymentIntent(parent, uid, payment.id);
             payment = await inTx(parent, async (ctx) => {
                 let res = (await Store.Payment.findById(ctx, pid))!;
-                if (!res.piid) {
+                if (!res.piid && res.state !== 'canceled') {
                     res.piid = intent.id;
                 }
                 return res;
             });
+        }
+        if (payment.state === 'canceled') { // Exit if payment already canceled
+            return;
         }
         let piid = payment.piid!!;
 
@@ -402,7 +409,7 @@ export class PaymentMediator {
                 await this.paymentsAsync.handlePaymentIntentCanceled(parent, payment.id);
             }
             if (intentState.status === 'succeeded') {
-                await this.paymentsAsync.handlePaymentIntentCanceled(parent, payment.id);
+                await this.paymentsAsync.handlePaymentIntentSuccess(parent, payment.id);
             }
             return true; /* Completed */
         }
@@ -474,7 +481,9 @@ export class PaymentMediator {
                     if (intent.pid) {
                         await this.paymentsAsync.handlePaymentIntentSuccess(ctx, intent.pid);
                     } else {
-                        await this.routing.routeSuccessfulPaymentIntent(ctx, intent.amount, intent.operation);
+                        if (this.routing.routeSuccessfulPaymentIntent) {
+                            await this.routing.routeSuccessfulPaymentIntent(ctx, intent.amount, intent.operation);
+                        }
                     }
                 }
             });
@@ -490,5 +499,52 @@ export class PaymentMediator {
                 }
             });
         }
+    }
+
+    //
+    // Cancel Payment Intent
+    //
+
+    tryCancelPaymentIntent = async (parent: Context, uid: number, pid: string) => {
+        let payment = await inTx(parent, async (ctx) => {
+
+            let res = (await Store.Payment.findById(ctx, pid))!;
+            if (!res) {
+                throw Error('Unknown payment id ' + pid);
+            }
+            if (res.uid !== uid) {
+                throw Error('Invalid payment uid');
+            }
+            if (res.state === 'canceled') {
+                return true;
+            }
+
+            if (!res.piid) {
+                res.state = 'canceled';
+                return true;
+            }
+
+            return res;
+        });
+
+        if (payment === true) {
+            return true;
+        }
+        let piid = payment.piid!;
+        return await backoff(parent, async () => {
+            while (true) {
+                let intentState = await this.stripe.paymentIntents.retrieve(piid);
+                if (intentState.status === 'canceled') {
+                    await this.paymentsAsync.handlePaymentIntentCanceled(parent, pid);
+                    return true;
+                }
+                if (intentState.status === 'succeeded') {
+                    await this.paymentsAsync.handlePaymentIntentSuccess(parent, pid);
+                    return false;
+                }
+
+                await this.stripe.paymentIntents.cancel(piid);
+            }
+        });
     }
 }

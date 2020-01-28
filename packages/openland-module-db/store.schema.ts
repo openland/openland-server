@@ -1713,6 +1713,39 @@ export default declareSchema(() => {
         field('pid', string());
     });
 
+    entity('WalletSubscription', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('amount', integer());
+        field('interval', enumString('week', 'month'));
+        field('start', integer());
+        field('proudct', union({
+            'donate': struct({
+                uid: integer()
+            }),
+            'group': struct({
+                gid: integer()
+            })
+        }));
+
+        field('state', enumString('started', 'grace_period', 'retrying', 'canceled', 'expired'));
+
+        rangeIndex('active', ['id']).withCondition((s) => s.state !== 'expired');
+    });
+
+    entity('WalletSubscriptionScheduling', () => {
+        primaryKey('id', string());
+        field('currentPeriodIndex', integer());
+    });
+
+    entity('WalletSubscriptionPeriod', () => {
+        primaryKey('id', string());
+        primaryKey('index', integer());
+        field('pid', string());
+        field('start', integer());
+        field('state', enumString('pending', 'failing', 'success', 'canceling'));
+    });
+
     //
     // Payments: Payments
     //
@@ -1721,6 +1754,11 @@ export default declareSchema(() => {
         'deposit': struct({
             uid: integer(),
             txid: optional(string())
+        }),
+        'subscription': struct({
+            uid: integer(),
+            subscription: string(),
+            period: integer()
         })
     });
 

@@ -57,6 +57,7 @@ type WalletAccount {
 
 type WalletTransaction {
     id: ID!
+    date: String!
     status: WalletTransactionStatus!
     operation: WalletTransactionOperation!
 }
@@ -149,6 +150,7 @@ extend type Mutation {
     #
 
     paymentIntentCommit(id: ID!): Boolean!
+    paymentCancel(id: ID!): Boolean!
 }
 
 extend type Subscription {

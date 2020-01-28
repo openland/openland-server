@@ -1,8 +1,11 @@
+import { createLogger } from '@openland/log';
 import { uuid } from 'openland-utils/uuid';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
 import Stripe from 'stripe';
+
+const log = createLogger('payment-intent');
 
 export class PaymentsRepository {
 
@@ -162,6 +165,7 @@ export class PaymentsRepository {
             throw Error('amount must be positive integer');
         }
         return await inTx(parent, async (ctx) => {
+            log.debug(ctx, '[' + id + ']: pending');
             return await this.store.PaymentIntent.create(ctx, id, {
                 amount: amount,
                 state: 'pending',
@@ -177,12 +181,11 @@ export class PaymentsRepository {
             if (!intent) {
                 return false;
             }
-
             if (intent.state !== 'pending') {
                 return false;
             }
+            log.debug(ctx, '[' + id + ']: ' + intent.state + ' -> success');
             intent.state = 'success';
-
             return true;
         });
     }
@@ -193,12 +196,11 @@ export class PaymentsRepository {
             if (!intent) {
                 return false;
             }
-
             if (intent.state !== 'pending') {
                 return false;
             }
+            log.debug(ctx, '[' + id + ']: ' + intent.state + ' -> canceled');
             intent.state = 'canceled';
-
             return true;
         });
     }

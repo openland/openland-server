@@ -35,6 +35,7 @@ export default {
 
     WalletTransaction: {
         id: (src) => IDs.WalletTransaction.serialize(src.id),
+        date: (src) => src.metadata.createdAt + '',
         status: (src) => {
             if (src.status === 'success') {
                 return 'SUCCESS';
@@ -85,7 +86,7 @@ export default {
             return 'PENDING';
         },
         intent: async (src, args, ctx) => {
-            if (src.state === 'action_required') {
+            if (src.state === 'action_required' || src.state === 'failing') {
                 return (await Modules.Billing.paymentsMediator.stripe.paymentIntents.retrieve(src.piid!));
             }
 
@@ -109,7 +110,8 @@ export default {
         //
 
         transactionsPending: withAccount(async (ctx, args, uid) => {
-            return await Store.WalletTransaction.pending.findAll(ctx, uid);
+            let res = await Store.WalletTransaction.pending.findAll(ctx, uid);
+            return res.reverse();
         }),
         transactionsHistory: withAccount(async (ctx, args, uid) => {
             let after = args.after ? IDs.WalletTransactionsCursor.parse(args.after) : undefined;
@@ -159,6 +161,9 @@ export default {
             await Modules.Billing.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
             return true;
         }),
+        paymentCancel: withAccount(async (ctx, args, uid) => {
+            return await Modules.Billing.paymentsMediator.tryCancelPaymentIntent(ctx, uid, IDs.Payment.parse(args.id));
+        })
     },
 
     //

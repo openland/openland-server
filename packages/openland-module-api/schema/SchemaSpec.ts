@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e57552e03c9e8d20e188404843b3c266';
+export const GQL_SPEC_VERSION = 'eab9ce10bf8ac4b45f6b252e67eb4bd0';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -351,6 +351,7 @@ export namespace GQL {
     }
     export interface WalletTransaction {
         id: string;
+        date: string;
         status: WalletTransactionStatus;
         operation: WalletTransactionOperation;
     }
@@ -1133,6 +1134,7 @@ export namespace GQL {
         cardDepositEnqueue: boolean;
         cardDepositIntent: PaymentIntent;
         paymentIntentCommit: boolean;
+        paymentCancel: boolean;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -1527,6 +1529,9 @@ export namespace GQL {
         retryKey: string;
     }
     export interface MutationPaymentIntentCommitArgs {
+        id: string;
+    }
+    export interface MutationPaymentCancelArgs {
         id: string;
     }
     export interface MutationAlphaDeleteInviteArgs {
@@ -5406,6 +5411,7 @@ export interface GQLResolver {
             cardDepositEnqueue: GQL.MutationCardDepositEnqueueArgs,
             cardDepositIntent: GQL.MutationCardDepositIntentArgs,
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
+            paymentCancel: GQL.MutationPaymentCancelArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,

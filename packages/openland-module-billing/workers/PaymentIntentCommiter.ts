@@ -20,7 +20,7 @@ export function startPaymentIntentCommiter(mediator: PaymentMediator) {
                 if (e.eventType === 'payment_intent.succeeded') {
                     log.debug(parent, 'Commit Payment: ' + pid);
                 } else if (e.eventType === 'payment_intent.canceled') {
-                    log.debug(parent, 'Commit Payment: ' + pid);
+                    log.debug(parent, 'Cancel Payment: ' + pid);
                 }
 
                 await mediator.updatePaymentIntent(parent, pid);

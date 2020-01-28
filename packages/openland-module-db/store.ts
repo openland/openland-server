@@ -13725,19 +13725,334 @@ export class WalletDepositRequestFactory extends EntityFactory<WalletDepositRequ
     }
 }
 
+export interface WalletSubscriptionShape {
+    id: string;
+    uid: number;
+    amount: number;
+    interval: 'week' | 'month';
+    start: number;
+    proudct: { type: 'donate', uid: number } | { type: 'group', gid: number };
+    state: 'started' | 'grace_period' | 'retrying' | 'canceled' | 'expired';
+}
+
+export interface WalletSubscriptionCreateShape {
+    uid: number;
+    amount: number;
+    interval: 'week' | 'month';
+    start: number;
+    proudct: { type: 'donate', uid: number } | { type: 'group', gid: number };
+    state: 'started' | 'grace_period' | 'retrying' | 'canceled' | 'expired';
+}
+
+export class WalletSubscription extends Entity<WalletSubscriptionShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get amount(): number { return this._rawValue.amount; }
+    set amount(value: number) {
+        let normalized = this.descriptor.codec.fields.amount.normalize(value);
+        if (this._rawValue.amount !== normalized) {
+            this._rawValue.amount = normalized;
+            this._updatedValues.amount = normalized;
+            this.invalidate();
+        }
+    }
+    get interval(): 'week' | 'month' { return this._rawValue.interval; }
+    set interval(value: 'week' | 'month') {
+        let normalized = this.descriptor.codec.fields.interval.normalize(value);
+        if (this._rawValue.interval !== normalized) {
+            this._rawValue.interval = normalized;
+            this._updatedValues.interval = normalized;
+            this.invalidate();
+        }
+    }
+    get start(): number { return this._rawValue.start; }
+    set start(value: number) {
+        let normalized = this.descriptor.codec.fields.start.normalize(value);
+        if (this._rawValue.start !== normalized) {
+            this._rawValue.start = normalized;
+            this._updatedValues.start = normalized;
+            this.invalidate();
+        }
+    }
+    get proudct(): { type: 'donate', uid: number } | { type: 'group', gid: number } { return this._rawValue.proudct; }
+    set proudct(value: { type: 'donate', uid: number } | { type: 'group', gid: number }) {
+        let normalized = this.descriptor.codec.fields.proudct.normalize(value);
+        if (this._rawValue.proudct !== normalized) {
+            this._rawValue.proudct = normalized;
+            this._updatedValues.proudct = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'started' | 'grace_period' | 'retrying' | 'canceled' | 'expired' { return this._rawValue.state; }
+    set state(value: 'started' | 'grace_period' | 'retrying' | 'canceled' | 'expired') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionShape, WalletSubscription> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('walletSubscription');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscription', 'active'), condition: (s) => s.state !== 'expired' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'interval', type: { type: 'enum', values: ['week', 'month'] }, secure: false });
+        fields.push({ name: 'start', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'proudct', type: { type: 'union', types: { donate: { uid: { type: 'integer' } }, group: { gid: { type: 'integer' } } } }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['started', 'grace_period', 'retrying', 'canceled', 'expired'] }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            amount: c.integer,
+            interval: c.enum('week', 'month'),
+            start: c.integer,
+            proudct: c.union({ donate: c.struct({ uid: c.integer }), group: c.struct({ gid: c.integer }) }),
+            state: c.enum('started', 'grace_period', 'retrying', 'canceled', 'expired'),
+        });
+        let descriptor: EntityDescriptor<WalletSubscriptionShape> = {
+            name: 'WalletSubscription',
+            storageKey: 'walletSubscription',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new WalletSubscriptionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<WalletSubscriptionShape>) {
+        super(descriptor);
+    }
+
+    readonly active = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: WalletSubscriptionCreateShape): Promise<WalletSubscription> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: WalletSubscriptionCreateShape): WalletSubscription {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<WalletSubscription | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletSubscriptionShape>): WalletSubscription {
+        return new WalletSubscription([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface WalletSubscriptionSchedulingShape {
+    id: string;
+    currentPeriodIndex: number;
+}
+
+export interface WalletSubscriptionSchedulingCreateShape {
+    currentPeriodIndex: number;
+}
+
+export class WalletSubscriptionScheduling extends Entity<WalletSubscriptionSchedulingShape> {
+    get id(): string { return this._rawValue.id; }
+    get currentPeriodIndex(): number { return this._rawValue.currentPeriodIndex; }
+    set currentPeriodIndex(value: number) {
+        let normalized = this.descriptor.codec.fields.currentPeriodIndex.normalize(value);
+        if (this._rawValue.currentPeriodIndex !== normalized) {
+            this._rawValue.currentPeriodIndex = normalized;
+            this._updatedValues.currentPeriodIndex = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class WalletSubscriptionSchedulingFactory extends EntityFactory<WalletSubscriptionSchedulingShape, WalletSubscriptionScheduling> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('walletSubscriptionScheduling');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'currentPeriodIndex', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            currentPeriodIndex: c.integer,
+        });
+        let descriptor: EntityDescriptor<WalletSubscriptionSchedulingShape> = {
+            name: 'WalletSubscriptionScheduling',
+            storageKey: 'walletSubscriptionScheduling',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new WalletSubscriptionSchedulingFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<WalletSubscriptionSchedulingShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: WalletSubscriptionSchedulingCreateShape): Promise<WalletSubscriptionScheduling> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: WalletSubscriptionSchedulingCreateShape): WalletSubscriptionScheduling {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<WalletSubscriptionScheduling | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletSubscriptionSchedulingShape>): WalletSubscriptionScheduling {
+        return new WalletSubscriptionScheduling([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface WalletSubscriptionPeriodShape {
+    id: string;
+    index: number;
+    pid: string;
+    start: number;
+    state: 'pending' | 'failing' | 'success' | 'canceling';
+}
+
+export interface WalletSubscriptionPeriodCreateShape {
+    pid: string;
+    start: number;
+    state: 'pending' | 'failing' | 'success' | 'canceling';
+}
+
+export class WalletSubscriptionPeriod extends Entity<WalletSubscriptionPeriodShape> {
+    get id(): string { return this._rawValue.id; }
+    get index(): number { return this._rawValue.index; }
+    get pid(): string { return this._rawValue.pid; }
+    set pid(value: string) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
+            this.invalidate();
+        }
+    }
+    get start(): number { return this._rawValue.start; }
+    set start(value: number) {
+        let normalized = this.descriptor.codec.fields.start.normalize(value);
+        if (this._rawValue.start !== normalized) {
+            this._rawValue.start = normalized;
+            this._updatedValues.start = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'pending' | 'failing' | 'success' | 'canceling' { return this._rawValue.state; }
+    set state(value: 'pending' | 'failing' | 'success' | 'canceling') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscriptionPeriodShape, WalletSubscriptionPeriod> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('walletSubscriptionPeriod');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        primaryKeys.push({ name: 'index', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'pid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'start', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failing', 'success', 'canceling'] }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            index: c.integer,
+            pid: c.string,
+            start: c.integer,
+            state: c.enum('pending', 'failing', 'success', 'canceling'),
+        });
+        let descriptor: EntityDescriptor<WalletSubscriptionPeriodShape> = {
+            name: 'WalletSubscriptionPeriod',
+            storageKey: 'walletSubscriptionPeriod',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new WalletSubscriptionPeriodFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<WalletSubscriptionPeriodShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, index: number, src: WalletSubscriptionPeriodCreateShape): Promise<WalletSubscriptionPeriod> {
+        return this._create(ctx, [id, index], this.descriptor.codec.normalize({ id, index, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, index: number, src: WalletSubscriptionPeriodCreateShape): WalletSubscriptionPeriod {
+        return this._create_UNSAFE(ctx, [id, index], this.descriptor.codec.normalize({ id, index, ...src }));
+    }
+
+    findById(ctx: Context, id: string, index: number): Promise<WalletSubscriptionPeriod | null> {
+        return this._findById(ctx, [id, index]);
+    }
+
+    watch(ctx: Context, id: string, index: number): Watch {
+        return this._watch(ctx, [id, index]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletSubscriptionPeriodShape>): WalletSubscriptionPeriod {
+        return new WalletSubscriptionPeriod([value.id, value.index], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface PaymentIntentShape {
     id: string;
     state: 'pending' | 'success' | 'canceled';
     pid: string | null;
     amount: number;
-    operation: { type: 'deposit', uid: number, txid: string | null };
+    operation: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number };
 }
 
 export interface PaymentIntentCreateShape {
     state: 'pending' | 'success' | 'canceled';
     pid?: string | null | undefined;
     amount: number;
-    operation: { type: 'deposit', uid: number, txid: string | null | undefined };
+    operation: { type: 'deposit', uid: number, txid: string | null | undefined } | { type: 'subscription', uid: number, subscription: string, period: number };
 }
 
 export class PaymentIntent extends Entity<PaymentIntentShape> {
@@ -13769,8 +14084,8 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number, txid: string | null } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number, txid: string | null }) {
+    get operation(): { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -13791,13 +14106,13 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
         fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             state: c.enum('pending', 'success', 'canceled'),
             pid: c.optional(c.string),
             amount: c.integer,
-            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer }) }),
         });
         let descriptor: EntityDescriptor<PaymentIntentShape> = {
             name: 'PaymentIntent',
@@ -13837,7 +14152,7 @@ export interface PaymentShape {
     uid: number;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number, txid: string | null };
+    operation: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number };
     piid: string | null;
 }
 
@@ -13845,7 +14160,7 @@ export interface PaymentCreateShape {
     uid: number;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number, txid: string | null | undefined };
+    operation: { type: 'deposit', uid: number, txid: string | null | undefined } | { type: 'subscription', uid: number, subscription: string, period: number };
     piid?: string | null | undefined;
 }
 
@@ -13878,8 +14193,8 @@ export class Payment extends Entity<PaymentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number, txid: string | null } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number, txid: string | null }) {
+    get operation(): { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string | null } | { type: 'subscription', uid: number, subscription: string, period: number }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -13911,14 +14226,14 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'optional', inner: { type: 'string' } } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' } } } }, secure: false });
         fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             amount: c.integer,
             state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
-            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.optional(c.string) }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer }) }),
             piid: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<PaymentShape> = {
@@ -17164,6 +17479,9 @@ export interface Store extends BaseStore {
     readonly Wallet: WalletFactory;
     readonly WalletTransaction: WalletTransactionFactory;
     readonly WalletDepositRequest: WalletDepositRequestFactory;
+    readonly WalletSubscription: WalletSubscriptionFactory;
+    readonly WalletSubscriptionScheduling: WalletSubscriptionSchedulingFactory;
+    readonly WalletSubscriptionPeriod: WalletSubscriptionPeriodFactory;
     readonly PaymentIntent: PaymentIntentFactory;
     readonly Payment: PaymentFactory;
     readonly PaymentScheduling: PaymentSchedulingFactory;
@@ -17359,6 +17677,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let WalletPromise = WalletFactory.open(storage);
     let WalletTransactionPromise = WalletTransactionFactory.open(storage);
     let WalletDepositRequestPromise = WalletDepositRequestFactory.open(storage);
+    let WalletSubscriptionPromise = WalletSubscriptionFactory.open(storage);
+    let WalletSubscriptionSchedulingPromise = WalletSubscriptionSchedulingFactory.open(storage);
+    let WalletSubscriptionPeriodPromise = WalletSubscriptionPeriodFactory.open(storage);
     let PaymentIntentPromise = PaymentIntentFactory.open(storage);
     let PaymentPromise = PaymentFactory.open(storage);
     let PaymentSchedulingPromise = PaymentSchedulingFactory.open(storage);
@@ -17526,6 +17847,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Wallet: await WalletPromise,
         WalletTransaction: await WalletTransactionPromise,
         WalletDepositRequest: await WalletDepositRequestPromise,
+        WalletSubscription: await WalletSubscriptionPromise,
+        WalletSubscriptionScheduling: await WalletSubscriptionSchedulingPromise,
+        WalletSubscriptionPeriod: await WalletSubscriptionPeriodPromise,
         PaymentIntent: await PaymentIntentPromise,
         Payment: await PaymentPromise,
         PaymentScheduling: await PaymentSchedulingPromise,
