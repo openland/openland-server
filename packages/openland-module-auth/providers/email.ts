@@ -230,11 +230,11 @@ export async function checkCode(req: express.Request, response: express.Response
             return;
         }
 
-        // // max 5 attempts
-        // if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
-        //     sendError(response, 'code_expired');
-        //     return;
-        // }
+        // max 5 attempts
+        if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
+            sendError(response, 'code_expired');
+            return;
+        }
 
         // Wrong code
         if (authSession.code! !== code) {
