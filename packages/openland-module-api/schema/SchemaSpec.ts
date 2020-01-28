@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4a47ff875f86a5d3ac745277a61e647d';
+export const GQL_SPEC_VERSION = '8b96a8362cf93bc4b8cf7350757ce651';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1186,6 +1186,7 @@ export namespace GQL {
         debugReindexUsersDialogs: boolean;
         debugReindexFeedEvents: boolean;
         debugChangeUserEmail: boolean;
+        debugSwapUserEmails: boolean;
         debugFindUsefulCommunities: boolean;
         debugFixStickerPack: Nullable<StickerPack>;
         debugReverseStickers: boolean;
@@ -1601,6 +1602,10 @@ export namespace GQL {
     export interface MutationDebugChangeUserEmailArgs {
         uid: string;
         email: string;
+    }
+    export interface MutationDebugSwapUserEmailsArgs {
+        uid1: string;
+        uid2: string;
     }
     export interface MutationDebugFixStickerPackArgs {
         id: string;
@@ -2615,6 +2620,7 @@ export namespace GQL {
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
+        appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaAppInvite: string;
         alphaAppInviteInfo: Nullable<AppInviteInfo>;
@@ -2772,6 +2778,9 @@ export namespace GQL {
     }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
+    }
+    export interface QueryAppInviteFromUserArgs {
+        shortname: string;
     }
     export interface QueryAppInviteInfoArgs {
         key: string;
@@ -5448,6 +5457,7 @@ export interface GQLResolver {
             debugFlood: GQL.MutationDebugFloodArgs,
             debugSendPush: GQL.MutationDebugSendPushArgs,
             debugChangeUserEmail: GQL.MutationDebugChangeUserEmailArgs,
+            debugSwapUserEmails: GQL.MutationDebugSwapUserEmailsArgs,
             debugFixStickerPack: GQL.MutationDebugFixStickerPackArgs,
             debugFixHyperlogEvent: GQL.MutationDebugFixHyperlogEventArgs,
             debugAddStickerPackToAll: GQL.MutationDebugAddStickerPackToAllArgs,
@@ -6005,6 +6015,7 @@ export interface GQLResolver {
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
             transactionsHistory: GQL.QueryTransactionsHistoryArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
+            appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,

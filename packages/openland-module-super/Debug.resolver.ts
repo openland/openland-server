@@ -1031,6 +1031,45 @@ export default {
                 return true;
             });
         }),
+        debugSwapUserEmails: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                let user1 = await Store.User.findById(ctx, IDs.User.parse(args.uid1));
+                if (!user1) {
+                    return false;
+                }
+                let user2 = await Store.User.findById(ctx, IDs.User.parse(args.uid2));
+                if (!user2) {
+                    return false;
+                }
+                let profile1 = await Store.UserProfile.findById(ctx, IDs.User.parse(args.uid1));
+                if (!profile1) {
+                    return false;
+                }
+                let profile2 = await Store.UserProfile.findById(ctx, IDs.User.parse(args.uid2));
+                if (!profile2) {
+                    return false;
+                }
+
+                let email1 = user1.email;
+                let email2 = user2.email;
+
+                user1.email = email2;
+                user2.email = email1;
+
+                let profile1Email =  profile1.email;
+                let profile2Email =  profile2.email;
+
+                profile1.email = profile2Email;
+                profile2.email = profile1Email;
+
+                await user1.flush(ctx);
+                await user2.flush(ctx);
+                await profile1.flush(ctx);
+                await profile2.flush(ctx);
+
+                return true;
+            });
+        }),
         debugFindUsefulCommunities: withPermission('super-admin', async (ctx, args) => {
             let communities = await Store.Organization.community.findAll(ctx);
 
