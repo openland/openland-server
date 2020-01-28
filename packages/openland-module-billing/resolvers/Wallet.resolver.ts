@@ -61,6 +61,8 @@ export default {
                 return 'WalletTransactionDeposit';
             } else if (src.type === 'subscription') {
                 return 'WalletTransactionSubscription';
+            } else if (src.type === 'transfer') {
+                return 'WalletTransactionTransfer';
             }
 
             throw Error('Unknown operation type: ' + (src as any /* Fuck you, ts */).type);
@@ -78,6 +80,10 @@ export default {
             let period = (await Store.WalletSubscriptionPeriod.findById(ctx, subscription, index))!;
             return Store.Payment.findById(ctx, period.pid);
         }
+    },
+    WalletTransactionTransfer: {
+        amount: (src) => (src as any).amount,
+        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!)
     },
 
     Payment: {
