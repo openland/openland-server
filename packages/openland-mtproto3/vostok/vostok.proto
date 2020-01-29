@@ -21,11 +21,17 @@ message TopMessage {
         InvalidMessage invalidMessage = 10;
     }
 }
-
+//
+// bodyType's
+// 1 - Initialize
+// 2 - InitializeAck
+// are reserved
+//
 message Message {
     required uint32 id = 1;
     repeated uint32 ackMessages = 2;
-    required google.protobuf.Any body = 3;
+    required uint32 bodyType = 3;
+    required bytes body = 4;
 }
 
 message MessagesContainer {

@@ -2,7 +2,7 @@ import { VostokConnection } from './VostokConnection';
 import { VostokSessionsManager } from './VostokSessionsManager';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { BaseVostokServerParams, VostokTypeUrls } from './vostokServer';
+import { BaseVostokServerParams, VostokTypes } from './vostokServer';
 import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
@@ -15,12 +15,12 @@ export async function authorizeConnection(serverParams: BaseVostokServerParams, 
             continue;
         }
 
-        if (state === 'init' && message.body.type_url !== VostokTypeUrls.Initialize) {
+        if (state === 'init' && message.bodyType !== VostokTypes.Initialize) {
             log.log(rootCtx, 'auth error, closing connection');
             connection.close();
             return null;
-        } else if (state === 'init' && message.body.type_url === VostokTypeUrls.Initialize) {
-            let initialize = vostok.Initialize.decode(message.body.value!);
+        } else if (state === 'init' && message.bodyType === VostokTypes.Initialize) {
+            let initialize = vostok.Initialize.decode(message.body);
             state = 'waiting_auth';
             let authParams = await serverParams.onAuth(initialize.authToken || '');
             state = 'connected';
@@ -32,10 +32,8 @@ export async function authorizeConnection(serverParams: BaseVostokServerParams, 
                     // Force session to send ack to this connection
                     connection.lastPingAck = Date.now();
                     target.send({
-                        body: {
-                            type_url: VostokTypeUrls.InitializeAck,
-                            value: vostok.InitializeAck.encode({sessionId: target.sessionId}).finish()
-                        },
+                        bodyType: VostokTypes.InitializeAck,
+                        body: vostok.InitializeAck.encode({sessionId: target.sessionId}).finish(),
                         ackMessages: [message.id]
                     });
                     return target;
@@ -48,10 +46,8 @@ export async function authorizeConnection(serverParams: BaseVostokServerParams, 
             // Force session to send ack to this connection
             connection.lastPingAck = Date.now();
             session.send({
-                body: {
-                    type_url: VostokTypeUrls.InitializeAck,
-                    value: vostok.InitializeAck.encode({sessionId: session.sessionId}).finish()
-                },
+                bodyType: VostokTypes.InitializeAck,
+                body: vostok.InitializeAck.encode({sessionId: session.sessionId}).finish(),
                 ackMessages: [message.id]
             });
             return session;

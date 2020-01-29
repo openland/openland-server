@@ -26,9 +26,9 @@ export type TopLevelMessages =
     vostok.IResendMessageAnswerRequest |
     vostok.IMessageNotFoundResponse;
 
-export const VostokTypeUrls = {
-    Initialize: 'type.googleapis.com/vostok.Initialize',
-    InitializeAck: 'type.googleapis.com/vostok.InitializeAck',
+export const VostokTypes = {
+    Initialize: 1,
+    InitializeAck: 2
 };
 
 function handleSession(session: VostokSession, params: BaseVostokServerParams) {

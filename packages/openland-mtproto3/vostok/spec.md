@@ -19,6 +19,18 @@ Client must first send 0x77777777, then payload length as Big-Endiand Int32 and 
 Vostok uses ProtoBuf for message encoding.
 `TopMessage` is always a top-level message.
 `Message` type which contains any user-defined message in `body` field could be sent in `TopMessage`.
+`body` of type `bytes` should be parsed according to `bodyType`.
+
+Known `bodyType` id's:
+
+- 1 - Initialize
+- 2 - InitializeAck
+- 3 - GQLRequest
+- 4 - GQLResponse
+- 5 - GQLSubscription
+- 6 - GQLSubscriptionStop
+- 7 - GQLSubscriptionResponse
+- 8 - GQLSubscriptionComplete
 
 ## Message ID
 Message ID is a unique uint32 number and encoded as `uint32` in ProtoBuf.

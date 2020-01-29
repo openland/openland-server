@@ -4,6 +4,17 @@ import "google/protobuf/any.proto";
 syntax = "proto3";
 
 //
+// bodyType's
+// 3 - GQLRequest
+// 4 - GQLResponse
+// 5 - GQLSubscription
+// 6 - GQLSubscriptionStop
+// 7 - GQLSubscriptionResponse
+// 8 - GQLSubscriptionComplete
+// are reserved
+//
+
+//
 // API layer
 //
 
@@ -12,6 +23,11 @@ message GQLRequest {
     optional string operationName = 2;
     required string query = 3;
     optional string variables = 4;
+}
+
+message GQLCachedRequest {
+    required string id = 1;
+    required string requestId = 2;
 }
 
 message GQLResponse {
@@ -26,6 +42,11 @@ message GQLSubscription {
     optional string variables = 4;
 }
 
+message GQLCachedSubscription {
+    required string id = 1;
+    required string requestId = 2;
+}
+
 message GQLSubscriptionStop {
     required string id = 1;
 }
@@ -36,5 +57,9 @@ message GQLSubscriptionResponse {
 }
 
 message GQLSubscriptionComplete {
+    required string id = 1;
+}
+
+message GQLCachedQueryNotFound {
     required string id = 1;
 }

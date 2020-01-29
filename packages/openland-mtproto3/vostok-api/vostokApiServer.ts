@@ -15,20 +15,20 @@ interface GQlOperation {
     query: string;
 }
 
-export const VostokApiTypeUrls = {
-    GQLRequest: 'type.googleapis.com/vostok_api.GQLRequest',
-    GQLResponse: 'type.googleapis.com/vostok_api.GQLResponse',
-    GQLSubscription: 'type.googleapis.com/vostok_api.GQLSubscription',
-    GQLSubscriptionStop: 'type.googleapis.com/vostok_api.GQLSubscriptionStop',
-    GQLSubscriptionResponse: 'type.googleapis.com/vostok_api.GQLSubscriptionResponse',
-    GQLSubscriptionComplete: 'type.googleapis.com/vostok_api.GQLSubscriptionComplete',
+export const VostokApiTypes = {
+    GQLRequest: 3,
+    GQLResponse: 4,
+    GQLSubscription: 5,
+    GQLSubscriptionStop: 6,
+    GQLSubscriptionResponse: 7,
+    GQLSubscriptionComplete: 8,
 };
 
 async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncomingMessage) {
     let {message, session} = msg;
 
-    if (message.body.type_url === VostokApiTypeUrls.GQLRequest) {
-        let request = vostok_api.GQLRequest.decode(message.body.value!);
+    if (message.bodyType === VostokApiTypes.GQLRequest) {
+        let request = vostok_api.GQLRequest.decode(message.body);
         session.sendAck([message.id]);
         let ctx = await params.context(session.authParams, request);
         await params.onOperation(ctx, request);
@@ -41,16 +41,14 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
             contextValue: ctx
         });
         session.send({
-            body: {
-                type_url: VostokApiTypeUrls.GQLResponse,
-                value: vostok_api.GQLResponse.encode({
-                    id: request.id,
-                    result: JSON.stringify(await params.formatResponse(result, request, ctx))
-                }).finish()
-            }
+            bodyType: VostokApiTypes.GQLResponse,
+            body: vostok_api.GQLResponse.encode({
+                id: request.id,
+                result: JSON.stringify(await params.formatResponse(result, request, ctx))
+            }).finish()
         }, [], message.id);
-    } else if (message.body.type_url === VostokApiTypeUrls.GQLSubscription) {
-        let request = vostok_api.GQLSubscription.decode(message.body.value!);
+    } else if (message.bodyType === VostokApiTypes.GQLSubscription) {
+        let request = vostok_api.GQLSubscription.decode(message.body);
         session.sendAck([message.id], [message.id]);
         let working = true;
         let ctx = await params.subscriptionContext(session.authParams, request);
@@ -75,13 +73,11 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
             if (!isAsyncIterator(iterator)) {
                 // handle error
                 session.send({
-                    body: {
-                        type_url: VostokApiTypeUrls.GQLSubscriptionResponse,
-                        value: vostok_api.GQLSubscriptionResponse.encode({
-                            id: request.id,
-                            result: JSON.stringify(await params.formatResponse(iterator, request, ctx))
-                        }).finish()
-                    }
+                    bodyType: VostokApiTypes.GQLSubscriptionResponse,
+                    body: vostok_api.GQLSubscriptionResponse.encode({
+                        id: request.id,
+                        result: JSON.stringify(await params.formatResponse(iterator, request, ctx))
+                    }).finish()
                 });
                 return;
             }
@@ -91,28 +87,24 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
                     break;
                 }
                 session.send({
-                    body: {
-                        type_url: VostokApiTypeUrls.GQLSubscriptionResponse,
-                        value: vostok_api.GQLSubscriptionResponse.encode({
-                            id: request.id,
-                            result: JSON.stringify(await params.formatResponse(event, request, ctx))
-                        }).finish()
-                    }
+                    bodyType: VostokApiTypes.GQLSubscriptionResponse,
+                    body: vostok_api.GQLSubscriptionResponse.encode({
+                        id: request.id,
+                        result: JSON.stringify(await params.formatResponse(event, request, ctx))
+                    }).finish()
                 });
             }
             session.send({
-                body: {
-                    type_url: VostokApiTypeUrls.GQLSubscriptionComplete,
-                    value: vostok_api.GQLSubscriptionComplete.encode({id: request.id}).finish()
-                }
+                bodyType: VostokApiTypes.GQLSubscriptionComplete,
+                body: vostok_api.GQLSubscriptionComplete.encode({id: request.id}).finish()
             });
         });
         session.operations.add(request.id, () => {
             working = false;
             cancelContext(ctx);
         });
-    } else if (message.body.type_url === VostokApiTypeUrls.GQLSubscriptionStop) {
-        let request = vostok_api.GQLSubscriptionStop.decode(message.body.value!);
+    } else if (message.bodyType === VostokApiTypes.GQLSubscriptionStop) {
+        let request = vostok_api.GQLSubscriptionStop.decode(message.body);
         session.operations.stop(request.id);
         session.sendAck([message.id], [message.id]);
     }

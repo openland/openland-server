@@ -9,7 +9,7 @@ import { createLogger } from '@openland/log';
 import { asyncRun, makeMessageId } from '../utils';
 import { RotatingSet } from '../../openland-utils/RotatingSet';
 import { MESSAGE_INFO_REQ_TIMEOUT } from './vostokServer';
-import { google, vostok } from './schema/schema';
+import { vostok } from './schema/schema';
 
 const rootCtx = createNamedContext('vostok');
 const log = createLogger('vostok');
@@ -32,8 +32,11 @@ type MessageInput = {
     /** Message ackMessages */
     ackMessages?: (MessageID[]|null);
 
-    /** Message body */
-    body: google.protobuf.IAny;
+    /** Message bodyType. */
+    bodyType: number;
+
+    /** Message body. */
+    body: Uint8Array;
 };
 
 export class VostokSession {
