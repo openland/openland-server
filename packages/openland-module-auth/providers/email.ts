@@ -142,11 +142,11 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
 
-            // let nextEmailTime = await Modules.Auth.nextAuthEmailTime(ctx, email);
-            // if (nextEmailTime) {
-            //     sendError(response, 'too_many_attempts', { can_send_next_email_at: nextEmailTime });
-            //     return;
-            // }
+            let nextEmailTime = await Modules.Auth.nextAuthEmailTime(ctx, email);
+            if (nextEmailTime) {
+                sendError(response, 'too_many_attempts', { can_send_next_email_at: nextEmailTime });
+                return;
+            }
 
             let isTest = isTestEmail(email);
             let existing = await findUserByEmail(ctx, email);
