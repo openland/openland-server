@@ -1,12 +1,12 @@
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
+import { Store, PaymentIntentCreateShape } from '../../openland-module-db/store';
 import { RoutingRepository } from './RoutingRepository';
 
 const log = createLogger('payments-async');
 
-export class PaymentsAsyncRepository {
+export class PaymentsRepository {
     readonly store: Store;
     private routing!: RoutingRepository;
 

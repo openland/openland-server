@@ -52,7 +52,7 @@ describe('WalletRepository', () => {
         //
 
         let txid = await repo.depositAsync(ctx, 3, 100, pid);
-    
+
         wallet = await repo.getWallet(ctx, 3);
         expect(wallet.balance).toBe(0);
 
@@ -74,12 +74,17 @@ describe('WalletRepository', () => {
 
         // Can't commit if user id is invalid
         await expect(repo.depositAsyncCommit(ctx, 4, txid)).rejects.toThrowError();
+        await expect(repo.depositAsyncCancel(ctx, 4, txid)).rejects.toThrowError();
         await expect(repo.depositAsyncFailing(ctx, 4, txid)).rejects.toThrowError();
         await expect(repo.depositAsyncActionNeeded(ctx, 4, txid)).rejects.toThrowError();
         // Can't commit non-existent transaction
         await expect(repo.depositAsyncCommit(ctx, 3, 'txid')).rejects.toThrowError();
+        await expect(repo.depositAsyncCancel(ctx, 3, 'txid')).rejects.toThrowError();
         await expect(repo.depositAsyncFailing(ctx, 3, 'txid')).rejects.toThrowError();
         await expect(repo.depositAsyncActionNeeded(ctx, 3, 'txid')).rejects.toThrowError();
+        // Correct operations
+        await repo.depositAsyncFailing(ctx, 3, txid);
+        await repo.depositAsyncActionNeeded(ctx, 3, txid);
 
         //
         // Commit Deposit
@@ -107,7 +112,39 @@ describe('WalletRepository', () => {
         //
 
         await expect(repo.depositAsyncCommit(ctx, 3, txid)).rejects.toThrowError();
+        await expect(repo.depositAsyncCancel(ctx, 3, txid)).rejects.toThrowError();
         await expect(repo.depositAsyncFailing(ctx, 3, txid)).rejects.toThrowError();
         await expect(repo.depositAsyncActionNeeded(ctx, 3, txid)).rejects.toThrowError();
+
+        //
+        // Test Canceling
+        //
+        let invalid = await repo.transferAsync(ctx, 3, 6, 100, 0, 'pidpid');
+        
+        txid = await repo.depositAsync(ctx, 4, 100, pid);
+       
+        // Invalid operation type
+        await expect(repo.depositAsyncCommit(ctx, 4, invalid.txIn)).rejects.toThrowError();
+        await expect(repo.depositAsyncCancel(ctx, 4, invalid.txIn)).rejects.toThrowError();
+        await expect(repo.depositAsyncFailing(ctx, 4, invalid.txIn)).rejects.toThrowError();
+        await expect(repo.depositAsyncActionNeeded(ctx, 4, invalid.txIn)).rejects.toThrowError();
+
+        // Cancel
+        await repo.depositAsyncCancel(ctx, 4, txid);
+
+        wallet = await repo.getWallet(ctx, 4);
+        expect(wallet.balance).toBe(0);
+
+        pending = await Store.WalletTransaction.pending.findAll(ctx, 4);
+        history = await Store.WalletTransaction.history.findAll(ctx, 4);
+        expect(pending.length).toBe(0);
+        expect(history.length).toBe(1);
+
+        tx = history[0];
+        expect(tx.uid).toBe(4);
+        expect(tx.status).toBe('canceled');
+        expect(tx.operation.type).toBe('deposit');
+        expect((tx.operation as any).payment).toBe(pid);
+        expect((tx.operation as any).amount).toBe(100);
     });
 });
