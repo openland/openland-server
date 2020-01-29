@@ -2,7 +2,7 @@ import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { SubscriptionsRepository } from './SubscriptionsRepository';
-import { PaymentsAsyncRepository } from './PaymentsAsyncRepository';
+import { PaymentsRepository } from './PaymentsRepository';
 import { WalletRepository } from './WalletRepository';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -16,7 +16,7 @@ describe('SubscriptionsRepository', () => {
     });
 
     it('should create subscription, process payment and recover during grace period', async () => {
-        let payments = new PaymentsAsyncRepository(Store);
+        let payments = new PaymentsRepository(Store);
         let wallet = new WalletRepository(Store);
         let subscriptions = new SubscriptionsRepository(Store, payments, wallet);
         payments.setRouting({});
@@ -77,7 +77,7 @@ describe('SubscriptionsRepository', () => {
     });
 
     it('should schedule next payment if conditions met', async () => {
-        let payments = new PaymentsAsyncRepository(Store);
+        let payments = new PaymentsRepository(Store);
         let wallet = new WalletRepository(Store);
         let subscriptions = new SubscriptionsRepository(Store, payments, wallet);
         subscriptions.setRouting({});

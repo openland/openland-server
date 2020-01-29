@@ -3,7 +3,7 @@ import { SubscriptionsMediator } from './mediators/SubscriptionsMediator';
 import { SubscriptionsRepository } from './repo/SubscriptionsRepository';
 import { WalletRepository } from './repo/WalletRepository';
 import { RoutingRepository, RoutingRepositoryImpl } from './repo/RoutingRepository';
-import { PaymentsRepository } from './repo/PaymentsRepository';
+import { PaymentIntentsRepository } from './repo/PaymentIntentsRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { PaymentMediator } from './mediators/PaymentMediator';
 import { Store } from 'openland-module-db/FDB';
@@ -13,29 +13,28 @@ import { startCustomerExportWorker } from './workers/CustomerExportWorker';
 import { startCardSyncWorker } from './workers/CardSyncWorker';
 import { startEventsReaderWorker } from './workers/EventsReaderWorker';
 import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
-import { PaymentsAsyncRepository } from './repo/PaymentsAsyncRepository';
+import { PaymentsRepository } from './repo/PaymentsRepository';
 import { startPaymentScheduler } from './workers/startPaymentScheduler';
 import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
 
 @injectable()
 export class BillingModule {
-
+    // Low level payments repository
+    readonly paymentIntents: PaymentIntentsRepository = new PaymentIntentsRepository(Store);
     // Wallet Operations
     readonly wallet: WalletRepository = new WalletRepository(Store);
-    // Low level payments repository
-    readonly payments: PaymentsRepository = new PaymentsRepository(Store);
     // Off-session payments repository
-    readonly paymentsAsync: PaymentsAsyncRepository = new PaymentsAsyncRepository(Store);
+    readonly payments: PaymentsRepository = new PaymentsRepository(Store);
     // Subscriptions repository
-    readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.paymentsAsync, this.wallet);
+    readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.payments, this.wallet);
     // Routing
     readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.subscriptions);
 
     // Payments Mediator (on/off session)
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
-        this.payments,
+        this.paymentIntents,
         this.wallet,
-        this.paymentsAsync
+        this.payments
     );
 
     // Subscriptions Mediator
@@ -44,7 +43,7 @@ export class BillingModule {
     constructor() {
         this.paymentsMediator.setRouting(this.routing);
         this.subscriptions.setRouting(this.routing);
-        this.paymentsAsync.setRouting(this.routing);
+        this.payments.setRouting(this.routing);
     }
 
     start = async () => {

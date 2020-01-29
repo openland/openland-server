@@ -2,7 +2,7 @@ import { uuid } from 'openland-utils/uuid';
 import { Context } from '@openland/context';
 import { Store, WalletSubscriptionCreateShape } from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { PaymentsAsyncRepository } from './PaymentsAsyncRepository';
+import { PaymentsRepository } from './PaymentsRepository';
 import { nextRenewMonthly } from './utils/nextRenewMonthly';
 import { RoutingRepository } from './RoutingRepository';
 import { WalletRepository } from './WalletRepository';
@@ -13,11 +13,11 @@ const WEEK = 7 * DAY; // ms in week
 
 export class SubscriptionsRepository {
     readonly store: Store;
-    readonly payments: PaymentsAsyncRepository;
+    readonly payments: PaymentsRepository;
     readonly wallet: WalletRepository;
     private routing!: RoutingRepository;
 
-    constructor(store: Store, payments: PaymentsAsyncRepository, wallet: WalletRepository) {
+    constructor(store: Store, payments: PaymentsRepository, wallet: WalletRepository) {
         this.store = store;
         this.payments = payments;
         this.wallet = wallet;
