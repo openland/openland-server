@@ -11,10 +11,10 @@ type PermissionGroup {
     id: ID!
     name: String!
     description: String!
-    requests: [PermissionRequest!]!
+    permissions: [Permission!]!
 }
 
-type PermissionRequest {
+type Permission {
     id: ID!
     group: PermissionGroup!
 
@@ -27,10 +27,9 @@ type PermissionRequest {
 
 extend type Query {
     permissionGroups: [PermissionGroup!]!
-    waitingPermissionRequests: [PermissionRequest!]!
+    waitingPermissions: [Permission!]!
 }
 
 extend type Subscription {
-    permissionsUpdates: PermissionRequest!
-    waitingPermissionRequestsUpdates: PermissionRequest!
+    permissionsUpdates: Permission!
 }

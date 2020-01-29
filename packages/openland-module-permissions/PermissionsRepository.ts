@@ -3,6 +3,7 @@ import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from '../openland-module-db/FDB';
 import uuid from 'uuid';
+import { PermissionUpdatedEvent } from '../openland-module-db/store';
 
 export interface PermissionGroup {
     id: number;
@@ -42,9 +43,9 @@ export class PermissionsRepository {
         } = info;
 
         return inTx(parent, async ctx => {
-            let request = await Store.PermissionRequest.single.find(ctx, uid, gid, appType, appId, scopeType, scopeId || null);
-            if (!request) {
-                request = await Store.PermissionRequest.create(ctx, uuid(), {
+            let p = await Store.Permission.single.find(ctx, uid, gid, appType, appId, scopeType, scopeId || null);
+            if (!p) {
+                p = await Store.Permission.create(ctx, uuid(), {
                     appId,
                     appType,
                     gid,
@@ -53,8 +54,12 @@ export class PermissionsRepository {
                     scopeId,
                     status: 'waiting',
                 });
+
+                Store.PermissionEventStore.post(ctx, info.uid, PermissionUpdatedEvent.create({
+                    id: p.id
+                }));
             }
-            return request;
+            return p;
         });
     }
 
@@ -64,41 +69,44 @@ export class PermissionsRepository {
     }
 
     public async hasSomethingGranted(parent: Context, uid: number, gid: number) {
-        let permissions = await Store.PermissionRequest.userGroup.findAll(parent, uid, gid);
+        let permissions = await Store.Permission.userGroup.findAll(parent, uid, gid);
         return !!permissions.find(a => a.status === 'granted');
     }
 
     public updatePermissionStatus(parent: Context, info: PermissionRequestInfo,  status: 'rejected' | 'granted') {
         return inTx(parent, async ctx => {
            let permission = await this.getPermissionStatus(ctx, info);
-
            permission.status = status;
+
+           Store.PermissionEventStore.post(ctx, info.uid, PermissionUpdatedEvent.create({
+               id: permission.id
+           }));
         });
     }
 
     public getGrantedPermissionsForApp(parent: Context, uid: number, appId: number, appType: 'powerup') {
         return inTx(parent, async ctx => {
-           let permissions = await Store.PermissionRequest.userApp.findAll(ctx, uid, appType, appId);
+           let permissions = await Store.Permission.userApp.findAll(ctx, uid, appType, appId);
            return permissions.filter(a => a.status === 'granted');
         });
     }
 
     public getWaitingPermissions(parent: Context, uid: number) {
         return inTx(parent, async ctx => {
-            let userRequests = await Store.PermissionRequest.user.findAll(ctx, uid);
+            let userRequests = await Store.Permission.user.findAll(ctx, uid);
             return userRequests.filter(a => a.status === 'waiting');
         });
     }
 
     public getUserPermissions(parent: Context, uid: number) {
         return inTx(parent, async ctx => {
-            return await Store.PermissionRequest.user.findAll(ctx, uid);
+            return await Store.Permission.user.findAll(ctx, uid);
         });
     }
 
     public getPermissionsForGroup(parent: Context, uid: number, gid: number) {
         return inTx(parent, async ctx => {
-            return await Store.PermissionRequest.userGroup.findAll(ctx, uid, gid);
+            return await Store.Permission.userGroup.findAll(ctx, uid, gid);
         });
     }
 

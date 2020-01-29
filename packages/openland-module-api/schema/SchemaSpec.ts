@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9707b4559657b3430565df720e8cfd65';
+export const GQL_SPEC_VERSION = '3ea9ab44e5a8445636970d1ad0cccee1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -656,9 +656,9 @@ export namespace GQL {
         id: string;
         name: string;
         description: string;
-        requests: PermissionRequest[];
+        permissions: Permission[];
     }
-    export interface PermissionRequest {
+    export interface Permission {
         id: string;
         group: PermissionGroup;
         appType: PermissionAppType;
@@ -2658,7 +2658,7 @@ export namespace GQL {
         alphaOrganizationInviteLink: Nullable<Invite>;
         alphaOrganizationPublicInvite: Nullable<Invite>;
         permissionGroups: PermissionGroup[];
-        waitingPermissionRequests: PermissionRequest[];
+        waitingPermissions: Permission[];
         isDesktopInstalled: IsAppInstalledResponse;
         isMobileInstalled: IsAppInstalledResponse;
         superAccounts: SuperAccount[];
@@ -3152,8 +3152,7 @@ export namespace GQL {
         debugServerId: string;
         settingsWatch: Settings;
         watchSettings: Settings;
-        permissionsUpdates: PermissionRequest;
-        waitingPermissionRequestsUpdates: PermissionRequest;
+        permissionsUpdates: Permission;
         alphaSubscribeChatOnline: OnlineEvent;
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
@@ -4619,14 +4618,14 @@ export interface GQLResolver {
         GQL.PermissionGroup,
         GQLRoots.PermissionGroupRoot,
         {
-            requests: GQLRoots.PermissionRequestRoot[],
+            permissions: GQLRoots.PermissionRoot[],
         },
         {
         }
     >;
-    PermissionRequest?: ComplexTypedResolver<
-        GQL.PermissionRequest,
-        GQLRoots.PermissionRequestRoot,
+    Permission?: ComplexTypedResolver<
+        GQL.Permission,
+        GQLRoots.PermissionRoot,
         {
             group: GQLRoots.PermissionGroupRoot,
             powerup: Nullable<GQLRoots.PowerupRoot>,
@@ -5942,7 +5941,7 @@ export interface GQLResolver {
             alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>,
             alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>,
             permissionGroups: GQLRoots.PermissionGroupRoot[],
-            waitingPermissionRequests: GQLRoots.PermissionRequestRoot[],
+            waitingPermissions: GQLRoots.PermissionRoot[],
             isDesktopInstalled: GQLRoots.IsAppInstalledResponseRoot,
             isMobileInstalled: GQLRoots.IsAppInstalledResponseRoot,
             superAccounts: GQLRoots.SuperAccountRoot[],
@@ -6151,8 +6150,7 @@ export interface GQLResolver {
             debugEvents: GQLRoots.DebugEventRoot,
             settingsWatch: GQLRoots.SettingsRoot,
             watchSettings: GQLRoots.SettingsRoot,
-            permissionsUpdates: GQLRoots.PermissionRequestRoot,
-            waitingPermissionRequestsUpdates: GQLRoots.PermissionRequestRoot,
+            permissionsUpdates: GQLRoots.PermissionRoot,
             alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot,
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,

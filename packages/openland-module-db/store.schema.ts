@@ -1605,7 +1605,7 @@ export default declareSchema(() => {
     //
     // Permissions
     //
-    entity('PermissionRequest', () => {
+    entity('Permission', () => {
         primaryKey('id', string());
 
         field('uid', integer());
@@ -1621,6 +1621,14 @@ export default declareSchema(() => {
         rangeIndex('groupApp', ['gid', 'appType', 'appId', 'createdAt']);
         rangeIndex('userApp', ['uid', 'appType', 'appId', 'createdAt']);
         uniqueIndex('single', ['uid', 'gid', 'appType', 'appId', 'scopeType', 'scopeId']);
+    });
+
+    eventStore('PermissionEventStore', () => {
+        primaryKey('uid', integer());
+    });
+
+    event('PermissionUpdatedEvent', () => {
+       field('id', string());
     });
 
     //

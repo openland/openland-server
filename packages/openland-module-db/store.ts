@@ -12768,7 +12768,7 @@ export class ChatPowerupFactory extends EntityFactory<ChatPowerupShape, ChatPowe
     }
 }
 
-export interface PermissionRequestShape {
+export interface PermissionShape {
     id: string;
     uid: number;
     gid: number;
@@ -12779,7 +12779,7 @@ export interface PermissionRequestShape {
     status: 'rejected' | 'waiting' | 'granted';
 }
 
-export interface PermissionRequestCreateShape {
+export interface PermissionCreateShape {
     uid: number;
     gid: number;
     appType: 'powerup';
@@ -12789,7 +12789,7 @@ export interface PermissionRequestCreateShape {
     status: 'rejected' | 'waiting' | 'granted';
 }
 
-export class PermissionRequest extends Entity<PermissionRequestShape> {
+export class Permission extends Entity<PermissionShape> {
     get id(): string { return this._rawValue.id; }
     get uid(): number { return this._rawValue.uid; }
     set uid(value: number) {
@@ -12856,16 +12856,16 @@ export class PermissionRequest extends Entity<PermissionRequestShape> {
     }
 }
 
-export class PermissionRequestFactory extends EntityFactory<PermissionRequestShape, PermissionRequest> {
+export class PermissionFactory extends EntityFactory<PermissionShape, Permission> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('permissionRequest');
+        let subspace = await storage.resolveEntityDirectory('permission');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'userGroup', storageKey: 'userGroup', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'userGroup'), condition: undefined });
-        secondaryIndexes.push({ name: 'groupApp', storageKey: 'groupApp', type: { type: 'range', fields: [{ name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'groupApp'), condition: undefined });
-        secondaryIndexes.push({ name: 'userApp', storageKey: 'userApp', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'userApp'), condition: undefined });
-        secondaryIndexes.push({ name: 'single', storageKey: 'single', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'scopeType', type: 'string' }, { name: 'scopeId', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'single'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permission', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'userGroup', storageKey: 'userGroup', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permission', 'userGroup'), condition: undefined });
+        secondaryIndexes.push({ name: 'groupApp', storageKey: 'groupApp', type: { type: 'range', fields: [{ name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permission', 'groupApp'), condition: undefined });
+        secondaryIndexes.push({ name: 'userApp', storageKey: 'userApp', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permission', 'userApp'), condition: undefined });
+        secondaryIndexes.push({ name: 'single', storageKey: 'single', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'scopeType', type: 'string' }, { name: 'scopeId', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permission', 'single'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -12886,15 +12886,15 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
             scopeId: c.optional(c.integer),
             status: c.enum('rejected', 'waiting', 'granted'),
         });
-        let descriptor: EntityDescriptor<PermissionRequestShape> = {
-            name: 'PermissionRequest',
-            storageKey: 'permissionRequest',
+        let descriptor: EntityDescriptor<PermissionShape> = {
+            name: 'Permission',
+            storageKey: 'permission',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new PermissionRequestFactory(descriptor);
+        return new PermissionFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<PermissionRequestShape>) {
+    private constructor(descriptor: EntityDescriptor<PermissionShape>) {
         super(descriptor);
     }
 
@@ -12970,15 +12970,15 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
         },
     });
 
-    create(ctx: Context, id: string, src: PermissionRequestCreateShape): Promise<PermissionRequest> {
+    create(ctx: Context, id: string, src: PermissionCreateShape): Promise<Permission> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, src: PermissionRequestCreateShape): PermissionRequest {
+    create_UNSAFE(ctx: Context, id: string, src: PermissionCreateShape): Permission {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PermissionRequest | null> {
+    findById(ctx: Context, id: string): Promise<Permission | null> {
         return this._findById(ctx, [id]);
     }
 
@@ -12986,8 +12986,8 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
         return this._watch(ctx, [id]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PermissionRequestShape>): PermissionRequest {
-        return new PermissionRequest([value.id], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PermissionShape>): Permission {
+        return new Permission([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -16998,6 +16998,35 @@ export class UserLocationStopSharingEvent extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
+const permissionUpdatedEventCodec = c.struct({
+    id: c.string,
+});
+
+interface PermissionUpdatedEventShape {
+    id: string;
+}
+
+export class PermissionUpdatedEvent extends BaseEvent {
+
+    static create(data: PermissionUpdatedEventShape) {
+        return new PermissionUpdatedEvent(permissionUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new PermissionUpdatedEvent(permissionUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: PermissionUpdatedEvent) {
+        return permissionUpdatedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('permissionUpdatedEvent', data);
+    }
+
+    get id(): string { return this.raw.id; }
+}
+
 const walletTransactionPendingCodec = c.struct({
     id: c.string,
 });
@@ -17388,6 +17417,41 @@ export class UserLocationEventStore extends EventStore {
     }
 }
 
+export class PermissionEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('permissionEventStore');
+        const descriptor = {
+            name: 'PermissionEventStore',
+            storageKey: 'permissionEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new PermissionEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, uid: number, event: BaseEvent) {
+        this._post(ctx, [uid], event);
+    }
+
+    async findAll(ctx: Context, uid: number) {
+        return this._findAll(ctx, [uid]);
+    }
+
+    createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([uid], opts);
+    }
+
+    createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [uid], opts);
+    }
+}
+
 export class UserWalletUpdates extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -17584,7 +17648,7 @@ export interface Store extends BaseStore {
     readonly UserLocation: UserLocationFactory;
     readonly Powerup: PowerupFactory;
     readonly ChatPowerup: ChatPowerupFactory;
-    readonly PermissionRequest: PermissionRequestFactory;
+    readonly Permission: PermissionFactory;
     readonly UserStorageNamespace: UserStorageNamespaceFactory;
     readonly UserStorageRecord: UserStorageRecordFactory;
     readonly UserStripeCustomer: UserStripeCustomerFactory;
@@ -17622,6 +17686,7 @@ export interface Store extends BaseStore {
     readonly FeedEventStore: FeedEventStore;
     readonly FeedGlobalEventStore: FeedGlobalEventStore;
     readonly UserLocationEventStore: UserLocationEventStore;
+    readonly PermissionEventStore: PermissionEventStore;
     readonly UserWalletUpdates: UserWalletUpdates;
     readonly StripeEventStore: StripeEventStore;
     readonly UserDialogIndexDirectory: Subspace;
@@ -17653,6 +17718,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
     eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
+    eventFactory.registerEventType('permissionUpdatedEvent', PermissionUpdatedEvent.encode as any, PermissionUpdatedEvent.decode);
     eventFactory.registerEventType('walletTransactionPending', WalletTransactionPending.encode as any, WalletTransactionPending.decode);
     eventFactory.registerEventType('walletTransactionSuccess', WalletTransactionSuccess.encode as any, WalletTransactionSuccess.decode);
     eventFactory.registerEventType('walletTransactionCanceled', WalletTransactionCanceled.encode as any, WalletTransactionCanceled.decode);
@@ -17784,7 +17850,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserLocationPromise = UserLocationFactory.open(storage);
     let PowerupPromise = PowerupFactory.open(storage);
     let ChatPowerupPromise = ChatPowerupFactory.open(storage);
-    let PermissionRequestPromise = PermissionRequestFactory.open(storage);
+    let PermissionPromise = PermissionFactory.open(storage);
     let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
     let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
     let UserStripeCustomerPromise = UserStripeCustomerFactory.open(storage);
@@ -17826,6 +17892,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
+    let PermissionEventStorePromise = PermissionEventStore.open(storage, eventFactory);
     let UserWalletUpdatesPromise = UserWalletUpdates.open(storage, eventFactory);
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     return {
@@ -17956,7 +18023,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserLocation: await UserLocationPromise,
         Powerup: await PowerupPromise,
         ChatPowerup: await ChatPowerupPromise,
-        PermissionRequest: await PermissionRequestPromise,
+        Permission: await PermissionPromise,
         UserStorageNamespace: await UserStorageNamespacePromise,
         UserStorageRecord: await UserStorageRecordPromise,
         UserStripeCustomer: await UserStripeCustomerPromise,
@@ -17998,6 +18065,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeedEventStore: await FeedEventStorePromise,
         FeedGlobalEventStore: await FeedGlobalEventStorePromise,
         UserLocationEventStore: await UserLocationEventStorePromise,
+        PermissionEventStore: await PermissionEventStorePromise,
         UserWalletUpdates: await UserWalletUpdatesPromise,
         StripeEventStore: await StripeEventStorePromise,
     };
