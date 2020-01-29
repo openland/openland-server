@@ -178,7 +178,7 @@ export default {
         //
 
         cardDepositEnqueue: withAccount(async (ctx, args, uid) => {
-            await Modules.Billing.paymentsMediator.createDepositPayment(ctx, uid, args.amount, args.retryKey);
+            await Modules.Billing.createDepositPayment(ctx, uid, args.amount, args.retryKey);
             return true;
         }),
         cardDepositIntent: withAccount(async (ctx, args, uid) => {
@@ -206,7 +206,7 @@ export default {
             //     type: 'donate',
             //     uid: IDs.User.parse(args.id)
             // });
-            await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
+            await Modules.Billing.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
             return true;
         }),
     },

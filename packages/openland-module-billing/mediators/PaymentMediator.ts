@@ -1,5 +1,4 @@
 import { createLogger } from '@openland/log';
-import { uuid } from 'openland-utils/uuid';
 import { RoutingRepository } from './../repo/RoutingRepository';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PaymentIntentsRepository } from '../repo/PaymentIntentsRepository';
@@ -7,10 +6,8 @@ import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
-import { WalletRepository } from 'openland-module-billing/repo/WalletRepository';
 import { PaymentsRepository } from 'openland-module-billing/repo/PaymentsRepository';
 import { backoff } from 'openland-utils/timer';
-import { paymentAmounts } from 'openland-module-billing/repo/utils/paymentAmounts';
 
 const log = createLogger('payments');
 
@@ -19,20 +16,17 @@ export class PaymentMediator {
     readonly liveMode: boolean;
     readonly payments: PaymentsRepository;
     readonly paymentIntents: PaymentIntentsRepository;
-    readonly wallet: WalletRepository;
     private routing!: RoutingRepository;
 
     readonly stripe: Stripe;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
-    // readonly paymentProcessorQueue = new WorkQueue<{ uid: number, pid: string }, { result: string }>('stripe-payment-task', -1);
 
-    constructor(token: string, paymentIntents: PaymentIntentsRepository, wallet: WalletRepository, payments: PaymentsRepository) {
+    constructor(token: string, paymentIntents: PaymentIntentsRepository, payments: PaymentsRepository) {
         this.paymentIntents = paymentIntents;
         this.payments = payments;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
-        this.wallet = wallet;
     }
 
     setRouting = (routing: RoutingRepository) => {
@@ -308,79 +302,6 @@ export class PaymentMediator {
         await this.paymentIntents.registerPaymentIntent(parent, intent.id, amount, null, { type: 'deposit', txid: null, uid: uid });
 
         return intent;
-    }
-
-    //
-    // Create off-session deposit payment
-    //
-
-    createDepositPayment = async (parent: Context, uid: number, amount: number, retryKey: string) => {
-        await this.enablePaymentsAndAwait(parent, uid);
-
-        await inTx(parent, async (ctx) => {
-
-            // Retry Handling
-            let retry = await Store.WalletDepositRequest.findById(ctx, uid, retryKey);
-            if (retry) {
-                return;
-            }
-            let pid = uuid();
-            await Store.WalletDepositRequest.create(ctx, uid, retryKey, { pid: pid });
-
-            // Wallet Transaction
-            let txid = await this.wallet.depositAsync(ctx, uid, amount, pid);
-
-            // Payment
-            await this.payments.createPayment(ctx, pid, uid, amount, {
-                type: 'deposit',
-                uid: uid,
-                txid: txid
-            });
-        });
-    }
-
-    //
-    // Create off-session transfer payment
-    //
-
-    createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string) => {
-        await this.enablePaymentsAndAwait(parent, fromUid);
-
-        await inTx(parent, async (ctx) => {
-
-            // Retry Handling
-            let retry = await Store.WalletTransferRequest.findById(ctx, fromUid, toUid, retryKey);
-            if (retry) {
-                return;
-            }
-
-            let walletBalance = (await this.wallet.getWallet(ctx, fromUid)).balance;
-
-            let amounts = paymentAmounts(walletBalance, amount);
-
-            if (amounts.charge === 0) {
-                // Retry
-                await Store.WalletTransferRequest.create(ctx, fromUid, toUid, retryKey, { pid: null });
-                // Wallet transfer
-                await this.wallet.transferBalance(ctx, fromUid, toUid, amount);
-            } else {
-                // Retry
-                let pid = uuid();
-                await Store.WalletTransferRequest.create(ctx, fromUid, toUid, retryKey, { pid: pid });
-
-                // Transaction
-                let { txOut, txIn } = await this.wallet.transferAsync(ctx, fromUid, toUid, amounts.wallet, amounts.charge, pid);
-
-                // Payment
-                await this.payments.createPayment(ctx, pid, fromUid, amount, {
-                    type: 'transfer',
-                    fromUid,
-                    fromTx: txOut,
-                    toUid,
-                    toTx: txIn
-                });
-            }
-        });
     }
 
     //

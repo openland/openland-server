@@ -1,5 +1,5 @@
+import { OperationsRepository } from './repo/OperationsRepository';
 import { WalletSubscriptionCreateShape } from './../openland-module-db/store';
-import { SubscriptionsMediator } from './mediators/SubscriptionsMediator';
 import { SubscriptionsRepository } from './repo/SubscriptionsRepository';
 import { WalletRepository } from './repo/WalletRepository';
 import { RoutingRepository, RoutingRepositoryImpl } from './repo/RoutingRepository';
@@ -29,16 +29,14 @@ export class BillingModule {
     readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.payments, this.wallet);
     // Routing
     readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.subscriptions);
+    // Operations repository
+    readonly operations: OperationsRepository = new OperationsRepository(Store, this.wallet, this.payments, this.subscriptions);
 
     // Payments Mediator (on/off session)
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
         this.paymentIntents,
-        this.wallet,
         this.payments
     );
-
-    // Subscriptions Mediator
-    readonly subscriptionsMediator: SubscriptionsMediator = new SubscriptionsMediator(this.paymentsMediator, this.subscriptions);
 
     constructor() {
         this.paymentsMediator.setRouting(this.routing);
@@ -53,9 +51,13 @@ export class BillingModule {
             startEventsReaderWorker(this.paymentsMediator);
             startPaymentIntentCommiter(this.paymentsMediator);
             startPaymentScheduler(this.paymentsMediator);
-            startSubscriptionsScheduler(this.subscriptionsMediator);
+            startSubscriptionsScheduler(this.subscriptions, this.paymentsMediator);
         }
     }
+
+    //
+    // Payments
+    //
 
     enableBillingAndAwait = async (parent: Context, uid: number) => {
         return await this.paymentsMediator.enablePaymentsAndAwait(parent, uid);
@@ -77,15 +79,35 @@ export class BillingModule {
         return await this.paymentsMediator.createSetupIntent(parent, uid, retryKey);
     }
 
-    createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
-        return await this.paymentsMediator.createDepositIntent(parent, uid, pmid, amount, retryKey);
-    }
-
     updatePaymentIntent = async (parent: Context, id: string) => {
         return await this.paymentsMediator.updatePaymentIntent(parent, id);
     }
 
+    //
+    // Deposits
+    //
+
+    createDepositIntent = async (parent: Context, uid: number, pmid: string, amount: number, retryKey: string) => {
+        return await this.paymentsMediator.createDepositIntent(parent, uid, pmid, amount, retryKey);
+    }
+
+    createDepositPayment = async (parent: Context, uid: number, amount: number, retryKey: string) => {
+        return await this.operations.createDepositPayment(parent, uid, amount, retryKey);
+    }
+
+    //
+    // Subscription
+    //
+
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
-        return await this.subscriptionsMediator.createSubscription(parent, uid, amount, interval, product);
+        return await this.operations.createSubscription(parent, uid, amount, interval, product);
+    }
+
+    //
+    // Transfers
+    //
+
+    createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string) => {
+        return await this.operations.createTransferPayment(parent, fromUid, toUid, amount, retryKey);
     }
 }
