@@ -95,6 +95,10 @@ type WalletTransactionConnection {
     cursor: String
 }
 
+enum WalletSubscriptionInterval {
+    MONTH, WEEK
+}
+
 #
 # Wallet Updates
 #

@@ -217,25 +217,24 @@ export default declareSchema(() => {
         field('featured', optional(boolean()));
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
-        field('isPaid', optional(boolean()));
+        field('isPro', optional(boolean()));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public');
     });
 
-    entity('PaidChatSettings', () => {
+    entity('ProChatSettings', () => {
         primaryKey('id', integer());
         field('price', integer());
-        field('strategy', enumString('one-time', 'subscription'));
+        field('interval', enumString('week', 'month'));
     });
 
-    entity('PaidChatUserPass', () => {
+    entity('ProChatUserPass', () => {
         primaryKey('cid', integer());
         primaryKey('uid', integer());
-        field('subscriptionId', optional(integer()));
+        field('sid', optional(string()));
         field('isActive', boolean());
-        rangeIndex('userActivePassAll', ['uid']).withCondition((v) => v.state === 'active');
     });
 
     entity('RoomProfile', () => {
