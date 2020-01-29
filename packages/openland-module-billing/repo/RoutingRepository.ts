@@ -53,7 +53,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'subscription') {
 
             // Update Wallet
-            await this.wallet.subscriptionPaymentFailing(ctx, operation.uid, operation.txid);
+            await this.wallet.subscriptionPaymentFailing(ctx, operation.uid, operation.txid, pid);
 
             // Update subscription
             await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
@@ -76,7 +76,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'subscription') {
 
             // Update Wallet
-            await this.wallet.subscriptionPaymentActionNeeded(ctx, operation.uid, operation.txid);
+            await this.wallet.subscriptionPaymentActionNeeded(ctx, operation.uid, operation.txid, pid);
 
             // Update subscription
             await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
