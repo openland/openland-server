@@ -329,6 +329,10 @@ export class WalletRepository {
     transferBalance = async (parent: Context, fromUid: number, toUid: number, amount: number) => {
         checkMoney(amount);
 
+        if (fromUid === toUid) {
+            throw Error('Unable to transfer to yourself');
+        }
+
         await inTx(parent, async (ctx) => {
 
             // Update Wallet
@@ -377,10 +381,11 @@ export class WalletRepository {
         if (walletAmount !== 0) {
             checkMoney(walletAmount);
         }
-        if (chargeAmount !== 0) {
-            checkMoney(chargeAmount);
-        }
+        checkMoney(chargeAmount);
         checkMoney(walletAmount + chargeAmount);
+        if (fromUid === toUid) {
+            throw Error('Unable to transfer to yourself');
+        }
 
         return await inTx(parent, async (ctx) => {
 
