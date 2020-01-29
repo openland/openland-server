@@ -124,17 +124,17 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isChannel);
         }),
-        isPaid: withConverationId(async (ctx, id) => {
+        isPro: withConverationId(async (ctx, id) => {
             let room = await Store.ConversationRoom.findById(ctx, id);
-            return !!(room && room.isPaid);
+            return !!(room && room.isPro);
         }),
-        paidPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
-            let pass = ctx.auth.uid && await Store.PaidChatUserPass.findById(ctx, id, ctx.auth.uid);
+        proPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
+            let pass = ctx.auth.uid && await Store.ProChatUserPass.findById(ctx, id, ctx.auth.uid);
             return !!(pass && pass.isActive);
         }), false),
-        paymentSettings: withAuthFallback(withConverationId(async (ctx, id) => {
-            let paidChatSettings = await Store.PaidChatSettings.findById(ctx, id);
-            return paidChatSettings && { id, price: paidChatSettings.price, strategy: paidChatSettings.strategy === 'one-time' ? 'ONE_TIME' : 'SUBSCRIPTION' };
+        proSettings: withAuthFallback(withConverationId(async (ctx, id) => {
+            let paidChatSettings = await Store.ProChatSettings.findById(ctx, id);
+            return paidChatSettings && { id, price: paidChatSettings.price, interval: paidChatSettings.interval.toUpperCase() };
         }), null),
         canSendMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))), false),
         title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
@@ -505,7 +505,7 @@ export default {
                     title: args.title!,
                     description: args.description,
                     image: imageRef,
-                }, args.message || '', args.listed || undefined, args.channel || undefined, args.paid || undefined);
+                }, args.message || '', args.listed || undefined, args.channel || undefined, args.price || undefined, args.interval === 'MONTH' ? 'month' : args.interval === 'WEEK' ? 'week' : undefined);
 
                 return room;
             });
@@ -632,9 +632,9 @@ export default {
                 return res;
             });
         }),
-        betaBuyPaidChatPass: withUser(async (parent, args, uid) => {
+        betaBuyProChatSubscription: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
-                await Modules.Messaging.room.buyPaidChatPass(ctx, IDs.Conversation.parse(args.chatId), uid, args.paymentMethodId, args.retryKey);
+                await Modules.Messaging.proChat.createProChatSubscription(ctx, IDs.Conversation.parse(args.chatId), uid);
                 return true;
             });
         }),

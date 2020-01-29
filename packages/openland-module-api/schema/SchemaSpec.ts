@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9707b4559657b3430565df720e8cfd65';
+export const GQL_SPEC_VERSION = '5655c08b29e0f9c45e0bb14a9b94fa6e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -379,6 +379,7 @@ export namespace GQL {
         items: WalletTransaction[];
         cursor: Nullable<string>;
     }
+    export type WalletSubscriptionInterval = 'MONTH' | 'WEEK';
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -1390,7 +1391,7 @@ export namespace GQL {
         betaRoomJoin: Room;
         betaRoomsJoin: Room[];
         betaRoomDeclineJoinRequest: Room;
-        betaBuyPaidChatPass: boolean;
+        betaBuyProChatSubscription: boolean;
         betaRoomInviteLinkSendEmail: string;
         betaRoomInviteLinkJoin: Room;
         betaRoomInviteLinkRenew: string;
@@ -2323,7 +2324,8 @@ export namespace GQL {
         listed: OptionalNullable<boolean>;
         organizationId: OptionalNullable<string>;
         channel: OptionalNullable<boolean>;
-        paid: OptionalNullable<boolean>;
+        price: OptionalNullable<number>;
+        interval: OptionalNullable<WalletSubscriptionInterval>;
     }
     export interface MutationBetaRoomUpdateArgs {
         roomId: string;
@@ -2363,10 +2365,8 @@ export namespace GQL {
         roomId: string;
         userId: string;
     }
-    export interface MutationBetaBuyPaidChatPassArgs {
+    export interface MutationBetaBuyProChatSubscriptionArgs {
         chatId: string;
-        paymentMethodId: string;
-        retryKey: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
         roomId: string;
@@ -3755,9 +3755,9 @@ export namespace GQL {
         archived: boolean;
         myBadge: Nullable<UserBadge>;
         matchmaking: Nullable<MatchmakingRoom>;
-        isPaid: boolean;
-        paidPassIsActive: boolean;
-        paymentSettings: Nullable<PaidChatSettings>;
+        isPro: boolean;
+        proPassIsActive: boolean;
+        proSettings: Nullable<ProChatSettings>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
@@ -3765,11 +3765,10 @@ export namespace GQL {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
     }
-    export type PaidChatStrategy = 'ONE_TIME' | 'SUBSCRIPTION';
-    export interface PaidChatSettings {
+    export interface ProChatSettings {
         id: string;
         price: number;
-        strategy: PaidChatStrategy;
+        interval: WalletSubscriptionInterval;
     }
     export interface RoomSuper {
         id: string;
@@ -5666,7 +5665,7 @@ export interface GQLResolver {
             betaRoomJoin: GQL.MutationBetaRoomJoinArgs,
             betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs,
             betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs,
-            betaBuyPaidChatPass: GQL.MutationBetaBuyPaidChatPassArgs,
+            betaBuyProChatSubscription: GQL.MutationBetaBuyProChatSubscriptionArgs,
             betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs,
             betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs,
             betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs,
@@ -6847,16 +6846,16 @@ export interface GQLResolver {
             settings: GQLRoots.RoomUserNotificaionSettingsRoot,
             myBadge: Nullable<GQLRoots.UserBadgeRoot>,
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
-            paymentSettings: Nullable<GQLRoots.PaidChatSettingsRoot>,
+            proSettings: Nullable<GQLRoots.ProChatSettingsRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
             members: GQL.SharedRoomMembersArgs,
         }
     >;
-    PaidChatSettings?: ComplexTypedResolver<
-        GQL.PaidChatSettings,
-        GQLRoots.PaidChatSettingsRoot,
+    ProChatSettings?: ComplexTypedResolver<
+        GQL.ProChatSettings,
+        GQLRoots.ProChatSettingsRoot,
         {
         },
         {

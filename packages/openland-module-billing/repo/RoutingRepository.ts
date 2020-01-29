@@ -2,6 +2,7 @@ import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
 import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
 import { SubscriptionsRepository } from './SubscriptionsRepository';
+import { Modules } from 'openland-modules/Modules';
 
 export class RoutingRepositoryImpl {
 
@@ -129,49 +130,70 @@ export class RoutingRepositoryImpl {
      * Payment failing, but subscription is still alive
      */
     onSubscriptionFailing = async (ctx: Context, id: string) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionFailing(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
      * Payment Period success
      */
     onSubscriptionPaymentSuccess = async (ctx: Context, id: string, index: number) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionPaymentSuccess(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
      * Recovered from failing state
      */
     onSubscriptionRecovered = async (ctx: Context, id: string) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionRecovered(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
      * Grace Period expired - pause subscription
      */
     onSubscriptionPaused = async (ctx: Context, id: string) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionPaused(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
      * Subscription restarted
      */
     onSubscriptionRestarted = async (ctx: Context, id: string) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionRestarted(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
      * Subscription ended
      */
     onSubscriptionExpired = async (ctx: Context, id: string) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionExpired(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
      * Subscription canceled, but not expired yet
      */
     onSubscriptionCanceled = async (ctx: Context, id: string) => {
-        //
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.proChat.onSubscriptionCanceled(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
     }
 }
 
