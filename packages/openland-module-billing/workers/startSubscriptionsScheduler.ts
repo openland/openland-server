@@ -21,9 +21,9 @@ import { createLogger } from '@openland/log';
 //
 
 export function startSubscriptionsScheduler(mediator: SubscriptionsMediator) {
-    
+
     const log = createLogger('subscriptions-scheduler');
-    
+
     let queue = new WorkQueue<{ pid: string, uid: number }, { result: string }>('subscription-cancel-task', -1);
     queue.addWorker(async (item, ctx) => {
         await mediator.payments.tryCancelPaymentIntent(ctx, item.uid, item.pid);
@@ -51,12 +51,14 @@ export function startSubscriptionsScheduler(mediator: SubscriptionsMediator) {
                 } else if (plan === 'try_cancel') {
                     log.debug(ctx, '[' + s.id + ']: Cancel');
                     await mediator.subscriptions.enterCanceledState(ctx, s.uid, s.id);
-                    
+
                     // Schedule payment cancel
                     let scheduling = await Store.WalletSubscriptionScheduling.findById(ctx, s.id);
                     if (scheduling) {
                         let pid = (await Store.WalletSubscriptionPeriod.findById(ctx, s.id, scheduling.currentPeriodIndex))!;
-                        await queue.pushWork(ctx, { pid: pid.pid, uid: s.uid });
+                        if (pid.pid) {
+                            await queue.pushWork(ctx, { pid: pid.pid, uid: s.uid });
+                        }
                     }
                 } else if (plan === 'nothing') {
                     // Nothing to do

@@ -81,7 +81,11 @@ export default {
             let subscription = (src as any).subscription;
             let index = (src as any).index;
             let period = (await Store.WalletSubscriptionPeriod.findById(ctx, subscription, index))!;
-            return Store.Payment.findById(ctx, period.pid);
+            if (period.pid) {
+                return Store.Payment.findById(ctx, period.pid);
+            } else {
+                return null;
+            }
         }
     },
     WalletTransactionTransferIn: {
@@ -90,7 +94,7 @@ export default {
     },
     WalletTransactionTransferOut: {
         walletAmount: (src) => (src as any).walletAmount,
-        chargeAmount: (src) => { 
+        chargeAmount: (src) => {
             return (src as any).chargeAmount;
         },
         payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!.id),
