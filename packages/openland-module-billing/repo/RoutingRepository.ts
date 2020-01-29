@@ -133,6 +133,13 @@ export class RoutingRepositoryImpl {
     }
 
     /**
+     * Payment Period success
+     */
+    onSubscriptionPaymentSuccess = async (ctx: Context, id: string, index: number) => {
+        //
+    }
+
+    /**
      * Recovered from failing state
      */
     onSubscriptionRecovered = async (ctx: Context, id: string) => {

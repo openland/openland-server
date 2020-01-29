@@ -343,11 +343,17 @@ export class SubscriptionsRepository {
             if (period.state === 'pending') {
                 // Nothing changed in subscription - first payment went successful
                 period.state = 'success';
+                if (this.routing.onSubscriptionPaymentSuccess) {
+                    await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
+                }
                 return;
             }
             if (period.state === 'canceling') {
                 // While we were trying to cancel subscription, payment still gone through - mark period as successful
                 period.state = 'success';
+                if (this.routing.onSubscriptionPaymentSuccess) {
+                    await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
+                }
                 return;
             }
             if (period.state === 'failing') {
@@ -363,6 +369,9 @@ export class SubscriptionsRepository {
                     if (this.routing.onSubscriptionRecovered) {
                         await this.routing.onSubscriptionRecovered(ctx, subscription.id);
                     }
+                    if (this.routing.onSubscriptionPaymentSuccess) {
+                        await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
+                    }
                 } else if (subscription.state === 'retrying') {
 
                     // Mark subscription as started
@@ -374,6 +383,9 @@ export class SubscriptionsRepository {
                     // Restart callback
                     if (this.routing.onSubscriptionRestarted) {
                         await this.routing.onSubscriptionRestarted(ctx, subscription.id);
+                    }
+                    if (this.routing.onSubscriptionPaymentSuccess) {
+                        await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
                     }
                 }
                 return;
