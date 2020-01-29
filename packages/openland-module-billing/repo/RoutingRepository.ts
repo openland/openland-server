@@ -1,6 +1,6 @@
 import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
-import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
+import { Store, PaymentIntentCreateShape, PaymentCreateShape } from './../../openland-module-db/store';
 import { SubscriptionsRepository } from './SubscriptionsRepository';
 import { Modules } from 'openland-modules/Modules';
 
@@ -20,7 +20,7 @@ export class RoutingRepositoryImpl {
     // Off-Session Payments
     //
 
-    routeSuccessfulPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    routeSuccessfulPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             if (!operation.txid) {
                 throw Error('Transaction ID is missing');
@@ -43,7 +43,7 @@ export class RoutingRepositoryImpl {
         }
     }
 
-    routeFailingPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    routeFailingPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             if (!operation.txid) {
                 throw Error('Transaction ID is missing');
@@ -66,7 +66,7 @@ export class RoutingRepositoryImpl {
         }
     }
 
-    routeActionNeededPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    routeActionNeededPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             if (!operation.txid) {
                 throw Error('Transaction ID is missing');
@@ -88,7 +88,7 @@ export class RoutingRepositoryImpl {
         }
     }
 
-    routeCanceledPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    routeCanceledPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             if (!operation.txid) {
                 throw Error('Transaction ID is missing');

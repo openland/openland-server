@@ -1778,10 +1778,19 @@ export default declareSchema(() => {
     // Payments: Payments
     //
 
+    const PaymentIntentOperation = union({
+        'deposit': struct({
+            uid: integer()
+        }),
+        'payment': struct({
+            id: string()
+        })
+    });
+
     const PaymentOperation = union({
         'deposit': struct({
             uid: integer(),
-            txid: optional(string())
+            txid: string()
         }),
         'subscription': struct({
             uid: integer(),
@@ -1800,9 +1809,8 @@ export default declareSchema(() => {
     entity('PaymentIntent', () => {
         primaryKey('id', string());
         field('state', enumString('pending', 'success', 'canceled'));
-        field('pid', optional(string()));
         field('amount', integer());
-        field('operation', PaymentOperation);
+        field('operation', PaymentIntentOperation);
     });
 
     entity('Payment', () => {

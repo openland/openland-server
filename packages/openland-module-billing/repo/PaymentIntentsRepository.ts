@@ -161,15 +161,14 @@ export class PaymentIntentsRepository {
     // Payment Intents
     //
 
-    registerPaymentIntent = async (parent: Context, id: string, amount: number, pid: string | null, operation: PaymentIntentCreateShape['operation']) => {
+    registerPaymentIntent = async (parent: Context, id: string, amount: number, operation: PaymentIntentCreateShape['operation']) => {
         checkMoney(amount);
         return await inTx(parent, async (ctx) => {
             log.debug(ctx, '[' + id + ']: pending');
             return await this.store.PaymentIntent.create(ctx, id, {
                 amount: amount,
                 state: 'pending',
-                operation: operation,
-                pid: pid
+                operation: operation
             });
         });
     }

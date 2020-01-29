@@ -88,20 +88,20 @@ describe('PaymentIntentsRepository', () => {
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
 
-        let res = await repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1, txid: null });
+        let res = await repo.registerPaymentIntent(ctx, 'paymentintent1', 100, { type: 'deposit', uid: 1 });
         expect(res.id).toBe('paymentintent1');
         expect(res.amount).toBe(100);
         expect(res.operation.type).toBe('deposit');
         expect((res.operation as any).uid).toBe(1);
 
         // Same PaymentIntent ID
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent1', 100, { type: 'deposit', uid: 1 })).rejects.toThrowError();
 
         // Float amount
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', 100.1, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', 100.1, { type: 'deposit', uid: 1 })).rejects.toThrowError();
 
         // Negative amount
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', -100, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', -100, { type: 'deposit', uid: 1 })).rejects.toThrowError();
 
         // Success
         let commited = await repo.paymentIntentSuccess(ctx, 'paymentintent1');
@@ -120,7 +120,7 @@ describe('PaymentIntentsRepository', () => {
         expect(commited).toBe(false);
 
         // Canceling test
-        res = await repo.registerPaymentIntent(ctx, 'paymentintent3', 100, null, { type: 'deposit', uid: 1, txid: null });
+        res = await repo.registerPaymentIntent(ctx, 'paymentintent3', 100, { type: 'deposit', uid: 1 });
         expect(res.id).toBe('paymentintent3');
         expect(res.amount).toBe(100);
         expect(res.operation.type).toBe('deposit');

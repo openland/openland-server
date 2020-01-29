@@ -299,7 +299,7 @@ export class PaymentMediator {
         }, { idempotencyKey: 'di-' + uid + '-' + retryKey });
 
         // Register Payment Intent
-        await this.paymentIntents.registerPaymentIntent(parent, intent.id, amount, null, { type: 'deposit', txid: null, uid: uid });
+        await this.paymentIntents.registerPaymentIntent(parent, intent.id, amount, { type: 'deposit', uid: uid });
 
         return intent;
     }
@@ -327,7 +327,7 @@ export class PaymentMediator {
         }, { idempotencyKey: 'payment-' + pid, timeout: 5000 });
 
         // Save Payment Intent id
-        await this.paymentIntents.registerPaymentIntent(parent, intent.id, payment.amount, pid, payment.operation);
+        await this.paymentIntents.registerPaymentIntent(parent, intent.id, payment.amount, { type: 'payment', id: pid });
 
         return intent;
     }
@@ -449,8 +449,8 @@ export class PaymentMediator {
             await inTx(parent, async (ctx) => {
                 if (await this.paymentIntents.paymentIntentSuccess(ctx, id)) {
                     let intent = (await Store.PaymentIntent.findById(ctx, id))!;
-                    if (intent.pid) {
-                        await this.payments.handlePaymentIntentSuccess(ctx, intent.pid);
+                    if (intent.operation.type === 'payment') {
+                        await this.payments.handlePaymentIntentSuccess(ctx, intent.operation.id);
                     } else {
                         if (this.routing.routeSuccessfulPaymentIntent) {
                             await this.routing.routeSuccessfulPaymentIntent(ctx, intent.amount, intent.operation);
@@ -462,8 +462,8 @@ export class PaymentMediator {
             await inTx(parent, async (ctx) => {
                 if (await this.paymentIntents.paymentIntentCancel(ctx, id)) {
                     let intent = (await Store.PaymentIntent.findById(ctx, id))!;
-                    if (intent.pid) {
-                        await this.payments.handlePaymentIntentCanceled(ctx, intent.pid);
+                    if (intent.operation.type === 'payment') {
+                        await this.payments.handlePaymentIntentCanceled(ctx, intent.operation.id);
                     } else {
                         // Nothing to do
                     }

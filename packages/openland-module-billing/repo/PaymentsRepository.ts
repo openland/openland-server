@@ -1,7 +1,8 @@
+import { PaymentCreateShape } from './../../openland-module-db/store';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, PaymentIntentCreateShape } from '../../openland-module-db/store';
+import { Store } from '../../openland-module-db/store';
 import { RoutingRepository } from './RoutingRepository';
 
 const log = createLogger('payments-async');
@@ -18,13 +19,10 @@ export class PaymentsRepository {
         this.routing = routing;
     }
 
-    createPayment = async (parent: Context, pid: string, uid: number, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+    createPayment = async (parent: Context, pid: string, uid: number, amount: number, operation: PaymentCreateShape['operation']) => {
 
         // Input Validation
         if (operation.type === 'deposit') {
-            if (!operation.txid) {
-                throw Error('txid is required for async deposits');
-            }
             if (operation.uid !== uid) {
                 throw Error('uid mismatch');
             }
