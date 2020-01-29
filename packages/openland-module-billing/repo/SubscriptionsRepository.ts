@@ -6,6 +6,7 @@ import { PaymentsRepository } from './PaymentsRepository';
 import { nextRenewMonthly } from './utils/nextRenewMonthly';
 import { RoutingRepository } from './RoutingRepository';
 import { WalletRepository } from './WalletRepository';
+import { paymentAmounts } from './utils/paymentAmounts';
 
 const DAY = 24 * 60 * 60 * 1000; // ms in day
 
@@ -193,24 +194,39 @@ export class SubscriptionsRepository {
             }
 
             // Wallet transaction
-            let wallet = await this.wallet.subscriptionPayment(ctx, subscription.uid, subscription.amount, subscription.id, index);
+            let walletBalance = (await this.wallet.getWallet(ctx, subscription.uid)).balance;
+            let amounts = paymentAmounts(walletBalance, subscription.amount);
 
-            // Create Payment
-            let pid = uuid();
-            await this.payments.createPayment(ctx, pid, subscription.uid, subscription.amount, {
-                type: 'subscription',
-                uid: subscription.uid,
-                subscription: subscription.id,
-                period: index,
-                txid: wallet
-            });
+            if (amounts.charge === 0) {
+                // Charge from balance
+                await this.wallet.subscriptionBalance(ctx, subscription.uid, amounts.wallet, subscription.id, index);
+                // Create Period
+                await this.store.WalletSubscriptionPeriod.create(ctx, subscription.id, index, {
+                    pid: null,
+                    start: start,
+                    state: 'success'
+                });
+            } else {
+                let wallet = await this.wallet.subscriptionPayment(ctx, subscription.uid,
+                    amounts.wallet, amounts.charge, subscription.id, index);
 
-            // Create Period
-            await this.store.WalletSubscriptionPeriod.create(ctx, subscription.id, index, {
-                pid: pid,
-                start: start,
-                state: 'pending'
-            });
+                // Create Payment
+                let pid = uuid();
+                await this.payments.createPayment(ctx, pid, subscription.uid, subscription.amount, {
+                    type: 'subscription',
+                    uid: subscription.uid,
+                    subscription: subscription.id,
+                    period: index,
+                    txid: wallet
+                });
+
+                // Create Period
+                await this.store.WalletSubscriptionPeriod.create(ctx, subscription.id, index, {
+                    pid: pid,
+                    start: start,
+                    state: 'pending'
+                });
+            }
         });
     }
 

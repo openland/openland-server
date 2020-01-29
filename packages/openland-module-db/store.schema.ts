@@ -1770,7 +1770,7 @@ export default declareSchema(() => {
     entity('WalletSubscriptionPeriod', () => {
         primaryKey('id', string());
         primaryKey('index', integer());
-        field('pid', string());
+        field('pid', optional(string()));
         field('start', integer());
         field('state', enumString('pending', 'failing', 'success', 'canceling'));
     });

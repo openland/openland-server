@@ -194,10 +194,52 @@ export class WalletRepository {
     // Subscriptions
     //
 
-    subscriptionPayment = async (parent: Context, uid: number, amount: number, sid: string, index: number) => {
+    subscriptionBalance = async (parent: Context, uid: number, amount: number, sid: string, index: number) => {
         checkMoney(amount);
+        return await inTx(parent, async (ctx) => {
+            let fromWallet = await this.getWallet(ctx, uid);
+            if (fromWallet.balance < amount) {
+                throw new Error('Insufficient funds');
+            }
+            fromWallet.balance -= amount;
+
+            // Create Transaction
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: uid,
+                status: 'success',
+                operation: {
+                    type: 'subscription',
+                    chargeAmount: 0,
+                    walletAmount: amount,
+                    subscription: sid,
+                    index: index
+                }
+            });
+
+            // Write events           
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: fromWallet.balance }));
+        });
+    }
+
+    subscriptionPayment = async (parent: Context, uid: number, walletAmount: number, chargeAmount: number, sid: string, index: number) => {
+        if (walletAmount !== 0) {
+            checkMoney(walletAmount);
+        }
+        checkMoney(chargeAmount);
+        checkMoney(walletAmount + chargeAmount);
 
         return await inTx(parent, async (ctx) => {
+
+            // Wallet Update
+            let fromWallet = await this.getWallet(ctx, uid);
+            if (walletAmount > 0) {
+                if (fromWallet.balance < walletAmount) {
+                    throw new Error('Insufficient funds');
+                }
+                fromWallet.balance -= walletAmount;
+            }
 
             // Create Transaction
             let txid = uuid();
@@ -206,8 +248,8 @@ export class WalletRepository {
                 status: 'pending',
                 operation: {
                     type: 'subscription',
-                    chargeAmount: amount,
-                    walletAmount: 0,
+                    chargeAmount: chargeAmount,
+                    walletAmount: walletAmount,
                     subscription: sid,
                     index: index
                 }
@@ -215,6 +257,7 @@ export class WalletRepository {
 
             // Write events           
             this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionPending.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: fromWallet.balance }));
 
             return txid;
         });
@@ -246,7 +289,7 @@ export class WalletRepository {
         });
     }
 
-    subscriptionPaymentFailing = async (parent: Context, uid: number, txid: string) => {
+    subscriptionPaymentFailing = async (parent: Context, uid: number, txid: string, pid: string) => {
         await inTx(parent, async (ctx) => {
 
             // Check state
@@ -264,14 +307,12 @@ export class WalletRepository {
                 throw Error('Transaction has invalid user id');
             }
 
-            let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, tx.operation.subscription, tx.operation.index))!;
-
             // Write event
-            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: period!.pid }));
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: pid }));
         });
     }
 
-    subscriptionPaymentActionNeeded = async (parent: Context, uid: number, txid: string) => {
+    subscriptionPaymentActionNeeded = async (parent: Context, uid: number, txid: string, pid: string) => {
         await inTx(parent, async (ctx) => {
 
             // Check state
@@ -289,10 +330,8 @@ export class WalletRepository {
                 throw Error('Transaction has invalid user id');
             }
 
-            let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, tx.operation.subscription, tx.operation.index))!;
-
             // Write event
-            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: period!.pid }));
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: pid }));
         });
     }
 
@@ -317,8 +356,16 @@ export class WalletRepository {
             // Update tx status
             tx.status = 'canceled';
 
+            let fromWallet = await this.getWallet(ctx, tx.uid);
+            if (tx.operation.walletAmount > 0) {
+                fromWallet.balance += tx.operation.walletAmount;
+            }
+
             // Write events
             this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionCanceled.create({ id: txid }));
+            if (tx.operation.walletAmount > 0) {
+                this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: fromWallet.balance }));
+            }
         });
     }
 

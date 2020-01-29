@@ -14057,13 +14057,13 @@ export class WalletSubscriptionSchedulingFactory extends EntityFactory<WalletSub
 export interface WalletSubscriptionPeriodShape {
     id: string;
     index: number;
-    pid: string;
+    pid: string | null;
     start: number;
     state: 'pending' | 'failing' | 'success' | 'canceling';
 }
 
 export interface WalletSubscriptionPeriodCreateShape {
-    pid: string;
+    pid?: string | null | undefined;
     start: number;
     state: 'pending' | 'failing' | 'success' | 'canceling';
 }
@@ -14071,8 +14071,8 @@ export interface WalletSubscriptionPeriodCreateShape {
 export class WalletSubscriptionPeriod extends Entity<WalletSubscriptionPeriodShape> {
     get id(): string { return this._rawValue.id; }
     get index(): number { return this._rawValue.index; }
-    get pid(): string { return this._rawValue.pid; }
-    set pid(value: string) {
+    get pid(): string | null { return this._rawValue.pid; }
+    set pid(value: string | null) {
         let normalized = this.descriptor.codec.fields.pid.normalize(value);
         if (this._rawValue.pid !== normalized) {
             this._rawValue.pid = normalized;
@@ -14109,13 +14109,13 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
         primaryKeys.push({ name: 'id', type: 'string' });
         primaryKeys.push({ name: 'index', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'pid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'start', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failing', 'success', 'canceling'] }, secure: false });
         let codec = c.struct({
             id: c.string,
             index: c.integer,
-            pid: c.string,
+            pid: c.optional(c.string),
             start: c.integer,
             state: c.enum('pending', 'failing', 'success', 'canceling'),
         });

@@ -328,4 +328,69 @@ describe('WalletRepository', () => {
         await expect(repo.transferAsyncFailing(ctx, 13, tx2.txOut, 14, tx2.txIn, pid)).rejects.toThrowError();
         await expect(repo.transferAsyncActionNeeded(ctx, 13, tx2.txOut, 14, tx2.txIn, pid)).rejects.toThrowError();
     });
+
+    it('should perform subscription payments', async () => {
+        let repo = new WalletRepository(Store);
+        let ctx = createNamedContext('test');
+
+        // Deposit initial
+        await repo.depositInstant(ctx, 15, 1000);
+        let sid = 'sid';
+
+        // Correct subscription direct payment
+        await repo.subscriptionBalance(ctx, 15, 100, sid, 1);
+
+        // Check balance
+        let wallet = await repo.getWallet(ctx, 15);
+        expect(wallet.balance).toBe(1000 - 100);
+
+        // Insufficient funds
+        await expect(repo.subscriptionBalance(ctx, 15, 1000, sid, 1)).rejects.toThrowError();
+
+        // Payment-based
+        let txid = await repo.subscriptionPayment(ctx, 15, 900, 1000, sid, 2);
+
+        // Check balance
+        wallet = await repo.getWallet(ctx, 15);
+        expect(wallet.balance).toBe(0);
+
+        // Check created transaction
+        let tx = (await Store.WalletTransaction.findById(ctx, txid))!;
+        expect(tx.uid).toBe(15);
+        expect(tx.status).toBe('pending');
+        expect(tx.operation.type).toBe('subscription');
+        if (tx.operation.type === 'subscription') {
+            expect(tx.operation.subscription).toBe(sid);
+            expect(tx.operation.index).toBe(2);
+            expect(tx.operation.walletAmount).toBe(900);
+            expect(tx.operation.chargeAmount).toBe(1000);
+        }
+
+        // Intermediate states
+        await repo.subscriptionPaymentFailing(ctx, 15, txid, 'pid');
+        await repo.subscriptionPaymentActionNeeded(ctx, 15, txid, 'pid');
+
+        // Cancel
+        await repo.subscriptionPaymentCancel(ctx, 15, txid);
+        wallet = await repo.getWallet(ctx, 15);
+        expect(wallet.balance).toBe(900);
+
+        // All operations should throw error after successful transaction
+        await expect(repo.subscriptionPaymentCancel(ctx, 15, txid)).rejects.toThrowError();
+        await expect(repo.subscriptionPaymentCommit(ctx, 15, txid)).rejects.toThrowError();
+        await expect(repo.subscriptionPaymentActionNeeded(ctx, 15, txid, 'pid')).rejects.toThrowError();
+        await expect(repo.subscriptionPaymentFailing(ctx, 15, txid, 'pid')).rejects.toThrowError();
+
+        // Create and commit
+        txid = await repo.subscriptionPayment(ctx, 15, 900, 1000, sid, 2);
+        await repo.subscriptionPaymentCommit(ctx, 15, txid);
+        wallet = await repo.getWallet(ctx, 15);
+        expect(wallet.balance).toBe(0);
+        
+        // All operations should throw error after successful transaction
+        await expect(repo.subscriptionPaymentCancel(ctx, 15, txid)).rejects.toThrowError();
+        await expect(repo.subscriptionPaymentCommit(ctx, 15, txid)).rejects.toThrowError();
+        await expect(repo.subscriptionPaymentActionNeeded(ctx, 15, txid, 'pid')).rejects.toThrowError();
+        await expect(repo.subscriptionPaymentFailing(ctx, 15, txid, 'pid')).rejects.toThrowError();
+    });
 });
