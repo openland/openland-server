@@ -27,7 +27,7 @@ const Errors = {
     invalid_auth_token: 'An unexpected error occurred. Please try again.',
     session_expired: 'An unexpected error occurred. Please try again.',
     wrong_code_length: 'The code you entered is incorrect. Please check the code in the email and try again.',
-    too_many_attempts: 'You had too much attempts to login lately. Please try again later'
+    too_many_attempts: 'Too many requests. Try again later'
 };
 
 type ErrorsEnum = keyof typeof Errors;
