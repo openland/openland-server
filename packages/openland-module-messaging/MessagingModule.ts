@@ -19,12 +19,12 @@ import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { hasMention } from './resolvers/ModernMessage.resolver';
-import { ProChatMediator } from './mediators/ProChatMediator';
+import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 
 @injectable()
 export class MessagingModule {
     readonly room: RoomMediator;
-    readonly proChat: ProChatMediator;
+    readonly premiumChat: PremiumChatMediator;
     readonly search: RoomSearch = new RoomSearch();
     readonly fixer: FixerRepository;
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
@@ -43,7 +43,7 @@ export class MessagingModule {
         @inject('RoomMediator') room: RoomMediator,
         @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository,
         @inject('UserDialogsRepository') userDialogs: UserDialogsRepository,
-        @inject('ProChatMediator') proChat: ProChatMediator,
+        @inject('PremiumChatMediator') proChat: PremiumChatMediator,
     ) {
         this.delivery = delivery;
         this.userState = userState;
@@ -53,7 +53,7 @@ export class MessagingModule {
         this.fixer = fixer;
         this.needNotificationDelivery = needNotificationDelivery;
         this.userDialogs = userDialogs;
-        this.proChat = proChat;
+        this.premiumChat = proChat;
     }
 
     //

@@ -52,6 +52,33 @@ export default {
         operation: (src) => src.operation
     },
 
+    WalletSubscription: {
+        id: (src) => src.id,
+        amount: (src) => src.amount,
+        state: (src) => {
+            if (src.state === 'started') {
+                return 'STARTED';
+            } else if (src.state === 'grace_period') {
+                return 'GRACE_PERIOD';
+            } else if (src.state === 'retrying') {
+                return 'RETRYING';
+            } else if (src.state === 'canceled') {
+                return 'CANCELED';
+            } else if (src.state === 'expired') {
+                return 'EXPIRED';
+            }
+            throw Error('Unknown subscription state: ' + src.state);
+        },
+        interval: (src) => {
+            if (src.interval === 'month') {
+                return 'MONTH';
+            } else if (src.interval === 'week') {
+                return 'WEEK';
+            }
+            throw Error('Unknown subscription interval: ' + src.interval);
+        }
+    },
+
     //
     // Operations
     //

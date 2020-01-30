@@ -5,38 +5,48 @@ import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Modules } from 'openland-modules/Modules';
-import { ProChatRepository } from 'openland-module-messaging/repositories/ProChatRepository';
+import { PremiumChatRepository } from 'openland-module-messaging/repositories/PremiumChatRepository';
 import { MessagingMediator } from './MessagingMediator';
 import { buildMessage, userMention, usersMention } from 'openland-utils/MessageBuilder';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
 
 @injectable()
-export class ProChatMediator {
+export class PremiumChatMediator {
 
-    @lazyInject('ProChatRepository')
-    private readonly repo!: ProChatRepository;
+    @lazyInject('PremiumChatRepository')
+    private readonly repo!: PremiumChatRepository;
     @lazyInject('MessagingMediator')
     private readonly messaging!: MessagingMediator;
 
-    async createProChatSubscription(parent: Context, cid: number, uid: number) {
+    async createPremiumChatSubscription(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let chat = await Store.ConversationRoom.findById(ctx, cid);
             if (!chat || !chat.ownerId) {
                 throw new NotFoundError('Chat owner not found');
             }
-            if (!chat.isPro) {
+            if (!chat.isPremium) {
                 throw new Error('Chat is free to join');
             }
-            let paidChatSettings = await Store.ProChatSettings.findById(ctx, chat.id);
+            let paidChatSettings = await Store.PremiumChatSettings.findById(ctx, chat.id);
             if (!paidChatSettings) {
                 throw new Error('Inconsistent state - chat is paid, but no payment settings found');
             }
 
-            let userPass = await Store.ProChatUserPass.findById(ctx, chat.id, uid);
-            if (userPass && userPass.isActive) {
-                // nothing to do, user already have access
-                return;
+            let userPass = await Store.PremiumChatUserPass.findById(ctx, chat.id, uid);
+            if (userPass) {
+                if (userPass.isActive) {
+                    // nothing to do, user already have access
+                    throw new Error('User already have access to this chat');
+                }
+                if (userPass.sid) {
+                    let subscription = await Store.WalletSubscription.findById(ctx, userPass.sid);
+                    if (subscription && (subscription.state === 'grace_period' || subscription.state === 'retrying' || subscription.state === 'started')) {
+                        // user already have active subscription
+                        throw new Error('User already have active subscription');
+                    }
+                }
             }
+
             let sub = await Modules.Wallet.subscriptions.createSubscription(ctx, uid, paidChatSettings.price, paidChatSettings.interval, { type: 'group', gid: cid });
             await this.alterProChatUserPass(ctx, cid, uid, sub.id);
         });

@@ -6,18 +6,22 @@ import { RoomRepository } from './RoomRepository';
 import { Store } from 'openland-module-db/FDB';
 
 @injectable()
-export class ProChatRepository {
+export class PremiumChatRepository {
     @lazyInject('RoomRepository') private readonly room!: RoomRepository;
-    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | false) {
+    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | false, forcePass?: boolean) {
         return await inTx(parent, async (ctx) => {
-            let pass = await Store.ProChatUserPass.findById(ctx, cid, uid);
+            let isActive = !!(activeSubscription || forcePass);
+            let pass = await Store.PremiumChatUserPass.findById(ctx, cid, uid);
             if (!pass) {
-                pass = await Store.ProChatUserPass.create(ctx, cid, uid, { isActive: !!activeSubscription, sid: activeSubscription ? activeSubscription : null });
+                pass = await Store.PremiumChatUserPass.create(ctx, cid, uid, { isActive });
             }
-            pass.isActive = !!activeSubscription;
+            if (activeSubscription) {
+                pass.sid = activeSubscription;
+            }
+            pass.isActive = isActive;
             await pass.flush(ctx);
 
-            if (activeSubscription) {
+            if (isActive) {
                 return await this.room.joinRoom(ctx, cid, uid, false);
             } else {
                 return await this.room.kickFromRoom(ctx, cid, uid);

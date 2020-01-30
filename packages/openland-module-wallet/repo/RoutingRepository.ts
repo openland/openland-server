@@ -85,7 +85,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionFailing = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionFailing(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionFailing(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -95,7 +95,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionPaymentSuccess = async (ctx: Context, id: string, index: number) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionPaymentSuccess(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionPaymentSuccess(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -105,7 +105,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRecovered = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionRecovered(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionRecovered(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -115,7 +115,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionPaused = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionPaused(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionPaused(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -125,7 +125,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRestarted = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionRestarted(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionRestarted(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -135,7 +135,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionExpired = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionExpired(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionExpired(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -145,7 +145,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionCanceled = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionCanceled(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionCanceled(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 

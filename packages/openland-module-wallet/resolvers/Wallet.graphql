@@ -95,6 +95,20 @@ type WalletTransactionConnection {
     cursor: String
 }
 
+#
+# Wallet Subscriptions
+#
+type WalletSubscription {
+    id: ID!
+    state: WalletSubscriptionState!
+    amount: Int!
+    interval: WalletSubscriptionInterval!
+}
+
+enum WalletSubscriptionState {
+    STARTED, GRACE_PERIOD, RETRYING, CANCELED, EXPIRED
+}
+
 enum WalletSubscriptionInterval {
     MONTH, WEEK
 }
