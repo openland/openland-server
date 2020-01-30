@@ -28,20 +28,17 @@ export class BillingModule {
     // Subscriptions repository
     readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.payments, this.wallet);
     // Routing
-    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.subscriptions);
+    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.payments, this.subscriptions);
     // Operations repository
     readonly operations: OperationsRepository = new OperationsRepository(Store, this.wallet, this.payments, this.subscriptions);
 
     // Payments Mediator (on/off session)
-    readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
-        this.paymentIntents,
-        this.payments
-    );
+    readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */, this.paymentIntents);
 
     constructor() {
-        this.paymentsMediator.setRouting(this.routing);
         this.subscriptions.setRouting(this.routing);
         this.payments.setRouting(this.routing);
+        this.paymentIntents.setRouting(this.routing);
     }
 
     start = async () => {

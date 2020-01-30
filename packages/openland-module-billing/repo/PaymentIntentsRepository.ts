@@ -1,3 +1,4 @@
+import { RoutingRepository } from './RoutingRepository';
 import { createLogger } from '@openland/log';
 import { uuid } from 'openland-utils/uuid';
 import { inTx } from '@openland/foundationdb';
@@ -11,9 +12,14 @@ const log = createLogger('payment-intent');
 export class PaymentIntentsRepository {
 
     private readonly store: Store;
+    routing!: RoutingRepository;
 
     constructor(store: Store) {
         this.store = store;
+    }
+
+    setRouting = (routing: RoutingRepository) => {
+        this.routing = routing;
     }
 
     //
@@ -176,30 +182,90 @@ export class PaymentIntentsRepository {
     paymentIntentSuccess = async (parent: Context, id: string) => {
         return await inTx(parent, async (ctx) => {
             let intent = await this.store.PaymentIntent.findById(ctx, id);
+
+            // Ignore unknown intents
             if (!intent) {
-                return false;
+                return;
             }
+
+            // Ignore completed intents
             if (intent.state !== 'pending') {
-                return false;
+                return;
             }
-            log.debug(ctx, '[' + id + ']: ' + intent.state + ' -> success');
+
+            // Change state to success
             intent.state = 'success';
-            return true;
+
+            // Notify about intent change
+            if (this.routing.onPaymentIntentSuccess) {
+                await this.routing.onPaymentIntentSuccess(ctx, intent.amount, intent.operation);
+            }
         });
     }
 
     paymentIntentCancel = async (parent: Context, id: string) => {
         return await inTx(parent, async (ctx) => {
             let intent = await this.store.PaymentIntent.findById(ctx, id);
+
+            // Ignore unknown intents
             if (!intent) {
-                return false;
+                return;
             }
+
+            // Ignore completed intents
             if (intent.state !== 'pending') {
-                return false;
+                return;
             }
-            log.debug(ctx, '[' + id + ']: ' + intent.state + ' -> canceled');
+
+            // Change state to canceled
             intent.state = 'canceled';
-            return true;
+
+            // Notify about intent change
+            if (this.routing.onPaymentIntentCanceled) {
+                await this.routing.onPaymentIntentCanceled(ctx, intent.amount, intent.operation);
+            }
+        });
+    }
+
+    paymentIntentNeedAction = async (parent: Context, id: string) => {
+        return await inTx(parent, async (ctx) => {
+            let intent = await this.store.PaymentIntent.findById(ctx, id);
+
+            // Ignore unknown intents
+            if (!intent) {
+                return;
+            }
+
+            // Ignore completed intents
+            if (intent.state !== 'pending') {
+                return;
+            }
+
+            // Notify about intent change
+            if (this.routing.onPaymentIntentNeedAction) {
+                await this.routing.onPaymentIntentNeedAction(ctx, intent.amount, intent.operation);
+            }
+        });
+    }
+
+    paymentIntentFailing = async (parent: Context, id: string) => {
+        return await inTx(parent, async (ctx) => {
+            let intent = await this.store.PaymentIntent.findById(ctx, id);
+
+            // Ignore unknown intents
+            if (!intent) {
+                return;
+            }
+
+            // Ignore completed intents
+            if (intent.state !== 'pending') {
+                return;
+            }
+            
+            // Notify about intent change
+            if (this.routing.onPaymentIntentFailing) {
+                await this.routing.onPaymentIntentFailing(ctx, intent.amount, intent.operation);
+            }
         });
     }
 }

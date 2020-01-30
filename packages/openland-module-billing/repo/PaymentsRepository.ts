@@ -67,8 +67,8 @@ export class PaymentsRepository {
 
             // Handle successful payment
             log.debug(parent, 'Success: Routing');
-            if (this.routing.routeSuccessfulPayment) {
-                await this.routing.routeSuccessfulPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentSuccess) {
+                await this.routing.onPaymentSuccess(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }
@@ -86,8 +86,8 @@ export class PaymentsRepository {
             payment.state = 'canceled';
 
             // Handle canceled payment
-            if (this.routing.routeCanceledPayment) {
-                await this.routing.routeCanceledPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentCanceled) {
+                await this.routing.onPaymentCanceled(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }
@@ -104,8 +104,8 @@ export class PaymentsRepository {
             payment.state = 'failing';
 
             // Handle failing state
-            if (this.routing.routeFailingPayment) {
-                await this.routing.routeFailingPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentFailing) {
+                await this.routing.onPaymentFailing(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }
@@ -122,8 +122,8 @@ export class PaymentsRepository {
             payment.state = 'action_required';
 
             // Handle action needed state
-            if (this.routing.routeActionNeededPayment) {
-                await this.routing.routeActionNeededPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentActionNeeded) {
+                await this.routing.onPaymentActionNeeded(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }

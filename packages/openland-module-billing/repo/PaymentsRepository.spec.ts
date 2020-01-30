@@ -37,10 +37,10 @@ describe('PaymentsRepository', () => {
         let routeActionNeededPayment = jest.fn();
         let routeCanceledPayment = jest.fn();
         repo.setRouting({
-            routeActionNeededPayment: routeActionNeededPayment,
-            routeFailingPayment: routeFailingPayment,
-            routeSuccessfulPayment: routeSuccessfulPayment,
-            routeCanceledPayment: routeCanceledPayment
+            onPaymentActionNeeded: routeActionNeededPayment,
+            onPaymentFailing: routeFailingPayment,
+            onPaymentSuccess: routeSuccessfulPayment,
+            onPaymentCanceled: routeCanceledPayment
         });
         let ctx = createNamedContext('test');
 
@@ -172,10 +172,10 @@ describe('PaymentsRepository', () => {
         let routeActionNeededPayment = jest.fn();
         let routeCanceledPayment = jest.fn();
         repo.setRouting({
-            routeActionNeededPayment: routeActionNeededPayment,
-            routeFailingPayment: routeFailingPayment,
-            routeSuccessfulPayment: routeSuccessfulPayment,
-            routeCanceledPayment: routeCanceledPayment
+            onPaymentActionNeeded: routeActionNeededPayment,
+            onPaymentFailing: routeFailingPayment,
+            onPaymentSuccess: routeSuccessfulPayment,
+            onPaymentCanceled: routeCanceledPayment
         });
         let ctx = createNamedContext('test');
 
