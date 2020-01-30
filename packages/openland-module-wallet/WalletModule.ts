@@ -18,7 +18,8 @@ import { startPaymentScheduler } from './workers/startPaymentScheduler';
 import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
 
 @injectable()
-export class BillingModule {
+export class WalletModule {
+    
     // Low level payments repository
     readonly paymentIntents: PaymentIntentsRepository = new PaymentIntentsRepository(Store);
     // Wallet Operations

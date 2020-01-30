@@ -37,7 +37,7 @@ export class ProChatMediator {
                 // nothing to do, user already have access
                 return;
             }
-            let sub = await Modules.Billing.subscriptions.createSubscription(ctx, uid, paidChatSettings.price, paidChatSettings.interval, { type: 'group', gid: cid });
+            let sub = await Modules.Wallet.subscriptions.createSubscription(ctx, uid, paidChatSettings.price, paidChatSettings.interval, { type: 'group', gid: cid });
             await this.alterProChatUserPass(ctx, cid, uid, sub.id);
         });
     }
