@@ -6,7 +6,7 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 import { backoff } from 'openland-utils/timer';
-import { PaymentsRepository } from 'openland-module-billing/repo/PaymentsRepository';
+import { PaymentsRepository } from 'openland-module-wallet/repo/PaymentsRepository';
 
 const log = createLogger('payments');
 

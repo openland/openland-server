@@ -1,7 +1,7 @@
 import { uuid } from 'openland-utils/uuid';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged, WalletTransactionCanceled } from './../../openland-module-db/store';
+import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged, WalletTransactionCanceled } from '../../openland-module-db/store';
 import { checkMoney } from './utils/checkMoney';
 
 export class WalletRepository {

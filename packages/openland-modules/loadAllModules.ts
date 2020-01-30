@@ -1,4 +1,4 @@
-import { BillingModule } from './../openland-module-billing/BillingModule';
+import { BillingModule } from '../openland-module-wallet/BillingModule';
 import { MonitoringModule } from './../openland-module-monitoring/MonitoringModule';
 import { Store } from './../openland-module-db/store';
 import 'reflect-metadata';

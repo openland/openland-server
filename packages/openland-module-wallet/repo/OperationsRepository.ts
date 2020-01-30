@@ -1,7 +1,7 @@
-import { WalletSubscriptionCreateShape } from './../../openland-module-db/store';
+import { WalletSubscriptionCreateShape } from '../../openland-module-db/store';
 import { Store } from 'openland-module-db/store';
-import { WalletRepository } from 'openland-module-billing/repo/WalletRepository';
-import { PaymentsRepository } from 'openland-module-billing/repo/PaymentsRepository';
+import { WalletRepository } from 'openland-module-wallet/repo/WalletRepository';
+import { PaymentsRepository } from 'openland-module-wallet/repo/PaymentsRepository';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { uuid } from 'openland-utils/uuid';

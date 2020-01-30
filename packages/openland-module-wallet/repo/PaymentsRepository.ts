@@ -1,4 +1,4 @@
-import { PaymentCreateShape } from './../../openland-module-db/store';
+import { PaymentCreateShape } from '../../openland-module-db/store';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';

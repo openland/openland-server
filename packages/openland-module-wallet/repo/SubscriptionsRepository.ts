@@ -1,6 +1,6 @@
 import { uuid } from 'openland-utils/uuid';
 import { Context } from '@openland/context';
-import { Store, WalletSubscriptionCreateShape } from './../../openland-module-db/store';
+import { Store, WalletSubscriptionCreateShape } from '../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { PaymentsRepository } from './PaymentsRepository';
 import { nextRenewMonthly } from './utils/nextRenewMonthly';

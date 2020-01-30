@@ -1,6 +1,6 @@
 import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
-import { Store, PaymentIntentCreateShape, PaymentCreateShape } from './../../openland-module-db/store';
+import { Store, PaymentIntentCreateShape, PaymentCreateShape } from '../../openland-module-db/store';
 import { SubscriptionsRepository } from './SubscriptionsRepository';
 import { Modules } from 'openland-modules/Modules';
 import { PaymentsRepository } from './PaymentsRepository';

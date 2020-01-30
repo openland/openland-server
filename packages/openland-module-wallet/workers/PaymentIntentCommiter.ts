@@ -1,6 +1,6 @@
 import { createLogger } from '@openland/log';
-import { StripeEventCreated } from './../../openland-module-db/store';
-import { Store } from './../../openland-module-db/FDB';
+import { StripeEventCreated } from '../../openland-module-db/store';
+import { Store } from '../../openland-module-db/FDB';
 import { updateReader } from '../../openland-module-workers/updateReader';
 import { PaymentMediator } from '../mediators/PaymentMediator';
 import { inTx } from '@openland/foundationdb';

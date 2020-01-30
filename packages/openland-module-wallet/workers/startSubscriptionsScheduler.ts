@@ -2,8 +2,8 @@ import { Store } from 'openland-module-db/FDB';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
-import { SubscriptionsRepository } from 'openland-module-billing/repo/SubscriptionsRepository';
-import { PaymentMediator } from 'openland-module-billing/mediators/PaymentMediator';
+import { SubscriptionsRepository } from 'openland-module-wallet/repo/SubscriptionsRepository';
+import { PaymentMediator } from 'openland-module-wallet/mediators/PaymentMediator';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
 //

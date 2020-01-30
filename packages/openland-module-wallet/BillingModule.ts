@@ -1,5 +1,5 @@
 import { OperationsRepository } from './repo/OperationsRepository';
-import { WalletSubscriptionCreateShape } from './../openland-module-db/store';
+import { WalletSubscriptionCreateShape } from '../openland-module-db/store';
 import { SubscriptionsRepository } from './repo/SubscriptionsRepository';
 import { WalletRepository } from './repo/WalletRepository';
 import { RoutingRepository, RoutingRepositoryImpl } from './repo/RoutingRepository';
