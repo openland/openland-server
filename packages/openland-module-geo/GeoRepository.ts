@@ -3,6 +3,7 @@ import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import { injectable } from 'inversify';
 import { UserLocationUpdatedEvent } from '../openland-module-db/store';
+import { InvalidInputError } from '../openland-errors/InvalidInputError';
 
 export type GeoLocation = {
     long: number;
@@ -11,20 +12,25 @@ export type GeoLocation = {
 
 @injectable()
 export class GeoRepository {
-    public reportGeo(parent: Context, uid: number, location: GeoLocation) {
+    public reportGeo(parent: Context, uid: number, tid: string, date: number, location: GeoLocation) {
         return inTx(parent, async ctx => {
             let geo = await this.getUserGeo(ctx, uid);
-            geo.lastLocations.unshift({
-                date: Date.now(),
-                location
-            });
-            geo.isSharing = true;
+            let fifteenMinutesAgo = date - 1000 * 60 * 15;
+            if (date > Date.now() || date < fifteenMinutesAgo) {
+                throw new InvalidInputError([{ key: 'date', message: 'Date is not synchronized' }]);
+            }
 
+            geo.lastLocations.unshift({
+                date,
+                location,
+                tid
+            });
+            geo.lastLocations.sort((a, b) => b.date - a.date);
             geo.invalidate();
             await geo.flush(ctx);
 
             Store.UserLocationEventStore.post(ctx, uid, UserLocationUpdatedEvent.create({
-                date: Date.now(),
+                date,
                 uid
             }));
         });
@@ -36,7 +42,6 @@ export class GeoRepository {
             if (!geo) {
                 geo = await Store.UserLocation.create(ctx, uid, {
                     lastLocations: [],
-                    isSharing: false
                 });
             }
             if (geo.lastLocations.length > 0) {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3ea9ab44e5a8445636970d1ad0cccee1';
+export const GQL_SPEC_VERSION = 'dc710d9e688347df57b455315f8da8c6';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -652,6 +652,8 @@ export namespace GQL {
     }
     export type PermissionScope = 'GLOBAL' | 'CHAT';
     export type PermissionAppType = 'POWERUP';
+    export type PermissionStatus = 'REJECTED' | 'WAITING' | 'GRANTED';
+    export type UpdatedPermissionStatus = 'REJECTED' | 'GRANTED';
     export interface PermissionGroup {
         id: string;
         name: string;
@@ -665,6 +667,7 @@ export namespace GQL {
         powerup: Nullable<Powerup>;
         scope: PermissionScope;
         chat: Nullable<Room>;
+        status: PermissionStatus;
     }
     export type Platform = 'WEB' | 'IOS' | 'ANDROID';
     export interface OnlineEvent {
@@ -1226,6 +1229,7 @@ export namespace GQL {
         alphaOrganizationCreatePublicInvite: Invite;
         alphaOrganizationRemoveMember: string;
         alphaOrganizationDeletePublicInvite: string;
+        permissionUpdate: Permission;
         presenceReportOnline: string;
         presenceReportOffline: string;
         alphaReportActive: string;
@@ -1686,6 +1690,10 @@ export namespace GQL {
     export interface MutationAlphaOrganizationDeletePublicInviteArgs {
         organizationId: OptionalNullable<string>;
     }
+    export interface MutationPermissionUpdateArgs {
+        id: string;
+        status: UpdatedPermissionStatus;
+    }
     export interface MutationPresenceReportOnlineArgs {
         timeout: number;
         platform: OptionalNullable<string>;
@@ -1922,6 +1930,7 @@ export namespace GQL {
     }
     export interface MutationShareLocationArgs {
         location: GeoLocationInput;
+        date: OptionalNullable<Date>;
     }
     export interface MutationConferenceJoinArgs {
         id: string;
@@ -2685,6 +2694,7 @@ export namespace GQL {
         featureFlags: FeatureFlag[];
         myLocation: UserLocation;
         shouldShareLocation: boolean;
+        serverDate: Date;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         myStickers: UserStickers;
@@ -5351,6 +5361,7 @@ export interface GQLResolver {
             alphaOrganizationMemberAdd: GQLRoots.OrganizationJoinedMemberRoot[],
             alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot,
             alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot,
+            permissionUpdate: GQLRoots.PermissionRoot,
             superAccountAdd: GQLRoots.SuperAccountRoot,
             superAccountRename: GQLRoots.SuperAccountRoot,
             superAccountActivate: GQLRoots.SuperAccountRoot,
@@ -5507,6 +5518,7 @@ export interface GQLResolver {
             alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs,
             alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs,
             alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs,
+            permissionUpdate: GQL.MutationPermissionUpdateArgs,
             presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
             presenceReportOffline: GQL.MutationPresenceReportOfflineArgs,
             alphaReportActive: GQL.MutationAlphaReportActiveArgs,

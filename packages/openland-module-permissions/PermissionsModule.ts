@@ -19,8 +19,8 @@ export class PermissionsModule {
         return this.repo.hasSomethingGranted(parent, uid, gid);
     }
 
-    public updatePermissionStatus(parent: Context, info: PermissionRequestInfo,  status: 'rejected' | 'granted') {
-        return this.repo.updatePermissionStatus(parent, info, status);
+    public updatePermissionStatus(parent: Context, uid: number, info: PermissionRequestInfo | string,  status: 'rejected' | 'granted') {
+        return this.repo.updatePermissionStatus(parent, uid, info, status);
     }
 
     public getGrantedPermissionsForApp(parent: Context, uid: number, appId: number, appType: 'powerup') {
@@ -41,5 +41,9 @@ export class PermissionsModule {
 
     public getPermissionGroups(parent: Context) {
         return this.repo.getPermissionGroups(parent);
+    }
+
+    public getPermissionGroup(parent: Context, id: number) {
+        return this.repo.getPermissionGroup(parent, id);
     }
 }

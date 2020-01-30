@@ -7,12 +7,24 @@ enum PermissionAppType {
     POWERUP
 }
 
+enum PermissionStatus {
+    REJECTED,
+    WAITING,
+    GRANTED
+}
+
+enum UpdatedPermissionStatus {
+    REJECTED,
+    GRANTED
+}
+
 type PermissionGroup {
     id: ID!
     name: String!
     description: String!
     permissions: [Permission!]!
 }
+
 
 type Permission {
     id: ID!
@@ -23,11 +35,16 @@ type Permission {
 
     scope: PermissionScope!
     chat: Room
+    status: PermissionStatus!
 }
 
 extend type Query {
     permissionGroups: [PermissionGroup!]!
     waitingPermissions: [Permission!]!
+}
+
+extend type Mutation {
+    permissionUpdate(id: ID!, status: UpdatedPermissionStatus!): Permission!
 }
 
 extend type Subscription {

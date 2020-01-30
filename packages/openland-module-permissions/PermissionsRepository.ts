@@ -4,6 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { Store } from '../openland-module-db/FDB';
 import uuid from 'uuid';
 import { PermissionUpdatedEvent } from '../openland-module-db/store';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 export interface PermissionGroup {
     id: number;
@@ -73,14 +74,19 @@ export class PermissionsRepository {
         return !!permissions.find(a => a.status === 'granted');
     }
 
-    public updatePermissionStatus(parent: Context, info: PermissionRequestInfo,  status: 'rejected' | 'granted') {
+    public updatePermissionStatus(parent: Context, uid: number, info: PermissionRequestInfo | string,  status: 'rejected' | 'granted') {
         return inTx(parent, async ctx => {
-           let permission = await this.getPermissionStatus(ctx, info);
-           permission.status = status;
+            let permission = typeof info === 'string' ? await Store.Permission.findById(ctx, info) : await this.getPermissionStatus(ctx, info);
+            if (!permission || permission.uid !== uid) {
+                throw new NotFoundError();
+            }
+            permission.status = status;
 
-           Store.PermissionEventStore.post(ctx, info.uid, PermissionUpdatedEvent.create({
-               id: permission.id
-           }));
+            Store.PermissionEventStore.post(ctx, uid, PermissionUpdatedEvent.create({
+                id: permission.id
+            }));
+
+            return permission;
         });
     }
 
@@ -112,5 +118,9 @@ export class PermissionsRepository {
 
     public getPermissionGroups(parent: Context) {
         return permissionGroups;
+    }
+
+    public getPermissionGroup(parent: Context, id: number) {
+        return permissionGroups.find(a => a.id === id);
     }
 }

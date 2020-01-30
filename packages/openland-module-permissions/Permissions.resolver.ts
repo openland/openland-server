@@ -8,12 +8,37 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Store } from '../openland-module-db/FDB';
 
 export default {
+    PermissionScope: {
+        GLOBAL: 'global',
+        CHAT: 'chat'
+    },
+    PermissionAppType: {
+        POWERUP: 'powerup'
+    },
+    PermissionStatus: {
+        REJECTED: 'rejected',
+        WAITING: 'waiting',
+        GRANTED: 'granted'
+    },
+    UpdatedPermissionStatus: {
+        REJECTED: 'rejected',
+        GRANTED: 'granted'
+    },
+    Permission: {
+        id: root => IDs.PermissionRequest.serialize(root.id),
+        appType: root => root.appType as any,
+        chat: root => root.scopeId,
+        scope: root => root.scopeType as any,
+        powerup: (root, _, ctx) => Store.Powerup.findById(ctx, root.appId),
+        group: (root, _, ctx) => Modules.Permissions.getPermissionGroup(ctx, root.gid),
+        status: (root) => root.status as any,
+    },
     PermissionGroup: {
-      id: root => IDs.PermissionGroup.serialize(root.id),
+        id: root => IDs.PermissionGroup.serialize(root.id),
         description: root => root.description,
         name: root => root.name,
         permissions: withActivatedUser((ctx, args, uid, root) => {
-          return Modules.Permissions.getPermissionsForGroup(ctx, uid, root.id);
+            return Modules.Permissions.getPermissionsForGroup(ctx, uid, root.id);
         })
     },
     Query: {
@@ -24,6 +49,12 @@ export default {
             let auth = AuthContext.get(ctx);
             return Modules.Permissions.getWaitingPermissions(ctx, auth.uid!);
         })
+    },
+    Mutation: {
+      permissionUpdate: withPermission('super-admin', (ctx, args) => {
+          let id = IDs.PermissionRequest.parse(args.id);
+          return Modules.Permissions.updatePermissionStatus(ctx, ctx.auth.uid!, id, args.status.toLowerCase() as any);
+      })
     },
     Subscription: {
         permissionsUpdates: {

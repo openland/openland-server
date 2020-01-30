@@ -18,10 +18,11 @@ input GeoLocationInput {
 extend type Query {
     myLocation: UserLocation!
     shouldShareLocation: Boolean!
+    serverDate: Date!
 }
 
 extend type Mutation {
-    shareLocation(location: GeoLocationInput!): Boolean!
+    shareLocation(location: GeoLocationInput!, date: Date): Boolean!
 }
 
 extend type Subscription {

@@ -10,12 +10,12 @@ export class GeoMediator {
     @inject('GeoRepository')
     private readonly repo!: GeoRepository;
 
-    public async reportGeo(parent: Context, uid: number, location: GeoLocation) {
+    public async reportGeo(parent: Context, uid: number, tid: string, date: number, location: GeoLocation) {
         if (!await Modules.Permissions.hasSomethingGranted(parent, uid, Permissions.LOCATION)) {
             throw new AccessDeniedError();
         }
 
-        return this.repo.reportGeo(parent, uid, location);
+        return this.repo.reportGeo(parent, uid, tid, date, location);
     }
 
     public  async getUserGeo(parent: Context, uid: number, info: PermissionRequestInfo) {

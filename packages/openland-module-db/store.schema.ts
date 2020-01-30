@@ -1558,9 +1558,10 @@ export default declareSchema(() => {
     // Store all user locations (with date index)
     entity('UserLocation', () => {
         primaryKey('uid', integer());
-        field('isSharing', optional(boolean()));
         field('lastLocations', array(struct({
-            date: integer(), location: Geolocation,
+            date: integer(),
+            tid: optional(string()),
+            location: Geolocation,
         })));
     });
 

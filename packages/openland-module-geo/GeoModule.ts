@@ -16,8 +16,8 @@ export class GeoModule {
         //
     }
 
-    public reportGeo(parent: Context, uid: number, location: GeoLocation) {
-        return this.mediator.reportGeo(parent, uid, location);
+    public reportGeo(parent: Context, uid: number, tid: string, date: number, location: GeoLocation) {
+        return this.mediator.reportGeo(parent, uid, tid, date, location);
     }
 
     public getUserGeo(parent: Context, uid: number, info: PermissionRequestInfo) {
