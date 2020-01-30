@@ -27,20 +27,19 @@ export default {
     },
     Subscription: {
         shouldShareLocationUpdates: {
+            resolve: (obj) => obj,
             subscribe: async function * (_: any, args: any, context: AppContext) {
                 let auth = AuthContext.get(context);
                 if (!auth.uid) {
                     throw new AccessDeniedError();
                 }
 
-                let res = yield await Modules.Geo.shouldShareLocation(context, auth.uid);
+                let res = await Modules.Geo.shouldShareLocation(context, auth.uid);
+                yield res;
 
                 // @ts-ignore
                 for await (let event of Store.PermissionEventStore.createLiveStream(context, auth.uid, { batchSize: 1 })) {
-                    let shouldShareLocation = await Modules.Geo.shouldShareLocation(context, auth.uid);
-                    if (res !== shouldShareLocation) {
-                        res = yield shouldShareLocation;
-                    }
+                    yield await Modules.Geo.shouldShareLocation(context, auth.uid);
                 }
             }
         }
