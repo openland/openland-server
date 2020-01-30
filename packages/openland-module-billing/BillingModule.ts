@@ -33,7 +33,9 @@ export class BillingModule {
     readonly operations: OperationsRepository = new OperationsRepository(Store, this.wallet, this.payments, this.subscriptions);
 
     // Payments Mediator (on/off session)
-    readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */, this.paymentIntents);
+    readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
+        this.paymentIntents, this.payments
+    );
 
     constructor() {
         this.subscriptions.setRouting(this.routing);

@@ -6,6 +6,7 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 import { backoff } from 'openland-utils/timer';
+import { PaymentsRepository } from 'openland-module-billing/repo/PaymentsRepository';
 
 const log = createLogger('payments');
 
@@ -13,13 +14,15 @@ export class PaymentMediator {
 
     readonly liveMode: boolean;
     readonly paymentIntents: PaymentIntentsRepository;
+    readonly payments: PaymentsRepository;
 
     readonly stripe: Stripe;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
 
-    constructor(token: string, paymentIntents: PaymentIntentsRepository) {
+    constructor(token: string, paymentIntents: PaymentIntentsRepository, payments: PaymentsRepository) {
         this.paymentIntents = paymentIntents;
+        this.payments = payments;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
     }
@@ -504,5 +507,23 @@ export class PaymentMediator {
                 await this.stripe.paymentIntents.cancel(id);
             }
         });
+    }
+
+    //
+    // Cancel Payment
+    //
+
+    tryCancelPayment = async (parent: Context, id: string) => {
+        let piid = await inTx(parent, async (ctx) => {
+            let p = (await Store.Payment.findById(parent, id))!;
+            if (!p.piid) {
+                await this.payments.handlePaymentIntentCanceled(ctx, id);
+                return null;
+            }
+            return p.piid;
+        });
+        if (piid) {
+            await this.tryCancelPaymentIntent(parent, piid);
+        }
     }
 }

@@ -194,7 +194,8 @@ export default {
             return true;
         }),
         paymentCancel: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.paymentsMediator.tryCancelPaymentIntent(ctx, uid, IDs.Payment.parse(args.id));
+            await Modules.Billing.paymentsMediator.tryCancelPayment(ctx, IDs.Payment.parse(args.id));
+            return true;
         }),
 
         //

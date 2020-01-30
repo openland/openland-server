@@ -1771,7 +1771,10 @@ export default declareSchema(() => {
         primaryKey('index', integer());
         field('pid', optional(string()));
         field('start', integer());
-        field('state', enumString('pending', 'failing', 'success', 'canceling'));
+        field('state', enumString('pending', 'failing', 'success', 'canceled'));
+        field('needCancel', optional(boolean()));
+        field('scheduledCancel', optional(boolean()));
+        rangeIndex('pendingCancel', ['id']).withCondition((s) => s.needCancel && !s.scheduledCancel);
     });
 
     //

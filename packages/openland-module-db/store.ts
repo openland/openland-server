@@ -14043,13 +14043,17 @@ export interface WalletSubscriptionPeriodShape {
     index: number;
     pid: string | null;
     start: number;
-    state: 'pending' | 'failing' | 'success' | 'canceling';
+    state: 'pending' | 'failing' | 'success';
+    needCancel: boolean | null;
+    scheduledCancel: boolean | null;
 }
 
 export interface WalletSubscriptionPeriodCreateShape {
     pid?: string | null | undefined;
     start: number;
-    state: 'pending' | 'failing' | 'success' | 'canceling';
+    state: 'pending' | 'failing' | 'success';
+    needCancel?: boolean | null | undefined;
+    scheduledCancel?: boolean | null | undefined;
 }
 
 export class WalletSubscriptionPeriod extends Entity<WalletSubscriptionPeriodShape> {
@@ -14073,12 +14077,30 @@ export class WalletSubscriptionPeriod extends Entity<WalletSubscriptionPeriodSha
             this.invalidate();
         }
     }
-    get state(): 'pending' | 'failing' | 'success' | 'canceling' { return this._rawValue.state; }
-    set state(value: 'pending' | 'failing' | 'success' | 'canceling') {
+    get state(): 'pending' | 'failing' | 'success' { return this._rawValue.state; }
+    set state(value: 'pending' | 'failing' | 'success') {
         let normalized = this.descriptor.codec.fields.state.normalize(value);
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
             this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get needCancel(): boolean | null { return this._rawValue.needCancel; }
+    set needCancel(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.needCancel.normalize(value);
+        if (this._rawValue.needCancel !== normalized) {
+            this._rawValue.needCancel = normalized;
+            this._updatedValues.needCancel = normalized;
+            this.invalidate();
+        }
+    }
+    get scheduledCancel(): boolean | null { return this._rawValue.scheduledCancel; }
+    set scheduledCancel(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.scheduledCancel.normalize(value);
+        if (this._rawValue.scheduledCancel !== normalized) {
+            this._rawValue.scheduledCancel = normalized;
+            this._updatedValues.scheduledCancel = normalized;
             this.invalidate();
         }
     }
@@ -14089,19 +14111,24 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('walletSubscriptionPeriod');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'pendingCancel', storageKey: 'pendingCancel', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscriptionPeriod', 'pendingCancel'), condition: (s) => s.needCancel && !s.scheduledCancel });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         primaryKeys.push({ name: 'index', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'start', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failing', 'success', 'canceling'] }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failing', 'success'] }, secure: false });
+        fields.push({ name: 'needCancel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'scheduledCancel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             index: c.integer,
             pid: c.optional(c.string),
             start: c.integer,
-            state: c.enum('pending', 'failing', 'success', 'canceling'),
+            state: c.enum('pending', 'failing', 'success'),
+            needCancel: c.optional(c.boolean),
+            scheduledCancel: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<WalletSubscriptionPeriodShape> = {
             name: 'WalletSubscriptionPeriod',
@@ -14114,6 +14141,21 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
     private constructor(descriptor: EntityDescriptor<WalletSubscriptionPeriodShape>) {
         super(descriptor);
     }
+
+    readonly pendingCancel = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
 
     create(ctx: Context, id: string, index: number, src: WalletSubscriptionPeriodCreateShape): Promise<WalletSubscriptionPeriod> {
         return this._create(ctx, [id, index], this.descriptor.codec.normalize({ id, index, ...src }));
