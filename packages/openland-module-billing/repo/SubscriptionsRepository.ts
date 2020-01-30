@@ -137,14 +137,16 @@ export class SubscriptionsRepository {
                 // Cancel subscription after 60 days
                 if (subscription.state === 'retrying') {
                     if (now - period.start > (60 * DAY)) {
-                        return 'try_cancel';
+                        if (!period.needCancel) {
+                            return 'try_cancel';
+                        }
                     }
                 }
                 return 'nothing';
             } else if (period.state === 'pending') {
                 // Do nothing since payment is not yet processed
                 return 'nothing';
-            } else if (period.state === 'canceling') {
+            } else if (period.state === 'canceled') {
                 // Do nothing since payment is already in canceling state
                 return 'nothing';
             } else {
@@ -348,14 +350,6 @@ export class SubscriptionsRepository {
                 }
                 return;
             }
-            if (period.state === 'canceling') {
-                // While we were trying to cancel subscription, payment still gone through - mark period as successful
-                period.state = 'success';
-                if (this.routing.onSubscriptionPaymentSuccess) {
-                    await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
-                }
-                return;
-            }
             if (period.state === 'failing') {
                 period.state = 'success';
 
@@ -392,6 +386,11 @@ export class SubscriptionsRepository {
             }
 
             if (period.state === 'success') {
+                // Should not be possible
+                return;
+            }
+
+            if (period.state === 'canceled') {
                 // Should not be possible
                 return;
             }

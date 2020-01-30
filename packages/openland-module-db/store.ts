@@ -14043,7 +14043,7 @@ export interface WalletSubscriptionPeriodShape {
     index: number;
     pid: string | null;
     start: number;
-    state: 'pending' | 'failing' | 'success';
+    state: 'pending' | 'failing' | 'success' | 'canceled';
     needCancel: boolean | null;
     scheduledCancel: boolean | null;
 }
@@ -14051,7 +14051,7 @@ export interface WalletSubscriptionPeriodShape {
 export interface WalletSubscriptionPeriodCreateShape {
     pid?: string | null | undefined;
     start: number;
-    state: 'pending' | 'failing' | 'success';
+    state: 'pending' | 'failing' | 'success' | 'canceled';
     needCancel?: boolean | null | undefined;
     scheduledCancel?: boolean | null | undefined;
 }
@@ -14077,8 +14077,8 @@ export class WalletSubscriptionPeriod extends Entity<WalletSubscriptionPeriodSha
             this.invalidate();
         }
     }
-    get state(): 'pending' | 'failing' | 'success' { return this._rawValue.state; }
-    set state(value: 'pending' | 'failing' | 'success') {
+    get state(): 'pending' | 'failing' | 'success' | 'canceled' { return this._rawValue.state; }
+    set state(value: 'pending' | 'failing' | 'success' | 'canceled') {
         let normalized = this.descriptor.codec.fields.state.normalize(value);
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
@@ -14118,7 +14118,7 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'start', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failing', 'success'] }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'failing', 'success', 'canceled'] }, secure: false });
         fields.push({ name: 'needCancel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'scheduledCancel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
@@ -14126,7 +14126,7 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
             index: c.integer,
             pid: c.optional(c.string),
             start: c.integer,
-            state: c.enum('pending', 'failing', 'success'),
+            state: c.enum('pending', 'failing', 'success', 'canceled'),
             needCancel: c.optional(c.boolean),
             scheduledCancel: c.optional(c.boolean),
         });
