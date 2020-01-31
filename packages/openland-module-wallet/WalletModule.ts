@@ -56,6 +56,14 @@ export class WalletModule {
     }
 
     //
+    // Wallet
+    //
+
+    getWallet = async (parent: Context, uid: number) => {
+        return await this.wallet.getWallet(parent, uid);
+    }
+
+    //
     // Payments
     //
 

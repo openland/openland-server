@@ -161,7 +161,7 @@ export default {
             return res;
         }),
         myWallet: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.wallet.getWallet(ctx, uid);
+            return await Modules.Wallet.getWallet(ctx, uid);
         }),
 
         //
@@ -221,8 +221,7 @@ export default {
             return true;
         }),
         paymentCancel: withAccount(async (ctx, args, uid) => {
-            await Modules.Wallet.paymentsMediator.tryCancelPayment(ctx, IDs.Payment.parse(args.id));
-            return true;
+            throw Error('Unsupported');
         }),
 
         //

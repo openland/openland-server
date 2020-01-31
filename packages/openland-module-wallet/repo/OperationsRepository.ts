@@ -96,10 +96,6 @@ export class OperationsRepository {
     // 
 
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
-        return await this.subscriptions.createSubscription(parent, uid, amount, interval, product);
-    }
-
-    cancelSubscription = async (parent: Context, id: string) => {
-        return this.subscriptions.cancelSubscription(parent, id);
+        return await this.subscriptions.createSubscription(parent, uid, amount, interval, product, Date.now());
     }
 }
