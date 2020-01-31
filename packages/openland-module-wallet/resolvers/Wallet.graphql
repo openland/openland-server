@@ -95,9 +95,35 @@ type WalletTransactionConnection {
     cursor: String
 }
 
+#
+# Wallet Subscriptions
+#
+type WalletSubscription {
+    id: ID!
+    state: WalletSubscriptionState!
+    amount: Int!
+    interval: WalletSubscriptionInterval!
+    product: WalletSubscriptionProduct!
+    expires: Date!
+}
+
+enum WalletSubscriptionState {
+    STARTED, GRACE_PERIOD, RETRYING, CANCELED, EXPIRED
+}
+
 enum WalletSubscriptionInterval {
     MONTH, WEEK
 }
+
+type WalletSubscriptionProductGroup {
+    group: SharedRoom!
+}
+
+type WalletSubscriptionProductDonation {
+    user: User!
+}
+
+union WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation
 
 #
 # Wallet Updates

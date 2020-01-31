@@ -54,7 +54,7 @@ export class RoomRepository {
                 featured: false,
                 listed: kind === 'public' && listed !== false,
                 isChannel: channel,
-                isPro: !!price
+                isPremium: !!price
             });
             await Store.RoomProfile.create(ctx, id, {
                 title: profile.title,
@@ -63,7 +63,7 @@ export class RoomRepository {
                 socialImage: profile.socialImage
             });
             if (price) {
-                await Store.ProChatSettings.create(ctx, id, {
+                await Store.PremiumChatSettings.create(ctx, id, {
                     price,
                     interval: interval || 'month',
                 });

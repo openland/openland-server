@@ -1,7 +1,8 @@
+import { PaymentCreateShape } from '../../openland-module-db/store';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, PaymentIntentCreateShape } from '../../openland-module-db/store';
+import { Store } from '../../openland-module-db/store';
 import { RoutingRepository } from './RoutingRepository';
 
 const log = createLogger('payments-async');
@@ -18,13 +19,10 @@ export class PaymentsRepository {
         this.routing = routing;
     }
 
-    createPayment = async (parent: Context, pid: string, uid: number, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+    createPayment = async (parent: Context, pid: string, uid: number, amount: number, operation: PaymentCreateShape['operation']) => {
 
         // Input Validation
         if (operation.type === 'deposit') {
-            if (!operation.txid) {
-                throw Error('txid is required for async deposits');
-            }
             if (operation.uid !== uid) {
                 throw Error('uid mismatch');
             }
@@ -69,8 +67,8 @@ export class PaymentsRepository {
 
             // Handle successful payment
             log.debug(parent, 'Success: Routing');
-            if (this.routing.routeSuccessfulPayment) {
-                await this.routing.routeSuccessfulPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentSuccess) {
+                await this.routing.onPaymentSuccess(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }
@@ -88,8 +86,8 @@ export class PaymentsRepository {
             payment.state = 'canceled';
 
             // Handle canceled payment
-            if (this.routing.routeCanceledPayment) {
-                await this.routing.routeCanceledPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentCanceled) {
+                await this.routing.onPaymentCanceled(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }
@@ -106,8 +104,8 @@ export class PaymentsRepository {
             payment.state = 'failing';
 
             // Handle failing state
-            if (this.routing.routeFailingPayment) {
-                await this.routing.routeFailingPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentFailing) {
+                await this.routing.onPaymentFailing(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }
@@ -124,8 +122,8 @@ export class PaymentsRepository {
             payment.state = 'action_required';
 
             // Handle action needed state
-            if (this.routing.routeActionNeededPayment) {
-                await this.routing.routeActionNeededPayment(ctx, payment.amount, payment.id, payment.operation);
+            if (this.routing.onPaymentActionNeeded) {
+                await this.routing.onPaymentActionNeeded(ctx, payment.amount, payment.id, payment.operation);
             }
         });
     }

@@ -1,7 +1,7 @@
 import { createLogger } from '@openland/log';
-import { Store } from './../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { singletonWorker } from '@openland/foundationdb-singleton';
-import { PaymentMediator } from './../mediators/PaymentMediator';
+import { PaymentMediator } from '../mediators/PaymentMediator';
 import { inTx } from '@openland/foundationdb';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 

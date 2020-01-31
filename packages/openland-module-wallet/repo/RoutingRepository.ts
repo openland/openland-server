@@ -1,41 +1,34 @@
 import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
-import { Store, PaymentIntentCreateShape } from './../../openland-module-db/store';
+import { Store, PaymentIntentCreateShape, PaymentCreateShape } from '../../openland-module-db/store';
 import { SubscriptionsRepository } from './SubscriptionsRepository';
 import { Modules } from 'openland-modules/Modules';
+import { PaymentsRepository } from './PaymentsRepository';
 
 export class RoutingRepositoryImpl {
 
     readonly store: Store;
     readonly wallet: WalletRepository;
+    readonly payments: PaymentsRepository;
     readonly subscriptions: SubscriptionsRepository;
 
-    constructor(store: Store, wallet: WalletRepository, subscriptions: SubscriptionsRepository) {
+    constructor(store: Store, wallet: WalletRepository, payments: PaymentsRepository, subscriptions: SubscriptionsRepository) {
         this.store = store;
         this.wallet = wallet;
+        this.payments = payments;
         this.subscriptions = subscriptions;
     }
 
     //
-    // Off-Session Payments
+    // Payment Events
     //
 
-    routeSuccessfulPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    onPaymentSuccess = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Confirm existing transaction
             await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
-
-            // Update Wallet
             await this.wallet.subscriptionPaymentCommit(ctx, operation.uid, operation.txid);
-
-            // Update Subscription
-            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period);
-
+            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
         } else {
@@ -43,22 +36,12 @@ export class RoutingRepositoryImpl {
         }
     }
 
-    routeFailingPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    onPaymentFailing = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Change payment status
             await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
-
-            // Update Wallet
             await this.wallet.subscriptionPaymentFailing(ctx, operation.uid, operation.txid, pid);
-
-            // Update subscription
-            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
-
+            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncFailing(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
         } else {
@@ -66,21 +49,12 @@ export class RoutingRepositoryImpl {
         }
     }
 
-    routeActionNeededPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    onPaymentActionNeeded = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Change payment status
             await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
-
-            // Update Wallet
             await this.wallet.subscriptionPaymentActionNeeded(ctx, operation.uid, operation.txid, pid);
-
-            // Update subscription
-            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
+            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncActionNeeded(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
         } else {
@@ -88,21 +62,12 @@ export class RoutingRepositoryImpl {
         }
     }
 
-    routeCanceledPayment = async (ctx: Context, amount: number, pid: string, operation: PaymentIntentCreateShape['operation']) => {
+    onPaymentCanceled = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
-            if (!operation.txid) {
-                throw Error('Transaction ID is missing');
-            }
-
-            // Confirm existing transaction
             await this.wallet.depositAsyncCancel(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
-
-            // Update Wallet
             await this.wallet.subscriptionPaymentCancel(ctx, operation.uid, operation.txid);
-
-            // Update subscription
-            await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period);
+            await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCancel(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
         } else {
@@ -111,20 +76,15 @@ export class RoutingRepositoryImpl {
     }
 
     //
-    // On-Session Payment Intents
+    // Subscription Events
     //
 
-    routeSuccessfulPaymentIntent = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
-        if (operation.type === 'deposit') {
-            await this.wallet.depositInstant(ctx, operation.uid, amount);
-        } else {
-            throw Error('Unknown operation type');
-        }
+    /**
+     * Subscription is started
+     */
+    onSubscriptionStarted = async (ctx: Context, id: string) => {
+        // TODO: Implement
     }
-
-    //
-    // Subscriptions
-    //
 
     /**
      * Payment failing, but subscription is still alive
@@ -132,7 +92,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionFailing = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionFailing(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionFailing(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -142,7 +102,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionPaymentSuccess = async (ctx: Context, id: string, index: number) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionPaymentSuccess(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionPaymentSuccess(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -152,7 +112,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRecovered = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionRecovered(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionRecovered(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -162,7 +122,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionPaused = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionPaused(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionPaused(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -172,7 +132,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRestarted = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionRestarted(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionRestarted(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -182,7 +142,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionExpired = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionExpired(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionExpired(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
         }
     }
 
@@ -192,7 +152,51 @@ export class RoutingRepositoryImpl {
     onSubscriptionCanceled = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.proChat.onSubscriptionCanceled(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionCanceled(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+        }
+    }
+
+    //
+    // Payment Intent Events
+    //
+
+    onPaymentIntentSuccess = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
+            await this.wallet.depositInstant(ctx, operation.uid, amount);
+        } else if (operation.type === 'payment') {
+            await this.payments.handlePaymentIntentSuccess(ctx, operation.id);
+        } else {
+            throw Error('Unknown operation type');
+        }
+    }
+
+    onPaymentIntentCanceled = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
+            // Nothing To Do
+        } else if (operation.type === 'payment') {
+            await this.payments.handlePaymentIntentCanceled(ctx, operation.id);
+        } else {
+            throw Error('Unknown operation type');
+        }
+    }
+
+    onPaymentIntentNeedAction = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
+            // Nothing To Do
+        } else if (operation.type === 'payment') {
+            await this.payments.handlePaymentActionRequired(ctx, operation.id);
+        } else {
+            throw Error('Unknown operation type');
+        }
+    }
+
+    onPaymentIntentFailing = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
+        if (operation.type === 'deposit') {
+            // Nothing To Do
+        } else if (operation.type === 'payment') {
+            await this.payments.handlePaymentFailing(ctx, operation.id);
+        } else {
+            throw Error('Unknown operation type');
         }
     }
 }

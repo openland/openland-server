@@ -1,8 +1,8 @@
-import { StripeEventCreated } from './../../openland-module-db/store';
-import { batch } from './../../openland-utils/batch';
+import { StripeEventCreated } from '../../openland-module-db/store';
+import { batch } from '../../openland-utils/batch';
 import { createLogger } from '@openland/log';
 import { PaymentMediator } from '../mediators/PaymentMediator';
-import { Store } from './../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import Stripe from 'stripe';
 import { inTx } from '@openland/foundationdb';

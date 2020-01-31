@@ -56,7 +56,7 @@ import {
     ChatPowerup,
     Powerup,
     UserStripeCard,
-    PermissionRequest, Payment, Wallet, WalletTransaction, WalletTransactionCreateShape, WalletBalanceChanged, WalletTransactionSuccess, WalletTransactionCanceled, WalletTransactionPending, PaymentStatusChanged
+    PermissionRequest, Payment, Wallet, WalletTransaction, WalletTransactionCreateShape, WalletBalanceChanged, WalletTransactionSuccess, WalletTransactionCanceled, WalletTransactionPending, PaymentStatusChanged, WalletSubscription, PremiumChatSettings, WalletSubscriptionCreateShape
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -251,7 +251,7 @@ export namespace GQLRoots {
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
 
-    export type ProChatSettingsRoot = any;
+    export type PremiumChatSettingsRoot = PremiumChatSettings;
     
     //
     // Apps
@@ -494,6 +494,11 @@ export namespace GQLRoots {
     export type WalletUpdateRoot = BaseEvent;
 
     export type PaymentRoot = Payment;
+
+    export type WalletSubscriptionRoot = WalletSubscription;
+    export type WalletSubscriptionProductRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletSubscriptionProductGroupRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletSubscriptionProductDonationRoot = WalletSubscriptionCreateShape['proudct'];
 
     //
     // Permissions

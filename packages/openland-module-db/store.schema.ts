@@ -217,20 +217,20 @@ export default declareSchema(() => {
         field('featured', optional(boolean()));
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
-        field('isPro', optional(boolean()));
+        field('isPremium', optional(boolean()));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public');
     });
 
-    entity('ProChatSettings', () => {
+    entity('PremiumChatSettings', () => {
         primaryKey('id', integer());
         field('price', integer());
         field('interval', enumString('week', 'month'));
     });
 
-    entity('ProChatUserPass', () => {
+    entity('PremiumChatUserPass', () => {
         primaryKey('cid', integer());
         primaryKey('uid', integer());
         field('sid', optional(string()));
@@ -1759,6 +1759,7 @@ export default declareSchema(() => {
         field('state', enumString('started', 'grace_period', 'retrying', 'canceled', 'expired'));
 
         rangeIndex('active', ['id']).withCondition((s) => s.state !== 'expired');
+        rangeIndex('user', ['uid']);
     });
 
     entity('WalletSubscriptionScheduling', () => {
@@ -1771,17 +1772,29 @@ export default declareSchema(() => {
         primaryKey('index', integer());
         field('pid', optional(string()));
         field('start', integer());
-        field('state', enumString('pending', 'failing', 'success', 'canceling'));
+        field('state', enumString('pending', 'failing', 'success', 'canceled'));
+        field('needCancel', optional(boolean()));
+        field('scheduledCancel', optional(boolean()));
+        rangeIndex('pendingCancel', ['id']).withCondition((s) => s.needCancel && !s.scheduledCancel);
     });
 
     //
     // Payments: Payments
     //
 
+    const PaymentIntentOperation = union({
+        'deposit': struct({
+            uid: integer()
+        }),
+        'payment': struct({
+            id: string()
+        })
+    });
+
     const PaymentOperation = union({
         'deposit': struct({
             uid: integer(),
-            txid: optional(string())
+            txid: string()
         }),
         'subscription': struct({
             uid: integer(),
@@ -1800,9 +1813,8 @@ export default declareSchema(() => {
     entity('PaymentIntent', () => {
         primaryKey('id', string());
         field('state', enumString('pending', 'success', 'canceled'));
-        field('pid', optional(string()));
         field('amount', integer());
-        field('operation', PaymentOperation);
+        field('operation', PaymentIntentOperation);
     });
 
     entity('Payment', () => {

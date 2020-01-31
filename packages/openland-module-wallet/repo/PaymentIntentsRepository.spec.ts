@@ -15,6 +15,8 @@ describe('PaymentIntentsRepository', () => {
     it('should enable payments when required conditions are met', async () => {
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
+        repo.setRouting({});
+
         // No user
         await expect(repo.enablePayments(ctx, 10)).rejects.toThrowError('Unable to find user');
 
@@ -37,6 +39,7 @@ describe('PaymentIntentsRepository', () => {
     it('should throw exception when customer is not set', async () => {
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
+        repo.setRouting({});
 
         await expect(repo.getCustomerId(ctx, 1)).rejects.toThrowError('Unable to find customer');
         await inTx(ctx, async (ctx2) => {
@@ -50,6 +53,7 @@ describe('PaymentIntentsRepository', () => {
     it('should resolve customer id', async () => {
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
+        repo.setRouting({});
 
         // Should throw if payments not enabled
         await expect(repo.applyCustomerId(ctx, 3, 'customer-id-test')).rejects.toThrowError('Unable to find customer');
@@ -70,6 +74,7 @@ describe('PaymentIntentsRepository', () => {
 
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
+        repo.setRouting({});
 
         await inTx(ctx, async (ctx2) => {
             await Store.User.create(ctx2, 5, { authId: 'auth-5', email: 'email5@example.com', isBot: false, status: 'activated' });
@@ -87,56 +92,164 @@ describe('PaymentIntentsRepository', () => {
     it('should register payment intent', async () => {
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
+        let onPaymentIntentFailing = jest.fn();
+        let onPaymentIntentSuccess = jest.fn();
+        let onPaymentIntentActionNeeded = jest.fn();
+        let onPaymentIntentCanceled = jest.fn();
+        repo.setRouting({
+            onPaymentIntentNeedAction: onPaymentIntentActionNeeded,
+            onPaymentIntentFailing: onPaymentIntentFailing,
+            onPaymentIntentSuccess: onPaymentIntentSuccess,
+            onPaymentIntentCanceled: onPaymentIntentCanceled
+        });
 
-        let res = await repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1, txid: null });
+        jest.clearAllMocks();
+        let res = await repo.registerPaymentIntent(ctx, 'paymentintent1', 100, { type: 'deposit', uid: 1 });
         expect(res.id).toBe('paymentintent1');
         expect(res.amount).toBe(100);
         expect(res.operation.type).toBe('deposit');
         expect((res.operation as any).uid).toBe(1);
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Same PaymentIntent ID
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent1', 100, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
+        jest.clearAllMocks();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent1', 100, { type: 'deposit', uid: 1 })).rejects.toThrowError();
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Float amount
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', 100.1, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
+        jest.clearAllMocks();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', 100.1, { type: 'deposit', uid: 1 })).rejects.toThrowError();
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Negative amount
-        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', -100, null, { type: 'deposit', uid: 1, txid: null })).rejects.toThrowError();
+        jest.clearAllMocks();
+        await expect(repo.registerPaymentIntent(ctx, 'paymentintent2', -100, { type: 'deposit', uid: 1 })).rejects.toThrowError();
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        // Failing
+        jest.clearAllMocks();
+        await repo.paymentIntentFailing(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(1);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        // Action Needed
+        jest.clearAllMocks();
+        await repo.paymentIntentNeedAction(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(1);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        // Failing after Action Needed
+        jest.clearAllMocks();
+        await repo.paymentIntentFailing(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(1);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Success
-        let commited = await repo.paymentIntentSuccess(ctx, 'paymentintent1');
-        expect(commited).toBe(true);
-        commited = await repo.paymentIntentSuccess(ctx, 'paymentintent1');
-        expect(commited).toBe(false);
+        jest.clearAllMocks();
+        await repo.paymentIntentSuccess(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(1);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        // Double Success
+        jest.clearAllMocks();
+        await repo.paymentIntentSuccess(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Cancel after success
-        commited = await repo.paymentIntentCancel(ctx, 'paymentintent1');
-        expect(commited).toBe(false);
+        jest.clearAllMocks();
+        await repo.paymentIntentCancel(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        // Failing after complete
+        jest.clearAllMocks();
+        await repo.paymentIntentFailing(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        // Action needed after complete
+        jest.clearAllMocks();
+        await repo.paymentIntentNeedAction(ctx, 'paymentintent1');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Unknown
-        commited = await repo.paymentIntentSuccess(ctx, 'paymentintent1-invalid');
-        expect(commited).toBe(false);
-        commited = await repo.paymentIntentCancel(ctx, 'paymentintent1-invalid');
-        expect(commited).toBe(false);
+        jest.clearAllMocks();
+        await repo.paymentIntentSuccess(ctx, 'paymentintent1-invalid');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        jest.clearAllMocks();
+        await repo.paymentIntentCancel(ctx, 'paymentintent1-invalid');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
 
         // Canceling test
-        res = await repo.registerPaymentIntent(ctx, 'paymentintent3', 100, null, { type: 'deposit', uid: 1, txid: null });
+        res = await repo.registerPaymentIntent(ctx, 'paymentintent3', 100, { type: 'deposit', uid: 1 });
         expect(res.id).toBe('paymentintent3');
         expect(res.amount).toBe(100);
         expect(res.operation.type).toBe('deposit');
         expect((res.operation as any).uid).toBe(1);
 
-        commited = await repo.paymentIntentCancel(ctx, 'paymentintent3');
-        expect(commited).toBe(true);
-        commited = await repo.paymentIntentCancel(ctx, 'paymentintent3');
-        expect(commited).toBe(false);
-        commited = await repo.paymentIntentSuccess(ctx, 'paymentintent3');
-        expect(commited).toBe(false);
+        jest.clearAllMocks();
+        await repo.paymentIntentCancel(ctx, 'paymentintent3');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(1);
+
+        jest.clearAllMocks();
+        await repo.paymentIntentCancel(ctx, 'paymentintent3');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
+
+        jest.clearAllMocks();
+        await repo.paymentIntentSuccess(ctx, 'paymentintent3');
+        expect(onPaymentIntentSuccess.mock.calls.length).toBe(0);
+        expect(onPaymentIntentFailing.mock.calls.length).toBe(0);
+        expect(onPaymentIntentActionNeeded.mock.calls.length).toBe(0);
+        expect(onPaymentIntentCanceled.mock.calls.length).toBe(0);
     });
 
     it('should manage payment methods correctly', async () => {
         let repo = new PaymentIntentsRepository(Store);
         let ctx = createNamedContext('test');
+        repo.setRouting({});
 
         // Non-card payment method
         await expect(repo.addPaymentMethod(ctx, 1, {

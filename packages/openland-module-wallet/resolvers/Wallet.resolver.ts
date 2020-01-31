@@ -52,6 +52,34 @@ export default {
         operation: (src) => src.operation
     },
 
+    WalletSubscription: {
+        id: (src) => src.id,
+        amount: (src) => src.amount,
+        state: (src) => {
+            if (src.state === 'started') {
+                return 'STARTED';
+            } else if (src.state === 'grace_period') {
+                return 'GRACE_PERIOD';
+            } else if (src.state === 'retrying') {
+                return 'RETRYING';
+            } else if (src.state === 'canceled') {
+                return 'CANCELED';
+            } else if (src.state === 'expired') {
+                return 'EXPIRED';
+            }
+            throw Error('Unknown subscription state: ' + src.state);
+        },
+        interval: (src) => {
+            if (src.interval === 'month') {
+                return 'MONTH';
+            } else if (src.interval === 'week') {
+                return 'WEEK';
+            }
+            throw Error('Unknown subscription interval: ' + src.interval);
+        },
+        expires: async (src, arg, ctx) => await Modules.Wallet.subscriptions.resolveSubscriptionExpires(ctx, src.id)
+    },
+
     //
     // Operations
     //
@@ -119,7 +147,7 @@ export default {
         },
         intent: async (src, args, ctx) => {
             if (src.state === 'action_required' || src.state === 'failing') {
-                return (await Modules.Billing.paymentsMediator.stripe.paymentIntents.retrieve(src.piid!));
+                return (await Modules.Wallet.paymentsMediator.stripe.paymentIntents.retrieve(src.piid!));
             }
 
             return null;
@@ -134,7 +162,7 @@ export default {
             return res;
         }),
         myWallet: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.wallet.getWallet(ctx, uid);
+            return await Modules.Wallet.getWallet(ctx, uid);
         }),
 
         //
@@ -161,16 +189,16 @@ export default {
         //
 
         cardCreateSetupIntent: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.createSetupIntent(ctx, uid, args.retryKey);
+            return await Modules.Wallet.createSetupIntent(ctx, uid, args.retryKey);
         }),
         cardCommitSetupIntent: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.registerCard(ctx, uid, args.pmid);
+            return await Modules.Wallet.registerCard(ctx, uid, args.pmid);
         }),
         cardMakeDefault: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
+            return await Modules.Wallet.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
         }),
         cardRemove: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id));
+            return await Modules.Wallet.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id));
         }),
 
         //
@@ -178,11 +206,11 @@ export default {
         //
 
         cardDepositEnqueue: withAccount(async (ctx, args, uid) => {
-            await Modules.Billing.paymentsMediator.createDepositPayment(ctx, uid, args.amount, args.retryKey);
+            await Modules.Wallet.createDepositPayment(ctx, uid, args.amount, args.retryKey);
             return true;
         }),
         cardDepositIntent: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.createDepositIntent(ctx, uid, IDs.CreditCard.parse(args.id), args.amount, args.retryKey);
+            return await Modules.Wallet.createDepositIntent(ctx, uid, IDs.CreditCard.parse(args.id), args.amount, args.retryKey);
         }),
 
         //
@@ -190,11 +218,11 @@ export default {
         //
 
         paymentIntentCommit: withAccount(async (ctx, args, uid) => {
-            await Modules.Billing.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
+            await Modules.Wallet.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
             return true;
         }),
         paymentCancel: withAccount(async (ctx, args, uid) => {
-            return await Modules.Billing.paymentsMediator.tryCancelPaymentIntent(ctx, uid, IDs.Payment.parse(args.id));
+            throw Error('Unsupported');
         }),
 
         //
@@ -206,7 +234,7 @@ export default {
             //     type: 'donate',
             //     uid: IDs.User.parse(args.id)
             // });
-            await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
+            await Modules.Wallet.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
             return true;
         }),
     },
