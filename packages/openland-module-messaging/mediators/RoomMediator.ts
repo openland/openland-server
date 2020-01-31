@@ -79,8 +79,8 @@ export class RoomMediator {
                 throw new UserError('You can\'t join non-public room');
             }
 
-            if (conv.isPro) {
-                let pass = await Store.ProChatUserPass.findById(ctx, cid, uid);
+            if (conv.isPremium) {
+                let pass = await Store.PremiumChatUserPass.findById(ctx, cid, uid);
                 if (!pass || !pass.isActive) {
                     throw new UserError(`Can't join pro chat without pass`);
                 }

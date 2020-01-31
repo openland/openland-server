@@ -15,8 +15,8 @@ import { ChatMetricsRepository } from './repositories/ChatMetricsRepository';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { MentionNotificationsMediator } from './mediators/MentionNotificationsMediator';
-import { ProChatMediator } from './mediators/ProChatMediator';
-import { ProChatRepository } from './repositories/ProChatRepository';
+import { PremiumChatMediator } from './mediators/PremiumChatMediator';
+import { PremiumChatRepository } from './repositories/PremiumChatRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -26,8 +26,8 @@ export function loadMessagingModule() {
     container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
     container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
     container.bind('MessagingMediator').to(MessagingMediator).inSingletonScope();
-    container.bind('ProChatRepository').to(ProChatRepository).inSingletonScope();
-    container.bind('ProChatMediator').to(ProChatMediator).inSingletonScope();
+    container.bind('PremiumChatRepository').to(PremiumChatRepository).inSingletonScope();
+    container.bind('PremiumChatMediator').to(PremiumChatMediator).inSingletonScope();
     container.bind('AugmentationMediator').to(AugmentationMediator).inSingletonScope();
     container.bind('DeliveryMediator').to(DeliveryMediator).inSingletonScope();
     container.bind('CountersMediator').to(CountersMediator).inSingletonScope();

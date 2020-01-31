@@ -3358,7 +3358,7 @@ export interface ConversationRoomShape {
     featured: boolean | null;
     listed: boolean | null;
     isChannel: boolean | null;
-    isPro: boolean | null;
+    isPremium: boolean | null;
 }
 
 export interface ConversationRoomCreateShape {
@@ -3368,7 +3368,7 @@ export interface ConversationRoomCreateShape {
     featured?: boolean | null | undefined;
     listed?: boolean | null | undefined;
     isChannel?: boolean | null | undefined;
-    isPro?: boolean | null | undefined;
+    isPremium?: boolean | null | undefined;
 }
 
 export class ConversationRoom extends Entity<ConversationRoomShape> {
@@ -3427,12 +3427,12 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
             this.invalidate();
         }
     }
-    get isPro(): boolean | null { return this._rawValue.isPro; }
-    set isPro(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.isPro.normalize(value);
-        if (this._rawValue.isPro !== normalized) {
-            this._rawValue.isPro = normalized;
-            this._updatedValues.isPro = normalized;
+    get isPremium(): boolean | null { return this._rawValue.isPremium; }
+    set isPremium(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isPremium.normalize(value);
+        if (this._rawValue.isPremium !== normalized) {
+            this._rawValue.isPremium = normalized;
+            this._updatedValues.isPremium = normalized;
             this.invalidate();
         }
     }
@@ -3454,7 +3454,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         fields.push({ name: 'featured', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'listed', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'isPro', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isPremium', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             kind: c.enum('organization', 'internal', 'public', 'group'),
@@ -3463,7 +3463,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
             featured: c.optional(c.boolean),
             listed: c.optional(c.boolean),
             isChannel: c.optional(c.boolean),
-            isPro: c.optional(c.boolean),
+            isPremium: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',
@@ -3525,18 +3525,18 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
     }
 }
 
-export interface ProChatSettingsShape {
+export interface PremiumChatSettingsShape {
     id: number;
     price: number;
     interval: 'week' | 'month';
 }
 
-export interface ProChatSettingsCreateShape {
+export interface PremiumChatSettingsCreateShape {
     price: number;
     interval: 'week' | 'month';
 }
 
-export class ProChatSettings extends Entity<ProChatSettingsShape> {
+export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
     get id(): number { return this._rawValue.id; }
     get price(): number { return this._rawValue.price; }
     set price(value: number) {
@@ -3558,10 +3558,10 @@ export class ProChatSettings extends Entity<ProChatSettingsShape> {
     }
 }
 
-export class ProChatSettingsFactory extends EntityFactory<ProChatSettingsShape, ProChatSettings> {
+export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSettingsShape, PremiumChatSettings> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('proChatSettings');
+        let subspace = await storage.resolveEntityDirectory('premiumChatSettings');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -3573,27 +3573,27 @@ export class ProChatSettingsFactory extends EntityFactory<ProChatSettingsShape, 
             price: c.integer,
             interval: c.enum('week', 'month'),
         });
-        let descriptor: EntityDescriptor<ProChatSettingsShape> = {
-            name: 'ProChatSettings',
-            storageKey: 'proChatSettings',
+        let descriptor: EntityDescriptor<PremiumChatSettingsShape> = {
+            name: 'PremiumChatSettings',
+            storageKey: 'premiumChatSettings',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new ProChatSettingsFactory(descriptor);
+        return new PremiumChatSettingsFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<ProChatSettingsShape>) {
+    private constructor(descriptor: EntityDescriptor<PremiumChatSettingsShape>) {
         super(descriptor);
     }
 
-    create(ctx: Context, id: number, src: ProChatSettingsCreateShape): Promise<ProChatSettings> {
+    create(ctx: Context, id: number, src: PremiumChatSettingsCreateShape): Promise<PremiumChatSettings> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: number, src: ProChatSettingsCreateShape): ProChatSettings {
+    create_UNSAFE(ctx: Context, id: number, src: PremiumChatSettingsCreateShape): PremiumChatSettings {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ProChatSettings | null> {
+    findById(ctx: Context, id: number): Promise<PremiumChatSettings | null> {
         return this._findById(ctx, [id]);
     }
 
@@ -3601,24 +3601,24 @@ export class ProChatSettingsFactory extends EntityFactory<ProChatSettingsShape, 
         return this._watch(ctx, [id]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ProChatSettingsShape>): ProChatSettings {
-        return new ProChatSettings([value.id], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PremiumChatSettingsShape>): PremiumChatSettings {
+        return new PremiumChatSettings([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
-export interface ProChatUserPassShape {
+export interface PremiumChatUserPassShape {
     cid: number;
     uid: number;
     sid: string | null;
     isActive: boolean;
 }
 
-export interface ProChatUserPassCreateShape {
+export interface PremiumChatUserPassCreateShape {
     sid?: string | null | undefined;
     isActive: boolean;
 }
 
-export class ProChatUserPass extends Entity<ProChatUserPassShape> {
+export class PremiumChatUserPass extends Entity<PremiumChatUserPassShape> {
     get cid(): number { return this._rawValue.cid; }
     get uid(): number { return this._rawValue.uid; }
     get sid(): string | null { return this._rawValue.sid; }
@@ -3641,10 +3641,10 @@ export class ProChatUserPass extends Entity<ProChatUserPassShape> {
     }
 }
 
-export class ProChatUserPassFactory extends EntityFactory<ProChatUserPassShape, ProChatUserPass> {
+export class PremiumChatUserPassFactory extends EntityFactory<PremiumChatUserPassShape, PremiumChatUserPass> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('proChatUserPass');
+        let subspace = await storage.resolveEntityDirectory('premiumChatUserPass');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -3658,27 +3658,27 @@ export class ProChatUserPassFactory extends EntityFactory<ProChatUserPassShape, 
             sid: c.optional(c.string),
             isActive: c.boolean,
         });
-        let descriptor: EntityDescriptor<ProChatUserPassShape> = {
-            name: 'ProChatUserPass',
-            storageKey: 'proChatUserPass',
+        let descriptor: EntityDescriptor<PremiumChatUserPassShape> = {
+            name: 'PremiumChatUserPass',
+            storageKey: 'premiumChatUserPass',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new ProChatUserPassFactory(descriptor);
+        return new PremiumChatUserPassFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<ProChatUserPassShape>) {
+    private constructor(descriptor: EntityDescriptor<PremiumChatUserPassShape>) {
         super(descriptor);
     }
 
-    create(ctx: Context, cid: number, uid: number, src: ProChatUserPassCreateShape): Promise<ProChatUserPass> {
+    create(ctx: Context, cid: number, uid: number, src: PremiumChatUserPassCreateShape): Promise<PremiumChatUserPass> {
         return this._create(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, cid: number, uid: number, src: ProChatUserPassCreateShape): ProChatUserPass {
+    create_UNSAFE(ctx: Context, cid: number, uid: number, src: PremiumChatUserPassCreateShape): PremiumChatUserPass {
         return this._create_UNSAFE(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    findById(ctx: Context, cid: number, uid: number): Promise<ProChatUserPass | null> {
+    findById(ctx: Context, cid: number, uid: number): Promise<PremiumChatUserPass | null> {
         return this._findById(ctx, [cid, uid]);
     }
 
@@ -3686,8 +3686,8 @@ export class ProChatUserPassFactory extends EntityFactory<ProChatUserPassShape, 
         return this._watch(ctx, [cid, uid]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ProChatUserPassShape>): ProChatUserPass {
-        return new ProChatUserPass([value.cid, value.uid], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PremiumChatUserPassShape>): PremiumChatUserPass {
+        return new PremiumChatUserPass([value.cid, value.uid], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -17526,8 +17526,8 @@ export interface Store extends BaseStore {
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
     readonly ConversationRoom: ConversationRoomFactory;
-    readonly ProChatSettings: ProChatSettingsFactory;
-    readonly ProChatUserPass: ProChatUserPassFactory;
+    readonly PremiumChatSettings: PremiumChatSettingsFactory;
+    readonly PremiumChatUserPass: PremiumChatUserPassFactory;
     readonly RoomProfile: RoomProfileFactory;
     readonly RoomParticipant: RoomParticipantFactory;
     readonly Message: MessageFactory;
@@ -17726,8 +17726,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationPrivatePromise = ConversationPrivateFactory.open(storage);
     let ConversationOrganizationPromise = ConversationOrganizationFactory.open(storage);
     let ConversationRoomPromise = ConversationRoomFactory.open(storage);
-    let ProChatSettingsPromise = ProChatSettingsFactory.open(storage);
-    let ProChatUserPassPromise = ProChatUserPassFactory.open(storage);
+    let PremiumChatSettingsPromise = PremiumChatSettingsFactory.open(storage);
+    let PremiumChatUserPassPromise = PremiumChatUserPassFactory.open(storage);
     let RoomProfilePromise = RoomProfileFactory.open(storage);
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
@@ -17898,8 +17898,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationPrivate: await ConversationPrivatePromise,
         ConversationOrganization: await ConversationOrganizationPromise,
         ConversationRoom: await ConversationRoomPromise,
-        ProChatSettings: await ProChatSettingsPromise,
-        ProChatUserPass: await ProChatUserPassPromise,
+        PremiumChatSettings: await PremiumChatSettingsPromise,
+        PremiumChatUserPass: await PremiumChatUserPassPromise,
         RoomProfile: await RoomProfilePromise,
         RoomParticipant: await RoomParticipantPromise,
         Message: await MessagePromise,

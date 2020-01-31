@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5655c08b29e0f9c45e0bb14a9b94fa6e';
+export const GQL_SPEC_VERSION = '37d75f67e7a333552076344800a4f1bf';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -379,6 +379,13 @@ export namespace GQL {
         items: WalletTransaction[];
         cursor: Nullable<string>;
     }
+    export interface WalletSubscription {
+        id: string;
+        state: WalletSubscriptionState;
+        amount: number;
+        interval: WalletSubscriptionInterval;
+    }
+    export type WalletSubscriptionState = 'STARTED' | 'GRACE_PERIOD' | 'RETRYING' | 'CANCELED' | 'EXPIRED';
     export type WalletSubscriptionInterval = 'MONTH' | 'WEEK';
     export interface WalletUpdateSingle {
         state: string;
@@ -1391,7 +1398,7 @@ export namespace GQL {
         betaRoomJoin: Room;
         betaRoomsJoin: Room[];
         betaRoomDeclineJoinRequest: Room;
-        betaBuyProChatSubscription: boolean;
+        betaBuyPremiumChatSubscription: SharedRoom;
         betaRoomInviteLinkSendEmail: string;
         betaRoomInviteLinkJoin: Room;
         betaRoomInviteLinkRenew: string;
@@ -2365,7 +2372,7 @@ export namespace GQL {
         roomId: string;
         userId: string;
     }
-    export interface MutationBetaBuyProChatSubscriptionArgs {
+    export interface MutationBetaBuyPremiumChatSubscriptionArgs {
         chatId: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
@@ -3755,9 +3762,10 @@ export namespace GQL {
         archived: boolean;
         myBadge: Nullable<UserBadge>;
         matchmaking: Nullable<MatchmakingRoom>;
-        isPro: boolean;
-        proPassIsActive: boolean;
-        proSettings: Nullable<ProChatSettings>;
+        isPremium: boolean;
+        premiumPassIsActive: boolean;
+        premiumSubscription: Nullable<WalletSubscription>;
+        premiumSettings: Nullable<PremiumChatSettings>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
@@ -3765,7 +3773,7 @@ export namespace GQL {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
     }
-    export interface ProChatSettings {
+    export interface PremiumChatSettings {
         id: string;
         price: number;
         interval: WalletSubscriptionInterval;
@@ -4287,6 +4295,14 @@ export interface GQLResolver {
         GQLRoots.WalletTransactionConnectionRoot,
         {
             items: GQLRoots.WalletTransactionRoot[],
+        },
+        {
+        }
+    >;
+    WalletSubscription?: ComplexTypedResolver<
+        GQL.WalletSubscription,
+        GQLRoots.WalletSubscriptionRoot,
+        {
         },
         {
         }
@@ -5429,6 +5445,7 @@ export interface GQLResolver {
             betaRoomJoin: GQLRoots.RoomRoot,
             betaRoomsJoin: GQLRoots.RoomRoot[],
             betaRoomDeclineJoinRequest: GQLRoots.RoomRoot,
+            betaBuyPremiumChatSubscription: GQLRoots.SharedRoomRoot,
             betaRoomInviteLinkJoin: GQLRoots.RoomRoot,
             betaRoomUpdateUserNotificationSettings: GQLRoots.RoomUserNotificaionSettingsRoot,
             betaRoomsInviteUser: GQLRoots.RoomRoot[],
@@ -5665,7 +5682,7 @@ export interface GQLResolver {
             betaRoomJoin: GQL.MutationBetaRoomJoinArgs,
             betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs,
             betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs,
-            betaBuyProChatSubscription: GQL.MutationBetaBuyProChatSubscriptionArgs,
+            betaBuyPremiumChatSubscription: GQL.MutationBetaBuyPremiumChatSubscriptionArgs,
             betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs,
             betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs,
             betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs,
@@ -6846,16 +6863,17 @@ export interface GQLResolver {
             settings: GQLRoots.RoomUserNotificaionSettingsRoot,
             myBadge: Nullable<GQLRoots.UserBadgeRoot>,
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
-            proSettings: Nullable<GQLRoots.ProChatSettingsRoot>,
+            premiumSubscription: Nullable<GQLRoots.WalletSubscriptionRoot>,
+            premiumSettings: Nullable<GQLRoots.PremiumChatSettingsRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
             members: GQL.SharedRoomMembersArgs,
         }
     >;
-    ProChatSettings?: ComplexTypedResolver<
-        GQL.ProChatSettings,
-        GQLRoots.ProChatSettingsRoot,
+    PremiumChatSettings?: ComplexTypedResolver<
+        GQL.PremiumChatSettings,
+        GQLRoots.PremiumChatSettingsRoot,
         {
         },
         {

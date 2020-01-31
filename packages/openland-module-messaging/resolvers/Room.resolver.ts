@@ -124,17 +124,35 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isChannel);
         }),
-        isPro: withConverationId(async (ctx, id) => {
+        isPremium: withConverationId(async (ctx, id) => {
             let room = await Store.ConversationRoom.findById(ctx, id);
-            return !!(room && room.isPro);
+            return !!(room && room.isPremium);
         }),
-        proPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
-            let pass = ctx.auth.uid && await Store.ProChatUserPass.findById(ctx, id, ctx.auth.uid);
+        premiumPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
+            let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
             return !!(pass && pass.isActive);
         }), false),
-        proSettings: withAuthFallback(withConverationId(async (ctx, id) => {
-            let paidChatSettings = await Store.ProChatSettings.findById(ctx, id);
-            return paidChatSettings && { id, price: paidChatSettings.price, interval: paidChatSettings.interval.toUpperCase() };
+        premiumSettings: withConverationId(async (ctx, id) => {
+            let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, id);
+            if (!premiumChatSettings) {
+                return null;
+            }
+            let interval: string;
+            if (premiumChatSettings.interval === 'month') {
+                interval = 'MONTH';
+            } else if (premiumChatSettings.interval === 'week') {
+                interval = 'WEEK';
+            } else {
+                throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
+            }
+            return { id, price: premiumChatSettings.price, interval };
+        }),
+        premiumSubscription: withAuthFallback(withConverationId(async (ctx, id) => {
+            let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
+            if (!pass || !pass.sid) {
+                return null;
+            }
+            return await Store.WalletSubscription.findById(ctx, pass.sid);
         }), null),
         canSendMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))), false),
         title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
@@ -632,10 +650,11 @@ export default {
                 return res;
             });
         }),
-        betaBuyProChatSubscription: withUser(async (parent, args, uid) => {
+        betaBuyPremiumChatSubscription: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
-                await Modules.Messaging.proChat.createProChatSubscription(ctx, IDs.Conversation.parse(args.chatId), uid);
-                return true;
+                let cid = IDs.Conversation.parse(args.chatId);
+                await Modules.Messaging.premiumChat.createPremiumChatSubscription(ctx, cid, uid);
+                return cid;
             });
         }),
         // invite links

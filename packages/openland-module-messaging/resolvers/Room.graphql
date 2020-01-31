@@ -64,12 +64,13 @@ type SharedRoom {
     myBadge: UserBadge
     matchmaking: MatchmakingRoom
 
-    isPro: Boolean!
-    proPassIsActive: Boolean!
-    proSettings: ProChatSettings
+    isPremium: Boolean!
+    premiumPassIsActive: Boolean!
+    premiumSubscription: WalletSubscription
+    premiumSettings: PremiumChatSettings
 }
 
-type ProChatSettings {
+type PremiumChatSettings {
     id: ID!
     price: Int!
     interval: WalletSubscriptionInterval!
@@ -215,7 +216,7 @@ extend type Mutation {
     betaRoomJoin(roomId: ID!): Room!
     betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
-    betaBuyProChatSubscription(chatId: ID!): Boolean!
+    betaBuyPremiumChatSubscription(chatId: ID!): SharedRoom!
 
     # Invite links
     betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!
