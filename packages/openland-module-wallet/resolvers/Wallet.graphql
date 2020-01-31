@@ -103,6 +103,8 @@ type WalletSubscription {
     state: WalletSubscriptionState!
     amount: Int!
     interval: WalletSubscriptionInterval!
+    product: WalletSubscriptionProduct!
+    expires: Date!
 }
 
 enum WalletSubscriptionState {
@@ -112,6 +114,16 @@ enum WalletSubscriptionState {
 enum WalletSubscriptionInterval {
     MONTH, WEEK
 }
+
+type WalletSubscriptionProductGroup {
+    group: SharedRoom!
+}
+
+type WalletSubscriptionProductDonation {
+    user: User!
+}
+
+union WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation
 
 #
 # Wallet Updates

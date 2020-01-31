@@ -76,7 +76,8 @@ export default {
                 return 'WEEK';
             }
             throw Error('Unknown subscription interval: ' + src.interval);
-        }
+        },
+        expires: async (src, arg, ctx) => await Modules.Wallet.subscriptions.resolveSubscriptionExpires(ctx, src.id)
     },
 
     //

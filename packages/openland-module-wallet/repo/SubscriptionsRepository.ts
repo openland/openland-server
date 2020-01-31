@@ -7,6 +7,7 @@ import { nextRenewMonthly } from './utils/nextRenewMonthly';
 import { RoutingRepository } from './RoutingRepository';
 import { WalletRepository } from './WalletRepository';
 import { paymentAmounts } from './utils/paymentAmounts';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 
 const DAY = 24 * 60 * 60 * 1000; // ms in day
 
@@ -479,6 +480,28 @@ export class SubscriptionsRepository {
                 if (this.routing.onSubscriptionExpired) {
                     await this.routing.onSubscriptionExpired(ctx, subscription.id);
                 }
+            }
+        });
+    }
+
+    async resolveSubscriptionExpires(parent: Context, id: string) {
+        return await inTx(parent, async (ctx) => {
+            let subscription = (await this.store.WalletSubscription.findById(ctx, id));
+            if (!subscription) {
+                throw new NotFoundError();
+            }
+            let scheduling = await this.store.WalletSubscriptionScheduling.findById(ctx, id);
+            let start = Date.now();
+            if (scheduling) {
+                start = (await this.store.WalletSubscriptionPeriod.findById(ctx, subscription.id, scheduling.currentPeriodIndex))!.start;
+            }
+
+            if (subscription.interval === 'week') {
+                return start + WEEK;
+            } else if (subscription.interval === 'month') {
+                return nextRenewMonthly(start);
+            } else {
+                throw new Error('Unexpected period');
             }
         });
     }

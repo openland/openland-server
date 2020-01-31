@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '37d75f67e7a333552076344800a4f1bf';
+export const GQL_SPEC_VERSION = '5807bbc063fd38f5d7f7ac9d8bacc4a6';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -384,9 +384,18 @@ export namespace GQL {
         state: WalletSubscriptionState;
         amount: number;
         interval: WalletSubscriptionInterval;
+        product: WalletSubscriptionProduct;
+        expires: Date;
     }
     export type WalletSubscriptionState = 'STARTED' | 'GRACE_PERIOD' | 'RETRYING' | 'CANCELED' | 'EXPIRED';
     export type WalletSubscriptionInterval = 'MONTH' | 'WEEK';
+    export interface WalletSubscriptionProductGroup {
+        group: SharedRoom;
+    }
+    export interface WalletSubscriptionProductDonation {
+        user: User;
+    }
+    export type WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation;
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -4303,10 +4312,30 @@ export interface GQLResolver {
         GQL.WalletSubscription,
         GQLRoots.WalletSubscriptionRoot,
         {
+            product: GQLRoots.WalletSubscriptionProductRoot,
         },
         {
         }
     >;
+    WalletSubscriptionProductGroup?: ComplexTypedResolver<
+        GQL.WalletSubscriptionProductGroup,
+        GQLRoots.WalletSubscriptionProductGroupRoot,
+        {
+            group: GQLRoots.SharedRoomRoot,
+        },
+        {
+        }
+    >;
+    WalletSubscriptionProductDonation?: ComplexTypedResolver<
+        GQL.WalletSubscriptionProductDonation,
+        GQLRoots.WalletSubscriptionProductDonationRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+        }
+    >;
+    WalletSubscriptionProduct?: UnionTypeResolver<GQLRoots.WalletSubscriptionProductRoot, 'WalletSubscriptionProductGroup' | 'WalletSubscriptionProductDonation'>;
     WalletUpdateSingle?: ComplexTypedResolver<
         GQL.WalletUpdateSingle,
         GQLRoots.WalletUpdateSingleRoot,
