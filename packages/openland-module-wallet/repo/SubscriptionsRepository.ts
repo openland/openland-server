@@ -12,6 +12,10 @@ const DAY = 24 * 60 * 60 * 1000; // ms in day
 
 const WEEK = 7 * DAY; // ms in week
 
+function endDate(interval: 'week' | 'month', start: number) {
+    return interval === 'week' ? start + WEEK : nextRenewMonthly(start);
+}
+
 export class SubscriptionsRepository {
     readonly store: Store;
     readonly payments: PaymentsRepository;
@@ -28,34 +32,63 @@ export class SubscriptionsRepository {
         this.routing = routing;
     }
 
-    createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
+    createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct'], now: number) => {
         return await inTx(parent, async (ctx) => {
+
+            // Create New Subscription
             let sid = uuid();
-            let start = Date.now();
             let subscription = await this.store.WalletSubscription.create(ctx, sid, {
                 uid: uid,
                 amount: amount,
                 interval: interval,
-                start: start,
+                start: now,
                 state: 'started',
                 proudct: product
             });
+
+            // Init Scheduling
+            await this.store.WalletSubscriptionScheduling.create(ctx, subscription.id, {
+                currentPeriodIndex: 1
+            });
+
+            // First period
+            await this.createPeriod(ctx, subscription.id, 1, subscription.uid, subscription.amount, subscription.start);
+
+            // Notify about subscription start
+            if (this.routing.onSubscriptionStarted) {
+                await this.routing.onSubscriptionStarted(ctx, subscription.id);
+            }
+
             return subscription;
         });
     }
 
-    cancelSubscription = async (parent: Context, id: string) => {
+    tryCancelSubscription = async (parent: Context, id: string) => {
         return await inTx(parent, async (ctx) => {
             let s = (await this.store.WalletSubscription.findById(ctx, id));
             if (!s) {
                 throw Error('Unable to find subscription');
             }
-            if (s.state !== 'canceled') {
-                s.state = 'canceled';
-                if (this.routing.onSubscriptionCanceled) {
-                    await this.routing.onSubscriptionCanceled(ctx, id);
-                }
+
+            // If already expired
+            if (s.state === 'expired' || s.state === 'canceled') {
+                return true;
             }
+
+            if (s.state === 'retrying') {
+                return false;
+            }
+
+            //
+            // Only two states are possible: grace_period and started.
+            // In both cases subscription is active and current billing cycle is maintained
+            //
+            s.state = 'canceled';
+            if (this.routing.onSubscriptionCanceled) {
+                await this.routing.onSubscriptionCanceled(ctx, id);
+            }
+
+            return true;
         });
     }
 
@@ -63,14 +96,13 @@ export class SubscriptionsRepository {
     // Subscription Scheduling
     //
 
-    planScheduling = async (parent: Context, id: string, now: number) => {
-        return await inTx<'schedule' | 'nothing' | 'start_grace_period' | 'start_retry' | 'try_cancel' | 'expire'>(parent, async (ctx) => {
+    doScheduling = async (parent: Context, id: string, now: number) => {
+        await inTx(parent, async (ctx) => {
+
             let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
             let scheduling = await this.store.WalletSubscriptionScheduling.findById(ctx, id);
-
-            // Very first scheduling
             if (!scheduling) {
-                return 'schedule';
+                throw Error('Scheduling is not inited!');
             }
 
             // Check current period state
@@ -78,84 +110,69 @@ export class SubscriptionsRepository {
 
             // Expire subscription
             if (subscription.state === 'canceled') {
-                if (subscription.interval === 'week') {
-                    if ((now - period.start) > WEEK) {
-                        return 'expire';
-                    } else {
-                        return 'nothing';
+                let periodEnd = endDate(subscription.interval, period.start);
+                if (now > periodEnd) {
+                    subscription.state = 'expired';
+                    if (this.routing.onSubscriptionExpired) {
+                        await this.routing.onSubscriptionExpired(ctx, id);
                     }
-                } else if (subscription.interval === 'month') {
-                    let periodEnd = nextRenewMonthly(period.start);
-                    if (now > periodEnd) {
-                        return 'expire';
-                    } else {
-                        return 'nothing';
-                    }
+                    return;
                 }
             }
 
-            // Check if there are need to schedule next period
-            if (period.state === 'success') {
-                if (subscription.interval === 'week') {
+            // Nothing to schedule in expired state
+            if (subscription.state === 'expired') {
+                return;
+            }
 
-                    // If more than a week elapsed
-                    if ((now - period.start) > WEEK) {
-                        return 'schedule';
-                    } else {
-                        return 'nothing';
+            // Check if grace period ended
+            if (subscription.state === 'grace_period') {
+                let gracePeriod = subscription.interval === 'week' ? (6 * DAY) : (16 * DAY);
+                if (now > (gracePeriod + period.start)) {
+                    subscription.state = 'retrying';
+                    if (this.routing.onSubscriptionPaused) {
+                        await this.routing.onSubscriptionPaused(ctx, id);
                     }
-                } else if (subscription.interval === 'month') {
-
-                    // If previous period already passed
-                    let periodEnd = nextRenewMonthly(period.start);
-                    if (now > periodEnd) {
-                        return 'schedule';
-                    } else {
-                        return 'nothing';
-                    }
-                } else {
-                    throw Error('Unknown subscription interval: ' + subscription.interval);
+                    return;
                 }
             }
 
-            // Check if there are need to update subscription state or cancel it
-            if (period.state === 'failing') {
-
-                // Start grace period on first failing
-                if (subscription.state === 'started') {
-                    return 'start_grace_period';
+            // Check if payment should be canceled
+            if (subscription.state === 'retrying') {
+                if (now - period.start > (60 * DAY) && !period.needCancel) {
+                    period.needCancel = true;
+                    return;
                 }
+            }
 
-                // Switch to retry period after grace period expired
-                if (subscription.state === 'grace_period') {
-                    let gracePeriod = subscription.interval === 'week' ? (6 * DAY) : (16 * DAY);
-                    if (now - period.start > gracePeriod) {
-                        return 'start_retry';
-                    }
-                }
+            // Check if next period should be scheduled
+            if (subscription.state === 'started') {
 
-                // Cancel subscription after 60 days
-                if (subscription.state === 'retrying') {
-                    if (now - period.start > (60 * DAY)) {
-                        if (!period.needCancel) {
-                            return 'try_cancel';
+                // Special case for first period
+                if (scheduling.currentPeriodIndex === 1) {
+                    if (period.state !== 'success') {
+                        let periodEnd = endDate(subscription.interval, period.start);
+                        if (now > periodEnd) {
+                            subscription.state = 'expired';
+                            if (this.routing.onSubscriptionExpired) {
+                                await this.routing.onSubscriptionExpired(ctx, id);
+                            }
                         }
+                        return;
                     }
                 }
-                return 'nothing';
-            } else if (period.state === 'pending') {
-                // Do nothing since payment is not yet processed
-                return 'nothing';
-            } else if (period.state === 'canceled') {
-                // Do nothing since payment is already in canceling state
-                return 'nothing';
-            } else {
-                throw Error('Unknown period state ' + period.state);
+
+                // Schedule ONE day BEFORE expiring current subscription
+                let scheduleNextTime = endDate(subscription.interval, period.start) - DAY;
+                if (now > scheduleNextTime) {
+                    await this.scheduleNextPeriod(ctx, id);
+                    return;
+                }
             }
         });
     }
 
-    scheduleNextPeriod = async (parent: Context, id: string) => {
+    private scheduleNextPeriod = async (parent: Context, id: string) => {
         await inTx(parent, async (ctx) => {
 
             const subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
@@ -176,54 +193,61 @@ export class SubscriptionsRepository {
 
             // Calculagte scheduling parameters
             let scheduling = await this.store.WalletSubscriptionScheduling.findById(ctx, subscription.id);
-            let start: number;
-            let index: number;
-            if (scheduling) {
-                let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, subscription.id, scheduling.currentPeriodIndex))!;
-                if (period.state !== 'success') {
-                    throw Error('Unable to extend subscription when previous period is not in success state');
-                }
-                scheduling.currentPeriodIndex++;
-                let nextPeriodStart = subscription.interval === 'week' ? period.start + WEEK : nextRenewMonthly(period.start);
-                index = scheduling.currentPeriodIndex;
-                start = nextPeriodStart;
-            } else {
-                await this.store.WalletSubscriptionScheduling.create(ctx, subscription.id, {
-                    currentPeriodIndex: 1
-                });
-                start = subscription.start;
-                index = 1;
+            if (!scheduling) {
+                throw Error('Scheduling is not inited!');
             }
+            let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, subscription.id, scheduling.currentPeriodIndex))!;
+            if (period.state !== 'success') {
+                throw Error('Unable to extend subscription when previous period is not in success state');
+            }
+            scheduling.currentPeriodIndex++;
+            let nextPeriodStart = endDate(subscription.interval, period.start);
+            let index = scheduling.currentPeriodIndex;
+            let start = nextPeriodStart;
 
+            await this.createPeriod(ctx, subscription.id, index, subscription.uid, subscription.amount, start);
+        });
+    }
+
+    private createPeriod = async (parent: Context, id: string, index: number, uid: number, amount: number, start: number) => {
+        await inTx(parent, async (ctx) => {
             // Wallet transaction
-            let walletBalance = (await this.wallet.getWallet(ctx, subscription.uid)).balance;
-            let amounts = paymentAmounts(walletBalance, subscription.amount);
+            let walletBalance = (await this.wallet.getWallet(ctx, uid)).balance;
+            let amounts = paymentAmounts(walletBalance, amount);
 
             if (amounts.charge === 0) {
+
                 // Charge from balance
-                await this.wallet.subscriptionBalance(ctx, subscription.uid, amounts.wallet, subscription.id, index);
+                await this.wallet.subscriptionBalance(ctx, uid, amounts.wallet, id, index);
+
                 // Create Period
-                await this.store.WalletSubscriptionPeriod.create(ctx, subscription.id, index, {
+                await this.store.WalletSubscriptionPeriod.create(ctx, id, index, {
                     pid: null,
                     start: start,
                     state: 'success'
                 });
+
+                // Notify about successful payment
+                if (this.routing.onSubscriptionPaymentSuccess) {
+                    await this.routing.onSubscriptionPaymentSuccess(ctx, id, index);
+                }
             } else {
-                let wallet = await this.wallet.subscriptionPayment(ctx, subscription.uid,
-                    amounts.wallet, amounts.charge, subscription.id, index);
+
+                // Register subscription payment
+                let wallet = await this.wallet.subscriptionPayment(ctx, uid, amounts.wallet, amounts.charge, id, index);
 
                 // Create Payment
                 let pid = uuid();
-                await this.payments.createPayment(ctx, pid, subscription.uid, subscription.amount, {
+                await this.payments.createPayment(ctx, pid, uid, amount, {
                     type: 'subscription',
-                    uid: subscription.uid,
-                    subscription: subscription.id,
+                    uid: uid,
+                    subscription: id,
                     period: index,
                     txid: wallet
                 });
 
                 // Create Period
-                await this.store.WalletSubscriptionPeriod.create(ctx, subscription.id, index, {
+                await this.store.WalletSubscriptionPeriod.create(ctx, id, index, {
                     pid: pid,
                     start: start,
                     state: 'pending'
@@ -232,95 +256,11 @@ export class SubscriptionsRepository {
         });
     }
 
-    enterGracePeriod = async (parent: Context, uid: number, id: string) => {
-        await inTx(parent, async (ctx) => {
-            let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
-            if (!subscription) {
-                throw Error('Unable to find subscription');
-            }
-            if (subscription.uid !== uid) {
-                throw Error('Invalid UID');
-            }
-
-            if (subscription.state === 'started') {
-                subscription.state = 'grace_period';
-                if (this.routing.onSubscriptionFailing) {
-                    await this.routing.onSubscriptionFailing(ctx, id);
-                }
-            } else {
-                throw Error('Unable to enter grace state from ' + subscription.state + ' state');
-            }
-        });
-    }
-
-    enterRetryingPeriod = async (parent: Context, uid: number, id: string) => {
-        await inTx(parent, async (ctx) => {
-            let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
-            if (!subscription) {
-                throw Error('Unable to find subscription');
-            }
-            if (subscription.uid !== uid) {
-                throw Error('Invalid UID');
-            }
-
-            if (subscription.state === 'grace_period') {
-                subscription.state = 'retrying';
-                if (this.routing.onSubscriptionPaused) {
-                    await this.routing.onSubscriptionPaused(ctx, id);
-                }
-            } else {
-                throw Error('Unable to enter grace state from ' + subscription.state + ' state');
-            }
-        });
-    }
-
-    enterExpiredState = async (parent: Context, uid: number, id: string) => {
-        await inTx(parent, async (ctx) => {
-            let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
-            if (!subscription) {
-                throw Error('Unable to find subscription');
-            }
-            if (subscription.uid !== uid) {
-                throw Error('Invalid UID');
-            }
-
-            if (subscription.state === 'retrying' || subscription.state === 'canceled') {
-                subscription.state = 'expired';
-                if (this.routing.onSubscriptionExpired) {
-                    await this.routing.onSubscriptionExpired(ctx, id);
-                }
-            } else {
-                throw Error('Unable to enter grace state from ' + subscription.state + ' state');
-            }
-        });
-    }
-
-    enterCanceledState = async (parent: Context, uid: number, id: string) => {
-        await inTx(parent, async (ctx) => {
-            let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
-            if (!subscription) {
-                throw Error('Unable to find subscription');
-            }
-            if (subscription.uid !== uid) {
-                throw Error('Invalid UID');
-            }
-
-            if (subscription.state === 'started') {
-                subscription.state = 'canceled';
-                if (this.routing.onSubscriptionCanceled) {
-                    await this.routing.onSubscriptionCanceled(ctx, id);
-                }
-            } else {
-                throw Error('Unable to enter grace state from ' + subscription.state + ' state');
-            }
-        });
-    }
-
     //
     // Payment Events
     //
 
-    handlePaymentSuccess = async (parent: Context, uid: number, id: string, index: number) => {
+    handlePaymentSuccess = async (parent: Context, uid: number, id: string, index: number, pid: string, now: number) => {
         await inTx(parent, async (ctx) => {
             let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
             if (!subscription) {
@@ -336,70 +276,92 @@ export class SubscriptionsRepository {
 
             // Just ignore if event is about invalid period
             if (scheduling.currentPeriodIndex !== index) {
-                // Actually should be fatal error!
-                return;
+                throw Error('Invalid payment');
             }
 
             // Update period state only when in pending state
             let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, id, index))!;
-            if (period.state === 'pending') {
-                // Nothing changed in subscription - first payment went successful
-                period.state = 'success';
-                if (this.routing.onSubscriptionPaymentSuccess) {
-                    await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
-                }
-                return;
+
+            // Check payment
+            if (period.pid !== pid) {
+                throw Error('Invalid payment');
             }
-            if (period.state === 'failing') {
-                period.state = 'success';
-
-                if (subscription.state === 'grace_period') {
-                    // Nothing changed in subscription - payment within grace peryid went successful
-
-                    // Mark subscription as started
-                    subscription.state = 'started';
-
-                    // Recover callback
-                    if (this.routing.onSubscriptionRecovered) {
-                        await this.routing.onSubscriptionRecovered(ctx, subscription.id);
-                    }
-                    if (this.routing.onSubscriptionPaymentSuccess) {
-                        await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
-                    }
-                } else if (subscription.state === 'retrying') {
-
-                    // Mark subscription as started
-                    subscription.state = 'started';
-
-                    // Restart subscription with new period start date
-                    period.start = Date.now();
-
-                    // Restart callback
-                    if (this.routing.onSubscriptionRestarted) {
-                        await this.routing.onSubscriptionRestarted(ctx, subscription.id);
-                    }
-                    if (this.routing.onSubscriptionPaymentSuccess) {
-                        await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
-                    }
-                }
-                return;
-            }
-
-            if (period.state === 'success') {
-                // Should not be possible
-                return;
-            }
-
             if (period.state === 'canceled') {
-                // Should not be possible
+                throw Error('Period is already in canceled state');
+            }
+            if (period.state === 'success') {
+                throw Error('Period is already in canceled state');
+            }
+            if (subscription.state === 'expired') {
+                throw Error('Payment success when subscription already expired');
+            }
+
+            // Notify about successful payment
+            let firstPayment = period.state === 'pending';
+            period.state = 'success';
+            if (subscription.state === 'retrying') {
+                period.start = now; // Update start date if subscription in retrying state
+            }
+            if (this.routing.onSubscriptionPaymentSuccess) {
+                await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
+            }
+
+            //
+            // First payment attempt successful - nothing changed in subscription
+            //
+            if (firstPayment) {
                 return;
             }
 
-            throw Error('Unknown period state: ' + period.state);
+            //
+            // Secondary payment attempt successful            
+            //
+
+            if (subscription.state === 'canceled') {
+                // Nothing to do: subscription is canceled
+                return;
+            }
+
+            if (subscription.state === 'started') {
+                // Could possible only for first payment since first payment is not 
+                // triggering grace period or retrying state
+                if (index !== 1) {
+                    throw Error('Internal state error');
+                }
+                return;
+            }
+
+            // Recover subscription
+            if (subscription.state === 'grace_period') {
+
+                // Mark subscription as started
+                subscription.state = 'started';
+
+                // Recover callback
+                if (this.routing.onSubscriptionRecovered) {
+                    await this.routing.onSubscriptionRecovered(ctx, subscription.id);
+                }
+                return;
+            }
+
+            // Subscription is restarted
+            if (subscription.state === 'retrying') {
+
+                // Mark subscription as started
+                subscription.state = 'started';
+
+                // Restart callback
+                if (this.routing.onSubscriptionRestarted) {
+                    await this.routing.onSubscriptionRestarted(ctx, subscription.id);
+                }
+                return;
+            }
+
+            throw Error('Invalid subscription state: ' + subscription.state);
         });
     }
 
-    handlePaymentFailing = async (parent: Context, uid: number, id: string, index: number) => {
+    handlePaymentFailing = async (parent: Context, uid: number, id: string, index: number, pid: string, now: number) => {
         await inTx(parent, async (ctx) => {
             let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
             if (!subscription) {
@@ -415,19 +377,67 @@ export class SubscriptionsRepository {
 
             // Just ignore if event is about invalid period
             if (scheduling.currentPeriodIndex !== index) {
-                return;
+                throw Error('Invalid payment');
             }
 
             // Update period state only when in pending state
             let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, id, index))!;
+
+            // Check payment
+            if (period.pid !== pid) {
+                throw Error('Invalid payment');
+            }
+            if (period.state === 'canceled') {
+                throw Error('Period is already in canceled state');
+            }
+            if (period.state === 'success') {
+                throw Error('Period is already in canceled state');
+            }
+            if (subscription.state === 'expired') {
+                throw Error('Payment success when subscription already expired');
+            }
+
             if (period.state === 'pending') {
                 period.state = 'failing';
-                // Subscription state will be updated on next scheduling iteration
+
+                //
+                // There are two different cases stopping subscription:
+                // voluntary canceling and involuntary one.
+                //
+                // Involuntary canceling has grace period when user is able to recover
+                // subscription by updating it's payment methods.
+                //
+                // If user cancel subscription there are no grace period and we 
+                // expect commitment for full next billing cycle.
+                // Once next billing cycle started user can only stop expanding
+                // subscription, but his dept for last cycle must be settled.
+                // Same true for the very first billing cycle.
+                //
+                // 
+                // So when subscription in canceled state there are no grace period
+                //
+
+                // Do not trigger grace period for first period or canceled subscription
+                if (index === 1 || subscription.state === 'canceled') {
+                    return;
+                }
+
+                //
+                // There are three possible states here - started, grace_period and retrying.
+                // We are going
+                //
+
+                if (subscription.state === 'started') {
+                    subscription.state = 'grace_period';
+                    if (this.routing.onSubscriptionFailing) {
+                        await this.routing.onSubscriptionFailing(ctx, subscription.id);
+                    }
+                }
             }
         });
     }
 
-    handlePaymentCanceled = async (parent: Context, uid: number, id: string, index: number) => {
+    handlePaymentCanceled = async (parent: Context, uid: number, id: string, index: number, pid: string, now: number) => {
         await inTx(parent, async (ctx) => {
             let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
             if (!subscription) {
@@ -443,32 +453,32 @@ export class SubscriptionsRepository {
 
             // Just ignore if event is about invalid period
             if (scheduling.currentPeriodIndex !== index) {
-                // Actually should be fatal error!
-                return;
+                throw Error('Invalid payment');
             }
 
-            // Update period state only when in pending state
             let period = (await this.store.WalletSubscriptionPeriod.findById(ctx, id, index))!;
-            if (period.state !== 'success') {
-                if (subscription.state === 'retrying' || subscription.state === 'grace_period') {
-                    // Expire immediatelly if retrying or in grace period
-                    subscription.state = 'expired';
-                    if (this.routing.onSubscriptionExpired) {
-                        await this.routing.onSubscriptionExpired(ctx, subscription.id);
-                    }
-                } else if (subscription.state === 'canceled' || subscription.state === 'expired') {
-                    // Ignore?
-                } else if (subscription.state === 'started') {
-                    // Cancel subscription (but not expire!)
-                    subscription.state = 'canceled';
-                    if (this.routing.onSubscriptionCanceled) {
-                        await this.routing.onSubscriptionCanceled(ctx, subscription.id);
-                    }
-                } else {
-                    throw Error('Unknown subscription state: ' + subscription.state);
+
+            // Check payment
+            if (period.pid !== pid) {
+                throw Error('Invalid payment');
+            }
+            if (period.state === 'canceled') {
+                throw Error('Period is already in canceled state');
+            }
+            if (period.state === 'success') {
+                throw Error('Period is already in success state');
+            }
+            if (subscription.state === 'expired') {
+                throw Error('Payment success when subscription already expired');
+            }
+            period.state = 'canceled';
+
+            // The only possible state for canceled payment
+            if (subscription.state === 'retrying') {
+                subscription.state = 'expired';
+                if (this.routing.onSubscriptionExpired) {
+                    await this.routing.onSubscriptionExpired(ctx, subscription.id);
                 }
-            } else {
-                // Success state here is some fatal inconsistency!
             }
         });
     }

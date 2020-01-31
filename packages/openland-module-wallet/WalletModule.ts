@@ -19,7 +19,7 @@ import { startSubscriptionsScheduler } from './workers/startSubscriptionsSchedul
 
 @injectable()
 export class WalletModule {
-    
+
     // Low level payments repository
     readonly paymentIntents: PaymentIntentsRepository = new PaymentIntentsRepository(Store);
     // Wallet Operations
@@ -35,7 +35,7 @@ export class WalletModule {
 
     // Payments Mediator (on/off session)
     readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
-        this.paymentIntents, this.payments
+        this.paymentIntents, this.payments, this.subscriptions
     );
 
     constructor() {
@@ -101,6 +101,10 @@ export class WalletModule {
 
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
         return await this.operations.createSubscription(parent, uid, amount, interval, product);
+    }
+
+    cancelSubscription = async (parent: Context, id: string) => {
+        await this.paymentsMediator.cancelSubscription(parent, id);
     }
 
     //

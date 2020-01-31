@@ -7,6 +7,7 @@ import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 import { backoff } from 'openland-utils/timer';
 import { PaymentsRepository } from 'openland-module-wallet/repo/PaymentsRepository';
+import { SubscriptionsRepository } from 'openland-module-wallet/repo/SubscriptionsRepository';
 
 const log = createLogger('payments');
 
@@ -15,14 +16,16 @@ export class PaymentMediator {
     readonly liveMode: boolean;
     readonly paymentIntents: PaymentIntentsRepository;
     readonly payments: PaymentsRepository;
+    readonly subscription: SubscriptionsRepository;
 
     readonly stripe: Stripe;
     readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
     readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
 
-    constructor(token: string, paymentIntents: PaymentIntentsRepository, payments: PaymentsRepository) {
+    constructor(token: string, paymentIntents: PaymentIntentsRepository, payments: PaymentsRepository, subscription: SubscriptionsRepository) {
         this.paymentIntents = paymentIntents;
         this.payments = payments;
+        this.subscription = subscription;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
     }
@@ -524,6 +527,23 @@ export class PaymentMediator {
         });
         if (piid) {
             await this.tryCancelPaymentIntent(parent, piid);
+        }
+    }
+
+    //
+    // Cancel subscription
+    //
+
+    cancelSubscription = async (parent: Context, id: string) => {
+        while (!await this.subscription.tryCancelSubscription(parent, id)) {
+            let pid = await inTx(parent, async (ctx) => {
+                let scheduling = (await Store.WalletSubscriptionScheduling.findById(ctx, id))!;
+                let period = (await Store.WalletSubscriptionPeriod.findById(ctx, id, scheduling.currentPeriodIndex))!;
+                return period.pid;
+            });
+            if (pid) {
+                await this.tryCancelPayment(parent, pid);
+            }
         }
     }
 }

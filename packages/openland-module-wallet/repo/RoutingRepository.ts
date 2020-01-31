@@ -28,7 +28,7 @@ export class RoutingRepositoryImpl {
             await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentCommit(ctx, operation.uid, operation.txid);
-            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period);
+            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
         } else {
@@ -41,7 +41,7 @@ export class RoutingRepositoryImpl {
             await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentFailing(ctx, operation.uid, operation.txid, pid);
-            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
+            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncFailing(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
         } else {
@@ -54,7 +54,7 @@ export class RoutingRepositoryImpl {
             await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentActionNeeded(ctx, operation.uid, operation.txid, pid);
-            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period);
+            await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncActionNeeded(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
         } else {
@@ -67,7 +67,7 @@ export class RoutingRepositoryImpl {
             await this.wallet.depositAsyncCancel(ctx, operation.uid, operation.txid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentCancel(ctx, operation.uid, operation.txid);
-            await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period);
+            await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCancel(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
         } else {
@@ -78,6 +78,13 @@ export class RoutingRepositoryImpl {
     //
     // Subscription Events
     //
+
+    /**
+     * Subscription is started
+     */
+    onSubscriptionStarted = async (ctx: Context, id: string) => {
+        // TODO: Implement
+    }
 
     /**
      * Payment failing, but subscription is still alive
