@@ -4,8 +4,9 @@ import { createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 
 export interface QueryCache {
-    store(query: string): Promise<string>;
-    get(queryId: string): Promise<string|null>;
+    store(query: { query: string, name: string | undefined }): Promise<string>;
+
+    get(queryId: string): Promise<{ query: string, name: string | undefined } | null>;
 }
 
 const sha256 = (data: string) => createHash('sha256').update(data).digest('hex');
@@ -13,25 +14,33 @@ const sha256 = (data: string) => createHash('sha256').update(data).digest('hex')
 export class InMemoryQueryCache implements QueryCache {
     private cache = new Map<string, string>();
 
-    async store(query: string) {
-        let queryId = sha256(query);
-        this.cache.set(queryId, query);
+    async store(query: { query: string, name: string | undefined }) {
+        let operation = JSON.stringify(query);
+        let queryId = sha256(operation);
+        console.log(777, operation, queryId)
+        this.cache.set(queryId, operation);
         return queryId;
     }
 
     async get(queryId: string) {
-        return this.cache.get(queryId) || null;
+        if (this.cache.has(queryId)) {
+            return JSON.parse(this.cache.get(queryId)!);
+        } else {
+            return null;
+        }
     }
 }
 
 const rootCtx = createNamedContext('apollo_query_cache');
 
 export class PersistanceQueryCache implements QueryCache {
-    private cache = new CacheRepository<{ query: string }>('apollo_query_cache');
-    async store(query: string) {
+    private cache = new CacheRepository<{ query: string, name: string | undefined }>('apollo_query_cache');
+
+    async store(query: { query: string, name: string | undefined }) {
         return inTx(rootCtx, async ctx => {
-            let queryId = sha256(query);
-            await this.cache.write(ctx, queryId, { query });
+            let operation = JSON.stringify(query);
+            let queryId = sha256(operation);
+            await this.cache.write(ctx, queryId, query);
             return queryId;
         });
     }
@@ -39,7 +48,7 @@ export class PersistanceQueryCache implements QueryCache {
     async get(queryId: string) {
         let stored = await this.cache.read(rootCtx, queryId);
         if (stored) {
-            return stored.query;
+            return stored;
         } else {
             return null;
         }

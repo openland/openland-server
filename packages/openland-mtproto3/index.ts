@@ -190,7 +190,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             if (message.payload.query_id && params.queryCache) {
                 let cachedQuery = await params.queryCache.get(message.payload.query_id.trim());
                 if (cachedQuery) {
-                    query = parse(cachedQuery);
+                    query = parse(cachedQuery.query);
                 } else {
                     session.send({ id: message.id, type: 'need_full_query' });
                     session.sendComplete(message.id);
@@ -199,7 +199,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             } else if (operation.query) {
                 query = parse(message.payload.query);
                 if (params.queryCache) {
-                    await params.queryCache.store(operation.query);
+                    await params.queryCache.store({ query: operation.query, name: operation.operationName });
                 }
             } else {
                 session.sendComplete(message.id);

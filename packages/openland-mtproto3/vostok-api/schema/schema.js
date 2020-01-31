@@ -26,8 +26,9 @@ $root.vostok_api = (function() {
          * @interface IGQLRequest
          * @property {string} id GQLRequest id
          * @property {string|null} [operationName] GQLRequest operationName
-         * @property {string} query GQLRequest query
+         * @property {string|null} [query] GQLRequest query
          * @property {string|null} [variables] GQLRequest variables
+         * @property {string|null} [queryId] GQLRequest queryId
          */
 
         /**
@@ -78,6 +79,14 @@ $root.vostok_api = (function() {
         GQLRequest.prototype.variables = "";
 
         /**
+         * GQLRequest queryId.
+         * @member {string} queryId
+         * @memberof vostok_api.GQLRequest
+         * @instance
+         */
+        GQLRequest.prototype.queryId = "";
+
+        /**
          * Creates a new GQLRequest instance using the specified properties.
          * @function create
          * @memberof vostok_api.GQLRequest
@@ -104,9 +113,12 @@ $root.vostok_api = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.operationName != null && message.hasOwnProperty("operationName"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.operationName);
-            writer.uint32(/* id 3, wireType 2 =*/26).string(message.query);
+            if (message.query != null && message.hasOwnProperty("query"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.query);
             if (message.variables != null && message.hasOwnProperty("variables"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.variables);
+            if (message.queryId != null && message.hasOwnProperty("queryId"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.queryId);
             return writer;
         };
 
@@ -153,6 +165,9 @@ $root.vostok_api = (function() {
                 case 4:
                     message.variables = reader.string();
                     break;
+                case 5:
+                    message.queryId = reader.string();
+                    break;
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -160,8 +175,6 @@ $root.vostok_api = (function() {
             }
             if (!message.hasOwnProperty("id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
-            if (!message.hasOwnProperty("query"))
-                throw $util.ProtocolError("missing required 'query'", { instance: message });
             return message;
         };
 
@@ -197,11 +210,15 @@ $root.vostok_api = (function() {
             if (message.operationName != null && message.hasOwnProperty("operationName"))
                 if (!$util.isString(message.operationName))
                     return "operationName: string expected";
-            if (!$util.isString(message.query))
-                return "query: string expected";
+            if (message.query != null && message.hasOwnProperty("query"))
+                if (!$util.isString(message.query))
+                    return "query: string expected";
             if (message.variables != null && message.hasOwnProperty("variables"))
                 if (!$util.isString(message.variables))
                     return "variables: string expected";
+            if (message.queryId != null && message.hasOwnProperty("queryId"))
+                if (!$util.isString(message.queryId))
+                    return "queryId: string expected";
             return null;
         };
 
@@ -225,6 +242,8 @@ $root.vostok_api = (function() {
                 message.query = String(object.query);
             if (object.variables != null)
                 message.variables = String(object.variables);
+            if (object.queryId != null)
+                message.queryId = String(object.queryId);
             return message;
         };
 
@@ -246,6 +265,7 @@ $root.vostok_api = (function() {
                 object.operationName = "";
                 object.query = "";
                 object.variables = "";
+                object.queryId = "";
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -255,6 +275,8 @@ $root.vostok_api = (function() {
                 object.query = message.query;
             if (message.variables != null && message.hasOwnProperty("variables"))
                 object.variables = message.variables;
+            if (message.queryId != null && message.hasOwnProperty("queryId"))
+                object.queryId = message.queryId;
             return object;
         };
 
@@ -490,8 +512,9 @@ $root.vostok_api = (function() {
          * @interface IGQLSubscription
          * @property {string} id GQLSubscription id
          * @property {string|null} [operationName] GQLSubscription operationName
-         * @property {string} query GQLSubscription query
+         * @property {string|null} [query] GQLSubscription query
          * @property {string|null} [variables] GQLSubscription variables
+         * @property {string|null} [queryId] GQLSubscription queryId
          */
 
         /**
@@ -542,6 +565,14 @@ $root.vostok_api = (function() {
         GQLSubscription.prototype.variables = "";
 
         /**
+         * GQLSubscription queryId.
+         * @member {string} queryId
+         * @memberof vostok_api.GQLSubscription
+         * @instance
+         */
+        GQLSubscription.prototype.queryId = "";
+
+        /**
          * Creates a new GQLSubscription instance using the specified properties.
          * @function create
          * @memberof vostok_api.GQLSubscription
@@ -568,9 +599,12 @@ $root.vostok_api = (function() {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.operationName != null && message.hasOwnProperty("operationName"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.operationName);
-            writer.uint32(/* id 3, wireType 2 =*/26).string(message.query);
+            if (message.query != null && message.hasOwnProperty("query"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.query);
             if (message.variables != null && message.hasOwnProperty("variables"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.variables);
+            if (message.queryId != null && message.hasOwnProperty("queryId"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.queryId);
             return writer;
         };
 
@@ -617,6 +651,9 @@ $root.vostok_api = (function() {
                 case 4:
                     message.variables = reader.string();
                     break;
+                case 5:
+                    message.queryId = reader.string();
+                    break;
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -624,8 +661,6 @@ $root.vostok_api = (function() {
             }
             if (!message.hasOwnProperty("id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
-            if (!message.hasOwnProperty("query"))
-                throw $util.ProtocolError("missing required 'query'", { instance: message });
             return message;
         };
 
@@ -661,11 +696,15 @@ $root.vostok_api = (function() {
             if (message.operationName != null && message.hasOwnProperty("operationName"))
                 if (!$util.isString(message.operationName))
                     return "operationName: string expected";
-            if (!$util.isString(message.query))
-                return "query: string expected";
+            if (message.query != null && message.hasOwnProperty("query"))
+                if (!$util.isString(message.query))
+                    return "query: string expected";
             if (message.variables != null && message.hasOwnProperty("variables"))
                 if (!$util.isString(message.variables))
                     return "variables: string expected";
+            if (message.queryId != null && message.hasOwnProperty("queryId"))
+                if (!$util.isString(message.queryId))
+                    return "queryId: string expected";
             return null;
         };
 
@@ -689,6 +728,8 @@ $root.vostok_api = (function() {
                 message.query = String(object.query);
             if (object.variables != null)
                 message.variables = String(object.variables);
+            if (object.queryId != null)
+                message.queryId = String(object.queryId);
             return message;
         };
 
@@ -710,6 +751,7 @@ $root.vostok_api = (function() {
                 object.operationName = "";
                 object.query = "";
                 object.variables = "";
+                object.queryId = "";
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -719,6 +761,8 @@ $root.vostok_api = (function() {
                 object.query = message.query;
             if (message.variables != null && message.hasOwnProperty("variables"))
                 object.variables = message.variables;
+            if (message.queryId != null && message.hasOwnProperty("queryId"))
+                object.queryId = message.queryId;
             return object;
         };
 
@@ -1318,6 +1362,193 @@ $root.vostok_api = (function() {
         };
 
         return GQLSubscriptionComplete;
+    })();
+
+    vostok_api.GQLCachedQueryNotFound = (function() {
+
+        /**
+         * Properties of a GQLCachedQueryNotFound.
+         * @memberof vostok_api
+         * @interface IGQLCachedQueryNotFound
+         * @property {string} id GQLCachedQueryNotFound id
+         */
+
+        /**
+         * Constructs a new GQLCachedQueryNotFound.
+         * @memberof vostok_api
+         * @classdesc Represents a GQLCachedQueryNotFound.
+         * @implements IGQLCachedQueryNotFound
+         * @constructor
+         * @param {vostok_api.IGQLCachedQueryNotFound=} [properties] Properties to set
+         */
+        function GQLCachedQueryNotFound(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GQLCachedQueryNotFound id.
+         * @member {string} id
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @instance
+         */
+        GQLCachedQueryNotFound.prototype.id = "";
+
+        /**
+         * Creates a new GQLCachedQueryNotFound instance using the specified properties.
+         * @function create
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {vostok_api.IGQLCachedQueryNotFound=} [properties] Properties to set
+         * @returns {vostok_api.GQLCachedQueryNotFound} GQLCachedQueryNotFound instance
+         */
+        GQLCachedQueryNotFound.create = function create(properties) {
+            return new GQLCachedQueryNotFound(properties);
+        };
+
+        /**
+         * Encodes the specified GQLCachedQueryNotFound message. Does not implicitly {@link vostok_api.GQLCachedQueryNotFound.verify|verify} messages.
+         * @function encode
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {vostok_api.IGQLCachedQueryNotFound} message GQLCachedQueryNotFound message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GQLCachedQueryNotFound.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified GQLCachedQueryNotFound message, length delimited. Does not implicitly {@link vostok_api.GQLCachedQueryNotFound.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {vostok_api.IGQLCachedQueryNotFound} message GQLCachedQueryNotFound message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GQLCachedQueryNotFound.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a GQLCachedQueryNotFound message from the specified reader or buffer.
+         * @function decode
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {vostok_api.GQLCachedQueryNotFound} GQLCachedQueryNotFound
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GQLCachedQueryNotFound.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.vostok_api.GQLCachedQueryNotFound();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            if (!message.hasOwnProperty("id"))
+                throw $util.ProtocolError("missing required 'id'", { instance: message });
+            return message;
+        };
+
+        /**
+         * Decodes a GQLCachedQueryNotFound message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {vostok_api.GQLCachedQueryNotFound} GQLCachedQueryNotFound
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GQLCachedQueryNotFound.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a GQLCachedQueryNotFound message.
+         * @function verify
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        GQLCachedQueryNotFound.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (!$util.isString(message.id))
+                return "id: string expected";
+            return null;
+        };
+
+        /**
+         * Creates a GQLCachedQueryNotFound message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {vostok_api.GQLCachedQueryNotFound} GQLCachedQueryNotFound
+         */
+        GQLCachedQueryNotFound.fromObject = function fromObject(object) {
+            if (object instanceof $root.vostok_api.GQLCachedQueryNotFound)
+                return object;
+            var message = new $root.vostok_api.GQLCachedQueryNotFound();
+            if (object.id != null)
+                message.id = String(object.id);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a GQLCachedQueryNotFound message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @static
+         * @param {vostok_api.GQLCachedQueryNotFound} message GQLCachedQueryNotFound
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        GQLCachedQueryNotFound.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults)
+                object.id = "";
+            if (message.id != null && message.hasOwnProperty("id"))
+                object.id = message.id;
+            return object;
+        };
+
+        /**
+         * Converts this GQLCachedQueryNotFound to JSON.
+         * @function toJSON
+         * @memberof vostok_api.GQLCachedQueryNotFound
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        GQLCachedQueryNotFound.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return GQLCachedQueryNotFound;
     })();
 
     return vostok_api;

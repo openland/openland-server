@@ -11,6 +11,7 @@ syntax = "proto3";
 // 6 - GQLSubscriptionStop
 // 7 - GQLSubscriptionResponse
 // 8 - GQLSubscriptionComplete
+// 9 - GQLCachedQueryNotFound
 // are reserved
 //
 
@@ -21,13 +22,9 @@ syntax = "proto3";
 message GQLRequest {
     required string id = 1;
     optional string operationName = 2;
-    required string query = 3;
+    optional string query = 3;
     optional string variables = 4;
-}
-
-message GQLCachedRequest {
-    required string id = 1;
-    required string requestId = 2;
+    optional string queryId = 5;
 }
 
 message GQLResponse {
@@ -38,13 +35,9 @@ message GQLResponse {
 message GQLSubscription {
     required string id = 1;
     optional string operationName = 2;
-    required string query = 3;
+    optional string query = 3;
     optional string variables = 4;
-}
-
-message GQLCachedSubscription {
-    required string id = 1;
-    required string requestId = 2;
+    optional string queryId = 5;
 }
 
 message GQLSubscriptionStop {

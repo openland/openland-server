@@ -22,7 +22,15 @@ export const VostokApiTypes = {
     GQLSubscriptionStop: 6,
     GQLSubscriptionResponse: 7,
     GQLSubscriptionComplete: 8,
+    GQLCachedQueryNotFound: 9,
 };
+
+const makeGQLCachedQueryNotFound = (requestId: string) => ({
+    bodyType: VostokApiTypes.GQLCachedQueryNotFound,
+    body: vostok_api.GQLCachedQueryNotFound.encode({ id: requestId }).finish()
+});
+
+type Operation = { name: string|undefined, query: string, variables: string|undefined };
 
 async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncomingMessage) {
     let {message, session} = msg;
@@ -30,14 +38,42 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
     if (message.bodyType === VostokApiTypes.GQLRequest) {
         let request = vostok_api.GQLRequest.decode(message.body);
         session.sendAck([message.id]);
+
+        if (!request.queryId && !request.query) {
+            session.send(makeGQLCachedQueryNotFound(request.id));
+            return;
+        }
+        let operation: Operation;
+        if (request.queryId && request.queryId.length > 0) {
+            if (!params.queryCache) {
+                session.send(makeGQLCachedQueryNotFound(request.id));
+                return;
+            }
+            let cachedQuery = await params.queryCache.get(request.queryId);
+            if (!cachedQuery) {
+                session.send(makeGQLCachedQueryNotFound(request.id));
+                return;
+            }
+            operation = { ...cachedQuery, variables: (request.variables.length > 0 ? request.variables : undefined) };
+        } else {
+            operation = {
+                query: request.query,
+                variables: (request.variables.length > 0 ? request.variables : undefined),
+                name: (request.operationName.length > 0 ? request.operationName : undefined)
+            };
+            if (params.queryCache) {
+                await params.queryCache.store({ query: operation.query, name: operation.name });
+            }
+        }
+
         let ctx = await params.context(session.authParams, request);
         await params.onOperation(ctx, request);
 
         let result = await execute({
             schema: params.executableSchema,
-            document: parse(request.query),
-            operationName: request.operationName,
-            variableValues: request.variables ? JSON.parse(request.variables) : undefined,
+            document: parse(operation.query),
+            operationName: operation.name,
+            variableValues: operation.variables ? JSON.parse(operation.variables) : undefined,
             contextValue: ctx
         });
         session.send({
@@ -50,6 +86,35 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
     } else if (message.bodyType === VostokApiTypes.GQLSubscription) {
         let request = vostok_api.GQLSubscription.decode(message.body);
         session.sendAck([message.id], [message.id]);
+
+        if (!request.queryId && !request.query) {
+            session.send(makeGQLCachedQueryNotFound(request.id));
+            return;
+        }
+
+        let operation: Operation;
+        if (request.queryId && request.queryId.length > 0) {
+            if (!params.queryCache) {
+                session.send(makeGQLCachedQueryNotFound(request.id));
+                return;
+            }
+            let cachedQuery = await params.queryCache.get(request.queryId);
+            if (!cachedQuery) {
+                session.send(makeGQLCachedQueryNotFound(request.id));
+                return;
+            }
+            operation = { ...cachedQuery, variables: (request.variables.length > 0 ? request.variables : undefined) };
+        } else {
+            operation = {
+                query: request.query,
+                variables: (request.variables.length > 0 ? request.variables : undefined),
+                name: (request.operationName.length > 0 ? request.operationName : undefined)
+            };
+            if (params.queryCache) {
+                await params.queryCache.store({ query: operation.query, name: operation.name });
+            }
+        }
+
         let working = true;
         let ctx = await params.subscriptionContext(session.authParams, request);
         asyncRun(async () => {
@@ -60,9 +125,9 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
 
             let iterator = await gqlSubscribe({
                 schema: params.executableSchema,
-                document: parse(request.query),
-                operationName: request.operationName,
-                variableValues: request.variables ? JSON.parse(request.variables) : undefined,
+                document: parse(operation.query),
+                operationName: operation.name,
+                variableValues: operation.variables ? JSON.parse(operation.variables) : undefined,
                 fetchContext: async () => await params.subscriptionContext(session.authParams, request, ctx),
                 ctx,
                 onEventResolveFinish: duration => {
