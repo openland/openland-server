@@ -391,7 +391,6 @@ export default {
             if (args.query) {
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
-                console.dir(elasticQuery, {depth: null});
                 clauses.push(elasticQuery);
             }
 

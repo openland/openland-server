@@ -17,7 +17,6 @@ export class InMemoryQueryCache implements QueryCache {
     async store(query: { query: string, name: string | undefined }) {
         let operation = JSON.stringify(query);
         let queryId = sha256(operation);
-        console.log(777, operation, queryId)
         this.cache.set(queryId, operation);
         return queryId;
     }
