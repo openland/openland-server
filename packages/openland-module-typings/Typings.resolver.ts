@@ -21,7 +21,7 @@ const TypingTypeValues = Object.values(TypingType);
 export default {
     TypingType,
     TypingEvent: {
-        type: (src: TypingEvent) => src.type,
+        type: (src: TypingEvent) => src.cancel ? 'TEXT' : src.type,
         cancel: (src: TypingEvent) => src.cancel,
         conversation: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
         chat: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
