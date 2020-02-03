@@ -1267,9 +1267,9 @@ export default {
                let total = 0;
                try {
                    do {
-                       let convs: any[] = await Store.Conversation.descriptor.subspace.range(parent, [], {
+                       let convs: any[] = await inTx(parent, ctx => Store.Conversation.descriptor.subspace.range(ctx, [], {
                            after, limit,
-                       });
+                       }));
                        if (convs.length === 0) {
                            return 'ok';
                        }
@@ -1283,15 +1283,21 @@ export default {
                            try {
                                await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, true));
                                let seq = 0;
-                               let stream = Store.Message.chat.stream(cid, { batchSize: 1000 });
-                               while (stream.cursor != null) {
-                                   await inTx(parent, async ctx => {
+                               let stream = Store.Message.chat.stream(cid, { batchSize: 1 });
+                               let hasMany = true;
+                               while (hasMany) {
+                                   hasMany = await inTx(parent, async ctx => {
                                        let data = await stream.next(ctx);
+                                       if (data.length === 0) {
+                                           return false;
+                                       }
                                        for (let message of data) {
                                            message.seq = ++seq;
                                        }
+                                       return true;
                                    });
                                }
+                               await delay(1000);
                                await inTx(parent, async ctx => Store.ConversationLastSeq.byId(cid).set(ctx, seq));
                            } finally {
                                await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, false));
