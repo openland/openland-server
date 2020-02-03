@@ -1270,15 +1270,20 @@ export default {
                        let convs: any[] = await Store.Conversation.descriptor.subspace.range(parent, [], {
                            after, limit,
                        });
+                       if (convs.length === 0) {
+                           return 'ok';
+                       }
+
                        after = convs[convs.length - 1].key;
                        count = convs.length;
                        total += count;
 
                        await Promise.all(convs.map(async (conv: any) => {
+                           let cid = conv.key[0];
                            try {
-                               await inTx(parent, async ctx => Store.ConversationLock.byId(conv.key[0]).set(ctx, true));
+                               await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, true));
                                let seq = 0;
-                               let stream = Store.Message.chat.stream(conv.key[0], { batchSize: 1000 });
+                               let stream = Store.Message.chat.stream(cid, { batchSize: 1000 });
                                while (stream.cursor != null) {
                                    await inTx(parent, async ctx => {
                                        let data = await stream.next(ctx);
@@ -1287,15 +1292,15 @@ export default {
                                        }
                                    });
                                }
-                               await inTx(parent, async ctx => Store.ConversationLastSeq.byId(conv.key[0]).set(ctx, seq));
+                               await inTx(parent, async ctx => Store.ConversationLastSeq.byId(cid).set(ctx, seq));
                            } finally {
-                               await inTx(parent, async ctx => Store.ConversationLock.byId(conv.key[0]).set(ctx, false));
+                               await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, false));
                            }
                        }));
                        await log('Proceed ' + total + ' chats');
                    } while (count === limit);
                } catch (e) {
-                   return `failed ${e.message}`;
+                  return `failed ${e.message}`;
                }
                return 'ok';
            });
