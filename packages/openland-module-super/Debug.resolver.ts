@@ -1266,29 +1266,36 @@ export default {
                let limit = 1;
                let total = 0;
                try {
-               do {
-                   let convs: any[] = await Store.Conversation.descriptor.subspace.range(parent, [], {
-                       after,
-                       limit,
-                   });
-                   after = convs[convs.length - 1].key;
-                   count = convs.length;
-                   total += count;
-
-                   await Promise.all(convs.map(async (conv: any) => {
-                       await inTx(parent, async ctx => {
-                           let seq = 0;
-                           let messages = await Store.Message.chat.findAll(ctx, conv.key[0]);
-                           for (let message of messages) {
-                               message.seq = ++seq;
-                           }
-                           Store.ConversationLastSeq.byId(conv.key[0]).set(ctx, seq);
+                   do {
+                       let convs: any[] = await Store.Conversation.descriptor.subspace.range(parent, [], {
+                           after, limit,
                        });
-                   }));
-                   await log('Proceed ' + total + ' chats');
-               } while (count === limit);
+                       after = convs[convs.length - 1].key;
+                       count = convs.length;
+                       total += count;
+
+                       await Promise.all(convs.map(async (conv: any) => {
+                           try {
+                               await inTx(parent, async ctx => Store.ConversationLock.byId(conv.key[0]).set(ctx, true));
+                               let seq = 0;
+                               let stream = Store.Message.chat.stream(conv.key[0], { batchSize: 1000 });
+                               while (stream.cursor != null) {
+                                   await inTx(parent, async ctx => {
+                                       let data = await stream.next(ctx);
+                                       for (let message of data) {
+                                           message.seq = ++seq;
+                                       }
+                                   });
+                               }
+                               await inTx(parent, async ctx => Store.ConversationLastSeq.byId(conv.key[0]).set(ctx, seq));
+                           } finally {
+                               await inTx(parent, async ctx => Store.ConversationLock.byId(conv.key[0]).set(ctx, false));
+                           }
+                       }));
+                       await log('Proceed ' + total + ' chats');
+                   } while (count === limit);
                } catch (e) {
-                   return `failed: ${e.message}`;
+                   return `failed ${e.message}`;
                }
                return 'ok';
            });

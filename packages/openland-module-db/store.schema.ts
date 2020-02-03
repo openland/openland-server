@@ -196,6 +196,9 @@ export default declareSchema(() => {
     atomicInt('ConversationLastSeq', () => {
         primaryKey('cid', integer());
     });
+    atomicBool('ConversationLock', () => {
+        primaryKey('cid', integer());
+    });
     entity('ConversationPrivate', () => {
         primaryKey('id', integer());
         field('uid1', integer());

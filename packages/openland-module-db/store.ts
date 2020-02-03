@@ -46,6 +46,34 @@ export class ConversationLastSeqFactory extends AtomicIntegerFactory {
     }
 }
 
+export class ConversationLockFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conversationLock');
+        return new ConversationLockFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number) {
+        return this._findById([cid]);
+    }
+
+    get(ctx: Context, cid: number) {
+        return this._get(ctx, [cid]);
+    }
+
+    set(ctx: Context, cid: number, value: boolean) {
+        return this._set(ctx, [cid], value);
+    }
+
+    invert(ctx: Context, cid: number) {
+        return this._invert(ctx, [cid]);
+    }
+}
+
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -17538,6 +17566,7 @@ export class StripeEventStore extends EventStore {
 
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
+    readonly ConversationLock: ConversationLockFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -17739,6 +17768,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
+    let ConversationLockPromise = ConversationLockFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -17912,6 +17942,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         eventFactory,
         ConversationLastSeq: await ConversationLastSeqPromise,
+        ConversationLock: await ConversationLockPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,
