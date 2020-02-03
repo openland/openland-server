@@ -1287,8 +1287,8 @@ export default {
                    }));
                    await log('Proceed ' + total + ' chats');
                } while (count === limit);
-               } catch {
-                   return 'failed';
+               } catch (e) {
+                   return `failed: ${e.message}`;
                }
                return 'ok';
            });
