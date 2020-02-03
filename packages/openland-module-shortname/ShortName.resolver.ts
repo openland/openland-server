@@ -27,7 +27,7 @@ export default {
     },
 
     Query: {
-        alphaResolveShortName: withAccount(async (ctx, args, uid, orgId) => {
+        alphaResolveShortName: async (src, args, ctx) => {
             let ownerId;
             let ownerType;
             try {
@@ -54,18 +54,20 @@ export default {
                 return null;
             }
 
+            let authorized = !!ctx.auth.uid;
+
             if (ownerType === 'user') {
                 return await Store.User.findById(ctx, ownerId);
-            } else if (ownerType === 'org') {
+            } else if (ownerType === 'org' && authorized) {
                 return await Store.Organization.findById(ctx, ownerId);
-            } else if (ownerType === 'feed_channel') {
+            } else if (ownerType === 'feed_channel' && authorized) {
                 return await Store.FeedChannel.findById(ctx, ownerId);
-            } else if (ownerType === 'room') {
+            } else if (ownerType === 'room' && authorized) {
                 return await Store.ConversationRoom.findById(ctx, ownerId);
             }
 
             return null;
-        }),
+        },
     },
     Mutation: {
         alphaSetUserShortName: withAccount(async (ctx, args, uid, orgId) => {
