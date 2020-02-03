@@ -1258,7 +1258,42 @@ export default {
                await conv!.flush(ctx);
                return true;
             });
-        })
+        }),
+        debugRecountSeqForMessages: withPermission('super-admin', async (parent, args) => {
+           debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
+               let after: number[] | undefined = undefined;
+               let count = 0;
+               let limit = 1;
+               let total = 0;
+               try {
+               do {
+                   let convs: any[] = await Store.Conversation.descriptor.subspace.range(parent, [], {
+                       after,
+                       limit,
+                   });
+                   after = convs[convs.length - 1].key;
+                   count = convs.length;
+                   total += count;
+
+                   await Promise.all(convs.map(async (conv: any) => {
+                       await inTx(parent, async ctx => {
+                           let seq = 0;
+                           let messages = await Store.Message.chat.findAll(ctx, conv.key[0]);
+                           for (let message of messages) {
+                               message.seq = ++seq;
+                           }
+                           Store.ConversationLastSeq.byId(conv.key[0]).set(ctx, seq);
+                       });
+                   }));
+                   await log('Proceed ' + total + ' chats');
+               } while (count === limit);
+               } catch {
+                   return 'failed';
+               }
+               return 'ok';
+           });
+           return true;
+        }),
     },
     Subscription: {
         debugEvents: {

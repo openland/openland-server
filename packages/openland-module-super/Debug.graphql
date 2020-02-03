@@ -147,6 +147,7 @@ extend type Mutation {
     debugResetPushDelivery: Boolean!
     debugAddStickerPackToAll(packId: ID!): Boolean!
     debugReplaceCommunityForChat(chatId: ID!, newCommunityId: ID!): Boolean!
+    debugRecountSeqForMessages: Boolean!
 }
 
 extend type Subscription {

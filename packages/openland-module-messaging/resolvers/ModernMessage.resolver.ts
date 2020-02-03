@@ -351,6 +351,12 @@ export default {
             }
             throw new Error('unknown message ' + src);
         },
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
+        },
         date: src => src.metadata.createdAt,
         sender: src => src.uid,
         senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
@@ -428,6 +434,12 @@ export default {
             throw new Error('unknown message ' + src);
         },
         date: src => src.metadata.createdAt,
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
+        },
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted 
 
@@ -658,6 +670,12 @@ export default {
             throw new Error('unknown message ' + src);
         },
         date: src => src.metadata.createdAt,
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
+        },
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted
 

@@ -193,7 +193,9 @@ export default declareSchema(() => {
         field('deleted', optional(boolean()));
         field('archived', optional(boolean()));
     });
-
+    atomicInt('ConversationLastSeq', () => {
+        primaryKey('cid', integer());
+    });
     entity('ConversationPrivate', () => {
         primaryKey('id', integer());
         field('uid1', integer());
@@ -321,6 +323,7 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('cid', integer());
         field('uid', integer());
+        field('seq', optional(integer()));
         field('repeatKey', optional(string()));
 
         field('text', optional(string())).secure();
