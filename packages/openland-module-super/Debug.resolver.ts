@@ -1263,7 +1263,7 @@ export default {
            debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
                let after: number[] | undefined = undefined;
                let count = 0;
-               let limit = 1;
+               let limit = 10;
                let total = 0;
                try {
                    do {
@@ -1297,7 +1297,6 @@ export default {
                                        return true;
                                    });
                                }
-                               await delay(1000);
                                await inTx(parent, async ctx => Store.ConversationLastSeq.byId(cid).set(ctx, seq));
                            } finally {
                                await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, false));
