@@ -186,8 +186,17 @@ export default {
             if (showPlaceholder) {
                 return [];
             }
-            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 5 })).items;
-            return members.map(m => m.uid);
+
+            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 50 })).items;
+            let profiles = await Promise.all(members.map(m => Store.UserProfile.findById(ctx, m.uid)));
+
+            let membersWithPhoto = profiles.filter(p => p!.picture);
+            let res = [...membersWithPhoto.map(m => m!.id)];
+            if (res.length < 5 && members.length > 5) {
+                let membersWithoutPhoto = profiles.filter(p => !p!.picture);
+                res.push(...membersWithoutPhoto.map(m => m!.id));
+            }
+            return res.slice(0, 5);
         }),
         members: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
