@@ -1283,7 +1283,7 @@ export default {
                            try {
                                await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, true));
                                let seq = 0;
-                               let stream = Store.Message.chat.stream(cid, { batchSize: 1 });
+                               let stream = Store.Message.chat.stream(cid, { batchSize: 500 });
                                let hasMany = true;
                                while (hasMany) {
                                    hasMany = await inTx(parent, async ctx => {
