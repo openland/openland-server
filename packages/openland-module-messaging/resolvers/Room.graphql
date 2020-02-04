@@ -191,7 +191,7 @@ extend type Query {
     betaRoomInviteLink(roomId: ID!): String!
     betaAvailableRooms: [SharedRoom!]!
     betaUserRooms(limit: Int, after: ID): [SharedRoom!]!
-    betaUserAvailableRooms(isChannel: Boolean, limit: Int, after: ID): [SharedRoom!]!
+    betaUserAvailableRooms(isChannel: Boolean, limit: Int, after: ID): [SharedRoom!]! # deprecated, use alphaUserAvailableRooms
     alphaUserAvailableRooms(query: String, first: Int!, after: String): RoomConnection!
 }
 
