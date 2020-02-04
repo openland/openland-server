@@ -1,4 +1,11 @@
-import { ChannelInvitation, ChannelLink, UserDialogSettings, Conversation, RoomProfile, RoomParticipant } from './../../openland-module-db/store';
+import {
+    ChannelInvitation,
+    ChannelLink,
+    UserDialogSettings,
+    Conversation,
+    RoomProfile,
+    RoomParticipant
+} from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     withAccount,
@@ -18,10 +25,19 @@ import {
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
+import {
+    validate,
+    defined,
+    stringNotEmpty,
+    enumString,
+    optional,
+    mustBeArray,
+    emailValidator
+} from 'openland-utils/NewInputValidator';
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageMention } from '../MessageInput';
 import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
+import { QueryParser } from '../../openland-utils/QueryParser';
 
 type RoomRoot = Conversation | number;
 
@@ -145,7 +161,7 @@ export default {
             } else {
                 throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
             }
-            return { id, price: premiumChatSettings.price, interval };
+            return {id, price: premiumChatSettings.price, interval};
         }),
         premiumSubscription: withAuthFallback(withConverationId(async (ctx, id) => {
             let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
@@ -187,7 +203,7 @@ export default {
                 return [];
             }
 
-            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 50 })).items;
+            let members = (await Store.RoomParticipant.active.query(ctx, id, {limit: 50})).items;
             let profiles = await Promise.all(members.map(m => Store.UserProfile.findById(ctx, m.uid)));
 
             let membersWithPhoto = profiles.filter(p => p!.picture);
@@ -207,13 +223,19 @@ export default {
                 afterMember = await Store.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
             }
             if (afterMember) {
-                return (await Store.RoomParticipant.active.query(ctx, id, { after: afterMember.uid, limit: args.first || 1000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, id, {
+                    after: afterMember.uid,
+                    limit: args.first || 1000
+                })).items;
             }
 
-            return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
+            return (await Store.RoomParticipant.active.query(ctx, id, {limit: args.first || 1000})).items;
         }), []),
         requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)), []),
-        settings: withAuthFallback(async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), { cid: 0, mute: true }),
+        settings: withAuthFallback(async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
+            cid: 0,
+            mute: true
+        }),
         canEdit: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)), false),
         archived: withAuthFallback(withConverationId(async (ctx, id, args) => {
             let conv = await Store.Conversation.findById(ctx, id);
@@ -440,10 +462,14 @@ export default {
             }
 
             if (beforeMessage) {
-                return (await Store.Message.chat.query(ctx, roomId, { after: beforeMessage.id, limit: args.first!, reverse: true })).items;
+                return (await Store.Message.chat.query(ctx, roomId, {
+                    after: beforeMessage.id,
+                    limit: args.first!,
+                    reverse: true
+                })).items;
             }
 
-            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
+            return (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true})).items;
         }),
         roomMember: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
@@ -477,10 +503,13 @@ export default {
                     afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
                 }
                 if (afterMember) {
-                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 1000 })).items;
+                    return (await Store.RoomParticipant.active.query(ctx, roomId, {
+                        after: afterMember.uid,
+                        limit: args.first || 1000
+                    })).items;
                 }
 
-                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, roomId, {limit: args.first || 1000})).items;
             }
         }),
         roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
@@ -490,12 +519,17 @@ export default {
             if (!conversation) {
                 throw new Error('Room not found');
             }
-            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
+            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, {limit: args.first || 1000})).items;
             return await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)));
         }),
 
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
-            return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
+            return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', {
+                first: args.first,
+                after: args.after || undefined,
+                page: args.page || undefined,
+                sort: args.sort || undefined
+            });
         }),
         betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
@@ -511,6 +545,71 @@ export default {
         }),
         betaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.userAvailableRooms(ctx, uid, args.isChannel === null ? undefined : args.isChannel, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
+        }),
+        alphaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
+            let clauses: any[] = [];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('title', 'title');
+                parser.registerBoolean('featured', 'featured');
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
+                parser.registerText('membersCount', 'membersCount');
+                parser.registerBoolean('isChannel', 'isChannel');
+                clauses.push({match_phrase_prefix: {title: args.query}});
+            }
+
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+
+            // listed OR from user orgs
+            clauses.push({
+                bool: {
+                    should: [
+                        {term: {listed: true}},
+                        {terms: {oid: userOrgs}}
+                    ],
+                    must_not: {terms: {cid: userDialogs.map(d => d.cid)}}
+                }
+            });
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'room',
+                type: 'room',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : 0,
+                body: {
+                    sort: [{membersCount: 'desc'}],
+                    query: {bool: {must: clauses}}
+                }
+            });
+
+            let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+            let rooms = await Promise.all(ids.map((v) => Store.Conversation.findById(ctx, v)));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: rooms.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
         }),
     },
     Mutation: {
@@ -669,7 +768,7 @@ export default {
         // invite links
         betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {
             await validate({
-                inviteRequests: [{ email: defined(emailValidator) }]
+                inviteRequests: [{email: defined(emailValidator)}]
             }, args);
 
             await inTx(parent, async (ctx) => {

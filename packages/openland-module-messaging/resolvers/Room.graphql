@@ -192,7 +192,7 @@ extend type Query {
     betaAvailableRooms: [SharedRoom!]!
     betaUserRooms(limit: Int, after: ID): [SharedRoom!]!
     betaUserAvailableRooms(isChannel: Boolean, limit: Int, after: ID): [SharedRoom!]!
-
+    alphaUserAvailableRooms(query: String, first: Int!, after: String): RoomConnection!
 }
 
 type RoomInvite {

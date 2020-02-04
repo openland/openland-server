@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5807bbc063fd38f5d7f7ac9d8bacc4a6';
+export const GQL_SPEC_VERSION = 'be5b73cfe6ab69483dea5bed9cc63163';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2776,6 +2776,7 @@ export namespace GQL {
         betaAvailableRooms: SharedRoom[];
         betaUserRooms: SharedRoom[];
         betaUserAvailableRooms: SharedRoom[];
+        alphaUserAvailableRooms: RoomConnection;
         alphaResolveShortName: Nullable<ShortNameDestination>;
     }
     export interface QueryAlphaChatArgs {
@@ -3144,6 +3145,11 @@ export namespace GQL {
     export interface QueryBetaUserAvailableRoomsArgs {
         isChannel: OptionalNullable<boolean>;
         limit: OptionalNullable<number>;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryAlphaUserAvailableRoomsArgs {
+        query: OptionalNullable<string>;
+        first: number;
         after: OptionalNullable<string>;
     }
     export interface QueryAlphaResolveShortNameArgs {
@@ -6082,6 +6088,7 @@ export interface GQLResolver {
             betaAvailableRooms: GQLRoots.SharedRoomRoot[],
             betaUserRooms: GQLRoots.SharedRoomRoot[],
             betaUserAvailableRooms: GQLRoots.SharedRoomRoot[],
+            alphaUserAvailableRooms: GQLRoots.RoomConnectionRoot,
             alphaResolveShortName: Nullable<GQLRoots.ShortNameDestinationRoot>,
         },
         {
@@ -6176,6 +6183,7 @@ export interface GQLResolver {
             betaRoomInviteLink: GQL.QueryBetaRoomInviteLinkArgs,
             betaUserRooms: GQL.QueryBetaUserRoomsArgs,
             betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs,
+            alphaUserAvailableRooms: GQL.QueryAlphaUserAvailableRoomsArgs,
             alphaResolveShortName: GQL.QueryAlphaResolveShortNameArgs,
         }
     >;
