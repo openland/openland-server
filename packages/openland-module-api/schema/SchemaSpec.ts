@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'be5b73cfe6ab69483dea5bed9cc63163';
+export const GQL_SPEC_VERSION = 'a0d80f09145a6fe4df14d2260655fbc7';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1229,6 +1229,7 @@ export namespace GQL {
         debugResetPushDelivery: boolean;
         debugAddStickerPackToAll: boolean;
         debugReplaceCommunityForChat: boolean;
+        debugRecountSeqForMessages: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         createOauthApp: OauthApp;
@@ -2776,7 +2777,6 @@ export namespace GQL {
         betaAvailableRooms: SharedRoom[];
         betaUserRooms: SharedRoom[];
         betaUserAvailableRooms: SharedRoom[];
-        alphaUserAvailableRooms: RoomConnection;
         alphaResolveShortName: Nullable<ShortNameDestination>;
     }
     export interface QueryAlphaChatArgs {
@@ -3147,11 +3147,6 @@ export namespace GQL {
         limit: OptionalNullable<number>;
         after: OptionalNullable<string>;
     }
-    export interface QueryAlphaUserAvailableRoomsArgs {
-        query: OptionalNullable<string>;
-        first: number;
-        after: OptionalNullable<string>;
-    }
     export interface QueryAlphaResolveShortNameArgs {
         shortname: string;
     }
@@ -3515,6 +3510,7 @@ export namespace GQL {
     }
     export interface ModernMessage {
         id: string;
+        seq: Nullable<number>;
         date: Date;
         sender: User;
         senderBadge: Nullable<UserBadge>;
@@ -3525,6 +3521,7 @@ export namespace GQL {
     }
     export interface ServiceMessage extends ModernMessage {
         id: string;
+        seq: Nullable<number>;
         date: Date;
         sender: User;
         senderBadge: Nullable<UserBadge>;
@@ -3539,6 +3536,7 @@ export namespace GQL {
     }
     export interface GeneralMessage extends ModernMessage {
         id: string;
+        seq: Nullable<number>;
         date: Date;
         sender: User;
         senderBadge: Nullable<UserBadge>;
@@ -3557,6 +3555,7 @@ export namespace GQL {
     }
     export interface StickerMessage extends ModernMessage {
         id: string;
+        seq: Nullable<number>;
         date: Date;
         sender: User;
         senderBadge: Nullable<UserBadge>;
@@ -6088,7 +6087,6 @@ export interface GQLResolver {
             betaAvailableRooms: GQLRoots.SharedRoomRoot[],
             betaUserRooms: GQLRoots.SharedRoomRoot[],
             betaUserAvailableRooms: GQLRoots.SharedRoomRoot[],
-            alphaUserAvailableRooms: GQLRoots.RoomConnectionRoot,
             alphaResolveShortName: Nullable<GQLRoots.ShortNameDestinationRoot>,
         },
         {
@@ -6183,7 +6181,6 @@ export interface GQLResolver {
             betaRoomInviteLink: GQL.QueryBetaRoomInviteLinkArgs,
             betaUserRooms: GQL.QueryBetaUserRoomsArgs,
             betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs,
-            alphaUserAvailableRooms: GQL.QueryAlphaUserAvailableRoomsArgs,
             alphaResolveShortName: GQL.QueryAlphaResolveShortNameArgs,
         }
     >;

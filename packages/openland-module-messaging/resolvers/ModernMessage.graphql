@@ -13,6 +13,7 @@ interface ModernMessage {
     #   State
     #
     id: ID!
+    seq: Int
     date: Date!
     sender: User!
     senderBadge: UserBadge
@@ -31,6 +32,7 @@ type ServiceMessage implements ModernMessage  {
     #   State
     #
     id: ID!
+    seq: Int
     date: Date!
     sender: User!
     senderBadge: UserBadge
@@ -57,6 +59,7 @@ type GeneralMessage implements ModernMessage {
     #   State
     #
     id: ID!
+    seq: Int
     date: Date!
     sender: User!
     senderBadge: UserBadge
@@ -87,6 +90,7 @@ type StickerMessage implements ModernMessage {
     #   State
     #
     id: ID!
+    seq: Int
     date: Date!
     sender: User!
     senderBadge: UserBadge

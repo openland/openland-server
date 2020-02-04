@@ -10,6 +10,70 @@ import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundation
 // @ts-ignore
 import { Entity, EntityFactory, EntityDescriptor, SecondaryIndexDescriptor, ShapeWithMetadata, PrimaryKeyDescriptor, FieldDescriptor, StreamProps } from '@openland/foundationdb-entity';
 
+export class ConversationLastSeqFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conversationLastSeq');
+        return new ConversationLastSeqFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number) {
+        return this._findById([cid]);
+    }
+
+    get(ctx: Context, cid: number) {
+        return this._get(ctx, [cid]);
+    }
+
+    set(ctx: Context, cid: number, value: number) {
+        return this._set(ctx, [cid], value);
+    }
+
+    add(ctx: Context, cid: number, value: number) {
+        return this._add(ctx, [cid], value);
+    }
+
+    increment(ctx: Context, cid: number) {
+        return this._increment(ctx, [cid]);
+    }
+
+    decrement(ctx: Context, cid: number) {
+        return this._decrement(ctx, [cid]);
+    }
+}
+
+export class ConversationLockFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conversationLock');
+        return new ConversationLockFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number) {
+        return this._findById([cid]);
+    }
+
+    get(ctx: Context, cid: number) {
+        return this._get(ctx, [cid]);
+    }
+
+    set(ctx: Context, cid: number, value: boolean) {
+        return this._set(ctx, [cid], value);
+    }
+
+    invert(ctx: Context, cid: number) {
+        return this._invert(ctx, [cid]);
+    }
+}
+
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -4036,6 +4100,7 @@ export interface MessageShape {
     id: number;
     cid: number;
     uid: number;
+    seq: number | null;
     repeatKey: string | null;
     text: string | null;
     replyMessages: (number)[] | null;
@@ -4066,6 +4131,7 @@ export interface MessageShape {
 export interface MessageCreateShape {
     cid: number;
     uid: number;
+    seq?: number | null | undefined;
     repeatKey?: string | null | undefined;
     text?: string | null | undefined;
     replyMessages?: (number)[] | null | undefined;
@@ -4110,6 +4176,15 @@ export class Message extends Entity<MessageShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get seq(): number | null { return this._rawValue.seq; }
+    set seq(value: number | null) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
             this.invalidate();
         }
     }
@@ -4353,6 +4428,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
         fields.push({ name: 'replyMessages', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
@@ -4382,6 +4458,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
             id: c.integer,
             cid: c.integer,
             uid: c.integer,
+            seq: c.optional(c.integer),
             repeatKey: c.optional(c.string),
             text: c.optional(c.string),
             replyMessages: c.optional(c.array(c.integer)),
@@ -13904,6 +13981,7 @@ export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionS
         let subspace = await storage.resolveEntityDirectory('walletSubscription');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscription', 'active'), condition: (s) => s.state !== 'expired' });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscription', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -13946,6 +14024,21 @@ export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionS
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -17472,6 +17565,8 @@ export class StripeEventStore extends EventStore {
 }
 
 export interface Store extends BaseStore {
+    readonly ConversationLastSeq: ConversationLastSeqFactory;
+    readonly ConversationLock: ConversationLockFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -17672,6 +17767,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('paymentStatusChanged', PaymentStatusChanged.encode as any, PaymentStatusChanged.decode);
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
+    let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
+    let ConversationLockPromise = ConversationLockFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -17844,6 +17941,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     return {
         storage,
         eventFactory,
+        ConversationLastSeq: await ConversationLastSeqPromise,
+        ConversationLock: await ConversationLockPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,

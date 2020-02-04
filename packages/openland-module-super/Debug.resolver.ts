@@ -1258,7 +1258,59 @@ export default {
                await conv!.flush(ctx);
                return true;
             });
-        })
+        }),
+        debugRecountSeqForMessages: withPermission('super-admin', async (parent, args) => {
+           debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
+               let after: number[] | undefined = undefined;
+               let count = 0;
+               let limit = 10;
+               let total = 0;
+               try {
+                   do {
+                       let convs: any[] = await inTx(parent, ctx => Store.Conversation.descriptor.subspace.range(ctx, [], {
+                           after, limit,
+                       }));
+                       if (convs.length === 0) {
+                           return 'ok';
+                       }
+
+                       after = convs[convs.length - 1].key;
+                       count = convs.length;
+                       total += count;
+
+                       await Promise.all(convs.map(async (conv: any) => {
+                           let cid = conv.key[0];
+                           try {
+                               await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, true));
+                               let seq = 0;
+                               let stream = Store.Message.chat.stream(cid, { batchSize: 500 });
+                               let hasMany = true;
+                               while (hasMany) {
+                                   hasMany = await inTx(parent, async ctx => {
+                                       let data = await stream.next(ctx);
+                                       if (data.length === 0) {
+                                           return false;
+                                       }
+                                       for (let message of data) {
+                                           message.seq = ++seq;
+                                       }
+                                       return true;
+                                   });
+                               }
+                               await inTx(parent, async ctx => Store.ConversationLastSeq.byId(cid).set(ctx, seq));
+                           } finally {
+                               await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, false));
+                           }
+                       }));
+                       await log('Proceed ' + total + ' chats');
+                   } while (count === limit);
+               } catch (e) {
+                  return `failed ${e.message}`;
+               }
+               return 'ok';
+           });
+           return true;
+        }),
     },
     Subscription: {
         debugEvents: {
