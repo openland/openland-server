@@ -90,7 +90,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
 
     log.debug(ctx, 'readMessageId', readMessageId);
     // Ignore read messages
-    if (readMessageId >= message.id) {
+    if (readMessageId && (readMessageId >= message.id)) {
         log.debug(ctx, 'Ignore read messages');
         return false;
     }

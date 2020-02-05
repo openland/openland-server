@@ -33,6 +33,9 @@ export function roomsSearchIndexer() {
             },
             orgKind: {
                 type: 'text'
+            },
+            isChannel: {
+                type: 'boolean'
             }
         })
         .start(async (item, parent) => {
@@ -63,7 +66,8 @@ export function roomsSearchIndexer() {
                         listed: isListed || false,
                         membersCount: membersCount,
                         oid: org ? org.id : undefined,
-                        orgKind: org ? org.kind : undefined
+                        orgKind: org ? org.kind : undefined,
+                        isChannel: room.isChannel || false
                     }
                 };
             });

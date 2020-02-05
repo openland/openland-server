@@ -25,13 +25,6 @@ Known `bodyType` id's:
 
 - 1 - Initialize
 - 2 - InitializeAck
-- 3 - GQLRequest
-- 4 - GQLResponse
-- 5 - GQLSubscription
-- 6 - GQLSubscriptionStop
-- 7 - GQLSubscriptionResponse
-- 8 - GQLSubscriptionComplete
-- 9 - GQLCachedQueryNotFound
 
 ## Message ID
 Message ID is a unique uint32 number and encoded as `uint32` in ProtoBuf.
