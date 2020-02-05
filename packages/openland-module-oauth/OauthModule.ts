@@ -19,8 +19,8 @@ export enum OauthScope {
     Zapier = 'zapier'
 }
 
-function isValidScope(scope: String) {
-    return Object.values(OauthScope).includes(scope);
+function isValidScope(scope: string) {
+    return [...Object.values(OauthScope)].includes(scope as any);
 }
 
 @injectable()

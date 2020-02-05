@@ -235,7 +235,7 @@ export default {
         settings: withAuthFallback(async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
             cid: 0,
             mute: true
-        }),
+        } as any),
         canEdit: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)), false),
         archived: withAuthFallback(withConverationId(async (ctx, id, args) => {
             let conv = await Store.Conversation.findById(ctx, id);

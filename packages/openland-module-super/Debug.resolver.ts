@@ -1358,7 +1358,8 @@ export default {
                 while (true) {
                     let data = 'pong ' + Date.now() + ' ' + i++;
                     logger.log(ctx, 'send lifecheck', data);
-                    yield data;
+                    // yield data;
+                    yield null;
                     await delay(1000);
                 }
             },
