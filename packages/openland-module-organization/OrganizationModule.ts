@@ -12,6 +12,7 @@ import { organizationProfileIndexer } from './workers/organizationProfileIndexer
 import { Context } from '@openland/context';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { UserError } from '../openland-errors/UserError';
+import { User, UserProfile } from '../openland-module-db/store';
 
 @injectable()
 export class OrganizationModule {
@@ -26,46 +27,32 @@ export class OrganizationModule {
 
     async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput) {
         return inTx(parent, async (ctx) => {
+            // 1. Ensure user is not suspended and has profile
+            let [user, profile] = await this.getUnsuspendedUserWithProfile(ctx, uid);
 
-            // 1. Resolve user status
-            let status: 'activated' | 'pending' = 'activated';
-            let user = await Store.User.findById(ctx, uid);
-            if (!user) {
-                throw Error('Unable to find user');
-            }
-            if (user.status === 'pending') {
-                await Modules.Users.activateUser(parent, uid, true);
-            } else if (user.status === 'suspended') {
-                throw Error('User is suspended');
-            }
-
-            // 2. Check if profile created
-            let profile = await Store.UserProfile.findById(ctx, uid);
-            if (!profile) {
-                throw Error('Profile is not created');
-            }
-
-            // 3. Resolve editorial flag
+            // 2. Resolve editorial flag
             let editorial = (await Modules.Super.findSuperRole(ctx, uid)) === 'editor';
 
-            // 4. Create Organization
-            let res = await this.repo.createOrganization(ctx, uid, input, { editorial, status });
+            // 3. Create Organization
+            let res = await this.repo.createOrganization(ctx, uid, input, { editorial, status: 'activated' });
 
-            // 5. Update primary organization if needed
-            if (status === 'activated') {
-                if (!profile.primaryOrganization && !input.isCommunity) {
-                    profile.primaryOrganization = res.id;
+            // 4. Update primary organization if needed
+            if (!profile.primaryOrganization && !input.isCommunity) {
+                profile.primaryOrganization = res.id;
+            }
+
+            // 5. Activate user if needed and call hooks
+            if (user.status === 'pending') {
+                await Modules.Users.activateUser(parent, uid, true);
+                if (user.invitedBy) {
+                    await Modules.Hooks.onFirstOrganizationActivated(ctx, res.id, { type: 'BY_INVITE', inviteOwner: user.invitedBy, inviteType: 'APP', uid });
+                } else {
+                    await Modules.Hooks.onFirstOrganizationActivated(ctx, res.id, { type: 'ACTIVATED_AUTOMATICALLY', uid });
                 }
             }
 
             // 6. Invoke Hook
             await Modules.Hooks.onOrganizationCreated(ctx, uid, res.id);
-            await Modules.Hooks.onOrganizationActivated(ctx, res.id, { type: 'ACTIVATED_AUTOMATICALLY', uid });
-
-            if (user.status !== 'activated' && (await this.findUserOrganizations(ctx, uid)).length === 1) {
-                await Modules.Hooks.onUserProfileCreated(ctx, uid);
-            }
-
             return res;
         });
     }
@@ -106,19 +93,7 @@ export class OrganizationModule {
 
     async addUserToOrganization(parent: Context, uid: number, oid: number, by: number, skipChecks: boolean = false, isNewUser: boolean = false) {
         return await inTx(parent, async (ctx) => {
-
-            // Check user state
-            let user = await Store.User.findById(ctx, uid);
-            if (!user) {
-                throw Error('Unable to find user');
-            }
-            if (user.status === 'suspended') {
-                throw Error('User is suspended');
-            }
-            let profile = await Store.UserProfile.findById(ctx, uid);
-            if (!profile) {
-                throw Error('Profile is not created');
-            }
+            let [, profile] = await this.getUnsuspendedUserWithProfile(ctx, uid);
 
             let member = await Store.OrganizationMember.findById(ctx, oid, by);
             let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
@@ -140,7 +115,7 @@ export class OrganizationModule {
                     for (let userOrg of userOrgs) {
                         // Activate user organization
                         if (await this.activateOrganization(ctx, userOrg!.id, !isNewUser)) {
-                            await Modules.Hooks.onOrganizationActivated(ctx, userOrg!.id, { type: 'OWNER_ADDED_TO_ORG', owner: by, otherOid: oid });
+                            await Modules.Hooks.onFirstOrganizationActivated(ctx, userOrg!.id, { type: 'OWNER_ADDED_TO_ORG', owner: by, otherOid: oid, uid });
                         }
                     }
 
@@ -160,6 +135,21 @@ export class OrganizationModule {
 
             return await Store.Organization.findById(ctx, oid);
         });
+    }
+
+    private async getUnsuspendedUserWithProfile(ctx: Context, uid: number): Promise<[User, UserProfile]> {
+        let user = await Store.User.findById(ctx, uid);
+        if (!user) {
+            throw Error('Unable to find user');
+        }
+        if (user.status === 'suspended') {
+            throw Error('User is suspended');
+        }
+        let profile = await Store.UserProfile.findById(ctx, uid);
+        if (!profile) {
+            throw Error('Profile is not created');
+        }
+        return [user!, profile!];
     }
 
     async removeUserFromOrganization(parent: Context, uid: number, oid: number, by: number) {

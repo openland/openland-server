@@ -288,12 +288,13 @@ export default {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, {
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
                     inviteType: 'APP',
                     inviteOwner: uid,
+                    uid,
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
                 await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});

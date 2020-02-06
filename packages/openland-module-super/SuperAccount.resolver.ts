@@ -41,7 +41,7 @@ export default {
         superAccountActivate: withPermission('super-admin', async (ctx, args) => {
             let oid = IDs.SuperAccount.parse(args.id);
             if (await Modules.Orgs.activateOrganization(ctx, oid, true, true)) {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid: ctx.auth.uid! });
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid: ctx.auth.uid! });
             }
             return Store.Organization.findById(ctx, oid);
         }),
