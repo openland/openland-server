@@ -12,4 +12,6 @@ ADD package.json yarn.lock /app/
 RUN yarn add puppeteer
 RUN yarn install
 ADD index.js /app/
+ADD templates /app/templates
+
 CMD ["node", "index.js"]

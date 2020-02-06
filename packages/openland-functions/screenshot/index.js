@@ -1,6 +1,72 @@
 const chromium = require('chrome-aws-lambda');
 const puppeteer = require('puppeteer-core');
 const express = require('express');
+const path = require('path');
+const fetch = require('node-fetch');
+const FormData = require("form-data");
+
+const UPLOAD_CARE_PUB_KEY = 'b70227616b5eac21ba88';
+const UPLOAD_CARE_AUTH = 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8';
+
+class UploadCareLoader {
+  async fetchFileInfo(uuid) {
+    let res = await this.call('files/' + uuid + '/');
+
+    let isImage = !!(res.is_image || res.image_info);
+    let imageWidth = isImage ? res.image_info.width : null;
+    let imageHeight = isImage ? res.image_info.height : null;
+    let imageFormat = isImage ? res.image_info.format : null;
+    let mimeType = res.mime_type;
+    let name = res.original_filename;
+    let size = res.size;
+    let isReady = !!(res.is_ready);
+
+    return {
+      isStored: isReady,
+      isImage,
+      imageWidth,
+      imageHeight,
+      imageFormat,
+      mimeType,
+      name,
+      size
+    };
+  }
+
+  async saveFile(uuid) {
+    let fileInfo = await this.fetchFileInfo(uuid);
+
+    if (!fileInfo.isStored) {
+      await this.call('files/' + uuid + '/storage', 'PUT');
+      fileInfo.isStored = true;
+    }
+
+    return fileInfo;
+  }
+
+  async upload(imgData, fileName) {
+    let form = new FormData();
+    form.append('UPLOADCARE_STORE', '1');
+    form.append('UPLOADCARE_PUB_KEY', UPLOAD_CARE_PUB_KEY);
+    form.append('file', imgData, { filename: fileName });
+
+    let res = await fetch(
+      'https://upload.uploadcare.com/base/',
+      { method: 'POST', body: form }
+    );
+    return res.json();
+  }
+
+  async call(path, method = 'GET') {
+    let res = await fetch('https://api.uploadcare.com/' + path, {
+      method,
+      headers: {
+        'Authorization': UPLOAD_CARE_AUTH
+      }
+    });
+    return res.json();
+  }
+}
 
 let page;
 
@@ -60,6 +126,7 @@ class AsyncLock {
 }
 
 const lock = new AsyncLock();
+const ucare = new UploadCareLoader();
 
 const app = express();
 app.use(express.json());
@@ -105,7 +172,6 @@ app.post('/', handleAsync(async (req, res) => {
   });
 }));
 
-
 app.post('/html', handleAsync(async (req, res) => {
   await lock.inLock(async () => {
     if (!page) {
@@ -138,6 +204,51 @@ app.post('/html', handleAsync(async (req, res) => {
       html,
       screenshot,
       status: response.status()
+    });
+  });
+}));
+
+app.post('/render', handleAsync(async (req, res) => {
+  const templates = require('./templates/index.json');
+  const appDir = path.dirname(require.main.filename);
+
+  await lock.inLock(async () => {
+    if (!page) {
+      page = await getBrowserPage();
+    }
+
+    const args = req.body.args;
+    const templateName = req.body.template;
+    if (!args || !templateName) {
+      return res.status(400).send('Invalid request');
+    }
+    if (!templates[templateName]) {
+      return res.status(400).send('Invalid template');
+    }
+
+    let template = templates[templateName];
+    const {
+      width,
+      height,
+      file
+    } = template;
+
+    // Load page
+    await page.setViewport({ width, height, deviceScaleFactor: 2  });
+    await page.goto(`file://${path.join(appDir, 'templates', file)}`, { waitUntil: 'networkidle2' });
+
+    // Fill template
+    await page.evaluate((a) => fill(a), args)
+
+    // Make screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      omitBackground: false
+    });
+    let ucareFile = await ucare.upload(screenshot, 'sharing@2x.png');
+    await ucare.saveFile(ucareFile.file);
+    res.json({
+      file: ucareFile.file
     });
   });
 }));
