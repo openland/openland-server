@@ -940,7 +940,9 @@ export default {
                 for (let r of rooms) {
                     try {
                         await inTx(parent, async ctx => {
-                            await r.flush(ctx);
+                            let room = await Store.RoomProfile.findById(ctx, r.id);
+                            room!.invalidate();
+                            await room!.flush(ctx);
                         });
 
                         if ((i % 100) === 0) {

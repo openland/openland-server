@@ -37,7 +37,7 @@ import {
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageMention } from '../MessageInput';
 import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
-import { QueryParser } from '../../openland-utils/QueryParser';
+import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 
 type RoomRoot = Conversation | number;
 
@@ -557,7 +557,10 @@ export default {
                 parser.registerText('updatedAt', 'updatedAt');
                 parser.registerText('membersCount', 'membersCount');
                 parser.registerBoolean('isChannel', 'isChannel');
-                clauses.push({match_phrase_prefix: {title: args.query}});
+
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
             }
 
             let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);

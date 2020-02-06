@@ -5,7 +5,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { Organization } from 'openland-module-db/store';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 9, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
+    declareSearchIndexer('room-index', 10, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
