@@ -60,7 +60,7 @@ export class HooksModule {
     /*
      * Orgs
      */
-    onOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', inviteType: 'APP' | 'ROOM', inviteOwner: number } | { type: 'OWNER_ADDED_TO_ORG', owner: number, otherOid: number } | { type: 'ACTIVATED_AUTOMATICALLY', uid: number }) => {
+    onFirstOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', uid: number, inviteType: 'APP' | 'ROOM', inviteOwner: number } | { type: 'OWNER_ADDED_TO_ORG',  uid: number, owner: number, otherOid: number } | { type: 'ACTIVATED_AUTOMATICALLY', uid: number }) => {
         let botId = await getSuperNotificationsBotId(ctx);
         let chatId = await getSuperNotificationsChatId(ctx);
 
@@ -70,7 +70,6 @@ export class HooksModule {
 
         let orgProfile = await Store.OrganizationProfile.findById(ctx, oid);
         // let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
-
         if (conditions.type === 'BY_SUPER_ADMIN') {
             let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
@@ -79,17 +78,18 @@ export class HooksModule {
             });
         } else if (conditions.type === 'BY_INVITE' || conditions.type === 'OWNER_ADDED_TO_ORG') {
             let invitorId = conditions.type === 'BY_INVITE' ? conditions.inviteOwner : conditions.owner;
+            let name = await Modules.Users.getUserFullName(ctx, conditions.uid);
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(boldString(`Organization ${orgProfile!.name} was activated by `), userMention(invitorName, invitorId), boldString(` via invite.`)),
+                ...buildMessage(boldString('New user – '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} was invited by `), userMention(invitorName, invitorId)),
                 ignoreAugmentation: true,
             });
         } else if (conditions.type === 'ACTIVATED_AUTOMATICALLY') {
             let name = await Modules.Users.getUserFullName(ctx, conditions.uid);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(boldString(`Organization ${orgProfile!.name} was activated automatically by `), userMention(name, conditions.uid)),
+                ...buildMessage(boldString('New user – '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} joined`)),
                 ignoreAugmentation: true,
             });
         }
@@ -116,6 +116,9 @@ export class HooksModule {
         // no op
     }
 
+    /*
+    * Deprecated
+    * */
     onUserProfileCreated = async (ctx: Context, uid: number) => {
         let botId = await getSuperNotificationsBotId(ctx);
         let chatId = await getSuperNotificationsChatId(ctx);

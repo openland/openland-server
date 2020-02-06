@@ -174,7 +174,7 @@ export class InvitesMediator {
         let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
         for (let oid of userOrgs) {
             if (await Modules.Orgs.activateOrganization(ctx, oid, sendEmail)) {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType, inviteOwner });
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType, inviteOwner, uid });
             }
         }
     }

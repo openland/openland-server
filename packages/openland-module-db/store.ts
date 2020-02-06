@@ -46,34 +46,6 @@ export class ConversationLastSeqFactory extends AtomicIntegerFactory {
     }
 }
 
-export class ConversationLockFactory extends AtomicBooleanFactory {
-
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conversationLock');
-        return new ConversationLockFactory(storage, directory);
-    }
-
-    private constructor(storage: EntityStorage, subspace: Subspace) {
-        super(storage, subspace);
-    }
-
-    byId(cid: number) {
-        return this._findById([cid]);
-    }
-
-    get(ctx: Context, cid: number) {
-        return this._get(ctx, [cid]);
-    }
-
-    set(ctx: Context, cid: number, value: boolean) {
-        return this._set(ctx, [cid], value);
-    }
-
-    invert(ctx: Context, cid: number) {
-        return this._invert(ctx, [cid]);
-    }
-}
-
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -4421,6 +4393,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let subspace = await storage.resolveEntityDirectory('message');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'updated'), condition: undefined });
         secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
@@ -4512,30 +4485,45 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
+    readonly chatSeq = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid], opts);
+        },
+    });
+
     readonly updated = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
         },
     });
 
     readonly repeat = Object.freeze({
         find: async (ctx: Context, uid: number, cid: number, repeatKey: string | null) => {
-            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[2]);
+            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[3]);
         },
         findAll: async (ctx: Context, uid: number, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [uid, cid])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [uid, cid])).items;
         },
         query: (ctx: Context, uid: number, cid: number, opts?: RangeQueryOptions<string | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -17566,7 +17554,6 @@ export class StripeEventStore extends EventStore {
 
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
-    readonly ConversationLock: ConversationLockFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -17768,7 +17755,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
-    let ConversationLockPromise = ConversationLockFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -17942,7 +17928,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         eventFactory,
         ConversationLastSeq: await ConversationLastSeqPromise,
-        ConversationLock: await ConversationLockPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,

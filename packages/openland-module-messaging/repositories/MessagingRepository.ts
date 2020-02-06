@@ -17,7 +17,6 @@ import { Store } from 'openland-module-db/FDB';
 import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
-import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 @injectable()
 export class MessagingRepository {
@@ -26,12 +25,6 @@ export class MessagingRepository {
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ message: Message }> {
         return await inTx(parent, async (ctx) => {
-
-            let lock = await Store.ConversationLock.byId(cid).get(ctx);
-            if (lock) {
-                throw new AccessDeniedError();
-            }
-
             //
             // Check for duplicates
             //

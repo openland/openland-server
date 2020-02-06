@@ -196,9 +196,6 @@ export default declareSchema(() => {
     atomicInt('ConversationLastSeq', () => {
         primaryKey('cid', integer());
     });
-    atomicBool('ConversationLock', () => {
-        primaryKey('cid', integer());
-    });
     entity('ConversationPrivate', () => {
         primaryKey('id', integer());
         field('uid1', integer());
@@ -426,6 +423,7 @@ export default declareSchema(() => {
         // deprecated end
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });

@@ -288,12 +288,13 @@ export default {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
-                await Modules.Hooks.onOrganizationActivated(ctx, oid, {
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
                     inviteType: 'APP',
                     inviteOwner: uid,
+                    uid,
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
                 await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
@@ -1263,49 +1264,23 @@ export default {
         }),
         debugRecountSeqForMessages: withPermission('super-admin', async (parent, args) => {
            debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
-               let after: number[] | undefined = undefined;
                let count = 0;
-               let limit = 10;
+               let limit = 400;
                let total = 0;
                try {
+                   let stream = Store.Message.updated.stream({ batchSize: limit });
                    do {
-                       let convs: any[] = await inTx(parent, ctx => Store.Conversation.descriptor.subspace.range(ctx, [], {
-                           after, limit,
-                       }));
-                       if (convs.length === 0) {
-                           return 'ok';
-                       }
-
-                       after = convs[convs.length - 1].key;
-                       count = convs.length;
-                       total += count;
-
-                       await Promise.all(convs.map(async (conv: any) => {
-                           let cid = conv.key[0];
-                           try {
-                               await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, true));
-                               let seq = 0;
-                               let stream = Store.Message.chat.stream(cid, { batchSize: 500 });
-                               let hasMany = true;
-                               while (hasMany) {
-                                   hasMany = await inTx(parent, async ctx => {
-                                       let data = await stream.next(ctx);
-                                       if (data.length === 0) {
-                                           return false;
-                                       }
-                                       for (let message of data) {
-                                           message.seq = ++seq;
-                                       }
-                                       return true;
-                                   });
-                               }
-                               await inTx(parent, async ctx => Store.ConversationLastSeq.byId(cid).set(ctx, seq));
-                           } finally {
-                               await inTx(parent, async ctx => Store.ConversationLock.byId(cid).set(ctx, false));
+                       await inTx(parent, async ctx => {
+                           let messages = await stream.next(ctx);
+                           for (let message of messages) {
+                               message.seq = message.id;
+                               Store.ConversationLastSeq.byId(message.cid).set(ctx, message.seq);
                            }
-                       }));
+                           count = messages.length;
+                           total += messages.length;
+                       });
                        await log('Proceed ' + total + ' chats');
-                   } while (count === limit);
+                   } while (count === limit && count > 0);
                } catch (e) {
                   return `failed ${e.message}`;
                }
