@@ -70,7 +70,6 @@ export class HooksModule {
 
         let orgProfile = await Store.OrganizationProfile.findById(ctx, oid);
         // let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
-
         if (conditions.type === 'BY_SUPER_ADMIN') {
             let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
@@ -83,14 +82,14 @@ export class HooksModule {
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(boldString('New user: '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} was invited by `), userMention(invitorName, invitorId)),
+                ...buildMessage(boldString('New user – '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} was invited by `), userMention(invitorName, invitorId)),
                 ignoreAugmentation: true,
             });
         } else if (conditions.type === 'ACTIVATED_AUTOMATICALLY') {
             let name = await Modules.Users.getUserFullName(ctx, conditions.uid);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(boldString('New user: '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} joined`)),
+                ...buildMessage(boldString('New user – '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} joined`)),
                 ignoreAugmentation: true,
             });
         }

@@ -43,7 +43,7 @@ export class OrganizationModule {
 
             // 5. Activate user if needed and call hooks
             if (user.status === 'pending') {
-                await Modules.Users.activateUser(parent, uid, true);
+                await Modules.Users.activateUser(ctx, uid, true);
                 if (user.invitedBy) {
                     await Modules.Hooks.onFirstOrganizationActivated(ctx, res.id, { type: 'BY_INVITE', inviteOwner: user.invitedBy, inviteType: 'APP', uid });
                 } else {
