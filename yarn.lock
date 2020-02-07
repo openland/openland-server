@@ -283,9 +283,10 @@
   dependencies:
     "@openland/context" "^0.4.0"
 
-"@openland/secure-id@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@openland/secure-id/-/secure-id-0.1.0.tgz#f0bc84a1ace54fd7ed425ea94192b1115ad85fb7"
+"@openland/secure-id@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@openland/secure-id/-/secure-id-0.1.2.tgz#c0655e2b1d31af69e65da9802116e3447d81e350"
+  integrity sha512-VAqFXhDbVOwbIiB+MjAhdjuvFxHjo7KdVo87Q9a1C9LvkclyHFjc/i8G4TaMIqdDCMFBgTncWolyk7mqXKPd7g==
   dependencies:
     hashids "^1.2.2"
 

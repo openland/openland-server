@@ -19,7 +19,7 @@
     "@openland/foundationdb-singleton": "^4.5.1",
     "@openland/lifetime": "^0.2.0",
     "@openland/log": "^1.1.1",
-    "@openland/secure-id": "^0.1.0",
+    "@openland/secure-id": "^0.1.2",
     "@sendgrid/mail": "^6.4.0",
     "@types/base-64": "^0.1.2",
     "@types/benchmark": "^1.0.31",
