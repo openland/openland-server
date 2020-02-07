@@ -1,4 +1,5 @@
 import { IDMailformedError } from './IDMailformedError';
+import { IDMailformedError as SeqIDMalformedError } from '@openland/secure-id/lib/IDMailformedError';
 import UUID from 'uuid/v4';
 import { NotFoundError } from './NotFoundError';
 import { UserError } from './UserError';
@@ -65,7 +66,7 @@ const handleUnexpectedError = (uuid: string, error: { message: string, originalE
 
 export function errorHandler(error: { message: string, originalError: any }, info?: QueryInfo): FormattedError {
     let uuid = UUID();
-    if (error.originalError instanceof IDMailformedError) {
+    if (error.originalError instanceof IDMailformedError || error.originalError instanceof SeqIDMalformedError) {
         return {
             message: 'Not found',
             code: 404,
