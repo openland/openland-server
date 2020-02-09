@@ -84,6 +84,9 @@ export default {
         }),
         createdStickerPacks: withActivatedUser(async (ctx, args, id) => {
             return await Modules.Stickers.getPacksBy(ctx, id);
+        }),
+        stickerPackCatalog: withActivatedUser(async (ctx, args, id) => {
+            return await Modules.Stickers.getCatalog(ctx);
         })
     },
     Mutation: {

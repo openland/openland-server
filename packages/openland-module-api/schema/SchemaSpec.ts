@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'de8e8abfead326cf5fc41e4e08254a23';
+export const GQL_SPEC_VERSION = '11eea8fccbd4e54ce3f5f8c4944da5d8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2708,6 +2708,7 @@ export namespace GQL {
         createdStickerPacks: StickerPack[];
         stickersByEmoji: Sticker[];
         stickerPack: Nullable<StickerPack>;
+        stickerPackCatalog: StickerPack[];
         myNotificationCenter: NotificationCenter;
         myNotifications: NotificationConnection;
         myOrganization: Nullable<Organization>;
@@ -6032,6 +6033,7 @@ export interface GQLResolver {
             createdStickerPacks: GQLRoots.StickerPackRoot[],
             stickersByEmoji: GQLRoots.StickerRoot[],
             stickerPack: Nullable<GQLRoots.StickerPackRoot>,
+            stickerPackCatalog: GQLRoots.StickerPackRoot[],
             myNotificationCenter: GQLRoots.NotificationCenterRoot,
             myNotifications: GQLRoots.NotificationConnectionRoot,
             myOrganization: Nullable<GQLRoots.OrganizationRoot>,
