@@ -129,17 +129,16 @@
       }
 
       function fill(args) {
-        if (!args.title || !args.imgId) {
+        if (!args.title || !args.image) {
           return Promise.reject('Title or image is not specified ' + JSON.stringify(args))
         }
-        let imgId = args.imgId;
+        let imgSrc = args.image;
         let titleText = args.title;
         let image = document.getElementById('image')
         let title = document.getElementById('title')
         let textBlock = document.getElementById('text')
         let container = document.getElementById('container')
 
-        let imgSrc = `https://ucarecdn.com/${imgId}/-/crop/640x640/0,0/-/scale_crop/1024x1024/center/-/quality/lighter/-/format/jpeg/-/progressive/yes/`
         image.src = imgSrc
         title.innerText = titleText
 

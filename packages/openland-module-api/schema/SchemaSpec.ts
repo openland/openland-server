@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '27ac813a35c8df22f0edfef2c453b19b';
+export const GQL_SPEC_VERSION = 'de8e8abfead326cf5fc41e4e08254a23';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2771,6 +2771,7 @@ export namespace GQL {
         roomMembers: RoomMember[];
         roomFeaturedMembers: RoomMember[];
         roomMember: Nullable<RoomMember>;
+        roomSocialImage: Nullable<string>;
         betaRoomSearch: RoomConnection;
         betaRoomInviteInfo: Nullable<RoomInvite>;
         betaRoomInviteLink: string;
@@ -3125,6 +3126,9 @@ export namespace GQL {
     export interface QueryRoomMemberArgs {
         roomId: string;
         memberId: string;
+    }
+    export interface QueryRoomSocialImageArgs {
+        roomId: string;
     }
     export interface QueryBetaRoomSearchArgs {
         query: OptionalNullable<string>;
@@ -6183,6 +6187,7 @@ export interface GQLResolver {
             roomMembers: GQL.QueryRoomMembersArgs,
             roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs,
             roomMember: GQL.QueryRoomMemberArgs,
+            roomSocialImage: GQL.QueryRoomSocialImageArgs,
             betaRoomSearch: GQL.QueryBetaRoomSearchArgs,
             betaRoomInviteInfo: GQL.QueryBetaRoomInviteInfoArgs,
             betaRoomInviteLink: GQL.QueryBetaRoomInviteLinkArgs,
