@@ -110,7 +110,10 @@ export default {
 
             let haveAccess = org.kind === 'community' ? true : await Modules.Orgs.isUserMember(ctx, uid, org.id);
             if (!haveAccess) {
-                return [];
+                return {
+                    items: [],
+                    cursor: undefined
+                };
             }
 
             let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, org.id);
