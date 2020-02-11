@@ -211,7 +211,7 @@ extend type Mutation {
     # Subscriptions
     #
 
-    subscriptionCancel(id: ID!): Boolean!
+    subscriptionCancel(id: ID!): WalletSubscription!
 }
 
 extend type Subscription {

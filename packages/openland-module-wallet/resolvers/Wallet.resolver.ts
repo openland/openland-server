@@ -9,6 +9,7 @@ import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSucces
 import { randomKey } from 'openland-utils/random';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { inTx } from '@openland/foundationdb';
 
 export default {
     CreditCard: {
@@ -131,7 +132,7 @@ export default {
     //
     // Subscriptions 
     //
-    
+
     WalletSubscription: {
         id: (src) => src.id,
         amount: (src) => src.amount,
@@ -179,7 +180,7 @@ export default {
     WalletSubscriptionProductDonation: {
         user: (src) => src.type === 'donate' && src.uid
     },
-    
+
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
             let res = (await Store.UserStripeCard.users.findAll(ctx, uid))
@@ -276,15 +277,18 @@ export default {
         // Subscriptions
         //
 
-        subscriptionCancel: withAccount(async (ctx, args, uid) => {
-            let s = await Store.WalletSubscription.findById(ctx, args.id);
-            if (!s) {
-                throw new NotFoundError();
-            }
-            if (s.uid !== uid) {
-                throw new AccessDeniedError();
-            }
-            return Modules.Wallet.subscriptions.tryCancelSubscription(ctx, args.id);
+        subscriptionCancel: withAccount(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                let subscription = await Store.WalletSubscription.findById(ctx, args.id);
+                if (!subscription) {
+                    throw new NotFoundError();
+                }
+                if (subscription.uid !== uid) {
+                    throw new AccessDeniedError();
+                }
+                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, args.id);
+                return subscription;
+            });
         }),
 
     },

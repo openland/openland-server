@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'edf82848d1d8a4be80f03c54b8a42730';
+export const GQL_SPEC_VERSION = '836e7cbad23d1ee5251e1373b331ad3b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1167,7 +1167,7 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         donateToUser: boolean;
-        subscriptionCancel: boolean;
+        subscriptionCancel: WalletSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -5404,6 +5404,7 @@ export interface GQLResolver {
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
+            subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
