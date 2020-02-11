@@ -77,7 +77,7 @@ export default {
             //
             // Users
             //
-            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: true, limit: 10, uid});
+            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid});
 
             //
             // User dialog rooms
