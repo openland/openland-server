@@ -237,6 +237,13 @@ export class StickersRepository {
         });
     }
 
+    getCatalog = async (parent: Context) => {
+        if (isProd) {
+            return DEFAULT_PACK_IDS;
+        }
+        return [];
+    }
+
     private getUserStickersState = async (parent: Context, uid: number) => {
         return inTx(parent,  async ctx => {
             let state = await Store.UserStickersState.findById(ctx, uid);

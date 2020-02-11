@@ -20,6 +20,7 @@ import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
 import { hasMention } from './resolvers/ModernMessage.resolver';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
+import { SocialImageRepository } from './repositories/SocialImageRepository';
 
 @injectable()
 export class MessagingModule {
@@ -33,6 +34,7 @@ export class MessagingModule {
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
     private readonly userDialogs: UserDialogsRepository;
+    private readonly socialImageRepository: SocialImageRepository;
 
     constructor(
         @inject('MessagingMediator') messaging: MessagingMediator,
@@ -44,6 +46,7 @@ export class MessagingModule {
         @inject('NeedNotificationDeliveryRepository') needNotificationDelivery: NeedNotificationDeliveryRepository,
         @inject('UserDialogsRepository') userDialogs: UserDialogsRepository,
         @inject('PremiumChatMediator') proChat: PremiumChatMediator,
+        @inject('SocialImageRepository') socialImageRepository: SocialImageRepository,
     ) {
         this.delivery = delivery;
         this.userState = userState;
@@ -54,6 +57,7 @@ export class MessagingModule {
         this.needNotificationDelivery = needNotificationDelivery;
         this.userDialogs = userDialogs;
         this.premiumChat = proChat;
+        this.socialImageRepository = socialImageRepository;
     }
 
     //
@@ -180,8 +184,12 @@ export class MessagingModule {
         return await this.userState.isChatMuted(ctx, uid, cid);
     }
 
-    onGlobalCounterTypeChanged = async (parent: Context, uid: number) => {
+    async onGlobalCounterTypeChanged(parent: Context, uid: number) {
         return await this.delivery.onGlobalCounterTypeChanged(parent, uid);
+    }
+
+    async getSocialImage(ctx: Context, cid: number) {
+        return await this.socialImageRepository.getRoomSocialImage(ctx, cid);
     }
 
     //
@@ -312,5 +320,9 @@ export class MessagingModule {
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
         await this.delivery.onOrganizationProfileUpdated(ctx, oid);
+    }
+
+    onRoomProfileUpdated = async (ctx: Context, cid: number) => {
+        await this.socialImageRepository.onRoomUpdated(ctx, cid);
     }
 }

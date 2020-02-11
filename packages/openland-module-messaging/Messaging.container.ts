@@ -17,6 +17,7 @@ import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { MentionNotificationsMediator } from './mediators/MentionNotificationsMediator';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { PremiumChatRepository } from './repositories/PremiumChatRepository';
+import { SocialImageRepository } from './repositories/SocialImageRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -37,4 +38,5 @@ export function loadMessagingModule() {
     container.bind('NeedNotificationDeliveryRepository').to(NeedNotificationDeliveryRepository).inSingletonScope();
     container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
     container.bind('MentionNotificationsMediator').to(MentionNotificationsMediator).inSingletonScope();
+    container.bind('SocialImageRepository').to(SocialImageRepository).inSingletonScope();
 }

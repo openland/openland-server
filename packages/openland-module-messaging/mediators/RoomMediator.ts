@@ -14,6 +14,7 @@ import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
 import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 import { Store } from 'openland-module-db/FDB';
+import { SocialImageRepository } from '../repositories/SocialImageRepository';
 
 @injectable()
 export class RoomMediator {
@@ -24,6 +25,8 @@ export class RoomMediator {
     private readonly messaging!: MessagingMediator;
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
+    @lazyInject('SocialImageRepository')
+    private readonly socialImage!: SocialImageRepository;
 
     async isRoomMember(ctx: Context, uid: number, cid: number) {
         return await this.repo.isActiveMember(ctx, uid, cid);
@@ -441,7 +444,9 @@ export class RoomMediator {
                 });
                 await this.delivery.onDialogTitleUpdate(parent, cid, profile.title!);
             }
-
+            if (res.updatedPhoto || res.updatedTitle) {
+                await this.socialImage.onRoomUpdated(ctx, cid);
+            }
             return (await Store.Conversation.findById(ctx, cid))!;
         });
     }

@@ -35,6 +35,7 @@ extend type Query {
     createdStickerPacks: [StickerPack!]!
     stickersByEmoji(emoji: String!): [Sticker!]!
     stickerPack(id: ID!): StickerPack
+    stickerPackCatalog: [StickerPack!]!
 }
 
 extend type Mutation {

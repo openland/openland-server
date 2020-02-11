@@ -173,6 +173,8 @@ extend type Query {
     
     transactionsPending: [WalletTransaction!]!
     transactionsHistory(first: Int!, after: String): WalletTransactionConnection!
+
+    subscriptions: [WalletSubscription!]!
 }
 
 extend type Mutation {
@@ -204,6 +206,12 @@ extend type Mutation {
     #
     
     donateToUser(amount: Int!, id: ID!): Boolean!
+
+    #
+    # Subscriptions
+    #
+
+    subscriptionCancel(id: ID!): WalletSubscription!
 }
 
 extend type Subscription {

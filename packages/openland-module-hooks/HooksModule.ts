@@ -5,7 +5,7 @@ import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/store';
-import { boldString, buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { boldString, buildMessage, orgMention, userMention } from '../openland-utils/MessageBuilder';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -82,14 +82,14 @@ export class HooksModule {
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(boldString('New user – '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} was invited by `), userMention(invitorName, invitorId)),
+                ...buildMessage(userMention(name, conditions.uid), ` from `, orgMention(orgProfile?.name!, oid), ' joined, invited by ', userMention(invitorName, invitorId)),
                 ignoreAugmentation: true,
             });
         } else if (conditions.type === 'ACTIVATED_AUTOMATICALLY') {
             let name = await Modules.Users.getUserFullName(ctx, conditions.uid);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(boldString('New user – '), userMention(name, conditions.uid), boldString(` from ${orgProfile!.name} joined`)),
+                ...buildMessage(userMention(name, conditions.uid), ` from `, orgMention(orgProfile?.name!, oid), ' joined'),
                 ignoreAugmentation: true,
             });
         }
