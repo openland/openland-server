@@ -43,7 +43,7 @@ export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await Store.Conversation.create(ctx, id, { kind: 'room' });
