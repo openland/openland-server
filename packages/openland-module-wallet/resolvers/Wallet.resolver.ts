@@ -7,6 +7,8 @@ import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged } from 'openland-module-db/store';
 import { randomKey } from 'openland-utils/random';
+import { NotFoundError } from 'openland-errors/NotFoundError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 
 export default {
     CreditCard: {
@@ -245,6 +247,22 @@ export default {
             await Modules.Wallet.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
             return true;
         }),
+
+        //
+        // Subscriptions
+        //
+
+        subscriptionCancel: withAccount(async (ctx, args, uid) => {
+            let s = await Store.WalletSubscription.findById(ctx, args.id);
+            if (!s) {
+                throw new NotFoundError();
+            }
+            if (s.uid !== uid) {
+                throw new AccessDeniedError();
+            }
+            return Modules.Wallet.subscriptions.tryCancelSubscription(ctx, args.id);
+        }),
+
     },
 
     //

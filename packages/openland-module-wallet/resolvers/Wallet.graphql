@@ -206,6 +206,12 @@ extend type Mutation {
     #
     
     donateToUser(amount: Int!, id: ID!): Boolean!
+
+    #
+    # Subscriptions
+    #
+
+    subscriptionCancel(id: ID!): Boolean!
 }
 
 extend type Subscription {

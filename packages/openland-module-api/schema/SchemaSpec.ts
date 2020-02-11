@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c4c57e8c7dac0bbcd5c3ea1acb133cde';
+export const GQL_SPEC_VERSION = 'edf82848d1d8a4be80f03c54b8a42730';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1167,6 +1167,7 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         donateToUser: boolean;
+        subscriptionCancel: boolean;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -1570,6 +1571,9 @@ export namespace GQL {
     }
     export interface MutationDonateToUserArgs {
         amount: number;
+        id: string;
+    }
+    export interface MutationSubscriptionCancelArgs {
         id: string;
     }
     export interface MutationAlphaDeleteInviteArgs {
@@ -5534,6 +5538,7 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             donateToUser: GQL.MutationDonateToUserArgs,
+            subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
