@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '11eea8fccbd4e54ce3f5f8c4944da5d8';
+export const GQL_SPEC_VERSION = 'c4c57e8c7dac0bbcd5c3ea1acb133cde';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2645,6 +2645,7 @@ export namespace GQL {
         myWallet: WalletAccount;
         transactionsPending: WalletTransaction[];
         transactionsHistory: WalletTransactionConnection;
+        subscriptions: WalletSubscription[];
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
@@ -5981,6 +5982,7 @@ export interface GQLResolver {
             myWallet: GQLRoots.WalletAccountRoot,
             transactionsPending: GQLRoots.WalletTransactionRoot[],
             transactionsHistory: GQLRoots.WalletTransactionConnectionRoot,
+            subscriptions: GQLRoots.WalletSubscriptionRoot[],
             alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,

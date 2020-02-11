@@ -173,6 +173,8 @@ extend type Query {
     
     transactionsPending: [WalletTransaction!]!
     transactionsHistory(first: Int!, after: String): WalletTransactionConnection!
+
+    subscriptions: [WalletSubscription!]!
 }
 
 extend type Mutation {

@@ -180,6 +180,14 @@ export default {
                 items: res.items,
                 cursor: res.cursor ? IDs.WalletTransactionsCursor.serialize(res.cursor) : null
             };
+        }),
+
+        //
+        // Sybscriptions
+        //
+
+        subscriptions: withAccount(async (ctx, args, uid) => {
+            return await Store.WalletSubscription.user.findAll(ctx, uid);
         })
     },
     Mutation: {
