@@ -48,7 +48,8 @@ export default {
                 if (!auth.uid) {
                     throw new AccessDeniedError();
                 }
-                await Modules.Messaging.room.checkCanUserSeeChat(ctx, auth.uid, src.peerId);
+                // should be covered by Room.resolver
+                // await Modules.Messaging.room.checkCanUserSeeChat(ctx, auth.uid, src.peerId);
                 return await Store.ConversationRoom.findById(ctx, src.peerId);
             }
             throw new Error(`Invalid peer type: ${src.peerType}`);
