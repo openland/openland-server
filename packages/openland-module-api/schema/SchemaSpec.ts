@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2af4f6146aeb64519cb4f7382fca7fd4';
+export const GQL_SPEC_VERSION = '39b7e9a4eb966b78879dde7fe9615a72';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3796,7 +3796,7 @@ export namespace GQL {
         premiumPassIsActive: boolean;
         premiumSubscription: Nullable<WalletSubscription>;
         premiumSettings: Nullable<PremiumChatSettings>;
-        owner: User;
+        owner: Nullable<User>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
@@ -6923,7 +6923,7 @@ export interface GQLResolver {
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
             premiumSubscription: Nullable<GQLRoots.WalletSubscriptionRoot>,
             premiumSettings: Nullable<GQLRoots.PremiumChatSettingsRoot>,
-            owner: GQLRoots.UserRoot,
+            owner: Nullable<GQLRoots.UserRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
