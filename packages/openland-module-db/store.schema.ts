@@ -1698,7 +1698,7 @@ export default declareSchema(() => {
     entity('Wallet', () => {
         primaryKey('uid', integer());
         field('balance', integer());
-        field('balanceLocked', optional(integer()));
+        field('balanceLocked', integer());
     });
 
     entity('WalletTransaction', () => {
@@ -1726,7 +1726,13 @@ export default declareSchema(() => {
             'transfer_in': struct({
                 amount: integer(),
                 fromUser: integer()
-            })
+            }),
+            'purchase': struct({
+                walletAmount: integer(),
+                chargeAmount: integer(),
+                purchase: string(),
+                payment: PaymentReference
+            }),
         }));
 
         rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');
@@ -1744,6 +1750,32 @@ export default declareSchema(() => {
         primaryKey('toUid', integer());
         primaryKey('retryKey', string());
         field('pid', optional(string()));
+    });
+
+    entity('WalletPurchase', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+
+        // Product
+        field('amount', integer());
+        field('product', union({
+            'group': struct({
+                gid: integer()
+            }),
+            'donate': struct({
+                uid: integer()
+            })
+        }));
+        field('state', enumString('pending', 'canceled', 'success'));
+        field('succeededAt', optional(integer()));
+
+        // Payment
+        field('lockedAmount', integer());
+        field('pid', optional(string()));
+
+        // Indexes
+        rangeIndex('user', ['uid', 'createdAt']);
+        rangeIndex('userSuccess', ['uid', 'createdAt']).withCondition((s) => s.state === 'success');
     });
 
     entity('WalletSubscription', () => {
@@ -1792,6 +1824,9 @@ export default declareSchema(() => {
             uid: integer()
         }),
         'payment': struct({
+            id: string()
+        }),
+        'purchase': struct({
             id: string()
         })
     });

@@ -213,7 +213,7 @@ export class SubscriptionsRepository {
     private createPeriod = async (parent: Context, id: string, index: number, uid: number, amount: number, start: number) => {
         await inTx(parent, async (ctx) => {
             // Wallet transaction
-            let walletBalance = (await this.wallet.getWallet(ctx, uid)).balance;
+            let walletBalance = await this.wallet.getAvailableBalance(ctx, uid);
             let amounts = paymentAmounts(walletBalance, amount);
 
             if (amounts.charge === 0) {

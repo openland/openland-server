@@ -1,9 +1,11 @@
+import { WalletPurchaseCreateShape } from './../../openland-module-db/store';
 import { WalletRepository } from './WalletRepository';
 import { Context } from '@openland/context';
 import { Store, PaymentIntentCreateShape, PaymentCreateShape } from '../../openland-module-db/store';
 import { SubscriptionsRepository } from './SubscriptionsRepository';
 import { Modules } from 'openland-modules/Modules';
 import { PaymentsRepository } from './PaymentsRepository';
+import { PurchaseRepository } from './PurchaseRepository';
 
 export class RoutingRepositoryImpl {
 
@@ -11,12 +13,14 @@ export class RoutingRepositoryImpl {
     readonly wallet: WalletRepository;
     readonly payments: PaymentsRepository;
     readonly subscriptions: SubscriptionsRepository;
+    readonly purchases: PurchaseRepository;
 
-    constructor(store: Store, wallet: WalletRepository, payments: PaymentsRepository, subscriptions: SubscriptionsRepository) {
+    constructor(store: Store, wallet: WalletRepository, payments: PaymentsRepository, subscriptions: SubscriptionsRepository, purchases: PurchaseRepository) {
         this.store = store;
         this.wallet = wallet;
         this.payments = payments;
         this.subscriptions = subscriptions;
+        this.purchases = purchases;
     }
 
     //
@@ -79,12 +83,12 @@ export class RoutingRepositoryImpl {
     // Purchase Events
     //
 
-    onPurchaseSuccessful = async (ctx: Context, id: string) => {
-        //
+    onPurchaseSuccessful = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        // TODO: Implement
     }
 
-    onPurchaseCanceled = async (ctx: Context, id: string) => {
-        //
+    onPurchaseCanceled = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        // TODO: Implement
     }
 
     //
@@ -177,6 +181,8 @@ export class RoutingRepositoryImpl {
             await this.wallet.depositInstant(ctx, operation.uid, amount);
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentIntentSuccess(ctx, operation.id);
+        } else if (operation.type === 'purchase') {
+            await this.purchases.onPurchaseSuccessful(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -187,6 +193,8 @@ export class RoutingRepositoryImpl {
             // Nothing To Do
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentIntentCanceled(ctx, operation.id);
+        } else if (operation.type === 'purchase') {
+            await this.purchases.onPurchaseCanceled(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -197,6 +205,8 @@ export class RoutingRepositoryImpl {
             // Nothing To Do
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentActionRequired(ctx, operation.id);
+        } else if (operation.type === 'purchase') {
+            // Nothing To Do
         } else {
             throw Error('Unknown operation type');
         }
@@ -207,6 +217,8 @@ export class RoutingRepositoryImpl {
             // Nothing To Do
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentFailing(ctx, operation.id);
+        } else if (operation.type === 'purchase') {
+            // Nothing To Do
         } else {
             throw Error('Unknown operation type');
         }

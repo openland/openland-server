@@ -83,6 +83,7 @@ export const IDs = {
     PaidSubscription: IdsFactory.createStringId('PaidSubscription'),
 
     Payment: IdsFactory.createStringId('Payment'),
+    Purchase: IdsFactory.createStringId('Purchase'),
 
     PermissionGroup: IdsFactory.createId('PermissionGroup'),
     PermissionRequest: IdsFactory.createStringId('PermissionRequest')

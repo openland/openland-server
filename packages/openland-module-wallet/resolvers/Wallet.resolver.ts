@@ -129,6 +129,18 @@ export default {
         }
     },
 
+    Purchase: {
+        id: (src) => IDs.Purchase.serialize(src.id),
+        state: (src) => src.state === 'success' ? 'COMPLETED' : (src.state === 'pending' ? 'PENDING' : 'CANCELED'),
+        intent: async (src, args, ctx) => {
+            if (src.state === 'pending') {
+                return (await Modules.Wallet.paymentsMediator.stripe.paymentIntents.retrieve(src.pid!));
+            }
+
+            return null;
+        }
+    },
+
     //
     // Subscriptions 
     //
@@ -271,6 +283,18 @@ export default {
             // });
             await Modules.Wallet.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
             return true;
+        }),
+        donateToUser2: withAccount(async (ctx, args, uid) => {
+            // Transactional Part
+            let res = await Modules.Wallet.createPurchase(ctx, uid, args.amount, { type: 'donate', uid: IDs.User.parse(args.id) });
+
+            // Non-transactional Part
+            await Modules.Wallet.paymentsMediator.tryCreatePurchaseIntent(ctx, uid, res.id, res.amount - res.lockedAmount);
+
+            // Reload latest state
+            res = (await Store.WalletPurchase.findById(ctx, res.id))!;
+
+            return res;
         }),
 
         //

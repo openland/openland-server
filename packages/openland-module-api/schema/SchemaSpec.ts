@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9502fd55239cc1c67b3ae3898a74046e';
+export const GQL_SPEC_VERSION = 'b99c3abcc9693604710c07a5b7794801';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -396,6 +396,12 @@ export namespace GQL {
         user: User;
     }
     export type WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation;
+    export type PurchaseState = 'PENDING' | 'COMPLETED' | 'CANCELED';
+    export interface Purchase {
+        id: string;
+        state: PurchaseState;
+        intent: Nullable<PaymentIntent>;
+    }
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -1167,6 +1173,7 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         donateToUser: boolean;
+        donateToUser2: Purchase;
         subscriptionCancel: WalletSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
@@ -1570,6 +1577,10 @@ export namespace GQL {
         id: string;
     }
     export interface MutationDonateToUserArgs {
+        amount: number;
+        id: string;
+    }
+    export interface MutationDonateToUser2Args {
         amount: number;
         id: string;
     }
@@ -4358,6 +4369,15 @@ export interface GQLResolver {
         }
     >;
     WalletSubscriptionProduct?: UnionTypeResolver<GQLRoots.WalletSubscriptionProductRoot, 'WalletSubscriptionProductGroup' | 'WalletSubscriptionProductDonation'>;
+    Purchase?: ComplexTypedResolver<
+        GQL.Purchase,
+        GQLRoots.PurchaseRoot,
+        {
+            intent: Nullable<GQLRoots.PaymentIntentRoot>,
+        },
+        {
+        }
+    >;
     WalletUpdateSingle?: ComplexTypedResolver<
         GQL.WalletUpdateSingle,
         GQLRoots.WalletUpdateSingleRoot,
@@ -5405,6 +5425,7 @@ export interface GQLResolver {
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
+            donateToUser2: GQLRoots.PurchaseRoot,
             subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
@@ -5540,6 +5561,7 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             donateToUser: GQL.MutationDonateToUserArgs,
+            donateToUser2: GQL.MutationDonateToUser2Args,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
