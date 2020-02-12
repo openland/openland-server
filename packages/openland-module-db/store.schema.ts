@@ -229,7 +229,7 @@ export default declareSchema(() => {
     entity('PremiumChatSettings', () => {
         primaryKey('id', integer());
         field('price', integer());
-        field('interval', enumString('week', 'month'));
+        field('interval', optional(enumString('week', 'month')));
     });
 
     entity('PremiumChatUserPass', () => {

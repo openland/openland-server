@@ -3564,12 +3564,12 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
 export interface PremiumChatSettingsShape {
     id: number;
     price: number;
-    interval: 'week' | 'month';
+    interval: 'week' | 'month' | null;
 }
 
 export interface PremiumChatSettingsCreateShape {
     price: number;
-    interval: 'week' | 'month';
+    interval?: 'week' | 'month' | null | undefined;
 }
 
 export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
@@ -3583,8 +3583,8 @@ export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
             this.invalidate();
         }
     }
-    get interval(): 'week' | 'month' { return this._rawValue.interval; }
-    set interval(value: 'week' | 'month') {
+    get interval(): 'week' | 'month' | null { return this._rawValue.interval; }
+    set interval(value: 'week' | 'month' | null) {
         let normalized = this.descriptor.codec.fields.interval.normalize(value);
         if (this._rawValue.interval !== normalized) {
             this._rawValue.interval = normalized;
@@ -3603,11 +3603,11 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'interval', type: { type: 'enum', values: ['week', 'month'] }, secure: false });
+        fields.push({ name: 'interval', type: { type: 'optional', inner: { type: 'enum', values: ['week', 'month'] } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             price: c.integer,
-            interval: c.enum('week', 'month'),
+            interval: c.optional(c.enum('week', 'month')),
         });
         let descriptor: EntityDescriptor<PremiumChatSettingsShape> = {
             name: 'PremiumChatSettings',

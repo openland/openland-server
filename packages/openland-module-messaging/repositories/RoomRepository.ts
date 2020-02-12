@@ -65,7 +65,7 @@ export class RoomRepository {
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
                     price,
-                    interval: interval || 'month',
+                    interval: interval,
                 });
             }
             await this.createRoomParticipant(ctx, id, uid, {

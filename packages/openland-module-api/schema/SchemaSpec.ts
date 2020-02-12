@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '39b7e9a4eb966b78879dde7fe9615a72';
+export const GQL_SPEC_VERSION = '9502fd55239cc1c67b3ae3898a74046e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3807,7 +3807,7 @@ export namespace GQL {
     export interface PremiumChatSettings {
         id: string;
         price: number;
-        interval: WalletSubscriptionInterval;
+        interval: Nullable<WalletSubscriptionInterval>;
     }
     export interface RoomSuper {
         id: string;

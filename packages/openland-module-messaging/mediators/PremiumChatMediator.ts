@@ -31,6 +31,9 @@ export class PremiumChatMediator {
             if (!paidChatSettings) {
                 throw new Error('Inconsistent state - chat is paid, but no payment settings found');
             }
+            if (!paidChatSettings.interval) {
+                throw new Error('You are trying to create subscription for one-time pay group');
+            }
 
             let userPass = await Store.PremiumChatUserPass.findById(ctx, chat.id, uid);
             if (userPass) {
@@ -52,7 +55,7 @@ export class PremiumChatMediator {
         });
     }
 
-    async alterProChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | false) {
+    async alterProChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | boolean) {
         return inTx(parent, async (ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {

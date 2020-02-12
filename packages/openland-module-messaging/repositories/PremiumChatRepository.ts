@@ -8,14 +8,14 @@ import { Store } from 'openland-module-db/FDB';
 @injectable()
 export class PremiumChatRepository {
     @lazyInject('RoomRepository') private readonly room!: RoomRepository;
-    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | false, forcePass?: boolean) {
+    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | boolean) {
         return await inTx(parent, async (ctx) => {
-            let isActive = !!(activeSubscription || forcePass);
+            let isActive = !!activeSubscription;
             let pass = await Store.PremiumChatUserPass.findById(ctx, cid, uid);
             if (!pass) {
                 pass = await Store.PremiumChatUserPass.create(ctx, cid, uid, { isActive });
             }
-            if (activeSubscription) {
+            if (typeof activeSubscription === 'string') {
                 pass.sid = activeSubscription;
             }
             pass.isActive = isActive;

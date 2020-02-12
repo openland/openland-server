@@ -75,7 +75,7 @@ type SharedRoom {
 type PremiumChatSettings {
     id: ID!
     price: Int!
-    interval: WalletSubscriptionInterval!
+    interval: WalletSubscriptionInterval
 }
 
 
