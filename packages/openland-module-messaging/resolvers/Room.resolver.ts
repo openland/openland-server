@@ -249,6 +249,10 @@ export default {
         myBadge: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)), null),
         featuredMembersCount: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length), 0),
         matchmaking: withAuthFallback(withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')), null),
+        owner: withAuthFallback(withConverationId(async (ctx, id) => {
+            let room = await Store.ConversationRoom.findById(ctx, id);
+            return room && room.ownerId;
+        }), null),
     },
     RoomMessage: {
         id: (src: Message) => {

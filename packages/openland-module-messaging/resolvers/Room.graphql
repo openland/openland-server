@@ -68,6 +68,8 @@ type SharedRoom {
     premiumPassIsActive: Boolean!
     premiumSubscription: WalletSubscription
     premiumSettings: PremiumChatSettings
+
+    owner: User
 }
 
 type PremiumChatSettings {
