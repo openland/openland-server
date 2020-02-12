@@ -13547,10 +13547,12 @@ export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, Us
 export interface WalletShape {
     uid: number;
     balance: number;
+    balanceLocked: number | null;
 }
 
 export interface WalletCreateShape {
     balance: number;
+    balanceLocked?: number | null | undefined;
 }
 
 export class Wallet extends Entity<WalletShape> {
@@ -13561,6 +13563,15 @@ export class Wallet extends Entity<WalletShape> {
         if (this._rawValue.balance !== normalized) {
             this._rawValue.balance = normalized;
             this._updatedValues.balance = normalized;
+            this.invalidate();
+        }
+    }
+    get balanceLocked(): number | null { return this._rawValue.balanceLocked; }
+    set balanceLocked(value: number | null) {
+        let normalized = this.descriptor.codec.fields.balanceLocked.normalize(value);
+        if (this._rawValue.balanceLocked !== normalized) {
+            this._rawValue.balanceLocked = normalized;
+            this._updatedValues.balanceLocked = normalized;
             this.invalidate();
         }
     }
@@ -13575,9 +13586,11 @@ export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'balance', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'balanceLocked', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             balance: c.integer,
+            balanceLocked: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<WalletShape> = {
             name: 'Wallet',

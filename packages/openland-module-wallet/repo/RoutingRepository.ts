@@ -76,6 +76,18 @@ export class RoutingRepositoryImpl {
     }
 
     //
+    // Purchase Events
+    //
+
+    onPurchaseSuccessful = async (ctx: Context, id: string) => {
+        //
+    }
+
+    onPurchaseCanceled = async (ctx: Context, id: string) => {
+        //
+    }
+
+    //
     // Subscription Events
     //
 
