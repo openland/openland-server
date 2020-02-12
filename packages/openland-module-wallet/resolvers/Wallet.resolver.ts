@@ -7,6 +7,9 @@ import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged } from 'openland-module-db/store';
 import { randomKey } from 'openland-utils/random';
+import { NotFoundError } from 'openland-errors/NotFoundError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { inTx } from '@openland/foundationdb';
 
 export default {
     CreditCard: {
@@ -50,34 +53,6 @@ export default {
             throw Error('Unknown transaction status: ' + src.status);
         },
         operation: (src) => src.operation
-    },
-
-    WalletSubscription: {
-        id: (src) => src.id,
-        amount: (src) => src.amount,
-        state: (src) => {
-            if (src.state === 'started') {
-                return 'STARTED';
-            } else if (src.state === 'grace_period') {
-                return 'GRACE_PERIOD';
-            } else if (src.state === 'retrying') {
-                return 'RETRYING';
-            } else if (src.state === 'canceled') {
-                return 'CANCELED';
-            } else if (src.state === 'expired') {
-                return 'EXPIRED';
-            }
-            throw Error('Unknown subscription state: ' + src.state);
-        },
-        interval: (src) => {
-            if (src.interval === 'month') {
-                return 'MONTH';
-            } else if (src.interval === 'week') {
-                return 'WEEK';
-            }
-            throw Error('Unknown subscription interval: ' + src.interval);
-        },
-        expires: async (src, arg, ctx) => await Modules.Wallet.subscriptions.resolveSubscriptionExpires(ctx, src.id)
     },
 
     //
@@ -154,6 +129,58 @@ export default {
         }
     },
 
+    //
+    // Subscriptions 
+    //
+
+    WalletSubscription: {
+        id: (src) => src.id,
+        amount: (src) => src.amount,
+        state: (src) => {
+            if (src.state === 'started') {
+                return 'STARTED';
+            } else if (src.state === 'grace_period') {
+                return 'GRACE_PERIOD';
+            } else if (src.state === 'retrying') {
+                return 'RETRYING';
+            } else if (src.state === 'canceled') {
+                return 'CANCELED';
+            } else if (src.state === 'expired') {
+                return 'EXPIRED';
+            }
+            throw Error('Unknown subscription state: ' + src.state);
+        },
+        interval: (src) => {
+            if (src.interval === 'month') {
+                return 'MONTH';
+            } else if (src.interval === 'week') {
+                return 'WEEK';
+            }
+            throw Error('Unknown subscription interval: ' + src.interval);
+        },
+        product: (src) => src.proudct,
+        expires: async (src, arg, ctx) => await Modules.Wallet.subscriptions.resolveSubscriptionExpires(ctx, src.id)
+    },
+
+    WalletSubscriptionProduct: {
+        __resolveType: (src) => {
+            if (src.type === 'group') {
+                return 'WalletSubscriptionProductGroup';
+            } else if (src.type === 'donate') {
+                return 'WalletSubscriptionProductDonation';
+            }
+            throw Error('Unknown product type: ' + (src as any /* Fuck you, ts */).type);
+        }
+    },
+
+    WalletSubscriptionProductGroup: {
+        group: (src) => src.type === 'group' && src.gid
+    },
+
+    WalletSubscriptionProductDonation: {
+        user: (src) => src.type === 'donate' && src.uid
+    },
+
     Query: {
         myCards: withAccount(async (ctx, args, uid) => {
             let res = (await Store.UserStripeCard.users.findAll(ctx, uid))
@@ -180,6 +207,14 @@ export default {
                 items: res.items,
                 cursor: res.cursor ? IDs.WalletTransactionsCursor.serialize(res.cursor) : null
             };
+        }),
+
+        //
+        // Sybscriptions
+        //
+
+        subscriptions: withAccount(async (ctx, args, uid) => {
+            return await Store.WalletSubscription.user.findAll(ctx, uid);
         })
     },
     Mutation: {
@@ -237,6 +272,25 @@ export default {
             await Modules.Wallet.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
             return true;
         }),
+
+        //
+        // Subscriptions
+        //
+
+        subscriptionCancel: withAccount(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                let subscription = await Store.WalletSubscription.findById(ctx, args.id);
+                if (!subscription) {
+                    throw new NotFoundError();
+                }
+                if (subscription.uid !== uid) {
+                    throw new AccessDeniedError();
+                }
+                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, args.id);
+                return subscription;
+            });
+        }),
+
     },
 
     //

@@ -120,7 +120,7 @@ export class PremiumChatMediator {
      * Subscription ended
      */
     onSubscriptionExpired = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        await this.alterProChatUserPass(ctx, cid, uid, sid);
+        await this.alterProChatUserPass(ctx, cid, uid, false);
     }
 
     /**

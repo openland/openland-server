@@ -1763,7 +1763,7 @@ export default declareSchema(() => {
         field('state', enumString('started', 'grace_period', 'retrying', 'canceled', 'expired'));
 
         rangeIndex('active', ['id']).withCondition((s) => s.state !== 'expired');
-        rangeIndex('user', ['uid']);
+        rangeIndex('user', ['uid', 'createdAt']);
     });
 
     entity('WalletSubscriptionScheduling', () => {

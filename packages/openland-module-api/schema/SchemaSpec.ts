@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '11eea8fccbd4e54ce3f5f8c4944da5d8';
+export const GQL_SPEC_VERSION = '836e7cbad23d1ee5251e1373b331ad3b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1167,6 +1167,7 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         donateToUser: boolean;
+        subscriptionCancel: WalletSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
@@ -1570,6 +1571,9 @@ export namespace GQL {
     }
     export interface MutationDonateToUserArgs {
         amount: number;
+        id: string;
+    }
+    export interface MutationSubscriptionCancelArgs {
         id: string;
     }
     export interface MutationAlphaDeleteInviteArgs {
@@ -2645,6 +2649,7 @@ export namespace GQL {
         myWallet: WalletAccount;
         transactionsPending: WalletTransaction[];
         transactionsHistory: WalletTransactionConnection;
+        subscriptions: WalletSubscription[];
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
@@ -5399,6 +5404,7 @@ export interface GQLResolver {
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
+            subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
@@ -5533,6 +5539,7 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             donateToUser: GQL.MutationDonateToUserArgs,
+            subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
@@ -5981,6 +5988,7 @@ export interface GQLResolver {
             myWallet: GQLRoots.WalletAccountRoot,
             transactionsPending: GQLRoots.WalletTransactionRoot[],
             transactionsHistory: GQLRoots.WalletTransactionConnectionRoot,
+            subscriptions: GQLRoots.WalletSubscriptionRoot[],
             alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,

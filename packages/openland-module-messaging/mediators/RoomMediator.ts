@@ -41,7 +41,7 @@ export class RoomMediator {
         return conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
     }
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
             if (oid) {
                 let isMember = await Modules.Orgs.isUserMember(ctx, uid, oid);
