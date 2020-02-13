@@ -8,19 +8,19 @@ import { inTx } from '@openland/foundationdb';
 import { InvalidInputError } from '../openland-errors/InvalidInputError';
 import { IDs } from 'openland-module-api/IDs';
 
-export default {
+export const Resolver: GQLResolver = {
     OauthApp: {
-        clientId: withPermission('super-admin', (ctx, args, root) => root.clientId),
-        clientSecret: withPermission('super-admin', (ctx, args, root) => root.clientSecret),
-        owner: (root, args, ctx) => Store.UserProfile.findById(ctx, root.uid),
-        scopes: withPermission('super-admin', (ctx, args, root) => root.allowedScopes),
-        redirectUrls: withPermission('super-admin', (ctx, args, root) => root.allowedRedirectUrls),
+        clientId: withPermission('super-admin', async (ctx, args, root) => root.clientId),
+        clientSecret: withPermission('super-admin', async (ctx, args, root) => root.clientSecret),
+        owner: async (root, args, ctx) => (await Store.UserProfile.findById(ctx, root.uid))!,
+        scopes: withPermission('super-admin', async (ctx, args, root) => root.allowedScopes),
+        redirectUrls: withPermission('super-admin', async (ctx, args, root) => root.allowedRedirectUrls),
         title: root => root.title,
         image: root => root.image,
         id: root => IDs.OauthApp.serialize(root.id),
     },
     OauthContext: {
-        app: (root, args, ctx) => Store.OauthApplication.byClientId.find(ctx, root.clientId),
+        app: async (root, args, ctx) => (await Store.OauthApplication.byClientId.find(ctx, root.clientId))!,
         code: root => root.code,
         redirectUrl: root => root.redirectUrl,
         state: root => root.state,
@@ -75,4 +75,4 @@ export default {
             );
         }),
     },
-} as GQLResolver;
+};
