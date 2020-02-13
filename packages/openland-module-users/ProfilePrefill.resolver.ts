@@ -1,11 +1,11 @@
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         myProfilePrefill: async (r, args, ctx) => {
             if (!ctx.auth.uid) {
-                return {};
+                return null;
             }
             let prefill = await Modules.Users.findProfilePrefill(ctx, ctx.auth.uid);
             if (prefill) {
@@ -15,8 +15,8 @@ export default {
                     picture: prefill.picture,
                 };
             } else {
-                return {};
+                return null;
             }
         },
     }
-} as GQLResolver;
+};
