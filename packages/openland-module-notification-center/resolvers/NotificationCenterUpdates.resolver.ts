@@ -7,8 +7,9 @@ import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import UpdatedNotificationContentRoot = GQLRoots.UpdatedNotificationContentRoot;
+import CommentsPeerRoot = GQLRoots.CommentsPeerRoot;
 
-export default {
+export const Resolver: GQLResolver = {
     NotificationCenterUpdateContainer: {
         __resolveType(obj: NotificationCenterUpdateContainerRoot) {
             if (obj.items.length === 1) {
@@ -20,14 +21,14 @@ export default {
     },
     NotificationCenterUpdateSingle: {
         seq: src => src.items[0].seq,
-        state: src => src.cursor,
+        state: src => src.cursor || '',
         update: src => src.items[0],
     },
     NotificationCenterUpdateBatch: {
         updates: src => src.items,
         fromSeq: src => src.items[0].seq,
         seq: src => src.items[src.items.length - 1].seq,
-        state: src => src.cursor
+        state: src => src.cursor || ''
     },
     NotificationCenterUpdate: {
         __resolveType(obj: NotificationCenterEvent) {
@@ -55,31 +56,31 @@ export default {
     },
 
     NotificationReceived: {
-        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
-        notification: async (src, args, ctx) => await Store.Notification.findById(ctx, src.notificationId!),
+        center: async (src, args, ctx) => (await Store.NotificationCenter.findById(ctx, src.ncid))!,
+        notification: async (src, args, ctx) => (await Store.Notification.findById(ctx, src.notificationId!))!,
         unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationRead: {
-        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
+        center: async (src, args, ctx) => (await Store.NotificationCenter.findById(ctx, src.ncid))!,
         unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationDeleted: {
-        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
-        notification: async (src, args, ctx) => await Store.Notification.findById(ctx, src.notificationId!),
+        center: async (src, args, ctx) => (await Store.NotificationCenter.findById(ctx, src.ncid))!,
+        notification: async (src, args, ctx) => (await Store.Notification.findById(ctx, src.notificationId!))!,
         unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationUpdated: {
-        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
-        notification: async (src, args, ctx) => await Store.Notification.findById(ctx, src.notificationId!),
+        center: async (src, args, ctx) => (await Store.NotificationCenter.findById(ctx, src.ncid))!,
+        notification: async (src, args, ctx) => (await Store.Notification.findById(ctx, src.notificationId!))!,
         unread: async (src, args, ctx) => await Store.NotificationCenterCounter.byId(src.ncid).get(ctx)
     },
     NotificationContentUpdated: {
-        center: async (src, args, ctx) => await Store.NotificationCenter.findById(ctx, src.ncid),
-        content: async (src, args, ctx) => src.updatedContent
+        center: async (src, args, ctx) => (await Store.NotificationCenter.findById(ctx, src.ncid))!,
+        content: async (src, args, ctx) => src.updatedContent!
     },
     UpdatedNotificationContentComment: {
-        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!) }),
-        comment: async (src, args, ctx) => src.commentId && await Store.Comment.findById(ctx, src.commentId)
+        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!) } as CommentsPeerRoot),
+        comment: async (src, args, ctx) => src.commentId ? (await Store.Comment.findById(ctx, src.commentId))! : null
     },
 
     Subscription: {
@@ -99,4 +100,4 @@ export default {
         }
     }
 
-} as GQLResolver;
+};
