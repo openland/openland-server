@@ -13,7 +13,7 @@ import { AppContext } from '../../openland-modules/AppContext';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
 
-export default {
+export const Resolver: GQLResolver = {
     ChatUpdateContainer: {
         __resolveType(obj: ChatUpdateContainerRoot) {
             if (obj.items.length === 1) {
@@ -56,7 +56,7 @@ export default {
         by: src => (src as ChatUpdatedEvent).uid
     },
     ChatMessageReceived: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         repeatKey: async (src, args, ctx) => {
             let msg = await Store.Message.findById(ctx, src.mid);
             if (msg) {
@@ -66,10 +66,10 @@ export default {
         }
     },
     ChatMessageUpdated: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
     },
     ChatMessageDeleted: {
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
     },
     ChatLostAccess: {
         lostAccess: () => true
@@ -181,4 +181,4 @@ export default {
             }
         },
     },
-} as GQLResolver;
+};
