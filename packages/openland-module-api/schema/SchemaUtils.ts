@@ -28,6 +28,6 @@ export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMa
         T[P] extends Nullable<object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> :  Resolver<Root, ArgTypesMap[P], AppContext, T[P]>
 };
 
-export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends { [P in keyof T]: any }> = {
+export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
     [P in keyof T]?: (T[P] extends Nullable<object | object[]> ? SubscriptionResolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> : SubscriptionResolver<Root, ArgTypesMap[P], AppContext, T[P]>)
 };

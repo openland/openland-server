@@ -179,7 +179,7 @@ export namespace GQLRoots {
     export type GroupChatUpdateResponseRoot = any;
     export type ConversationUpdateResponseRoot = any;
     export type ConversationBlockedUserRoot = any;
-    export type ProfileRoot = UserProfile | User;
+    export type ProfileRoot = UserProfile;
     export type AlphaSignupDataRoot = any;
     export type InviteRoot = any;
     export type ResolveInviteEntryRoot = { type: 'org' | 'chat' | 'app' };
@@ -252,7 +252,7 @@ export namespace GQLRoots {
     export type PostRespondServiceMetadataRoot = any;
 
     export type PremiumChatSettingsRoot = PremiumChatSettings;
-    
+
     //
     // Apps
     //
