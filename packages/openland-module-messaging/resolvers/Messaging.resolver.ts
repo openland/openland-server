@@ -7,7 +7,7 @@ import { Store } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
-export default {
+export const Resolver: GQLResolver = {
     Mutation: {
         roomRead: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
@@ -128,4 +128,4 @@ export default {
             return true;
         }),
     }
-} as GQLResolver;
+};
