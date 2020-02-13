@@ -3,7 +3,7 @@ import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
 
-export default {
+export const Resolver: GQLResolver = {
     UserLocation: {
         id: root => IDs.User.serialize(root.uid),
         user: root => root.uid,
@@ -27,4 +27,4 @@ export default {
     //         }
     //     }
     // }
-} as GQLResolver;
+};
