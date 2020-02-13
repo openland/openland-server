@@ -13,7 +13,7 @@ import {
 } from '../../openland-module-db/store';
 import { IDs } from '../../openland-module-api/IDs';
 
-export default {
+export const Resolver: GQLResolver = {
     FeedUpdateContainer: {
         updates: src => src.items,
         state: src => IDs.FeedUpdatesCursor.serialize(src.cursor || '')
@@ -34,13 +34,13 @@ export default {
         }
     },
     FeedItemReceived: {
-        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
+        item: async (src, args, ctx) => (await Store.FeedEvent.findById(ctx, src.itemId))!
     },
     FeedItemUpdated: {
-        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
+        item: async (src, args, ctx) => (await Store.FeedEvent.findById(ctx, src.itemId))!
     },
     FeedItemDeleted: {
-        item: (src, args, ctx) => Store.FeedEvent.findById(ctx, src.itemId)
+        item: async (src, args, ctx) => (await Store.FeedEvent.findById(ctx, src.itemId))!
     },
     FeedRebuildNeeded: {
         homeFeed: async (src, args, ctx) => {
@@ -83,4 +83,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};
